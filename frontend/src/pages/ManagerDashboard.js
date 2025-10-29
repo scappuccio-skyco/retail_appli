@@ -352,6 +352,16 @@ export default function ManagerDashboard({ user, onLogout }) {
           onSuccess={handleInviteSuccess}
         />
       )}
+
+      {showKPIConfigModal && (
+        <KPIConfigModal
+          onClose={() => setShowKPIConfigModal(false)}
+          onSuccess={() => {
+            setShowKPIConfigModal(false);
+            fetchData();
+          }}
+        />
+      )}
     </div>
   );
 }
