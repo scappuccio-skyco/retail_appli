@@ -182,27 +182,27 @@ export default function DebriefModal({ onClose, onSuccess }) {
           </button>
         </div>
 
-        {/* Progress */}
-        <div className="px-6 pt-4 flex-shrink-0">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className={`w-3 h-3 rounded-full ${step === 1 ? 'bg-[#ffd871]' : 'bg-gray-300'}`} />
-            <div className="w-12 h-1 bg-gray-200" />
-            <div className={`w-3 h-3 rounded-full ${step === 2 ? 'bg-[#ffd871]' : 'bg-gray-300'}`} />
+        {/* Progress Bar - Sticky */}
+        <div className="px-6 pt-4 pb-2 border-b border-gray-100 flex-shrink-0 bg-white sticky top-0 z-10">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-gray-700">
+              {answeredCount()} / 9 questions répondues
+            </p>
+            <p className="text-sm text-gray-600">
+              {Math.round((answeredCount() / 9) * 100)}%
+            </p>
           </div>
-          <p className="text-center text-sm text-gray-600 mb-4">
-            Étape {step} sur 2 : {step === 1 ? 'Contexte rapide' : 'Analyse personnelle'}
-          </p>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-[#ffd871] h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(answeredCount() / 9) * 100}%` }}
+            />
+          </div>
         </div>
 
         {/* Form Content - Scrollable */}
-        <div className="px-6 overflow-y-auto flex-1">
-          {/* Step 1 */}
-          <div 
-            className="space-y-6 pb-6"
-            style={{ 
-              display: step === 1 ? 'block' : 'none'
-            }}
-          >
+        <div className="px-6 py-6 overflow-y-auto flex-1">
+          <div className="space-y-6">{/* All questions in one view */}
             {/* Type de client */}
             <div>
               <label className="block text-sm font-semibold text-gray-800 mb-3">
