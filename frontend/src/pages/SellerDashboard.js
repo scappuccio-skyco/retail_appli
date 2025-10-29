@@ -23,12 +23,12 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [taskResponse, setTaskResponse] = useState('');
+  const [loading, setLoading] = useState(true);
 
   // If showing KPI reporting, render that component
   if (showKPIReporting) {
     return <KPIReporting user={user} onBack={() => setShowKPIReporting(false)} />;
   }
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
