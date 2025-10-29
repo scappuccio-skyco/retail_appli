@@ -257,6 +257,49 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
         {/* Recent Evaluations */}
         <div className="glass-morphism rounded-2xl p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Dernières Évaluations</h2>
+          
+          {/* Diagnostic Result Card (if exists) */}
+          {diagnostic && (
+            <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 rounded-xl p-6 mb-4 shadow-lg">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">✨</span>
+                    <h3 className="text-xl font-bold text-gray-800">Diagnostic Vendeur Avancé</h3>
+                  </div>
+                  <p className="text-sm text-gray-700">
+                    {new Date(diagnostic.created_at).toLocaleDateString('fr-FR')}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                <div className="bg-white bg-opacity-70 rounded-lg p-3">
+                  <p className="text-xs text-gray-600 mb-1">Ton style</p>
+                  <p className="text-lg font-bold text-gray-800">{diagnostic.style}</p>
+                </div>
+                <div className="bg-white bg-opacity-70 rounded-lg p-3">
+                  <p className="text-xs text-gray-600 mb-1">Ton niveau</p>
+                  <p className="text-lg font-bold text-gray-800">{diagnostic.level}</p>
+                </div>
+                <div className="bg-white bg-opacity-70 rounded-lg p-3">
+                  <p className="text-xs text-gray-600 mb-1">Ta motivation</p>
+                  <p className="text-lg font-bold text-gray-800">{diagnostic.motivation}</p>
+                </div>
+              </div>
+              
+              {diagnostic.ai_profile_summary && (
+                <div className="bg-white bg-opacity-70 rounded-lg p-4">
+                  <p className="text-sm font-medium text-gray-900 mb-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Ton profil analysé par l'IA
+                  </p>
+                  <p className="text-sm text-gray-800 whitespace-pre-line">{diagnostic.ai_profile_summary}</p>
+                </div>
+              )}
+            </div>
+          )}
+          
           {evaluations.length > 0 ? (
             <div className="space-y-4">
               {evaluations.slice(0, 5).map((evaluation) => (
@@ -290,7 +333,7 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
             </div>
           ) : (
             <div className="text-center py-12 text-gray-500">
-              Aucune évaluation pour le moment. Créez votre première évaluation!
+              {diagnostic ? "Aucune évaluation de vente pour le moment. Créez votre première évaluation!" : "Aucune évaluation pour le moment. Créez votre première évaluation!"}
             </div>
           )}
         </div>
