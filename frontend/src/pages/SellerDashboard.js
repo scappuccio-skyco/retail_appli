@@ -152,7 +152,7 @@ export default function SellerDashboard({ user, onLogout }) {
                 <RadarChart data={avgRadarScores}>
                   <PolarGrid stroke="#cbd5e1" />
                   <PolarAngleAxis dataKey="skill" tick={{ fill: '#475569', fontSize: 12 }} />
-                  <Radar name="Score" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
+                  <Radar name="Score" dataKey="value" stroke="#ffd871" fill="#ffd871" fillOpacity={0.6} />
                 </RadarChart>
               </ResponsiveContainer>
             ) : (
