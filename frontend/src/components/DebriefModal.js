@@ -393,13 +393,14 @@ export default function DebriefModal({ onClose, onSuccess }) {
                 />
               </div>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Actions */}
         <div className="border-t border-gray-200 p-6 flex gap-3 flex-shrink-0">
           {step === 2 && (
             <button
+              type="button"
               onClick={() => setStep(1)}
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 flex items-center gap-2"
             >
@@ -410,6 +411,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
           
           {step === 1 ? (
             <button
+              type="button"
               onClick={() => setStep(2)}
               disabled={!canProceedStep1()}
               className={`flex-1 py-3 rounded-full font-semibold flex items-center justify-center gap-2 transition-all ${
@@ -423,6 +425,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
             </button>
           ) : (
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={!canSubmit() || loading}
               className={`flex-1 py-3 rounded-full font-semibold transition-all ${
