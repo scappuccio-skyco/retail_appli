@@ -341,13 +341,12 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           </div>
         </div>
 
-        {/* Recent Evaluations */}
-        <div className="glass-morphism rounded-2xl p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Dernières Évaluations</h2>
-          
-          {/* Diagnostic Result Card (if exists) */}
-          {diagnostic && (
-            <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 rounded-xl p-4 mb-4 shadow-lg">
+        {/* Votre profil de vente */}
+        {diagnostic && (
+          <div className="glass-morphism rounded-2xl p-6 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Votre profil de vente</h2>
+            
+            <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 rounded-xl p-4 shadow-lg">
               <button
                 onClick={() => setDiagnosticExpanded(!diagnosticExpanded)}
                 className="w-full flex items-start justify-between"
@@ -355,7 +354,7 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
                 <div className="text-left">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-2xl">✨</span>
-                    <h3 className="text-xl font-bold text-gray-800">Votre profil de vente</h3>
+                    <h3 className="text-xl font-bold text-gray-800">Analyse initiale</h3>
                   </div>
                   <p className="text-sm text-gray-700">
                     {new Date(diagnostic.created_at).toLocaleDateString('fr-FR')}
@@ -366,13 +365,17 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
                 </div>
               </button>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
                 <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                  <p className="text-xs text-gray-600 mb-1">Ton style</p>
+                  <p className="text-xs text-gray-600 mb-1">🎨 Ton style</p>
                   <p className="text-lg font-bold text-gray-800">{diagnostic.style}</p>
                 </div>
                 <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                  <p className="text-xs text-gray-600 mb-1">Ta motivation</p>
+                  <p className="text-xs text-gray-600 mb-1">🎯 Ton niveau</p>
+                  <p className="text-lg font-bold text-gray-800">{diagnostic.level}</p>
+                </div>
+                <div className="bg-white bg-opacity-70 rounded-lg p-3">
+                  <p className="text-xs text-gray-600 mb-1">⚡ Ta motivation</p>
                   <p className="text-lg font-bold text-gray-800">{diagnostic.motivation}</p>
                 </div>
               </div>
@@ -387,45 +390,8 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
                 </div>
               )}
             </div>
-          )}
-          
-          {evaluations.length > 0 ? (
-            <div className="space-y-4">
-              {evaluations.slice(0, 5).map((evaluation) => (
-                <div
-                  key={evaluation.id}
-                  data-testid={`evaluation-${evaluation.id}`}
-                  className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-md transition-all"
-                >
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">
-                        {new Date(evaluation.created_at).toLocaleDateString('fr-FR')}
-                      </p>
-                      <div className="flex gap-4 text-sm">
-                        <span className="font-medium">Accueil: {evaluation.accueil}/5</span>
-                        <span className="font-medium">Découverte: {evaluation.decouverte}/5</span>
-                        <span className="font-medium">Argumentation: {evaluation.argumentation}/5</span>
-                        <span className="font-medium">Closing: {evaluation.closing}/5</span>
-                        <span className="font-medium">Fidélisation: {evaluation.fidelisation}/5</span>
-                      </div>
-                    </div>
-                  </div>
-                  {evaluation.ai_feedback && (
-                    <div className="bg-[#ffd871] bg-opacity-10 rounded-lg p-4 border-l-4 border-[#ffd871]">
-                      <p className="text-sm font-medium text-gray-900 mb-1">Feedback AI</p>
-                      <p className="text-sm text-gray-800">{evaluation.ai_feedback}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-500">
-              {diagnostic ? "Aucune évaluation de vente pour le moment. Créez votre première évaluation!" : "Aucune évaluation pour le moment. Créez votre première évaluation!"}
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Derniers débriefs */}
         <div className="glass-morphism rounded-2xl p-6 mt-8">
