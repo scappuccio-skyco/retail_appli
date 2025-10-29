@@ -97,7 +97,7 @@ function App() {
   }
 
   // Show diagnostic form for sellers without diagnostic
-  if (user && user.role === 'seller' && !diagnostic && !showDiagnosticResult) {
+  if (user && user.role === 'seller' && !diagnostic && showDiagnosticResult) {
     return (
       <>
         <Toaster position="top-right" richColors />
