@@ -94,6 +94,13 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           </div>
           <div className="flex gap-3">
             <button
+              onClick={() => setShowKPIModal(true)}
+              className="btn-secondary flex items-center gap-2"
+            >
+              <BarChart3 className="w-5 h-5" />
+              Mes KPI
+            </button>
+            <button
               data-testid="new-evaluation-button"
               onClick={() => setShowEvalModal(true)}
               className="btn-primary flex items-center gap-2"
