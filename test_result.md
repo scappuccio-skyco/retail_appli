@@ -173,7 +173,7 @@ old_backend:
         agent: "testing"
         comment: "COMPREHENSIVE TESTING COMPLETED: ✅ POST /api/auth/register works for both seller and manager roles. ✅ POST /api/auth/login validates credentials correctly. ✅ GET /api/auth/me returns current user info with valid token. ✅ JWT token authentication working properly. ✅ Error handling for invalid credentials (401) and duplicate registration (400) working correctly."
 
-frontend:
+old_frontend:
   - task: "Diagnostic Form Submission Flow"
     implemented: true
     working: true
