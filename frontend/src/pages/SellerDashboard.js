@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { LogOut, Plus, TrendingUp, Award, MessageSquare, Sparkles } from 'lucide-react';
+import { LogOut, Plus, TrendingUp, Award, MessageSquare, Sparkles, BarChart3 } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import EvaluationModal from '../components/EvaluationModal';
 import KPIEntryModal from '../components/KPIEntryModal';
