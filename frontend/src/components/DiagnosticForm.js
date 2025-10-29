@@ -156,6 +156,7 @@ const QUESTIONS = [
 ];
 
 export default function DiagnosticForm({ onComplete }) {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(false);
