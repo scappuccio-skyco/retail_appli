@@ -364,6 +364,74 @@ class RetailCoachAPITester:
         if success:
             print("   ✅ Correctly prevents duplicate diagnostic submission")
 
+    def test_existing_seller_diagnostic_scenario(self):
+        """Test Scenario 2: Existing seller with completed diagnostic"""
+        if not self.seller_token:
+            self.log_test("Existing Seller Diagnostic Scenario", False, "No seller token available")
+            return
+
+        print("\n🔍 Testing Existing Seller Diagnostic Scenario...")
+        
+        # Simulate login as existing seller (we already have a completed diagnostic from previous test)
+        # Test that diagnostic data persists across "sessions"
+        success, response = self.run_test(
+            "Existing Seller - Get Diagnostic Status",
+            "GET",
+            "diagnostic/me",
+            200,
+            token=self.seller_token
+        )
+        
+        if success:
+            if response.get('status') == 'completed':
+                print("   ✅ Existing seller diagnostic status correctly shows 'completed'")
+                diagnostic_data = response.get('diagnostic', {})
+                
+                # Verify all required fields are present
+                required_fields = ['style', 'level', 'motivation', 'ai_profile_summary', 'seller_id', 'responses']
+                present_fields = []
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field in diagnostic_data:
+                        present_fields.append(field)
+                    else:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    self.log_test("Existing Seller Diagnostic Data Validation", False, f"Missing fields: {missing_fields}")
+                else:
+                    self.log_test("Existing Seller Diagnostic Data Validation", True)
+                    print(f"   ✅ All diagnostic data fields present: {present_fields}")
+                    print(f"   ✅ Seller ID: {diagnostic_data.get('seller_id')}")
+                    print(f"   ✅ Style: {diagnostic_data.get('style')}")
+                    print(f"   ✅ Level: {diagnostic_data.get('level')}")
+                    print(f"   ✅ Motivation: {diagnostic_data.get('motivation')}")
+            else:
+                self.log_test("Existing Seller Diagnostic Status", False, f"Expected 'completed', got '{response.get('status')}'")
+
+        # Test that existing seller cannot submit diagnostic again
+        diagnostic_responses = {
+            "1": "Different response this time",
+            "2": "Another different response"
+        }
+        
+        diagnostic_data = {
+            "responses": diagnostic_responses
+        }
+        
+        success, response = self.run_test(
+            "Existing Seller - Prevent Duplicate Diagnostic",
+            "POST",
+            "diagnostic",
+            400,
+            data=diagnostic_data,
+            token=self.seller_token
+        )
+        
+        if success:
+            print("   ✅ Existing seller correctly prevented from submitting new diagnostic")
+
     def test_error_cases(self):
         """Test error handling"""
         # Test invalid login
