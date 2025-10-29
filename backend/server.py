@@ -622,12 +622,12 @@ async def get_my_diagnostic(current_user: dict = Depends(get_current_user)):
     diagnostic = await db.diagnostics.find_one({"seller_id": current_user['id']}, {"_id": 0})
     
     if not diagnostic:
-        return None
+        return {"status": "not_completed", "diagnostic": None}
     
     if isinstance(diagnostic.get('created_at'), str):
         diagnostic['created_at'] = datetime.fromisoformat(diagnostic['created_at'])
     
-    return diagnostic
+    return {"status": "completed", "diagnostic": diagnostic}
 
 @api_router.get("/diagnostic/seller/{seller_id}")
 async def get_seller_diagnostic(seller_id: str, current_user: dict = Depends(get_current_user)):
