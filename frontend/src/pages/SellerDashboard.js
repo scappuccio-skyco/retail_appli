@@ -74,6 +74,18 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
     setShowEvalModal(false);
   };
 
+  const handleDebriefSuccess = () => {
+    fetchData();
+    setShowDebriefModal(false);
+  };
+  
+  const toggleDebrief = (debriefId) => {
+    setExpandedDebriefs(prev => ({
+      ...prev,
+      [debriefId]: !prev[debriefId]
+    }));
+  };
+
   // Calculate current competence scores (from last entry in history)
   const currentCompetences = competencesHistory.length > 0
     ? competencesHistory[competencesHistory.length - 1]
