@@ -152,6 +152,12 @@ class DiagnosticResult(BaseModel):
     style: str  # Convivial, Explorateur, Dynamique, Discret, Stratège
     level: str  # Débutant, Intermédiaire, Expert terrain
     motivation: str  # Relation, Reconnaissance, Performance, Découverte
+    # Scores de compétences /5
+    score_accueil: float = 0
+    score_decouverte: float = 0
+    score_argumentation: float = 0
+    score_closing: float = 0
+    score_fidelisation: float = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class DiagnosticCreate(BaseModel):
