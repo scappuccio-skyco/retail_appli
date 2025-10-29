@@ -27,6 +27,7 @@ function AppContent() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [diagnostic, setDiagnostic] = useState(null);
+  const [diagnosticLoading, setDiagnosticLoading] = useState(false);
   const [showDiagnosticResult, setShowDiagnosticResult] = useState(false);
 
   useEffect(() => {
