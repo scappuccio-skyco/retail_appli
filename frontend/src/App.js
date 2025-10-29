@@ -40,8 +40,14 @@ function App() {
         
         // Check diagnostic status for sellers
         if (res.data.role === 'seller') {
-          const diagRes = await axios.get(`${API}/diagnostic/me`);
-          setDiagnostic(diagRes.data);
+          try {
+            const diagRes = await axios.get(`${API}/diagnostic/me`);
+            if (diagRes.data.status === 'completed') {
+              setDiagnostic(diagRes.data.diagnostic);
+            }
+          } catch (err) {
+            console.log('No diagnostic yet');
+          }
         }
       } catch (err) {
         localStorage.removeItem('token');
