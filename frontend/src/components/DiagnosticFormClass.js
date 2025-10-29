@@ -201,18 +201,18 @@ class DiagnosticFormClass extends React.Component {
     
     try {
       const response = await axios.post(`${API}/diagnostic`, { responses: this.state.responses });
+      console.log('✅ Diagnostic submission successful:', response.data);
       toast.success('Diagnostic complété avec succès!');
       
-      console.log('Diagnostic submission response:', response.data);
-      
-      // Call the onComplete callback with the result
+      // Call the onComplete callback with the result immediately
       if (this.props.onComplete) {
-        setTimeout(() => {
-          this.props.onComplete(response.data);
-        }, 500);
+        console.log('🔄 Calling onComplete callback...');
+        this.props.onComplete(response.data);
+      } else {
+        console.error('❌ No onComplete callback provided!');
       }
     } catch (err) {
-      console.error('Diagnostic submission error:', err);
+      console.error('❌ Diagnostic submission error:', err);
       toast.error(err.response?.data?.detail || 'Erreur lors de l\'envoi du diagnostic');
       this.setState({ loading: false });
     }
