@@ -189,10 +189,10 @@ export default function DiagnosticForm({ onComplete }) {
     try {
       const res = await axios.post(`${API}/diagnostic`, { responses });
       toast.success('Diagnostic complété avec succès!');
-      onComplete(res.data);
+      // Reload to refresh diagnostic status
+      window.location.href = '/';
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Erreur lors de l\'envoi du diagnostic');
-    } finally {
       setLoading(false);
     }
   };
