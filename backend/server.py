@@ -611,35 +611,37 @@ async def generate_ai_debrief_analysis(debrief_data: dict, seller_name: str) -> 
     """Generate AI coaching feedback for a debrief"""
     
     prompt = f"""Tu es un coach expert en vente retail.
-Analyse la vente décrite par le vendeur pour identifier les causes probables de l'échec et lui proposer des leviers d'amélioration concrets.
+Analyse la vente décrite pour identifier les causes probables de l'échec et proposer des leviers d'amélioration concrets.
 
 ### CONTEXTE
-🧍 Vendeur : {seller_name}
+Tu viens de débriefer une vente qui n'a pas abouti. Voici les détails :
+
 🎯 Produit : {debrief_data.get('produit')}
 👥 Type de client : {debrief_data.get('type_client')}
 💼 Situation : {debrief_data.get('situation_vente')}
 💬 Description : {debrief_data.get('description_vente')}
 📍 Moment clé du blocage : {debrief_data.get('moment_perte_client')}
 ❌ Raisons évoquées : {debrief_data.get('raisons_echec')}
-🔄 Ce qu'il aurait pu faire différemment : {debrief_data.get('amelioration_pensee')}
+🔄 Ce que tu penses pouvoir faire différemment : {debrief_data.get('amelioration_pensee')}
 
 ### OBJECTIF
-Fournir une analyse commerciale réaliste et empathique.
+Fournir une analyse commerciale réaliste et empathique EN UTILISANT LE TUTOIEMENT ("tu").
 Identifier 2 axes d'amélioration concrets (écoute, argumentation, closing, posture, etc.).
 Donner 1 recommandation claire et motivante.
-Ajouter 1 exemple concret de phrase ou de comportement qu'il aurait pu adopter.
+Ajouter 1 exemple concret de phrase ou de comportement à adopter.
 
 ### FORMAT DE SORTIE (JSON uniquement)
 Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
 {{
-  "analyse": "[2–3 phrases d'analyse réaliste, orientée performance]",
-  "points_travailler": "[Axe 1]\\n[Axe 2]",
-  "recommandation": "[Une phrase courte, claire et motivante — action directe à tester dès la prochaine vente]",
-  "exemple_concret": "[Une phrase illustrant ce que le vendeur aurait pu dire ou faire dans cette situation]"
+  "analyse": "[2–3 phrases d'analyse réaliste, orientée performance, en tutoyant (tu as bien identifié...)]",
+  "points_travailler": "[Axe 1 en tutoyant]\\n[Axe 2 en tutoyant]",
+  "recommandation": "[Une phrase courte, claire et motivante en tutoyant — action directe à tester dès la prochaine vente]",
+  "exemple_concret": "[Une phrase illustrant ce que tu aurais pu dire ou faire dans cette situation]"
 }}
 
 ### STYLE ATTENDU
 - Ton professionnel, positif, utile et centré sur la performance commerciale
+- TUTOIEMENT OBLIGATOIRE : utilise "tu", "ta", "tes", "ton" (ex: "Tu as bien identifié le besoin", "Ta reformulation pourrait être...")
 - Évite toute approche psychologique ou moralisante
 - Utilise un vocabulaire de vendeur retail : client, besoin, argument, reformulation, closing, objection
 - L'exemple doit être simple, réaliste et crédible ("Tu aurais pu dire : 'Je comprends, ce modèle est plus léger et répond mieux à ce que vous cherchez.'")
