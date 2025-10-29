@@ -12,6 +12,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [sellers, setSellers] = useState([]);
   const [selectedSeller, setSelectedSeller] = useState(null);
   const [sellerStats, setSellerStats] = useState(null);
+  const [sellerDiagnostic, setSellerDiagnostic] = useState(null);
   const [invitations, setInvitations] = useState([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [loading, setLoading] = useState(true);
