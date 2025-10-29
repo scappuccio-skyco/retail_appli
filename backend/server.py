@@ -514,6 +514,21 @@ async def get_invitations(current_user: dict = Depends(get_current_user)):
 @api_router.get("/invitations/verify/{token}")
 async def verify_invitation(token: str):
     invitation = await db.invitations.find_one({"token": token}, {"_id": 0})
+
+@api_router.patch("/users/{user_id}/link-manager")
+async def link_seller_to_manager(user_id: str, manager_id: str, current_user: dict = Depends(get_current_user)):
+    """Link an existing seller to a manager - admin/temporary endpoint"""
+    # For now, allow any user to link (temporary for testing)
+    result = await db.users.update_one(
+        {"id": user_id, "role": "seller"},
+        {"$set": {"manager_id": manager_id}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Seller not found")
+    
+    return {"message": "Seller linked to manager successfully", "user_id": user_id, "manager_id": manager_id}
+
     if not invitation:
         raise HTTPException(status_code=404, detail="Invitation not found")
     
