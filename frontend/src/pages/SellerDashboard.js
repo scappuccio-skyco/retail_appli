@@ -504,10 +504,7 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
       {showDebriefModal && (
         <DebriefModal
           onClose={() => setShowDebriefModal(false)}
-          onSuccess={() => {
-            setShowDebriefModal(false);
-            fetchData();
-          }}
+          onSuccess={handleDebriefSuccess}
         />
       )}
 
