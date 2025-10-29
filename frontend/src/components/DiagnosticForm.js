@@ -323,3 +323,11 @@ function DiagnosticFormContent() {
     </div>
   );
 }
+
+export default function DiagnosticForm({ onComplete }) {
+  return (
+    <ErrorBoundary>
+      <DiagnosticFormContent onComplete={onComplete} />
+    </ErrorBoundary>
+  );
+}
