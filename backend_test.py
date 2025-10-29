@@ -590,17 +590,15 @@ class RetailCoachAPITester:
         if success:
             print("   ✅ Correctly validates required fields")
 
-        # Test 4: Authentication - no token
+        # Test 4: Authentication - no token (NEW structure)
         complete_data = {
-            "type_client": "Pressé",
-            "moment_journee": "Fin",
-            "emotion": "Stressé",
-            "produit": "Samsung Galaxy",
-            "raisons_echec": "Client pressé",
-            "moment_perte_client": "Présentation",
-            "sentiment": "Déçu",
-            "amelioration_pensee": "Être plus concis",
-            "action_future": "Préparer des présentations courtes"
+            "produit": "Samsung Galaxy S24",
+            "type_client": "Client pressé",
+            "situation_vente": "Vente initiée par le client (demande spontanée)",
+            "description_vente": "Le client était très pressé et voulait acheter rapidement mais a finalement renoncé.",
+            "moment_perte_client": "Présentation du produit",
+            "raisons_echec": "Manque de temps pour expliquer",
+            "amelioration_pensee": "Être plus concis dans mes présentations"
         }
         
         success, response = self.run_test(
