@@ -289,6 +289,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
                   ].map(raison => (
                     <button
                       key={raison}
+                      type="button"
                       onClick={() => handleChange('raisons_echec', raison)}
                       className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
                         formData.raisons_echec === raison
@@ -327,6 +328,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
                   ].map(moment => (
                     <button
                       key={moment}
+                      type="button"
                       onClick={() => handleChange('moment_perte_client', moment)}
                       className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
                         formData.moment_perte_client === moment
