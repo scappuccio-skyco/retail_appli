@@ -301,6 +301,87 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           onSuccess={handleEvaluationCreated}
         />
       )}
+
+      {/* Diagnostic Modal */}
+      {showDiagnosticModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Diagnostic vendeur</h2>
+            <p className="text-gray-600 mb-6">
+              Complète ton diagnostic pour découvrir ton profil unique de vendeur. Ça prend moins de 10 minutes !
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDiagnosticModal(false);
+                  window.location.href = '/diagnostic';
+                }}
+                className="flex-1 btn-primary"
+              >
+                Commencer
+              </button>
+              <button
+                onClick={() => setShowDiagnosticModal(false)}
+                className="flex-1 btn-secondary"
+              >
+                Plus tard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manager Request Modal */}
+      {showTaskModal && selectedTask && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedTask.title}</h2>
+            <p className="text-gray-600 mb-6">{selectedTask.description}</p>
+            
+            <textarea
+              value={taskResponse}
+              onChange={(e) => setTaskResponse(e.target.value)}
+              placeholder="Écris ta réponse ici..."
+              rows={5}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none mb-4"
+            />
+            
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  try {
+                    await axios.post(`${API}/seller/respond-request`, {
+                      request_id: selectedTask.id,
+                      response: taskResponse
+                    });
+                    toast.success('Réponse envoyée!');
+                    setShowTaskModal(false);
+                    setSelectedTask(null);
+                    setTaskResponse('');
+                    fetchData();
+                  } catch (err) {
+                    toast.error('Erreur lors de l\'envoi');
+                  }
+                }}
+                disabled={!taskResponse.trim()}
+                className="flex-1 btn-primary disabled:opacity-50"
+              >
+                Envoyer
+              </button>
+              <button
+                onClick={() => {
+                  setShowTaskModal(false);
+                  setSelectedTask(null);
+                  setTaskResponse('');
+                }}
+                className="flex-1 btn-secondary"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
