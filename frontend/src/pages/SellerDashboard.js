@@ -103,6 +103,34 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
       </div>
 
       <div className="max-w-7xl mx-auto">
+        {/* Diagnostic Profile Card */}
+        {diagnostic && (
+          <div className="glass-morphism rounded-2xl p-6 mb-8 border-2 border-[#ffd871]">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                  <Sparkles className="w-6 h-6 text-[#ffd871]" />
+                  Ton Profil Vendeur
+                </h2>
+                <div className="flex gap-6 mt-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Style</p>
+                    <p className="text-lg font-bold text-gray-800">{diagnostic.style}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Niveau</p>
+                    <p className="text-lg font-bold text-gray-800">{diagnostic.level}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Motivation</p>
+                    <p className="text-lg font-bold text-gray-800">{diagnostic.motivation}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="glass-morphism rounded-2xl p-6 card-hover">
