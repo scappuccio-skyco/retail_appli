@@ -8,7 +8,7 @@ import EvaluationModal from '../components/EvaluationModal';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export default function SellerDashboard({ user, onLogout }) {
+export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const [evaluations, setEvaluations] = useState([]);
   const [sales, setSales] = useState([]);
   const [showEvalModal, setShowEvalModal] = useState(false);
