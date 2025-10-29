@@ -326,47 +326,58 @@ export default function KPIReporting({ user, onBack }) {
               </div>
             </div>
 
-            {/* Detailed Table */}
+            {/* Detailed Table - Accordion */}
             <div className="glass-morphism rounded-2xl p-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Détail des saisies</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Date</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">CA</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Ventes</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Clients</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Panier Moyen</th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Taux Transfo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {entries.map((entry, index) => (
-                      <tr key={entry.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4 text-sm text-gray-800">
-                          {new Date(entry.date).toLocaleDateString('fr-FR')}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-right font-medium text-gray-800">
-                          {entry.ca_journalier.toFixed(2)}€
-                        </td>
-                        <td className="py-3 px-4 text-sm text-right text-gray-800">
-                          {entry.nb_ventes}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-right text-gray-800">
-                          {entry.nb_clients}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-right text-gray-800">
-                          {entry.panier_moyen.toFixed(2)}€
-                        </td>
-                        <td className="py-3 px-4 text-sm text-right text-gray-800">
-                          {entry.taux_transformation.toFixed(2)}%
-                        </td>
+              <button
+                onClick={() => setShowDetailTable(!showDetailTable)}
+                className="w-full flex items-center justify-between hover:bg-gray-50 transition-colors rounded-lg p-2 -m-2"
+              >
+                <h3 className="text-lg font-bold text-gray-800">📋 Détail des saisies ({entries.length})</h3>
+                <span className="text-2xl font-bold text-gray-600">
+                  {showDetailTable ? '−' : '+'}
+                </span>
+              </button>
+              
+              {showDetailTable && (
+                <div className="overflow-x-auto mt-4 animate-fadeIn">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Date</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">CA</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Ventes</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Clients</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Panier Moyen</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Taux Transfo</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {entries.map((entry, index) => (
+                        <tr key={entry.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-3 px-4 text-sm text-gray-800">
+                            {new Date(entry.date).toLocaleDateString('fr-FR')}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-right font-medium text-gray-800">
+                            {entry.ca_journalier.toFixed(2)}€
+                          </td>
+                          <td className="py-3 px-4 text-sm text-right text-gray-800">
+                            {entry.nb_ventes}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-right text-gray-800">
+                            {entry.nb_clients}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-right text-gray-800">
+                            {entry.panier_moyen.toFixed(2)}€
+                          </td>
+                          <td className="py-3 px-4 text-sm text-right text-gray-800">
+                            {entry.taux_transformation.toFixed(2)}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </>
         )}
