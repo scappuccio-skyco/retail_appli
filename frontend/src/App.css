@@ -12,7 +12,7 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  background: linear-gradient(135deg, #fffef9 0%, #fff9e6 100%);
   min-height: 100vh;
 }
 
@@ -28,7 +28,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .btn-primary {
-    @apply px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105;
+    @apply px-6 py-3 bg-[#ffd871] text-gray-800 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 hover:bg-[#ffc940];
   }
 
   .btn-secondary {

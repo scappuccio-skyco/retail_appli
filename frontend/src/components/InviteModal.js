@@ -67,7 +67,7 @@ export default function InviteModal({ onClose, onSuccess }) {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
                     placeholder="vendeur@example.com"
                   />
                 </div>
@@ -111,7 +111,7 @@ export default function InviteModal({ onClose, onSuccess }) {
                   <button
                     data-testid="copy-invite-link"
                     onClick={copyToClipboard}
-                    className="px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    className="px-4 py-3 bg-[#ffd871] text-gray-800 rounded-xl hover:bg-[#ffc940] transition-colors flex items-center gap-2 font-medium"
                   >
                     {copied ? (
                       <>
