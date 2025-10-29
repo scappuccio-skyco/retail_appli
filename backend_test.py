@@ -408,6 +408,9 @@ class RetailCoachAPITester:
         self.test_user_login()
         self.test_auth_me()
 
+        # CRITICAL: Diagnostic flow tests (as requested)
+        self.test_diagnostic_flow()
+
         # Sales operations
         sale_id = self.test_sales_operations()
 
