@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -161,44 +161,9 @@ function DiagnosticFormSimple() {
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(false);
-  const containerRef = useRef(null);
 
   const currentQuestion = QUESTIONS[currentStep];
   const progress = ((currentStep + 1) / QUESTIONS.length) * 100;
-
-  useEffect(() => {
-    // Scroll to top when question changes
-    if (containerRef.current) {
-      containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [currentStep]);
-
-  const handleAnswer = (answer) => {
-    if (loading) return;
-    const newResponses = { ...responses };
-    newResponses[currentQuestion.id] = answer;
-    setResponses(newResponses);
-  };
-
-  const canGoNext = () => {
-    const answer = responses[currentQuestion.id];
-    return answer && answer.trim() !== '';
-  };
-
-  const handleNext = () => {
-    if (loading) return;
-    
-    if (currentStep < QUESTIONS.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      handleSubmit();
-    }
-  };
-
-  const handleBack = () => {
-    if (loading || currentStep === 0) return;
-    setCurrentStep(currentStep - 1);
-  };
 
   const handleSubmit = async () => {
     if (loading) return;
@@ -218,7 +183,7 @@ function DiagnosticFormSimple() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#fffef9] to-[#fff9e6]">
-      <div className="w-full max-w-3xl" ref={containerRef}>
+      <div className="w-full max-w-3xl">
         <div className="glass-morphism rounded-3xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <img src="/logo.jpg" alt="Logo" className="w-20 h-20 mx-auto mb-4 rounded-xl shadow-md object-cover" />
@@ -256,7 +221,7 @@ function DiagnosticFormSimple() {
                   const isSelected = responses[currentQuestion.id] === option;
                   return (
                     <label
-                      key={`choice-${currentQuestion.id}-${index}`}
+                      key={index}
                       className={`block w-full text-left p-4 rounded-xl border-2 transition-all cursor-pointer ${
                         isSelected
                           ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
@@ -265,10 +230,14 @@ function DiagnosticFormSimple() {
                     >
                       <input
                         type="radio"
-                        name={`question-${currentQuestion.id}`}
+                        name={`q${currentQuestion.id}`}
                         value={option}
                         checked={isSelected}
-                        onChange={() => handleAnswer(option)}
+                        onChange={(e) => {
+                          const newResponses = { ...responses };
+                          newResponses[currentQuestion.id] = e.target.value;
+                          setResponses(newResponses);
+                        }}
                         className="sr-only"
                       />
                       <p className="text-gray-800">{option}</p>
@@ -279,7 +248,11 @@ function DiagnosticFormSimple() {
             ) : (
               <textarea
                 value={responses[currentQuestion.id] || ''}
-                onChange={(e) => handleAnswer(e.target.value)}
+                onChange={(e) => {
+                  const newResponses = { ...responses };
+                  newResponses[currentQuestion.id] = e.target.value;
+                  setResponses(newResponses);
+                }}
                 disabled={loading}
                 placeholder="Écris ta réponse ici..."
                 rows={5}
@@ -291,7 +264,11 @@ function DiagnosticFormSimple() {
           <div className="flex justify-between gap-4">
             <button
               type="button"
-              onClick={handleBack}
+              onClick={() => {
+                if (currentStep > 0 && !loading) {
+                  setCurrentStep(currentStep - 1);
+                }
+              }}
               disabled={currentStep === 0 || loading}
               className="px-6 py-3 bg-white text-gray-700 rounded-full font-medium shadow-md hover:shadow-lg transition-all border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
@@ -301,8 +278,18 @@ function DiagnosticFormSimple() {
 
             <button
               type="button"
-              onClick={handleNext}
-              disabled={!canGoNext() || loading}
+              onClick={() => {
+                if (loading) return;
+                const answer = responses[currentQuestion.id];
+                if (!answer || answer.trim() === '') return;
+                
+                if (currentStep < QUESTIONS.length - 1) {
+                  setCurrentStep(currentStep + 1);
+                } else {
+                  handleSubmit();
+                }
+              }}
+              disabled={!responses[currentQuestion.id] || responses[currentQuestion.id].trim() === '' || loading}
               className="px-6 py-3 bg-[#ffd871] text-gray-800 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 hover:bg-[#ffc940] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
             >
               {loading ? (
