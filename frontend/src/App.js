@@ -147,17 +147,34 @@ function AppContent() {
         <Route
           path="/diagnostic"
           element={
-            !user ? (
-              <Navigate to="/login" replace />
-            ) : user.role !== 'seller' ? (
-              <Navigate to="/" replace />
-            ) : diagnostic && !showDiagnosticResult ? (
-              <Navigate to="/" replace />
-            ) : diagnostic && showDiagnosticResult ? (
-              <DiagnosticResult diagnostic={diagnostic} onContinue={handleContinueToDashboard} />
-            ) : (
-              <DiagnosticForm onComplete={handleDiagnosticComplete} />
-            )
+            (() => {
+              console.log('🔍 /diagnostic route - user:', user?.email, 'role:', user?.role);
+              console.log('🔍 /diagnostic route - diagnostic:', diagnostic ? 'EXISTS' : 'NULL');
+              console.log('🔍 /diagnostic route - showDiagnosticResult:', showDiagnosticResult);
+              
+              if (!user) {
+                console.log('➡️ Redirecting to /login (no user)');
+                return <Navigate to="/login" replace />;
+              }
+              
+              if (user.role !== 'seller') {
+                console.log('➡️ Redirecting to / (not a seller)');
+                return <Navigate to="/" replace />;
+              }
+              
+              if (diagnostic && !showDiagnosticResult) {
+                console.log('➡️ Redirecting to / (diagnostic exists, not showing result)');
+                return <Navigate to="/" replace />;
+              }
+              
+              if (diagnostic && showDiagnosticResult) {
+                console.log('✅ Showing DiagnosticResult');
+                return <DiagnosticResult diagnostic={diagnostic} onContinue={handleContinueToDashboard} />;
+              }
+              
+              console.log('📝 Showing DiagnosticForm');
+              return <DiagnosticForm onComplete={handleDiagnosticComplete} />;
+            })()
           }
         />
         <Route
