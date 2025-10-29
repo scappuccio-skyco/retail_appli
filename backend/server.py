@@ -836,21 +836,34 @@ async def analyze_diagnostic_with_ai(responses: dict) -> dict:
    - son niveau global (Débutant / Intermédiaire / Expert terrain)
    - ses leviers de motivation (Relation, Reconnaissance, Performance, Découverte)
 
-2. Rédige un retour structuré :
+2. **IMPORTANT** : Évalue ses compétences sur les 5 étapes de la vente en analysant ses réponses.
+   Attribue un score de 1 à 5 pour chaque compétence :
+   - **Accueil** : Capacité à créer le premier contact, mettre à l'aise
+   - **Découverte** : Capacité à identifier les besoins, poser les bonnes questions
+   - **Argumentation** : Capacité à présenter le produit, convaincre avec des arguments
+   - **Closing** : Capacité à conclure la vente, gérer les objections finales
+   - **Fidélisation** : Capacité à créer une relation durable, assurer le suivi
+
+3. Rédige un retour structuré :
    - Une phrase d'introduction qui décrit son style.
    - Deux points forts concrets observés dans ses réponses.
    - Un axe d'amélioration principal avec un conseil précis.
    - Une phrase motivante adaptée à son profil.
 
-3. Utilise un ton bienveillant, professionnel et simple.
-4. Évite le jargon.
+4. Utilise un ton bienveillant, professionnel et simple.
+5. Évite le jargon.
 
 Réponds au format JSON avec cette structure exacte :
 {{
   "style": "Convivial|Explorateur|Dynamique|Discret|Stratège",
   "level": "Débutant|Intermédiaire|Expert terrain",
   "motivation": "Relation|Reconnaissance|Performance|Découverte",
-  "summary": "Ton analyse complète en texte"
+  "summary": "Ton analyse complète en texte",
+  "score_accueil": 3.5,
+  "score_decouverte": 4.0,
+  "score_argumentation": 3.0,
+  "score_closing": 3.5,
+  "score_fidelisation": 4.0
 }}"""
         
         user_message = UserMessage(text=prompt)
