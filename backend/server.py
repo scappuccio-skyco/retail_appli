@@ -98,33 +98,30 @@ class Debrief(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     seller_id: str
-    # Étape 1 - Contexte
-    type_client: str
-    moment_journee: str
-    emotion: str
+    # Section 1 - Contexte rapide
     produit: str
-    # Étape 2 - Analyse
-    raisons_echec: str
+    type_client: str
+    situation_vente: str
+    # Section 2 - Ce qui s'est passé
+    description_vente: str
     moment_perte_client: str
-    sentiment: str
+    raisons_echec: str
     amelioration_pensee: str
-    action_future: str
     # AI Analysis
     ai_analyse: Optional[str] = None
-    ai_points_travailler: Optional[List[str]] = None
+    ai_points_travailler: Optional[str] = None
     ai_recommandation: Optional[str] = None
+    ai_exemple_concret: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class DebriefCreate(BaseModel):
-    type_client: str
-    moment_journee: str
-    emotion: str
     produit: str
-    raisons_echec: str
+    type_client: str
+    situation_vente: str
+    description_vente: str
     moment_perte_client: str
-    sentiment: str
+    raisons_echec: str
     amelioration_pensee: str
-    action_future: str
 
 class Invitation(BaseModel):
     model_config = ConfigDict(extra="ignore")
