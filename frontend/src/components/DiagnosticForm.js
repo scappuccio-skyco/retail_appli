@@ -167,8 +167,9 @@ function DiagnosticFormContent() {
   const progress = ((currentStep + 1) / QUESTIONS.length) * 100;
 
   const handleAnswer = useCallback((answer) => {
+    if (isTransitioning || loading) return;
     setResponses(prev => ({ ...prev, [currentQuestion.id]: answer }));
-  }, [currentQuestion.id]);
+  }, [currentQuestion.id, isTransitioning, loading]);
 
   const canGoNext = useCallback(() => {
     const answer = responses[currentQuestion.id];
@@ -176,30 +177,39 @@ function DiagnosticFormContent() {
   }, [responses, currentQuestion.id]);
 
   const handleNext = useCallback(() => {
-    if (isTransitioning) return;
+    if (isTransitioning || loading) return;
     
     if (currentStep < QUESTIONS.length - 1) {
       setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentStep(prev => prev + 1);
-        setIsTransitioning(false);
-      }, 150);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          setCurrentStep(prev => prev + 1);
+          requestAnimationFrame(() => {
+            setIsTransitioning(false);
+          });
+        }, 200);
+      });
     } else {
       handleSubmit();
     }
-  }, [currentStep, isTransitioning]);
+  }, [currentStep, isTransitioning, loading]);
 
   const handleBack = useCallback(() => {
-    if (isTransitioning || currentStep === 0) return;
+    if (isTransitioning || currentStep === 0 || loading) return;
     
     setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentStep(prev => prev - 1);
-      setIsTransitioning(false);
-    }, 150);
-  }, [currentStep, isTransitioning]);
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        setCurrentStep(prev => prev - 1);
+        requestAnimationFrame(() => {
+          setIsTransitioning(false);
+        });
+      }, 200);
+    });
+  }, [currentStep, isTransitioning, loading]);
 
   const handleSubmit = async () => {
+    if (loading) return;
     setLoading(true);
     try {
       const res = await axios.post(`${API}/diagnostic`, { responses });
@@ -215,6 +225,7 @@ function DiagnosticFormContent() {
     }
   };
 
+  // Render all questions but only show current one
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#fffef9] to-[#fff9e6]">
       <div className="w-full max-w-3xl">
@@ -247,45 +258,53 @@ function DiagnosticFormContent() {
             </span>
           </div>
 
-          {/* Question Container - Keep mounted, change opacity */}
-          <div 
-            key={`question-container-${currentStep}`}
-            className="mb-8 transition-opacity duration-200"
-            style={{ opacity: isTransitioning ? 0.3 : 1 }}
-          >
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              {currentQuestion.question}
-            </h2>
+          {/* Questions Container - All questions rendered but only one visible */}
+          <div className="relative mb-8" style={{ minHeight: '400px' }}>
+            {QUESTIONS.map((question, qIndex) => (
+              <div
+                key={`question-${question.id}`}
+                className="absolute inset-0 transition-all duration-300"
+                style={{
+                  opacity: currentStep === qIndex ? 1 : 0,
+                  pointerEvents: currentStep === qIndex ? 'auto' : 'none',
+                  transform: currentStep === qIndex ? 'translateX(0)' : 'translateX(20px)',
+                }}
+              >
+                <h2 className="text-xl font-semibold text-gray-800 mb-6">
+                  {question.question}
+                </h2>
 
-            {currentQuestion.type === 'choice' ? (
-              <div className="space-y-3">
-                {currentQuestion.options.map((option, index) => (
-                  <button
-                    key={`option-${currentStep}-${index}`}
-                    type="button"
-                    onClick={() => handleAnswer(option)}
-                    disabled={isTransitioning}
-                    className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
-                      responses[currentQuestion.id] === option
-                        ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                        : 'border-gray-200 hover:border-[#ffd871] hover:bg-gray-50'
-                    } ${isTransitioning ? 'pointer-events-none' : ''}`}
-                  >
-                    <p className="text-gray-800">{option}</p>
-                  </button>
-                ))}
+                {question.type === 'choice' ? (
+                  <div className="space-y-3">
+                    {question.options.map((option, optIndex) => {
+                      const isSelected = responses[question.id] === option;
+                      return (
+                        <div
+                          key={`q${question.id}-opt${optIndex}`}
+                          onClick={() => currentStep === qIndex && handleAnswer(option)}
+                          className={`w-full text-left p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                            isSelected
+                              ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
+                              : 'border-gray-200 hover:border-[#ffd871] hover:bg-gray-50'
+                          } ${(isTransitioning || loading || currentStep !== qIndex) ? 'pointer-events-none opacity-50' : ''}`}
+                        >
+                          <p className="text-gray-800">{option}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <textarea
+                    value={responses[question.id] || ''}
+                    onChange={(e) => currentStep === qIndex && handleAnswer(e.target.value)}
+                    disabled={isTransitioning || loading || currentStep !== qIndex}
+                    placeholder="Écris ta réponse ici..."
+                    rows={5}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none disabled:bg-gray-50 disabled:opacity-50"
+                  />
+                )}
               </div>
-            ) : (
-              <textarea
-                key={`textarea-${currentStep}`}
-                value={responses[currentQuestion.id] || ''}
-                onChange={(e) => handleAnswer(e.target.value)}
-                disabled={isTransitioning}
-                placeholder="Écris ta réponse ici..."
-                rows={5}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
-              />
-            )}
+            ))}
           </div>
 
           {/* Navigation - Always mounted */}
