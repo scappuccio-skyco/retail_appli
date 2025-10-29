@@ -36,26 +36,29 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
 
   const fetchData = async () => {
     try {
-      const [evalsRes, salesRes, tasksRes, debriefsRes, competencesRes, kpiRes] = await Promise.all([
-        axios.get(`${API}/evaluations`),
-        axios.get(`${API}/sales`),
-        axios.get(`${API}/seller/tasks`),
-        axios.get(`${API}/debriefs`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        }),
-        axios.get(`${API}/competences/history`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        }),
-        axios.get(`${API}/kpi/entries`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        })
+      const token = localStorage.getItem('token');
+      const [evalsRes, salesRes, tasksRes, debriefsRes, competencesRes] = await Promise.all([
+        axios.get(`${API}/evaluations`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/sales`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/seller/tasks`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/debriefs`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/competences/history`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
+      
       setEvaluations(evalsRes.data);
       setSales(salesRes.data);
       setTasks(tasksRes.data);
       setDebriefs(debriefsRes.data);
       setCompetencesHistory(competencesRes.data);
-      setKpiEntries(kpiRes.data);
+      
+      // Try to get KPI entries, but don't fail if endpoint doesn't exist
+      try {
+        const kpiRes = await axios.get(`${API}/kpi/entries`, { headers: { Authorization: `Bearer ${token}` } });
+        setKpiEntries(kpiRes.data);
+      } catch (err) {
+        console.log('KPI entries not available');
+        setKpiEntries([]);
+      }
     } catch (err) {
       console.error('Error loading data:', err);
       toast.error('Erreur de chargement des données');
