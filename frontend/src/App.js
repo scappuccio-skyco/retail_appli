@@ -159,44 +159,21 @@ function AppContent() {
         <Route
           path="/diagnostic"
           element={
-            (() => {
-              console.log('🔍 /diagnostic route - user:', user?.email, 'role:', user?.role);
-              console.log('🔍 /diagnostic route - diagnostic:', diagnostic ? 'EXISTS' : 'NULL');
-              console.log('🔍 /diagnostic route - showDiagnosticResult:', showDiagnosticResult);
-              console.log('🔍 /diagnostic route - diagnosticLoading:', diagnosticLoading);
-              
-              if (!user) {
-                console.log('➡️ Redirecting to /login (no user)');
-                return <Navigate to="/login" replace />;
-              }
-              
-              if (user.role !== 'seller') {
-                console.log('➡️ Redirecting to / (not a seller)');
-                return <Navigate to="/" replace />;
-              }
-              
-              if (diagnosticLoading) {
-                console.log('⏳ Diagnostic loading...');
-                return (
-                  <div className="flex items-center justify-center min-h-screen">
-                    <div className="text-xl font-medium text-gray-600">Analyse en cours...</div>
-                  </div>
-                );
-              }
-              
-              if (diagnostic && !showDiagnosticResult) {
-                console.log('➡️ Redirecting to / (diagnostic exists, not showing result)');
-                return <Navigate to="/" replace />;
-              }
-              
-              if (diagnostic && showDiagnosticResult) {
-                console.log('✅ Showing DiagnosticResult');
-                return <DiagnosticResult diagnostic={diagnostic} onContinue={handleContinueToDashboard} />;
-              }
-              
-              console.log('📝 Showing DiagnosticForm');
-              return <DiagnosticForm onComplete={handleDiagnosticComplete} />;
-            })()
+            !user ? (
+              <Navigate to="/login" replace />
+            ) : user.role !== 'seller' ? (
+              <Navigate to="/" replace />
+            ) : diagnosticLoading ? (
+              <div className="flex items-center justify-center min-h-screen">
+                <div className="text-xl font-medium text-gray-600">Analyse en cours...</div>
+              </div>
+            ) : diagnostic && !showDiagnosticResult ? (
+              <Navigate to="/" replace />
+            ) : diagnostic && showDiagnosticResult ? (
+              <DiagnosticResult diagnostic={diagnostic} onContinue={handleContinueToDashboard} />
+            ) : (
+              <DiagnosticForm onComplete={handleDiagnosticComplete} />
+            )
           }
         />
         <Route
