@@ -394,7 +394,6 @@ export default function DebriefModal({ onClose, onSuccess }) {
               </div>
             </div>
           </div>
-        </div>
 
         {/* Actions */}
         <div className="border-t border-gray-200 p-6 flex gap-3 flex-shrink-0">
