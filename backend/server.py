@@ -532,10 +532,6 @@ async def get_seller_stats(seller_id: str, current_user: dict = Depends(get_curr
         "avg_radar_scores": avg_radar
     }
 
-# Include router
-app.include_router(api_router)
-
-
 # ===== DIAGNOSTIC ROUTES =====
 async def analyze_diagnostic_with_ai(responses: dict) -> dict:
     """Analyze diagnostic responses with AI"""
@@ -670,7 +666,6 @@ async def get_seller_diagnostic(seller_id: str, current_user: dict = Depends(get
     
     return diagnostic
 
-
 # ===== MANAGER REQUEST ROUTES =====
 @api_router.post("/manager/requests", response_model=ManagerRequest)
 async def create_manager_request(request_data: ManagerRequestCreate, current_user: dict = Depends(get_current_user)):
@@ -788,6 +783,9 @@ async def get_seller_requests(seller_id: str, current_user: dict = Depends(get_c
             req['completed_at'] = datetime.fromisoformat(req['completed_at'])
     
     return requests
+
+# Include router
+app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
