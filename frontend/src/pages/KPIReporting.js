@@ -54,6 +54,50 @@ export default function KPIReporting({ user, onBack }) {
 
   // Prepare chart data
   const prepareChartData = () => {
+    if (period === 'year') {
+      // Agrégation mensuelle pour la vue "1 an"
+      const monthlyData = {};
+      
+      entries.forEach(entry => {
+        const date = new Date(entry.date);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = {
+            ca: 0,
+            ventes: 0,
+            clients: 0,
+            panierMoyenSum: 0,
+            tauxTransfoSum: 0,
+            count: 0
+          };
+        }
+        
+        monthlyData[monthKey].ca += entry.ca_journalier || 0;
+        monthlyData[monthKey].ventes += entry.nb_ventes || 0;
+        monthlyData[monthKey].clients += entry.nb_clients || 0;
+        monthlyData[monthKey].panierMoyenSum += entry.panier_moyen || 0;
+        monthlyData[monthKey].tauxTransfoSum += entry.taux_transformation || 0;
+        monthlyData[monthKey].count += 1;
+      });
+      
+      return Object.keys(monthlyData).sort().map(monthKey => {
+        const data = monthlyData[monthKey];
+        const [year, month] = monthKey.split('-');
+        const monthName = new Date(year, month - 1).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+        
+        return {
+          date: monthName,
+          ca: data.ca,
+          ventes: data.ventes,
+          clients: data.clients,
+          panierMoyen: data.panierMoyenSum / data.count,
+          tauxTransfo: data.tauxTransfoSum / data.count
+        };
+      });
+    }
+    
+    // Vue quotidienne pour 7j et 30j
     return entries.slice().reverse().map(entry => ({
       date: new Date(entry.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
       ca: entry.ca_journalier,
