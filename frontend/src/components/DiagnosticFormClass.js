@@ -203,9 +203,9 @@ class DiagnosticFormClass extends React.Component {
       await axios.post(`${API}/diagnostic`, { responses: this.state.responses });
       toast.success('Diagnostic complété avec succès!');
       
-      // Force complete reload to refresh diagnostic status
+      // Navigate to home with timestamp to force reload
       setTimeout(() => {
-        window.location.reload();
+        window.location.href = '/?diagnostic_completed=' + Date.now();
       }, 1000);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Erreur lors de l\'envoi du diagnostic');
