@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '@/App.css';
 import Login from './pages/Login';
@@ -21,7 +21,9 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-function App() {
+// Inner component that has access to navigate
+function AppContent() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [diagnostic, setDiagnostic] = useState(null);
@@ -113,8 +115,8 @@ function App() {
 
   const handleContinueToDashboard = () => {
     setShowDiagnosticResult(false);
-    // Force navigation to dashboard by triggering a state update
-    window.location.href = '/';
+    // Navigate to dashboard
+    navigate('/');
   };
 
   if (loading) {
@@ -125,62 +127,58 @@ function App() {
     );
   }
 
-  // Show diagnostic result after completion (outside router)
-  if (showDiagnosticResult && diagnostic) {
-    return (
-      <>
-        <Toaster position="top-right" richColors />
-        <DiagnosticResult diagnostic={diagnostic} onContinue={handleContinueToDashboard} />
-      </>
-    );
-  }
-
   return (
     <>
       <Toaster position="top-right" richColors />
-      <BrowserRouter>
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              user ? (
-                <Navigate to="/" replace />
-              ) : (
-                <Login onLogin={handleLogin} />
-              )
-            }
-          />
-          <Route
-            path="/diagnostic"
-            element={
-              !user ? (
-                <Navigate to="/login" replace />
-              ) : user.role !== 'seller' ? (
-                <Navigate to="/" replace />
-              ) : diagnostic && !showDiagnosticResult ? (
-                <Navigate to="/" replace />
-              ) : diagnostic && showDiagnosticResult ? (
-                <DiagnosticResult diagnostic={diagnostic} onContinue={handleContinueToDashboard} />
-              ) : (
-                <DiagnosticForm onComplete={handleDiagnosticComplete} />
-              )
-            }
-          />
-          <Route
-            path="/"
-            element={
-              !user ? (
-                <Navigate to="/login" replace />
-              ) : user.role === 'seller' ? (
-                <SellerDashboard user={user} diagnostic={diagnostic} onLogout={handleLogout} />
-              ) : (
-                <ManagerDashboard user={user} onLogout={handleLogout} />
-              )
-            }
-          />
-        </Routes>
-      </BrowserRouter>
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            user ? (
+              <Navigate to="/" replace />
+            ) : (
+              <Login onLogin={handleLogin} />
+            )
+          }
+        />
+        <Route
+          path="/diagnostic"
+          element={
+            !user ? (
+              <Navigate to="/login" replace />
+            ) : user.role !== 'seller' ? (
+              <Navigate to="/" replace />
+            ) : diagnostic && !showDiagnosticResult ? (
+              <Navigate to="/" replace />
+            ) : diagnostic && showDiagnosticResult ? (
+              <DiagnosticResult diagnostic={diagnostic} onContinue={handleContinueToDashboard} />
+            ) : (
+              <DiagnosticForm onComplete={handleDiagnosticComplete} />
+            )
+          }
+        />
+        <Route
+          path="/"
+          element={
+            !user ? (
+              <Navigate to="/login" replace />
+            ) : user.role === 'seller' ? (
+              <SellerDashboard user={user} diagnostic={diagnostic} onLogout={handleLogout} />
+            ) : (
+              <ManagerDashboard user={user} onLogout={handleLogout} />
+            )
+          }
+        />
+      </Routes>
     </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }
 
