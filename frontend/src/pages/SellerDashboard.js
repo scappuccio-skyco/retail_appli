@@ -25,12 +25,14 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
 
   const fetchData = async () => {
     try {
-      const [evalsRes, salesRes] = await Promise.all([
+      const [evalsRes, salesRes, tasksRes] = await Promise.all([
         axios.get(`${API}/evaluations`),
-        axios.get(`${API}/sales`)
+        axios.get(`${API}/sales`),
+        axios.get(`${API}/seller/tasks`)
       ]);
       setEvaluations(evalsRes.data);
       setSales(salesRes.data);
+      setTasks(tasksRes.data);
     } catch (err) {
       toast.error('Erreur de chargement des données');
     } finally {
