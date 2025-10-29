@@ -302,19 +302,24 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
 
           {/* Evolution Chart */}
           <div className="glass-morphism rounded-2xl p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Évolution</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Évolution des Compétences</h2>
             {evolutionData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={evolutionData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="name" tick={{ fill: '#475569' }} />
+                  <XAxis dataKey="name" tick={{ fill: '#475569', fontSize: 12 }} />
                   <YAxis domain={[0, 5]} tick={{ fill: '#475569' }} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="score" stroke="#ffd871" strokeWidth={3} dot={{ fill: '#ffd871', r: 4 }} />
+                  <Legend />
+                  <Line type="monotone" dataKey="Accueil" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Découverte" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Argumentation" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Closing" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Fidélisation" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="text-center py-12 text-gray-500">Aucune donnée disponible</div>
+              <div className="text-center py-12 text-gray-500">Complète ton diagnostic pour voir ton évolution</div>
             )}
           </div>
         </div>
