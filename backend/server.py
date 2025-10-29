@@ -659,27 +659,26 @@ Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
 """
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "Tu es un coach en vente retail bienveillant. Tu réponds UNIQUEMENT en JSON valide."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=500
-        )
+        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"debrief_{uuid.uuid4()}",
+            system_message="Tu es un coach en vente retail bienveillant. Tu réponds UNIQUEMENT en JSON valide."
+        ).with_model("openai", "gpt-4o-mini")
         
-        ai_response = response.choices[0].message.content.strip()
+        user_message = UserMessage(text=prompt)
+        ai_response = await chat.send_message(user_message)
         
         # Parse JSON response
         import json
         # Remove markdown code blocks if present
-        if ai_response.startswith("```json"):
-            ai_response = ai_response.replace("```json", "").replace("```", "").strip()
-        elif ai_response.startswith("```"):
-            ai_response = ai_response.replace("```", "").strip()
+        response_text = ai_response.strip()
+        if response_text.startswith("```json"):
+            response_text = response_text.replace("```json", "").replace("```", "").strip()
+        elif response_text.startswith("```"):
+            response_text = response_text.replace("```", "").strip()
             
-        analysis = json.loads(ai_response)
+        analysis = json.loads(response_text)
         
         return {
             "analyse": analysis.get("analyse", ""),
