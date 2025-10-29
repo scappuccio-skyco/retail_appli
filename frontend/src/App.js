@@ -38,21 +38,29 @@ function App() {
         const res = await axios.get(`${API}/auth/me`);
         setUser(res.data);
         
-        // Check diagnostic status for sellers
+        // Check diagnostic status for sellers - MUST complete before setting loading to false
         if (res.data.role === 'seller') {
           try {
             const diagRes = await axios.get(`${API}/diagnostic/me`);
             if (diagRes.data.status === 'completed') {
               setDiagnostic(diagRes.data.diagnostic);
+              console.log('Diagnostic loaded:', diagRes.data.diagnostic);
+            } else {
+              console.log('Diagnostic not completed yet');
             }
           } catch (err) {
-            console.log('No diagnostic yet');
+            console.log('No diagnostic yet:', err.response?.status);
+            // If 404, seller hasn't started diagnostic - this is expected
+            setDiagnostic(null);
           }
         }
       } catch (err) {
+        console.log('Auth error:', err);
         localStorage.removeItem('token');
+        setUser(null);
       }
     }
+    // Only set loading to false after ALL data fetching is complete
     setLoading(false);
   };
 
