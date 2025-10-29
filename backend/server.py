@@ -862,6 +862,193 @@ async def get_seller_requests(seller_id: str, current_user: dict = Depends(get_c
     
     return requests
 
+
+
+# ===== KPI ROUTES =====
+
+# Get KPI definitions (available to all)
+@api_router.get("/kpi/definitions")
+async def get_kpi_definitions():
+    return KPI_DEFINITIONS
+
+# Manager: Get/Update KPI Configuration
+@api_router.get("/manager/kpi-config")
+async def get_kpi_config(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access KPI configuration")
+    
+    config = await db.kpi_configurations.find_one({"manager_id": current_user['id']}, {"_id": 0})
+    
+    if not config:
+        # Create default config with no KPIs enabled
+        default_config = KPIConfiguration(
+            manager_id=current_user['id'],
+            enabled_kpis=[]
+        )
+        doc = default_config.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        doc['updated_at'] = doc['updated_at'].isoformat()
+        await db.kpi_configurations.insert_one(doc)
+        return default_config
+    
+    return config
+
+@api_router.put("/manager/kpi-config")
+async def update_kpi_config(config_update: KPIConfigUpdate, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can update KPI configuration")
+    
+    # Validate KPI keys
+    for kpi_key in config_update.enabled_kpis:
+        if kpi_key not in KPI_DEFINITIONS:
+            raise HTTPException(status_code=400, detail=f"Invalid KPI key: {kpi_key}")
+    
+    config = await db.kpi_configurations.find_one({"manager_id": current_user['id']}, {"_id": 0})
+    
+    if not config:
+        # Create new config
+        new_config = KPIConfiguration(
+            manager_id=current_user['id'],
+            enabled_kpis=config_update.enabled_kpis
+        )
+        doc = new_config.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        doc['updated_at'] = doc['updated_at'].isoformat()
+        await db.kpi_configurations.insert_one(doc)
+        return new_config
+    else:
+        # Update existing config
+        await db.kpi_configurations.update_one(
+            {"manager_id": current_user['id']},
+            {"$set": {
+                "enabled_kpis": config_update.enabled_kpis,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        config['enabled_kpis'] = config_update.enabled_kpis
+        config['updated_at'] = datetime.now(timezone.utc)
+        return config
+
+# Seller: Get enabled KPIs
+@api_router.get("/seller/enabled-kpis")
+async def get_enabled_kpis(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access this endpoint")
+    
+    if not current_user.get('manager_id'):
+        return {"enabled_kpis": [], "kpi_definitions": {}}
+    
+    config = await db.kpi_configurations.find_one({"manager_id": current_user['manager_id']}, {"_id": 0})
+    
+    if not config:
+        return {"enabled_kpis": [], "kpi_definitions": {}}
+    
+    # Return enabled KPIs with their definitions
+    enabled_kpis = config.get('enabled_kpis', [])
+    kpi_definitions = {key: KPI_DEFINITIONS[key] for key in enabled_kpis if key in KPI_DEFINITIONS}
+    
+    return {
+        "enabled_kpis": enabled_kpis,
+        "kpi_definitions": kpi_definitions
+    }
+
+# Seller: Submit KPI entry
+@api_router.post("/seller/kpi-entry")
+async def create_kpi_entry(entry_data: KPIEntryCreate, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can submit KPI entries")
+    
+    # Check if entry for this date already exists
+    existing = await db.kpi_entries.find_one({
+        "seller_id": current_user['id'],
+        "date": entry_data.date
+    }, {"_id": 0})
+    
+    if existing:
+        # Update existing entry
+        await db.kpi_entries.update_one(
+            {"seller_id": current_user['id'], "date": entry_data.date},
+            {"$set": {
+                "kpi_values": entry_data.kpi_values,
+                "comment": entry_data.comment,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        existing['kpi_values'] = entry_data.kpi_values
+        existing['comment'] = entry_data.comment
+        return existing
+    
+    # Create new entry
+    entry = KPIEntry(
+        seller_id=current_user['id'],
+        date=entry_data.date,
+        kpi_values=entry_data.kpi_values,
+        comment=entry_data.comment
+    )
+    
+    doc = entry.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.kpi_entries.insert_one(doc)
+    
+    return entry
+
+# Seller: Get my KPI entries
+@api_router.get("/seller/kpi-entries")
+async def get_my_kpi_entries(days: int = 30, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access their KPI entries")
+    
+    entries = await db.kpi_entries.find(
+        {"seller_id": current_user['id']},
+        {"_id": 0}
+    ).sort("date", -1).limit(days).to_list(days)
+    
+    return entries
+
+# Manager: Get KPI entries for a seller
+@api_router.get("/manager/kpi-entries/{seller_id}")
+async def get_seller_kpi_entries(seller_id: str, days: int = 30, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access seller KPI entries")
+    
+    # Verify seller belongs to this manager
+    seller = await db.users.find_one({"id": seller_id}, {"_id": 0})
+    if not seller or seller.get('manager_id') != current_user['id']:
+        raise HTTPException(status_code=404, detail="Seller not in your team")
+    
+    entries = await db.kpi_entries.find(
+        {"seller_id": seller_id},
+        {"_id": 0}
+    ).sort("date", -1).limit(days).to_list(days)
+    
+    return entries
+
+# Manager: Get all sellers KPI summary
+@api_router.get("/manager/kpi-summary")
+async def get_team_kpi_summary(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access team KPI summary")
+    
+    # Get all sellers
+    sellers = await db.users.find({"manager_id": current_user['id']}, {"_id": 0}).to_list(1000)
+    
+    summary = []
+    for seller in sellers:
+        # Get latest KPI entry
+        latest_entry = await db.kpi_entries.find_one(
+            {"seller_id": seller['id']},
+            {"_id": 0}
+        ).sort("date", -1)
+        
+        summary.append({
+            "seller_id": seller['id'],
+            "seller_name": seller['name'],
+            "latest_entry": latest_entry
+        })
+    
+    return summary
+
 # Include router
 app.include_router(api_router)
 
