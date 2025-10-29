@@ -695,18 +695,17 @@ async def create_debrief(debrief_data: DebriefCreate, current_user: dict = Depen
     # Create debrief object
     debrief = Debrief(
         seller_id=current_user['id'],
-        type_client=debrief_data.type_client,
-        moment_journee=debrief_data.moment_journee,
-        emotion=debrief_data.emotion,
         produit=debrief_data.produit,
-        raisons_echec=debrief_data.raisons_echec,
+        type_client=debrief_data.type_client,
+        situation_vente=debrief_data.situation_vente,
+        description_vente=debrief_data.description_vente,
         moment_perte_client=debrief_data.moment_perte_client,
-        sentiment=debrief_data.sentiment,
+        raisons_echec=debrief_data.raisons_echec,
         amelioration_pensee=debrief_data.amelioration_pensee,
-        action_future=debrief_data.action_future,
         ai_analyse=analysis['analyse'],
         ai_points_travailler=analysis['points_travailler'],
-        ai_recommandation=analysis['recommandation']
+        ai_recommandation=analysis['recommandation'],
+        ai_exemple_concret=analysis['exemple_concret']
     )
     
     # Save to database
