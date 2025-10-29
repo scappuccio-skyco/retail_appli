@@ -58,6 +58,27 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
       try {
         const kpiRes = await axios.get(`${API}/seller/kpi-entries`, { headers: { Authorization: `Bearer ${token}` } });
         setKpiEntries(kpiRes.data);
+        
+        // Check if today's KPI has been entered
+        const today = new Date().toISOString().split('T')[0];
+        const todayKPI = kpiRes.data.find(entry => entry.date === today);
+        
+        // Add daily KPI task if not entered today
+        if (!todayKPI) {
+          const kpiTask = {
+            id: 'daily-kpi',
+            type: 'kpi',
+            icon: '📊',
+            title: 'Saisir les KPI du jour',
+            description: 'Renseigne ton chiffre d\'affaires, nombre de ventes et clients du jour',
+            priority: 'normal'
+          };
+          
+          // Add to tasks if not already there
+          if (!tasksRes.data.find(t => t.id === 'daily-kpi')) {
+            setTasks([kpiTask, ...tasksRes.data]);
+          }
+        }
       } catch (err) {
         console.log('KPI entries not available:', err);
         setKpiEntries([]);
