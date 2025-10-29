@@ -729,8 +729,38 @@ async def create_debrief(debrief_data: DebriefCreate, current_user: dict = Depen
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can create debriefs")
     
-    # Generate AI analysis
-    analysis = await generate_ai_debrief_analysis(debrief_data.model_dump(), current_user['name'])
+    # Get current competence scores (from diagnostic or last debrief)
+    current_scores = {'accueil': 3.0, 'decouverte': 3.0, 'argumentation': 3.0, 'closing': 3.0, 'fidelisation': 3.0}
+    
+    # Try to get from last debrief first
+    last_debrief = await db.debriefs.find_one(
+        {"seller_id": current_user['id']}, 
+        {"_id": 0},
+        sort=[("created_at", -1)]
+    )
+    
+    if last_debrief:
+        current_scores = {
+            'accueil': last_debrief.get('score_accueil', 3.0),
+            'decouverte': last_debrief.get('score_decouverte', 3.0),
+            'argumentation': last_debrief.get('score_argumentation', 3.0),
+            'closing': last_debrief.get('score_closing', 3.0),
+            'fidelisation': last_debrief.get('score_fidelisation', 3.0)
+        }
+    else:
+        # If no debrief, get from diagnostic
+        diagnostic = await db.diagnostics.find_one({"seller_id": current_user['id']}, {"_id": 0})
+        if diagnostic:
+            current_scores = {
+                'accueil': diagnostic.get('score_accueil', 3.0),
+                'decouverte': diagnostic.get('score_decouverte', 3.0),
+                'argumentation': diagnostic.get('score_argumentation', 3.0),
+                'closing': diagnostic.get('score_closing', 3.0),
+                'fidelisation': diagnostic.get('score_fidelisation', 3.0)
+            }
+    
+    # Generate AI analysis with current scores
+    analysis = await generate_ai_debrief_analysis(debrief_data.model_dump(), current_user['name'], current_scores)
     
     # Create debrief object
     debrief = Debrief(
@@ -745,7 +775,12 @@ async def create_debrief(debrief_data: DebriefCreate, current_user: dict = Depen
         ai_analyse=analysis['analyse'],
         ai_points_travailler=analysis['points_travailler'],
         ai_recommandation=analysis['recommandation'],
-        ai_exemple_concret=analysis['exemple_concret']
+        ai_exemple_concret=analysis['exemple_concret'],
+        score_accueil=analysis['score_accueil'],
+        score_decouverte=analysis['score_decouverte'],
+        score_argumentation=analysis['score_argumentation'],
+        score_closing=analysis['score_closing'],
+        score_fidelisation=analysis['score_fidelisation']
     )
     
     # Save to database
