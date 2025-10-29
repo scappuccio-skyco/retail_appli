@@ -64,9 +64,11 @@ function App() {
     if (userData.role === 'seller') {
       try {
         const diagRes = await axios.get(`${API}/diagnostic/me`);
-        setDiagnostic(diagRes.data);
+        if (diagRes.data.status === 'completed') {
+          setDiagnostic(diagRes.data.diagnostic);
+        }
       } catch (err) {
-        setDiagnostic(null);
+        console.log('No diagnostic yet');
       }
     }
   };
