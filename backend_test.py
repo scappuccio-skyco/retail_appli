@@ -251,6 +251,119 @@ class RetailCoachAPITester:
                 token=self.manager_token
             )
 
+    def test_diagnostic_flow(self):
+        """Test diagnostic flow - critical functionality"""
+        if not self.seller_token:
+            self.log_test("Diagnostic Flow", False, "No seller token available")
+            return
+
+        print("\n🔍 Testing Diagnostic Flow (Critical)...")
+        
+        # Test 1: Check diagnostic status before creation (should return 404 or not_completed)
+        success, response = self.run_test(
+            "Get Diagnostic Status (Before Creation)",
+            "GET",
+            "diagnostic/me",
+            200,
+            token=self.seller_token
+        )
+        
+        if success:
+            if response.get('status') == 'not_completed':
+                print("   ✅ Diagnostic status correctly shows 'not_completed'")
+            else:
+                print(f"   ⚠️  Unexpected diagnostic status: {response.get('status')}")
+
+        # Test 2: Submit diagnostic with 15 questions
+        diagnostic_responses = {
+            "1": "Je préfère écouter attentivement le client avant de proposer",
+            "2": "J'aime créer une atmosphère détendue et conviviale",
+            "3": "Je pose des questions ouvertes pour comprendre les besoins",
+            "4": "Je présente les avantages en me basant sur ce que j'ai appris",
+            "5": "Je laisse le client réfléchir sans pression",
+            "6": "Je privilégie la relation à long terme",
+            "7": "J'aime apprendre de nouvelles techniques de vente",
+            "8": "Je me sens à l'aise avec tous types de clients",
+            "9": "Je préfère travailler en équipe",
+            "10": "J'aime les défis commerciaux",
+            "11": "Je suis motivé par la satisfaction client",
+            "12": "J'aime découvrir de nouveaux produits",
+            "13": "Je préfère une approche consultative",
+            "14": "J'aime recevoir des retours constructifs",
+            "15": "Je suis patient dans mes négociations"
+        }
+        
+        diagnostic_data = {
+            "responses": diagnostic_responses
+        }
+        
+        print("   Creating diagnostic with AI analysis (may take 10-15 seconds)...")
+        success, response = self.run_test(
+            "Create Diagnostic with AI Analysis",
+            "POST",
+            "diagnostic",
+            200,
+            data=diagnostic_data,
+            token=self.seller_token
+        )
+        
+        diagnostic_result = None
+        if success:
+            diagnostic_result = response
+            # Verify required fields are present
+            required_fields = ['style', 'level', 'motivation', 'ai_profile_summary']
+            missing_fields = []
+            
+            for field in required_fields:
+                if field not in response:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                self.log_test("Diagnostic Result Validation", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("Diagnostic Result Validation", True)
+                print(f"   ✅ Style: {response.get('style')}")
+                print(f"   ✅ Level: {response.get('level')}")
+                print(f"   ✅ Motivation: {response.get('motivation')}")
+                print(f"   ✅ AI Summary: {response.get('ai_profile_summary', '')[:100]}...")
+
+        # Test 3: Check diagnostic status after creation (should return completed)
+        success, response = self.run_test(
+            "Get Diagnostic Status (After Creation)",
+            "GET",
+            "diagnostic/me",
+            200,
+            token=self.seller_token
+        )
+        
+        if success:
+            if response.get('status') == 'completed':
+                print("   ✅ Diagnostic status correctly shows 'completed'")
+                diagnostic_data = response.get('diagnostic', {})
+                if diagnostic_data:
+                    print(f"   ✅ Diagnostic data persisted correctly")
+                    # Verify the data matches what was created
+                    if diagnostic_result:
+                        if diagnostic_data.get('id') == diagnostic_result.get('id'):
+                            print("   ✅ Diagnostic ID matches created diagnostic")
+                        else:
+                            self.log_test("Diagnostic Persistence Check", False, "Diagnostic ID mismatch")
+            else:
+                self.log_test("Diagnostic Status After Creation", False, f"Expected 'completed', got '{response.get('status')}'")
+
+        # Test 4: Try to submit diagnostic again (should return 400 error)
+        success, response = self.run_test(
+            "Duplicate Diagnostic Submission",
+            "POST",
+            "diagnostic",
+            400,
+            data=diagnostic_data,
+            token=self.seller_token
+        )
+        
+        if success:
+            print("   ✅ Correctly prevents duplicate diagnostic submission")
+
     def test_error_cases(self):
         """Test error handling"""
         # Test invalid login
