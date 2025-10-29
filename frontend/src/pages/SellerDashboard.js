@@ -29,7 +29,6 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const [selectedTask, setSelectedTask] = useState(null);
   const [taskResponse, setTaskResponse] = useState('');
   const [loading, setLoading] = useState(true);
-  const [diagnosticExpanded, setDiagnosticExpanded] = useState(false);
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [showAllDebriefs, setShowAllDebriefs] = useState(false);
 
