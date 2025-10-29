@@ -112,6 +112,12 @@ class Debrief(BaseModel):
     ai_points_travailler: Optional[str] = None
     ai_recommandation: Optional[str] = None
     ai_exemple_concret: Optional[str] = None
+    # Scores de compétences /5 après ce débrief
+    score_accueil: float = 0
+    score_decouverte: float = 0
+    score_argumentation: float = 0
+    score_closing: float = 0
+    score_fidelisation: float = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class DebriefCreate(BaseModel):
