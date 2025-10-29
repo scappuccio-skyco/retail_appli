@@ -185,90 +185,94 @@ export default function DebriefModal({ onClose, onSuccess }) {
 
         {/* Form Content - Scrollable */}
         <div className="px-6 overflow-y-auto flex-1">
-          {step === 1 ? (
-            <div className="space-y-6 pb-6">
-              {/* Type de client */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-3">
-                  Type de client
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {['Pressé', 'Indécis / hésitant', 'Déjà informé', 'Fidèle / régulier', 'En recherche de conseil'].map(type => (
-                    <button
-                      key={type}
-                      onClick={() => handleChange('type_client', type)}
-                      className={`p-3 rounded-xl border-2 text-sm transition-all ${
-                        formData.type_client === type
-                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                          : 'border-gray-200 hover:border-[#ffd871]'
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Moment de la journée */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-3">
-                  Moment de la journée
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {['Début', 'Milieu', 'Fin'].map(moment => (
-                    <button
-                      key={moment}
-                      onClick={() => handleChange('moment_journee', moment)}
-                      className={`p-3 rounded-xl border-2 text-sm transition-all ${
-                        formData.moment_journee === moment
-                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                          : 'border-gray-200 hover:border-[#ffd871]'
-                      }`}
-                    >
-                      {moment}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Émotion ressentie */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-3">
-                  Émotion ressentie pendant la vente
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {['Confiant', 'Stressé', 'Fatigué', 'Neutre'].map(emotion => (
-                    <button
-                      key={emotion}
-                      onClick={() => handleChange('emotion', emotion)}
-                      className={`p-3 rounded-xl border-2 text-sm transition-all ${
-                        formData.emotion === emotion
-                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                          : 'border-gray-200 hover:border-[#ffd871]'
-                      }`}
-                    >
-                      {emotion}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Produit */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-3">
-                  Produit ou service proposé
-                </label>
-                <input
-                  type="text"
-                  value={formData.produit}
-                  onChange={(e) => handleChange('produit', e.target.value)}
-                  placeholder="Ex: iPhone 15, forfait mobile..."
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
-                />
+          {/* Step 1 - Always in DOM, hidden with CSS */}
+          <div className={`space-y-6 pb-6 ${step === 1 ? 'block' : 'hidden'}`}>
+            {/* Type de client */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                Type de client
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {['Pressé', 'Indécis / hésitant', 'Déjà informé', 'Fidèle / régulier', 'En recherche de conseil'].map(type => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => handleChange('type_client', type)}
+                    className={`p-3 rounded-xl border-2 text-sm transition-all ${
+                      formData.type_client === type
+                        ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
+                        : 'border-gray-200 hover:border-[#ffd871]'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
               </div>
             </div>
-          ) : (
-            <div className="space-y-6 pb-6">
+
+            {/* Moment de la journée */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                Moment de la journée
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {['Début', 'Milieu', 'Fin'].map(moment => (
+                  <button
+                    key={moment}
+                    type="button"
+                    onClick={() => handleChange('moment_journee', moment)}
+                    className={`p-3 rounded-xl border-2 text-sm transition-all ${
+                      formData.moment_journee === moment
+                        ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
+                        : 'border-gray-200 hover:border-[#ffd871]'
+                    }`}
+                  >
+                    {moment}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Émotion ressentie */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                Émotion ressentie pendant la vente
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {['Confiant', 'Stressé', 'Fatigué', 'Neutre'].map(emotion => (
+                  <button
+                    key={emotion}
+                    type="button"
+                    onClick={() => handleChange('emotion', emotion)}
+                    className={`p-3 rounded-xl border-2 text-sm transition-all ${
+                      formData.emotion === emotion
+                        ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
+                        : 'border-gray-200 hover:border-[#ffd871]'
+                    }`}
+                  >
+                    {emotion}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Produit */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                Produit ou service proposé
+              </label>
+              <input
+                type="text"
+                value={formData.produit}
+                onChange={(e) => handleChange('produit', e.target.value)}
+                placeholder="Ex: iPhone 15, forfait mobile..."
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Step 2 - Always in DOM, hidden with CSS */}
+          <div className={`space-y-6 pb-6 ${step === 2 ? 'block' : 'hidden'}`}>
               {/* Raisons échec */}
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-3">
