@@ -224,7 +224,8 @@ class KPIConfiguration(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     manager_id: str
-    enabled_kpis: List[str] = []  # List of KPI keys (e.g., ["ca_journalier", "nb_ventes"])
+    # Always enabled since sellers only input 3 basic metrics
+    enabled: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -233,17 +234,26 @@ class KPIEntry(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     seller_id: str
     date: str  # Format: YYYY-MM-DD
-    kpi_values: dict  # {"ca_journalier": 1500, "nb_ventes": 12, ...}
+    # Raw data entered by seller
+    ca_journalier: float = 0
+    nb_ventes: int = 0
+    nb_clients: int = 0
+    # Calculated KPIs
+    panier_moyen: float = 0
+    taux_transformation: float = 0
+    indice_vente: float = 0
     comment: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class KPIEntryCreate(BaseModel):
     date: str
-    kpi_values: dict
+    ca_journalier: float
+    nb_ventes: int
+    nb_clients: int
     comment: Optional[str] = None
 
 class KPIConfigUpdate(BaseModel):
-    enabled_kpis: List[str]
+    enabled: bool
 
 # ===== AUTH HELPERS =====
 def hash_password(password: str) -> str:
