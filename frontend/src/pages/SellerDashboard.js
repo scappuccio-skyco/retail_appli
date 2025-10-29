@@ -117,12 +117,13 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
               Saisir KPI
             </button>
             <button
-              data-testid="new-evaluation-button"
-              onClick={() => setShowEvalModal(true)}
+              data-testid="debrief-button"
+              onClick={() => setShowDebriefModal(true)}
               className="btn-primary flex items-center gap-2"
+              style={{ backgroundColor: '#FFD871', color: '#1f2937' }}
             >
-              <Plus className="w-5 h-5" />
-              Nouvelle Évaluation
+              <MessageSquare className="w-5 h-5" />
+              Débriefer ma vente
             </button>
             <button
               data-testid="logout-button"
