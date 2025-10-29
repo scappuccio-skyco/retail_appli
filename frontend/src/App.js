@@ -155,8 +155,10 @@ function App() {
                 <Navigate to="/login" replace />
               ) : user.role !== 'seller' ? (
                 <Navigate to="/" replace />
-              ) : diagnostic ? (
+              ) : diagnostic && !showDiagnosticResult ? (
                 <Navigate to="/" replace />
+              ) : diagnostic && showDiagnosticResult ? (
+                <DiagnosticResult diagnostic={diagnostic} onContinue={handleContinueToDashboard} />
               ) : (
                 <DiagnosticForm onComplete={handleDiagnosticComplete} />
               )
