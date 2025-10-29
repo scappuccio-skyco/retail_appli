@@ -102,9 +102,34 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix the diagnostic reappearance issue where the diagnostic form incorrectly reappears after a seller completes it. The backend saves correctly, but there's a timing/state issue during page reload where the diagnostic status isn't loaded before rendering."
+user_problem_statement: "Implement 'Débriefer ma vente' feature - a form for sellers to debrief non-concluded sales and receive AI-powered personalized coaching feedback."
 
 backend:
+  - task: "Debrief API - Create Debrief"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend API for creating debrief with AI analysis. Needs testing to verify AI integration and data persistence."
+  
+  - task: "Debrief API - Get Debriefs"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend API endpoint to retrieve seller's debriefs. Needs testing."
+
+old_backend:
   - task: "Diagnostic API - Create Diagnostic"
     implemented: true
     working: true
