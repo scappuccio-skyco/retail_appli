@@ -31,6 +31,7 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [diagnosticExpanded, setDiagnosticExpanded] = useState(false);
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
+  const [showAllDebriefs, setShowAllDebriefs] = useState(false);
 
   useEffect(() => {
     fetchData();
