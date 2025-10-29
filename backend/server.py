@@ -127,6 +127,27 @@ class DiagnosticResult(BaseModel):
 class DiagnosticCreate(BaseModel):
     responses: dict
 
+class ManagerRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    manager_id: str
+    seller_id: str
+    title: str
+    message: str
+    status: str = "pending"  # pending, completed
+    seller_response: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: Optional[datetime] = None
+
+class ManagerRequestCreate(BaseModel):
+    seller_id: str
+    title: str
+    message: str
+
+class ManagerRequestResponse(BaseModel):
+    request_id: str
+    response: str
+
 # ===== AUTH HELPERS =====
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
