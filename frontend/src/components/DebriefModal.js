@@ -13,17 +13,15 @@ export default function DebriefModal({ onClose, onSuccess }) {
   
   // Form data
   const [formData, setFormData] = useState({
-    type_client: '',
-    moment_journee: '',
-    emotion: '',
     produit: '',
-    raisons_echec: '',
-    raisons_echec_autre: '',
+    type_client: '',
+    situation_vente: '',
+    description_vente: '',
     moment_perte_client: '',
     moment_perte_autre: '',
-    sentiment: '',
-    amelioration_pensee: '',
-    action_future: ''
+    raisons_echec: '',
+    raisons_echec_autre: '',
+    amelioration_pensee: ''
   });
 
   const handleChange = (field, value) => {
@@ -31,26 +29,23 @@ export default function DebriefModal({ onClose, onSuccess }) {
   };
 
   const isComplete = () => {
-    const raisonsFinal = formData.raisons_echec === 'Autre' ? formData.raisons_echec_autre : formData.raisons_echec;
     const momentFinal = formData.moment_perte_client === 'Autre' ? formData.moment_perte_autre : formData.moment_perte_client;
+    const raisonsFinal = formData.raisons_echec === 'Autre' ? formData.raisons_echec_autre : formData.raisons_echec;
     
-    return formData.type_client && formData.moment_journee && formData.emotion && 
-           formData.produit.trim() && raisonsFinal && momentFinal && 
-           formData.sentiment.trim() && formData.amelioration_pensee.trim() && 
-           formData.action_future.trim();
+    return formData.produit.trim() && formData.type_client && formData.situation_vente && 
+           formData.description_vente.trim() && momentFinal && raisonsFinal && 
+           formData.amelioration_pensee.trim();
   };
 
   const answeredCount = () => {
     let count = 0;
-    if (formData.type_client) count++;
-    if (formData.moment_journee) count++;
-    if (formData.emotion) count++;
     if (formData.produit.trim()) count++;
-    if (formData.raisons_echec === 'Autre' ? formData.raisons_echec_autre : formData.raisons_echec) count++;
+    if (formData.type_client) count++;
+    if (formData.situation_vente) count++;
+    if (formData.description_vente.trim()) count++;
     if (formData.moment_perte_client === 'Autre' ? formData.moment_perte_autre : formData.moment_perte_client) count++;
-    if (formData.sentiment.trim()) count++;
+    if (formData.raisons_echec === 'Autre' ? formData.raisons_echec_autre : formData.raisons_echec) count++;
     if (formData.amelioration_pensee.trim()) count++;
-    if (formData.action_future.trim()) count++;
     return count;
   };
 
@@ -61,19 +56,19 @@ export default function DebriefModal({ onClose, onSuccess }) {
     
     // Prepare final data
     const submitData = {
-      type_client: formData.type_client,
-      moment_journee: formData.moment_journee,
-      emotion: formData.emotion,
       produit: formData.produit,
-      raisons_echec: formData.raisons_echec === 'Autre' ? formData.raisons_echec_autre : formData.raisons_echec,
+      type_client: formData.type_client,
+      situation_vente: formData.situation_vente,
+      description_vente: formData.description_vente,
       moment_perte_client: formData.moment_perte_client === 'Autre' ? formData.moment_perte_autre : formData.moment_perte_client,
-      sentiment: formData.sentiment,
-      amelioration_pensee: formData.amelioration_pensee,
-      action_future: formData.action_future
+      raisons_echec: formData.raisons_echec === 'Autre' ? formData.raisons_echec_autre : formData.raisons_echec,
+      amelioration_pensee: formData.amelioration_pensee
     };
     
     try {
-      const response = await axios.post(`${API}/debriefs`, submitData);
+      const response = await axios.post(`${API}/debriefs`, submitData, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
       setAiAnalysis(response.data);
       setShowResult(true);
       toast.success('Débrief enregistré avec succès!');
@@ -117,7 +112,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
                 <span className="text-2xl">💬</span>
                 <div>
                   <h3 className="font-bold text-blue-900 mb-2">Analyse</h3>
-                  <p className="text-blue-800">{aiAnalysis.ai_analyse}</p>
+                  <p className="text-blue-800 whitespace-pre-line">{aiAnalysis.ai_analyse}</p>
                 </div>
               </div>
             </div>
@@ -128,14 +123,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
                 <span className="text-2xl">🎯</span>
                 <div className="flex-1">
                   <h3 className="font-bold text-orange-900 mb-2">Points à travailler</h3>
-                  <ul className="space-y-2">
-                    {aiAnalysis.ai_points_travailler && aiAnalysis.ai_points_travailler.map((point, idx) => (
-                      <li key={idx} className="text-orange-800 flex items-start gap-2">
-                        <span className="text-orange-600 font-bold">•</span>
-                        <span>{point}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <p className="text-orange-800 whitespace-pre-line">{aiAnalysis.ai_points_travailler}</p>
                 </div>
               </div>
             </div>
@@ -146,7 +134,18 @@ export default function DebriefModal({ onClose, onSuccess }) {
                 <span className="text-2xl">🚀</span>
                 <div>
                   <h3 className="font-bold text-green-900 mb-2">Recommandation</h3>
-                  <p className="text-green-800 font-medium">{aiAnalysis.ai_recommandation}</p>
+                  <p className="text-green-800 font-medium whitespace-pre-line">{aiAnalysis.ai_recommandation}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Exemple concret */}
+            <div className="bg-purple-50 border-l-4 border-purple-500 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">💡</span>
+                <div>
+                  <h3 className="font-bold text-purple-900 mb-2">Exemple concret</h3>
+                  <p className="text-purple-800 italic whitespace-pre-line">{aiAnalysis.ai_exemple_concret}</p>
                 </div>
               </div>
             </div>
@@ -186,16 +185,16 @@ export default function DebriefModal({ onClose, onSuccess }) {
         <div className="px-6 pt-4 pb-2 border-b border-gray-100 flex-shrink-0 bg-white sticky top-0 z-10">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium text-gray-700">
-              {answeredCount()} / 9 questions répondues
+              {answeredCount()} / 7 questions répondues
             </p>
             <p className="text-sm text-gray-600">
-              {Math.round((answeredCount() / 9) * 100)}%
+              {Math.round((answeredCount() / 7) * 100)}%
             </p>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-[#ffd871] h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(answeredCount() / 9) * 100}%` }}
+              style={{ width: `${(answeredCount() / 7) * 100}%` }}
             />
           </div>
         </div>
@@ -203,207 +202,193 @@ export default function DebriefModal({ onClose, onSuccess }) {
         {/* Form Content - Scrollable */}
         <div className="px-6 py-6 overflow-y-auto flex-1">
           <div className="space-y-6">
-            {/* Type de client */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Type de client
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {['Pressé', 'Indécis / hésitant', 'Déjà informé', 'Fidèle / régulier', 'En recherche de conseil'].map(type => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => handleChange('type_client', type)}
-                    className={`p-3 rounded-xl border-2 text-sm transition-all ${
-                      formData.type_client === type
-                        ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                        : 'border-gray-200 hover:border-[#ffd871]'
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* SECTION 1 - CONTEXTE RAPIDE */}
+            <div className="pb-4 border-b border-gray-200">
+              <h3 className="text-lg font-bold text-gray-800 mb-1">
+                Section 1 — Contexte rapide
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Dis-moi rapidement le contexte de cette vente.
+              </p>
 
-            {/* Moment de la journée */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Moment de la journée
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {['Début', 'Milieu', 'Fin'].map(moment => (
-                  <button
-                    key={moment}
-                    type="button"
-                    onClick={() => handleChange('moment_journee', moment)}
-                    className={`p-3 rounded-xl border-2 text-sm transition-all ${
-                      formData.moment_journee === moment
-                        ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                        : 'border-gray-200 hover:border-[#ffd871]'
-                    }`}
-                  >
-                    {moment}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Émotion ressentie */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Émotion ressentie pendant la vente
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {['Confiant', 'Stressé', 'Fatigué', 'Neutre'].map(emotion => (
-                  <button
-                    key={emotion}
-                    type="button"
-                    onClick={() => handleChange('emotion', emotion)}
-                    className={`p-3 rounded-xl border-2 text-sm transition-all ${
-                      formData.emotion === emotion
-                        ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                        : 'border-gray-200 hover:border-[#ffd871]'
-                    }`}
-                  >
-                    {emotion}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Produit */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Produit ou service proposé
-              </label>
-              <input
-                type="text"
-                value={formData.produit}
-                onChange={(e) => handleChange('produit', e.target.value)}
-                placeholder="Ex: iPhone 15, forfait mobile..."
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
-              />
-            </div>
-
-            {/* Raisons échec */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Selon toi, pourquoi la vente n'a pas abouti ?
-              </label>
-              <div className="space-y-2">
-                {[
-                  'Mauvaise compréhension du besoin',
-                  'Manque d\'argument convaincant',
-                  'Difficulté à conclure',
-                  'Client peu réceptif',
-                  'Erreur sur le produit proposé',
-                  'Autre'
-                ].map(raison => (
-                  <button
-                    key={raison}
-                    type="button"
-                    onClick={() => handleChange('raisons_echec', raison)}
-                    className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
-                      formData.raisons_echec === raison
-                        ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                        : 'border-gray-200 hover:border-[#ffd871]'
-                    }`}
-                  >
-                    {raison}
-                  </button>
-                ))}
-              </div>
-              {formData.raisons_echec === 'Autre' && (
+              {/* Produit */}
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Produit ou service proposé
+                </label>
                 <input
                   type="text"
-                  value={formData.raisons_echec_autre}
-                  onChange={(e) => handleChange('raisons_echec_autre', e.target.value)}
-                  placeholder="Précisez..."
-                  className="w-full mt-2 px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                  value={formData.produit}
+                  onChange={(e) => handleChange('produit', e.target.value)}
+                  placeholder="Ex: iPhone 15, forfait mobile..."
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
                 />
-              )}
-            </div>
-
-            {/* Moment perte client */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                À quel moment penses-tu avoir "perdu" le client ?
-              </label>
-              <div className="space-y-2">
-                {[
-                  'Accueil',
-                  'Découverte du besoin',
-                  'Argumentation',
-                  'Proposition',
-                  'Conclusion / closing',
-                  'Autre'
-                ].map(moment => (
-                  <button
-                    key={moment}
-                    type="button"
-                    onClick={() => handleChange('moment_perte_client', moment)}
-                    className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
-                      formData.moment_perte_client === moment
-                        ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                        : 'border-gray-200 hover:border-[#ffd871]'
-                    }`}
-                  >
-                    {moment}
-                  </button>
-                ))}
               </div>
-              {formData.moment_perte_client === 'Autre' && (
-                <input
-                  type="text"
-                  value={formData.moment_perte_autre}
-                  onChange={(e) => handleChange('moment_perte_autre', e.target.value)}
-                  placeholder="Précisez..."
-                  className="w-full mt-2 px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+
+              {/* Type de client */}
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Type de client
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Nouveau client', 'Client fidèle', 'Touriste / passage', 'Indécis', 'Autre'].map(type => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => handleChange('type_client', type)}
+                      className={`p-3 rounded-xl border-2 text-sm transition-all ${
+                        formData.type_client === type
+                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
+                          : 'border-gray-200 hover:border-[#ffd871]'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Situation de la vente */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Situation de la vente
+                </label>
+                <div className="space-y-2">
+                  {[
+                    'Client venu spontanément',
+                    'Vente initiée par moi (approche proactive)',
+                    'Vente sur recommandation d\'un collègue'
+                  ].map(situation => (
+                    <button
+                      key={situation}
+                      type="button"
+                      onClick={() => handleChange('situation_vente', situation)}
+                      className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
+                        formData.situation_vente === situation
+                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
+                          : 'border-gray-200 hover:border-[#ffd871]'
+                      }`}
+                    >
+                      {situation}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 2 - CE QUI S'EST PASSÉ */}
+            <div>
+              <h3 className="text-lg font-bold text-gray-800 mb-1">
+                Section 2 — Ce qui s'est passé
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Décris en quelques mots ce qui s'est passé.
+              </p>
+
+              {/* Description */}
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Comment la vente s'est déroulée selon toi ?
+                </label>
+                <textarea
+                  value={formData.description_vente}
+                  onChange={(e) => handleChange('description_vente', e.target.value)}
+                  placeholder="Décris brièvement la scène..."
+                  rows={3}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
                 />
-              )}
-            </div>
+              </div>
 
-            {/* Sentiment */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Comment t'es-tu senti à ce moment-là ?
-              </label>
-              <input
-                type="text"
-                value={formData.sentiment}
-                onChange={(e) => handleChange('sentiment', e.target.value)}
-                placeholder="Ex: Frustré, découragé, surpris..."
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
-              />
-            </div>
+              {/* Moment blocage */}
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  À quel moment la vente a basculé ou s'est bloquée ?
+                </label>
+                <div className="space-y-2">
+                  {[
+                    'Accueil',
+                    'Découverte du besoin',
+                    'Proposition produit',
+                    'Argumentation / objections',
+                    'Closing (moment d\'achat)',
+                    'Autre'
+                  ].map(moment => (
+                    <button
+                      key={moment}
+                      type="button"
+                      onClick={() => handleChange('moment_perte_client', moment)}
+                      className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
+                        formData.moment_perte_client === moment
+                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
+                          : 'border-gray-200 hover:border-[#ffd871]'
+                      }`}
+                    >
+                      {moment}
+                    </button>
+                  ))}
+                </div>
+                {formData.moment_perte_client === 'Autre' && (
+                  <input
+                    type="text"
+                    value={formData.moment_perte_autre}
+                    onChange={(e) => handleChange('moment_perte_autre', e.target.value)}
+                    placeholder="Précisez..."
+                    className="w-full mt-2 px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                  />
+                )}
+              </div>
 
-            {/* Amélioration pensée */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Qu'aurais-tu pu faire différemment selon toi ?
-              </label>
-              <textarea
-                value={formData.amelioration_pensee}
-                onChange={(e) => handleChange('amelioration_pensee', e.target.value)}
-                placeholder="Partage tes réflexions..."
-                rows={3}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
-              />
-            </div>
+              {/* Raisons */}
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Pourquoi penses-tu que le client n'a pas acheté ?
+                </label>
+                <div className="space-y-2">
+                  {[
+                    'Il n\'a pas perçu la valeur du produit',
+                    'Il n\'a pas été convaincu',
+                    'Il n\'avait pas confiance / pas prêt',
+                    'J\'ai manqué d\'arguments ou de reformulation',
+                    'Autre'
+                  ].map(raison => (
+                    <button
+                      key={raison}
+                      type="button"
+                      onClick={() => handleChange('raisons_echec', raison)}
+                      className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
+                        formData.raisons_echec === raison
+                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
+                          : 'border-gray-200 hover:border-[#ffd871]'
+                      }`}
+                    >
+                      {raison}
+                    </button>
+                  ))}
+                </div>
+                {formData.raisons_echec === 'Autre' && (
+                  <textarea
+                    value={formData.raisons_echec_autre}
+                    onChange={(e) => handleChange('raisons_echec_autre', e.target.value)}
+                    placeholder="Précisez..."
+                    rows={2}
+                    className="w-full mt-2 px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
+                  />
+                )}
+              </div>
 
-            {/* Action future */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Que feras-tu la prochaine fois dans une situation similaire ?
-              </label>
-              <textarea
-                value={formData.action_future}
-                onChange={(e) => handleChange('action_future', e.target.value)}
-                placeholder="Décris ton plan d'action..."
-                rows={3}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
-              />
+              {/* Amélioration */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Qu'aurais-tu pu faire différemment selon toi ?
+                </label>
+                <textarea
+                  value={formData.amelioration_pensee}
+                  onChange={(e) => handleChange('amelioration_pensee', e.target.value)}
+                  placeholder="Partage tes réflexions..."
+                  rows={3}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
+                />
+              </div>
             </div>
           </div>
         </div>
