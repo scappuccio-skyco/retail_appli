@@ -288,7 +288,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Debrief API - Create Debrief"
     - "DebriefModal Component - Form Display"
     - "DebriefModal Component - Form Submission & AI Analysis"
   stuck_tasks: []
