@@ -7,7 +7,6 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export default function DebriefModal({ onClose, onSuccess }) {
-  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState(null);
@@ -31,20 +30,32 @@ export default function DebriefModal({ onClose, onSuccess }) {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const canProceedStep1 = () => {
-    return formData.type_client && formData.moment_journee && formData.emotion && formData.produit.trim();
-  };
-
-  const canSubmit = () => {
+  const isComplete = () => {
     const raisonsFinal = formData.raisons_echec === 'Autre' ? formData.raisons_echec_autre : formData.raisons_echec;
     const momentFinal = formData.moment_perte_client === 'Autre' ? formData.moment_perte_autre : formData.moment_perte_client;
     
-    return raisonsFinal && momentFinal && formData.sentiment.trim() && 
-           formData.amelioration_pensee.trim() && formData.action_future.trim();
+    return formData.type_client && formData.moment_journee && formData.emotion && 
+           formData.produit.trim() && raisonsFinal && momentFinal && 
+           formData.sentiment.trim() && formData.amelioration_pensee.trim() && 
+           formData.action_future.trim();
+  };
+
+  const answeredCount = () => {
+    let count = 0;
+    if (formData.type_client) count++;
+    if (formData.moment_journee) count++;
+    if (formData.emotion) count++;
+    if (formData.produit.trim()) count++;
+    if (formData.raisons_echec === 'Autre' ? formData.raisons_echec_autre : formData.raisons_echec) count++;
+    if (formData.moment_perte_client === 'Autre' ? formData.moment_perte_autre : formData.moment_perte_client) count++;
+    if (formData.sentiment.trim()) count++;
+    if (formData.amelioration_pensee.trim()) count++;
+    if (formData.action_future.trim()) count++;
+    return count;
   };
 
   const handleSubmit = async () => {
-    if (!canSubmit()) return;
+    if (!isComplete()) return;
     
     setLoading(true);
     
