@@ -101,11 +101,18 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => setShowKPIModal(true)}
+              onClick={() => setShowKPIReporting(true)}
               className="btn-secondary flex items-center gap-2"
             >
               <BarChart3 className="w-5 h-5" />
-              Mes KPI
+              Reporting KPI
+            </button>
+            <button
+              onClick={() => setShowKPIModal(true)}
+              className="btn-secondary flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Saisir KPI
             </button>
             <button
               data-testid="new-evaluation-button"
