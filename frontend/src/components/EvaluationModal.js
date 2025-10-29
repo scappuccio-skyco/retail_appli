@@ -153,7 +153,7 @@ export default function EvaluationModal({ sales, onClose, onSuccess }) {
                       onClick={() => setFormData({ ...formData, [skill]: value })}
                       className={`flex-1 py-3 rounded-xl font-medium transition-all ${
                         formData[skill] === value
-                          ? 'bg-blue-600 text-white shadow-lg scale-105'
+                          ? 'bg-[#ffd871] text-gray-800 shadow-lg scale-105'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
