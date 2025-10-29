@@ -371,7 +371,14 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
                   <p className="text-lg font-bold text-gray-800">{diagnostic.style}</p>
                 </div>
                 <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                  <p className="text-xs text-gray-600 mb-1">🎯 Ton niveau</p>
+                  <p className="text-xs text-gray-600 mb-1">
+                    {diagnostic.level === 'Explorateur' && '🟢'} 
+                    {diagnostic.level === 'Challenger' && '🟡'}
+                    {diagnostic.level === 'Ambassadeur' && '🟠'}
+                    {diagnostic.level === 'Maître du Jeu' && '🔴'}
+                    {!['Explorateur', 'Challenger', 'Ambassadeur', 'Maître du Jeu'].includes(diagnostic.level) && '🎯'}
+                    {' '}Ton niveau
+                  </p>
                   <p className="text-lg font-bold text-gray-800">{diagnostic.level}</p>
                 </div>
                 <div className="bg-white bg-opacity-70 rounded-lg p-3">
