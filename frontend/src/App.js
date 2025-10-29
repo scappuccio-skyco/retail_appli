@@ -113,6 +113,8 @@ function App() {
 
   const handleContinueToDashboard = () => {
     setShowDiagnosticResult(false);
+    // Force navigation to dashboard by triggering a state update
+    window.location.href = '/';
   };
 
   if (loading) {
