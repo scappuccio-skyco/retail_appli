@@ -156,47 +156,53 @@ const QUESTIONS = [
   }
 ];
 
-export default function DiagnosticForm({ onComplete }) {
+function DiagnosticFormContent() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const currentQuestion = QUESTIONS[currentStep];
   const progress = ((currentStep + 1) / QUESTIONS.length) * 100;
 
-  const handleAnswer = (answer) => {
-    setResponses({ ...responses, [currentQuestion.id]: answer });
-  };
+  const handleAnswer = useCallback((answer) => {
+    setResponses(prev => ({ ...prev, [currentQuestion.id]: answer }));
+  }, [currentQuestion.id]);
 
-  const canGoNext = () => {
-    return responses[currentQuestion.id] && responses[currentQuestion.id].trim() !== '';
-  };
+  const canGoNext = useCallback(() => {
+    const answer = responses[currentQuestion.id];
+    return answer && answer.trim() !== '';
+  }, [responses, currentQuestion.id]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
+    if (isTransitioning) return;
+    
     if (currentStep < QUESTIONS.length - 1) {
-      setCurrentStep(currentStep + 1);
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentStep(prev => prev + 1);
+        setIsTransitioning(false);
+      }, 150);
     } else {
       handleSubmit();
     }
-  };
+  }, [currentStep, isTransitioning]);
 
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  const handleBack = useCallback(() => {
+    if (isTransitioning || currentStep === 0) return;
+    
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentStep(prev => prev - 1);
+      setIsTransitioning(false);
+    }, 150);
+  }, [currentStep, isTransitioning]);
 
   const handleSubmit = async () => {
     setLoading(true);
     try {
       const res = await axios.post(`${API}/diagnostic`, { responses });
-      
-      // Call parent callback with result
-      if (onComplete) {
-        onComplete(res.data);
-      }
-      
       toast.success('Diagnostic complété avec succès!');
       
       // Navigate back to dashboard
