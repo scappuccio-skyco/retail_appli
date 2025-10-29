@@ -494,8 +494,8 @@ class RetailCoachAPITester:
                 print(f"   ✅ Seller ID: {response.get('seller_id')}")
                 print(f"   ✅ Created At: {response.get('created_at')}")
             
-            # Verify AI analysis fields are present and in French
-            ai_fields = ['ai_analyse', 'ai_points_travailler', 'ai_recommandation']
+            # Verify NEW AI analysis fields are present and in French
+            ai_fields = ['ai_analyse', 'ai_points_travailler', 'ai_recommandation', 'ai_exemple_concret']
             missing_ai_fields = []
             
             for field in ai_fields:
@@ -508,18 +508,20 @@ class RetailCoachAPITester:
                 self.log_test("Debrief AI Analysis Validation", True)
                 print(f"   ✅ AI Analysis: {response.get('ai_analyse', '')[:100]}...")
                 
-                # Verify ai_points_travailler is an array
-                points = response.get('ai_points_travailler', [])
-                if isinstance(points, list) and len(points) > 0:
-                    print(f"   ✅ AI Points to Work On ({len(points)} items): {points[0][:50]}...")
+                # Verify ai_points_travailler is a string with newlines (2 improvement axes)
+                points = response.get('ai_points_travailler', '')
+                if isinstance(points, str) and points.strip():
+                    lines = points.split('\n')
+                    print(f"   ✅ AI Points to Work On ({len(lines)} axes): {points[:80]}...")
                 else:
-                    self.log_test("AI Points Array Validation", False, "ai_points_travailler should be a non-empty array")
+                    self.log_test("AI Points Format Validation", False, "ai_points_travailler should be a non-empty string")
                 
                 print(f"   ✅ AI Recommendation: {response.get('ai_recommandation', '')[:100]}...")
+                print(f"   ✅ AI Concrete Example: {response.get('ai_exemple_concret', '')[:100]}...")
                 
                 # Check if responses are in French (basic check for French words)
-                french_indicators = ['le', 'la', 'les', 'de', 'du', 'des', 'et', 'à', 'pour', 'avec', 'sur', 'dans']
-                ai_text = f"{response.get('ai_analyse', '')} {response.get('ai_recommandation', '')}"
+                french_indicators = ['le', 'la', 'les', 'de', 'du', 'des', 'et', 'à', 'pour', 'avec', 'sur', 'dans', 'vous', 'tu', 'client']
+                ai_text = f"{response.get('ai_analyse', '')} {response.get('ai_recommandation', '')} {response.get('ai_exemple_concret', '')}"
                 
                 if any(word in ai_text.lower() for word in french_indicators):
                     print("   ✅ AI responses appear to be in French")
