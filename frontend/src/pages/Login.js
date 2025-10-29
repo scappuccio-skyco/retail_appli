@@ -1,29 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { Mail, Lock, User, UserCircle } from 'lucide-react';
+import { Mail, Lock, User } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export default function Login({ onLogin }) {
-  const [isRegister, setIsRegister] = useState(false);
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get('invite');
+  
+  const [isRegister, setIsRegister] = useState(!!inviteToken);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     role: 'seller',
-    manager_id: ''
+    invitation_token: inviteToken || ''
   });
   const [loading, setLoading] = useState(false);
+  const [inviteInfo, setInviteInfo] = useState(null);
+
+  useEffect(() => {
+    if (inviteToken) {
+      verifyInvitation(inviteToken);
+    }
+  }, [inviteToken]);
+
+  const verifyInvitation = async (token) => {
+    try {
+      const res = await axios.get(`${API}/invitations/verify/${token}`);
+      setInviteInfo(res.data);
+      setFormData(prev => ({ ...prev, email: res.data.email, invitation_token: token }));
+      toast.success(`Invitation de ${res.data.manager_name}`);
+    } catch (err) {
+      toast.error('Invitation invalide ou expirée');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const endpoint = isRegister ? '/auth/register' : '/auth/login';
-      const payload = isRegister ? formData : { email: formData.email, password: formData.password };
+      let endpoint, payload;
+      
+      if (inviteToken && isRegister) {
+        // Registration with invitation
+        endpoint = '/auth/register-with-invite';
+        payload = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          invitation_token: inviteToken
+        };
+      } else if (isRegister) {
+        // Normal registration
+        endpoint = '/auth/register';
+        payload = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role
+        };
+      } else {
+        // Login
+        endpoint = '/auth/login';
+        payload = { email: formData.email, password: formData.password };
+      }
       
       const res = await axios.post(`${API}${endpoint}`, payload);
       toast.success(isRegister ? 'Compte créé avec succès!' : 'Connexion réussie!');
@@ -40,53 +85,61 @@ export default function Login({ onLogin }) {
       <div className="w-full max-w-md">
         <div className="glass-morphism rounded-3xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl mb-4">
-              <UserCircle className="w-10 h-10 text-white" />
-            </div>
+            <img 
+              src="/logo.jpg" 
+              alt="Skyco Formation" 
+              className="w-32 h-32 mx-auto mb-4 rounded-2xl shadow-lg object-cover"
+            />
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
               Retail Coach 2.0
             </h1>
-            <p className="text-gray-600">
-              {isRegister ? 'Créez votre compte' : 'Connectez-vous'}
-            </p>
+            {inviteInfo ? (
+              <p className="text-gray-600">
+                Rejoignez l'équipe de {inviteInfo.manager_name}
+              </p>
+            ) : (
+              <p className="text-gray-600">
+                {isRegister ? 'Créez votre compte' : 'Connectez-vous'}
+              </p>
+            )}
           </div>
 
           <form data-testid="auth-form" onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom complet
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      data-testid="name-input"
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Votre nom"
-                    />
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nom complet
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    data-testid="name-input"
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent transition-all"
+                    placeholder="Votre nom"
+                  />
                 </div>
+              </div>
+            )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Rôle
-                  </label>
-                  <select
-                    data-testid="role-select"
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  >
-                    <option value="seller">Vendeur</option>
-                    <option value="manager">Manager</option>
-                  </select>
-                </div>
-              </>
+            {isRegister && !inviteToken && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Rôle
+                </label>
+                <select
+                  data-testid="role-select"
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent transition-all"
+                >
+                  <option value="seller">Vendeur</option>
+                  <option value="manager">Manager</option>
+                </select>
+              </div>
             )}
 
             <div>
@@ -101,7 +154,8 @@ export default function Login({ onLogin }) {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  disabled={!!inviteInfo}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent transition-all disabled:bg-gray-100"
                   placeholder="votre@email.com"
                 />
               </div>
@@ -119,7 +173,7 @@ export default function Login({ onLogin }) {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent transition-all"
                   placeholder="••••••••"
                 />
               </div>
@@ -135,15 +189,17 @@ export default function Login({ onLogin }) {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <button
-              data-testid="toggle-auth-mode"
-              onClick={() => setIsRegister(!isRegister)}
-              className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-            >
-              {isRegister ? 'Déjà un compte? Se connecter' : "Pas de compte? S'inscrire"}
-            </button>
-          </div>
+          {!inviteToken && (
+            <div className="mt-6 text-center">
+              <button
+                data-testid="toggle-auth-mode"
+                onClick={() => setIsRegister(!isRegister)}
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+              >
+                {isRegister ? 'Déjà un compte? Se connecter' : "Pas de compte? S'inscrire"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
