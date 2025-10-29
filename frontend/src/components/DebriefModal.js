@@ -185,8 +185,13 @@ export default function DebriefModal({ onClose, onSuccess }) {
 
         {/* Form Content - Scrollable */}
         <div className="px-6 overflow-y-auto flex-1">
-          {/* Step 1 - Always in DOM, hidden with CSS */}
-          <div className={`space-y-6 pb-6 ${step === 1 ? 'block' : 'hidden'}`}>
+          {/* Step 1 */}
+          <div 
+            className="space-y-6 pb-6"
+            style={{ 
+              display: step === 1 ? 'block' : 'none'
+            }}
+          >
             {/* Type de client */}
             <div>
               <label className="block text-sm font-semibold text-gray-800 mb-3">
