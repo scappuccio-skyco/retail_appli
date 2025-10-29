@@ -97,7 +97,7 @@ export default function EvaluationModal({ sales, onClose, onSuccess }) {
                     required
                     value={formData.store_name}
                     onChange={(e) => setFormData({ ...formData, store_name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
                     placeholder="Ex: Boutique Paris Centre"
                   />
                 </div>
@@ -112,7 +112,7 @@ export default function EvaluationModal({ sales, onClose, onSuccess }) {
                     required
                     value={formData.total_amount}
                     onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
                     placeholder="Ex: 150.00"
                   />
                 </div>
