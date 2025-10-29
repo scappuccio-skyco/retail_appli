@@ -158,6 +158,7 @@ const QUESTIONS = [
 class DiagnosticFormClass extends React.Component {
   constructor(props) {
     super(props);
+    console.log('🏗️ DiagnosticFormClass constructor called with props:', props);
     this.state = {
       currentStep: 0,
       responses: {},
