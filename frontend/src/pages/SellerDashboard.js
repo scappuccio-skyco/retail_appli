@@ -16,6 +16,7 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const [sales, setSales] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [showEvalModal, setShowEvalModal] = useState(false);
+  const [showKPIModal, setShowKPIModal] = useState(false);
   const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
