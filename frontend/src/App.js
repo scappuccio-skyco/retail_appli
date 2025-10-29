@@ -101,12 +101,6 @@ function AppContent() {
     console.log('🎯 Full result:', JSON.stringify(result, null, 2));
     console.log('🎯 Setting diagnosticLoading to true');
     
-    // TEMPORARY: Disable all state changes to prevent navigation
-    console.log('🛑 STATE UPDATES DISABLED FOR DEBUGGING');
-    console.log('🛑 Check the result object above - does it have style, level, motivation?');
-    
-    return; // TEMPORARY: Stop here to prevent any navigation
-    
     setDiagnosticLoading(true);
     
     // Set diagnostic immediately from the response
