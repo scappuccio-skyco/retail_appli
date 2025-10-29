@@ -648,17 +648,15 @@ class RetailCoachAPITester:
             print(f"   ✅ Logged in as: {existing_seller.get('name')} ({existing_seller.get('email')})")
             print(f"   ✅ Seller ID: {existing_seller.get('id')}")
             
-            # Test debrief creation with existing seller
+            # Test debrief creation with existing seller (NEW structure)
             debrief_data = {
-                "type_client": "Curieux / intéressé",
-                "moment_journee": "Début",
-                "emotion": "Motivé",
                 "produit": "MacBook Pro",
-                "raisons_echec": "Prix trop élevé pour le budget",
+                "type_client": "Client existant",
+                "situation_vente": "Vente initiée par le client (demande spontanée)",
+                "description_vente": "Le client était intéressé par le MacBook Pro mais a été surpris par le prix. Malgré mes explications sur la valeur, il a décidé de réfléchir.",
                 "moment_perte_client": "Présentation du prix",
-                "sentiment": "Compréhensif mais déçu",
-                "amelioration_pensee": "J'aurais pu proposer des alternatives de financement",
-                "action_future": "Préparer des options de paiement échelonné et des produits alternatifs"
+                "raisons_echec": "Prix trop élevé pour son budget",
+                "amelioration_pensee": "J'aurais pu proposer des alternatives de financement ou des modèles moins chers"
             }
             
             print("   Creating debrief with existing seller account...")
