@@ -1069,6 +1069,20 @@ async def get_seller_diagnostic(seller_id: str, current_user: dict = Depends(get
     if not diagnostic:
         return None
     
+
+@api_router.delete("/diagnostic/me")
+async def delete_my_diagnostic(current_user: dict = Depends(get_current_user)):
+    """Delete seller's own diagnostic - allows retaking the test"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can delete their own diagnostic")
+    
+    result = await db.diagnostics.delete_one({"seller_id": current_user['id']})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="No diagnostic found")
+    
+    return {"message": "Diagnostic deleted successfully", "deleted_count": result.deleted_count}
+
     if isinstance(diagnostic.get('created_at'), str):
         diagnostic['created_at'] = datetime.fromisoformat(diagnostic['created_at'])
     
