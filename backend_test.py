@@ -554,10 +554,11 @@ class RetailCoachAPITester:
                         self.log_test("Debrief Persistence Validation", True)
                         print("   ✅ Created debrief found in GET response")
                         
-                        # Verify all fields are still present
+                        # Verify all NEW AI fields are still present
                         if (found_debrief.get('ai_analyse') and 
                             found_debrief.get('ai_points_travailler') and 
-                            found_debrief.get('ai_recommandation')):
+                            found_debrief.get('ai_recommandation') and
+                            found_debrief.get('ai_exemple_concret')):
                             print("   ✅ All AI analysis fields persisted correctly")
                         else:
                             self.log_test("Debrief AI Persistence", False, "AI analysis fields not properly persisted")
