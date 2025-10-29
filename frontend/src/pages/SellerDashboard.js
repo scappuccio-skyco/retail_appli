@@ -107,8 +107,8 @@ export default function SellerDashboard({ user, onLogout }) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="glass-morphism rounded-2xl p-6 card-hover">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Award className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-[#ffd871] bg-opacity-20 rounded-xl flex items-center justify-center">
+                <Award className="w-6 h-6 text-gray-800" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Score Moyen</p>
