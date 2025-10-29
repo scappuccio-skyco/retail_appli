@@ -748,6 +748,13 @@ class RetailCoachAPITester:
         # Test existing seller scenario
         self.test_existing_seller_diagnostic_scenario()
 
+        # CRITICAL: Debrief flow tests (NEW FEATURE)
+        self.test_debrief_flow()
+        self.test_debrief_validation_and_auth()
+        
+        # Test with existing seller account
+        self.test_existing_seller_login_scenario()
+
         # Sales operations
         sale_id = self.test_sales_operations()
 
