@@ -68,15 +68,20 @@ function App() {
     localStorage.setItem('token', token);
     setUser(userData);
     
-    // Check diagnostic for new sellers
+    // Check diagnostic for new sellers - ensure it completes before navigation
     if (userData.role === 'seller') {
       try {
         const diagRes = await axios.get(`${API}/diagnostic/me`);
         if (diagRes.data.status === 'completed') {
           setDiagnostic(diagRes.data.diagnostic);
+          console.log('Diagnostic already completed:', diagRes.data.diagnostic);
+        } else {
+          console.log('Diagnostic not completed');
+          setDiagnostic(null);
         }
       } catch (err) {
-        console.log('No diagnostic yet');
+        console.log('No diagnostic yet:', err.response?.status);
+        setDiagnostic(null);
       }
     }
   };
