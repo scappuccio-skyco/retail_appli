@@ -994,7 +994,7 @@ Réponds au format JSON avec cette structure exacte :
         # Fallback analysis
         return {
             "style": "Convivial",
-            "level": "Intermédiaire",
+            "level": "Challenger",
             "motivation": "Relation",
             "summary": "Profil en cours d'analyse. Votre diagnostic a été enregistré avec succès.",
             "score_accueil": 3.0,
