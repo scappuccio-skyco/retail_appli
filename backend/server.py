@@ -619,7 +619,7 @@ async def get_evaluations(current_user: dict = Depends(get_current_user)):
 
 # ===== DEBRIEF ROUTES =====
 
-async def generate_ai_debrief_analysis(debrief_data: dict, seller_name: str) -> dict:
+async def generate_ai_debrief_analysis(debrief_data: dict, seller_name: str, current_scores: dict) -> dict:
     """Generate AI coaching feedback for a debrief"""
     
     prompt = f"""Tu es un coach expert en vente retail.
@@ -636,11 +636,22 @@ Tu viens de débriefer une vente qui n'a pas abouti. Voici les détails :
 ❌ Raisons évoquées : {debrief_data.get('raisons_echec')}
 🔄 Ce que tu penses pouvoir faire différemment : {debrief_data.get('amelioration_pensee')}
 
+### SCORES ACTUELS DES COMPÉTENCES (sur 5)
+- Accueil : {current_scores.get('accueil', 3.0)}
+- Découverte : {current_scores.get('decouverte', 3.0)}
+- Argumentation : {current_scores.get('argumentation', 3.0)}
+- Closing : {current_scores.get('closing', 3.0)}
+- Fidélisation : {current_scores.get('fidelisation', 3.0)}
+
 ### OBJECTIF
-Fournir une analyse commerciale réaliste et empathique EN UTILISANT LE TUTOIEMENT ("tu").
-Identifier 2 axes d'amélioration concrets (écoute, argumentation, closing, posture, etc.).
-Donner 1 recommandation claire et motivante.
-Ajouter 1 exemple concret de phrase ou de comportement à adopter.
+1. Fournir une analyse commerciale réaliste et empathique EN UTILISANT LE TUTOIEMENT ("tu").
+2. Identifier 2 axes d'amélioration concrets (écoute, argumentation, closing, posture, etc.).
+3. Donner 1 recommandation claire et motivante.
+4. Ajouter 1 exemple concret de phrase ou de comportement à adopter.
+5. **IMPORTANT** : Réévaluer les 5 compétences en fonction de ce débrief. 
+   - Si une compétence était défaillante dans cette vente, ajuste son score légèrement à la baisse (-0.2 à -0.5)
+   - Si une compétence était un point fort, maintiens ou augmente légèrement (+0.2)
+   - Les scores doivent rester entre 1.0 et 5.0
 
 ### FORMAT DE SORTIE (JSON uniquement)
 Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
@@ -648,7 +659,12 @@ Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
   "analyse": "[2–3 phrases d'analyse réaliste, orientée performance, en tutoyant (tu as bien identifié...)]",
   "points_travailler": "[Axe 1 en tutoyant]\\n[Axe 2 en tutoyant]",
   "recommandation": "[Une phrase courte, claire et motivante en tutoyant — action directe à tester dès la prochaine vente]",
-  "exemple_concret": "[Une phrase illustrant ce que tu aurais pu dire ou faire dans cette situation]"
+  "exemple_concret": "[Une phrase illustrant ce que tu aurais pu dire ou faire dans cette situation]",
+  "score_accueil": 3.5,
+  "score_decouverte": 4.0,
+  "score_argumentation": 3.0,
+  "score_closing": 3.5,
+  "score_fidelisation": 4.0
 }}
 
 ### STYLE ATTENDU
