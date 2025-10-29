@@ -410,45 +410,18 @@ export default function DebriefModal({ onClose, onSuccess }) {
 
         {/* Actions */}
         <div className="border-t border-gray-200 p-6 flex gap-3 flex-shrink-0">
-          {step === 2 && (
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 flex items-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Retour
-            </button>
-          )}
-          
-          {step === 1 ? (
-            <button
-              type="button"
-              onClick={() => setStep(2)}
-              disabled={!canProceedStep1()}
-              className={`flex-1 py-3 rounded-full font-semibold flex items-center justify-center gap-2 transition-all ${
-                canProceedStep1()
-                  ? 'bg-[#ffd871] text-gray-800 hover:shadow-lg'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              Suivant
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={!canSubmit() || loading}
-              className={`flex-1 py-3 rounded-full font-semibold transition-all ${
-                canSubmit() && !loading
-                  ? 'bg-[#ffd871] text-gray-800 hover:shadow-lg'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              {loading ? 'Analyse en cours...' : 'Recevoir mon coaching'}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!isComplete() || loading}
+            className={`flex-1 py-3 rounded-full font-semibold transition-all ${
+              isComplete() && !loading
+                ? 'bg-[#ffd871] text-gray-800 hover:shadow-lg'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            {loading ? 'Analyse en cours...' : 'Recevoir mon coaching'}
+          </button>
         </div>
       </div>
     </div>
