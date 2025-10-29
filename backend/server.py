@@ -610,49 +610,40 @@ async def get_evaluations(current_user: dict = Depends(get_current_user)):
 async def generate_ai_debrief_analysis(debrief_data: dict, seller_name: str) -> dict:
     """Generate AI coaching feedback for a debrief"""
     
-    prompt = f"""Tu es un coach expert en vente retail, spécialisé dans l'accompagnement bienveillant des vendeurs.
-Ton rôle est d'aider un vendeur à analyser une vente non conclue et à en tirer un apprentissage concret.
+    prompt = f"""Tu es un coach expert en vente retail.
+Analyse la vente décrite par le vendeur pour identifier les causes probables de l'échec et lui proposer des leviers d'amélioration concrets.
 
 ### CONTEXTE
-Le vendeur vient de remplir un formulaire de débrief. Voici ses réponses :
-
 🧍 Vendeur : {seller_name}
-🕒 Moment de la journée : {debrief_data.get('moment_journee')}
-😌 Émotion ressentie : {debrief_data.get('emotion')}
+🎯 Produit : {debrief_data.get('produit')}
 👥 Type de client : {debrief_data.get('type_client')}
-🎯 Produit ou service proposé : {debrief_data.get('produit')}
-❌ Raisons principales de l'échec : {debrief_data.get('raisons_echec')}
-📍 Moment où le client semble avoir été perdu : {debrief_data.get('moment_perte_client')}
-💬 Sentiment à ce moment : {debrief_data.get('sentiment')}
-🔄 Ce qu'il pense pouvoir faire différemment : {debrief_data.get('amelioration_pensee')}
-🚀 Ce qu'il fera la prochaine fois : {debrief_data.get('action_future')}
+💼 Situation : {debrief_data.get('situation_vente')}
+💬 Description : {debrief_data.get('description_vente')}
+📍 Moment clé du blocage : {debrief_data.get('moment_perte_client')}
+❌ Raisons évoquées : {debrief_data.get('raisons_echec')}
+🔄 Ce qu'il aurait pu faire différemment : {debrief_data.get('amelioration_pensee')}
 
-### OBJECTIF DE TA RÉPONSE
-Fournis un **retour de coaching bienveillant**, personnalisé et concret.
-
-Ta mission :
-1. **Analyser la situation** de manière empathique et réaliste.
-2. **Identifier les causes probables de l'échec**, avec bienveillance.
-3. **Donner 2 axes d'amélioration clairs**, concrets et applicables immédiatement.
-4. **Terminer par une recommandation unique et motivante**.
+### OBJECTIF
+Fournir une analyse commerciale réaliste et empathique.
+Identifier 2 axes d'amélioration concrets (écoute, argumentation, closing, posture, etc.).
+Donner 1 recommandation claire et motivante.
+Ajouter 1 exemple concret de phrase ou de comportement qu'il aurait pu adopter.
 
 ### FORMAT DE SORTIE (JSON uniquement)
 Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
 {{
-  "analyse": "Ton analyse bienveillante en 2-3 phrases",
-  "points_travailler": [
-    "Axe d'amélioration n°1",
-    "Axe d'amélioration n°2"
-  ],
-  "recommandation": "Une phrase courte, motivante et actionnable"
+  "analyse": "[2–3 phrases d'analyse réaliste, orientée performance]",
+  "points_travailler": "[Axe 1]\\n[Axe 2]",
+  "recommandation": "[Une phrase courte, claire et motivante — action directe à tester dès la prochaine vente]",
+  "exemple_concret": "[Une phrase illustrant ce que le vendeur aurait pu dire ou faire dans cette situation]"
 }}
 
-### STYLE
-- Ton bienveillant, motivant, jamais culpabilisant
-- Phrases courtes, claires et concrètes
-- Langage professionnel accessible
-- Reste humain et encourageant
-- Maximum 10 lignes au total
+### STYLE ATTENDU
+- Ton professionnel, positif, utile et centré sur la performance commerciale
+- Évite toute approche psychologique ou moralisante
+- Utilise un vocabulaire de vendeur retail : client, besoin, argument, reformulation, closing, objection
+- L'exemple doit être simple, réaliste et crédible ("Tu aurais pu dire : 'Je comprends, ce modèle est plus léger et répond mieux à ce que vous cherchez.'")
+- Maximum 12 lignes au total
 """
 
     try:
@@ -660,7 +651,7 @@ Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
         chat = LlmChat(
             api_key=api_key,
             session_id=f"debrief_{uuid.uuid4()}",
-            system_message="Tu es un coach en vente retail bienveillant. Tu réponds UNIQUEMENT en JSON valide."
+            system_message="Tu es un coach en vente retail professionnel. Tu réponds UNIQUEMENT en JSON valide."
         ).with_model("openai", "gpt-4o-mini")
         
         user_message = UserMessage(text=prompt)
@@ -679,19 +670,18 @@ Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
         
         return {
             "analyse": analysis.get("analyse", ""),
-            "points_travailler": analysis.get("points_travailler", []),
-            "recommandation": analysis.get("recommandation", "")
+            "points_travailler": analysis.get("points_travailler", ""),
+            "recommandation": analysis.get("recommandation", ""),
+            "exemple_concret": analysis.get("exemple_concret", "")
         }
     except Exception as e:
         print(f"Error generating AI debrief: {e}")
         # Fallback response
         return {
-            "analyse": "Tu as fait preuve d'honnêteté en analysant cette vente. C'est déjà un excellent reflexe pour progresser.",
-            "points_travailler": [
-                "Continue à observer tes émotions pendant la vente",
-                "Note ce qui fonctionne bien pour le reproduire"
-            ],
-            "recommandation": "La prochaine fois, prends 30 secondes avant la vente pour te recentrer sur ton objectif."
+            "analyse": "Cette analyse montre une bonne capacité de recul. L'identification du moment clé du blocage est un excellent point de départ pour progresser.",
+            "points_travailler": "• Renforcer la reformulation des besoins client pour mieux valider sa compréhension\n• Préparer des réponses aux objections courantes pour gagner en fluidité",
+            "recommandation": "Dès la prochaine vente, pose une question de validation après la découverte du besoin.",
+            "exemple_concret": "Tu aurais pu dire : 'Si je comprends bien, vous cherchez un produit qui combine [besoin 1] et [besoin 2], c'est bien ça ?'"
         }
 
 @api_router.post("/debriefs", response_model=Debrief)
