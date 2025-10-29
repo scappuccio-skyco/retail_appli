@@ -170,7 +170,7 @@ export default function SellerDashboard({ user, onLogout }) {
                   <XAxis dataKey="name" tick={{ fill: '#475569' }} />
                   <YAxis domain={[0, 5]} tick={{ fill: '#475569' }} />
                   <Tooltip />
-                  <Line type="monotone" dataKey="score" stroke="#6366f1" strokeWidth={3} dot={{ fill: '#6366f1', r: 4 }} />
+                  <Line type="monotone" dataKey="score" stroke="#ffd871" strokeWidth={3} dot={{ fill: '#ffd871', r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
