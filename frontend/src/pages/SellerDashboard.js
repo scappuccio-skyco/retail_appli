@@ -316,7 +316,7 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
               <button
                 onClick={() => {
                   setShowDiagnosticModal(false);
-                  window.location.href = '/diagnostic';
+                  navigate('/diagnostic');
                 }}
                 className="flex-1 btn-primary"
               >
