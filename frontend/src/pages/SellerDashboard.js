@@ -110,6 +110,44 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
       </div>
 
       <div className="max-w-7xl mx-auto">
+        {/* Tasks Section */}
+        {tasks.length > 0 && (
+          <div className="glass-morphism rounded-2xl p-6 mb-8 border-2 border-[#ffd871]">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Mes tâches à faire</h2>
+            <div className="space-y-3">
+              {tasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="bg-white rounded-xl p-4 border border-gray-200 hover:shadow-md transition-all cursor-pointer"
+                  onClick={() => {
+                    if (task.type === 'diagnostic') {
+                      setShowDiagnosticModal(true);
+                    } else {
+                      setSelectedTask(task);
+                      setShowTaskModal(true);
+                    }
+                  }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3 flex-1">
+                      <span className="text-3xl">{task.icon}</span>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-800">{task.title}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      task.priority === 'high' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {task.priority === 'high' ? 'Urgent' : 'Important'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Diagnostic Profile Card */}
         {diagnostic && (
           <div className="glass-morphism rounded-2xl p-6 mb-8 border-2 border-[#ffd871]">
