@@ -118,24 +118,16 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const last7Days = new Date();
   last7Days.setDate(last7Days.getDate() - 7);
   
-  console.log('KPI Entries:', kpiEntries);
-  console.log('Last 7 days threshold:', last7Days);
-  
   const recentKpis = kpiEntries.filter(entry => {
     const entryDate = new Date(entry.date);
-    console.log('Entry date:', entryDate, 'Is recent?', entryDate >= last7Days);
     return entryDate >= last7Days;
   });
-  
-  console.log('Recent KPIs:', recentKpis);
 
   const kpiStats = {
     totalEvaluations: (diagnostic ? 1 : 0) + debriefs.length,
     totalVentes: recentKpis.reduce((sum, e) => sum + (e.nb_ventes || 0), 0),
     totalCA: recentKpis.reduce((sum, e) => sum + (e.ca_journalier || 0), 0)
   };
-  
-  console.log('KPI Stats:', kpiStats);
 
   // If showing KPI reporting, render that component AFTER all hooks
   if (showKPIReporting) {
