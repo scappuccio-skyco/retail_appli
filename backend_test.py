@@ -433,24 +433,22 @@ class RetailCoachAPITester:
             print("   ✅ Existing seller correctly prevented from submitting new diagnostic")
 
     def test_debrief_flow(self):
-        """Test comprehensive debrief functionality - CRITICAL FEATURE"""
+        """Test comprehensive debrief functionality - UPDATED FEATURE"""
         if not self.seller_token:
             self.log_test("Debrief Flow", False, "No seller token available")
             return
 
-        print("\n🔍 Testing Debrief Flow (CRITICAL FEATURE)...")
+        print("\n🔍 Testing Updated Debrief Flow (CRITICAL FEATURE)...")
         
-        # Test 1: Create debrief with complete data (Happy Path)
+        # Test 1: Create debrief with NEW data structure (Happy Path)
         debrief_data = {
-            "type_client": "Indécis / hésitant",
-            "moment_journee": "Milieu",
-            "emotion": "Confiant",
             "produit": "iPhone 15 Pro",
-            "raisons_echec": "Manque d'argument convaincant",
-            "moment_perte_client": "Argumentation",
-            "sentiment": "Frustré de ne pas avoir su répondre aux objections",
-            "amelioration_pensee": "J'aurais pu mieux préparer mes arguments sur les fonctionnalités",
-            "action_future": "Je vais étudier les comparatifs produits et préparer des réponses aux objections courantes"
+            "type_client": "Nouveau client",
+            "situation_vente": "Vente initiée par moi (approche proactive)",
+            "description_vente": "Le client semblait intéressé au début mais a commencé à hésiter lors de la présentation du prix. J'ai essayé d'argumenter sur les fonctionnalités mais il n'était pas convaincu.",
+            "moment_perte_client": "Argumentation / objections",
+            "raisons_echec": "Il n'a pas été convaincu",
+            "amelioration_pensee": "J'aurais pu mieux comprendre son budget avant de proposer le modèle haut de gamme"
         }
         
         print("   Creating debrief with AI analysis (may take 10-15 seconds)...")
