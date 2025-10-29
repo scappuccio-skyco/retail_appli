@@ -167,7 +167,7 @@ frontend:
     implemented: true
     working: "NA"
     file: "/app/frontend/src/App.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: true
     status_history:
@@ -177,6 +177,12 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Fixed: Enhanced checkAuth to ensure diagnostic data is fully loaded before setting loading=false. Added proper console logging. Improved handleLogin and handleDiagnosticComplete to properly fetch and set diagnostic state."
+      - working: false
+        agent: "user"
+        comment: "User tested and reported: After completing diagnostic questionnaire, it still reloads the questionnaire instead of showing the profile and dashboard."
+      - working: "NA"
+        agent: "main"
+        comment: "Second fix attempt: Restructured App.js to use useNavigate properly. Created AppContent wrapper inside BrowserRouter. Modified /diagnostic route logic to show DiagnosticResult when showDiagnosticResult is true. Now handleContinueToDashboard uses navigate('/') instead of window.location.href. The flow should now be: Complete diagnostic → Set showDiagnosticResult=true → Show DiagnosticResult on /diagnostic route → Click continue → Navigate to / with diagnostic data."
   
   - task: "Diagnostic Result Display"
     implemented: true
