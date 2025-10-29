@@ -36,11 +36,17 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
 
   const fetchData = async () => {
     try {
-      const [evalsRes, salesRes, tasksRes, debriefsRes] = await Promise.all([
+      const [evalsRes, salesRes, tasksRes, debriefsRes, competencesRes, kpiRes] = await Promise.all([
         axios.get(`${API}/evaluations`),
         axios.get(`${API}/sales`),
         axios.get(`${API}/seller/tasks`),
         axios.get(`${API}/debriefs`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }),
+        axios.get(`${API}/competences/history`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }),
+        axios.get(`${API}/kpi/entries`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         })
       ]);
@@ -48,7 +54,10 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
       setSales(salesRes.data);
       setTasks(tasksRes.data);
       setDebriefs(debriefsRes.data);
+      setCompetencesHistory(competencesRes.data);
+      setKpiEntries(kpiRes.data);
     } catch (err) {
+      console.error('Error loading data:', err);
       toast.error('Erreur de chargement des données');
     } finally {
       setLoading(false);
