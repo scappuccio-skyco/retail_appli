@@ -5,6 +5,8 @@ import '@/App.css';
 import Login from './pages/Login';
 import SellerDashboard from './pages/SellerDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
+import DiagnosticForm from './components/DiagnosticForm';
+import DiagnosticResult from './components/DiagnosticResult';
 import { Toaster } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -22,6 +24,8 @@ axios.interceptors.request.use((config) => {
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [diagnostic, setDiagnostic] = useState(null);
+  const [showDiagnosticResult, setShowDiagnosticResult] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -33,6 +37,12 @@ function App() {
       try {
         const res = await axios.get(`${API}/auth/me`);
         setUser(res.data);
+        
+        // Check diagnostic status for sellers
+        if (res.data.role === 'seller') {
+          const diagRes = await axios.get(`${API}/diagnostic/me`);
+          setDiagnostic(diagRes.data);
+        }
       } catch (err) {
         localStorage.removeItem('token');
       }
@@ -40,14 +50,34 @@ function App() {
     setLoading(false);
   };
 
-  const handleLogin = (userData, token) => {
+  const handleLogin = async (userData, token) => {
     localStorage.setItem('token', token);
     setUser(userData);
+    
+    // Check diagnostic for new sellers
+    if (userData.role === 'seller') {
+      try {
+        const diagRes = await axios.get(`${API}/diagnostic/me`);
+        setDiagnostic(diagRes.data);
+      } catch (err) {
+        setDiagnostic(null);
+      }
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    setDiagnostic(null);
+  };
+
+  const handleDiagnosticComplete = (result) => {
+    setDiagnostic(result);
+    setShowDiagnosticResult(true);
+  };
+
+  const handleContinueToDashboard = () => {
+    setShowDiagnosticResult(false);
   };
 
   if (loading) {
@@ -55,6 +85,26 @@ function App() {
       <div data-testid="loading-screen" className="flex items-center justify-center min-h-screen">
         <div className="text-xl font-medium text-gray-600">Chargement...</div>
       </div>
+    );
+  }
+
+  // Show diagnostic form for sellers without diagnostic
+  if (user && user.role === 'seller' && !diagnostic && !showDiagnosticResult) {
+    return (
+      <>
+        <Toaster position="top-right" richColors />
+        <DiagnosticForm onComplete={handleDiagnosticComplete} />
+      </>
+    );
+  }
+
+  // Show diagnostic result after completion
+  if (showDiagnosticResult && diagnostic) {
+    return (
+      <>
+        <Toaster position="top-right" richColors />
+        <DiagnosticResult diagnostic={diagnostic} onContinue={handleContinueToDashboard} />
+      </>
     );
   }
 
@@ -79,7 +129,7 @@ function App() {
               !user ? (
                 <Navigate to="/login" replace />
               ) : user.role === 'seller' ? (
-                <SellerDashboard user={user} onLogout={handleLogout} />
+                <SellerDashboard user={user} diagnostic={diagnostic} onLogout={handleLogout} />
               ) : (
                 <ManagerDashboard user={user} onLogout={handleLogout} />
               )
