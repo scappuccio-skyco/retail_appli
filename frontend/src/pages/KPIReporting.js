@@ -14,6 +14,7 @@ export default function KPIReporting({ user, onBack }) {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('week'); // week, month, year
   const [compareYear, setCompareYear] = useState(false);
+  const [showDetailTable, setShowDetailTable] = useState(false);
 
   useEffect(() => {
     fetchKPIData();
