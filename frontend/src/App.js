@@ -79,9 +79,17 @@ function App() {
     setDiagnostic(null);
   };
 
-  const handleDiagnosticComplete = (result) => {
+  const handleDiagnosticComplete = async (result) => {
     setDiagnostic(result);
-    setShowDiagnosticResult(true);
+    // Reload diagnostic from API to ensure fresh data
+    try {
+      const diagRes = await axios.get(`${API}/diagnostic/me`);
+      if (diagRes.data.status === 'completed') {
+        setDiagnostic(diagRes.data.diagnostic);
+      }
+    } catch (err) {
+      console.log('Error reloading diagnostic');
+    }
   };
 
   const handleContinueToDashboard = () => {
