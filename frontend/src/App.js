@@ -94,15 +94,17 @@ function App() {
 
   const handleDiagnosticComplete = async (result) => {
     console.log('Diagnostic complete handler called with:', result);
-    setDiagnostic(result);
     
-    // Fetch fresh diagnostic data from backend
+    // Set diagnostic immediately from the response
+    setDiagnostic(result);
+    setShowDiagnosticResult(true);
+    
+    // Fetch fresh diagnostic data from backend to ensure consistency
     try {
       const diagRes = await axios.get(`${API}/diagnostic/me`);
       if (diagRes.data.status === 'completed') {
         setDiagnostic(diagRes.data.diagnostic);
         console.log('Diagnostic reloaded from API:', diagRes.data.diagnostic);
-        setShowDiagnosticResult(true);
       }
     } catch (err) {
       console.error('Error reloading diagnostic:', err);
