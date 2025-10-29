@@ -234,6 +234,8 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
                   onClick={() => {
                     if (task.type === 'diagnostic') {
                       setShowDiagnosticModal(true);
+                    } else if (task.type === 'kpi') {
+                      setShowKPIModal(true);
                     } else {
                       setSelectedTask(task);
                       setShowTaskModal(true);
