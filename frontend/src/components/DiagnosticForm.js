@@ -219,14 +219,14 @@ function DiagnosticFormContent() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#fffef9] to-[#fff9e6]">
       <div className="w-full max-w-3xl">
         <div className="glass-morphism rounded-3xl shadow-2xl p-8">
-          {/* Header */}
+          {/* Header - Always mounted */}
           <div className="text-center mb-8">
             <img src="/logo.jpg" alt="Logo" className="w-20 h-20 mx-auto mb-4 rounded-xl shadow-md object-cover" />
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Diagnostic vendeur avancé</h1>
             <p className="text-gray-600">Découvre ton profil de vendeur en moins de 10 minutes</p>
           </div>
 
-          {/* Progress Bar */}
+          {/* Progress Bar - Always mounted */}
           <div className="mb-8">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
               <span>Question {currentStep + 1} sur {QUESTIONS.length}</span>
@@ -240,15 +240,19 @@ function DiagnosticFormContent() {
             </div>
           </div>
 
-          {/* Theme Badge */}
+          {/* Theme Badge - Always mounted */}
           <div className="mb-6">
             <span className="inline-block px-4 py-2 bg-[#ffd871] bg-opacity-20 rounded-full text-sm font-medium text-gray-800">
               {currentQuestion.theme}
             </span>
           </div>
 
-          {/* Question */}
-          <div className="mb-8">
+          {/* Question Container - Keep mounted, change opacity */}
+          <div 
+            key={`question-container-${currentStep}`}
+            className="mb-8 transition-opacity duration-200"
+            style={{ opacity: isTransitioning ? 0.3 : 1 }}
+          >
             <h2 className="text-xl font-semibold text-gray-800 mb-6">
               {currentQuestion.question}
             </h2>
@@ -257,13 +261,15 @@ function DiagnosticFormContent() {
               <div className="space-y-3">
                 {currentQuestion.options.map((option, index) => (
                   <button
-                    key={index}
+                    key={`option-${currentStep}-${index}`}
+                    type="button"
                     onClick={() => handleAnswer(option)}
+                    disabled={isTransitioning}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                       responses[currentQuestion.id] === option
                         ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
                         : 'border-gray-200 hover:border-[#ffd871] hover:bg-gray-50'
-                    }`}
+                    } ${isTransitioning ? 'pointer-events-none' : ''}`}
                   >
                     <p className="text-gray-800">{option}</p>
                   </button>
@@ -271,8 +277,10 @@ function DiagnosticFormContent() {
               </div>
             ) : (
               <textarea
+                key={`textarea-${currentStep}`}
                 value={responses[currentQuestion.id] || ''}
                 onChange={(e) => handleAnswer(e.target.value)}
+                disabled={isTransitioning}
                 placeholder="Écris ta réponse ici..."
                 rows={5}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
