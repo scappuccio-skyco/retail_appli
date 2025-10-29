@@ -177,15 +177,20 @@ class DiagnosticFormClass extends React.Component {
   }
 
   handleNext = () => {
+    console.log('🎯 handleNext called, currentStep:', this.state.currentStep, 'loading:', this.state.loading);
     if (this.state.loading) return;
     const currentQuestion = QUESTIONS[this.state.currentStep];
     const answer = this.state.responses[currentQuestion.id];
     
+    console.log('🎯 Current answer:', answer);
+    
     if (!answer || answer.trim() === '') return;
     
     if (this.state.currentStep < QUESTIONS.length - 1) {
+      console.log('🎯 Moving to next question');
       this.setState({ currentStep: this.state.currentStep + 1 });
     } else {
+      console.log('🎯 Last question - calling handleSubmit');
       this.handleSubmit();
     }
   }
