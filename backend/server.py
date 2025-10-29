@@ -148,6 +148,84 @@ class ManagerRequestResponse(BaseModel):
     request_id: str
     response: str
 
+# ===== KPI MODELS =====
+# Predefined KPI types
+KPI_DEFINITIONS = {
+    "ca_journalier": {
+        "name": "Chiffre d'affaires",
+        "unit": "€",
+        "type": "number",
+        "icon": "💰"
+    },
+    "nb_ventes": {
+        "name": "Nombre de ventes",
+        "unit": "ventes",
+        "type": "number",
+        "icon": "🛍️"
+    },
+    "nb_clients": {
+        "name": "Nombre de clients accueillis",
+        "unit": "clients",
+        "type": "number",
+        "icon": "👥"
+    },
+    "panier_moyen": {
+        "name": "Panier moyen",
+        "unit": "€",
+        "type": "number",
+        "icon": "🛒"
+    },
+    "taux_transformation": {
+        "name": "Taux de transformation",
+        "unit": "%",
+        "type": "number",
+        "icon": "📈"
+    },
+    "ventes_additionnelles": {
+        "name": "Ventes additionnelles",
+        "unit": "ventes",
+        "type": "number",
+        "icon": "➕"
+    },
+    "duree_moyenne_vente": {
+        "name": "Durée moyenne de vente",
+        "unit": "min",
+        "type": "number",
+        "icon": "⏱️"
+    },
+    "produits_phares": {
+        "name": "Produits phares vendus",
+        "unit": "unités",
+        "type": "number",
+        "icon": "⭐"
+    }
+}
+
+class KPIConfiguration(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    manager_id: str
+    enabled_kpis: List[str] = []  # List of KPI keys (e.g., ["ca_journalier", "nb_ventes"])
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class KPIEntry(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    seller_id: str
+    date: str  # Format: YYYY-MM-DD
+    kpi_values: dict  # {"ca_journalier": 1500, "nb_ventes": 12, ...}
+    comment: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class KPIEntryCreate(BaseModel):
+    date: str
+    kpi_values: dict
+    comment: Optional[str] = None
+
+class KPIConfigUpdate(BaseModel):
+    enabled_kpis: List[str]
+
 # ===== AUTH HELPERS =====
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
