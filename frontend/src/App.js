@@ -97,13 +97,22 @@ function AppContent() {
 
   const handleDiagnosticComplete = async (result) => {
     console.log('🎯 handleDiagnosticComplete called with result:', result);
-    console.log('🎯 Setting diagnostic state and showDiagnosticResult to true');
+    console.log('🎯 Setting diagnosticLoading to true');
+    
+    setDiagnosticLoading(true);
     
     // Set diagnostic immediately from the response
     setDiagnostic(result);
+    
+    console.log('🎯 Diagnostic set, now setting showDiagnosticResult to true');
     setShowDiagnosticResult(true);
     
-    console.log('🎯 States updated - diagnostic:', result, 'showDiagnosticResult: true');
+    console.log('🎯 States updated - navigating or showing result');
+    
+    // Small delay to ensure state updates propagate
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    setDiagnosticLoading(false);
     
     // Fetch fresh diagnostic data from backend to ensure consistency
     try {
