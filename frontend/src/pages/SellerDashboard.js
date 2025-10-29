@@ -355,27 +355,29 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           
           {/* Diagnostic Result Card (if exists) */}
           {diagnostic && (
-            <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 rounded-xl p-6 mb-4 shadow-lg">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
+            <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 rounded-xl p-4 mb-4 shadow-lg">
+              <button
+                onClick={() => setDiagnosticExpanded(!diagnosticExpanded)}
+                className="w-full flex items-start justify-between"
+              >
+                <div className="text-left">
+                  <div className="flex items-center gap-2 mb-1">
                     <span className="text-2xl">✨</span>
-                    <h3 className="text-xl font-bold text-gray-800">Diagnostic Vendeur Avancé</h3>
+                    <h3 className="text-xl font-bold text-gray-800">Votre profil de vente</h3>
                   </div>
                   <p className="text-sm text-gray-700">
                     {new Date(diagnostic.created_at).toLocaleDateString('fr-FR')}
                   </p>
                 </div>
-              </div>
+                <div className="text-gray-800 font-bold text-xl">
+                  {diagnosticExpanded ? '−' : '+'}
+                </div>
+              </button>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                 <div className="bg-white bg-opacity-70 rounded-lg p-3">
                   <p className="text-xs text-gray-600 mb-1">Ton style</p>
                   <p className="text-lg font-bold text-gray-800">{diagnostic.style}</p>
-                </div>
-                <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                  <p className="text-xs text-gray-600 mb-1">Ton niveau</p>
-                  <p className="text-lg font-bold text-gray-800">{diagnostic.level}</p>
                 </div>
                 <div className="bg-white bg-opacity-70 rounded-lg p-3">
                   <p className="text-xs text-gray-600 mb-1">Ta motivation</p>
@@ -383,8 +385,8 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
                 </div>
               </div>
               
-              {diagnostic.ai_profile_summary && (
-                <div className="bg-white bg-opacity-70 rounded-lg p-4">
+              {diagnosticExpanded && diagnostic.ai_profile_summary && (
+                <div className="bg-white bg-opacity-70 rounded-lg p-4 mt-3 animate-fadeIn">
                   <p className="text-sm font-medium text-gray-900 mb-2 flex items-center gap-2">
                     <Sparkles className="w-4 h-4" />
                     Ton profil analysé par l'IA
