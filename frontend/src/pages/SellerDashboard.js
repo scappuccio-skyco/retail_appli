@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { LogOut, Plus, TrendingUp, Award, MessageSquare, Sparkles } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import EvaluationModal from '../components/EvaluationModal';
+import KPIEntryModal from '../components/KPIEntryModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
