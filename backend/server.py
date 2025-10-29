@@ -807,6 +807,47 @@ async def get_debriefs(current_user: dict = Depends(get_current_user)):
     
     return debriefs
 
+@api_router.get("/competences/history")
+async def get_competences_history(current_user: dict = Depends(get_current_user)):
+    """Get competence scores history (diagnostic + all debriefs)"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access their competences")
+    
+    history = []
+    
+    # Get diagnostic (initial scores)
+    diagnostic = await db.diagnostics.find_one({"seller_id": current_user['id']}, {"_id": 0})
+    if diagnostic:
+        history.append({
+            "type": "diagnostic",
+            "date": diagnostic.get('created_at'),
+            "score_accueil": diagnostic.get('score_accueil', 3.0),
+            "score_decouverte": diagnostic.get('score_decouverte', 3.0),
+            "score_argumentation": diagnostic.get('score_argumentation', 3.0),
+            "score_closing": diagnostic.get('score_closing', 3.0),
+            "score_fidelisation": diagnostic.get('score_fidelisation', 3.0)
+        })
+    
+    # Get all debriefs (evolution)
+    debriefs = await db.debriefs.find({"seller_id": current_user['id']}, {"_id": 0}).sort("created_at", 1).to_list(1000)
+    for debrief in debriefs:
+        history.append({
+            "type": "debrief",
+            "date": debrief.get('created_at'),
+            "score_accueil": debrief.get('score_accueil', 3.0),
+            "score_decouverte": debrief.get('score_decouverte', 3.0),
+            "score_argumentation": debrief.get('score_argumentation', 3.0),
+            "score_closing": debrief.get('score_closing', 3.0),
+            "score_fidelisation": debrief.get('score_fidelisation', 3.0)
+        })
+    
+    # Convert dates if needed
+    for item in history:
+        if isinstance(item.get('date'), str):
+            item['date'] = datetime.fromisoformat(item['date'])
+    
+    return history
+
 # ===== MANAGER ROUTES =====
 @api_router.get("/manager/sellers")
 async def get_sellers(current_user: dict = Depends(get_current_user)):
