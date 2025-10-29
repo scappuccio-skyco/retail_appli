@@ -268,19 +268,28 @@ frontend:
         agent: "main"
         comment: "'Nouvelle Évaluation' button replaced with 'Débriefer ma vente' button. Modal state management implemented. Needs testing."
 
-old_metadata:
+old_old_metadata:
   created_by: "main_agent"
   version: "1.1"
   test_sequence: 1
   run_ui: false
 
+metadata:
+  created_by: "main_agent"
+  version: "1.2"
+  test_sequence: 2
+  run_ui: false
+
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Debrief API - Create Debrief"
+    - "DebriefModal Component - Form Display"
+    - "DebriefModal Component - Form Submission & AI Analysis"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
-agent_communication:
+old_agent_communication:
   - agent: "main"
     message: "Fixed the diagnostic reappearance issue by: 1) Removing hard page reload (window.location.href), 2) Using proper React state management with onComplete callback, 3) Ensuring checkAuth completes diagnostic data fetch before setting loading=false, 4) Added console logging for debugging. Ready for testing - need to verify: a) New seller completes diagnostic and sees result, b) On reload/login, seller sees dashboard with diagnostic profile, c) Diagnostic form never reappears unless manually navigated to /diagnostic."
   - agent: "testing"
