@@ -137,6 +137,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "COMPREHENSIVE TESTING COMPLETED: ✅ GET /api/debriefs works perfectly. ✅ Returns array of seller's debriefs with all fields intact. ✅ Authentication required (403 without token). ✅ Data persistence verified - debriefs created via POST appear in GET response. ✅ All AI analysis fields (ai_analyse, ai_points_travailler, ai_recommandation) properly persisted and retrieved. ✅ Tested with existing seller account (vendeur2@test.com) - retrieved 1 debrief successfully."
+      - working: true
+        agent: "testing"
+        comment: "UPDATED DEBRIEF RETRIEVAL RE-TESTED: ✅ GET /api/debriefs works perfectly with NEW data structure. ✅ Returns array with all NEW fields intact (produit, type_client, situation_vente, description_vente, moment_perte_client, raisons_echec, amelioration_pensee). ✅ All 4 NEW AI analysis fields properly persisted and retrieved (ai_analyse, ai_points_travailler, ai_recommandation, ai_exemple_concret). ✅ Backward compatibility confirmed - old debriefs still accessible. ✅ Tested with vendeur2@test.com - retrieved 2 debriefs successfully including newly created ones."
 
 old_backend:
 old_backend:
