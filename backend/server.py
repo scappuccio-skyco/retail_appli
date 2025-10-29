@@ -93,6 +93,26 @@ class EvaluationCreate(BaseModel):
     fidelisation: int
     auto_comment: Optional[str] = None
 
+class Invitation(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    token: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: EmailStr
+    manager_id: str
+    manager_name: str
+    status: str = "pending"  # pending, accepted, expired
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    expires_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc) + timedelta(days=7))
+
+class InvitationCreate(BaseModel):
+    email: EmailStr
+
+class RegisterWithInvite(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    invitation_token: str
+
 # ===== AUTH HELPERS =====
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
