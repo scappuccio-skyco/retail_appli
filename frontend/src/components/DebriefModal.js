@@ -202,7 +202,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
 
         {/* Form Content - Scrollable */}
         <div className="px-6 py-6 overflow-y-auto flex-1">
-          <div className="space-y-6">{/* All questions in one view */}
+          <div className="space-y-6">
             {/* Type de client */}
             <div>
               <label className="block text-sm font-semibold text-gray-800 mb-3">
@@ -285,136 +285,128 @@ export default function DebriefModal({ onClose, onSuccess }) {
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
               />
             </div>
-          </div>
 
-          {/* Step 2 */}
-          <div 
-            className="space-y-6 pb-6"
-            style={{ 
-              display: step === 2 ? 'block' : 'none'
-            }}
-          >
-              {/* Raisons échec */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-3">
-                  Selon toi, pourquoi la vente n'a pas abouti ?
-                </label>
-                <div className="space-y-2">
-                  {[
-                    'Mauvaise compréhension du besoin',
-                    'Manque d\'argument convaincant',
-                    'Difficulté à conclure',
-                    'Client peu réceptif',
-                    'Erreur sur le produit proposé',
-                    'Autre'
-                  ].map(raison => (
-                    <button
-                      key={raison}
-                      type="button"
-                      onClick={() => handleChange('raisons_echec', raison)}
-                      className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
-                        formData.raisons_echec === raison
-                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                          : 'border-gray-200 hover:border-[#ffd871]'
-                      }`}
-                    >
-                      {raison}
-                    </button>
-                  ))}
-                </div>
-                {formData.raisons_echec === 'Autre' && (
-                  <input
-                    type="text"
-                    value={formData.raisons_echec_autre}
-                    onChange={(e) => handleChange('raisons_echec_autre', e.target.value)}
-                    placeholder="Précisez..."
-                    className="w-full mt-2 px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
-                  />
-                )}
+            {/* Raisons échec */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                Selon toi, pourquoi la vente n'a pas abouti ?
+              </label>
+              <div className="space-y-2">
+                {[
+                  'Mauvaise compréhension du besoin',
+                  'Manque d\'argument convaincant',
+                  'Difficulté à conclure',
+                  'Client peu réceptif',
+                  'Erreur sur le produit proposé',
+                  'Autre'
+                ].map(raison => (
+                  <button
+                    key={raison}
+                    type="button"
+                    onClick={() => handleChange('raisons_echec', raison)}
+                    className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
+                      formData.raisons_echec === raison
+                        ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
+                        : 'border-gray-200 hover:border-[#ffd871]'
+                    }`}
+                  >
+                    {raison}
+                  </button>
+                ))}
               </div>
-
-              {/* Moment perte client */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-3">
-                  À quel moment penses-tu avoir "perdu" le client ?
-                </label>
-                <div className="space-y-2">
-                  {[
-                    'Accueil',
-                    'Découverte du besoin',
-                    'Argumentation',
-                    'Proposition',
-                    'Conclusion / closing',
-                    'Autre'
-                  ].map(moment => (
-                    <button
-                      key={moment}
-                      type="button"
-                      onClick={() => handleChange('moment_perte_client', moment)}
-                      className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
-                        formData.moment_perte_client === moment
-                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                          : 'border-gray-200 hover:border-[#ffd871]'
-                      }`}
-                    >
-                      {moment}
-                    </button>
-                  ))}
-                </div>
-                {formData.moment_perte_client === 'Autre' && (
-                  <input
-                    type="text"
-                    value={formData.moment_perte_autre}
-                    onChange={(e) => handleChange('moment_perte_autre', e.target.value)}
-                    placeholder="Précisez..."
-                    className="w-full mt-2 px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
-                  />
-                )}
-              </div>
-
-              {/* Sentiment */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-3">
-                  Comment t'es-tu senti à ce moment-là ?
-                </label>
+              {formData.raisons_echec === 'Autre' && (
                 <input
                   type="text"
-                  value={formData.sentiment}
-                  onChange={(e) => handleChange('sentiment', e.target.value)}
-                  placeholder="Ex: Frustré, découragé, surpris..."
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                  value={formData.raisons_echec_autre}
+                  onChange={(e) => handleChange('raisons_echec_autre', e.target.value)}
+                  placeholder="Précisez..."
+                  className="w-full mt-2 px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
                 />
-              </div>
+              )}
+            </div>
 
-              {/* Amélioration pensée */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-3">
-                  Qu'aurais-tu pu faire différemment selon toi ?
-                </label>
-                <textarea
-                  value={formData.amelioration_pensee}
-                  onChange={(e) => handleChange('amelioration_pensee', e.target.value)}
-                  placeholder="Partage tes réflexions..."
-                  rows={3}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
-                />
+            {/* Moment perte client */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                À quel moment penses-tu avoir "perdu" le client ?
+              </label>
+              <div className="space-y-2">
+                {[
+                  'Accueil',
+                  'Découverte du besoin',
+                  'Argumentation',
+                  'Proposition',
+                  'Conclusion / closing',
+                  'Autre'
+                ].map(moment => (
+                  <button
+                    key={moment}
+                    type="button"
+                    onClick={() => handleChange('moment_perte_client', moment)}
+                    className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
+                      formData.moment_perte_client === moment
+                        ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
+                        : 'border-gray-200 hover:border-[#ffd871]'
+                    }`}
+                  >
+                    {moment}
+                  </button>
+                ))}
               </div>
+              {formData.moment_perte_client === 'Autre' && (
+                <input
+                  type="text"
+                  value={formData.moment_perte_autre}
+                  onChange={(e) => handleChange('moment_perte_autre', e.target.value)}
+                  placeholder="Précisez..."
+                  className="w-full mt-2 px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                />
+              )}
+            </div>
 
-              {/* Action future */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-3">
-                  Que feras-tu la prochaine fois dans une situation similaire ?
-                </label>
-                <textarea
-                  value={formData.action_future}
-                  onChange={(e) => handleChange('action_future', e.target.value)}
-                  placeholder="Décris ton plan d'action..."
-                  rows={3}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
-                />
-              </div>
+            {/* Sentiment */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                Comment t'es-tu senti à ce moment-là ?
+              </label>
+              <input
+                type="text"
+                value={formData.sentiment}
+                onChange={(e) => handleChange('sentiment', e.target.value)}
+                placeholder="Ex: Frustré, découragé, surpris..."
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+              />
+            </div>
+
+            {/* Amélioration pensée */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                Qu'aurais-tu pu faire différemment selon toi ?
+              </label>
+              <textarea
+                value={formData.amelioration_pensee}
+                onChange={(e) => handleChange('amelioration_pensee', e.target.value)}
+                placeholder="Partage tes réflexions..."
+                rows={3}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
+              />
+            </div>
+
+            {/* Action future */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-3">
+                Que feras-tu la prochaine fois dans une situation similaire ?
+              </label>
+              <textarea
+                value={formData.action_future}
+                onChange={(e) => handleChange('action_future', e.target.value)}
+                placeholder="Décris ton plan d'action..."
+                rows={3}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
+              />
             </div>
           </div>
+        </div>
 
         {/* Actions */}
         <div className="border-t border-gray-200 p-6 flex gap-3 flex-shrink-0">
