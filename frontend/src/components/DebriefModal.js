@@ -276,8 +276,13 @@ export default function DebriefModal({ onClose, onSuccess }) {
             </div>
           </div>
 
-          {/* Step 2 - Always in DOM, hidden with CSS */}
-          <div className={`space-y-6 pb-6 ${step === 2 ? 'block' : 'hidden'}`}>
+          {/* Step 2 */}
+          <div 
+            className="space-y-6 pb-6"
+            style={{ 
+              display: step === 2 ? 'block' : 'none'
+            }}
+          >
               {/* Raisons échec */}
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-3">
