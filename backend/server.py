@@ -607,6 +607,146 @@ async def get_evaluations(current_user: dict = Depends(get_current_user)):
     
     return evals
 
+
+# ===== DEBRIEF ROUTES =====
+
+async def generate_ai_debrief_analysis(debrief_data: dict, seller_name: str) -> dict:
+    """Generate AI coaching feedback for a debrief"""
+    
+    prompt = f"""Tu es un coach expert en vente retail, spécialisé dans l'accompagnement bienveillant des vendeurs.
+Ton rôle est d'aider un vendeur à analyser une vente non conclue et à en tirer un apprentissage concret.
+
+### CONTEXTE
+Le vendeur vient de remplir un formulaire de débrief. Voici ses réponses :
+
+🧍 Vendeur : {seller_name}
+🕒 Moment de la journée : {debrief_data.get('moment_journee')}
+😌 Émotion ressentie : {debrief_data.get('emotion')}
+👥 Type de client : {debrief_data.get('type_client')}
+🎯 Produit ou service proposé : {debrief_data.get('produit')}
+❌ Raisons principales de l'échec : {debrief_data.get('raisons_echec')}
+📍 Moment où le client semble avoir été perdu : {debrief_data.get('moment_perte_client')}
+💬 Sentiment à ce moment : {debrief_data.get('sentiment')}
+🔄 Ce qu'il pense pouvoir faire différemment : {debrief_data.get('amelioration_pensee')}
+🚀 Ce qu'il fera la prochaine fois : {debrief_data.get('action_future')}
+
+### OBJECTIF DE TA RÉPONSE
+Fournis un **retour de coaching bienveillant**, personnalisé et concret.
+
+Ta mission :
+1. **Analyser la situation** de manière empathique et réaliste.
+2. **Identifier les causes probables de l'échec**, avec bienveillance.
+3. **Donner 2 axes d'amélioration clairs**, concrets et applicables immédiatement.
+4. **Terminer par une recommandation unique et motivante**.
+
+### FORMAT DE SORTIE (JSON uniquement)
+Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
+{{
+  "analyse": "Ton analyse bienveillante en 2-3 phrases",
+  "points_travailler": [
+    "Axe d'amélioration n°1",
+    "Axe d'amélioration n°2"
+  ],
+  "recommandation": "Une phrase courte, motivante et actionnable"
+}}
+
+### STYLE
+- Ton bienveillant, motivant, jamais culpabilisant
+- Phrases courtes, claires et concrètes
+- Langage professionnel accessible
+- Reste humain et encourageant
+- Maximum 10 lignes au total
+"""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Tu es un coach en vente retail bienveillant. Tu réponds UNIQUEMENT en JSON valide."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+        
+        ai_response = response.choices[0].message.content.strip()
+        
+        # Parse JSON response
+        import json
+        # Remove markdown code blocks if present
+        if ai_response.startswith("```json"):
+            ai_response = ai_response.replace("```json", "").replace("```", "").strip()
+        elif ai_response.startswith("```"):
+            ai_response = ai_response.replace("```", "").strip()
+            
+        analysis = json.loads(ai_response)
+        
+        return {
+            "analyse": analysis.get("analyse", ""),
+            "points_travailler": analysis.get("points_travailler", []),
+            "recommandation": analysis.get("recommandation", "")
+        }
+    except Exception as e:
+        print(f"Error generating AI debrief: {e}")
+        # Fallback response
+        return {
+            "analyse": "Tu as fait preuve d'honnêteté en analysant cette vente. C'est déjà un excellent reflexe pour progresser.",
+            "points_travailler": [
+                "Continue à observer tes émotions pendant la vente",
+                "Note ce qui fonctionne bien pour le reproduire"
+            ],
+            "recommandation": "La prochaine fois, prends 30 secondes avant la vente pour te recentrer sur ton objectif."
+        }
+
+@api_router.post("/debriefs", response_model=Debrief)
+async def create_debrief(debrief_data: DebriefCreate, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can create debriefs")
+    
+    # Generate AI analysis
+    analysis = await generate_ai_debrief_analysis(debrief_data.model_dump(), current_user['name'])
+    
+    # Create debrief object
+    debrief = Debrief(
+        seller_id=current_user['id'],
+        type_client=debrief_data.type_client,
+        moment_journee=debrief_data.moment_journee,
+        emotion=debrief_data.emotion,
+        produit=debrief_data.produit,
+        raisons_echec=debrief_data.raisons_echec,
+        moment_perte_client=debrief_data.moment_perte_client,
+        sentiment=debrief_data.sentiment,
+        amelioration_pensee=debrief_data.amelioration_pensee,
+        action_future=debrief_data.action_future,
+        ai_analyse=analysis['analyse'],
+        ai_points_travailler=analysis['points_travailler'],
+        ai_recommandation=analysis['recommandation']
+    )
+    
+    # Save to database
+    doc = debrief.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.debriefs.insert_one(doc)
+    
+    return debrief
+
+@api_router.get("/debriefs")
+async def get_debriefs(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] == 'seller':
+        debriefs = await db.debriefs.find({"seller_id": current_user['id']}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    else:
+        # Manager sees all their sellers' debriefs
+        sellers = await db.users.find({"manager_id": current_user['id']}, {"_id": 0}).to_list(1000)
+        seller_ids = [s['id'] for s in sellers]
+        debriefs = await db.debriefs.find({"seller_id": {"$in": seller_ids}}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    for debrief in debriefs:
+        if isinstance(debrief.get('created_at'), str):
+            debrief['created_at'] = datetime.fromisoformat(debrief['created_at'])
+    
+    return debriefs
+
 # ===== MANAGER ROUTES =====
 @api_router.get("/manager/sellers")
 async def get_sellers(current_user: dict = Depends(get_current_user)):
