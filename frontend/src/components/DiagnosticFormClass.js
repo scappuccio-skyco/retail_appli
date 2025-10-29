@@ -210,16 +210,13 @@ class DiagnosticFormClass extends React.Component {
       console.log('✅ Diagnostic submission successful:', response.data);
       toast.success('Diagnostic complété avec succès!');
       
-      // Call the onComplete callback with the result immediately
-      if (this.props.onComplete) {
-        console.log('🔄 Calling onComplete callback...');
-        this.props.onComplete(response.data);
-      } else {
-        console.error('❌ No onComplete callback provided!');
-      }
+      // Wait a bit for the toast to show, then do a full page reload
+      // This avoids React DOM manipulation errors during component transitions
+      setTimeout(() => {
+        console.log('🔄 Reloading page to show dashboard with diagnostic...');
+        window.location.href = '/';
+      }, 1500);
       
-      // TEMPORARY: Don't change loading state to keep form visible for debugging
-      console.log('🛑 KEEPING FORM VISIBLE FOR DEBUGGING - Check console logs above');
     } catch (err) {
       console.error('❌ Diagnostic submission error:', err);
       console.error('❌ Error details:', err.response?.data);
