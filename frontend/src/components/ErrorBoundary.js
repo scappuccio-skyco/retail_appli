@@ -14,22 +14,40 @@ class ErrorBoundary extends React.Component {
     console.error('ErrorBoundary caught error:', error);
     console.error('Error info:', errorInfo);
     this.setState({ errorInfo });
+    
+    // Auto-reload after 2 seconds if it's the removeChild error
+    if (error.message && error.message.includes('removeChild')) {
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    }
   }
 
   render() {
     if (this.state.hasError) {
+      const isRemoveChildError = this.state.error?.message?.includes('removeChild');
+      
       return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#fffef9] to-[#fff9e6]">
           <div className="glass-morphism rounded-3xl shadow-2xl p-8 max-w-2xl w-full">
             <div className="text-center">
-              <div className="text-6xl mb-4">⚠️</div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Une erreur est survenue</h2>
+              <div className="text-6xl mb-4">🔄</div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                {isRemoveChildError ? 'Actualisation en cours...' : 'Une erreur est survenue'}
+              </h2>
               <p className="text-gray-600 mb-4">
-                Le formulaire a rencontré un problème.
+                {isRemoveChildError 
+                  ? 'Le formulaire se recharge automatiquement. Vos réponses sont conservées.' 
+                  : 'Le formulaire a rencontré un problème.'}
               </p>
               
-              {/* Show error details in development */}
-              {this.state.error && (
+              {isRemoveChildError && (
+                <div className="mb-4">
+                  <div className="animate-spin w-8 h-8 border-4 border-[#ffd871] border-t-transparent rounded-full mx-auto"></div>
+                </div>
+              )}
+              
+              {!isRemoveChildError && this.state.error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 text-left">
                   <p className="text-sm font-mono text-red-800 mb-2">
                     <strong>Erreur:</strong> {this.state.error.toString()}
@@ -56,7 +74,7 @@ class ErrorBoundary extends React.Component {
                   onClick={() => window.location.reload()}
                   className="btn-primary"
                 >
-                  Rafraîchir la page
+                  Rafraîchir maintenant
                 </button>
               </div>
             </div>
