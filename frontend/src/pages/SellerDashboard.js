@@ -17,6 +17,7 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const [evaluations, setEvaluations] = useState([]);
   const [sales, setSales] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [debriefs, setDebriefs] = useState([]);
   const [showEvalModal, setShowEvalModal] = useState(false);
   const [showDebriefModal, setShowDebriefModal] = useState(false);
   const [showKPIModal, setShowKPIModal] = useState(false);
