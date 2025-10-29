@@ -51,12 +51,12 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
       setDebriefs(debriefsRes.data);
       setCompetencesHistory(competencesRes.data);
       
-      // Try to get KPI entries, but don't fail if endpoint doesn't exist
+      // Get KPI entries
       try {
-        const kpiRes = await axios.get(`${API}/kpi/entries`, { headers: { Authorization: `Bearer ${token}` } });
+        const kpiRes = await axios.get(`${API}/seller/kpi-entries`, { headers: { Authorization: `Bearer ${token}` } });
         setKpiEntries(kpiRes.data);
       } catch (err) {
-        console.log('KPI entries not available');
+        console.log('KPI entries not available:', err);
         setKpiEntries([]);
       }
     } catch (err) {
