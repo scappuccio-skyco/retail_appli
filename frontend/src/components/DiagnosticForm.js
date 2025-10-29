@@ -288,11 +288,12 @@ function DiagnosticFormContent() {
             )}
           </div>
 
-          {/* Navigation */}
+          {/* Navigation - Always mounted */}
           <div className="flex justify-between gap-4">
             <button
+              type="button"
               onClick={handleBack}
-              disabled={currentStep === 0}
+              disabled={currentStep === 0 || isTransitioning || loading}
               className="px-6 py-3 bg-white text-gray-700 rounded-full font-medium shadow-md hover:shadow-lg transition-all border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -300,9 +301,10 @@ function DiagnosticFormContent() {
             </button>
 
             <button
+              type="button"
               onClick={handleNext}
-              disabled={!canGoNext() || loading}
-              className="px-6 py-3 bg-[#ffd871] text-gray-800 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 hover:bg-[#ffc940] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              disabled={!canGoNext() || isTransitioning || loading}
+              className="px-6 py-3 bg-[#ffd871] text-gray-800 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 hover:bg-[#ffc940] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
             >
               {loading ? (
                 'Analyse en cours...'
