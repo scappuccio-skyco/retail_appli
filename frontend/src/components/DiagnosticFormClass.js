@@ -217,8 +217,12 @@ class DiagnosticFormClass extends React.Component {
       } else {
         console.error('❌ No onComplete callback provided!');
       }
+      
+      // TEMPORARY: Don't change loading state to keep form visible for debugging
+      console.log('🛑 KEEPING FORM VISIBLE FOR DEBUGGING - Check console logs above');
     } catch (err) {
       console.error('❌ Diagnostic submission error:', err);
+      console.error('❌ Error details:', err.response?.data);
       toast.error(err.response?.data?.detail || 'Erreur lors de l\'envoi du diagnostic');
       this.setState({ loading: false });
     }
