@@ -898,9 +898,12 @@ async def get_seller_requests(seller_id: str, current_user: dict = Depends(get_c
 # Get KPI definitions (available to all)
 @api_router.get("/kpi/definitions")
 async def get_kpi_definitions():
-    return KPI_DEFINITIONS
+    return {
+        "seller_input": SELLER_INPUT_KPIS,
+        "calculated": CALCULATED_KPIS
+    }
 
-# Manager: Get/Update KPI Configuration
+# Manager: Get/Update KPI Configuration (now just enable/disable)
 @api_router.get("/manager/kpi-config")
 async def get_kpi_config(current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'manager':
@@ -909,10 +912,10 @@ async def get_kpi_config(current_user: dict = Depends(get_current_user)):
     config = await db.kpi_configurations.find_one({"manager_id": current_user['id']}, {"_id": 0})
     
     if not config:
-        # Create default config with no KPIs enabled
+        # Create default config with KPI enabled
         default_config = KPIConfiguration(
             manager_id=current_user['id'],
-            enabled_kpis=[]
+            enabled=True
         )
         doc = default_config.model_dump()
         doc['created_at'] = doc['created_at'].isoformat()
@@ -927,18 +930,13 @@ async def update_kpi_config(config_update: KPIConfigUpdate, current_user: dict =
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can update KPI configuration")
     
-    # Validate KPI keys
-    for kpi_key in config_update.enabled_kpis:
-        if kpi_key not in KPI_DEFINITIONS:
-            raise HTTPException(status_code=400, detail=f"Invalid KPI key: {kpi_key}")
-    
     config = await db.kpi_configurations.find_one({"manager_id": current_user['id']}, {"_id": 0})
     
     if not config:
         # Create new config
         new_config = KPIConfiguration(
             manager_id=current_user['id'],
-            enabled_kpis=config_update.enabled_kpis
+            enabled=config_update.enabled
         )
         doc = new_config.model_dump()
         doc['created_at'] = doc['created_at'].isoformat()
@@ -950,35 +948,31 @@ async def update_kpi_config(config_update: KPIConfigUpdate, current_user: dict =
         await db.kpi_configurations.update_one(
             {"manager_id": current_user['id']},
             {"$set": {
-                "enabled_kpis": config_update.enabled_kpis,
+                "enabled": config_update.enabled,
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
-        config['enabled_kpis'] = config_update.enabled_kpis
+        config['enabled'] = config_update.enabled
         config['updated_at'] = datetime.now(timezone.utc)
         return config
 
-# Seller: Get enabled KPIs
-@api_router.get("/seller/enabled-kpis")
-async def get_enabled_kpis(current_user: dict = Depends(get_current_user)):
+# Seller: Check if KPIs are enabled
+@api_router.get("/seller/kpi-enabled")
+async def check_kpi_enabled(current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can access this endpoint")
     
     if not current_user.get('manager_id'):
-        return {"enabled_kpis": [], "kpi_definitions": {}}
+        return {"enabled": False, "seller_input_kpis": SELLER_INPUT_KPIS}
     
     config = await db.kpi_configurations.find_one({"manager_id": current_user['manager_id']}, {"_id": 0})
     
     if not config:
-        return {"enabled_kpis": [], "kpi_definitions": {}}
-    
-    # Return enabled KPIs with their definitions
-    enabled_kpis = config.get('enabled_kpis', [])
-    kpi_definitions = {key: KPI_DEFINITIONS[key] for key in enabled_kpis if key in KPI_DEFINITIONS}
+        return {"enabled": False, "seller_input_kpis": SELLER_INPUT_KPIS}
     
     return {
-        "enabled_kpis": enabled_kpis,
-        "kpi_definitions": kpi_definitions
+        "enabled": config.get('enabled', True),
+        "seller_input_kpis": SELLER_INPUT_KPIS
     }
 
 # Seller: Submit KPI entry
@@ -986,6 +980,14 @@ async def get_enabled_kpis(current_user: dict = Depends(get_current_user)):
 async def create_kpi_entry(entry_data: KPIEntryCreate, current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can submit KPI entries")
+    
+    # Calculate derived KPIs
+    raw_data = {
+        "ca_journalier": entry_data.ca_journalier,
+        "nb_ventes": entry_data.nb_ventes,
+        "nb_clients": entry_data.nb_clients
+    }
+    calculated = calculate_kpis(raw_data)
     
     # Check if entry for this date already exists
     existing = await db.kpi_entries.find_one({
@@ -998,20 +1000,37 @@ async def create_kpi_entry(entry_data: KPIEntryCreate, current_user: dict = Depe
         await db.kpi_entries.update_one(
             {"seller_id": current_user['id'], "date": entry_data.date},
             {"$set": {
-                "kpi_values": entry_data.kpi_values,
+                "ca_journalier": entry_data.ca_journalier,
+                "nb_ventes": entry_data.nb_ventes,
+                "nb_clients": entry_data.nb_clients,
+                "panier_moyen": calculated['panier_moyen'],
+                "taux_transformation": calculated['taux_transformation'],
+                "indice_vente": calculated['indice_vente'],
                 "comment": entry_data.comment,
                 "created_at": datetime.now(timezone.utc).isoformat()
             }}
         )
-        existing['kpi_values'] = entry_data.kpi_values
-        existing['comment'] = entry_data.comment
+        existing.update({
+            "ca_journalier": entry_data.ca_journalier,
+            "nb_ventes": entry_data.nb_ventes,
+            "nb_clients": entry_data.nb_clients,
+            "panier_moyen": calculated['panier_moyen'],
+            "taux_transformation": calculated['taux_transformation'],
+            "indice_vente": calculated['indice_vente'],
+            "comment": entry_data.comment
+        })
         return existing
     
     # Create new entry
     entry = KPIEntry(
         seller_id=current_user['id'],
         date=entry_data.date,
-        kpi_values=entry_data.kpi_values,
+        ca_journalier=entry_data.ca_journalier,
+        nb_ventes=entry_data.nb_ventes,
+        nb_clients=entry_data.nb_clients,
+        panier_moyen=calculated['panier_moyen'],
+        taux_transformation=calculated['taux_transformation'],
+        indice_vente=calculated['indice_vente'],
         comment=entry_data.comment
     )
     
@@ -1067,13 +1086,39 @@ async def get_team_kpi_summary(current_user: dict = Depends(get_current_user)):
         # Get latest KPI entry
         latest_entry = await db.kpi_entries.find_one(
             {"seller_id": seller['id']},
+            {"_id": 0},
+            sort=[("date", -1)]
+        )
+        
+        # Get all entries for the last 7 days for averages
+        from datetime import datetime, timedelta
+        seven_days_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+        recent_entries = await db.kpi_entries.find(
+            {"seller_id": seller['id'], "date": {"$gte": seven_days_ago}},
             {"_id": 0}
-        ).sort("date", -1)
+        ).to_list(7)
+        
+        # Calculate averages
+        if recent_entries:
+            avg_ca = sum(e.get('ca_journalier', 0) for e in recent_entries) / len(recent_entries)
+            avg_ventes = sum(e.get('nb_ventes', 0) for e in recent_entries) / len(recent_entries)
+            avg_clients = sum(e.get('nb_clients', 0) for e in recent_entries) / len(recent_entries)
+            avg_panier = sum(e.get('panier_moyen', 0) for e in recent_entries) / len(recent_entries)
+            avg_taux = sum(e.get('taux_transformation', 0) for e in recent_entries) / len(recent_entries)
+        else:
+            avg_ca = avg_ventes = avg_clients = avg_panier = avg_taux = 0
         
         summary.append({
             "seller_id": seller['id'],
             "seller_name": seller['name'],
-            "latest_entry": latest_entry
+            "latest_entry": latest_entry,
+            "seven_day_averages": {
+                "ca_journalier": round(avg_ca, 2),
+                "nb_ventes": round(avg_ventes, 1),
+                "nb_clients": round(avg_clients, 1),
+                "panier_moyen": round(avg_panier, 2),
+                "taux_transformation": round(avg_taux, 2)
+            }
         })
     
     return summary
