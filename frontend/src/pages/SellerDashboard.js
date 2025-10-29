@@ -11,7 +11,12 @@ const API = `${BACKEND_URL}/api`;
 export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const [evaluations, setEvaluations] = useState([]);
   const [sales, setSales] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [showEvalModal, setShowEvalModal] = useState(false);
+  const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [taskResponse, setTaskResponse] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
