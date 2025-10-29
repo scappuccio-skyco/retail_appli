@@ -130,6 +130,7 @@ backend:
         comment: "Backend API endpoint to retrieve seller's debriefs. Needs testing."
 
 old_backend:
+old_backend:
   - task: "Diagnostic API - Create Diagnostic"
     implemented: true
     working: true
