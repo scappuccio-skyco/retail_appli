@@ -319,4 +319,10 @@ class DiagnosticFormClass extends React.Component {
   }
 }
 
-export default DiagnosticFormClass;
+export default function DiagnosticFormWithErrorBoundary() {
+  return (
+    <ErrorBoundary>
+      <DiagnosticFormClass />
+    </ErrorBoundary>
+  );
+}
