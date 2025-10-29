@@ -161,6 +161,7 @@ function AppContent() {
               console.log('🔍 /diagnostic route - user:', user?.email, 'role:', user?.role);
               console.log('🔍 /diagnostic route - diagnostic:', diagnostic ? 'EXISTS' : 'NULL');
               console.log('🔍 /diagnostic route - showDiagnosticResult:', showDiagnosticResult);
+              console.log('🔍 /diagnostic route - diagnosticLoading:', diagnosticLoading);
               
               if (!user) {
                 console.log('➡️ Redirecting to /login (no user)');
@@ -170,6 +171,15 @@ function AppContent() {
               if (user.role !== 'seller') {
                 console.log('➡️ Redirecting to / (not a seller)');
                 return <Navigate to="/" replace />;
+              }
+              
+              if (diagnosticLoading) {
+                console.log('⏳ Diagnostic loading...');
+                return (
+                  <div className="flex items-center justify-center min-h-screen">
+                    <div className="text-xl font-medium text-gray-600">Analyse en cours...</div>
+                  </div>
+                );
               }
               
               if (diagnostic && !showDiagnosticResult) {
