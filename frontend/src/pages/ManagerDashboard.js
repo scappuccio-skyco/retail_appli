@@ -256,6 +256,33 @@ export default function ManagerDashboard({ user, onLogout }) {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Détails Vendeur</h2>
             {sellerStats ? (
               <div>
+                {/* Diagnostic Profile */}
+                {sellerDiagnostic && (
+                  <div className="mb-8 bg-[#ffd871] bg-opacity-10 rounded-2xl p-5 border-l-4 border-[#ffd871]">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-[#ffd871]" />
+                      Profil Vendeur
+                    </h3>
+                    <div className="grid grid-cols-3 gap-4 mb-3">
+                      <div>
+                        <p className="text-xs text-gray-600">Style</p>
+                        <p className="text-sm font-bold text-gray-800">{sellerDiagnostic.style}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600">Niveau</p>
+                        <p className="text-sm font-bold text-gray-800">{sellerDiagnostic.level}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-600">Motivation</p>
+                        <p className="text-sm font-bold text-gray-800">{sellerDiagnostic.motivation}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-700 leading-relaxed">
+                      {sellerDiagnostic.ai_profile_summary}
+                    </p>
+                  </div>
+                )}
+
                 {/* Radar Chart */}
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold text-gray-700 mb-4">Compétences</h3>
