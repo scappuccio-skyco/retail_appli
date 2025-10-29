@@ -25,13 +25,6 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    // Reload data when diagnostic changes
-    if (diagnostic) {
-      fetchData();
-    }
-  }, [diagnostic]);
-
   const fetchData = async () => {
     try {
       const [evalsRes, salesRes, tasksRes] = await Promise.all([
