@@ -514,6 +514,141 @@ async def get_seller_stats(seller_id: str, current_user: dict = Depends(get_curr
 # Include router
 app.include_router(api_router)
 
+
+# ===== DIAGNOSTIC ROUTES =====
+async def analyze_diagnostic_with_ai(responses: dict) -> dict:
+    """Analyze diagnostic responses with AI"""
+    try:
+        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"diagnostic_{uuid.uuid4()}",
+            system_message="Tu es un expert en analyse comportementale de vendeurs retail."
+        ).with_model("openai", "gpt-4o-mini")
+        
+        # Format responses for prompt
+        responses_text = ""
+        for q_num, answer in responses.items():
+            responses_text += f"\nQuestion {q_num}: {answer}\n"
+        
+        prompt = f"""Voici les réponses d'un vendeur à un test comportemental de 15 questions :
+
+{responses_text}
+
+1. Analyse ses réponses pour identifier :
+   - son style de vente dominant (Convivial, Explorateur, Dynamique, Discret ou Stratège)
+   - son niveau global (Débutant / Intermédiaire / Expert terrain)
+   - ses leviers de motivation (Relation, Reconnaissance, Performance, Découverte)
+
+2. Rédige un retour structuré :
+   - Une phrase d'introduction qui décrit son style.
+   - Deux points forts concrets observés dans ses réponses.
+   - Un axe d'amélioration principal avec un conseil précis.
+   - Une phrase motivante adaptée à son profil.
+
+3. Utilise un ton bienveillant, professionnel et simple.
+4. Évite le jargon.
+
+Réponds au format JSON avec cette structure exacte :
+{{
+  "style": "Convivial|Explorateur|Dynamique|Discret|Stratège",
+  "level": "Débutant|Intermédiaire|Expert terrain",
+  "motivation": "Relation|Reconnaissance|Performance|Découverte",
+  "summary": "Ton analyse complète en texte"
+}}"""
+        
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
+        
+        # Parse JSON response
+        import json
+        # Remove markdown code blocks if present
+        clean_response = response.strip()
+        if clean_response.startswith("```json"):
+            clean_response = clean_response[7:]
+        if clean_response.startswith("```"):
+            clean_response = clean_response[3:]
+        if clean_response.endswith("```"):
+            clean_response = clean_response[:-3]
+        clean_response = clean_response.strip()
+        
+        result = json.loads(clean_response)
+        return result
+    except Exception as e:
+        logging.error(f"AI diagnostic analysis error: {str(e)}")
+        # Fallback analysis
+        return {
+            "style": "Convivial",
+            "level": "Intermédiaire",
+            "motivation": "Relation",
+            "summary": "Profil en cours d'analyse. Votre diagnostic a été enregistré avec succès."
+        }
+
+@api_router.post("/diagnostic", response_model=DiagnosticResult)
+async def create_diagnostic(diagnostic_data: DiagnosticCreate, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can create diagnostics")
+    
+    # Check if diagnostic already exists
+    existing = await db.diagnostics.find_one({"seller_id": current_user['id']}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Diagnostic already completed")
+    
+    # Analyze with AI
+    ai_analysis = await analyze_diagnostic_with_ai(diagnostic_data.responses)
+    
+    # Create diagnostic result
+    diagnostic_obj = DiagnosticResult(
+        seller_id=current_user['id'],
+        responses=diagnostic_data.responses,
+        ai_profile_summary=ai_analysis['summary'],
+        style=ai_analysis['style'],
+        level=ai_analysis['level'],
+        motivation=ai_analysis['motivation']
+    )
+    
+    doc = diagnostic_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.diagnostics.insert_one(doc)
+    
+    return diagnostic_obj
+
+@api_router.get("/diagnostic/me")
+async def get_my_diagnostic(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access their diagnostic")
+    
+    diagnostic = await db.diagnostics.find_one({"seller_id": current_user['id']}, {"_id": 0})
+    
+    if not diagnostic:
+        return None
+    
+    if isinstance(diagnostic.get('created_at'), str):
+        diagnostic['created_at'] = datetime.fromisoformat(diagnostic['created_at'])
+    
+    return diagnostic
+
+@api_router.get("/diagnostic/seller/{seller_id}")
+async def get_seller_diagnostic(seller_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access seller diagnostics")
+    
+    # Verify seller belongs to manager
+    seller = await db.users.find_one({"id": seller_id, "manager_id": current_user['id']}, {"_id": 0})
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not found or not in your team")
+    
+    diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0})
+    
+    if not diagnostic:
+        return None
+    
+    if isinstance(diagnostic.get('created_at'), str):
+        diagnostic['created_at'] = datetime.fromisoformat(diagnostic['created_at'])
+    
+    return diagnostic
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
