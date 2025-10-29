@@ -93,6 +93,39 @@ class EvaluationCreate(BaseModel):
     fidelisation: int
     auto_comment: Optional[str] = None
 
+# ===== DEBRIEF MODELS =====
+class Debrief(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    seller_id: str
+    # Étape 1 - Contexte
+    type_client: str
+    moment_journee: str
+    emotion: str
+    produit: str
+    # Étape 2 - Analyse
+    raisons_echec: str
+    moment_perte_client: str
+    sentiment: str
+    amelioration_pensee: str
+    action_future: str
+    # AI Analysis
+    ai_analyse: Optional[str] = None
+    ai_points_travailler: Optional[List[str]] = None
+    ai_recommandation: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class DebriefCreate(BaseModel):
+    type_client: str
+    moment_journee: str
+    emotion: str
+    produit: str
+    raisons_echec: str
+    moment_perte_client: str
+    sentiment: str
+    amelioration_pensee: str
+    action_future: str
+
 class Invitation(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
