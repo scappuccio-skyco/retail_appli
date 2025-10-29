@@ -72,11 +72,14 @@ export default function SellerDashboard({ user, onLogout }) {
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-              Bonjour, {user.name}!
-            </h1>
-            <p className="text-gray-600">Suivez vos performances et progressez chaque jour</p>
+          <div className="flex items-center gap-4">
+            <img src="/logo.jpg" alt="Logo" className="w-16 h-16 rounded-xl shadow-md object-cover" />
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+                Bonjour, {user.name}!
+              </h1>
+              <p className="text-gray-600">Suivez vos performances et progressez chaque jour</p>
+            </div>
           </div>
           <div className="flex gap-3">
             <button
