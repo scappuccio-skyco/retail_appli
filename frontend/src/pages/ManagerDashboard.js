@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { LogOut, Users, TrendingUp, Award } from 'lucide-react';
+import { LogOut, Users, TrendingUp, Award, UserPlus, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer } from 'recharts';
+import InviteModal from '../components/InviteModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -11,18 +12,24 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [sellers, setSellers] = useState([]);
   const [selectedSeller, setSelectedSeller] = useState(null);
   const [sellerStats, setSellerStats] = useState(null);
+  const [invitations, setInvitations] = useState([]);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchSellers();
+    fetchData();
   }, []);
 
-  const fetchSellers = async () => {
+  const fetchData = async () => {
     try {
-      const res = await axios.get(`${API}/manager/sellers`);
-      setSellers(res.data);
+      const [sellersRes, invitesRes] = await Promise.all([
+        axios.get(`${API}/manager/sellers`),
+        axios.get(`${API}/manager/invitations`)
+      ]);
+      setSellers(sellersRes.data);
+      setInvitations(invitesRes.data);
     } catch (err) {
-      toast.error('Erreur de chargement des vendeurs');
+      toast.error('Erreur de chargement des données');
     } finally {
       setLoading(false);
     }
@@ -42,6 +49,10 @@ export default function ManagerDashboard({ user, onLogout }) {
     await fetchSellerStats(seller.id);
   };
 
+  const handleInviteSuccess = () => {
+    fetchData();
+  };
+
   const radarData = sellerStats?.avg_radar_scores
     ? [
         { skill: 'Accueil', value: sellerStats.avg_radar_scores.accueil },
@@ -51,6 +62,32 @@ export default function ManagerDashboard({ user, onLogout }) {
         { skill: 'Fidélisation', value: sellerStats.avg_radar_scores.fidelisation }
       ]
     : [];
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="w-4 h-4 text-orange-500" />;
+      case 'accepted':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'expired':
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      default:
+        return null;
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'En attente';
+      case 'accepted':
+        return 'Acceptée';
+      case 'expired':
+        return 'Expirée';
+      default:
+        return status;
+    }
+  };
 
   if (loading) {
     return (
@@ -65,20 +102,33 @@ export default function ManagerDashboard({ user, onLogout }) {
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-              Tableau de Bord Manager
-            </h1>
-            <p className="text-gray-600">Bienvenue, {user.name}</p>
+          <div className="flex items-center gap-4">
+            <img src="/logo.jpg" alt="Logo" className="w-16 h-16 rounded-xl shadow-md object-cover" />
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+                Tableau de Bord Manager
+              </h1>
+              <p className="text-gray-600">Bienvenue, {user.name}</p>
+            </div>
           </div>
-          <button
-            data-testid="logout-button"
-            onClick={onLogout}
-            className="btn-secondary flex items-center gap-2"
-          >
-            <LogOut className="w-5 h-5" />
-            Déconnexion
-          </button>
+          <div className="flex gap-3">
+            <button
+              data-testid="invite-seller-button"
+              onClick={() => setShowInviteModal(true)}
+              className="btn-primary flex items-center gap-2"
+            >
+              <UserPlus className="w-5 h-5" />
+              Inviter un Vendeur
+            </button>
+            <button
+              data-testid="logout-button"
+              onClick={onLogout}
+              className="btn-secondary flex items-center gap-2"
+            >
+              <LogOut className="w-5 h-5" />
+              Déconnexion
+            </button>
+          </div>
         </div>
       </div>
 
@@ -87,8 +137,8 @@ export default function ManagerDashboard({ user, onLogout }) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="glass-morphism rounded-2xl p-6 card-hover">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-[#ffd871] bg-opacity-20 rounded-xl flex items-center justify-center">
+                <Users className="w-6 h-6 text-gray-800" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Vendeurs</p>
@@ -129,6 +179,31 @@ export default function ManagerDashboard({ user, onLogout }) {
           </div>
         </div>
 
+        {/* Invitations Section */}
+        {invitations.length > 0 && (
+          <div className="glass-morphism rounded-2xl p-6 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Invitations</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {invitations.map((invite) => (
+                <div
+                  key={invite.id}
+                  data-testid={`invitation-${invite.id}`}
+                  className="bg-white rounded-xl p-4 border border-gray-200"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <p className="font-medium text-gray-800">{invite.email}</p>
+                    {getStatusIcon(invite.status)}
+                  </div>
+                  <p className="text-xs text-gray-500">{getStatusText(invite.status)}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(invite.created_at).toLocaleDateString('fr-FR')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Sellers List */}
           <div className="glass-morphism rounded-2xl p-6">
@@ -142,7 +217,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                     onClick={() => handleSellerClick(seller)}
                     className={`bg-white rounded-xl p-5 border-2 cursor-pointer transition-all hover:shadow-lg ${
                       selectedSeller?.id === seller.id
-                        ? 'border-blue-500 shadow-md'
+                        ? 'border-[#ffd871] shadow-md'
                         : 'border-gray-200'
                     }`}
                   >
@@ -152,7 +227,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                         <p className="text-sm text-gray-500">{seller.email}</p>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-blue-600">{seller.avg_score}/5</div>
+                        <div className="text-2xl font-bold text-gray-800">{seller.avg_score}/5</div>
                         <p className="text-xs text-gray-500">{seller.total_evaluations} évals</p>
                       </div>
                     </div>
@@ -166,7 +241,7 @@ export default function ManagerDashboard({ user, onLogout }) {
               </div>
             ) : (
               <div className="text-center py-12 text-gray-500">
-                Aucun vendeur sous votre supervision
+                Aucun vendeur dans votre équipe. Cliquez sur "Inviter un Vendeur" pour commencer.
               </div>
             )}
           </div>
@@ -183,7 +258,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                     <RadarChart data={radarData}>
                       <PolarGrid stroke="#cbd5e1" />
                       <PolarAngleAxis dataKey="skill" tick={{ fill: '#475569', fontSize: 12 }} />
-                      <Radar name="Score" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
+                      <Radar name="Score" dataKey="value" stroke="#ffd871" fill="#ffd871" fillOpacity={0.6} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
@@ -209,7 +284,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                             <span>F: {evaluation.fidelisation}</span>
                           </div>
                           {evaluation.ai_feedback && (
-                            <p className="text-xs text-gray-700 bg-blue-50 p-3 rounded-lg">
+                            <p className="text-xs text-gray-700 bg-[#ffd871] bg-opacity-10 p-3 rounded-lg">
                               {evaluation.ai_feedback}
                             </p>
                           )}
@@ -229,6 +304,13 @@ export default function ManagerDashboard({ user, onLogout }) {
           </div>
         </div>
       </div>
+
+      {showInviteModal && (
+        <InviteModal
+          onClose={() => setShowInviteModal(false)}
+          onSuccess={handleInviteSuccess}
+        />
+      )}
     </div>
   );
 }
