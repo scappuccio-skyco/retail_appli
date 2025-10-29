@@ -69,26 +69,48 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
     setShowEvalModal(false);
   };
 
-  // Calculate average radar scores
-  const avgRadarScores = evaluations.length > 0
+  // Calculate current competence scores (from last entry in history)
+  const currentCompetences = competencesHistory.length > 0
+    ? competencesHistory[competencesHistory.length - 1]
+    : null;
+
+  const avgRadarScores = currentCompetences
     ? [
-        { skill: 'Accueil', value: evaluations.reduce((sum, e) => sum + e.accueil, 0) / evaluations.length },
-        { skill: 'Découverte', value: evaluations.reduce((sum, e) => sum + e.decouverte, 0) / evaluations.length },
-        { skill: 'Argumentation', value: evaluations.reduce((sum, e) => sum + e.argumentation, 0) / evaluations.length },
-        { skill: 'Closing', value: evaluations.reduce((sum, e) => sum + e.closing, 0) / evaluations.length },
-        { skill: 'Fidélisation', value: evaluations.reduce((sum, e) => sum + e.fidelisation, 0) / evaluations.length }
+        { skill: 'Accueil', value: currentCompetences.score_accueil },
+        { skill: 'Découverte', value: currentCompetences.score_decouverte },
+        { skill: 'Argumentation', value: currentCompetences.score_argumentation },
+        { skill: 'Closing', value: currentCompetences.score_closing },
+        { skill: 'Fidélisation', value: currentCompetences.score_fidelisation }
       ]
     : [];
 
-  // Calculate evolution data
-  const evolutionData = evaluations.slice(0, 10).reverse().map((e, idx) => ({
-    name: `E${idx + 1}`,
-    score: ((e.accueil + e.decouverte + e.argumentation + e.closing + e.fidelisation) / 5).toFixed(1)
-  }));
+  // Calculate evolution data from competences history
+  const evolutionData = competencesHistory.map((entry, idx) => {
+    const date = new Date(entry.date);
+    return {
+      name: date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+      Accueil: entry.score_accueil,
+      Découverte: entry.score_decouverte,
+      Argumentation: entry.score_argumentation,
+      Closing: entry.score_closing,
+      Fidélisation: entry.score_fidelisation
+    };
+  });
 
-  const avgScore = evaluations.length > 0
-    ? (evaluations.reduce((sum, e) => sum + (e.accueil + e.decouverte + e.argumentation + e.closing + e.fidelisation) / 5, 0) / evaluations.length).toFixed(2)
-    : 0;
+  // Calculate KPIs for last 7 days
+  const last7Days = new Date();
+  last7Days.setDate(last7Days.getDate() - 7);
+  
+  const recentKpis = kpiEntries.filter(entry => {
+    const entryDate = new Date(entry.date);
+    return entryDate >= last7Days;
+  });
+
+  const kpiStats = {
+    totalEvaluations: (diagnostic ? 1 : 0) + debriefs.length,
+    totalVentes: recentKpis.reduce((sum, e) => sum + (e.nb_ventes || 0), 0),
+    totalCA: recentKpis.reduce((sum, e) => sum + (e.ca_journalier || 0), 0)
+  };
 
   // If showing KPI reporting, render that component AFTER all hooks
   if (showKPIReporting) {
