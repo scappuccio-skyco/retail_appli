@@ -225,6 +225,129 @@ async def login(credentials: UserLogin):
 async def get_me(current_user: dict = Depends(get_current_user)):
     return current_user
 
+@api_router.post("/auth/register-with-invite")
+async def register_with_invite(invite_data: RegisterWithInvite):
+    # Verify invitation exists and is valid
+    invitation = await db.invitations.find_one({"token": invite_data.invitation_token}, {"_id": 0})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    if invitation['status'] != 'pending':
+        raise HTTPException(status_code=400, detail="Invitation already used")
+    
+    # Check expiration
+    expires_at = datetime.fromisoformat(invitation['expires_at']) if isinstance(invitation['expires_at'], str) else invitation['expires_at']
+    if expires_at < datetime.now(timezone.utc):
+        await db.invitations.update_one({"token": invite_data.invitation_token}, {"$set": {"status": "expired"}})
+        raise HTTPException(status_code=400, detail="Invitation expired")
+    
+    # Check if invitation email matches
+    if invitation['email'] != invite_data.email:
+        raise HTTPException(status_code=400, detail="Email does not match invitation")
+    
+    # Check if user already exists
+    existing = await db.users.find_one({"email": invite_data.email}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create user with manager_id from invitation
+    hashed_pw = hash_password(invite_data.password)
+    user_obj = User(
+        name=invite_data.name,
+        email=invite_data.email,
+        role="seller",
+        manager_id=invitation['manager_id']
+    )
+    
+    doc = user_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['password'] = hashed_pw
+    
+    await db.users.insert_one(doc)
+    
+    # Mark invitation as accepted
+    await db.invitations.update_one({"token": invite_data.invitation_token}, {"$set": {"status": "accepted"}})
+    
+    # Create token
+    token = create_token(user_obj.id, user_obj.email, user_obj.role)
+    
+    return {
+        "user": user_obj.model_dump(),
+        "token": token
+    }
+
+# ===== INVITATION ROUTES =====
+@api_router.post("/manager/invite", response_model=Invitation)
+async def create_invitation(invite_data: InvitationCreate, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can send invitations")
+    
+    # Check if user with this email already exists
+    existing_user = await db.users.find_one({"email": invite_data.email}, {"_id": 0})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User with this email already exists")
+    
+    # Check if there's already a pending invitation
+    existing_invite = await db.invitations.find_one({
+        "email": invite_data.email,
+        "manager_id": current_user['id'],
+        "status": "pending"
+    }, {"_id": 0})
+    
+    if existing_invite:
+        raise HTTPException(status_code=400, detail="Invitation already sent to this email")
+    
+    # Create invitation
+    invitation = Invitation(
+        email=invite_data.email,
+        manager_id=current_user['id'],
+        manager_name=current_user['name']
+    )
+    
+    doc = invitation.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['expires_at'] = doc['expires_at'].isoformat()
+    
+    await db.invitations.insert_one(doc)
+    
+    return invitation
+
+@api_router.get("/manager/invitations")
+async def get_invitations(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can view invitations")
+    
+    invitations = await db.invitations.find({"manager_id": current_user['id']}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    for inv in invitations:
+        if isinstance(inv.get('created_at'), str):
+            inv['created_at'] = datetime.fromisoformat(inv['created_at'])
+        if isinstance(inv.get('expires_at'), str):
+            inv['expires_at'] = datetime.fromisoformat(inv['expires_at'])
+    
+    return invitations
+
+@api_router.get("/invitations/verify/{token}")
+async def verify_invitation(token: str):
+    invitation = await db.invitations.find_one({"token": token}, {"_id": 0})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    if invitation['status'] != 'pending':
+        raise HTTPException(status_code=400, detail="Invitation already used or expired")
+    
+    # Check expiration
+    expires_at = datetime.fromisoformat(invitation['expires_at']) if isinstance(invitation['expires_at'], str) else invitation['expires_at']
+    if expires_at < datetime.now(timezone.utc):
+        await db.invitations.update_one({"token": token}, {"$set": {"status": "expired"}})
+        raise HTTPException(status_code=400, detail="Invitation expired")
+    
+    return {
+        "email": invitation['email'],
+        "manager_name": invitation['manager_name'],
+        "expires_at": invitation['expires_at']
+    }
+
 # ===== SALES ROUTES =====
 @api_router.post("/sales", response_model=Sale)
 async def create_sale(sale_data: SaleCreate, current_user: dict = Depends(get_current_user)):
