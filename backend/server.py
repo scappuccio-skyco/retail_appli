@@ -918,7 +918,12 @@ async def create_diagnostic(diagnostic_data: DiagnosticCreate, current_user: dic
         ai_profile_summary=ai_analysis['summary'],
         style=ai_analysis['style'],
         level=ai_analysis['level'],
-        motivation=ai_analysis['motivation']
+        motivation=ai_analysis['motivation'],
+        score_accueil=ai_analysis.get('score_accueil', 3.0),
+        score_decouverte=ai_analysis.get('score_decouverte', 3.0),
+        score_argumentation=ai_analysis.get('score_argumentation', 3.0),
+        score_closing=ai_analysis.get('score_closing', 3.0),
+        score_fidelisation=ai_analysis.get('score_fidelisation', 3.0)
     )
     
     doc = diagnostic_obj.model_dump()
