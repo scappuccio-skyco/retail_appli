@@ -25,11 +25,6 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const [taskResponse, setTaskResponse] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // If showing KPI reporting, render that component
-  if (showKPIReporting) {
-    return <KPIReporting user={user} onBack={() => setShowKPIReporting(false)} />;
-  }
-
   useEffect(() => {
     fetchData();
   }, []);
@@ -76,6 +71,11 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const avgScore = evaluations.length > 0
     ? (evaluations.reduce((sum, e) => sum + (e.accueil + e.decouverte + e.argumentation + e.closing + e.fidelisation) / 5, 0) / evaluations.length).toFixed(2)
     : 0;
+
+  // If showing KPI reporting, render that component AFTER all hooks
+  if (showKPIReporting) {
+    return <KPIReporting user={user} onBack={() => setShowKPIReporting(false)} />;
+  }
 
   if (loading) {
     return (
