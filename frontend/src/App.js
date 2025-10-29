@@ -5,7 +5,7 @@ import '@/App.css';
 import Login from './pages/Login';
 import SellerDashboard from './pages/SellerDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
-import DiagnosticForm from './components/DiagnosticFormScrollable';
+import DiagnosticForm from './components/DiagnosticFormStepsCss';
 import DiagnosticResult from './components/DiagnosticResult';
 import { Toaster } from 'sonner';
 
