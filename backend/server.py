@@ -670,6 +670,125 @@ async def get_seller_diagnostic(seller_id: str, current_user: dict = Depends(get
     
     return diagnostic
 
+
+# ===== MANAGER REQUEST ROUTES =====
+@api_router.post("/manager/requests", response_model=ManagerRequest)
+async def create_manager_request(request_data: ManagerRequestCreate, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can create requests")
+    
+    # Verify seller belongs to manager
+    seller = await db.users.find_one({"id": request_data.seller_id, "manager_id": current_user['id']}, {"_id": 0})
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not found in your team")
+    
+    request_obj = ManagerRequest(
+        manager_id=current_user['id'],
+        seller_id=request_data.seller_id,
+        title=request_data.title,
+        message=request_data.message
+    )
+    
+    doc = request_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    if doc.get('completed_at'):
+        doc['completed_at'] = doc['completed_at'].isoformat()
+    
+    await db.manager_requests.insert_one(doc)
+    
+    return request_obj
+
+@api_router.get("/seller/tasks")
+async def get_seller_tasks(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access tasks")
+    
+    tasks = []
+    
+    # Check diagnostic
+    diagnostic = await db.diagnostics.find_one({"seller_id": current_user['id']}, {"_id": 0})
+    if not diagnostic:
+        tasks.append({
+            "id": "diagnostic",
+            "type": "diagnostic",
+            "title": "Complète ton diagnostic vendeur",
+            "description": "Découvre ton profil unique en 10 minutes",
+            "priority": "high",
+            "icon": "📋"
+        })
+    
+    # Check pending manager requests
+    requests_list = await db.manager_requests.find({
+        "seller_id": current_user['id'],
+        "status": "pending"
+    }, {"_id": 0}).to_list(100)
+    
+    for req in requests_list:
+        if isinstance(req.get('created_at'), str):
+            req['created_at'] = datetime.fromisoformat(req['created_at'])
+        tasks.append({
+            "id": req['id'],
+            "type": "manager_request",
+            "title": req['title'],
+            "description": req['message'],
+            "priority": "medium",
+            "icon": "💬",
+            "data": req
+        })
+    
+    return tasks
+
+@api_router.post("/seller/respond-request")
+async def respond_to_request(response_data: ManagerRequestResponse, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can respond")
+    
+    # Get request
+    request = await db.manager_requests.find_one({
+        "id": response_data.request_id,
+        "seller_id": current_user['id']
+    }, {"_id": 0})
+    
+    if not request:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    # Update request
+    await db.manager_requests.update_one(
+        {"id": response_data.request_id},
+        {
+            "$set": {
+                "seller_response": response_data.response,
+                "status": "completed",
+                "completed_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    return {"status": "success", "message": "Response sent"}
+
+@api_router.get("/manager/requests/seller/{seller_id}")
+async def get_seller_requests(seller_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can view requests")
+    
+    # Verify seller belongs to manager
+    seller = await db.users.find_one({"id": seller_id, "manager_id": current_user['id']}, {"_id": 0})
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not in your team")
+    
+    requests = await db.manager_requests.find({
+        "seller_id": seller_id,
+        "manager_id": current_user['id']
+    }, {"_id": 0}).sort("created_at", -1).to_list(100)
+    
+    for req in requests:
+        if isinstance(req.get('created_at'), str):
+            req['created_at'] = datetime.fromisoformat(req['created_at'])
+        if isinstance(req.get('completed_at'), str):
+            req['completed_at'] = datetime.fromisoformat(req['completed_at'])
+    
+    return requests
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
