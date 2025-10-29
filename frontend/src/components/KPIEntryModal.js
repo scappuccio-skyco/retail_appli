@@ -105,8 +105,8 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full">
-        <div className="border-b border-gray-200 p-6 flex justify-between items-center">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col">
+        <div className="border-b border-gray-200 p-6 flex justify-between items-center flex-shrink-0">
           <div className="flex items-center gap-3">
             <Calendar className="w-6 h-6 text-[#ffd871]" />
             <h2 className="text-2xl font-bold text-gray-800">Mes KPI du jour</h2>
@@ -119,7 +119,7 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
           {/* Date Selector */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
