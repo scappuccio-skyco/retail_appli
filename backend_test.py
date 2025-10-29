@@ -432,6 +432,272 @@ class RetailCoachAPITester:
         if success:
             print("   ✅ Existing seller correctly prevented from submitting new diagnostic")
 
+    def test_debrief_flow(self):
+        """Test comprehensive debrief functionality - CRITICAL FEATURE"""
+        if not self.seller_token:
+            self.log_test("Debrief Flow", False, "No seller token available")
+            return
+
+        print("\n🔍 Testing Debrief Flow (CRITICAL FEATURE)...")
+        
+        # Test 1: Create debrief with complete data (Happy Path)
+        debrief_data = {
+            "type_client": "Indécis / hésitant",
+            "moment_journee": "Milieu",
+            "emotion": "Confiant",
+            "produit": "iPhone 15 Pro",
+            "raisons_echec": "Manque d'argument convaincant",
+            "moment_perte_client": "Argumentation",
+            "sentiment": "Frustré de ne pas avoir su répondre aux objections",
+            "amelioration_pensee": "J'aurais pu mieux préparer mes arguments sur les fonctionnalités",
+            "action_future": "Je vais étudier les comparatifs produits et préparer des réponses aux objections courantes"
+        }
+        
+        print("   Creating debrief with AI analysis (may take 10-15 seconds)...")
+        success, response = self.run_test(
+            "Create Debrief with AI Analysis",
+            "POST",
+            "debriefs",
+            200,
+            data=debrief_data,
+            token=self.seller_token
+        )
+        
+        created_debrief = None
+        if success:
+            created_debrief = response
+            # Verify all input fields are present
+            input_fields = list(debrief_data.keys())
+            missing_input_fields = []
+            
+            for field in input_fields:
+                if field not in response or response[field] != debrief_data[field]:
+                    missing_input_fields.append(field)
+            
+            if missing_input_fields:
+                self.log_test("Debrief Input Data Validation", False, f"Missing or incorrect input fields: {missing_input_fields}")
+            else:
+                self.log_test("Debrief Input Data Validation", True)
+                print("   ✅ All input fields correctly saved")
+            
+            # Verify required system fields are present
+            required_system_fields = ['id', 'seller_id', 'created_at']
+            missing_system_fields = []
+            
+            for field in required_system_fields:
+                if field not in response:
+                    missing_system_fields.append(field)
+            
+            if missing_system_fields:
+                self.log_test("Debrief System Fields Validation", False, f"Missing system fields: {missing_system_fields}")
+            else:
+                self.log_test("Debrief System Fields Validation", True)
+                print(f"   ✅ Debrief ID: {response.get('id')}")
+                print(f"   ✅ Seller ID: {response.get('seller_id')}")
+                print(f"   ✅ Created At: {response.get('created_at')}")
+            
+            # Verify AI analysis fields are present and in French
+            ai_fields = ['ai_analyse', 'ai_points_travailler', 'ai_recommandation']
+            missing_ai_fields = []
+            
+            for field in ai_fields:
+                if field not in response or not response[field]:
+                    missing_ai_fields.append(field)
+            
+            if missing_ai_fields:
+                self.log_test("Debrief AI Analysis Validation", False, f"Missing AI fields: {missing_ai_fields}")
+            else:
+                self.log_test("Debrief AI Analysis Validation", True)
+                print(f"   ✅ AI Analysis: {response.get('ai_analyse', '')[:100]}...")
+                
+                # Verify ai_points_travailler is an array
+                points = response.get('ai_points_travailler', [])
+                if isinstance(points, list) and len(points) > 0:
+                    print(f"   ✅ AI Points to Work On ({len(points)} items): {points[0][:50]}...")
+                else:
+                    self.log_test("AI Points Array Validation", False, "ai_points_travailler should be a non-empty array")
+                
+                print(f"   ✅ AI Recommendation: {response.get('ai_recommandation', '')[:100]}...")
+                
+                # Check if responses are in French (basic check for French words)
+                french_indicators = ['le', 'la', 'les', 'de', 'du', 'des', 'et', 'à', 'pour', 'avec', 'sur', 'dans']
+                ai_text = f"{response.get('ai_analyse', '')} {response.get('ai_recommandation', '')}"
+                
+                if any(word in ai_text.lower() for word in french_indicators):
+                    print("   ✅ AI responses appear to be in French")
+                else:
+                    print("   ⚠️  AI responses may not be in French")
+
+        # Test 2: Get debriefs (should include the created debrief)
+        success, response = self.run_test(
+            "Get Debriefs",
+            "GET",
+            "debriefs",
+            200,
+            token=self.seller_token
+        )
+        
+        if success:
+            if isinstance(response, list):
+                self.log_test("Get Debriefs Response Format", True)
+                print(f"   ✅ Retrieved {len(response)} debrief(s)")
+                
+                # Verify the created debrief is in the list
+                if created_debrief and len(response) > 0:
+                    found_debrief = None
+                    for debrief in response:
+                        if debrief.get('id') == created_debrief.get('id'):
+                            found_debrief = debrief
+                            break
+                    
+                    if found_debrief:
+                        self.log_test("Debrief Persistence Validation", True)
+                        print("   ✅ Created debrief found in GET response")
+                        
+                        # Verify all fields are still present
+                        if (found_debrief.get('ai_analyse') and 
+                            found_debrief.get('ai_points_travailler') and 
+                            found_debrief.get('ai_recommandation')):
+                            print("   ✅ All AI analysis fields persisted correctly")
+                        else:
+                            self.log_test("Debrief AI Persistence", False, "AI analysis fields not properly persisted")
+                    else:
+                        self.log_test("Debrief Persistence Validation", False, "Created debrief not found in GET response")
+            else:
+                self.log_test("Get Debriefs Response Format", False, "Response should be an array")
+
+    def test_debrief_validation_and_auth(self):
+        """Test debrief input validation and authentication"""
+        print("\n🔍 Testing Debrief Validation and Authentication...")
+        
+        # Test 3: Input validation - missing required fields
+        incomplete_data = {
+            "type_client": "Indécis / hésitant",
+            "moment_journee": "Milieu"
+            # Missing other required fields
+        }
+        
+        success, response = self.run_test(
+            "Debrief Input Validation (Missing Fields)",
+            "POST",
+            "debriefs",
+            422,  # Validation error
+            data=incomplete_data,
+            token=self.seller_token
+        )
+        
+        if success:
+            print("   ✅ Correctly validates required fields")
+
+        # Test 4: Authentication - no token
+        complete_data = {
+            "type_client": "Pressé",
+            "moment_journee": "Fin",
+            "emotion": "Stressé",
+            "produit": "Samsung Galaxy",
+            "raisons_echec": "Client pressé",
+            "moment_perte_client": "Présentation",
+            "sentiment": "Déçu",
+            "amelioration_pensee": "Être plus concis",
+            "action_future": "Préparer des présentations courtes"
+        }
+        
+        success, response = self.run_test(
+            "Debrief Authentication (No Token)",
+            "POST",
+            "debriefs",
+            401,  # Unauthorized
+            data=complete_data
+        )
+        
+        if success:
+            print("   ✅ Correctly requires authentication")
+
+        # Test 5: Authentication - GET without token
+        success, response = self.run_test(
+            "Get Debriefs Authentication (No Token)",
+            "GET",
+            "debriefs",
+            401,  # Unauthorized
+        )
+        
+        if success:
+            print("   ✅ GET debriefs correctly requires authentication")
+
+    def test_existing_seller_login_scenario(self):
+        """Test login with existing seller account (vendeur2@test.com)"""
+        print("\n🔍 Testing Existing Seller Login Scenario...")
+        
+        # Login with the specific seller account mentioned in the review request
+        login_data = {
+            "email": "vendeur2@test.com",
+            "password": "password123"
+        }
+        
+        success, response = self.run_test(
+            "Existing Seller Login (vendeur2@test.com)",
+            "POST",
+            "auth/login",
+            200,
+            data=login_data
+        )
+        
+        existing_seller_token = None
+        if success and 'token' in response:
+            existing_seller_token = response['token']
+            existing_seller = response['user']
+            print(f"   ✅ Logged in as: {existing_seller.get('name')} ({existing_seller.get('email')})")
+            print(f"   ✅ Seller ID: {existing_seller.get('id')}")
+            
+            # Test debrief creation with existing seller
+            debrief_data = {
+                "type_client": "Curieux / intéressé",
+                "moment_journee": "Début",
+                "emotion": "Motivé",
+                "produit": "MacBook Pro",
+                "raisons_echec": "Prix trop élevé pour le budget",
+                "moment_perte_client": "Présentation du prix",
+                "sentiment": "Compréhensif mais déçu",
+                "amelioration_pensee": "J'aurais pu proposer des alternatives de financement",
+                "action_future": "Préparer des options de paiement échelonné et des produits alternatifs"
+            }
+            
+            print("   Creating debrief with existing seller account...")
+            success, response = self.run_test(
+                "Existing Seller - Create Debrief",
+                "POST",
+                "debriefs",
+                200,
+                data=debrief_data,
+                token=existing_seller_token
+            )
+            
+            if success:
+                print(f"   ✅ Debrief created successfully for existing seller")
+                print(f"   ✅ AI Analysis: {response.get('ai_analyse', '')[:80]}...")
+                
+                # Test getting debriefs for existing seller
+                success, get_response = self.run_test(
+                    "Existing Seller - Get Debriefs",
+                    "GET",
+                    "debriefs",
+                    200,
+                    token=existing_seller_token
+                )
+                
+                if success and isinstance(get_response, list):
+                    print(f"   ✅ Retrieved {len(get_response)} debrief(s) for existing seller")
+                    
+                    # Verify the just-created debrief is in the response
+                    found = any(d.get('id') == response.get('id') for d in get_response)
+                    if found:
+                        print("   ✅ Created debrief found in seller's debrief list")
+                    else:
+                        self.log_test("Existing Seller Debrief Retrieval", False, "Created debrief not found in list")
+        else:
+            print("   ⚠️  Could not login with vendeur2@test.com - account may not exist")
+            print("   This is expected if the account hasn't been created yet")
+
     def test_error_cases(self):
         """Test error handling"""
         # Test invalid login
