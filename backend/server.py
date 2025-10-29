@@ -113,6 +113,20 @@ class RegisterWithInvite(BaseModel):
     password: str
     invitation_token: str
 
+class DiagnosticResult(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    seller_id: str
+    responses: dict
+    ai_profile_summary: str
+    style: str  # Convivial, Explorateur, Dynamique, Discret, Stratège
+    level: str  # Débutant, Intermédiaire, Expert terrain
+    motivation: str  # Relation, Reconnaissance, Performance, Découverte
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class DiagnosticCreate(BaseModel):
+    responses: dict
+
 # ===== AUTH HELPERS =====
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
