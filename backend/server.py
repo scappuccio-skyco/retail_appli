@@ -890,7 +890,12 @@ Réponds au format JSON avec cette structure exacte :
             "style": "Convivial",
             "level": "Intermédiaire",
             "motivation": "Relation",
-            "summary": "Profil en cours d'analyse. Votre diagnostic a été enregistré avec succès."
+            "summary": "Profil en cours d'analyse. Votre diagnostic a été enregistré avec succès.",
+            "score_accueil": 3.0,
+            "score_decouverte": 3.0,
+            "score_argumentation": 3.0,
+            "score_closing": 3.0,
+            "score_fidelisation": 3.0
         }
 
 @api_router.post("/diagnostic", response_model=DiagnosticResult)
