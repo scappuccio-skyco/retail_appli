@@ -571,11 +571,11 @@ class RetailCoachAPITester:
         """Test debrief input validation and authentication"""
         print("\n🔍 Testing Debrief Validation and Authentication...")
         
-        # Test 3: Input validation - missing required fields
+        # Test 3: Input validation - missing required fields (NEW structure)
         incomplete_data = {
-            "type_client": "Indécis / hésitant",
-            "moment_journee": "Milieu"
-            # Missing other required fields
+            "produit": "iPhone 15 Pro",
+            "type_client": "Nouveau client"
+            # Missing other required fields: situation_vente, description_vente, etc.
         }
         
         success, response = self.run_test(
