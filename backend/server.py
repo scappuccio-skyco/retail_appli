@@ -935,7 +935,11 @@ async def analyze_diagnostic_with_ai(responses: dict) -> dict:
 
 1. Analyse ses réponses pour identifier :
    - son style de vente dominant (Convivial, Explorateur, Dynamique, Discret ou Stratège)
-   - son niveau global (Débutant / Intermédiaire / Expert terrain)
+   - son niveau global selon cette échelle gamifiée (utilise ces niveaux UNIQUEMENT) :
+     * **Explorateur** (🟢 Niveau 1) : Découvre le terrain, teste, apprend les bases. Curieux et volontaire.
+     * **Challenger** (🟡 Niveau 2) : A pris ses repères, cherche à performer, teste de nouvelles approches.
+     * **Ambassadeur** (🟠 Niveau 3) : Inspire confiance, maîtrise les étapes de la vente, partage ses pratiques.
+     * **Maître du Jeu** (🔴 Niveau 4) : Expert de la relation client, capable d'adapter son style et d'entraîner les autres.
    - ses leviers de motivation (Relation, Reconnaissance, Performance, Découverte)
 
 2. **IMPORTANT** : Évalue ses compétences sur les 5 étapes de la vente en analysant ses réponses.
@@ -958,7 +962,7 @@ async def analyze_diagnostic_with_ai(responses: dict) -> dict:
 Réponds au format JSON avec cette structure exacte :
 {{
   "style": "Convivial|Explorateur|Dynamique|Discret|Stratège",
-  "level": "Débutant|Intermédiaire|Expert terrain",
+  "level": "Explorateur|Challenger|Ambassadeur|Maître du Jeu",
   "motivation": "Relation|Reconnaissance|Performance|Découverte",
   "summary": "Ton analyse complète en texte",
   "score_accueil": 3.5,
