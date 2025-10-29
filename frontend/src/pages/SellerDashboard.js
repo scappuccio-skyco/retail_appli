@@ -440,50 +440,62 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           <h2 className="text-2xl font-bold text-gray-800 mb-6">📝 Derniers débriefs</h2>
           
           {debriefs.length > 0 ? (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {debriefs.slice(0, 5).map((debrief) => (
                 <div
                   key={debrief.id}
-                  className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-md transition-all"
+                  className="bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all"
                 >
-                  {/* Header */}
-                  <div className="border-b border-gray-100 pb-3 mb-4">
-                    <p className="text-sm text-gray-500 mb-2">
-                      🗓️ {new Date(debrief.created_at).toLocaleDateString('fr-FR')} — Produit : {debrief.produit} — Type de client : {debrief.type_client}
-                    </p>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p>💬 Description : {debrief.description_vente}</p>
-                      <p>📍 Moment clé : {debrief.moment_perte_client}</p>
-                      <p>❌ Raisons évoquées : {debrief.raisons_echec}</p>
+                  {/* Compact Header - Always Visible */}
+                  <button
+                    onClick={() => toggleDebrief(debrief.id)}
+                    className="w-full p-4 text-left hover:bg-gray-50 transition-colors rounded-xl"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500 mb-2">
+                          🗓️ {new Date(debrief.created_at).toLocaleDateString('fr-FR')} — Produit : {debrief.produit} — Type de client : {debrief.type_client}
+                        </p>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <p>💬 Description : {debrief.description_vente}</p>
+                          <p>📍 Moment clé : {debrief.moment_perte_client}</p>
+                          <p>❌ Raisons évoquées : {debrief.raisons_echec}</p>
+                        </div>
+                      </div>
+                      <div className="ml-4 text-gray-600 font-bold text-xl flex-shrink-0">
+                        {expandedDebriefs[debrief.id] ? '−' : '+'}
+                      </div>
                     </div>
-                  </div>
+                  </button>
 
-                  {/* AI Analysis */}
-                  <div className="space-y-4">
-                    {/* Analyse */}
-                    <div className="bg-blue-50 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-blue-900 mb-1">💬 Analyse</p>
-                      <p className="text-sm text-blue-800 whitespace-pre-line">{debrief.ai_analyse}</p>
-                    </div>
+                  {/* AI Analysis - Expandable */}
+                  {expandedDebriefs[debrief.id] && (
+                    <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3 animate-fadeIn">
+                      {/* Analyse */}
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-blue-900 mb-1">💬 Analyse</p>
+                        <p className="text-sm text-blue-800 whitespace-pre-line">{debrief.ai_analyse}</p>
+                      </div>
 
-                    {/* Points à travailler */}
-                    <div className="bg-orange-50 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-orange-900 mb-1">🎯 Points à travailler</p>
-                      <p className="text-sm text-orange-800 whitespace-pre-line">{debrief.ai_points_travailler}</p>
-                    </div>
+                      {/* Points à travailler */}
+                      <div className="bg-orange-50 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-orange-900 mb-1">🎯 Points à travailler</p>
+                        <p className="text-sm text-orange-800 whitespace-pre-line">{debrief.ai_points_travailler}</p>
+                      </div>
 
-                    {/* Recommandation */}
-                    <div className="bg-green-50 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-green-900 mb-1">🚀 Recommandation</p>
-                      <p className="text-sm text-green-800 whitespace-pre-line">{debrief.ai_recommandation}</p>
-                    </div>
+                      {/* Recommandation */}
+                      <div className="bg-green-50 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-green-900 mb-1">🚀 Recommandation</p>
+                        <p className="text-sm text-green-800 whitespace-pre-line">{debrief.ai_recommandation}</p>
+                      </div>
 
-                    {/* Exemple concret */}
-                    <div className="bg-purple-50 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-purple-900 mb-1">💡 Exemple concret</p>
-                      <p className="text-sm text-purple-800 italic whitespace-pre-line">{debrief.ai_exemple_concret}</p>
+                      {/* Exemple concret */}
+                      <div className="bg-purple-50 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-purple-900 mb-1">💡 Exemple concret</p>
+                        <p className="text-sm text-purple-800 italic whitespace-pre-line">{debrief.ai_exemple_concret}</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
