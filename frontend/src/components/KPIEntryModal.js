@@ -7,33 +7,40 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export default function KPIEntryModal({ onClose, onSuccess }) {
-  const [enabledKpis, setEnabledKpis] = useState([]);
-  const [kpiDefinitions, setKpiDefinitions] = useState({});
+  const [enabled, setEnabled] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [kpiValues, setKpiValues] = useState({});
+  const [caJournalier, setCaJournalier] = useState('');
+  const [nbVentes, setNbVentes] = useState('');
+  const [nbClients, setNbClients] = useState('');
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [date]);
 
   const fetchData = async () => {
     try {
-      const [kpisRes, entriesRes] = await Promise.all([
-        axios.get(`${API}/seller/enabled-kpis`),
+      const [statusRes, entriesRes] = await Promise.all([
+        axios.get(`${API}/seller/kpi-enabled`),
         axios.get(`${API}/seller/kpi-entries?days=1`)
       ]);
       
-      setEnabledKpis(kpisRes.data.enabled_kpis || []);
-      setKpiDefinitions(kpisRes.data.kpi_definitions || {});
+      setEnabled(statusRes.data.enabled || false);
       
-      // If there's an entry for today, pre-fill it
-      const todayEntry = entriesRes.data.find(e => e.date === date);
-      if (todayEntry) {
-        setKpiValues(todayEntry.kpi_values);
-        setComment(todayEntry.comment || '');
+      // If there's an entry for selected date, pre-fill it
+      const existingEntry = entriesRes.data.find(e => e.date === date);
+      if (existingEntry) {
+        setCaJournalier(existingEntry.ca_journalier || '');
+        setNbVentes(existingEntry.nb_ventes || '');
+        setNbClients(existingEntry.nb_clients || '');
+        setComment(existingEntry.comment || '');
+      } else {
+        setCaJournalier('');
+        setNbVentes('');
+        setNbClients('');
+        setComment('');
       }
     } catch (err) {
       toast.error('Erreur de chargement des KPI');
@@ -42,18 +49,9 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
     }
   };
 
-  const handleValueChange = (kpiKey, value) => {
-    setKpiValues(prev => ({
-      ...prev,
-      [kpiKey]: parseFloat(value) || 0
-    }));
-  };
-
   const handleSubmit = async () => {
-    // Validate that all enabled KPIs have values
-    const missingKpis = enabledKpis.filter(key => !kpiValues[key] && kpiValues[key] !== 0);
-    if (missingKpis.length > 0) {
-      toast.error('Veuillez remplir tous les KPI');
+    if (!caJournalier || !nbVentes || !nbClients) {
+      toast.error('Veuillez remplir tous les champs');
       return;
     }
 
@@ -61,7 +59,9 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
     try {
       await axios.post(`${API}/seller/kpi-entry`, {
         date,
-        kpi_values: kpiValues,
+        ca_journalier: parseFloat(caJournalier),
+        nb_ventes: parseInt(nbVentes),
+        nb_clients: parseInt(nbClients),
         comment: comment || null
       });
       toast.success('KPI enregistrés avec succès!');
@@ -84,12 +84,12 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
     );
   }
 
-  if (enabledKpis.length === 0) {
+  if (!enabled) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8">
           <div className="text-center mb-4">
-            <p className="text-gray-600">Aucun KPI n'est configuré pour le moment.</p>
+            <p className="text-gray-600">Les KPI quotidiens ne sont pas activés.</p>
             <p className="text-sm text-gray-500 mt-2">Contactez votre manager.</p>
           </div>
           <button
@@ -134,35 +134,77 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
             />
           </div>
 
+          {/* Info Box */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+            <p className="text-sm text-blue-800">
+              💡 Remplissez ces 3 données simples. Le système calculera automatiquement votre panier moyen et taux de transformation.
+            </p>
+          </div>
+
           {/* KPI Inputs */}
           <div className="space-y-4 mb-6">
-            {enabledKpis.map(kpiKey => {
-              const kpi = kpiDefinitions[kpiKey];
-              if (!kpi) return null;
-              
-              return (
-                <div key={kpiKey} className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">{kpi.icon}</span>
-                    <label className="font-medium text-gray-800">
-                      {kpi.name}
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={kpiValues[kpiKey] || ''}
-                      onChange={(e) => handleValueChange(kpiKey, e.target.value)}
-                      placeholder="0"
-                      step={kpi.unit === '€' ? '0.01' : '1'}
-                      min="0"
-                      className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
-                    />
-                    <span className="text-gray-600 font-medium min-w-[60px]">{kpi.unit}</span>
-                  </div>
-                </div>
-              );
-            })}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl">💰</span>
+                <label className="font-medium text-gray-800">
+                  Chiffre d'affaires
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={caJournalier}
+                  onChange={(e) => setCaJournalier(e.target.value)}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                />
+                <span className="text-gray-600 font-medium min-w-[40px]">€</span>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl">🛍️</span>
+                <label className="font-medium text-gray-800">
+                  Nombre de ventes
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={nbVentes}
+                  onChange={(e) => setNbVentes(e.target.value)}
+                  placeholder="0"
+                  step="1"
+                  min="0"
+                  className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                />
+                <span className="text-gray-600 font-medium min-w-[40px]">ventes</span>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl">👥</span>
+                <label className="font-medium text-gray-800">
+                  Nombre de clients accueillis
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={nbClients}
+                  onChange={(e) => setNbClients(e.target.value)}
+                  placeholder="0"
+                  step="1"
+                  min="0"
+                  className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                />
+                <span className="text-gray-600 font-medium min-w-[40px]">clients</span>
+              </div>
+            </div>
           </div>
 
           {/* Comment */}
