@@ -702,7 +702,12 @@ Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
             "analyse": analysis.get("analyse", ""),
             "points_travailler": analysis.get("points_travailler", ""),
             "recommandation": analysis.get("recommandation", ""),
-            "exemple_concret": analysis.get("exemple_concret", "")
+            "exemple_concret": analysis.get("exemple_concret", ""),
+            "score_accueil": analysis.get("score_accueil", current_scores.get('accueil', 3.0)),
+            "score_decouverte": analysis.get("score_decouverte", current_scores.get('decouverte', 3.0)),
+            "score_argumentation": analysis.get("score_argumentation", current_scores.get('argumentation', 3.0)),
+            "score_closing": analysis.get("score_closing", current_scores.get('closing', 3.0)),
+            "score_fidelisation": analysis.get("score_fidelisation", current_scores.get('fidelisation', 3.0))
         }
     except Exception as e:
         print(f"Error generating AI debrief: {e}")
@@ -711,7 +716,12 @@ Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
             "analyse": "Cette analyse montre une bonne capacité de recul. L'identification du moment clé du blocage est un excellent point de départ pour progresser.",
             "points_travailler": "• Renforcer la reformulation des besoins client pour mieux valider sa compréhension\n• Préparer des réponses aux objections courantes pour gagner en fluidité",
             "recommandation": "Dès la prochaine vente, pose une question de validation après la découverte du besoin.",
-            "exemple_concret": "Tu aurais pu dire : 'Si je comprends bien, vous cherchez un produit qui combine [besoin 1] et [besoin 2], c'est bien ça ?'"
+            "exemple_concret": "Tu aurais pu dire : 'Si je comprends bien, vous cherchez un produit qui combine [besoin 1] et [besoin 2], c'est bien ça ?'",
+            "score_accueil": current_scores.get('accueil', 3.0),
+            "score_decouverte": current_scores.get('decouverte', 3.0),
+            "score_argumentation": current_scores.get('argumentation', 3.0),
+            "score_closing": current_scores.get('closing', 3.0),
+            "score_fidelisation": current_scores.get('fidelisation', 3.0)
         }
 
 @api_router.post("/debriefs", response_model=Debrief)
