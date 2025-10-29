@@ -149,57 +149,76 @@ class ManagerRequestResponse(BaseModel):
     response: str
 
 # ===== KPI MODELS =====
-# Predefined KPI types
-KPI_DEFINITIONS = {
+# KPI that sellers enter (raw data)
+SELLER_INPUT_KPIS = {
     "ca_journalier": {
         "name": "Chiffre d'affaires",
         "unit": "€",
         "type": "number",
-        "icon": "💰"
+        "icon": "💰",
+        "description": "Total des ventes de la journée"
     },
     "nb_ventes": {
         "name": "Nombre de ventes",
         "unit": "ventes",
         "type": "number",
-        "icon": "🛍️"
+        "icon": "🛍️",
+        "description": "Nombre de transactions réalisées"
     },
     "nb_clients": {
         "name": "Nombre de clients accueillis",
         "unit": "clients",
         "type": "number",
-        "icon": "👥"
-    },
+        "icon": "👥",
+        "description": "Nombre total de clients venus"
+    }
+}
+
+# KPI calculated automatically from seller input
+CALCULATED_KPIS = {
     "panier_moyen": {
         "name": "Panier moyen",
         "unit": "€",
-        "type": "number",
+        "formula": "ca_journalier / nb_ventes",
         "icon": "🛒"
     },
     "taux_transformation": {
         "name": "Taux de transformation",
         "unit": "%",
-        "type": "number",
+        "formula": "(nb_ventes / nb_clients) * 100",
         "icon": "📈"
     },
-    "ventes_additionnelles": {
-        "name": "Ventes additionnelles",
-        "unit": "ventes",
-        "type": "number",
-        "icon": "➕"
-    },
-    "duree_moyenne_vente": {
-        "name": "Durée moyenne de vente",
-        "unit": "min",
-        "type": "number",
-        "icon": "⏱️"
-    },
-    "produits_phares": {
-        "name": "Produits phares vendus",
-        "unit": "unités",
-        "type": "number",
-        "icon": "⭐"
+    "indice_vente": {
+        "name": "Indice de vente",
+        "unit": "ventes/client",
+        "formula": "nb_ventes / nb_clients",
+        "icon": "📊"
     }
 }
+
+def calculate_kpis(raw_data: dict) -> dict:
+    """Calculate derived KPIs from raw seller input"""
+    calculated = {}
+    
+    ca = raw_data.get('ca_journalier', 0)
+    nb_ventes = raw_data.get('nb_ventes', 0)
+    nb_clients = raw_data.get('nb_clients', 0)
+    
+    # Panier moyen
+    if nb_ventes > 0:
+        calculated['panier_moyen'] = round(ca / nb_ventes, 2)
+    else:
+        calculated['panier_moyen'] = 0
+    
+    # Taux de transformation
+    if nb_clients > 0:
+        calculated['taux_transformation'] = round((nb_ventes / nb_clients) * 100, 2)
+        calculated['indice_vente'] = round(nb_ventes / nb_clients, 2)
+    else:
+        calculated['taux_transformation'] = 0
+        calculated['indice_vente'] = 0
+    
+    return calculated
 
 class KPIConfiguration(BaseModel):
     model_config = ConfigDict(extra="ignore")
