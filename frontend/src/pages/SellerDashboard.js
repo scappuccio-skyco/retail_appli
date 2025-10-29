@@ -205,9 +205,9 @@ export default function SellerDashboard({ user, onLogout }) {
                     </div>
                   </div>
                   {evaluation.ai_feedback && (
-                    <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
-                      <p className="text-sm font-medium text-blue-900 mb-1">Feedback AI</p>
-                      <p className="text-sm text-blue-800">{evaluation.ai_feedback}</p>
+                    <div className="bg-[#ffd871] bg-opacity-10 rounded-lg p-4 border-l-4 border-[#ffd871]">
+                      <p className="text-sm font-medium text-gray-900 mb-1">Feedback AI</p>
+                      <p className="text-sm text-gray-800">{evaluation.ai_feedback}</p>
                     </div>
                   )}
                 </div>
