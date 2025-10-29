@@ -6,6 +6,7 @@ import { LogOut, Plus, TrendingUp, Award, MessageSquare, Sparkles, BarChart3 } f
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import EvaluationModal from '../components/EvaluationModal';
 import KPIEntryModal from '../components/KPIEntryModal';
+import KPIReporting from './KPIReporting';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
