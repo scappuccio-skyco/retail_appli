@@ -190,17 +190,18 @@ export default function DiagnosticForm({ onComplete }) {
     setLoading(true);
     try {
       const res = await axios.post(`${API}/diagnostic`, { responses });
-      toast.success('Diagnostic complété avec succès!');
       
       // Call parent callback with result
       if (onComplete) {
         onComplete(res.data);
       }
       
-      // Navigate back to dashboard after short delay
+      toast.success('Diagnostic complété avec succès!');
+      
+      // Navigate back to dashboard
       setTimeout(() => {
         navigate('/', { replace: true });
-      }, 1000);
+      }, 500);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Erreur lors de l\'envoi du diagnostic');
       setLoading(false);
