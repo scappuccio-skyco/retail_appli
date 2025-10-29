@@ -132,6 +132,20 @@ function App() {
             }
           />
           <Route
+            path="/diagnostic"
+            element={
+              !user ? (
+                <Navigate to="/login" replace />
+              ) : user.role !== 'seller' ? (
+                <Navigate to="/" replace />
+              ) : diagnostic ? (
+                <Navigate to="/" replace />
+              ) : (
+                <DiagnosticForm onComplete={handleDiagnosticComplete} />
+              )
+            }
+          />
+          <Route
             path="/"
             element={
               !user ? (
