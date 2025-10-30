@@ -314,35 +314,153 @@ export default function SellerDetailView({ seller, onBack }) {
       {/* Tab Content - KPI */}
       {activeTab === 'kpi' && (
         <div className="glass-morphism rounded-2xl p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 KPI (30 derniers jours)</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 KPI</h2>
+          
+          {/* Filtres */}
+          <div className="flex gap-3 mb-6">
+            <button
+              onClick={() => setKpiFilter('7j')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                kpiFilter === '7j'
+                  ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-md'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+              }`}
+            >
+              7 derniers jours
+            </button>
+            <button
+              onClick={() => setKpiFilter('30j')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                kpiFilter === '30j'
+                  ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-md'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+              }`}
+            >
+              30 derniers jours
+            </button>
+            <button
+              onClick={() => setKpiFilter('tout')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                kpiFilter === 'tout'
+                  ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-md'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+              }`}
+            >
+              Tout
+            </button>
+          </div>
           
           {kpiEntries.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-blue-50 rounded-xl p-4">
-                <p className="text-sm text-blue-600 mb-2">💰 CA Total</p>
-                <p className="text-2xl font-bold text-blue-900">
-                  {kpiEntries.reduce((sum, e) => sum + (e.ca_journalier || 0), 0).toFixed(2)}€
-                </p>
+            <>
+              {/* KPI Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-blue-50 rounded-xl p-4">
+                  <p className="text-sm text-blue-600 mb-2">💰 CA Total</p>
+                  <p className="text-2xl font-bold text-blue-900">
+                    {(() => {
+                      const filteredEntries = kpiFilter === '7j' 
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                        : kpiFilter === '30j'
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                        : kpiEntries;
+                      return filteredEntries.reduce((sum, e) => sum + (e.ca_journalier || 0), 0).toFixed(2);
+                    })()}€
+                  </p>
+                </div>
+                <div className="bg-green-50 rounded-xl p-4">
+                  <p className="text-sm text-green-600 mb-2">🛒 Ventes</p>
+                  <p className="text-2xl font-bold text-green-900">
+                    {(() => {
+                      const filteredEntries = kpiFilter === '7j' 
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                        : kpiFilter === '30j'
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                        : kpiEntries;
+                      return filteredEntries.reduce((sum, e) => sum + (e.nb_ventes || 0), 0);
+                    })()}
+                  </p>
+                </div>
+                <div className="bg-purple-50 rounded-xl p-4">
+                  <p className="text-sm text-purple-600 mb-2">👥 Clients</p>
+                  <p className="text-2xl font-bold text-purple-900">
+                    {(() => {
+                      const filteredEntries = kpiFilter === '7j' 
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                        : kpiFilter === '30j'
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                        : kpiEntries;
+                      return filteredEntries.reduce((sum, e) => sum + (e.nb_clients || 0), 0);
+                    })()}
+                  </p>
+                </div>
+                <div className="bg-orange-50 rounded-xl p-4">
+                  <p className="text-sm text-orange-600 mb-2">🧮 Panier Moyen</p>
+                  <p className="text-2xl font-bold text-orange-900">
+                    {(() => {
+                      const filteredEntries = kpiFilter === '7j' 
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                        : kpiFilter === '30j'
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                        : kpiEntries;
+                      return filteredEntries.length > 0
+                        ? (filteredEntries.reduce((sum, e) => sum + (e.panier_moyen || 0), 0) / filteredEntries.length).toFixed(2)
+                        : 0;
+                    })()}€
+                  </p>
+                </div>
               </div>
-              <div className="bg-green-50 rounded-xl p-4">
-                <p className="text-sm text-green-600 mb-2">🛒 Ventes</p>
-                <p className="text-2xl font-bold text-green-900">
-                  {kpiEntries.reduce((sum, e) => sum + (e.nb_ventes || 0), 0)}
-                </p>
+
+              {/* Graphiques */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Graphique CA */}
+                <div className="bg-white rounded-xl p-4 border border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">💰 Évolution du CA</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={(() => {
+                      const filteredEntries = kpiFilter === '7j' 
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                        : kpiFilter === '30j'
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                        : kpiEntries;
+                      return filteredEntries.map(e => ({
+                        date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+                        CA: e.ca_journalier || 0
+                      }));
+                    })()}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                      <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
+                      <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
+                      <Tooltip contentStyle={{ backgroundColor: '#fff', border: '2px solid #3b82f6', borderRadius: '8px' }} />
+                      <Line type="monotone" dataKey="CA" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Graphique Ventes */}
+                <div className="bg-white rounded-xl p-4 border border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">🛒 Évolution des ventes</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={(() => {
+                      const filteredEntries = kpiFilter === '7j' 
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                        : kpiFilter === '30j'
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                        : kpiEntries;
+                      return filteredEntries.map(e => ({
+                        date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+                        Ventes: e.nb_ventes || 0
+                      }));
+                    })()}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                      <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
+                      <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
+                      <Tooltip contentStyle={{ backgroundColor: '#fff', border: '2px solid #10b981', borderRadius: '8px' }} />
+                      <Line type="monotone" dataKey="Ventes" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              <div className="bg-purple-50 rounded-xl p-4">
-                <p className="text-sm text-purple-600 mb-2">👥 Clients</p>
-                <p className="text-2xl font-bold text-purple-900">
-                  {kpiEntries.reduce((sum, e) => sum + (e.nb_clients || 0), 0)}
-                </p>
-              </div>
-              <div className="bg-orange-50 rounded-xl p-4">
-                <p className="text-sm text-orange-600 mb-2">🧮 Panier Moyen</p>
-                <p className="text-2xl font-bold text-orange-900">
-                  {(kpiEntries.reduce((sum, e) => sum + (e.panier_moyen || 0), 0) / kpiEntries.length).toFixed(2)}€
-                </p>
-              </div>
-            </div>
+            </>
           ) : (
             <div className="text-center py-12 text-gray-500">
               Aucune donnée KPI disponible
