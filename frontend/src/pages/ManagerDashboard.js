@@ -76,6 +76,22 @@ export default function ManagerDashboard({ user, onLogout }) {
     }
   };
 
+  const regenerateTeamBilan = async () => {
+    setGeneratingTeamBilan(true);
+    try {
+      const res = await axios.post(`${API}/manager/team-bilan`);
+      if (res.data) {
+        setTeamBilan(res.data);
+        toast.success('Analyse d\'équipe régénérée avec succès !');
+      }
+    } catch (err) {
+      console.error('Error regenerating team bilan:', err);
+      toast.error('Erreur lors de la régénération de l\'analyse');
+    } finally {
+      setGeneratingTeamBilan(false);
+    }
+  };
+
   const fetchSellerStats = async (sellerId) => {
     try {
       const [statsRes, diagRes, kpiRes] = await Promise.all([
