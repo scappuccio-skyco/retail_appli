@@ -1613,18 +1613,26 @@ async def get_my_kpi_entries(days: int = None, current_user: dict = Depends(get_
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can access their KPI entries")
     
+    print(f"[DEBUG] get_my_kpi_entries called with days={days}, seller_id={current_user['id']}")
+    
     # If days is specified, filter by date range
     if days:
+        print(f"[DEBUG] Using days filter: {days}")
         entries = await db.kpi_entries.find(
             {"seller_id": current_user['id']},
             {"_id": 0}
         ).sort("date", -1).limit(days).to_list(days)
     else:
         # Return all entries (no limit)
+        print(f"[DEBUG] Getting ALL entries (no days filter)")
         entries = await db.kpi_entries.find(
             {"seller_id": current_user['id']},
             {"_id": 0}
-        ).sort("date", -1).to_list(10000)  # Large limit to get all entries
+        ).sort("date", -1).to_list(None)  # Get ALL entries
+    
+    print(f"[DEBUG] Returning {len(entries)} entries")
+    if entries:
+        print(f"[DEBUG] First entry: {entries[0]['date']}, Last entry: {entries[-1]['date']}")
     
     return entries
 
