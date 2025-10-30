@@ -338,6 +338,118 @@ export default function ManagerDashboard({ user, onLogout }) {
                   </ResponsiveContainer>
                 </div>
 
+                {/* KPI Charts - 4 graphiques */}
+                {sellerKPIs.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-4">KPI (7 derniers jours)</h3>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      {/* Évolution du CA */}
+                      <div className="bg-white rounded-xl p-4 border border-gray-200">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-3">💰 Évolution du CA</h4>
+                        <ResponsiveContainer width="100%" height={150}>
+                          <LineChart data={sellerKPIs.slice().reverse()}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis 
+                              dataKey="date" 
+                              tick={{ fill: '#6b7280', fontSize: 10 }}
+                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                            />
+                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
+                            <Tooltip 
+                              formatter={(value) => `${value.toFixed(2)}€`}
+                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="ca_journalier" 
+                              stroke="#fbbf24" 
+                              strokeWidth={2}
+                              dot={{ r: 3 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Ventes vs Clients */}
+                      <div className="bg-white rounded-xl p-4 border border-gray-200">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-3">📊 Ventes vs Clients</h4>
+                        <ResponsiveContainer width="100%" height={150}>
+                          <BarChart data={sellerKPIs.slice().reverse()}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis 
+                              dataKey="date" 
+                              tick={{ fill: '#6b7280', fontSize: 10 }}
+                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                            />
+                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
+                            <Tooltip 
+                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
+                            />
+                            <Legend />
+                            <Bar dataKey="nb_ventes" fill="#3b82f6" name="Ventes" />
+                            <Bar dataKey="nb_clients" fill="#fbbf24" name="Clients" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Panier Moyen */}
+                      <div className="bg-white rounded-xl p-4 border border-gray-200">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-3">🛒 Panier Moyen</h4>
+                        <ResponsiveContainer width="100%" height={150}>
+                          <LineChart data={sellerKPIs.slice().reverse()}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis 
+                              dataKey="date" 
+                              tick={{ fill: '#6b7280', fontSize: 10 }}
+                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                            />
+                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
+                            <Tooltip 
+                              formatter={(value) => `${value.toFixed(2)}€`}
+                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="panier_moyen" 
+                              stroke="#10b981" 
+                              strokeWidth={2}
+                              dot={{ r: 3 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Taux de Transformation */}
+                      <div className="bg-white rounded-xl p-4 border border-gray-200">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-3">📈 Taux de Transformation</h4>
+                        <ResponsiveContainer width="100%" height={150}>
+                          <LineChart data={sellerKPIs.slice().reverse()}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis 
+                              dataKey="date" 
+                              tick={{ fill: '#6b7280', fontSize: 10 }}
+                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                            />
+                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
+                            <Tooltip 
+                              formatter={(value) => `${value.toFixed(2)}%`}
+                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="taux_transformation" 
+                              stroke="#8b5cf6" 
+                              strokeWidth={2}
+                              dot={{ r: 3 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Recent Evaluations */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-700 mb-4">Dernières Évaluations</h3>
