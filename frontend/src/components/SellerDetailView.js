@@ -16,6 +16,7 @@ export default function SellerDetailView({ seller, onBack }) {
   const [loading, setLoading] = useState(true);
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [activeTab, setActiveTab] = useState('competences'); // New state for tabs
+  const [showAllDebriefs, setShowAllDebriefs] = useState(false); // New state for debriefs display
 
   useEffect(() => {
     fetchSellerData();
