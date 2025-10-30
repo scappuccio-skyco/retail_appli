@@ -106,6 +106,19 @@ export default function ManagerDashboard({ user, onLogout }) {
     );
   }
 
+  // Show seller detail view if a seller is selected
+  if (showDetailView && selectedSeller) {
+    return (
+      <SellerDetailView 
+        seller={selectedSeller} 
+        onBack={() => {
+          setShowDetailView(false);
+          setSelectedSeller(null);
+        }}
+      />
+    );
+  }
+
   return (
     <div data-testid="manager-dashboard" className="min-h-screen p-4 md:p-8">
       {/* Header */}
