@@ -1066,6 +1066,11 @@ class RetailCoachAPITester:
         # Test with existing seller account
         self.test_existing_seller_login_scenario()
 
+        # CRITICAL: Conflict Resolution tests (NEW FEATURE)
+        self.test_manager_seller_relationship()
+        self.test_conflict_resolution_flow()
+        self.test_conflict_resolution_authorization()
+
         # Sales operations
         sale_id = self.test_sales_operations()
 
