@@ -191,10 +191,7 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => {
-                // Simply navigate to diagnostic page - backend will handle overwrite
-                navigate('/diagnostic');
-              }}
+              onClick={() => setShowDiagnosticFormModal(true)}
               className="btn-secondary flex items-center gap-2"
             >
               <Sparkles className="w-5 h-5" />
