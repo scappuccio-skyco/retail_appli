@@ -17,6 +17,7 @@ export default function SellerDetailView({ seller, onBack }) {
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [activeTab, setActiveTab] = useState('competences'); // New state for tabs
   const [showAllDebriefs, setShowAllDebriefs] = useState(false); // New state for debriefs display
+  const [kpiFilter, setKpiFilter] = useState('7j'); // New state for KPI filter: '7j', '30j', 'tout'
 
   useEffect(() => {
     fetchSellerData();
