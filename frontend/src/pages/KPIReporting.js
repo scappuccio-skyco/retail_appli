@@ -390,7 +390,7 @@ export default function KPIReporting({ user, onBack }) {
                     className="w-full flex items-center justify-center gap-2 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
                   >
                     <span className="text-sm font-semibold text-gray-700">
-                      {showAllEntries ? 'Voir moins' : `Voir toutes les saisies (${allEntries.length - 3} de plus)`}
+                      {showAllEntries ? 'Voir moins' : 'Voir toutes les saisies'}
                     </span>
                     <span className="text-xl font-bold text-gray-600">
                       {showAllEntries ? '−' : '+'}
