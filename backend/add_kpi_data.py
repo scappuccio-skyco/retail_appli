@@ -16,7 +16,7 @@ client = AsyncIOMotorClient(MONGO_URL)
 db = client['retail_coach']
 
 async def add_kpi_data():
-    """Add KPI data from 29/10/2024 to today for ALL sellers"""
+    """Add KPI data for 365 days back from today for ALL sellers"""
     
     # Get all sellers from database
     sellers = await db.users.find({"role": "seller"}, {"_id": 0, "id": 1, "name": 1}).to_list(100)
@@ -25,9 +25,10 @@ async def add_kpi_data():
         print("No sellers found in database!")
         return
     
-    # Start date: 29/10/2024
-    start_date = datetime(2024, 10, 29, 0, 0, 0, tzinfo=timezone.utc)
+    # End date: today
     end_date = datetime.now(timezone.utc)
+    # Start date: 365 days ago from today
+    start_date = end_date - timedelta(days=365)
     
     # Calculate number of days
     total_days = (end_date - start_date).days + 1
