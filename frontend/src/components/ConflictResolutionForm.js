@@ -69,23 +69,27 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Update state in batch
-      console.log('AI Response:', response.data); // Debug log
-      setAiRecommendations(response.data);
-      setFormData({
-        contexte: '',
-        comportement_observe: '',
-        impact: '',
-        tentatives_precedentes: '',
-        description_libre: ''
+      // Update state in batch - Debug log
+      console.log('AI Response:', response.data);
+      
+      // Use React.startTransition for non-urgent updates
+      React.startTransition(() => {
+        setAiRecommendations(response.data);
+        setFormData({
+          contexte: '',
+          comportement_observe: '',
+          impact: '',
+          tentatives_precedentes: '',
+          description_libre: ''
+        });
       });
       
       toast.success('Recommandations générées avec succès');
       
-      // Refresh history after a short delay to avoid DOM conflicts
+      // Refresh history after a longer delay to ensure DOM reconciliation completes
       setTimeout(() => {
         fetchConflictHistory();
-      }, 100);
+      }, 300);
     } catch (err) {
       console.error('Error creating conflict resolution:', err);
       toast.error('Erreur lors de la génération des recommandations');
