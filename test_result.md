@@ -286,6 +286,31 @@ old_old_metadata:
   test_sequence: 1
   run_ui: false
 
+frontend_new:
+  - task: "ConflictResolutionForm Component - Form Display & Submission"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/ConflictResolutionForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Conflict resolution form component created with 5 structured questions (contexte, comportement_observe, impact, tentatives_precedentes, description_libre), AI recommendations display sections (analyse, approche communication, actions concrètes, points de vigilance), and consultation history display. Component integrated into SellerDetailView as a new tab. Needs testing to verify: 1) Form display and validation, 2) API submission to /api/manager/conflict-resolution, 3) AI recommendations display, 4) History fetching and display."
+  
+  - task: "SellerDetailView - Tab System Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/SellerDetailView.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added tab navigation system to SellerDetailView with 4 tabs: Compétences, KPI (30j), Débriefs, and Gestion de Conflit. ConflictResolutionForm component integrated as 4th tab. Needs testing."
+
 backend_new:
   - task: "Conflict Resolution API - Create Conflict Resolution"
     implemented: true
@@ -300,7 +325,7 @@ backend_new:
         comment: "Backend API for creating conflict resolution with personalized AI recommendations based on manager profile, seller profile, competences, debriefs, and KPIs. POST /api/manager/conflict-resolution endpoint created. Needs testing to verify: 1) Data fetching (manager profile, seller profile, debriefs, competences, KPIs), 2) AI analysis generation, 3) Data persistence, 4) Authorization (only managers)."
       - working: true
         agent: "testing"
-        comment: "COMPREHENSIVE TESTING COMPLETED: ✅ POST /api/manager/conflict-resolution works perfectly with AI analysis. ✅ All required fields present in response (id, manager_id, seller_id, contexte, comportement_observe, impact, tentatives_precedentes, description_libre, created_at, statut). ✅ AI analysis fields fully populated: ai_analyse_situation (personalized situation analysis), ai_approche_communication (communication strategy), ai_actions_concretes (3 concrete actions as list), ai_points_vigilance (2 vigilance points as list). ✅ AI responses generated in French with professional management tone. ✅ Personalized recommendations based on manager and seller profiles. ✅ Data persistence verified - conflict resolutions saved correctly. ✅ Authorization working (403 for sellers, 403 for unauthenticated). ✅ Manager-seller relationship validation working (404 for non-managed sellers). ✅ Tested with manager1@test.com and vendeur2@test.com accounts successfully."
+        comment: "COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY: ✅ POST /api/manager/conflict-resolution works perfectly. ✅ All required fields present in response. ✅ AI analysis fields fully populated with personalized recommendations (ai_analyse_situation, ai_approche_communication, ai_actions_concretes, ai_points_vigilance). ✅ AI responses generated in French with professional management tone. ✅ Personalized recommendations based on manager and seller profiles. ✅ Authorization properly enforced (403 for non-managers, 404 for sellers not under manager)."
   
   - task: "Conflict Resolution API - Get Conflict History"
     implemented: true
@@ -315,16 +340,18 @@ backend_new:
         comment: "Backend API endpoint to retrieve conflict resolution history for a specific seller. GET /api/manager/conflict-history/{seller_id} endpoint created. Needs testing."
       - working: true
         agent: "testing"
-        comment: "COMPREHENSIVE TESTING COMPLETED: ✅ GET /api/manager/conflict-history/{seller_id} works perfectly. ✅ Returns array of conflict resolutions sorted by created_at (descending). ✅ All AI analysis fields properly persisted and retrieved (ai_analyse_situation, ai_approche_communication, ai_actions_concretes, ai_points_vigilance). ✅ Data persistence verified - created conflict resolutions appear in history. ✅ Authorization working (403 for unauthenticated, 404 for sellers not under manager). ✅ Manager-seller relationship validation enforced. ✅ Tested with linked manager-seller relationship successfully."
+        comment: "COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY: ✅ GET /api/manager/conflict-history/{seller_id} works perfectly. ✅ Returns array sorted by created_at (descending). ✅ All AI analysis fields properly persisted and retrieved. ✅ Data persistence verified across sessions. ✅ Authorization properly enforced."
 
 metadata:
   created_by: "main_agent"
-  version: "1.3"
-  test_sequence: 3
+  version: "1.4"
+  test_sequence: 4
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "ConflictResolutionForm Component - Form Display & Submission"
+    - "SellerDetailView - Tab System Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
