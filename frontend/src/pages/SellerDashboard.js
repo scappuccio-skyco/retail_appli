@@ -273,64 +273,70 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           </div>
         )}
 
-        {/* Votre profil de vente - Version colorée */}
-        {diagnostic && (
-          <div className="glass-morphism rounded-2xl p-6 mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Votre profil de vente</h2>
-            
-            <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 rounded-xl p-4 shadow-lg">
-              <button
-                onClick={() => setDiagnosticExpanded(!diagnosticExpanded)}
-                className="w-full flex items-start justify-between"
-              >
-                <div className="text-left">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-2xl">✨</span>
-                    <h3 className="text-xl font-bold text-gray-800">Analyse initiale</h3>
-                  </div>
-                  <p className="text-sm text-gray-700">
-                    {new Date(diagnostic.created_at).toLocaleDateString('fr-FR')}
-                  </p>
+        {/* Compact Cards: Profile + Last Debrief (side by side like manager dashboard) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Profile Card */}
+          {diagnostic && (
+            <div 
+              className="glass-morphism rounded-2xl p-6 cursor-pointer hover:shadow-xl transition-all border-2 border-transparent hover:border-[#ffd871]"
+              onClick={() => setShowProfileModal(true)}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#ffd871] to-yellow-300 rounded-xl flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-gray-800" />
                 </div>
-                <div className="text-gray-800 font-bold text-xl">
-                  {diagnosticExpanded ? '−' : '+'}
-                </div>
-              </button>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-                <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                  <p className="text-xs text-gray-600 mb-1">🎨 Ton style</p>
-                  <p className="text-lg font-bold text-gray-800">{diagnostic.style}</p>
-                </div>
-                <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                  <p className="text-xs text-gray-600 mb-1">
-                    {diagnostic.level === 'Explorateur' && '🟢'} 
-                    {diagnostic.level === 'Challenger' && '🟡'}
-                    {diagnostic.level === 'Ambassadeur' && '🟠'}
-                    {diagnostic.level === 'Maître du Jeu' && '🔴'}
-                    {!['Explorateur', 'Challenger', 'Ambassadeur', 'Maître du Jeu'].includes(diagnostic.level) && '🎯'}
-                    {' '}Ton niveau
-                  </p>
-                  <p className="text-lg font-bold text-gray-800">{diagnostic.level}</p>
-                </div>
-                <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                  <p className="text-xs text-gray-600 mb-1">⚡ Ta motivation</p>
-                  <p className="text-lg font-bold text-gray-800">{diagnostic.motivation}</p>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">Mon Profil de Vente</h3>
+                  <p className="text-sm text-gray-600">Cliquer pour voir le profil complet →</p>
                 </div>
               </div>
-              
-              {diagnosticExpanded && diagnostic.ai_profile_summary && (
-                <div className="bg-white bg-opacity-70 rounded-lg p-4 mt-3 animate-fadeIn">
-                  <p className="text-sm font-medium text-gray-900 mb-2 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    Ton profil analysé par l'IA
-                  </p>
-                  <p className="text-sm text-gray-800 whitespace-pre-line">{diagnostic.ai_profile_summary}</p>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-purple-50 rounded-lg p-2 text-center">
+                  <p className="text-xs text-purple-600 mb-1">Style</p>
+                  <p className="text-sm font-bold text-purple-900">{diagnostic.style}</p>
                 </div>
-              )}
+                <div className="bg-green-50 rounded-lg p-2 text-center">
+                  <p className="text-xs text-green-600 mb-1">Niveau</p>
+                  <p className="text-sm font-bold text-green-900">{diagnostic.level}</p>
+                </div>
+                <div className="bg-orange-50 rounded-lg p-2 text-center">
+                  <p className="text-xs text-orange-600 mb-1">Motivation</p>
+                  <p className="text-sm font-bold text-orange-900">{diagnostic.motivation}</p>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Last Debrief Card */}
+          {debriefs.length > 0 && (
+            <div 
+              className="glass-morphism rounded-2xl p-6 cursor-pointer hover:shadow-xl transition-all border-2 border-transparent hover:border-blue-500"
+              onClick={() => setShowLastDebriefModal(true)}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-400 rounded-xl flex items-center justify-center">
+                  <MessageSquare className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">Mon Dernier Débrief IA</h3>
+                  <p className="text-sm text-gray-600">Cliquer pour voir les détails →</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span>🗓️</span>
+                  <span>{new Date(debriefs[0].created_at).toLocaleDateString('fr-FR', { 
+                    day: 'numeric', 
+                    month: 'long' 
+                  })}</span>
+                </div>
+                <p className="text-sm text-gray-700 line-clamp-2">
+                  {debriefs[0].ai_recommendation || debriefs[0].description_vente || "Débrief disponible"}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
