@@ -395,8 +395,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "ConflictResolutionForm Component - Form Display & Submission"
-    - "SellerDetailView - Tab System Integration"
+    - "Débriefs Tab - Charger Plus Functionality"
+    - "KPI Tab - Filters and Graphs"
+    - "AI Formal Address Implementation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
