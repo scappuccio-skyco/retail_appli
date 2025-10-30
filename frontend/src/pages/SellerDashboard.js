@@ -184,7 +184,13 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => setShowDiagnosticModal(true)}
+              onClick={() => {
+                // Reset diagnostic to allow redoing the test
+                setDiagnostic(null);
+                setShowDiagnosticResult(false);
+                setShowDiagnosticModal(false);
+                navigate('/diagnostic');
+              }}
               className="btn-secondary flex items-center gap-2"
             >
               <Sparkles className="w-5 h-5" />
