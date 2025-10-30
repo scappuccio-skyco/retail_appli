@@ -940,8 +940,36 @@ async def get_seller_stats(seller_id: str, current_user: dict = Depends(get_curr
     if not seller:
         raise HTTPException(status_code=404, detail="Seller not found")
     
-    # Get evaluations
-    evals = await db.evaluations.find({"seller_id": seller_id}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    # Get diagnostic and debriefs instead of evaluations
+    diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0})
+    debriefs = await db.debriefs.find({"seller_id": seller_id}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    # Combine into evaluations list for backwards compatibility
+    evals = []
+    
+    if diagnostic:
+        evals.append({
+            "id": diagnostic.get('id'),
+            "created_at": diagnostic.get('created_at'),
+            "accueil": diagnostic.get('score_accueil', 3.0),
+            "decouverte": diagnostic.get('score_decouverte', 3.0),
+            "argumentation": diagnostic.get('score_argumentation', 3.0),
+            "closing": diagnostic.get('score_closing', 3.0),
+            "fidelisation": diagnostic.get('score_fidelisation', 3.0),
+            "type": "diagnostic"
+        })
+    
+    for debrief in debriefs:
+        evals.append({
+            "id": debrief.get('id'),
+            "created_at": debrief.get('created_at'),
+            "accueil": debrief.get('score_accueil', 3.0),
+            "decouverte": debrief.get('score_decouverte', 3.0),
+            "argumentation": debrief.get('score_argumentation', 3.0),
+            "closing": debrief.get('score_closing', 3.0),
+            "fidelisation": debrief.get('score_fidelisation', 3.0),
+            "type": "debrief"
+        })
     
     for evaluation in evals:
         if isinstance(evaluation.get('created_at'), str):
