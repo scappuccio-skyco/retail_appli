@@ -10,6 +10,7 @@ export default function TeamBilanIA() {
   const [bilan, setBilan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(true);
+  const [showDataSources, setShowDataSources] = useState(false);
 
   useEffect(() => {
     fetchBilan();
