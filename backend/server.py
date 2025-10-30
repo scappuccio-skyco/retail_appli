@@ -1625,10 +1625,12 @@ async def get_my_kpi_entries(days: int = None, current_user: dict = Depends(get_
     else:
         # Return all entries (no limit)
         print(f"[DEBUG] Getting ALL entries (no days filter)")
-        entries = await db.kpi_entries.find(
+        # Use an explicit large number instead of None to avoid default limits
+        cursor = db.kpi_entries.find(
             {"seller_id": current_user['id']},
             {"_id": 0}
-        ).sort("date", -1).to_list(None)  # Get ALL entries
+        ).sort("date", -1)
+        entries = await cursor.to_list(length=None)  # Get ALL entries without limit
     
     print(f"[DEBUG] Returning {len(entries)} entries")
     if entries:
