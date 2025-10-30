@@ -66,9 +66,9 @@ async def add_kpi_data():
             await db.kpi_entries.insert_one(kpi_entry)
             added_count += 1
         
-        print(f"  ✅ Added {added_count} days of KPI data for seller {seller_id}")
+        print(f"  ✅ Added {added_count} days of KPI data for seller {seller_id} (Total: 365 days)")
     
-    print("\n✅ KPI data generation complete!")
+    print("\n✅ KPI data generation complete! Added 1 year of data.")
 
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
