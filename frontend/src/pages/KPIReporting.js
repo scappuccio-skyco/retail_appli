@@ -30,7 +30,7 @@ export default function KPIReporting({ user, onBack }) {
       setAllEntries(allRes.data);
       
       // Récupérer les entrées filtrées pour les graphiques
-      const days = period === 'week' ? 7 : period === 'month' ? 30 : 365;
+      const days = period === 'week' ? 7 : period === 'month' ? 30 : period === 'quarter' ? 90 : 365;
       const filteredRes = await axios.get(`${API}/seller/kpi-entries?days=${days}`);
       setEntries(filteredRes.data);
     } catch (err) {
