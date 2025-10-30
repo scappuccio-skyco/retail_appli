@@ -2006,21 +2006,21 @@ async def generate_conflict_resolution_analysis(
 
     prompt = f"""Tu es un coach professionnel spécialisé en management retail et en gestion de conflits.
 
-Un manager souhaite résoudre une situation conflictuelle avec un de ses vendeurs. Ton rôle est de fournir une analyse personnalisée et des recommandations concrètes en tenant compte des profils et contextes spécifiques.
+Tu t'adresses directement au manager qui te consulte. Ton rôle est de fournir une analyse personnalisée et des recommandations concrètes en tenant compte de son profil et de celui de son vendeur.
 
-### CONTEXTE DU MANAGER
+### TON PROFIL DE MANAGER
 {manager_context}
 
-### CONTEXTE DU VENDEUR
+### PROFIL DE TON VENDEUR ({seller.get('name', 'votre vendeur')})
 {seller_context}
 
 {comp_context}
 
 {recent_kpi_summary}
 
-Nombre de débriefs récents : {recent_debriefs_count}
+Nombre de débriefs récents du vendeur : {recent_debriefs_count}
 
-### SITUATION DÉCRITE PAR LE MANAGER
+### LA SITUATION QUE TU DÉCRIS
 
 **Contexte :** {conflict_data.get('contexte')}
 
@@ -2034,30 +2034,34 @@ Nombre de débriefs récents : {recent_debriefs_count}
 
 ### OBJECTIF
 Fournis une analyse et des recommandations PERSONNALISÉES qui tiennent compte :
-1. Du style de management du manager (ses forces et axes de progression)
-2. Du profil du vendeur (style, motivation, niveau)
+1. Du style de management du manager (utilise "tu" et "ton/ta/tes" pour t'adresser directement à lui)
+2. Du profil du vendeur
 3. Des compétences et performances actuelles du vendeur
 4. De la situation conflictuelle spécifique
 
 ### FORMAT DE SORTIE (JSON uniquement)
 Réponds UNIQUEMENT avec un objet JSON valide :
 {{
-  "analyse_situation": "[3-4 phrases d'analyse de la situation en tenant compte des deux profils. Identifie les causes probables du conflit en fonction des profils manager/vendeur. Ton professionnel et empathique.]",
-  "approche_communication": "[4-5 phrases décrivant la meilleure façon d'aborder la conversation avec ce vendeur spécifique. Adapte le style de communication au profil du manager ET du vendeur. Inclus des phrases d'accroche concrètes.]",
+  "analyse_situation": "[3-4 phrases d'analyse de la situation. IMPORTANT: Tutoie le manager directement en utilisant 'tu', 'ton', 'ta', 'tes'. Ex: 'La situation actuelle entre ton vendeur et toi...', 'Tu fais face à...', 'Ton style de management...'. Identifie les causes probables du conflit. Ton professionnel et empathique.]",
+  "approche_communication": "[4-5 phrases décrivant comment TU (le manager) devrais aborder la conversation. IMPORTANT: Utilise 'tu', 'ton', 'ta', 'tes' en permanence. Ex: 'Tu devrais entamer la conversation...', 'Ton approche doit être...', 'Tu pourrais dire...' Adapte le style au profil du manager ET du vendeur. Inclus des phrases d'accroche concrètes.]",
   "actions_concretes": [
-    "[Action 1 - spécifique et adaptée au contexte]",
+    "[Action 1 - Commence par un verbe à l'infinitif ou utilise 'tu'. Ex: 'Organise une réunion...' ou 'Tu dois organiser...']",
     "[Action 2 - spécifique et adaptée au contexte]",
     "[Action 3 - spécifique et adaptée au contexte]"
   ],
   "points_vigilance": [
-    "[Point de vigilance 1 - en lien avec les profils]",
+    "[Point de vigilance 1 - en lien avec TON style et TES forces. Ex: 'Veille à ne pas...', 'Fais attention à...']",
     "[Point de vigilance 2 - en lien avec les profils]"
   ]
 }}
 
 ### STYLE ATTENDU
+- TUTOIEMENT OBLIGATOIRE : utilise "tu", "ton", "ta", "tes" pour t'adresser directement au manager
 - Professionnel, empathique et constructif
-- Personnalisé (mentions des profils manager/vendeur)
+- Personnalisé (mentionne explicitement les profils manager/vendeur)
+- Orienté solution et action
+- Langage managérial retail
+- Maximum 15 lignes au total
 - Orienté solution et action
 - Langage managérial retail
 - Maximum 15 lignes au total
