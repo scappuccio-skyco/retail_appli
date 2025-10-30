@@ -351,8 +351,6 @@ export default function SellerDetailView({ seller, onBack }) {
 
       {/* Tab Content - Débriefs */}
       {activeTab === 'debriefs' && (
-
-      {/* Derniers débriefs */}
       <div className="glass-morphism rounded-2xl p-6 mb-8">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">📝 Derniers débriefs</h2>
         
