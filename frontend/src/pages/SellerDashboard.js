@@ -123,16 +123,20 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
       ]
     : [];
 
-  // Calculate evolution data from competences history
+  // Calculate evolution data from competences history - Score global sur 25
   const evolutionData = competencesHistory.map((entry, idx) => {
     const date = new Date(entry.date);
+    const scoreTotal = 
+      (entry.score_accueil || 0) + 
+      (entry.score_decouverte || 0) + 
+      (entry.score_argumentation || 0) + 
+      (entry.score_closing || 0) + 
+      (entry.score_fidelisation || 0);
+    
     return {
       name: date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-      Accueil: entry.score_accueil,
-      Découverte: entry.score_decouverte,
-      Argumentation: entry.score_argumentation,
-      Closing: entry.score_closing,
-      Fidélisation: entry.score_fidelisation
+      'Score Global': scoreTotal,
+      fullDate: date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
     };
   });
 
