@@ -668,6 +668,20 @@ export default function ManagerDashboard({ user, onLogout }) {
           }}
         />
       )}
+
+      {showManagerProfileModal && (
+        <ManagerProfileModal
+          diagnostic={managerDiagnostic}
+          onClose={() => setShowManagerProfileModal(false)}
+        />
+      )}
+
+      {showTeamBilanModal && (
+        <TeamBilanModal
+          bilan={teamBilan}
+          onClose={() => setShowTeamBilanModal(false)}
+        />
+      )}
     </div>
   );
 }
