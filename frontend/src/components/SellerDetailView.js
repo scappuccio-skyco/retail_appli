@@ -197,6 +197,55 @@ export default function SellerDetailView({ seller, onBack }) {
         </div>
       )}
 
+      {/* Tab Navigation */}
+      <div className="glass-morphism rounded-2xl p-2 mb-8">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab('competences')}
+            className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
+              activeTab === 'competences'
+                ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-lg'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            📊 Compétences
+          </button>
+          <button
+            onClick={() => setActiveTab('kpi')}
+            className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
+              activeTab === 'kpi'
+                ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-lg'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            💰 KPI (30j)
+          </button>
+          <button
+            onClick={() => setActiveTab('debriefs')}
+            className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
+              activeTab === 'debriefs'
+                ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-lg'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            📝 Débriefs
+          </button>
+          <button
+            onClick={() => setActiveTab('conflit')}
+            className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
+              activeTab === 'conflit'
+                ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-lg'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            🤝 Gestion de Conflit
+          </button>
+        </div>
+      </div>
+
+      {/* Tab Content - Compétences */}
+      {activeTab === 'competences' && (
+        <>
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Radar Chart */}
