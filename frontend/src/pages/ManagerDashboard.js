@@ -43,12 +43,14 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const fetchSellerStats = async (sellerId) => {
     try {
-      const [statsRes, diagRes] = await Promise.all([
+      const [statsRes, diagRes, kpiRes] = await Promise.all([
         axios.get(`${API}/manager/seller/${sellerId}/stats`),
-        axios.get(`${API}/diagnostic/seller/${sellerId}`)
+        axios.get(`${API}/diagnostic/seller/${sellerId}`),
+        axios.get(`${API}/manager/kpi-entries/${sellerId}?days=7`)
       ]);
       setSellerStats(statsRes.data);
       setSellerDiagnostic(diagRes.data);
+      setSellerKPIs(kpiRes.data);
     } catch (err) {
       toast.error('Erreur de chargement des statistiques');
     }
