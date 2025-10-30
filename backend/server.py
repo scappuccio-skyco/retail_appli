@@ -1615,6 +1615,10 @@ async def get_my_kpi_entries(days: int = None, current_user: dict = Depends(get_
     
     print(f"[DEBUG] get_my_kpi_entries called with days={days}, seller_id={current_user['id']}")
     
+    # Check how many entries exist for this seller
+    total_count = await db.kpi_entries.count_documents({"seller_id": current_user['id']})
+    print(f"[DEBUG] Total KPI entries in DB for this seller: {total_count}")
+    
     # If days is specified, filter by date range
     if days:
         print(f"[DEBUG] Using days filter: {days}")
