@@ -485,33 +485,34 @@ export default function ManagerDashboard({ user, onLogout }) {
                   <div className="animate-fadeIn">
                     {sellerStats.evaluations.length > 0 ? (
                       <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                      {sellerStats.evaluations.slice(0, 5).map((evaluation) => (
-                        <div
-                          key={evaluation.id}
-                          className="bg-white rounded-lg p-4 border border-gray-200"
-                        >
-                          <p className="text-xs text-gray-500 mb-2">
-                            {new Date(evaluation.created_at).toLocaleDateString('fr-FR')}
-                          </p>
-                          <div className="flex gap-2 text-xs mb-3">
-                            <span>A: {evaluation.accueil}</span>
-                            <span>D: {evaluation.decouverte}</span>
-                            <span>Ar: {evaluation.argumentation}</span>
-                            <span>C: {evaluation.closing}</span>
-                            <span>F: {evaluation.fidelisation}</span>
-                          </div>
-                          {evaluation.ai_feedback && (
-                            <p className="text-xs text-gray-700 bg-[#ffd871] bg-opacity-10 p-3 rounded-lg">
-                              {evaluation.ai_feedback}
+                        {sellerStats.evaluations.slice(0, 5).map((evaluation) => (
+                          <div
+                            key={evaluation.id}
+                            className="bg-white rounded-lg p-4 border border-gray-200"
+                          >
+                            <p className="text-xs text-gray-500 mb-2">
+                              {new Date(evaluation.created_at).toLocaleDateString('fr-FR')}
                             </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500">Aucune évaluation disponible</p>
-                  )}
-                </div>
+                            <div className="flex gap-2 text-xs mb-3">
+                              <span>A: {evaluation.accueil}</span>
+                              <span>D: {evaluation.decouverte}</span>
+                              <span>Ar: {evaluation.argumentation}</span>
+                              <span>C: {evaluation.closing}</span>
+                              <span>F: {evaluation.fidelisation}</span>
+                            </div>
+                            {evaluation.ai_feedback && (
+                              <p className="text-xs text-gray-700 bg-[#ffd871] bg-opacity-10 p-3 rounded-lg">
+                                {evaluation.ai_feedback}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">Aucune évaluation disponible</p>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-12 text-gray-500">
