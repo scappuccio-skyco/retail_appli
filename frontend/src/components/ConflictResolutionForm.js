@@ -59,7 +59,8 @@ const initialState = {
   aiRecommendations: null,
   conflictHistory: [],
   expandedHistoryItems: {},
-  loadingHistory: true
+  loadingHistory: true,
+  showResult: false // Add showResult to control view
 };
 
 export default function ConflictResolutionForm({ sellerId, sellerName }) {
