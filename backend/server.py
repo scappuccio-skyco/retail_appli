@@ -1376,14 +1376,22 @@ async def create_kpi_entry(entry_data: KPIEntryCreate, current_user: dict = Depe
 
 # Seller: Get my KPI entries
 @api_router.get("/seller/kpi-entries")
-async def get_my_kpi_entries(days: int = 30, current_user: dict = Depends(get_current_user)):
+async def get_my_kpi_entries(days: int = None, current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can access their KPI entries")
     
-    entries = await db.kpi_entries.find(
-        {"seller_id": current_user['id']},
-        {"_id": 0}
-    ).sort("date", -1).limit(days).to_list(days)
+    # If days is specified, filter by date range
+    if days:
+        entries = await db.kpi_entries.find(
+            {"seller_id": current_user['id']},
+            {"_id": 0}
+        ).sort("date", -1).limit(days).to_list(days)
+    else:
+        # Return all entries (no limit)
+        entries = await db.kpi_entries.find(
+            {"seller_id": current_user['id']},
+            {"_id": 0}
+        ).sort("date", -1).to_list(10000)  # Large limit to get all entries
     
     return entries
 
