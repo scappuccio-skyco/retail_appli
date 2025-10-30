@@ -156,7 +156,16 @@ export default function ManagerDashboard({ user, onLogout }) {
               <p className="text-gray-600">Bienvenue, {user.name}</p>
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
+            {!managerDiagnostic && (
+              <button
+                onClick={() => setShowManagerDiagnostic(true)}
+                className="btn-secondary flex items-center gap-2 bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 hover:shadow-lg"
+              >
+                <Sparkles className="w-5 h-5" />
+                Mon profil manager
+              </button>
+            )}
             <button
               onClick={() => setShowKPIConfigModal(true)}
               className="btn-secondary flex items-center gap-2"
