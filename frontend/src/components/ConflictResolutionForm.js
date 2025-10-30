@@ -1,24 +1,69 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { AlertCircle, CheckCircle, Loader, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader, ChevronDown, ChevronUp } from 'lucide-react';
+import AIRecommendations from './AIRecommendations';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export default function ConflictResolutionForm({ sellerId, sellerName }) {
-  const [formData, setFormData] = useState({
+// Reducer for managing complex state
+const conflictReducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
+    case 'SET_AI_RECOMMENDATIONS':
+      return { ...state, aiRecommendations: action.payload, loading: false };
+    case 'RESET_FORM':
+      return { 
+        ...state, 
+        formData: {
+          contexte: '',
+          comportement_observe: '',
+          impact: '',
+          tentatives_precedentes: '',
+          description_libre: ''
+        }
+      };
+    case 'UPDATE_FORM':
+      return { 
+        ...state, 
+        formData: { ...state.formData, [action.field]: action.value }
+      };
+    case 'SET_HISTORY':
+      return { ...state, conflictHistory: action.payload, loadingHistory: false };
+    case 'SET_LOADING_HISTORY':
+      return { ...state, loadingHistory: action.payload };
+    case 'TOGGLE_HISTORY_ITEM':
+      return {
+        ...state,
+        expandedHistoryItems: {
+          ...state.expandedHistoryItems,
+          [action.id]: !state.expandedHistoryItems[action.id]
+        }
+      };
+    default:
+      return state;
+  }
+};
+
+const initialState = {
+  formData: {
     contexte: '',
     comportement_observe: '',
     impact: '',
     tentatives_precedentes: '',
     description_libre: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [aiRecommendations, setAiRecommendations] = useState(null);
-  const [conflictHistory, setConflictHistory] = useState([]);
-  const [expandedHistoryItems, setExpandedHistoryItems] = useState({});
-  const [loadingHistory, setLoadingHistory] = useState(true);
+  },
+  loading: false,
+  aiRecommendations: null,
+  conflictHistory: [],
+  expandedHistoryItems: {},
+  loadingHistory: true
+};
+
+export default function ConflictResolutionForm({ sellerId, sellerName }) {
+  const [state, dispatch] = useReducer(conflictReducer, initialState);
 
   useEffect(() => {
     fetchConflictHistory();
