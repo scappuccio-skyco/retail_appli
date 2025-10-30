@@ -13,7 +13,7 @@ export default function KPIReporting({ user, onBack }) {
   const [entries, setEntries] = useState([]); // Entries filtrées pour les graphiques
   const [allEntries, setAllEntries] = useState([]); // TOUTES les entrées pour le détail
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState('week'); // week, month, year
+  const [period, setPeriod] = useState('week'); // week, month, quarter, year
   const [compareYear, setCompareYear] = useState(false);
   const [showDetailTable, setShowDetailTable] = useState(false);
   const [showAllEntries, setShowAllEntries] = useState(false); // Pour le bouton "Voir plus"
