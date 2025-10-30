@@ -1144,10 +1144,10 @@ async def create_diagnostic(diagnostic_data: DiagnosticCreate, current_user: dic
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can create diagnostics")
     
-    # Check if diagnostic already exists
+    # Check if diagnostic already exists - if yes, delete it to allow update
     existing = await db.diagnostics.find_one({"seller_id": current_user['id']}, {"_id": 0})
     if existing:
-        raise HTTPException(status_code=400, detail="Diagnostic already completed")
+        await db.diagnostics.delete_one({"seller_id": current_user['id']})
     
     # Analyze with AI
     ai_analysis = await analyze_diagnostic_with_ai(diagnostic_data.responses)
