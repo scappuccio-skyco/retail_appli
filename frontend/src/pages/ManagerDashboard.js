@@ -25,6 +25,9 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [showKPIConfigModal, setShowKPIConfigModal] = useState(false);
   const [showManagerDiagnostic, setShowManagerDiagnostic] = useState(false);
   const [managerDiagnostic, setManagerDiagnostic] = useState(null);
+  const [showManagerProfileModal, setShowManagerProfileModal] = useState(false);
+  const [teamBilan, setTeamBilan] = useState(null);
+  const [showTeamBilanModal, setShowTeamBilanModal] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
   const [loading, setLoading] = useState(true);
 
