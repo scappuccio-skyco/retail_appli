@@ -1951,6 +1951,254 @@ async def get_latest_team_bilan(current_user: dict = Depends(get_current_user)):
     
     return {"status": "success", "bilan": bilan}
 
+# ===== CONFLICT RESOLUTION ROUTES =====
+
+async def generate_conflict_resolution_analysis(
+    conflict_data: dict,
+    seller: dict,
+    manager_profile: dict,
+    seller_diagnostic: dict,
+    debriefs: list,
+    competences: dict,
+    kpis: list
+) -> dict:
+    """Generate AI-powered personalized conflict resolution recommendations"""
+    
+    # Build context about manager
+    manager_context = f"""Profil Manager :
+- Type : {manager_profile.get('profil_nom', 'Non défini')}
+- Description : {manager_profile.get('profil_description', 'N/A')}
+- Forces : {manager_profile.get('force_1', '')}, {manager_profile.get('force_2', '')}
+- Axe de progression : {manager_profile.get('axe_progression', 'N/A')}
+"""
+
+    # Build context about seller
+    seller_context = f"""Profil Vendeur ({seller.get('name', 'Vendeur')}) :
+- Style : {seller_diagnostic.get('style', 'Non défini')}
+- Niveau : {seller_diagnostic.get('level', 'Non défini')}
+- Motivation : {seller_diagnostic.get('motivation', 'Non définie')}
+- Profil IA : {seller_diagnostic.get('ai_profile_summary', 'N/A')}
+"""
+
+    # Build competences context
+    comp_context = f"""Compétences actuelles (sur 5) :
+- Accueil : {competences.get('score_accueil', 'N/A')}
+- Découverte : {competences.get('score_decouverte', 'N/A')}
+- Argumentation : {competences.get('score_argumentation', 'N/A')}
+- Closing : {competences.get('score_closing', 'N/A')}
+- Fidélisation : {competences.get('score_fidelisation', 'N/A')}
+"""
+
+    # Build recent performance context
+    recent_debriefs_count = len(debriefs) if debriefs else 0
+    recent_kpi_summary = ""
+    if kpis and len(kpis) > 0:
+        total_ca = sum([k.get('ca_journalier', 0) for k in kpis])
+        total_ventes = sum([k.get('nb_ventes', 0) for k in kpis])
+        avg_panier = total_ca / total_ventes if total_ventes > 0 else 0
+        recent_kpi_summary = f"""Performance récente (7 derniers jours) :
+- CA total : {total_ca:.2f}€
+- Nombre de ventes : {total_ventes}
+- Panier moyen : {avg_panier:.2f}€
+"""
+    else:
+        recent_kpi_summary = "Aucune donnée KPI récente disponible"
+
+    prompt = f"""Tu es un coach professionnel spécialisé en management retail et en gestion de conflits.
+
+Un manager souhaite résoudre une situation conflictuelle avec un de ses vendeurs. Ton rôle est de fournir une analyse personnalisée et des recommandations concrètes en tenant compte des profils et contextes spécifiques.
+
+### CONTEXTE DU MANAGER
+{manager_context}
+
+### CONTEXTE DU VENDEUR
+{seller_context}
+
+{comp_context}
+
+{recent_kpi_summary}
+
+Nombre de débriefs récents : {recent_debriefs_count}
+
+### SITUATION DÉCRITE PAR LE MANAGER
+
+**Contexte :** {conflict_data.get('contexte')}
+
+**Comportement observé :** {conflict_data.get('comportement_observe')}
+
+**Impact :** {conflict_data.get('impact')}
+
+**Tentatives précédentes :** {conflict_data.get('tentatives_precedentes')}
+
+**Détails supplémentaires :** {conflict_data.get('description_libre')}
+
+### OBJECTIF
+Fournis une analyse et des recommandations PERSONNALISÉES qui tiennent compte :
+1. Du style de management du manager (ses forces et axes de progression)
+2. Du profil du vendeur (style, motivation, niveau)
+3. Des compétences et performances actuelles du vendeur
+4. De la situation conflictuelle spécifique
+
+### FORMAT DE SORTIE (JSON uniquement)
+Réponds UNIQUEMENT avec un objet JSON valide :
+{{
+  "analyse_situation": "[3-4 phrases d'analyse de la situation en tenant compte des deux profils. Identifie les causes probables du conflit en fonction des profils manager/vendeur. Ton professionnel et empathique.]",
+  "approche_communication": "[4-5 phrases décrivant la meilleure façon d'aborder la conversation avec ce vendeur spécifique. Adapte le style de communication au profil du manager ET du vendeur. Inclus des phrases d'accroche concrètes.]",
+  "actions_concretes": [
+    "[Action 1 - spécifique et adaptée au contexte]",
+    "[Action 2 - spécifique et adaptée au contexte]",
+    "[Action 3 - spécifique et adaptée au contexte]"
+  ],
+  "points_vigilance": [
+    "[Point de vigilance 1 - en lien avec les profils]",
+    "[Point de vigilance 2 - en lien avec les profils]"
+  ]
+}}
+
+### STYLE ATTENDU
+- Professionnel, empathique et constructif
+- Personnalisé (mentions des profils manager/vendeur)
+- Orienté solution et action
+- Langage managérial retail
+- Maximum 15 lignes au total
+"""
+
+    try:
+        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"conflict_{uuid.uuid4()}",
+            system_message="Tu es un expert en management retail et en gestion de conflits. Tu réponds UNIQUEMENT en JSON valide."
+        ).with_model("openai", "gpt-4o-mini")
+        
+        user_message = UserMessage(text=prompt)
+        ai_response = await chat.send_message(user_message)
+        
+        # Parse JSON response
+        response_text = ai_response.strip()
+        if response_text.startswith("```json"):
+            response_text = response_text.replace("```json", "").replace("```", "").strip()
+        elif response_text.startswith("```"):
+            response_text = response_text.replace("```", "").strip()
+            
+        analysis = json.loads(response_text)
+        
+        return {
+            "ai_analyse_situation": analysis.get("analyse_situation", ""),
+            "ai_approche_communication": analysis.get("approche_communication", ""),
+            "ai_actions_concretes": analysis.get("actions_concretes", []),
+            "ai_points_vigilance": analysis.get("points_vigilance", [])
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating conflict resolution analysis: {str(e)}")
+        return {
+            "ai_analyse_situation": "Erreur lors de la génération de l'analyse. Veuillez réessayer.",
+            "ai_approche_communication": "",
+            "ai_actions_concretes": [],
+            "ai_points_vigilance": []
+        }
+
+@api_router.post("/manager/conflict-resolution", response_model=ConflictResolution)
+async def create_conflict_resolution(
+    conflict: ConflictResolutionCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can create conflict resolutions")
+    
+    try:
+        # Fetch seller info
+        seller = await db.users.find_one({"id": conflict.seller_id, "manager_id": current_user['id']}, {"_id": 0})
+        if not seller:
+            raise HTTPException(status_code=404, detail="Seller not found or not under your management")
+        
+        # Fetch manager profile
+        manager_profile = await db.manager_diagnostics.find_one({"manager_id": current_user['id']}, {"_id": 0})
+        if not manager_profile:
+            manager_profile = {}
+        
+        # Fetch seller diagnostic
+        seller_diagnostic = await db.diagnostics.find_one({"seller_id": conflict.seller_id}, {"_id": 0})
+        if not seller_diagnostic:
+            seller_diagnostic = {}
+        
+        # Fetch seller debriefs (last 10)
+        debriefs = await db.debriefs.find({"seller_id": conflict.seller_id}, {"_id": 0}).sort("created_at", -1).limit(10).to_list(10)
+        
+        # Fetch seller competences history (last entry)
+        competences_history = await db.debriefs.find({"seller_id": conflict.seller_id}, {"_id": 0}).sort("created_at", -1).limit(1).to_list(1)
+        current_competences = competences_history[0] if competences_history else {}
+        
+        # Fetch recent KPIs (last 7 days)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+        kpis = await db.kpi_entries.find({
+            "seller_id": conflict.seller_id,
+            "date": {"$gte": seven_days_ago.isoformat()}
+        }, {"_id": 0}).to_list(100)
+        
+        # Generate AI analysis
+        ai_analysis = await generate_conflict_resolution_analysis(
+            conflict_data=conflict.dict(),
+            seller=seller,
+            manager_profile=manager_profile,
+            seller_diagnostic=seller_diagnostic,
+            debriefs=debriefs,
+            competences=current_competences,
+            kpis=kpis
+        )
+        
+        # Create conflict resolution object
+        conflict_obj = ConflictResolution(
+            manager_id=current_user['id'],
+            seller_id=conflict.seller_id,
+            contexte=conflict.contexte,
+            comportement_observe=conflict.comportement_observe,
+            impact=conflict.impact,
+            tentatives_precedentes=conflict.tentatives_precedentes,
+            description_libre=conflict.description_libre,
+            **ai_analysis
+        )
+        
+        # Save to database
+        doc = conflict_obj.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        await db.conflict_resolutions.insert_one(doc)
+        
+        return conflict_obj
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error creating conflict resolution: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating conflict resolution: {str(e)}")
+
+@api_router.get("/manager/conflict-history/{seller_id}")
+async def get_conflict_history(
+    seller_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access conflict history")
+    
+    # Verify seller is under this manager
+    seller = await db.users.find_one({"id": seller_id, "manager_id": current_user['id']}, {"_id": 0})
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not found or not under your management")
+    
+    # Get all conflict resolutions for this seller
+    conflicts = await db.conflict_resolutions.find(
+        {"seller_id": seller_id, "manager_id": current_user['id']},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    # Convert datetime strings to datetime objects
+    for conflict in conflicts:
+        if isinstance(conflict.get('created_at'), str):
+            conflict['created_at'] = datetime.fromisoformat(conflict['created_at'])
+    
+    return conflicts
+
 # Include router
 app.include_router(api_router)
 
