@@ -5,6 +5,7 @@ import { LogOut, Users, TrendingUp, Award, UserPlus, Clock, CheckCircle, XCircle
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer } from 'recharts';
 import InviteModal from '../components/InviteModal';
 import KPIConfigModal from '../components/KPIConfigModal';
+import SellerDetailView from '../components/SellerDetailView';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -17,6 +18,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [invitations, setInvitations] = useState([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showKPIConfigModal, setShowKPIConfigModal] = useState(false);
+  const [showDetailView, setShowDetailView] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
