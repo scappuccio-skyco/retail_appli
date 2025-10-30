@@ -1855,7 +1855,7 @@ Conseils :
 - Donne des chiffres précis
 - Ton positif mais lucide"""
 
-        response = chat.send_message(prompt)
+        response = await chat.send_message(prompt)
         
         # Clean and parse response
         content = response['message'].strip()
