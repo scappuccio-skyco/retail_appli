@@ -212,7 +212,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
 
       {/* AI Recommendations Display */}
       {aiRecommendations && (
-        <div key={aiRecommendations.id} className="glass-morphism rounded-2xl p-6 border-2 border-green-200 bg-green-50">
+        <div key={aiRecommendations?.id || 'ai-recommendations'} className="glass-morphism rounded-2xl p-6 border-2 border-green-200 bg-green-50">
           <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
             <CheckCircle className="w-8 h-8 text-green-600" />
             Recommandations IA personnalisées
