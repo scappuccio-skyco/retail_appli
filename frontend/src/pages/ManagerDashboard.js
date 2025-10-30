@@ -302,7 +302,7 @@ export default function ManagerDashboard({ user, onLogout }) {
               <div>
                 {/* Diagnostic Profile */}
                 {sellerDiagnostic && (
-                  <div className="mb-8 bg-[#ffd871] bg-opacity-10 rounded-2xl p-5 border-l-4 border-[#ffd871]">
+                  <div className="mb-6 bg-[#ffd871] bg-opacity-10 rounded-2xl p-5 border-l-4 border-[#ffd871]">
                     <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
                       <Sparkles className="w-5 h-5 text-[#ffd871]" />
                       Profil Vendeur
@@ -321,141 +321,170 @@ export default function ManagerDashboard({ user, onLogout }) {
                         <p className="text-sm font-bold text-gray-800">{sellerDiagnostic.motivation}</p>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-700 leading-relaxed line-clamp-3">
+                    <p className="text-xs text-gray-700 leading-relaxed line-clamp-2">
                       {sellerDiagnostic.ai_profile_summary}
                     </p>
                   </div>
                 )}
 
-                {/* Radar Chart */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Compétences</h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RadarChart data={radarData}>
-                      <PolarGrid stroke="#cbd5e1" />
-                      <PolarAngleAxis dataKey="skill" tick={{ fill: '#475569', fontSize: 12 }} />
-                      <Radar name="Score" dataKey="value" stroke="#ffd871" fill="#ffd871" fillOpacity={0.6} />
-                    </RadarChart>
-                  </ResponsiveContainer>
+                {/* Navigation Tabs */}
+                <div className="flex gap-2 mb-6 border-b border-gray-200">
+                  <button
+                    onClick={() => setActiveTab('competences')}
+                    className={`px-4 py-2 text-sm font-semibold transition-colors ${
+                      activeTab === 'competences'
+                        ? 'text-[#ffd871] border-b-2 border-[#ffd871]'
+                        : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    📊 Compétences
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('kpi')}
+                    className={`px-4 py-2 text-sm font-semibold transition-colors ${
+                      activeTab === 'kpi'
+                        ? 'text-[#ffd871] border-b-2 border-[#ffd871]'
+                        : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    💰 KPI (7j)
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('evaluations')}
+                    className={`px-4 py-2 text-sm font-semibold transition-colors ${
+                      activeTab === 'evaluations'
+                        ? 'text-[#ffd871] border-b-2 border-[#ffd871]'
+                        : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    📝 Évaluations
+                  </button>
                 </div>
 
-                {/* KPI Charts - 4 graphiques */}
-                {sellerKPIs.length > 0 && (
-                  <div className="mb-8">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4">KPI (7 derniers jours)</h3>
-                    
-                    <div className="grid grid-cols-1 gap-4">
-                      {/* Évolution du CA */}
-                      <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">💰 Évolution du CA</h4>
-                        <ResponsiveContainer width="100%" height={150}>
-                          <LineChart data={sellerKPIs.slice().reverse()}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fill: '#6b7280', fontSize: 10 }}
-                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                            <Tooltip 
-                              formatter={(value) => `${value.toFixed(2)}€`}
-                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="ca_journalier" 
-                              stroke="#fbbf24" 
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
+                {/* Tab Content */}
+                {activeTab === 'competences' && (
+                  <div className="animate-fadeIn">
+                    <ResponsiveContainer width="100%" height={350}>
+                      <RadarChart data={radarData}>
+                        <PolarGrid stroke="#cbd5e1" />
+                        <PolarAngleAxis dataKey="skill" tick={{ fill: '#475569', fontSize: 12 }} />
+                        <Radar name="Score" dataKey="value" stroke="#ffd871" fill="#ffd871" fillOpacity={0.6} />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
 
-                      {/* Ventes vs Clients */}
-                      <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">📊 Ventes vs Clients</h4>
-                        <ResponsiveContainer width="100%" height={150}>
-                          <BarChart data={sellerKPIs.slice().reverse()}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fill: '#6b7280', fontSize: 10 }}
-                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                            <Tooltip 
-                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
-                            />
-                            <Legend />
-                            <Bar dataKey="nb_ventes" fill="#3b82f6" name="Ventes" />
-                            <Bar dataKey="nb_clients" fill="#fbbf24" name="Clients" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
+                {activeTab === 'kpi' && sellerKPIs.length > 0 && (
+                  <div className="space-y-4 max-h-[600px] overflow-y-auto animate-fadeIn">
+                    {/* Évolution du CA */}
+                    <div className="bg-white rounded-xl p-4 border border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">💰 Évolution du CA</h4>
+                      <ResponsiveContainer width="100%" height={150}>
+                        <LineChart data={sellerKPIs.slice().reverse()}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fill: '#6b7280', fontSize: 10 }}
+                            tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                          />
+                          <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
+                          <Tooltip 
+                            formatter={(value) => `${value.toFixed(2)}€`}
+                            labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="ca_journalier" 
+                            stroke="#fbbf24" 
+                            strokeWidth={2}
+                            dot={{ r: 3 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
 
-                      {/* Panier Moyen */}
-                      <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">🛒 Panier Moyen</h4>
-                        <ResponsiveContainer width="100%" height={150}>
-                          <LineChart data={sellerKPIs.slice().reverse()}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fill: '#6b7280', fontSize: 10 }}
-                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                            <Tooltip 
-                              formatter={(value) => `${value.toFixed(2)}€`}
-                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="panier_moyen" 
-                              stroke="#10b981" 
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
+                    {/* Ventes vs Clients */}
+                    <div className="bg-white rounded-xl p-4 border border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">📊 Ventes vs Clients</h4>
+                      <ResponsiveContainer width="100%" height={150}>
+                        <BarChart data={sellerKPIs.slice().reverse()}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fill: '#6b7280', fontSize: 10 }}
+                            tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                          />
+                          <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
+                          <Tooltip 
+                            labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
+                          />
+                          <Legend />
+                          <Bar dataKey="nb_ventes" fill="#3b82f6" name="Ventes" />
+                          <Bar dataKey="nb_clients" fill="#fbbf24" name="Clients" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
 
-                      {/* Taux de Transformation */}
-                      <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">📈 Taux de Transformation</h4>
-                        <ResponsiveContainer width="100%" height={150}>
-                          <LineChart data={sellerKPIs.slice().reverse()}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fill: '#6b7280', fontSize: 10 }}
-                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                            <Tooltip 
-                              formatter={(value) => `${value.toFixed(2)}%`}
-                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="taux_transformation" 
-                              stroke="#8b5cf6" 
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
+                    {/* Panier Moyen */}
+                    <div className="bg-white rounded-xl p-4 border border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">🛒 Panier Moyen</h4>
+                      <ResponsiveContainer width="100%" height={150}>
+                        <LineChart data={sellerKPIs.slice().reverse()}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fill: '#6b7280', fontSize: 10 }}
+                            tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                          />
+                          <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
+                          <Tooltip 
+                            formatter={(value) => `${value.toFixed(2)}€`}
+                            labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="panier_moyen" 
+                            stroke="#10b981" 
+                            strokeWidth={2}
+                            dot={{ r: 3 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Taux de Transformation */}
+                    <div className="bg-white rounded-xl p-4 border border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">📈 Taux de Transformation</h4>
+                      <ResponsiveContainer width="100%" height={150}>
+                        <LineChart data={sellerKPIs.slice().reverse()}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fill: '#6b7280', fontSize: 10 }}
+                            tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                          />
+                          <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
+                          <Tooltip 
+                            formatter={(value) => `${value.toFixed(2)}%`}
+                            labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="taux_transformation" 
+                            stroke="#8b5cf6" 
+                            strokeWidth={2}
+                            dot={{ r: 3 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
                 )}
 
-                {/* Recent Evaluations */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Dernières Évaluations</h3>
-                  {sellerStats.evaluations.length > 0 ? (
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                {activeTab === 'evaluations' && (
+                  <div className="animate-fadeIn">
+                    {sellerStats.evaluations.length > 0 ? (
+                      <div className="space-y-3 max-h-[600px] overflow-y-auto">
                       {sellerStats.evaluations.slice(0, 5).map((evaluation) => (
                         <div
                           key={evaluation.id}
