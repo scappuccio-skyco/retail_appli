@@ -57,7 +57,6 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     }
 
     setLoading(true);
-    setAiRecommendations(null);
     
     try {
       const token = localStorage.getItem('token');
@@ -70,10 +69,8 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      // Update state in batch
       setAiRecommendations(response.data);
-      toast.success('Recommandations générées avec succès');
-      
-      // Reset form
       setFormData({
         contexte: '',
         comportement_observe: '',
@@ -82,8 +79,12 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         description_libre: ''
       });
       
-      // Refresh history
-      fetchConflictHistory();
+      toast.success('Recommandations générées avec succès');
+      
+      // Refresh history after a short delay to avoid DOM conflicts
+      setTimeout(() => {
+        fetchConflictHistory();
+      }, 100);
     } catch (err) {
       console.error('Error creating conflict resolution:', err);
       toast.error('Erreur lors de la génération des recommandations');
