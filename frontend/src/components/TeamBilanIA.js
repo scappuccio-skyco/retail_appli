@@ -80,6 +80,12 @@ export default function TeamBilanIA() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setShowDataSources(!showDataSources)}
+            className="btn-secondary flex items-center gap-2 text-sm"
+          >
+            📊 Données sources
+          </button>
+          <button
             onClick={generateNewBilan}
             disabled={loading}
             className="btn-secondary flex items-center gap-2 text-sm"
