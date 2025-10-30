@@ -105,6 +105,53 @@ export default function KPIReporting({ user, onBack }) {
       });
     }
     
+    if (period === 'quarter') {
+      // Agrégation hebdomadaire pour la vue "90 jours"
+      const weeklyData = {};
+      
+      entries.forEach(entry => {
+        const date = new Date(entry.date);
+        // Obtenir le lundi de la semaine (ISO week)
+        const dayOfWeek = date.getDay();
+        const diff = date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+        const monday = new Date(date.setDate(diff));
+        const weekKey = monday.toISOString().split('T')[0]; // Format YYYY-MM-DD
+        
+        if (!weeklyData[weekKey]) {
+          weeklyData[weekKey] = {
+            ca: 0,
+            ventes: 0,
+            clients: 0,
+            panierMoyenSum: 0,
+            tauxTransfoSum: 0,
+            count: 0
+          };
+        }
+        
+        weeklyData[weekKey].ca += entry.ca_journalier || 0;
+        weeklyData[weekKey].ventes += entry.nb_ventes || 0;
+        weeklyData[weekKey].clients += entry.nb_clients || 0;
+        weeklyData[weekKey].panierMoyenSum += entry.panier_moyen || 0;
+        weeklyData[weekKey].tauxTransfoSum += entry.taux_transformation || 0;
+        weeklyData[weekKey].count += 1;
+      });
+      
+      return Object.keys(weeklyData).sort().map(weekKey => {
+        const data = weeklyData[weekKey];
+        const weekDate = new Date(weekKey);
+        const weekLabel = `S${Math.ceil((weekDate.getDate() + 6 - weekDate.getDay()) / 7)} ${weekDate.toLocaleDateString('fr-FR', { month: 'short' })}`;
+        
+        return {
+          date: weekLabel,
+          ca: data.ca,
+          ventes: data.ventes,
+          clients: data.clients,
+          panierMoyen: data.panierMoyenSum / data.count,
+          tauxTransfo: data.tauxTransfoSum / data.count
+        };
+      });
+    }
+    
     // Vue quotidienne pour 7j et 30j
     return entries.slice().reverse().map(entry => ({
       date: new Date(entry.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
