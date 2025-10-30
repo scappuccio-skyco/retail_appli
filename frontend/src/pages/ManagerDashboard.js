@@ -31,6 +31,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [showTeamBilanModal, setShowTeamBilanModal] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [generatingTeamBilan, setGeneratingTeamBilan] = useState(false);
 
   useEffect(() => {
     fetchData();
