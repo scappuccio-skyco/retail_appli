@@ -1855,7 +1855,9 @@ Conseils :
 - Sois concret et actionnable
 - Utilise le tutoiement
 - Mentionne les prénoms des vendeurs si pertinent
-- Donne des chiffres précis
+- UTILISE UNIQUEMENT LES CHIFFRES FOURNIS CI-DESSUS (ne jamais inventer de chiffres)
+- Si tu mentionnes un chiffre, il DOIT correspondre EXACTEMENT aux données fournies
+- Ne mentionne QUE les vendeurs listés ci-dessus
 - Ton positif mais lucide"""
 
         user_message = UserMessage(text=prompt)
