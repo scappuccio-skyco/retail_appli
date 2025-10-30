@@ -393,13 +393,11 @@ async def register(user_data: UserCreate):
 
 @api_router.post("/auth/login")
 async def login(credentials: UserLogin):
-    print(f"[DEBUG] Login attempt for: {credentials.email}")
     user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
-    print(f"[DEBUG] User found: {user is not None}")
-    if user:
-        pwd_check = verify_password(credentials.password, user['password'])
-        print(f"[DEBUG] Password check: {pwd_check}")
-    if not user or not verify_password(credentials.password, user['password']):
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    if not verify_password(credentials.password, user['password']):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     token = create_token(user['id'], user['email'], user['role'])
