@@ -143,7 +143,8 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
 
   return (
     <div className="space-y-8">
-      {/* Form Section */}
+      {/* Form Section - Only show when NOT showing results */}
+      {!state.showResult && (
       <div className="glass-morphism rounded-2xl p-6">
         <h3 className="text-2xl font-bold text-gray-800 mb-6">
           🤝 Aide à la gestion de conflit avec {sellerName}
