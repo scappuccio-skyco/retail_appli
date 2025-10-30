@@ -8,6 +8,9 @@ import EvaluationModal from '../components/EvaluationModal';
 import DebriefModal from '../components/DebriefModal';
 import KPIEntryModal from '../components/KPIEntryModal';
 import KPIReporting from './KPIReporting';
+import SellerProfileModal from '../components/SellerProfileModal';
+import LastDebriefModal from '../components/LastDebriefModal';
+import DiagnosticFormModal from '../components/DiagnosticFormModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -32,6 +35,10 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const [diagnosticExpanded, setDiagnosticExpanded] = useState(false);
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [showAllDebriefs, setShowAllDebriefs] = useState(false);
+  // New states for modals
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showLastDebriefModal, setShowLastDebriefModal] = useState(false);
+  const [showDiagnosticFormModal, setShowDiagnosticFormModal] = useState(false);
 
   useEffect(() => {
     fetchData();
