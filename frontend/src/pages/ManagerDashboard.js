@@ -62,6 +62,17 @@ export default function ManagerDashboard({ user, onLogout }) {
     }
   };
 
+  const fetchTeamBilan = async () => {
+    try {
+      const res = await axios.get(`${API}/manager/team-bilan/latest`);
+      if (res.data.status === 'success') {
+        setTeamBilan(res.data.bilan);
+      }
+    } catch (err) {
+      console.error('Error fetching team bilan:', err);
+    }
+  };
+
   const fetchSellerStats = async (sellerId) => {
     try {
       const [statsRes, diagRes, kpiRes] = await Promise.all([
