@@ -1145,6 +1145,121 @@ async def get_my_diagnostic(current_user: dict = Depends(get_current_user)):
     
     return {"status": "completed", "diagnostic": diagnostic}
 
+# ===== MANAGER DIAGNOSTIC =====
+async def analyze_manager_diagnostic_with_ai(responses: dict) -> dict:
+    """Analyze manager diagnostic responses with AI"""
+    try:
+        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"manager_diagnostic_{uuid.uuid4()}",
+            system_message="Tu es un coach IA expert en management retail et en accompagnement d'équipes commerciales."
+        ).with_model("openai", "gpt-4o-mini")
+        
+        # Format responses for prompt
+        responses_text = ""
+        for q_num, answer in responses.items():
+            responses_text += f"\nQuestion {q_num}: {answer}\n"
+        
+        prompt = f"""Analyse les réponses de ce questionnaire pour déterminer le profil de management dominant.
+
+Voici les réponses :
+{responses_text}
+
+Classe ce manager parmi les 5 profils suivants :
+1️⃣ Le Pilote — orienté résultats, aime les chiffres, la clarté et les plans d'action.
+2️⃣ Le Coach — bienveillant, à l'écoute, accompagne individuellement.
+3️⃣ Le Dynamiseur — motivant, charismatique, met de l'énergie dans l'équipe.
+4️⃣ Le Stratège — structuré, process, rigoureux et méthodique.
+5️⃣ L'Inspire — empathique, donne du sens et fédère autour d'une vision.
+
+Réponds UNIQUEMENT au format JSON suivant (sans markdown, sans ```json) :
+{{
+  "profil_nom": "Le Pilote/Le Coach/Le Dynamiseur/Le Stratège/L'Inspire",
+  "profil_description": "2 phrases synthétiques pour décrire ce style",
+  "force_1": "Premier point fort concret",
+  "force_2": "Deuxième point fort concret",
+  "axe_progression": "1 domaine clé à renforcer",
+  "recommandation": "1 conseil personnalisé pour développer son management",
+  "exemple_concret": "Une phrase ou un comportement à adopter lors d'un brief, coaching ou feedback"
+}}
+
+Ton style doit être positif, professionnel et orienté action. Pas de jargon RH. Mise en pratique et impact terrain. Tout en tutoiement."""
+
+        response = chat.send_message(prompt)
+        
+        # Clean and parse response
+        content = response['message'].strip()
+        if content.startswith('```'):
+            content = content.split('```')[1]
+            if content.startswith('json'):
+                content = content[4:]
+        content = content.strip()
+        
+        result = json.loads(content)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in AI analysis: {str(e)}")
+        # Fallback default response
+        return {
+            "profil_nom": "Le Coach",
+            "profil_description": "Tu es un manager proche de ton équipe, à l'écoute et orienté développement. Tu valorises la progression individuelle avant tout.",
+            "force_1": "Crée un climat de confiance fort",
+            "force_2": "Encourage la montée en compétence",
+            "axe_progression": "Gagner en fermeté sur le suivi des objectifs pour équilibrer empathie et performance.",
+            "recommandation": "Lors de ton prochain brief, termine toujours par un objectif chiffré clair.",
+            "exemple_concret": "\"Super énergie ce matin ! Notre but du jour : 15 ventes à 200 € de panier moyen — on y va ensemble 💪\""
+        }
+
+@api_router.post("/manager-diagnostic", response_model=ManagerDiagnosticResult)
+async def create_manager_diagnostic(diagnostic_data: ManagerDiagnosticCreate, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can create management diagnostics")
+    
+    # Check if diagnostic already exists
+    existing = await db.manager_diagnostics.find_one({"manager_id": current_user['id']}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Diagnostic already completed")
+    
+    # Analyze with AI
+    ai_analysis = await analyze_manager_diagnostic_with_ai(diagnostic_data.responses)
+    
+    # Create diagnostic result
+    diagnostic_obj = ManagerDiagnosticResult(
+        manager_id=current_user['id'],
+        responses=diagnostic_data.responses,
+        profil_nom=ai_analysis['profil_nom'],
+        profil_description=ai_analysis['profil_description'],
+        force_1=ai_analysis['force_1'],
+        force_2=ai_analysis['force_2'],
+        axe_progression=ai_analysis['axe_progression'],
+        recommandation=ai_analysis['recommandation'],
+        exemple_concret=ai_analysis['exemple_concret']
+    )
+    
+    doc = diagnostic_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.manager_diagnostics.insert_one(doc)
+    
+    return diagnostic_obj
+
+@api_router.get("/manager-diagnostic/me")
+async def get_my_manager_diagnostic(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access their diagnostic")
+    
+    diagnostic = await db.manager_diagnostics.find_one({"manager_id": current_user['id']}, {"_id": 0})
+    
+    if not diagnostic:
+        return {"status": "not_completed", "diagnostic": None}
+    
+    if isinstance(diagnostic.get('created_at'), str):
+        diagnostic['created_at'] = datetime.fromisoformat(diagnostic['created_at'])
+    
+    return {"status": "completed", "diagnostic": diagnostic}
+
 @api_router.get("/diagnostic/seller/{seller_id}")
 async def get_seller_diagnostic(seller_id: str, current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'manager':
