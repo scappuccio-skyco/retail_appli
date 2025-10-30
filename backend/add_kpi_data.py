@@ -12,8 +12,11 @@ import uuid
 
 # MongoDB connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+DB_NAME = os.environ.get('DB_NAME', 'retail_coach_db')
 client = AsyncIOMotorClient(MONGO_URL)
-db = client['retail_coach']
+db = client[DB_NAME]
+
+print(f"Using database: {DB_NAME}")
 
 async def add_kpi_data():
     """Add KPI data for 365 days back from today for ALL sellers"""
