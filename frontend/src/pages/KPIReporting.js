@@ -169,6 +169,16 @@ export default function KPIReporting({ user, onBack }) {
                 30 jours
               </button>
               <button
+                onClick={() => setPeriod('quarter')}
+                className={`px-4 py-2 rounded-full font-medium transition-all ${
+                  period === 'quarter'
+                    ? 'bg-[#ffd871] text-gray-800'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                90 jours
+              </button>
+              <button
                 onClick={() => setPeriod('year')}
                 className={`px-4 py-2 rounded-full font-medium transition-all ${
                   period === 'year'
