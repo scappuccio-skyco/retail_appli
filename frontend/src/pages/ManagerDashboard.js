@@ -20,6 +20,8 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [invitations, setInvitations] = useState([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showKPIConfigModal, setShowKPIConfigModal] = useState(false);
+  const [showManagerDiagnostic, setShowManagerDiagnostic] = useState(false);
+  const [managerDiagnostic, setManagerDiagnostic] = useState(null);
   const [showDetailView, setShowDetailView] = useState(false);
   const [loading, setLoading] = useState(true);
 
