@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { ArrowLeft, TrendingUp, Award, MessageSquare, BarChart3, Calendar } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import ConflictResolutionForm from './ConflictResolutionForm';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -14,6 +15,7 @@ export default function SellerDetailView({ seller, onBack }) {
   const [kpiEntries, setKpiEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
+  const [activeTab, setActiveTab] = useState('competences'); // New state for tabs
 
   useEffect(() => {
     fetchSellerData();
