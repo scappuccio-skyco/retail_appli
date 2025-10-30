@@ -1200,10 +1200,11 @@ Réponds UNIQUEMENT au format JSON suivant (sans markdown, sans ```json) :
 
 Ton style doit être positif, professionnel et orienté action. Pas de jargon RH. Mise en pratique et impact terrain. Tout en tutoiement."""
 
-        response = chat.send_message(prompt)
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
         
         # Clean and parse response
-        content = response['message'].strip()
+        content = response.strip()
         if content.startswith('```'):
             content = content.split('```')[1]
             if content.startswith('json'):
