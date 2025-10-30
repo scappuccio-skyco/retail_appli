@@ -10,11 +10,13 @@ const API = `${BACKEND_URL}/api`;
 
 export default function KPIReporting({ user, onBack }) {
   const navigate = useNavigate();
-  const [entries, setEntries] = useState([]);
+  const [entries, setEntries] = useState([]); // Entries filtrées pour les graphiques
+  const [allEntries, setAllEntries] = useState([]); // TOUTES les entrées pour le détail
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('week'); // week, month, year
   const [compareYear, setCompareYear] = useState(false);
   const [showDetailTable, setShowDetailTable] = useState(false);
+  const [showAllEntries, setShowAllEntries] = useState(false); // Pour le bouton "Voir plus"
 
   useEffect(() => {
     fetchKPIData();
@@ -23,9 +25,14 @@ export default function KPIReporting({ user, onBack }) {
   const fetchKPIData = async () => {
     setLoading(true);
     try {
+      // Récupérer toutes les entrées pour le détail
+      const allRes = await axios.get(`${API}/seller/kpi-entries`);
+      setAllEntries(allRes.data);
+      
+      // Récupérer les entrées filtrées pour les graphiques
       const days = period === 'week' ? 7 : period === 'month' ? 30 : 365;
-      const res = await axios.get(`${API}/seller/kpi-entries?days=${days}`);
-      setEntries(res.data);
+      const filteredRes = await axios.get(`${API}/seller/kpi-entries?days=${days}`);
+      setEntries(filteredRes.data);
     } catch (err) {
       toast.error('Erreur de chargement des KPI');
     } finally {
