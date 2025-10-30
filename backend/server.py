@@ -877,27 +877,55 @@ async def get_sellers(current_user: dict = Depends(get_current_user)):
     # Add stats for each seller
     result = []
     for seller in sellers:
-        evals = await db.evaluations.find({"seller_id": seller['id']}, {"_id": 0}).to_list(1000)
+        # Get diagnostic
+        diagnostic = await db.diagnostics.find_one({"seller_id": seller['id']}, {"_id": 0})
+        
+        # Get debriefs
+        debriefs = await db.debriefs.find({"seller_id": seller['id']}, {"_id": 0}).to_list(1000)
         
         avg_score = 0
         last_feedback_date = None
+        total_evaluations = 0
         
-        if evals:
-            scores = []
-            for e in evals:
-                avg = (e['accueil'] + e['decouverte'] + e['argumentation'] + e['closing'] + e['fidelisation']) / 5
-                scores.append(avg)
-            avg_score = sum(scores) / len(scores)
+        # Calculate average score from diagnostic and debriefs
+        scores = []
+        if diagnostic:
+            diag_score = (
+                diagnostic.get('score_accueil', 0) + 
+                diagnostic.get('score_decouverte', 0) + 
+                diagnostic.get('score_argumentation', 0) + 
+                diagnostic.get('score_closing', 0) + 
+                diagnostic.get('score_fidelisation', 0)
+            ) / 5
+            scores.append(diag_score)
+            last_feedback_date = diagnostic.get('created_at')
+            total_evaluations += 1
+        
+        for debrief in debriefs:
+            debrief_score = (
+                debrief.get('score_accueil', 0) + 
+                debrief.get('score_decouverte', 0) + 
+                debrief.get('score_argumentation', 0) + 
+                debrief.get('score_closing', 0) + 
+                debrief.get('score_fidelisation', 0)
+            ) / 5
+            scores.append(debrief_score)
             
-            # Get latest evaluation date
-            latest = max(evals, key=lambda x: x.get('created_at', ''))
-            last_feedback_date = latest.get('created_at')
+            # Update last feedback date if this debrief is more recent
+            if debrief.get('created_at'):
+                if not last_feedback_date or debrief['created_at'] > last_feedback_date:
+                    last_feedback_date = debrief['created_at']
+        
+        total_evaluations += len(debriefs)
+        
+        if scores:
+            avg_score = sum(scores) / len(scores)
         
         result.append({
             **seller,
             "avg_score": round(avg_score, 2),
             "last_feedback_date": last_feedback_date,
-            "total_evaluations": len(evals)
+            "total_evaluations": total_evaluations
         })
     
     return result
