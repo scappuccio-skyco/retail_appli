@@ -383,22 +383,41 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
             )}
           </div>
 
-          {/* Evolution Chart */}
+          {/* Evolution Chart - Score Global sur 25 */}
           <div className="glass-morphism rounded-2xl p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Évolution des Compétences</h2>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Évolution de ton score global</h2>
+              {evolutionData.length > 0 && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Score actuel : <span className="font-bold text-[#ffd871]">{evolutionData[evolutionData.length - 1]['Score Global']}/25</span>
+                  {evolutionData.length > 1 && (
+                    <span className="ml-2">
+                      ({evolutionData[evolutionData.length - 1]['Score Global'] - evolutionData[0]['Score Global'] >= 0 ? '+' : ''}
+                      {(evolutionData[evolutionData.length - 1]['Score Global'] - evolutionData[0]['Score Global']).toFixed(1)} points depuis le début)
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
             {evolutionData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={evolutionData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="name" tick={{ fill: '#475569', fontSize: 12 }} />
-                  <YAxis domain={[0, 5]} tick={{ fill: '#475569' }} />
-                  <Tooltip />
+                  <XAxis dataKey="fullDate" tick={{ fill: '#475569', fontSize: 12 }} />
+                  <YAxis domain={[0, 25]} tick={{ fill: '#475569' }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#fff', border: '2px solid #ffd871', borderRadius: '8px' }}
+                    labelStyle={{ color: '#1f2937', fontWeight: 'bold' }}
+                  />
                   <Legend />
-                  <Line type="monotone" dataKey="Accueil" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="Découverte" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="Argumentation" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="Closing" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="Fidélisation" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="Score Global" 
+                    stroke="#ffd871" 
+                    strokeWidth={3} 
+                    dot={{ r: 5, fill: '#ffd871', strokeWidth: 2, stroke: '#fff' }}
+                    activeDot={{ r: 7 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
