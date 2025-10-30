@@ -426,44 +426,12 @@ export default function SellerDetailView({ seller, onBack }) {
           </div>
         )}
       </div>
+      )}
 
-      {/* KPI Stats (30 derniers jours) */}
-      <div className="glass-morphism rounded-2xl p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 KPI (30 derniers jours)</h2>
-        
-        {kpiEntries.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-blue-50 rounded-xl p-4">
-              <p className="text-sm text-blue-600 mb-2">💰 CA Total</p>
-              <p className="text-2xl font-bold text-blue-900">
-                {kpiEntries.reduce((sum, e) => sum + (e.ca_journalier || 0), 0).toFixed(2)}€
-              </p>
-            </div>
-            <div className="bg-green-50 rounded-xl p-4">
-              <p className="text-sm text-green-600 mb-2">🛒 Ventes</p>
-              <p className="text-2xl font-bold text-green-900">
-                {kpiEntries.reduce((sum, e) => sum + (e.nb_ventes || 0), 0)}
-              </p>
-            </div>
-            <div className="bg-purple-50 rounded-xl p-4">
-              <p className="text-sm text-purple-600 mb-2">👥 Clients</p>
-              <p className="text-2xl font-bold text-purple-900">
-                {kpiEntries.reduce((sum, e) => sum + (e.nb_clients || 0), 0)}
-              </p>
-            </div>
-            <div className="bg-orange-50 rounded-xl p-4">
-              <p className="text-sm text-orange-600 mb-2">🧮 Panier Moyen</p>
-              <p className="text-2xl font-bold text-orange-900">
-                {(kpiEntries.reduce((sum, e) => sum + (e.panier_moyen || 0), 0) / kpiEntries.length).toFixed(2)}€
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-12 text-gray-500">
-            Aucune donnée KPI disponible
-          </div>
-        )}
-      </div>
+      {/* Tab Content - Gestion de Conflit */}
+      {activeTab === 'conflit' && (
+        <ConflictResolutionForm sellerId={seller.id} sellerName={seller.name} />
+      )}
     </div>
   );
 }
