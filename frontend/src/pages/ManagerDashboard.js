@@ -236,6 +236,9 @@ export default function ManagerDashboard({ user, onLogout }) {
           </div>
         )}
 
+        {/* Team Bilan IA */}
+        <TeamBilanIA />
+
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="glass-morphism rounded-2xl p-6 card-hover">
