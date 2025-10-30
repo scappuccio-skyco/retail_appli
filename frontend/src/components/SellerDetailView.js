@@ -220,7 +220,7 @@ export default function SellerDetailView({ seller, onBack }) {
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
-            💰 KPI (30j)
+            💰 KPI
           </button>
           <button
             onClick={() => setActiveTab('debriefs')}
