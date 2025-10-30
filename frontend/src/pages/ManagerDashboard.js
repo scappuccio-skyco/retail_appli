@@ -27,6 +27,7 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   useEffect(() => {
     fetchData();
+    fetchManagerDiagnostic();
   }, []);
 
   const fetchData = async () => {
@@ -41,6 +42,17 @@ export default function ManagerDashboard({ user, onLogout }) {
       toast.error('Erreur de chargement des données');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchManagerDiagnostic = async () => {
+    try {
+      const res = await axios.get(`${API}/manager-diagnostic/me`);
+      if (res.data.status === 'completed') {
+        setManagerDiagnostic(res.data.diagnostic);
+      }
+    } catch (err) {
+      console.error('Error fetching manager diagnostic:', err);
     }
   };
 
