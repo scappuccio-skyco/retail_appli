@@ -199,6 +199,7 @@ class TeamBilan(BaseModel):
     suggestion_brief: str  # Trame de brief prête à utiliser
     kpi_resume: dict  # Résumé des KPIs (CA, ventes, etc.)
     competences_moyenne: dict  # Moyenne des compétences de l'équipe
+    donnees_sources: list[dict]  # Données brutes par vendeur pour vérification
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ManagerRequest(BaseModel):
