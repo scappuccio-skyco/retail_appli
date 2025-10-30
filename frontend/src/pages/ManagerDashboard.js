@@ -674,6 +674,10 @@ export default function ManagerDashboard({ user, onLogout }) {
         <ManagerProfileModal
           diagnostic={managerDiagnostic}
           onClose={() => setShowManagerProfileModal(false)}
+          onRedo={() => {
+            setShowManagerProfileModal(false);
+            setShowManagerDiagnostic(true);
+          }}
         />
       )}
 
