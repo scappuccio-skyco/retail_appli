@@ -34,6 +34,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   useEffect(() => {
     fetchData();
     fetchManagerDiagnostic();
+    fetchTeamBilan();
   }, []);
 
   const fetchData = async () => {
