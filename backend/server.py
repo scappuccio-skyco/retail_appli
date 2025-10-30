@@ -1855,10 +1855,11 @@ Conseils :
 - Donne des chiffres précis
 - Ton positif mais lucide"""
 
-        response = await chat.send_message(prompt)
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
         
         # Clean and parse response
-        content = response['message'].strip()
+        content = response.strip()
         if content.startswith('```'):
             content = content.split('```')[1]
             if content.startswith('json'):
