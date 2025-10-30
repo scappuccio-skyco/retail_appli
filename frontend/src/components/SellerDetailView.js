@@ -356,69 +356,83 @@ export default function SellerDetailView({ seller, onBack }) {
         <h2 className="text-2xl font-bold text-gray-800 mb-6">📝 Derniers débriefs</h2>
         
         {debriefs.length > 0 ? (
-          <div className="space-y-4">
-            {debriefs.slice(0, 5).map((debrief) => (
-              <div
-                key={debrief.id}
-                className="bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all"
-              >
-                <button
-                  onClick={() => toggleDebrief(debrief.id)}
-                  className="w-full p-4 text-left hover:bg-gray-50 transition-colors rounded-xl"
+          <>
+            <div className="space-y-4">
+              {debriefs.slice(0, showAllDebriefs ? debriefs.length : 3).map((debrief) => (
+                <div
+                  key={debrief.id}
+                  className="bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500 mb-2">
-                        🗓️ {new Date(debrief.created_at).toLocaleDateString('fr-FR')} — Produit : {debrief.produit || debrief.context} — Type : {debrief.type_client || debrief.customer_profile}
-                      </p>
-                      <div className="space-y-1 text-sm text-gray-600">
-                        <p>💬 Description : {debrief.description_vente || debrief.demarche_commerciale}</p>
-                        <p>📍 Moment clé : {debrief.moment_perte_client || debrief.moment_perte_client}</p>
-                        <p>❌ Raisons : {debrief.raisons_echec || debrief.objections}</p>
+                  <button
+                    onClick={() => toggleDebrief(debrief.id)}
+                    className="w-full p-4 text-left hover:bg-gray-50 transition-colors rounded-xl"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500 mb-2">
+                          🗓️ {new Date(debrief.created_at).toLocaleDateString('fr-FR')} — Produit : {debrief.produit || debrief.context} — Type : {debrief.type_client || debrief.customer_profile}
+                        </p>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <p>💬 Description : {debrief.description_vente || debrief.demarche_commerciale}</p>
+                          <p>📍 Moment clé : {debrief.moment_perte_client || debrief.moment_perte_client}</p>
+                          <p>❌ Raisons : {debrief.raisons_echec || debrief.objections}</p>
+                        </div>
+                      </div>
+                      <div className="ml-4 text-gray-600 font-bold text-xl flex-shrink-0">
+                        {expandedDebriefs[debrief.id] ? '−' : '+'}
                       </div>
                     </div>
-                    <div className="ml-4 text-gray-600 font-bold text-xl flex-shrink-0">
-                      {expandedDebriefs[debrief.id] ? '−' : '+'}
-                    </div>
-                  </div>
-                </button>
+                  </button>
 
-                {expandedDebriefs[debrief.id] && (
-                  <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3 animate-fadeIn">
-                    {debrief.ai_recommendation && (
-                      <div className="bg-blue-50 rounded-lg p-3">
-                        <p className="text-xs font-semibold text-blue-900 mb-1">💡 Recommandation IA</p>
-                        <p className="text-sm text-blue-800 whitespace-pre-line">{debrief.ai_recommendation}</p>
-                      </div>
-                    )}
-                    
-                    <div className="grid grid-cols-5 gap-2">
-                      <div className="bg-purple-50 rounded-lg p-2 text-center">
-                        <p className="text-xs text-purple-600">Accueil</p>
-                        <p className="text-lg font-bold text-purple-900">{debrief.score_accueil || 0}/5</p>
-                      </div>
-                      <div className="bg-green-50 rounded-lg p-2 text-center">
-                        <p className="text-xs text-green-600">Découverte</p>
-                        <p className="text-lg font-bold text-green-900">{debrief.score_decouverte || 0}/5</p>
-                      </div>
-                      <div className="bg-orange-50 rounded-lg p-2 text-center">
-                        <p className="text-xs text-orange-600">Argumentation</p>
-                        <p className="text-lg font-bold text-orange-900">{debrief.score_argumentation || 0}/5</p>
-                      </div>
-                      <div className="bg-red-50 rounded-lg p-2 text-center">
-                        <p className="text-xs text-red-600">Closing</p>
-                        <p className="text-lg font-bold text-red-900">{debrief.score_closing || 0}/5</p>
-                      </div>
-                      <div className="bg-blue-50 rounded-lg p-2 text-center">
-                        <p className="text-xs text-blue-600">Fidélisation</p>
-                        <p className="text-lg font-bold text-blue-900">{debrief.score_fidelisation || 0}/5</p>
+                  {expandedDebriefs[debrief.id] && (
+                    <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3 animate-fadeIn">
+                      {debrief.ai_recommendation && (
+                        <div className="bg-blue-50 rounded-lg p-3">
+                          <p className="text-xs font-semibold text-blue-900 mb-1">💡 Recommandation IA</p>
+                          <p className="text-sm text-blue-800 whitespace-pre-line">{debrief.ai_recommendation}</p>
+                        </div>
+                      )}
+                      
+                      <div className="grid grid-cols-5 gap-2">
+                        <div className="bg-purple-50 rounded-lg p-2 text-center">
+                          <p className="text-xs text-purple-600">Accueil</p>
+                          <p className="text-lg font-bold text-purple-900">{debrief.score_accueil || 0}/5</p>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-2 text-center">
+                          <p className="text-xs text-green-600">Découverte</p>
+                          <p className="text-lg font-bold text-green-900">{debrief.score_decouverte || 0}/5</p>
+                        </div>
+                        <div className="bg-orange-50 rounded-lg p-2 text-center">
+                          <p className="text-xs text-orange-600">Argumentation</p>
+                          <p className="text-lg font-bold text-orange-900">{debrief.score_argumentation || 0}/5</p>
+                        </div>
+                        <div className="bg-red-50 rounded-lg p-2 text-center">
+                          <p className="text-xs text-red-600">Closing</p>
+                          <p className="text-lg font-bold text-red-900">{debrief.score_closing || 0}/5</p>
+                        </div>
+                        <div className="bg-blue-50 rounded-lg p-2 text-center">
+                          <p className="text-xs text-blue-600">Fidélisation</p>
+                          <p className="text-lg font-bold text-blue-900">{debrief.score_fidelisation || 0}/5</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {/* Bouton Charger plus */}
+            {debriefs.length > 3 && (
+              <div className="mt-6 text-center">
+                <button
+                  onClick={() => setShowAllDebriefs(!showAllDebriefs)}
+                  className="btn-secondary px-6 py-2"
+                >
+                  {showAllDebriefs ? '↑ Voir moins' : `↓ Charger plus (${debriefs.length - 3} autres)`}
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-12 text-gray-500">
             Aucun débrief pour le moment
