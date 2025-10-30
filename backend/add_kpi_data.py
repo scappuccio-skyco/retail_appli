@@ -97,7 +97,7 @@ async def add_kpi_data():
         
         print(f"  ✅ {seller_name}: Added {added_count} new entries, Updated {updated_count} existing entries")
     
-    print(f"\n✅ KPI data generation complete! Added data from 29/10/2024 to today for all sellers.")
+    print(f"\n✅ KPI data generation complete! Added 365 days of data for all sellers.")
 
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
