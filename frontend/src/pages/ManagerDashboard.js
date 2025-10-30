@@ -55,6 +55,11 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const handleSellerClick = async (seller) => {
     setSelectedSeller(seller);
+    setShowDetailView(false); // Ne pas ouvrir la vue complète immédiatement
+    await fetchSellerStats(seller.id);
+  };
+  
+  const handleViewFullDetails = () => {
     setShowDetailView(true);
   };
 
