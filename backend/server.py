@@ -2008,10 +2008,10 @@ async def generate_conflict_resolution_analysis(
 
 Tu t'adresses directement au manager qui te consulte. Ton rôle est de fournir une analyse personnalisée et des recommandations concrètes en tenant compte de son profil et de celui de son vendeur.
 
-### TON PROFIL DE MANAGER
+### VOTRE PROFIL DE MANAGER
 {manager_context}
 
-### PROFIL DE TON VENDEUR ({seller.get('name', 'votre vendeur')})
+### PROFIL DE VOTRE VENDEUR ({seller.get('name', 'votre vendeur')})
 {seller_context}
 
 {comp_context}
@@ -2020,7 +2020,7 @@ Tu t'adresses directement au manager qui te consulte. Ton rôle est de fournir u
 
 Nombre de débriefs récents du vendeur : {recent_debriefs_count}
 
-### LA SITUATION QUE TU DÉCRIS
+### LA SITUATION QUE VOUS DÉCRIVEZ
 
 **Contexte :** {conflict_data.get('contexte')}
 
@@ -2034,7 +2034,7 @@ Nombre de débriefs récents du vendeur : {recent_debriefs_count}
 
 ### OBJECTIF
 Fournis une analyse et des recommandations PERSONNALISÉES qui tiennent compte :
-1. Du style de management du manager (utilise "tu" et "ton/ta/tes" pour t'adresser directement à lui)
+1. Du style de management du manager (utilise "vous" et "votre/vos" pour vous adresser directement à lui)
 2. Du profil du vendeur
 3. Des compétences et performances actuelles du vendeur
 4. De la situation conflictuelle spécifique
@@ -2042,21 +2042,21 @@ Fournis une analyse et des recommandations PERSONNALISÉES qui tiennent compte :
 ### FORMAT DE SORTIE (JSON uniquement)
 Réponds UNIQUEMENT avec un objet JSON valide :
 {{
-  "analyse_situation": "[3-4 phrases d'analyse de la situation. IMPORTANT: Tutoie le manager directement en utilisant 'tu', 'ton', 'ta', 'tes'. Ex: 'La situation actuelle entre ton vendeur et toi...', 'Tu fais face à...', 'Ton style de management...'. Identifie les causes probables du conflit. Ton professionnel et empathique.]",
-  "approche_communication": "[4-5 phrases décrivant comment TU (le manager) devrais aborder la conversation. IMPORTANT: Utilise 'tu', 'ton', 'ta', 'tes' en permanence. Ex: 'Tu devrais entamer la conversation...', 'Ton approche doit être...', 'Tu pourrais dire...' Adapte le style au profil du manager ET du vendeur. Inclus des phrases d'accroche concrètes.]",
+  "analyse_situation": "[3-4 phrases d'analyse de la situation. IMPORTANT: Vouvoie le manager directement en utilisant 'vous', 'votre', 'vos'. Ex: 'La situation actuelle entre votre vendeur et vous...', 'Vous faites face à...', 'Votre style de management...'. Identifie les causes probables du conflit. Ton professionnel et empathique.]",
+  "approche_communication": "[4-5 phrases décrivant comment VOUS (le manager) devriez aborder la conversation. IMPORTANT: Utilise 'vous', 'votre', 'vos' en permanence. Ex: 'Vous devriez entamer la conversation...', 'Votre approche doit être...', 'Vous pourriez dire...' Adapte le style au profil du manager ET du vendeur. Inclus des phrases d'accroche concrètes.]",
   "actions_concretes": [
-    "[Action 1 - Commence par un verbe à l'infinitif ou utilise 'tu'. Ex: 'Organise une réunion...' ou 'Tu dois organiser...']",
+    "[Action 1 - Commence par un verbe à l'infinitif ou utilise 'vous'. Ex: 'Organisez une réunion...' ou 'Vous devez organiser...']",
     "[Action 2 - spécifique et adaptée au contexte]",
     "[Action 3 - spécifique et adaptée au contexte]"
   ],
   "points_vigilance": [
-    "[Point de vigilance 1 - en lien avec TON style et TES forces. Ex: 'Veille à ne pas...', 'Fais attention à...']",
+    "[Point de vigilance 1 - en lien avec VOTRE style et VOS forces. Ex: 'Veillez à ne pas...', 'Faites attention à...']",
     "[Point de vigilance 2 - en lien avec les profils]"
   ]
 }}
 
 ### STYLE ATTENDU
-- TUTOIEMENT OBLIGATOIRE : utilise "tu", "ton", "ta", "tes" pour t'adresser directement au manager
+- VOUVOIEMENT OBLIGATOIRE : utilise "vous", "votre", "vos" pour vous adresser directement au manager
 - Professionnel, empathique et constructif
 - Personnalisé (mentionne explicitement les profils manager/vendeur)
 - Orienté solution et action
