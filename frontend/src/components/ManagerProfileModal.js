@@ -1,7 +1,7 @@
 import React from 'react';
-import { Sparkles, X } from 'lucide-react';
+import { Sparkles, X, RefreshCw } from 'lucide-react';
 
-export default function ManagerProfileModal({ diagnostic, onClose }) {
+export default function ManagerProfileModal({ diagnostic, onClose, onRedo }) {
   if (!diagnostic) return null;
 
   return (
@@ -52,6 +52,20 @@ export default function ManagerProfileModal({ diagnostic, onClose }) {
               <p className="text-sm font-semibold text-green-900 mb-2">💡 Exemple concret :</p>
               <p className="text-green-800 italic">"{diagnostic.exemple_concret}"</p>
             </div>
+          </div>
+
+          {/* Button to redo test */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={onRedo}
+              className="btn-secondary px-6 py-3 flex items-center justify-center gap-2 mx-auto"
+            >
+              <RefreshCw className="w-5 h-5" />
+              Refaire le test
+            </button>
+            <p className="text-xs text-gray-500 mt-2">
+              Votre profil peut évoluer avec le temps
+            </p>
           </div>
         </div>
       </div>
