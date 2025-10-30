@@ -250,14 +250,14 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
       <div className="glass-morphism rounded-2xl p-6">
         <h3 className="text-2xl font-bold text-gray-800 mb-6">📚 Historique des consultations</h3>
         
-        {loadingHistory ? (
+        {state.loadingHistory ? (
           <div className="text-center py-8">
             <Loader className="w-8 h-8 animate-spin mx-auto text-gray-400" />
             <p className="text-gray-500 mt-2">Chargement...</p>
           </div>
-        ) : conflictHistory.length > 0 ? (
+        ) : state.conflictHistory.length > 0 ? (
           <div className="space-y-4">
-            {conflictHistory.map((conflict) => (
+            {state.conflictHistory.map((conflict) => (
               <div
                 key={conflict.id}
                 className="bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all overflow-hidden"
@@ -277,7 +277,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
                     <p className="text-gray-700 font-medium line-clamp-2">{conflict.contexte}</p>
                   </div>
                   <div className="ml-4 text-gray-600">
-                    {expandedHistoryItems[conflict.id] ? (
+                    {state.expandedHistoryItems[conflict.id] ? (
                       <ChevronUp className="w-5 h-5" />
                     ) : (
                       <ChevronDown className="w-5 h-5" />
@@ -285,7 +285,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
                   </div>
                 </button>
 
-                {expandedHistoryItems[conflict.id] && (
+                {state.expandedHistoryItems[conflict.id] && (
                   <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-4 animate-fadeIn">
                     <div className="space-y-3">
                       <div>
