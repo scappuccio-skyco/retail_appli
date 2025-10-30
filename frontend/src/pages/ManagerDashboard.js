@@ -194,6 +194,47 @@ export default function ManagerDashboard({ user, onLogout }) {
       </div>
 
       <div className="max-w-7xl mx-auto">
+        {/* Manager Profile Display */}
+        {managerDiagnostic && (
+          <div className="glass-morphism rounded-2xl p-6 mb-8 bg-gradient-to-r from-[#ffd871] to-yellow-200">
+            <div className="flex items-center gap-3 mb-4">
+              <Sparkles className="w-6 h-6 text-gray-800" />
+              <h2 className="text-2xl font-bold text-gray-800">🎯 Ton Profil Manager</h2>
+            </div>
+            
+            <div className="bg-white bg-opacity-80 rounded-xl p-5">
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                🧭 {managerDiagnostic.profil_nom}
+              </h3>
+              <p className="text-gray-700 mb-4">{managerDiagnostic.profil_description}</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">💪 Tes Forces :</p>
+                  <ul className="list-disc list-inside space-y-1 text-gray-700">
+                    <li>{managerDiagnostic.force_1}</li>
+                    <li>{managerDiagnostic.force_2}</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">🎯 Axe à travailler :</p>
+                  <p className="text-gray-700">{managerDiagnostic.axe_progression}</p>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 rounded-lg p-4 mb-3">
+                <p className="text-sm font-semibold text-blue-900 mb-1">🚀 Recommandation :</p>
+                <p className="text-blue-800">{managerDiagnostic.recommandation}</p>
+              </div>
+              
+              <div className="bg-green-50 rounded-lg p-4">
+                <p className="text-sm font-semibold text-green-900 mb-1">💡 Exemple concret :</p>
+                <p className="text-green-800 italic">"{managerDiagnostic.exemple_concret}"</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="glass-morphism rounded-2xl p-6 card-hover">
