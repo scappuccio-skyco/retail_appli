@@ -167,8 +167,6 @@ function AppContent() {
               <div className="flex items-center justify-center min-h-screen">
                 <div className="text-xl font-medium text-gray-600">Analyse en cours...</div>
               </div>
-            ) : diagnostic && !showDiagnosticResult ? (
-              <Navigate to="/" replace />
             ) : diagnostic && showDiagnosticResult ? (
               <DiagnosticResult diagnostic={diagnostic} onContinue={handleContinueToDashboard} />
             ) : (
