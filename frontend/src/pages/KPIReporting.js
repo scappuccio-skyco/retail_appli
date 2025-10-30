@@ -335,11 +335,11 @@ export default function KPIReporting({ user, onBack }) {
 
             {/* Detailed Table - Accordion */}
             <div className="glass-morphism rounded-2xl p-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Détail des saisies ({entries.length})</h3>
+              <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Détail des saisies ({allEntries.length})</h3>
               
               {/* Always show last 3 entries */}
               <div className="space-y-3 mb-4">
-                {entries.slice(0, 3).map((entry) => (
+                {allEntries.slice(0, 3).map((entry) => (
                   <div key={entry.id} className="bg-white rounded-xl p-4 border border-gray-200">
                     <div className="flex justify-between items-center mb-3">
                       <p className="text-sm font-semibold text-gray-700">
@@ -373,21 +373,21 @@ export default function KPIReporting({ user, onBack }) {
               </div>
               
               {/* Show "See all" button if more than 3 entries */}
-              {entries.length > 3 && (
+              {allEntries.length > 3 && (
                 <>
                   <button
-                    onClick={() => setShowDetailTable(!showDetailTable)}
+                    onClick={() => setShowAllEntries(!showAllEntries)}
                     className="w-full flex items-center justify-center gap-2 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
                   >
                     <span className="text-sm font-semibold text-gray-700">
-                      {showDetailTable ? 'Voir moins' : `Voir toutes les saisies (${entries.length - 3} de plus)`}
+                      {showAllEntries ? 'Voir moins' : `Voir toutes les saisies (${allEntries.length - 3} de plus)`}
                     </span>
                     <span className="text-xl font-bold text-gray-600">
-                      {showDetailTable ? '−' : '+'}
+                      {showAllEntries ? '−' : '+'}
                     </span>
                   </button>
                   
-                  {showDetailTable && (
+                  {showAllEntries && (
                     <div className="overflow-x-auto mt-4 animate-fadeIn">
                       <table className="w-full">
                         <thead>
@@ -401,7 +401,7 @@ export default function KPIReporting({ user, onBack }) {
                           </tr>
                         </thead>
                         <tbody>
-                          {entries.map((entry, index) => (
+                          {allEntries.map((entry, index) => (
                             <tr key={entry.id} className="border-b border-gray-100 hover:bg-gray-50">
                               <td className="py-3 px-4 text-sm text-gray-800">
                                 {new Date(entry.date).toLocaleDateString('fr-FR')}
