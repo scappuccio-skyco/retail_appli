@@ -687,6 +687,34 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           </div>
         </div>
       )}
+
+      {/* Profile Modal */}
+      {showProfileModal && (
+        <SellerProfileModal
+          diagnostic={diagnostic}
+          onClose={() => setShowProfileModal(false)}
+        />
+      )}
+
+      {/* Last Debrief Modal */}
+      {showLastDebriefModal && debriefs.length > 0 && (
+        <LastDebriefModal
+          debrief={debriefs[0]}
+          onClose={() => setShowLastDebriefModal(false)}
+        />
+      )}
+
+      {/* Diagnostic Form Modal */}
+      {showDiagnosticFormModal && (
+        <DiagnosticFormModal
+          onClose={() => setShowDiagnosticFormModal(false)}
+          onSuccess={() => {
+            setShowDiagnosticFormModal(false);
+            toast.success('Diagnostic complété! Rechargement...');
+            setTimeout(() => window.location.reload(), 1000);
+          }}
+        />
+      )}
     </div>
   );
 }
