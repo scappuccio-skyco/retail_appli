@@ -224,46 +224,52 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
             </div>
 
             {/* Approche de communication */}
-            <div className="bg-white rounded-xl p-5">
-              <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                💬 Approche de communication
-              </h4>
-              <p className="text-gray-700 whitespace-pre-line">{aiRecommendations.ai_approche_communication}</p>
-            </div>
+            {aiRecommendations.ai_approche_communication && (
+              <div className="bg-white rounded-xl p-5">
+                <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  💬 Approche de communication
+                </h4>
+                <p className="text-gray-700 whitespace-pre-line">{aiRecommendations.ai_approche_communication}</p>
+              </div>
+            )}
 
             {/* Actions concrètes */}
-            <div className="bg-white rounded-xl p-5">
-              <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                ✅ Actions concrètes à mettre en place
-              </h4>
-              <ul className="space-y-2">
-                {aiRecommendations.ai_actions_concretes.map((action, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-sm font-bold">
-                      {index + 1}
-                    </span>
-                    <span className="text-gray-700 flex-1">{action}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {aiRecommendations.ai_actions_concretes && aiRecommendations.ai_actions_concretes.length > 0 && (
+              <div className="bg-white rounded-xl p-5">
+                <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  ✅ Actions concrètes à mettre en place
+                </h4>
+                <ul className="space-y-2">
+                  {aiRecommendations.ai_actions_concretes.map((action, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-sm font-bold">
+                        {index + 1}
+                      </span>
+                      <span className="text-gray-700 flex-1">{action}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Points de vigilance */}
-            <div className="bg-white rounded-xl p-5">
-              <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                ⚠️ Points de vigilance
-              </h4>
-              <ul className="space-y-2">
-                {aiRecommendations.ai_points_vigilance.map((point, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center text-sm font-bold">
-                      !
-                    </span>
-                    <span className="text-gray-700 flex-1">{point}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {aiRecommendations.ai_points_vigilance && aiRecommendations.ai_points_vigilance.length > 0 && (
+              <div className="bg-white rounded-xl p-5">
+                <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  ⚠️ Points de vigilance
+                </h4>
+                <ul className="space-y-2">
+                  {aiRecommendations.ai_points_vigilance.map((point, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-6 h-6 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center text-sm font-bold">
+                        !
+                      </span>
+                      <span className="text-gray-700 flex-1">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Metadata */}
             <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-600">
