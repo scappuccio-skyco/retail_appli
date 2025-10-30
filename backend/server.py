@@ -1262,10 +1262,10 @@ async def create_manager_diagnostic(diagnostic_data: ManagerDiagnosticCreate, cu
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can create management diagnostics")
     
-    # Check if diagnostic already exists
+    # Check if diagnostic already exists - if yes, delete it to allow update
     existing = await db.manager_diagnostics.find_one({"manager_id": current_user['id']}, {"_id": 0})
     if existing:
-        raise HTTPException(status_code=400, detail="Diagnostic already completed")
+        await db.manager_diagnostics.delete_one({"manager_id": current_user['id']})
     
     # Analyze with AI
     ai_analysis = await analyze_manager_diagnostic_with_ai(diagnostic_data.responses)
