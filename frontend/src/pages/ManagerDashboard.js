@@ -266,16 +266,29 @@ export default function ManagerDashboard({ user, onLogout }) {
 
             {/* Team Bilan Compact Card */}
             {teamBilan && (
-              <div 
-                onClick={() => setShowTeamBilanModal(true)}
-                className="glass-morphism rounded-2xl p-6 cursor-pointer hover:shadow-xl transition-all border-2 border-transparent hover:border-[#ffd871]"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <Sparkles className="w-6 h-6 text-[#ffd871]" />
-                  <h3 className="text-xl font-bold text-gray-800">🤖 Bilan IA d'équipe</h3>
+              <div className="glass-morphism rounded-2xl p-6 border-2 border-transparent hover:border-[#ffd871] transition-all">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="w-6 h-6 text-[#ffd871]" />
+                    <h3 className="text-xl font-bold text-gray-800">🤖 Bilan IA d'équipe</h3>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      regenerateTeamBilan();
+                    }}
+                    disabled={generatingTeamBilan}
+                    className="flex items-center gap-2 px-3 py-2 bg-[#ffd871] hover:bg-yellow-400 text-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${generatingTeamBilan ? 'animate-spin' : ''}`} />
+                    {generatingTeamBilan ? 'Génération...' : 'Relancer'}
+                  </button>
                 </div>
                 
-                <div className="space-y-3">
+                <div 
+                  onClick={() => setShowTeamBilanModal(true)}
+                  className="cursor-pointer space-y-3"
+                >
                   <div className="bg-gradient-to-r from-[#ffd871] to-yellow-200 rounded-xl p-3">
                     <p className="text-xs text-gray-700 mb-1">{teamBilan.periode}</p>
                     <p className="text-sm text-gray-800 font-medium line-clamp-2">{teamBilan.synthese}</p>
@@ -295,11 +308,11 @@ export default function ManagerDashboard({ user, onLogout }) {
                       <p className="text-sm font-bold text-purple-900">{teamBilan.kpi_resume.taux_transformation.toFixed(0)}%</p>
                     </div>
                   </div>
+                  
+                  <p className="text-sm text-gray-500 text-center mt-4">
+                    Cliquer pour voir le bilan complet →
+                  </p>
                 </div>
-                
-                <p className="text-sm text-gray-500 text-center mt-4">
-                  Cliquer pour voir le bilan complet →
-                </p>
               </div>
             )}
           </div>
