@@ -69,26 +69,33 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     fetchConflictHistory();
   }, [sellerId]);
 
+  // Refresh history when new AI recommendations are set
+  useEffect(() => {
+    if (state.aiRecommendations) {
+      fetchConflictHistory();
+    }
+  }, [state.aiRecommendations]);
+
   const fetchConflictHistory = async () => {
-    setLoadingHistory(true);
+    dispatch({ type: 'SET_LOADING_HISTORY', payload: true });
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API}/manager/conflict-history/${sellerId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setConflictHistory(response.data);
+      dispatch({ type: 'SET_HISTORY', payload: response.data });
     } catch (err) {
       console.error('Error loading conflict history:', err);
       toast.error('Erreur de chargement de l\'historique');
-    } finally {
-      setLoadingHistory(false);
+      dispatch({ type: 'SET_LOADING_HISTORY', payload: false });
     }
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
+    dispatch({ 
+      type: 'UPDATE_FORM', 
+      field: e.target.name, 
+      value: e.target.value 
     });
   };
 
@@ -96,12 +103,12 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     e.preventDefault();
     
     // Validation
-    if (!formData.contexte || !formData.comportement_observe || !formData.impact) {
+    if (!state.formData.contexte || !state.formData.comportement_observe || !state.formData.impact) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
-    setLoading(true);
+    dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
       const token = localStorage.getItem('token');
@@ -109,45 +116,25 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         `${API}/manager/conflict-resolution`,
         {
           seller_id: sellerId,
-          ...formData
+          ...state.formData
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Update state in batch - Debug log
-      console.log('AI Response:', response.data);
-      
-      // Use React.startTransition for non-urgent updates
-      React.startTransition(() => {
-        setAiRecommendations(response.data);
-        setFormData({
-          contexte: '',
-          comportement_observe: '',
-          impact: '',
-          tentatives_precedentes: '',
-          description_libre: ''
-        });
-      });
+      // Batch all state updates together with reducer
+      dispatch({ type: 'SET_AI_RECOMMENDATIONS', payload: response.data });
+      dispatch({ type: 'RESET_FORM' });
       
       toast.success('Recommandations générées avec succès');
-      
-      // Refresh history after a longer delay to ensure DOM reconciliation completes
-      setTimeout(() => {
-        fetchConflictHistory();
-      }, 300);
     } catch (err) {
       console.error('Error creating conflict resolution:', err);
       toast.error('Erreur lors de la génération des recommandations');
-    } finally {
-      setLoading(false);
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
   const toggleHistoryItem = (id) => {
-    setExpandedHistoryItems(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+    dispatch({ type: 'TOGGLE_HISTORY_ITEM', id });
   };
 
   return (
