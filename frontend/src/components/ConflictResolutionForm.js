@@ -245,10 +245,23 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
           </button>
         </form>
       </div>
+      )}
 
-      {/* AI Recommendations Display - Now in separate component */}
-      {state.aiRecommendations && (
-        <AIRecommendations recommendations={state.aiRecommendations} />
+      {/* AI Recommendations Display - Only show when showResult is true */}
+      {state.showResult && state.aiRecommendations && (
+        <div className="space-y-6">
+          <AIRecommendations recommendations={state.aiRecommendations} />
+          
+          {/* Button to go back to form */}
+          <div className="text-center">
+            <button
+              onClick={() => dispatch({ type: 'BACK_TO_FORM' })}
+              className="btn-secondary px-8 py-3"
+            >
+              ← Nouvelle consultation
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Historique des consultations */}
