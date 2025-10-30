@@ -1904,8 +1904,9 @@ async def get_latest_team_bilan(current_user: dict = Depends(get_current_user)):
     
     bilan = await db.team_bilans.find_one(
         {"manager_id": current_user['id']},
-        {"_id": 0}
-    ).sort("created_at", -1)
+        {"_id": 0},
+        sort=[("created_at", -1)]
+    )
     
     if not bilan:
         return {"status": "no_bilan", "bilan": None}
