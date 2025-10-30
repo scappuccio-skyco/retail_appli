@@ -185,10 +185,7 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           <div className="flex gap-3">
             <button
               onClick={() => {
-                // Reset diagnostic to allow redoing the test
-                setDiagnostic(null);
-                setShowDiagnosticResult(false);
-                setShowDiagnosticModal(false);
+                // Simply navigate to diagnostic page - backend will handle overwrite
                 navigate('/diagnostic');
               }}
               className="btn-secondary flex items-center gap-2"
