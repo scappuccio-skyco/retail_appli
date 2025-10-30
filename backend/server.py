@@ -169,6 +169,23 @@ class DiagnosticResult(BaseModel):
 class DiagnosticCreate(BaseModel):
     responses: dict
 
+class ManagerDiagnosticResult(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    manager_id: str
+    responses: dict
+    profil_nom: str  # Le Pilote, Le Coach, Le Dynamiseur, Le Stratège, L'Inspire
+    profil_description: str
+    force_1: str
+    force_2: str
+    axe_progression: str
+    recommandation: str
+    exemple_concret: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ManagerDiagnosticCreate(BaseModel):
+    responses: dict
+
 class ManagerRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
