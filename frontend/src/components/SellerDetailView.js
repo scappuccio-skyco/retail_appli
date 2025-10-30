@@ -190,7 +190,7 @@ export default function SellerDetailView({ seller, onBack }) {
       </div>
 
       {/* Diagnostic Profile */}
-      {diagnostic && (
+      {diagnostic ? (
         <div className="glass-morphism rounded-2xl p-6 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800">Profil de vente</h2>
@@ -225,6 +225,18 @@ export default function SellerDetailView({ seller, onBack }) {
                 <p className="text-sm text-gray-800 whitespace-pre-line">{diagnostic.ai_profile_summary}</p>
               </div>
             )}
+          </div>
+        </div>
+      ) : (
+        <div className="glass-morphism rounded-2xl p-6 mb-8 bg-gray-50">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Profil de vente</h2>
+          <div className="text-center py-8">
+            <p className="text-gray-600 mb-4">
+              {seller.name} n'a pas encore complété son diagnostic de vente.
+            </p>
+            <p className="text-sm text-gray-500">
+              Le vendeur doit se connecter à son compte et compléter le diagnostic pour voir son profil ici.
+            </p>
           </div>
         </div>
       )}
