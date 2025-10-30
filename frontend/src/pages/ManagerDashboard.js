@@ -603,6 +603,16 @@ export default function ManagerDashboard({ user, onLogout }) {
           }}
         />
       )}
+
+      {showManagerDiagnostic && (
+        <ManagerDiagnosticForm
+          onClose={() => setShowManagerDiagnostic(false)}
+          onSuccess={() => {
+            setShowManagerDiagnostic(false);
+            fetchManagerDiagnostic();
+          }}
+        />
+      )}
     </div>
   );
 }
