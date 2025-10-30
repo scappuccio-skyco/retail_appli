@@ -286,16 +286,41 @@ old_old_metadata:
   test_sequence: 1
   run_ui: false
 
+backend_new:
+  - task: "Conflict Resolution API - Create Conflict Resolution"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend API for creating conflict resolution with personalized AI recommendations based on manager profile, seller profile, competences, debriefs, and KPIs. POST /api/manager/conflict-resolution endpoint created. Needs testing to verify: 1) Data fetching (manager profile, seller profile, debriefs, competences, KPIs), 2) AI analysis generation, 3) Data persistence, 4) Authorization (only managers)."
+  
+  - task: "Conflict Resolution API - Get Conflict History"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend API endpoint to retrieve conflict resolution history for a specific seller. GET /api/manager/conflict-history/{seller_id} endpoint created. Needs testing."
+
 metadata:
   created_by: "main_agent"
-  version: "1.2"
-  test_sequence: 2
+  version: "1.3"
+  test_sequence: 3
   run_ui: false
 
 test_plan:
   current_focus:
-    - "DebriefModal Component - Form Display"
-    - "DebriefModal Component - Form Submission & AI Analysis"
+    - "Conflict Resolution API - Create Conflict Resolution"
+    - "Conflict Resolution API - Get Conflict History"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
