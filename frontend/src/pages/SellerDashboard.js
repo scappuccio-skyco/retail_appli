@@ -403,6 +403,52 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           </div>
         </div>
 
+        {/* Derniers KPIs rentrés */}
+        {kpiEntries.length > 0 && (
+          <div className="glass-morphism rounded-2xl p-6 mt-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 Derniers KPIs rentrés</h2>
+            <div className="space-y-4">
+              {kpiEntries.slice(0, 3).map((entry) => (
+                <div
+                  key={entry.id}
+                  className="bg-white rounded-xl p-4 border border-gray-200 hover:shadow-md transition-all"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">
+                        🗓️ {new Date(entry.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div className="bg-blue-50 rounded-lg p-3">
+                      <p className="text-xs text-blue-600 mb-1">💰 CA</p>
+                      <p className="text-lg font-bold text-blue-900">{entry.ca_journalier.toFixed(2)}€</p>
+                    </div>
+                    <div className="bg-green-50 rounded-lg p-3">
+                      <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
+                      <p className="text-lg font-bold text-green-900">{entry.nb_ventes}</p>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-3">
+                      <p className="text-xs text-purple-600 mb-1">👥 Clients</p>
+                      <p className="text-lg font-bold text-purple-900">{entry.nb_clients}</p>
+                    </div>
+                    <div className="bg-orange-50 rounded-lg p-3">
+                      <p className="text-xs text-orange-600 mb-1">🧮 Panier Moyen</p>
+                      <p className="text-lg font-bold text-orange-900">{entry.panier_moyen.toFixed(2)}€</p>
+                    </div>
+                    <div className="bg-pink-50 rounded-lg p-3">
+                      <p className="text-xs text-pink-600 mb-1">📊 Taux Transfo</p>
+                      <p className="text-lg font-bold text-pink-900">{entry.taux_transformation.toFixed(2)}%</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Derniers débriefs */}
         <div className="glass-morphism rounded-2xl p-6 mt-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">📝 Derniers débriefs</h2>
