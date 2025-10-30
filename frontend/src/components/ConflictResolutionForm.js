@@ -154,7 +154,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
               </label>
               <textarea
                 name="contexte"
-                value={formData.contexte}
+                value={state.formData.contexte}
                 onChange={handleChange}
                 placeholder="Décrivez le contexte général (ex: retards répétés, attitude avec les clients, non-respect des procédures...)"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
@@ -169,7 +169,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
               </label>
               <textarea
                 name="comportement_observe"
-                value={formData.comportement_observe}
+                value={state.formData.comportement_observe}
                 onChange={handleChange}
                 placeholder="Décrivez précisément ce que vous avez observé (fréquence, situations spécifiques...)"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
@@ -184,7 +184,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
               </label>
               <textarea
                 name="impact"
-                value={formData.impact}
+                value={state.formData.impact}
                 onChange={handleChange}
                 placeholder="Quel est l'impact de cette situation ? (moral de l'équipe, résultats commerciaux, satisfaction client...)"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
@@ -199,7 +199,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
               </label>
               <textarea
                 name="tentatives_precedentes"
-                value={formData.tentatives_precedentes}
+                value={state.formData.tentatives_precedentes}
                 onChange={handleChange}
                 placeholder="Qu'avez-vous déjà essayé pour résoudre cette situation ? (discussions, rappels, actions...)"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
@@ -213,7 +213,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
               </label>
               <textarea
                 name="description_libre"
-                value={formData.description_libre}
+                value={state.formData.description_libre}
                 onChange={handleChange}
                 placeholder="Ajoutez tout autre élément important pour comprendre la situation..."
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
@@ -224,105 +224,26 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={state.loading}
             className="w-full btn-primary py-4 text-lg font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? (
+            {state.loading ? (
               <>
                 <Loader className="w-5 h-5 animate-spin" />
                 Génération des recommandations IA...
               </>
             ) : (
               <>
-                <CheckCircle className="w-5 h-5" />
-                Obtenir des recommandations personnalisées
+                ✅ Obtenir des recommandations personnalisées
               </>
             )}
           </button>
         </form>
       </div>
 
-      {/* AI Recommendations Display */}
-      {aiRecommendations && (
-        <div key={aiRecommendations?.id || 'ai-recommendations'} className="glass-morphism rounded-2xl p-6 border-2 border-green-200 bg-green-50">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-            <CheckCircle className="w-8 h-8 text-green-600" />
-            Recommandations IA personnalisées
-          </h3>
-
-          <div className="space-y-6">
-            {/* Analyse de la situation */}
-            <div className="bg-white rounded-xl p-5">
-              <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-blue-600" />
-                Analyse de la situation
-              </h4>
-              <p className="text-gray-700 whitespace-pre-line">{aiRecommendations.ai_analyse_situation}</p>
-            </div>
-
-            {/* Approche de communication */}
-            {aiRecommendations.ai_approche_communication && (
-              <div className="bg-white rounded-xl p-5">
-                <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  💬 Approche de communication
-                </h4>
-                <p className="text-gray-700 whitespace-pre-line">{aiRecommendations.ai_approche_communication}</p>
-              </div>
-            )}
-
-            {/* Actions concrètes */}
-            {aiRecommendations.ai_actions_concretes && aiRecommendations.ai_actions_concretes.length > 0 && (
-              <div className="bg-white rounded-xl p-5">
-                <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  ✅ Actions concrètes à mettre en place
-                </h4>
-                <ul className="space-y-2">
-                  {aiRecommendations.ai_actions_concretes.map((action, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-sm font-bold">
-                        {index + 1}
-                      </span>
-                      <span className="text-gray-700 flex-1">{action}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Points de vigilance */}
-            {aiRecommendations.ai_points_vigilance && aiRecommendations.ai_points_vigilance.length > 0 && (
-              <div className="bg-white rounded-xl p-5">
-                <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  ⚠️ Points de vigilance
-                </h4>
-                <ul className="space-y-2">
-                  {aiRecommendations.ai_points_vigilance.map((point, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center text-sm font-bold">
-                        !
-                      </span>
-                      <span className="text-gray-700 flex-1">{point}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Metadata */}
-            <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-600">
-              <p>
-                <strong>Date :</strong> {new Date(aiRecommendations.created_at).toLocaleDateString('fr-FR', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </p>
-              <p><strong>Statut :</strong> {aiRecommendations.statut}</p>
-            </div>
-          </div>
-        </div>
+      {/* AI Recommendations Display - Now in separate component */}
+      {state.aiRecommendations && (
+        <AIRecommendations recommendations={state.aiRecommendations} />
       )}
 
       {/* Historique des consultations */}
