@@ -70,6 +70,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
       );
 
       // Update state in batch
+      console.log('AI Response:', response.data); // Debug log
       setAiRecommendations(response.data);
       setFormData({
         contexte: '',
