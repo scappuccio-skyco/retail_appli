@@ -642,11 +642,13 @@ class RetailCoachAPITester:
         )
         
         existing_seller_token = None
+        existing_seller_id = None
         if success and 'token' in response:
             existing_seller_token = response['token']
             existing_seller = response['user']
+            existing_seller_id = existing_seller.get('id')
             print(f"   ✅ Logged in as: {existing_seller.get('name')} ({existing_seller.get('email')})")
-            print(f"   ✅ Seller ID: {existing_seller.get('id')}")
+            print(f"   ✅ Seller ID: {existing_seller_id}")
             
             # Test debrief creation with existing seller (NEW structure)
             debrief_data = {
@@ -694,6 +696,318 @@ class RetailCoachAPITester:
         else:
             print("   ⚠️  Could not login with vendeur2@test.com - account may not exist")
             print("   This is expected if the account hasn't been created yet")
+        
+        return existing_seller_id
+
+    def test_conflict_resolution_flow(self):
+        """Test conflict resolution APIs - NEW FEATURE"""
+        print("\n🔍 Testing Conflict Resolution Flow (NEW FEATURE)...")
+        
+        if not self.manager_token:
+            self.log_test("Conflict Resolution Flow", False, "No manager token available")
+            return
+        
+        # First, we need to link a seller to the manager for testing
+        if self.seller_user:
+            # Link seller to manager for testing
+            link_success, _ = self.run_test(
+                "Link Seller to Manager",
+                "PATCH",
+                f"users/{self.seller_user['id']}/link-manager?manager_id={self.manager_user['id']}",
+                200,
+                token=self.manager_token
+            )
+            
+            if not link_success:
+                print("   ⚠️  Could not link seller to manager, trying with existing seller...")
+                # Try to get existing seller ID from previous test
+                existing_seller_id = self.test_existing_seller_login_scenario()
+                if existing_seller_id:
+                    # Try to link existing seller to current manager
+                    self.run_test(
+                        "Link Existing Seller to Manager",
+                        "PATCH", 
+                        f"users/{existing_seller_id}/link-manager?manager_id={self.manager_user['id']}",
+                        200,
+                        token=self.manager_token
+                    )
+                    seller_id = existing_seller_id
+                else:
+                    self.log_test("Conflict Resolution Setup", False, "No seller available for testing")
+                    return
+            else:
+                seller_id = self.seller_user['id']
+        else:
+            self.log_test("Conflict Resolution Flow", False, "No seller user available")
+            return
+        
+        # Test 1: Create conflict resolution
+        conflict_data = {
+            "seller_id": seller_id,
+            "contexte": "Le vendeur arrive souvent en retard et cela impacte l'équipe",
+            "comportement_observe": "Retards répétés (3-4 fois par semaine), démotivation visible",
+            "impact": "Baisse de moral de l'équipe, clients non servis aux heures d'ouverture",
+            "tentatives_precedentes": "Discussion informelle, rappel des horaires",
+            "description_libre": "La situation dure depuis 2 mois, j'ai besoin d'une approche plus structurée"
+        }
+        
+        print("   Creating conflict resolution with AI analysis (may take 10-15 seconds)...")
+        success, response = self.run_test(
+            "Create Conflict Resolution",
+            "POST",
+            "manager/conflict-resolution",
+            200,
+            data=conflict_data,
+            token=self.manager_token
+        )
+        
+        created_conflict = None
+        if success:
+            created_conflict = response
+            # Verify all input fields are present
+            input_fields = list(conflict_data.keys())
+            missing_input_fields = []
+            
+            for field in input_fields:
+                if field not in response or response[field] != conflict_data[field]:
+                    missing_input_fields.append(field)
+            
+            if missing_input_fields:
+                self.log_test("Conflict Resolution Input Data Validation", False, f"Missing or incorrect input fields: {missing_input_fields}")
+            else:
+                self.log_test("Conflict Resolution Input Data Validation", True)
+                print("   ✅ All input fields correctly saved")
+            
+            # Verify required system fields are present
+            required_system_fields = ['id', 'manager_id', 'seller_id', 'created_at', 'statut']
+            missing_system_fields = []
+            
+            for field in required_system_fields:
+                if field not in response:
+                    missing_system_fields.append(field)
+            
+            if missing_system_fields:
+                self.log_test("Conflict Resolution System Fields Validation", False, f"Missing system fields: {missing_system_fields}")
+            else:
+                self.log_test("Conflict Resolution System Fields Validation", True)
+                print(f"   ✅ Conflict Resolution ID: {response.get('id')}")
+                print(f"   ✅ Manager ID: {response.get('manager_id')}")
+                print(f"   ✅ Seller ID: {response.get('seller_id')}")
+                print(f"   ✅ Status: {response.get('statut')}")
+            
+            # Verify AI analysis fields are present and in French
+            ai_fields = ['ai_analyse_situation', 'ai_approche_communication', 'ai_actions_concretes', 'ai_points_vigilance']
+            missing_ai_fields = []
+            
+            for field in ai_fields:
+                if field not in response or not response[field]:
+                    missing_ai_fields.append(field)
+            
+            if missing_ai_fields:
+                self.log_test("Conflict Resolution AI Analysis Validation", False, f"Missing AI fields: {missing_ai_fields}")
+            else:
+                self.log_test("Conflict Resolution AI Analysis Validation", True)
+                print(f"   ✅ AI Situation Analysis: {response.get('ai_analyse_situation', '')[:100]}...")
+                print(f"   ✅ AI Communication Approach: {response.get('ai_approche_communication', '')[:100]}...")
+                
+                # Verify ai_actions_concretes is a list
+                actions = response.get('ai_actions_concretes', [])
+                if isinstance(actions, list) and len(actions) > 0:
+                    print(f"   ✅ AI Concrete Actions ({len(actions)} actions): {actions[0][:80]}...")
+                else:
+                    self.log_test("AI Actions Format Validation", False, "ai_actions_concretes should be a non-empty list")
+                
+                # Verify ai_points_vigilance is a list
+                vigilance = response.get('ai_points_vigilance', [])
+                if isinstance(vigilance, list) and len(vigilance) > 0:
+                    print(f"   ✅ AI Vigilance Points ({len(vigilance)} points): {vigilance[0][:80]}...")
+                else:
+                    self.log_test("AI Vigilance Format Validation", False, "ai_points_vigilance should be a non-empty list")
+                
+                # Check if responses are in French (basic check for French words)
+                french_indicators = ['le', 'la', 'les', 'de', 'du', 'des', 'et', 'à', 'pour', 'avec', 'sur', 'dans', 'vous', 'manager', 'vendeur']
+                ai_text = f"{response.get('ai_analyse_situation', '')} {response.get('ai_approche_communication', '')}"
+                
+                if any(word in ai_text.lower() for word in french_indicators):
+                    print("   ✅ AI responses appear to be in French")
+                else:
+                    print("   ⚠️  AI responses may not be in French")
+        
+        # Test 2: Get conflict history
+        success, response = self.run_test(
+            "Get Conflict History",
+            "GET",
+            f"manager/conflict-history/{seller_id}",
+            200,
+            token=self.manager_token
+        )
+        
+        if success:
+            if isinstance(response, list):
+                self.log_test("Get Conflict History Response Format", True)
+                print(f"   ✅ Retrieved {len(response)} conflict resolution(s)")
+                
+                # Verify the created conflict is in the list
+                if created_conflict and len(response) > 0:
+                    found_conflict = None
+                    for conflict in response:
+                        if conflict.get('id') == created_conflict.get('id'):
+                            found_conflict = conflict
+                            break
+                    
+                    if found_conflict:
+                        self.log_test("Conflict Resolution Persistence Validation", True)
+                        print("   ✅ Created conflict resolution found in history")
+                        
+                        # Verify all AI fields are still present
+                        if (found_conflict.get('ai_analyse_situation') and 
+                            found_conflict.get('ai_approche_communication') and 
+                            found_conflict.get('ai_actions_concretes') and
+                            found_conflict.get('ai_points_vigilance')):
+                            print("   ✅ All AI analysis fields persisted correctly")
+                        else:
+                            self.log_test("Conflict Resolution AI Persistence", False, "AI analysis fields not properly persisted")
+                    else:
+                        self.log_test("Conflict Resolution Persistence Validation", False, "Created conflict resolution not found in history")
+            else:
+                self.log_test("Get Conflict History Response Format", False, "Response should be an array")
+
+    def test_conflict_resolution_authorization(self):
+        """Test conflict resolution authorization scenarios"""
+        print("\n🔍 Testing Conflict Resolution Authorization...")
+        
+        # Test 1: Create conflict resolution without authentication
+        conflict_data = {
+            "seller_id": "test-seller-id",
+            "contexte": "Test context",
+            "comportement_observe": "Test behavior",
+            "impact": "Test impact",
+            "tentatives_precedentes": "Test attempts",
+            "description_libre": "Test description"
+        }
+        
+        success, response = self.run_test(
+            "Conflict Resolution - No Authentication",
+            "POST",
+            "manager/conflict-resolution",
+            401,  # Unauthorized
+            data=conflict_data
+        )
+        
+        if success:
+            print("   ✅ Correctly requires authentication for conflict resolution creation")
+        
+        # Test 2: Try as seller role (should fail)
+        if self.seller_token:
+            success, response = self.run_test(
+                "Conflict Resolution - Seller Role (Should Fail)",
+                "POST",
+                "manager/conflict-resolution",
+                403,  # Forbidden
+                data=conflict_data,
+                token=self.seller_token
+            )
+            
+            if success:
+                print("   ✅ Correctly prevents sellers from creating conflict resolutions")
+        
+        # Test 3: Get conflict history without authentication
+        success, response = self.run_test(
+            "Conflict History - No Authentication",
+            "GET",
+            "manager/conflict-history/test-seller-id",
+            401,  # Unauthorized
+        )
+        
+        if success:
+            print("   ✅ Correctly requires authentication for conflict history access")
+        
+        # Test 4: Try to access conflict history for seller not under manager
+        if self.manager_token:
+            success, response = self.run_test(
+                "Conflict History - Seller Not Under Manager",
+                "GET",
+                "manager/conflict-history/non-existent-seller-id",
+                404,  # Not found
+                token=self.manager_token
+            )
+            
+            if success:
+                print("   ✅ Correctly prevents access to sellers not under management")
+
+    def test_manager_seller_relationship(self):
+        """Test manager-seller relationship for conflict resolution"""
+        print("\n🔍 Testing Manager-Seller Relationship...")
+        
+        if not self.manager_token:
+            self.log_test("Manager-Seller Relationship", False, "No manager token available")
+            return
+        
+        # Test getting sellers under manager
+        success, response = self.run_test(
+            "Get Sellers Under Manager",
+            "GET",
+            "manager/sellers",
+            200,
+            token=self.manager_token
+        )
+        
+        if success:
+            if isinstance(response, list):
+                print(f"   ✅ Manager has {len(response)} seller(s) under management")
+                
+                # If we have sellers, test conflict resolution with first seller
+                if len(response) > 0:
+                    first_seller = response[0]
+                    seller_id = first_seller.get('id')
+                    print(f"   ✅ Testing with seller: {first_seller.get('name')} ({seller_id})")
+                    
+                    # Test creating conflict resolution for this seller
+                    conflict_data = {
+                        "seller_id": seller_id,
+                        "contexte": "Problème de ponctualité récurrent",
+                        "comportement_observe": "Arrivées tardives répétées le matin",
+                        "impact": "Retard dans l'ouverture du magasin, clients mécontents",
+                        "tentatives_precedentes": "Rappel verbal des horaires",
+                        "description_libre": "Situation qui perdure depuis 3 semaines"
+                    }
+                    
+                    success, conflict_response = self.run_test(
+                        "Create Conflict Resolution - Valid Seller",
+                        "POST",
+                        "manager/conflict-resolution",
+                        200,
+                        data=conflict_data,
+                        token=self.manager_token
+                    )
+                    
+                    if success:
+                        print("   ✅ Successfully created conflict resolution for managed seller")
+                        
+                        # Test getting conflict history for this seller
+                        success, history_response = self.run_test(
+                            "Get Conflict History - Valid Seller",
+                            "GET",
+                            f"manager/conflict-history/{seller_id}",
+                            200,
+                            token=self.manager_token
+                        )
+                        
+                        if success and isinstance(history_response, list):
+                            print(f"   ✅ Retrieved conflict history: {len(history_response)} conflict(s)")
+                else:
+                    print("   ⚠️  No sellers under this manager - creating test relationship")
+                    # Link our test seller to this manager if available
+                    if self.seller_user:
+                        self.run_test(
+                            "Link Test Seller to Manager",
+                            "PATCH",
+                            f"users/{self.seller_user['id']}/link-manager?manager_id={self.manager_user['id']}",
+                            200,
+                            token=self.manager_token
+                        )
+            else:
+                self.log_test("Get Sellers Response Format", False, "Response should be an array")
 
     def test_error_cases(self):
         """Test error handling"""
