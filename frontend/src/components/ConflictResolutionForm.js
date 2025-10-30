@@ -23,8 +23,7 @@ const conflictReducer = (state, action) => {
           impact: '',
           tentatives_precedentes: '',
           description_libre: ''
-        },
-        showResult: false
+        }
       };
     case 'UPDATE_FORM':
       return { 
