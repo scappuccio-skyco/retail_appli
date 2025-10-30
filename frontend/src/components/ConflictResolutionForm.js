@@ -13,7 +13,7 @@ const conflictReducer = (state, action) => {
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
     case 'SET_AI_RECOMMENDATIONS':
-      return { ...state, aiRecommendations: action.payload, loading: false };
+      return { ...state, aiRecommendations: action.payload, loading: false, showResult: true };
     case 'RESET_FORM':
       return { 
         ...state, 
@@ -23,7 +23,8 @@ const conflictReducer = (state, action) => {
           impact: '',
           tentatives_precedentes: '',
           description_libre: ''
-        }
+        },
+        showResult: false
       };
     case 'UPDATE_FORM':
       return { 
@@ -42,6 +43,8 @@ const conflictReducer = (state, action) => {
           [action.id]: !state.expandedHistoryItems[action.id]
         }
       };
+    case 'BACK_TO_FORM':
+      return { ...state, showResult: false, aiRecommendations: null };
     default:
       return state;
   }
