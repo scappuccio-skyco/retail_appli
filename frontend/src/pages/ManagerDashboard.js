@@ -55,7 +55,7 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const handleSellerClick = async (seller) => {
     setSelectedSeller(seller);
-    await fetchSellerStats(seller.id);
+    setShowDetailView(true);
   };
 
   const handleInviteSuccess = () => {
