@@ -21,16 +21,16 @@ SELLER_IDS = [
 ]
 
 async def add_kpi_data():
-    """Add 90 days of KPI data for specified sellers"""
+    """Add 365 days (1 year) of KPI data for specified sellers"""
     
     print(f"Adding KPI data for {len(SELLER_IDS)} sellers...")
     
     for seller_id in SELLER_IDS:
         print(f"\nGenerating KPI data for seller {seller_id}...")
         
-        # Generate data for last 90 days
+        # Generate data for last 365 days (1 year)
         added_count = 0
-        for day_offset in range(90):
+        for day_offset in range(365):
             date = datetime.now(timezone.utc) - timedelta(days=day_offset)
             
             # Generate realistic KPI data with some variation
