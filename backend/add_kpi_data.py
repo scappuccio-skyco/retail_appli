@@ -71,8 +71,9 @@ async def add_kpi_data():
     print("\n✅ KPI data generation complete!")
 
 if __name__ == "__main__":
-    asyncio.run(add_kpi_data())
-
-
-if __name__ == "__main__":
-    asyncio.run(add_kpi_data())
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(add_kpi_data())
+    finally:
+        loop.close()
