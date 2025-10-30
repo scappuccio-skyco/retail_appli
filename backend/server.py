@@ -223,6 +223,34 @@ class ManagerRequestResponse(BaseModel):
     request_id: str
     response: str
 
+# ===== CONFLICT RESOLUTION MODELS =====
+class ConflictResolution(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    manager_id: str
+    seller_id: str
+    # Questions structurées
+    contexte: str  # Contexte général de la situation
+    comportement_observe: str  # Comportement spécifique observé
+    impact: str  # Impact sur l'équipe/performance/clients
+    tentatives_precedentes: str  # Ce qui a déjà été tenté
+    description_libre: str  # Détails supplémentaires
+    # AI Analysis
+    ai_analyse_situation: str  # Analyse de la situation
+    ai_approche_communication: str  # Comment aborder la conversation
+    ai_actions_concretes: list[str]  # Liste d'actions à mettre en place
+    ai_points_vigilance: list[str]  # Points d'attention
+    statut: str = "ouvert"  # ouvert, en_cours, resolu
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ConflictResolutionCreate(BaseModel):
+    seller_id: str
+    contexte: str
+    comportement_observe: str
+    impact: str
+    tentatives_precedentes: str
+    description_libre: str
+
 # ===== KPI MODELS =====
 # KPI that sellers enter (raw data)
 SELLER_INPUT_KPIS = {
