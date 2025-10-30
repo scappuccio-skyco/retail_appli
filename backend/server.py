@@ -1887,7 +1887,8 @@ Conseils :
                 "panier_moyen": round(panier_moyen_equipe, 2),
                 "taux_transformation": round(taux_transfo_equipe, 2)
             },
-            competences_moyenne=competences_moyenne
+            competences_moyenne=competences_moyenne,
+            donnees_sources=team_data  # Données brutes pour vérification
         )
         
         # Save to database
