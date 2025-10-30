@@ -16,6 +16,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [sellerStats, setSellerStats] = useState(null);
   const [sellerDiagnostic, setSellerDiagnostic] = useState(null);
   const [sellerKPIs, setSellerKPIs] = useState([]);
+  const [activeTab, setActiveTab] = useState('competences'); // 'competences', 'kpi', 'evaluations'
   const [invitations, setInvitations] = useState([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showKPIConfigModal, setShowKPIConfigModal] = useState(false);
