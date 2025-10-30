@@ -231,92 +231,109 @@ export default function ManagerDashboard({ user, onLogout }) {
 
       <div className="max-w-7xl mx-auto">
         {/* Compact Cards - Profile & Bilan side by side */}
-        {(managerDiagnostic || teamBilan) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {/* Manager Profile Compact Card */}
-            {managerDiagnostic && (
-              <div 
-                onClick={() => setShowManagerProfileModal(true)}
-                className="glass-morphism rounded-2xl p-6 cursor-pointer hover:shadow-xl transition-all border-2 border-transparent hover:border-[#ffd871]"
-              >
-                <div className="flex items-center gap-3 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Manager Profile Compact Card */}
+          {managerDiagnostic && (
+            <div 
+              onClick={() => setShowManagerProfileModal(true)}
+              className="glass-morphism rounded-2xl p-6 cursor-pointer hover:shadow-xl transition-all border-2 border-transparent hover:border-[#ffd871]"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Sparkles className="w-6 h-6 text-[#ffd871]" />
+                <h3 className="text-xl font-bold text-gray-800">🎯 Ton Profil Manager</h3>
+              </div>
+              
+              <div className="bg-gradient-to-r from-[#ffd871] to-yellow-200 rounded-xl p-4">
+                <h4 className="text-lg font-bold text-gray-800 mb-2">
+                  🧭 {managerDiagnostic.profil_nom}
+                </h4>
+                <p className="text-gray-700 text-sm line-clamp-2 mb-3">{managerDiagnostic.profil_description}</p>
+                
+                <div className="bg-white bg-opacity-70 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-gray-700 mb-1">💪 Forces clés</p>
+                  <p className="text-xs text-gray-600 line-clamp-2">
+                    {managerDiagnostic.force_1} • {managerDiagnostic.force_2}
+                  </p>
+                </div>
+              </div>
+              
+              <p className="text-sm text-gray-500 text-center mt-4">
+                Cliquer pour voir le profil complet →
+              </p>
+            </div>
+          )}
+
+          {/* Team Bilan Compact Card or Generate Button */}
+          {teamBilan ? (
+            <div className="glass-morphism rounded-2xl p-6 border-2 border-transparent hover:border-[#ffd871] transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
                   <Sparkles className="w-6 h-6 text-[#ffd871]" />
-                  <h3 className="text-xl font-bold text-gray-800">🎯 Ton Profil Manager</h3>
+                  <h3 className="text-xl font-bold text-gray-800">🤖 Bilan IA d'équipe</h3>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    regenerateTeamBilan();
+                  }}
+                  disabled={generatingTeamBilan}
+                  className="flex items-center gap-2 px-3 py-2 bg-[#ffd871] hover:bg-yellow-400 text-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                >
+                  <RefreshCw className={`w-4 h-4 ${generatingTeamBilan ? 'animate-spin' : ''}`} />
+                  {generatingTeamBilan ? 'Génération...' : 'Relancer'}
+                </button>
+              </div>
+              
+              <div 
+                onClick={() => setShowTeamBilanModal(true)}
+                className="cursor-pointer space-y-3"
+              >
+                <div className="bg-gradient-to-r from-[#ffd871] to-yellow-200 rounded-xl p-3">
+                  <p className="text-xs text-gray-700 mb-1">{teamBilan.periode}</p>
+                  <p className="text-sm text-gray-800 font-medium line-clamp-2">{teamBilan.synthese}</p>
                 </div>
                 
-                <div className="bg-gradient-to-r from-[#ffd871] to-yellow-200 rounded-xl p-4">
-                  <h4 className="text-lg font-bold text-gray-800 mb-2">
-                    🧭 {managerDiagnostic.profil_nom}
-                  </h4>
-                  <p className="text-gray-700 text-sm line-clamp-2 mb-3">{managerDiagnostic.profil_description}</p>
-                  
-                  <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                    <p className="text-xs font-semibold text-gray-700 mb-1">💪 Forces clés</p>
-                    <p className="text-xs text-gray-600 line-clamp-2">
-                      {managerDiagnostic.force_1} • {managerDiagnostic.force_2}
-                    </p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-blue-50 rounded-lg p-2 text-center">
+                    <p className="text-xs text-blue-600">💰 CA</p>
+                    <p className="text-sm font-bold text-blue-900">{(teamBilan.kpi_resume.ca_total / 1000).toFixed(0)}k€</p>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-2 text-center">
+                    <p className="text-xs text-green-600">🛒 Ventes</p>
+                    <p className="text-sm font-bold text-green-900">{teamBilan.kpi_resume.ventes}</p>
+                  </div>
+                  <div className="bg-purple-50 rounded-lg p-2 text-center">
+                    <p className="text-xs text-purple-600">📈 Taux</p>
+                    <p className="text-sm font-bold text-purple-900">{teamBilan.kpi_resume.taux_transformation.toFixed(0)}%</p>
                   </div>
                 </div>
                 
                 <p className="text-sm text-gray-500 text-center mt-4">
-                  Cliquer pour voir le profil complet →
+                  Cliquer pour voir le bilan complet →
                 </p>
               </div>
-            )}
-
-            {/* Team Bilan Compact Card */}
-            {teamBilan && (
-              <div className="glass-morphism rounded-2xl p-6 border-2 border-transparent hover:border-[#ffd871] transition-all">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <Sparkles className="w-6 h-6 text-[#ffd871]" />
-                    <h3 className="text-xl font-bold text-gray-800">🤖 Bilan IA d'équipe</h3>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      regenerateTeamBilan();
-                    }}
-                    disabled={generatingTeamBilan}
-                    className="flex items-center gap-2 px-3 py-2 bg-[#ffd871] hover:bg-yellow-400 text-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                  >
-                    <RefreshCw className={`w-4 h-4 ${generatingTeamBilan ? 'animate-spin' : ''}`} />
-                    {generatingTeamBilan ? 'Génération...' : 'Relancer'}
-                  </button>
-                </div>
-                
-                <div 
-                  onClick={() => setShowTeamBilanModal(true)}
-                  className="cursor-pointer space-y-3"
-                >
-                  <div className="bg-gradient-to-r from-[#ffd871] to-yellow-200 rounded-xl p-3">
-                    <p className="text-xs text-gray-700 mb-1">{teamBilan.periode}</p>
-                    <p className="text-sm text-gray-800 font-medium line-clamp-2">{teamBilan.synthese}</p>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-blue-50 rounded-lg p-2 text-center">
-                      <p className="text-xs text-blue-600">💰 CA</p>
-                      <p className="text-sm font-bold text-blue-900">{(teamBilan.kpi_resume.ca_total / 1000).toFixed(0)}k€</p>
-                    </div>
-                    <div className="bg-green-50 rounded-lg p-2 text-center">
-                      <p className="text-xs text-green-600">🛒 Ventes</p>
-                      <p className="text-sm font-bold text-green-900">{teamBilan.kpi_resume.ventes}</p>
-                    </div>
-                    <div className="bg-purple-50 rounded-lg p-2 text-center">
-                      <p className="text-xs text-purple-600">📈 Taux</p>
-                      <p className="text-sm font-bold text-purple-900">{teamBilan.kpi_resume.taux_transformation.toFixed(0)}%</p>
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm text-gray-500 text-center mt-4">
-                    Cliquer pour voir le bilan complet →
-                  </p>
-                </div>
+            </div>
+          ) : (
+            <div className="glass-morphism rounded-2xl p-6 border-2 border-dashed border-gray-300">
+              <div className="flex items-center gap-3 mb-4">
+                <Sparkles className="w-6 h-6 text-[#ffd871]" />
+                <h3 className="text-xl font-bold text-gray-800">🤖 Bilan IA d'équipe</h3>
               </div>
-            )}
-          </div>
-        )}
+              
+              <div className="text-center py-8">
+                <p className="text-gray-600 mb-4">Aucun bilan d'équipe généré pour le moment</p>
+                <button
+                  onClick={regenerateTeamBilan}
+                  disabled={generatingTeamBilan}
+                  className="flex items-center gap-2 px-4 py-3 bg-[#ffd871] hover:bg-yellow-400 text-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium mx-auto"
+                >
+                  <Sparkles className={`w-5 h-5 ${generatingTeamBilan ? 'animate-spin' : ''}`} />
+                  {generatingTeamBilan ? 'Génération en cours...' : 'Générer le bilan'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Team Bilan IA */}
         {/* <TeamBilanIA /> */}
