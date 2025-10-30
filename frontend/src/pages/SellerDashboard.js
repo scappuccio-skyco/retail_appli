@@ -184,6 +184,13 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           </div>
           <div className="flex gap-3">
             <button
+              onClick={() => setShowDiagnosticModal(true)}
+              className="btn-secondary flex items-center gap-2"
+            >
+              <Sparkles className="w-5 h-5" />
+              {diagnostic ? 'Refaire mon diagnostic' : 'Faire mon diagnostic'}
+            </button>
+            <button
               onClick={() => setShowKPIReporting(true)}
               className="btn-secondary flex items-center gap-2"
             >
