@@ -131,6 +131,56 @@ export default function TeamBilanIA() {
         <p className="text-gray-800 font-medium">{bilan.synthese}</p>
       </div>
 
+      {/* Données sources panel */}
+      {showDataSources && bilan.donnees_sources && (
+        <div className="bg-white border-2 border-blue-300 rounded-xl p-4 mb-4 animate-fadeIn">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">📊</span>
+            <h3 className="font-bold text-blue-900">Données sources utilisées par l'IA</h3>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b-2 border-blue-200">
+                  <th className="text-left py-2 px-3 text-blue-900">Vendeur</th>
+                  <th className="text-right py-2 px-3 text-blue-900">CA</th>
+                  <th className="text-right py-2 px-3 text-blue-900">Ventes</th>
+                  <th className="text-right py-2 px-3 text-blue-900">Panier Moyen</th>
+                  <th className="text-right py-2 px-3 text-blue-900">Scores</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bilan.donnees_sources.map((seller, idx) => (
+                  <tr key={idx} className="border-b border-blue-100 hover:bg-blue-50">
+                    <td className="py-2 px-3 font-medium text-gray-800">{seller.name}</td>
+                    <td className="text-right py-2 px-3 text-gray-700">{seller.ca.toFixed(2)}€</td>
+                    <td className="text-right py-2 px-3 text-gray-700">{seller.ventes}</td>
+                    <td className="text-right py-2 px-3 text-gray-700">{seller.panier_moyen.toFixed(2)}€</td>
+                    <td className="text-right py-2 px-3 text-xs text-gray-600">
+                      {seller.scores ? (
+                        <span>
+                          A:{seller.scores.score_accueil} 
+                          D:{seller.scores.score_decouverte} 
+                          Ar:{seller.scores.score_argumentation} 
+                          C:{seller.scores.score_closing} 
+                          F:{seller.scores.score_fidelisation}
+                        </span>
+                      ) : 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="mt-4 bg-blue-50 rounded-lg p-3 text-sm text-blue-800">
+            <p className="font-semibold mb-1">💡 Pourquoi cette section ?</p>
+            <p>Ces données brutes sont celles envoyées à l'IA. Elles te permettent de vérifier que l'analyse est basée sur des chiffres réels et non inventés.</p>
+          </div>
+        </div>
+      )}
+
       {expanded && (
         <div className="space-y-4 animate-fadeIn">
           {/* Points forts */}
