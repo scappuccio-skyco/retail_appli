@@ -15,21 +15,21 @@ MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(MONGO_URL)
 db = client['retail_coach']
 
+# IDs de vendeurs existants (basé sur l'application)
+SELLER_IDS = [
+    "647f438b-d3c7-4286-81bc-3682a443c480",  # Test Vendeur 2 / vendeur2@test.com
+]
+
 async def add_kpi_data():
-    """Add 90 days of KPI data for all sellers"""
+    """Add 90 days of KPI data for specified sellers"""
     
-    # Get all sellers
-    sellers = await db.users.find({"role": "seller"}, {"_id": 0}).to_list(100)
+    print(f"Adding KPI data for {len(SELLER_IDS)} sellers...")
     
-    print(f"Found {len(sellers)} sellers")
-    
-    for seller in sellers:
-        seller_id = seller['id']
-        seller_name = seller['name']
-        
-        print(f"\nGenerating KPI data for {seller_name}...")
+    for seller_id in SELLER_IDS:
+        print(f"\nGenerating KPI data for seller {seller_id}...")
         
         # Generate data for last 90 days
+        added_count = 0
         for day_offset in range(90):
             date = datetime.now(timezone.utc) - timedelta(days=day_offset)
             
@@ -49,7 +49,6 @@ async def add_kpi_data():
             })
             
             if existing:
-                print(f"  KPI for {date.date()} already exists, skipping...")
                 continue
             
             kpi_entry = {
@@ -65,10 +64,15 @@ async def add_kpi_data():
             }
             
             await db.kpi_entries.insert_one(kpi_entry)
+            added_count += 1
         
-        print(f"  ✅ Added 90 days of KPI data for {seller_name}")
+        print(f"  ✅ Added {added_count} days of KPI data for seller {seller_id}")
     
     print("\n✅ KPI data generation complete!")
+
+if __name__ == "__main__":
+    asyncio.run(add_kpi_data())
+
 
 if __name__ == "__main__":
     asyncio.run(add_kpi_data())
