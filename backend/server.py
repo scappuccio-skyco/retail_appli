@@ -2203,6 +2203,38 @@ async def get_conflict_history(
     
     return conflicts
 
+@api_router.delete("/manager/seller/{seller_id}/diagnostic")
+async def reset_seller_diagnostic(
+    seller_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Reset seller diagnostic so they can retake the test"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can reset diagnostics")
+    
+    # Verify seller belongs to manager
+    seller = await db.users.find_one({"id": seller_id, "manager_id": current_user['id']})
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not found")
+    
+    # Delete diagnostic
+    result = await db.diagnostics.delete_one({"seller_id": seller_id})
+    
+    return {"status": "success", "message": "Diagnostic reset successfully"}
+
+@api_router.delete("/manager/diagnostic")
+async def reset_manager_diagnostic(
+    current_user: dict = Depends(get_current_user)
+):
+    """Reset manager diagnostic so they can retake the test"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can reset their diagnostic")
+    
+    # Delete manager diagnostic
+    result = await db.manager_diagnostics.delete_one({"manager_id": current_user['id']})
+    
+    return {"status": "success", "message": "Manager diagnostic reset successfully"}
+
 # Include router
 app.include_router(api_router)
 
