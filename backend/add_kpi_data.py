@@ -16,7 +16,7 @@ client = AsyncIOMotorClient(MONGO_URL)
 db = client['retail_coach']
 
 async def add_kpi_data():
-    """Add 365 days (1 year) of KPI data for ALL sellers"""
+    """Add KPI data from 29/10/2024 to today for ALL sellers"""
     
     # Get all sellers from database
     sellers = await db.users.find({"role": "seller"}, {"_id": 0, "id": 1, "name": 1}).to_list(100)
@@ -25,6 +25,15 @@ async def add_kpi_data():
         print("No sellers found in database!")
         return
     
+    # Start date: 29/10/2024
+    start_date = datetime(2024, 10, 29, 0, 0, 0, tzinfo=timezone.utc)
+    end_date = datetime.now(timezone.utc)
+    
+    # Calculate number of days
+    total_days = (end_date - start_date).days + 1
+    
+    print(f"Generating KPI data from {start_date.date()} to {end_date.date()}")
+    print(f"Total days: {total_days}")
     print(f"Adding KPI data for {len(sellers)} sellers...")
     
     for seller in sellers:
@@ -32,11 +41,12 @@ async def add_kpi_data():
         seller_name = seller.get('name', 'Unknown')
         print(f"\nGenerating KPI data for {seller_name} ({seller_id})...")
         
-        # Generate data for last 365 days (1 year)
         added_count = 0
-        for day_offset in range(365):
-            date = datetime.now(timezone.utc) - timedelta(days=day_offset)
-            
+        updated_count = 0
+        
+        # Generate data for each day from start_date to end_date
+        current_date = start_date
+        while current_date <= end_date:
             # Generate realistic KPI data with some variation
             base_ventes = random.randint(5, 15)
             base_ca = random.uniform(800, 2500)
@@ -49,30 +59,44 @@ async def add_kpi_data():
             # Check if entry already exists for this date
             existing = await db.kpi_entries.find_one({
                 "seller_id": seller_id,
-                "date": date.date().isoformat()
+                "date": current_date.date().isoformat()
             })
             
             if existing:
-                continue
+                # Update existing entry
+                await db.kpi_entries.update_one(
+                    {"seller_id": seller_id, "date": current_date.date().isoformat()},
+                    {"$set": {
+                        "ca_journalier": round(ca_journalier, 2),
+                        "nb_ventes": nb_ventes,
+                        "panier_moyen": round(panier_moyen, 2),
+                        "nb_clients": nb_clients,
+                        "taux_transformation": round(taux_transformation, 2)
+                    }}
+                )
+                updated_count += 1
+            else:
+                # Create new entry
+                kpi_entry = {
+                    "id": str(uuid.uuid4()),
+                    "seller_id": seller_id,
+                    "date": current_date.date().isoformat(),
+                    "ca_journalier": round(ca_journalier, 2),
+                    "nb_ventes": nb_ventes,
+                    "panier_moyen": round(panier_moyen, 2),
+                    "nb_clients": nb_clients,
+                    "taux_transformation": round(taux_transformation, 2),
+                    "created_at": current_date.isoformat()
+                }
+                await db.kpi_entries.insert_one(kpi_entry)
+                added_count += 1
             
-            kpi_entry = {
-                "id": str(uuid.uuid4()),
-                "seller_id": seller_id,
-                "date": date.date().isoformat(),
-                "ca_journalier": round(ca_journalier, 2),
-                "nb_ventes": nb_ventes,
-                "panier_moyen": round(panier_moyen, 2),
-                "nb_clients": nb_clients,
-                "taux_transformation": round(taux_transformation, 2),
-                "created_at": date.isoformat()
-            }
-            
-            await db.kpi_entries.insert_one(kpi_entry)
-            added_count += 1
+            # Move to next day
+            current_date += timedelta(days=1)
         
-        print(f"  ✅ Added {added_count} days of KPI data for {seller_name}")
+        print(f"  ✅ {seller_name}: Added {added_count} new entries, Updated {updated_count} existing entries")
     
-    print("\n✅ KPI data generation complete! Added 1 year of data for all sellers.")
+    print(f"\n✅ KPI data generation complete! Added data from 29/10/2024 to today for all sellers.")
 
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
