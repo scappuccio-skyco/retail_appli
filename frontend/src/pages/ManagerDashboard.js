@@ -282,7 +282,18 @@ export default function ManagerDashboard({ user, onLogout }) {
 
           {/* Seller Details */}
           <div className="glass-morphism rounded-2xl p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Détails Vendeur</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Détails Vendeur</h2>
+              {selectedSeller && (
+                <button
+                  onClick={handleViewFullDetails}
+                  className="btn-primary flex items-center gap-2 text-sm"
+                >
+                  <Award className="w-4 h-4" />
+                  Voir tous les détails
+                </button>
+              )}
+            </div>
             {sellerStats ? (
               <div>
                 {/* Diagnostic Profile */}
@@ -306,7 +317,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                         <p className="text-sm font-bold text-gray-800">{sellerDiagnostic.motivation}</p>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-700 leading-relaxed">
+                    <p className="text-xs text-gray-700 leading-relaxed line-clamp-3">
                       {sellerDiagnostic.ai_profile_summary}
                     </p>
                   </div>
