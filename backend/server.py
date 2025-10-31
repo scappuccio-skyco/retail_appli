@@ -1320,6 +1320,8 @@ async def get_seller_diagnostic(seller_id: str, current_user: dict = Depends(get
     if not diagnostic:
         return None
     
+    return diagnostic
+
 
 @api_router.delete("/diagnostic/me")
 async def delete_my_diagnostic(current_user: dict = Depends(get_current_user)):
