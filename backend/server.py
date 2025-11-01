@@ -2327,3 +2327,211 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+
+# ===== KPI CONFIGURATION ENDPOINTS =====
+@api_router.get("/manager/kpi-config")
+async def get_kpi_config(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access KPI config")
+    
+    config = await db.kpi_configs.find_one({"manager_id": current_user['id']}, {"_id": 0})
+    
+    if not config:
+        # Create default config
+        default_config = KPIConfiguration(
+            manager_id=current_user['id'],
+            track_ca=True,
+            track_ventes=True,
+            track_clients=True,
+            track_articles=True
+        )
+        doc = default_config.model_dump()
+        doc['created_at'] = doc['created_at'].isoformat()
+        doc['updated_at'] = doc['updated_at'].isoformat()
+        await db.kpi_configs.insert_one(doc)
+        return default_config
+    
+    return config
+
+@api_router.put("/manager/kpi-config")
+async def update_kpi_config(config_update: KPIConfigUpdate, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can update KPI config")
+    
+    update_data = {k: v for k, v in config_update.model_dump().items() if v is not None}
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.kpi_configs.update_one(
+        {"manager_id": current_user['id']},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    config = await db.kpi_configs.find_one({"manager_id": current_user['id']}, {"_id": 0})
+    return config
+
+# ===== MANAGER OBJECTIVES ENDPOINTS =====
+@api_router.get("/manager/objectives")
+async def get_manager_objectives(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access objectives")
+    
+    objectives = await db.manager_objectives.find(
+        {"manager_id": current_user['id']},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(10)
+    
+    return objectives
+
+@api_router.post("/manager/objectives")
+async def create_manager_objectives(objectives_data: ManagerObjectivesCreate, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can create objectives")
+    
+    objectives = ManagerObjectives(
+        manager_id=current_user['id'],
+        **objectives_data.model_dump()
+    )
+    
+    doc = objectives.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
+    await db.manager_objectives.insert_one(doc)
+    
+    return objectives
+
+# ===== CHALLENGE ENDPOINTS =====
+@api_router.get("/manager/challenges")
+async def get_manager_challenges(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access challenges")
+    
+    challenges = await db.challenges.find(
+        {"manager_id": current_user['id']},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    # Calculate progress for each challenge
+    for challenge in challenges:
+        await calculate_challenge_progress(challenge)
+    
+    return challenges
+
+@api_router.get("/seller/challenges")
+async def get_seller_challenges(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access their challenges")
+    
+    # Get manager
+    user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    if not user or not user.get('manager_id'):
+        return []
+    
+    manager_id = user['manager_id']
+    
+    # Get challenges: collective OR individual for this seller
+    challenges = await db.challenges.find({
+        "manager_id": manager_id,
+        "$or": [
+            {"type": "collective"},
+            {"type": "individual", "seller_id": current_user['id']}
+        ],
+        "status": "active"
+    }, {"_id": 0}).to_list(100)
+    
+    # Calculate progress
+    for challenge in challenges:
+        await calculate_challenge_progress(challenge, current_user['id'])
+    
+    return challenges
+
+@api_router.post("/manager/challenges")
+async def create_challenge(challenge_data: ChallengeCreate, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can create challenges")
+    
+    # Verify seller exists if individual challenge
+    if challenge_data.type == "individual":
+        if not challenge_data.seller_id:
+            raise HTTPException(status_code=400, detail="seller_id required for individual challenges")
+        
+        seller = await db.users.find_one({"id": challenge_data.seller_id, "manager_id": current_user['id']}, {"_id": 0})
+        if not seller:
+            raise HTTPException(status_code=404, detail="Seller not found in your team")
+    
+    challenge = Challenge(
+        manager_id=current_user['id'],
+        **challenge_data.model_dump()
+    )
+    
+    doc = challenge.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    if doc.get('completed_at'):
+        doc['completed_at'] = doc['completed_at'].isoformat()
+    
+    await db.challenges.insert_one(doc)
+    
+    return challenge
+
+async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
+    """Calculate progress for a challenge"""
+    start_date = challenge['start_date']
+    end_date = challenge['end_date']
+    
+    if challenge['type'] == 'collective':
+        # Get all sellers for this manager
+        manager_id = challenge['manager_id']
+        sellers = await db.users.find({"manager_id": manager_id, "role": "seller"}, {"_id": 0, "id": 1}).to_list(1000)
+        seller_ids = [s['id'] for s in sellers]
+        
+        # Get KPI entries for all sellers in date range
+        entries = await db.kpi_entries.find({
+            "seller_id": {"$in": seller_ids},
+            "date": {"$gte": start_date, "$lte": end_date}
+        }, {"_id": 0}).to_list(10000)
+    else:
+        # Individual challenge
+        target_seller_id = seller_id or challenge.get('seller_id')
+        entries = await db.kpi_entries.find({
+            "seller_id": target_seller_id,
+            "date": {"$gte": start_date, "$lte": end_date}
+        }, {"_id": 0}).to_list(10000)
+    
+    # Calculate totals
+    total_ca = sum(e.get('ca_journalier', 0) for e in entries)
+    total_ventes = sum(e.get('nb_ventes', 0) for e in entries)
+    total_articles = sum(e.get('nb_articles', 0) for e in entries)
+    
+    # Calculate averages
+    panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
+    indice_vente = total_ca / total_articles if total_articles > 0 else 0
+    
+    # Update progress
+    challenge['progress_ca'] = total_ca
+    challenge['progress_ventes'] = total_ventes
+    challenge['progress_panier_moyen'] = panier_moyen
+    challenge['progress_indice_vente'] = indice_vente
+    
+    # Check if challenge is completed
+    if datetime.now().strftime('%Y-%m-%d') > end_date:
+        if challenge['status'] == 'active':
+            # Check if all targets are met
+            completed = True
+            if challenge.get('ca_target') and total_ca < challenge['ca_target']:
+                completed = False
+            if challenge.get('ventes_target') and total_ventes < challenge['ventes_target']:
+                completed = False
+            if challenge.get('panier_moyen_target') and panier_moyen < challenge['panier_moyen_target']:
+                completed = False
+            if challenge.get('indice_vente_target') and indice_vente < challenge['indice_vente_target']:
+                completed = False
+            
+            new_status = 'completed' if completed else 'failed'
+            await db.challenges.update_one(
+                {"id": challenge['id']},
+                {"$set": {"status": new_status, "completed_at": datetime.now(timezone.utc).isoformat()}}
+            )
+            challenge['status'] = new_status
+
