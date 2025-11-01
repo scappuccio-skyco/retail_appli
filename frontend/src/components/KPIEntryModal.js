@@ -8,10 +8,12 @@ const API = `${BACKEND_URL}/api`;
 
 export default function KPIEntryModal({ onClose, onSuccess }) {
   const [enabled, setEnabled] = useState(false);
+  const [kpiConfig, setKpiConfig] = useState(null);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [caJournalier, setCaJournalier] = useState('');
   const [nbVentes, setNbVentes] = useState('');
   const [nbClients, setNbClients] = useState('');
+  const [nbArticles, setNbArticles] = useState('');
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,12 +24,17 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
 
   const fetchData = async () => {
     try {
-      const [statusRes, entriesRes] = await Promise.all([
-        axios.get(`${API}/seller/kpi-enabled`),
-        axios.get(`${API}/seller/kpi-entries?days=1`)
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      const [statusRes, entriesRes, configRes] = await Promise.all([
+        axios.get(`${API}/seller/kpi-enabled`, { headers }),
+        axios.get(`${API}/seller/kpi-entries?days=1`, { headers }),
+        axios.get(`${API}/seller/kpi-config`, { headers })
       ]);
       
       setEnabled(statusRes.data.enabled || false);
+      setKpiConfig(configRes.data);
       
       // If there's an entry for selected date, pre-fill it
       const existingEntry = entriesRes.data.find(e => e.date === date);
@@ -35,14 +42,17 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
         setCaJournalier(existingEntry.ca_journalier || '');
         setNbVentes(existingEntry.nb_ventes || '');
         setNbClients(existingEntry.nb_clients || '');
+        setNbArticles(existingEntry.nb_articles || '');
         setComment(existingEntry.comment || '');
       } else {
         setCaJournalier('');
         setNbVentes('');
         setNbClients('');
+        setNbArticles('');
         setComment('');
       }
     } catch (err) {
+      console.error('Error loading KPI data:', err);
       toast.error('Erreur de chargement des KPI');
     } finally {
       setLoading(false);
@@ -50,24 +60,36 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
   };
 
   const handleSubmit = async () => {
-    if (!caJournalier || !nbVentes || !nbClients) {
-      toast.error('Veuillez remplir tous les champs');
+    // Validate only required fields based on config
+    const missingFields = [];
+    if (kpiConfig?.track_ca && !caJournalier) missingFields.push('CA');
+    if (kpiConfig?.track_ventes && !nbVentes) missingFields.push('Ventes');
+    if (kpiConfig?.track_clients && !nbClients) missingFields.push('Clients');
+    if (kpiConfig?.track_articles && !nbArticles) missingFields.push('Articles');
+    
+    if (missingFields.length > 0) {
+      toast.error(`Veuillez remplir : ${missingFields.join(', ')}`);
       return;
     }
 
     setSaving(true);
     try {
+      const token = localStorage.getItem('token');
       await axios.post(`${API}/seller/kpi-entry`, {
         date,
-        ca_journalier: parseFloat(caJournalier),
-        nb_ventes: parseInt(nbVentes),
-        nb_clients: parseInt(nbClients),
+        ca_journalier: kpiConfig?.track_ca ? parseFloat(caJournalier) : 0,
+        nb_ventes: kpiConfig?.track_ventes ? parseInt(nbVentes) : 0,
+        nb_clients: kpiConfig?.track_clients ? parseInt(nbClients) : 0,
+        nb_articles: kpiConfig?.track_articles ? parseInt(nbArticles) : 0,
         comment: comment || null
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('KPI enregistrés avec succès!');
       onSuccess();
       onClose();
     } catch (err) {
+      console.error('Error saving KPI:', err);
       toast.error(err.response?.data?.detail || 'Erreur lors de l\'enregistrement');
     } finally {
       setSaving(false);
