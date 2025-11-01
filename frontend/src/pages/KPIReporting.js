@@ -152,6 +152,7 @@ export default function KPIReporting({ user, onBack }) {
             clients: 0,
             panierMoyenSum: 0,
             tauxTransfoSum: 0,
+            indiceVenteSum: 0,
             count: 0
           };
         }
@@ -161,6 +162,7 @@ export default function KPIReporting({ user, onBack }) {
         weeklyData[weekKey].clients += entry.nb_clients || 0;
         weeklyData[weekKey].panierMoyenSum += entry.panier_moyen || 0;
         weeklyData[weekKey].tauxTransfoSum += entry.taux_transformation || 0;
+        weeklyData[weekKey].indiceVenteSum += entry.indice_vente || 0;
         weeklyData[weekKey].count += 1;
       });
       
@@ -175,7 +177,8 @@ export default function KPIReporting({ user, onBack }) {
           ventes: data.ventes,
           clients: data.clients,
           panierMoyen: data.panierMoyenSum / data.count,
-          tauxTransfo: data.tauxTransfoSum / data.count
+          tauxTransfo: data.tauxTransfoSum / data.count,
+          indiceVente: data.indiceVenteSum / data.count
         };
       });
     }
