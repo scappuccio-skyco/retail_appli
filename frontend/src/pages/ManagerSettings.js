@@ -164,7 +164,7 @@ export default function ManagerSettings() {
       </div>
 
       <div className="max-w-6xl mx-auto p-6 space-y-8">
-      {/* KPI Configuration */}
+        {/* KPI Configuration */}
       <div className="bg-white rounded-2xl p-6 shadow-lg">
         <div className="flex items-center gap-3 mb-6">
           <Settings className="w-6 h-6 text-[#ffd871]" />
