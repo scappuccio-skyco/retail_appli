@@ -173,9 +173,6 @@ export default function ManagerSettings() {
         
         {kpiConfig ? (
           <div className="space-y-4">
-            <p className="text-sm text-gray-500 mb-4">
-              Debug: track_ca={String(kpiConfig.track_ca)}, track_ventes={String(kpiConfig.track_ventes)}
-            </p>
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -216,10 +213,44 @@ export default function ManagerSettings() {
               <span className="text-lg">Nombre d'articles</span>
             </label>
             
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-gray-600">
-                <strong>KPI calculés automatiquement :</strong> Panier moyen, Taux de transformation, Indice de vente (CA / nb articles)
+            {/* Affichage dynamique des KPI calculés */}
+            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
+              <p className="text-sm font-semibold text-gray-700 mb-3">
+                📊 KPI calculés automatiquement avec votre sélection :
               </p>
+              <div className="space-y-2">
+                {kpiConfig.track_ca && kpiConfig.track_ventes && (
+                  <div className="flex items-center gap-2 text-sm text-gray-700 bg-white px-3 py-2 rounded-lg">
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span className="font-medium">Panier moyen</span>
+                    <span className="text-gray-500 text-xs">(CA ÷ Ventes)</span>
+                  </div>
+                )}
+                
+                {kpiConfig.track_ventes && kpiConfig.track_clients && (
+                  <div className="flex items-center gap-2 text-sm text-gray-700 bg-white px-3 py-2 rounded-lg">
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span className="font-medium">Taux de transformation</span>
+                    <span className="text-gray-500 text-xs">(Ventes ÷ Clients × 100)</span>
+                  </div>
+                )}
+                
+                {kpiConfig.track_ca && kpiConfig.track_articles && (
+                  <div className="flex items-center gap-2 text-sm text-gray-700 bg-white px-3 py-2 rounded-lg">
+                    <span className="text-green-600 font-bold">✓</span>
+                    <span className="font-medium">Indice de vente</span>
+                    <span className="text-gray-500 text-xs">(CA ÷ Articles)</span>
+                  </div>
+                )}
+                
+                {!((kpiConfig.track_ca && kpiConfig.track_ventes) || 
+                   (kpiConfig.track_ventes && kpiConfig.track_clients) || 
+                   (kpiConfig.track_ca && kpiConfig.track_articles)) && (
+                  <p className="text-sm text-gray-500 italic">
+                    Sélectionnez des combinaisons de KPI pour voir les calculs automatiques disponibles
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         ) : (
