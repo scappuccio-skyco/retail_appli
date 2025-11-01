@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { X, Calendar } from 'lucide-react';
+import { X, Calendar, AlertTriangle } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -17,6 +17,9 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [historicalData, setHistoricalData] = useState([]);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [warnings, setWarnings] = useState([]);
 
   useEffect(() => {
     fetchData();
