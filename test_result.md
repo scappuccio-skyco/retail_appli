@@ -411,17 +411,27 @@ backend_new:
         agent: "testing"
         comment: "COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY: ✅ GET /api/manager/conflict-history/{seller_id} works perfectly. ✅ Returns array sorted by created_at (descending). ✅ All AI analysis fields properly persisted and retrieved. ✅ Data persistence verified across sessions. ✅ Authorization properly enforced."
 
+  - task: "KPI Reporting - Dynamic Graphs & Tables"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/KPIReporting.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "DYNAMIC KPI REPORTING FULLY IMPLEMENTED: ✅ Graphs now display conditionally based on manager's KPI configuration: CA Evolution (if track_ca), Ventes vs Clients (if track_ventes AND track_clients), Panier Moyen (if track_ca AND track_ventes), Taux de Transformation (if track_ventes AND track_clients). ✅ Detailed table now shows only relevant columns based on configuration (CA, Ventes, Clients, Articles, Panier Moyen, Taux Transfo, Indice Vente). ✅ Both card view (first 3 entries) and full table view adapted with conditional rendering. ✅ Summary cards already conditional from previous work. Needs testing to verify: 1) Graphs appear/disappear correctly based on config, 2) Table columns display only for configured KPIs, 3) Different manager configurations work properly."
+
 metadata:
   created_by: "main_agent"
-  version: "1.4"
-  test_sequence: 4
+  version: "1.5"
+  test_sequence: 5
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Débriefs Tab - Charger Plus Functionality"
-    - "KPI Tab - Filters and Graphs"
-    - "AI Formal Address Implementation"
+    - "KPI Reporting - Dynamic Graphs & Tables"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
