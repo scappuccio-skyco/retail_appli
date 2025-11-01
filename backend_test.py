@@ -1261,6 +1261,10 @@ class RetailCoachAPITester:
         self.test_user_login()
         self.test_auth_me()
 
+        # CRITICAL: KPI Dynamic Reporting tests (FROM REVIEW REQUEST)
+        self.test_kpi_dynamic_reporting_flow()
+        self.test_manager_kpi_configuration()
+
         # CRITICAL: Diagnostic flow tests (as requested)
         self.test_diagnostic_flow()
         
