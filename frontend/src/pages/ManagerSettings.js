@@ -12,6 +12,10 @@ export default function ManagerSettings() {
   const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  // Get token from localStorage
+  const token = localStorage.getItem('token');
+  const headers = { Authorization: `Bearer ${token}` };
+  
   // New objective form
   const [newObjective, setNewObjective] = useState({
     ca_target: '',
@@ -42,15 +46,16 @@ export default function ManagerSettings() {
   const fetchData = async () => {
     try {
       const [configRes, objectivesRes, challengesRes] = await Promise.all([
-        axios.get(`${API}/manager/kpi-config`),
-        axios.get(`${API}/manager/objectives`),
-        axios.get(`${API}/manager/challenges`)
+        axios.get(`${API}/manager/kpi-config`, { headers }),
+        axios.get(`${API}/manager/objectives`, { headers }),
+        axios.get(`${API}/manager/challenges`, { headers })
       ]);
       
       setKpiConfig(configRes.data);
       setObjectives(objectivesRes.data);
       setChallenges(challengesRes.data);
     } catch (err) {
+      console.error('Error loading data:', err);
       toast.error('Erreur de chargement des données');
     } finally {
       setLoading(false);
@@ -61,10 +66,11 @@ export default function ManagerSettings() {
     try {
       const res = await axios.put(`${API}/manager/kpi-config`, {
         [field]: value
-      });
+      }, { headers });
       setKpiConfig(res.data);
       toast.success('Configuration mise à jour');
     } catch (err) {
+      console.error('Error updating config:', err);
       toast.error('Erreur de mise à jour');
     }
   };
@@ -80,7 +86,7 @@ export default function ManagerSettings() {
         period_end: newObjective.period_end
       };
       
-      await axios.post(`${API}/manager/objectives`, data);
+      await axios.post(`${API}/manager/objectives`, data, { headers });
       toast.success('Objectif créé');
       fetchData();
       setNewObjective({
@@ -91,6 +97,7 @@ export default function ManagerSettings() {
         period_end: ''
       });
     } catch (err) {
+      console.error('Error creating objective:', err);
       toast.error('Erreur de création');
     }
   };
@@ -111,7 +118,7 @@ export default function ManagerSettings() {
         end_date: newChallenge.end_date
       };
       
-      await axios.post(`${API}/manager/challenges`, data);
+      await axios.post(`${API}/manager/challenges`, data, { headers });
       toast.success('Challenge créé');
       fetchData();
       setNewChallenge({
@@ -127,6 +134,7 @@ export default function ManagerSettings() {
         end_date: ''
       });
     } catch (err) {
+      console.error('Error creating challenge:', err);
       toast.error('Erreur de création du challenge');
     }
   };
