@@ -12,6 +12,7 @@ export default function KPIReporting({ user, onBack }) {
   const navigate = useNavigate();
   const [entries, setEntries] = useState([]); // Entries filtrées pour les graphiques
   const [allEntries, setAllEntries] = useState([]); // TOUTES les entrées pour le détail
+  const [kpiConfig, setKpiConfig] = useState(null); // Configuration KPI du manager
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('week'); // week, month, quarter, year
   const [compareYear, setCompareYear] = useState(false);
@@ -25,15 +26,21 @@ export default function KPIReporting({ user, onBack }) {
   const fetchKPIData = async () => {
     setLoading(true);
     try {
-      // Récupérer toutes les entrées pour le détail
-      const allRes = await axios.get(`${API}/seller/kpi-entries`);
-      setAllEntries(allRes.data);
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
       
-      // Récupérer les entrées filtrées pour les graphiques
-      const days = period === 'week' ? 7 : period === 'month' ? 30 : period === 'quarter' ? 90 : 365;
-      const filteredRes = await axios.get(`${API}/seller/kpi-entries?days=${days}`);
+      // Récupérer la config KPI et les entrées
+      const [configRes, allRes, filteredRes] = await Promise.all([
+        axios.get(`${API}/seller/kpi-config`, { headers }),
+        axios.get(`${API}/seller/kpi-entries`, { headers }),
+        axios.get(`${API}/seller/kpi-entries?days=${period === 'week' ? 7 : period === 'month' ? 30 : period === 'quarter' ? 90 : 365}`, { headers })
+      ]);
+      
+      setKpiConfig(configRes.data);
+      setAllEntries(allRes.data);
       setEntries(filteredRes.data);
     } catch (err) {
+      console.error('Error loading KPI data:', err);
       toast.error('Erreur de chargement des KPI');
     } finally {
       setLoading(false);
