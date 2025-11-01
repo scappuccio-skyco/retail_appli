@@ -190,7 +190,8 @@ export default function KPIReporting({ user, onBack }) {
       ventes: entry.nb_ventes,
       clients: entry.nb_clients,
       panierMoyen: entry.panier_moyen,
-      tauxTransfo: entry.taux_transformation
+      tauxTransfo: entry.taux_transformation,
+      indiceVente: entry.indice_vente
     }));
   };
 
