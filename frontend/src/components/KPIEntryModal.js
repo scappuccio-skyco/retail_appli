@@ -30,14 +30,16 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
       
-      const [statusRes, entriesRes, configRes] = await Promise.all([
+      const [statusRes, entriesRes, configRes, historicalRes] = await Promise.all([
         axios.get(`${API}/seller/kpi-enabled`, { headers }),
         axios.get(`${API}/seller/kpi-entries?days=1`, { headers }),
-        axios.get(`${API}/seller/kpi-config`, { headers })
+        axios.get(`${API}/seller/kpi-config`, { headers }),
+        axios.get(`${API}/seller/kpi-entries?days=30`, { headers }) // Last 30 days for average
       ]);
       
       setEnabled(statusRes.data.enabled || false);
       setKpiConfig(configRes.data);
+      setHistoricalData(historicalRes.data);
       
       // If there's an entry for selected date, pre-fill it
       const existingEntry = entriesRes.data.find(e => e.date === date);
