@@ -455,11 +455,11 @@ export default function KPIReporting({ user, onBack }) {
               )}
             </div>
 
-            {/* Detailed Table - Accordion */}
+            {/* Detailed Table - Accordion - Conditionnel selon config KPI */}
             <div className="glass-morphism rounded-2xl p-6">
               <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Détail des saisies ({allEntries.length})</h3>
               
-              {/* Always show last 3 entries */}
+              {/* Always show last 3 entries - Colonnes dynamiques */}
               <div className="space-y-3 mb-4">
                 {allEntries.slice(0, 3).map((entry) => (
                   <div key={entry.id} className="bg-white rounded-xl p-4 border border-gray-200">
@@ -468,27 +468,73 @@ export default function KPIReporting({ user, onBack }) {
                         {new Date(entry.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' })}
                       </p>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                      <div>
-                        <p className="text-xs text-gray-500">CA</p>
-                        <p className="text-sm font-bold text-gray-800">{entry.ca_journalier.toFixed(2)}€</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Ventes</p>
-                        <p className="text-sm font-bold text-gray-800">{entry.nb_ventes}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Clients</p>
-                        <p className="text-sm font-bold text-gray-800">{entry.nb_clients}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Panier Moyen</p>
-                        <p className="text-sm font-bold text-gray-800">{entry.panier_moyen.toFixed(2)}€</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Taux Transfo</p>
-                        <p className="text-sm font-bold text-gray-800">{entry.taux_transformation.toFixed(2)}%</p>
-                      </div>
+                    <div className={`grid gap-2 ${
+                      kpiConfig ? `grid-cols-${Math.min(
+                        [
+                          kpiConfig.track_ca,
+                          kpiConfig.track_ventes,
+                          kpiConfig.track_clients,
+                          kpiConfig.track_articles,
+                          kpiConfig.track_ca && kpiConfig.track_ventes, // Panier moyen
+                          kpiConfig.track_ventes && kpiConfig.track_clients, // Taux transfo
+                          kpiConfig.track_ca && kpiConfig.track_articles // Indice vente
+                        ].filter(Boolean).length,
+                        5
+                      )}` : 'grid-cols-5'
+                    } md:grid-cols-${Math.min(
+                      kpiConfig ? [
+                        kpiConfig.track_ca,
+                        kpiConfig.track_ventes,
+                        kpiConfig.track_clients,
+                        kpiConfig.track_articles,
+                        kpiConfig.track_ca && kpiConfig.track_ventes,
+                        kpiConfig.track_ventes && kpiConfig.track_clients,
+                        kpiConfig.track_ca && kpiConfig.track_articles
+                      ].filter(Boolean).length : 7,
+                      7
+                    )}`}>
+                      {kpiConfig?.track_ca && (
+                        <div>
+                          <p className="text-xs text-gray-500">CA</p>
+                          <p className="text-sm font-bold text-gray-800">{entry.ca_journalier?.toFixed(2)}€</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_ventes && (
+                        <div>
+                          <p className="text-xs text-gray-500">Ventes</p>
+                          <p className="text-sm font-bold text-gray-800">{entry.nb_ventes}</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_clients && (
+                        <div>
+                          <p className="text-xs text-gray-500">Clients</p>
+                          <p className="text-sm font-bold text-gray-800">{entry.nb_clients}</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_articles && (
+                        <div>
+                          <p className="text-xs text-gray-500">Articles</p>
+                          <p className="text-sm font-bold text-gray-800">{entry.nb_articles || 0}</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_ca && kpiConfig?.track_ventes && (
+                        <div>
+                          <p className="text-xs text-gray-500">Panier Moyen</p>
+                          <p className="text-sm font-bold text-gray-800">{entry.panier_moyen?.toFixed(2)}€</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_ventes && kpiConfig?.track_clients && (
+                        <div>
+                          <p className="text-xs text-gray-500">Taux Transfo</p>
+                          <p className="text-sm font-bold text-gray-800">{entry.taux_transformation?.toFixed(2)}%</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_ca && kpiConfig?.track_articles && (
+                        <div>
+                          <p className="text-xs text-gray-500">Indice Vente</p>
+                          <p className="text-sm font-bold text-gray-800">{entry.indice_vente?.toFixed(2)}€</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
