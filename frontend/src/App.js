@@ -176,6 +176,18 @@ function AppContent() {
           }
         />
         <Route
+          path="/manager/settings"
+          element={
+            !user ? (
+              <Navigate to="/login" replace />
+            ) : user.role !== 'manager' ? (
+              <Navigate to="/" replace />
+            ) : (
+              <ManagerSettings />
+            )
+          }
+        />
+        <Route
           path="/"
           element={
             !user ? (
