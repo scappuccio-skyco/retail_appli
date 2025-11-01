@@ -2267,46 +2267,7 @@ async def reset_manager_diagnostic(
     return {"status": "success", "message": "Manager diagnostic reset successfully"}
 
 # ===== KPI CONFIGURATION ENDPOINTS =====
-@api_router.get("/manager/kpi-config")
-async def get_kpi_config(current_user: dict = Depends(get_current_user)):
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access KPI config")
-    
-    config = await db.kpi_configs.find_one({"manager_id": current_user['id']}, {"_id": 0})
-    
-    if not config:
-        # Create default config
-        default_config = KPIConfiguration(
-            manager_id=current_user['id'],
-            track_ca=True,
-            track_ventes=True,
-            track_clients=True,
-            track_articles=True
-        )
-        doc = default_config.model_dump()
-        doc['created_at'] = doc['created_at'].isoformat()
-        doc['updated_at'] = doc['updated_at'].isoformat()
-        await db.kpi_configs.insert_one(doc)
-        return default_config
-    
-    return config
-
-@api_router.put("/manager/kpi-config")
-async def update_kpi_config(config_update: KPIConfigUpdate, current_user: dict = Depends(get_current_user)):
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can update KPI config")
-    
-    update_data = {k: v for k, v in config_update.model_dump().items() if v is not None}
-    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
-    
-    result = await db.kpi_configs.update_one(
-        {"manager_id": current_user['id']},
-        {"$set": update_data},
-        upsert=True
-    )
-    
-    config = await db.kpi_configs.find_one({"manager_id": current_user['id']}, {"_id": 0})
-    return config
+# Duplicate KPI config endpoints removed
 
 # ===== MANAGER OBJECTIVES ENDPOINTS =====
 @api_router.get("/manager/objectives")
