@@ -404,6 +404,7 @@ export default function ManagerSettings() {
           ))}
         </div>
       </div>
+      </div>
     </div>
   );
 }
