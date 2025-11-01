@@ -1011,6 +1011,212 @@ class RetailCoachAPITester:
             else:
                 self.log_test("Get Sellers Response Format", False, "Response should be an array")
 
+    def test_kpi_dynamic_reporting_flow(self):
+        """Test KPI Dynamic Reporting - CRITICAL FEATURE FROM REVIEW REQUEST"""
+        print("\n🔍 Testing KPI Dynamic Reporting Flow (CRITICAL FEATURE)...")
+        
+        # Test with the specific seller account mentioned in review request
+        login_data = {
+            "email": "vendeur2@test.com",
+            "password": "password123"
+        }
+        
+        success, response = self.run_test(
+            "KPI Testing - Login as vendeur2@test.com",
+            "POST",
+            "auth/login",
+            200,
+            data=login_data
+        )
+        
+        kpi_seller_token = None
+        if success and 'token' in response:
+            kpi_seller_token = response['token']
+            seller_info = response['user']
+            print(f"   ✅ Logged in as: {seller_info.get('name')} ({seller_info.get('email')})")
+            print(f"   ✅ Seller ID: {seller_info.get('id')}")
+            print(f"   ✅ Manager ID: {seller_info.get('manager_id')}")
+        else:
+            print("   ⚠️  Could not login with vendeur2@test.com - account may not exist")
+            print("   This seller account is required for KPI testing as per review request")
+            self.log_test("KPI Dynamic Reporting Setup", False, "vendeur2@test.com account not available")
+            return
+        
+        # SCENARIO 1: Get Seller KPI Configuration
+        print("\n   📋 SCENARIO 1: Get Seller KPI Configuration")
+        success, config_response = self.run_test(
+            "KPI Scenario 1 - Get Seller KPI Configuration",
+            "GET",
+            "seller/kpi-config",
+            200,
+            token=kpi_seller_token
+        )
+        
+        if success:
+            # Verify expected fields are present
+            expected_fields = ['track_ca', 'track_ventes', 'track_clients', 'track_articles']
+            missing_fields = []
+            
+            for field in expected_fields:
+                if field not in config_response:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                self.log_test("KPI Config Fields Validation", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("KPI Config Fields Validation", True)
+                print(f"   ✅ Track CA: {config_response.get('track_ca')}")
+                print(f"   ✅ Track Ventes: {config_response.get('track_ventes')}")
+                print(f"   ✅ Track Clients: {config_response.get('track_clients')}")
+                print(f"   ✅ Track Articles: {config_response.get('track_articles')}")
+                
+                # According to review request, all KPIs should be configured (True)
+                all_configured = all(config_response.get(field, False) for field in expected_fields)
+                if all_configured:
+                    print("   ✅ All KPIs are configured as expected per review request")
+                else:
+                    print("   ⚠️  Not all KPIs are configured - this may affect dynamic display")
+        
+        # SCENARIO 2: Get KPI Entries with Different Time Periods
+        print("\n   📊 SCENARIO 2: Get KPI Entries with Time Filters")
+        
+        time_periods = [7, 30, 90, 365]
+        for days in time_periods:
+            success, entries_response = self.run_test(
+                f"KPI Scenario 2 - Get KPI Entries (days={days})",
+                "GET",
+                f"seller/kpi-entries?days={days}",
+                200,
+                token=kpi_seller_token
+            )
+            
+            if success:
+                if isinstance(entries_response, list):
+                    print(f"   ✅ Retrieved {len(entries_response)} entries for last {days} days")
+                    
+                    # Verify KPI fields are present in entries
+                    if len(entries_response) > 0:
+                        first_entry = entries_response[0]
+                        expected_kpi_fields = [
+                            'ca_journalier', 'nb_ventes', 'nb_clients', 'nb_articles',
+                            'panier_moyen', 'taux_transformation', 'indice_vente'
+                        ]
+                        
+                        missing_kpi_fields = []
+                        for field in expected_kpi_fields:
+                            if field not in first_entry:
+                                missing_kpi_fields.append(field)
+                        
+                        if missing_kpi_fields:
+                            self.log_test(f"KPI Entry Fields Validation (days={days})", False, f"Missing KPI fields: {missing_kpi_fields}")
+                        else:
+                            print(f"   ✅ All KPI fields present in entries (days={days})")
+                            print(f"      CA: {first_entry.get('ca_journalier')}, Ventes: {first_entry.get('nb_ventes')}")
+                            print(f"      Panier Moyen: {first_entry.get('panier_moyen')}, Taux Transfo: {first_entry.get('taux_transformation')}")
+                else:
+                    self.log_test(f"KPI Entries Response Format (days={days})", False, "Response should be an array")
+        
+        # SCENARIO 3: Get All KPI Entries (without days parameter)
+        print("\n   📈 SCENARIO 3: Get All KPI Entries")
+        success, all_entries_response = self.run_test(
+            "KPI Scenario 3 - Get All KPI Entries",
+            "GET",
+            "seller/kpi-entries",
+            200,
+            token=kpi_seller_token
+        )
+        
+        if success:
+            if isinstance(all_entries_response, list):
+                total_entries = len(all_entries_response)
+                print(f"   ✅ Retrieved {total_entries} total KPI entries")
+                
+                # According to review request, should return all 367 entries for this seller
+                if total_entries == 367:
+                    print("   ✅ Correct number of entries (367) as expected per review request")
+                else:
+                    print(f"   ⚠️  Expected 367 entries but got {total_entries}")
+                
+                # Verify entries contain all calculated KPIs
+                if total_entries > 0:
+                    sample_entry = all_entries_response[0]
+                    calculated_kpis = ['panier_moyen', 'taux_transformation', 'indice_vente']
+                    
+                    for kpi in calculated_kpis:
+                        if kpi in sample_entry and sample_entry[kpi] is not None:
+                            print(f"   ✅ Calculated KPI '{kpi}' present: {sample_entry[kpi]}")
+                        else:
+                            self.log_test("Calculated KPIs Validation", False, f"Missing or null calculated KPI: {kpi}")
+            else:
+                self.log_test("All KPI Entries Response Format", False, "Response should be an array")
+        
+        # Test Authentication Requirements
+        print("\n   🔒 Testing KPI Authentication Requirements")
+        
+        # Test without token
+        success, _ = self.run_test(
+            "KPI Config - No Authentication",
+            "GET",
+            "seller/kpi-config",
+            401,  # Unauthorized
+        )
+        
+        if success:
+            print("   ✅ KPI config correctly requires authentication")
+        
+        success, _ = self.run_test(
+            "KPI Entries - No Authentication",
+            "GET",
+            "seller/kpi-entries",
+            401,  # Unauthorized
+        )
+        
+        if success:
+            print("   ✅ KPI entries correctly requires authentication")
+
+    def test_manager_kpi_configuration(self):
+        """Test manager KPI configuration functionality"""
+        print("\n🔍 Testing Manager KPI Configuration...")
+        
+        # Login as manager
+        manager_login_data = {
+            "email": "manager1@test.com",
+            "password": "password123"
+        }
+        
+        success, response = self.run_test(
+            "Manager Login for KPI Config",
+            "POST",
+            "auth/login",
+            200,
+            data=manager_login_data
+        )
+        
+        manager_kpi_token = None
+        if success and 'token' in response:
+            manager_kpi_token = response['token']
+            manager_info = response['user']
+            print(f"   ✅ Logged in as manager: {manager_info.get('name')} ({manager_info.get('email')})")
+        else:
+            print("   ⚠️  Could not login with manager1@test.com - account may not exist")
+            return
+        
+        # Test getting manager's KPI configuration
+        success, config_response = self.run_test(
+            "Get Manager KPI Configuration",
+            "GET",
+            "manager/kpi-config",
+            200,
+            token=manager_kpi_token
+        )
+        
+        if success:
+            print(f"   ✅ Manager KPI configuration retrieved")
+            config_fields = ['track_ca', 'track_ventes', 'track_clients', 'track_articles']
+            for field in config_fields:
+                if field in config_response:
+                    print(f"   ✅ {field}: {config_response[field]}")
+
     def test_error_cases(self):
         """Test error handling"""
         # Test invalid login
