@@ -1546,57 +1546,7 @@ async def get_kpi_definitions():
     }
 
 # Manager: Get/Update KPI Configuration (now just enable/disable)
-@api_router.get("/manager/kpi-config")
-async def get_kpi_config(current_user: dict = Depends(get_current_user)):
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access KPI configuration")
-    
-    config = await db.kpi_configurations.find_one({"manager_id": current_user['id']}, {"_id": 0})
-    
-    if not config:
-        # Create default config with KPI enabled
-        default_config = KPIConfiguration(
-            manager_id=current_user['id'],
-            enabled=True
-        )
-        doc = default_config.model_dump()
-        doc['created_at'] = doc['created_at'].isoformat()
-        doc['updated_at'] = doc['updated_at'].isoformat()
-        await db.kpi_configurations.insert_one(doc)
-        return default_config
-    
-    return config
-
-@api_router.put("/manager/kpi-config")
-async def update_kpi_config(config_update: KPIConfigUpdate, current_user: dict = Depends(get_current_user)):
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can update KPI configuration")
-    
-    config = await db.kpi_configurations.find_one({"manager_id": current_user['id']}, {"_id": 0})
-    
-    if not config:
-        # Create new config
-        new_config = KPIConfiguration(
-            manager_id=current_user['id'],
-            enabled=config_update.enabled
-        )
-        doc = new_config.model_dump()
-        doc['created_at'] = doc['created_at'].isoformat()
-        doc['updated_at'] = doc['updated_at'].isoformat()
-        await db.kpi_configurations.insert_one(doc)
-        return new_config
-    else:
-        # Update existing config
-        await db.kpi_configurations.update_one(
-            {"manager_id": current_user['id']},
-            {"$set": {
-                "enabled": config_update.enabled,
-                "updated_at": datetime.now(timezone.utc).isoformat()
-            }}
-        )
-        config['enabled'] = config_update.enabled
-        config['updated_at'] = datetime.now(timezone.utc)
-        return config
+# KPI Entries endpoints moved below after model definitions
 
 # Seller: Check if KPIs are enabled
 @api_router.get("/seller/kpi-enabled")
