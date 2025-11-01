@@ -366,6 +366,67 @@ class KPIConfigUpdate(BaseModel):
     track_clients: Optional[bool] = None
     track_articles: Optional[bool] = None
 
+
+# ===== MANAGER OBJECTIVES MODELS =====
+class ManagerObjectives(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    manager_id: str
+    ca_target: Optional[float] = None
+    indice_vente_target: Optional[float] = None
+    panier_moyen_target: Optional[float] = None
+    period_start: str  # Format: YYYY-MM-DD
+    period_end: str  # Format: YYYY-MM-DD
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ManagerObjectivesCreate(BaseModel):
+    ca_target: Optional[float] = None
+    indice_vente_target: Optional[float] = None
+    panier_moyen_target: Optional[float] = None
+    period_start: str
+    period_end: str
+
+# ===== CHALLENGE MODELS =====
+class Challenge(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    manager_id: str
+    title: str
+    description: Optional[str] = None
+    type: str  # "individual" or "collective"
+    seller_id: Optional[str] = None  # Only for individual challenges
+    # Objectives
+    ca_target: Optional[float] = None
+    ventes_target: Optional[int] = None
+    indice_vente_target: Optional[float] = None
+    panier_moyen_target: Optional[float] = None
+    # Dates
+    start_date: str  # Format: YYYY-MM-DD
+    end_date: str  # Format: YYYY-MM-DD
+    # Status
+    status: str = "active"  # active, completed, failed
+    # Progress (calculated)
+    progress_ca: float = 0
+    progress_ventes: int = 0
+    progress_indice_vente: float = 0
+    progress_panier_moyen: float = 0
+    # Metadata
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: Optional[datetime] = None
+
+class ChallengeCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    type: str  # "individual" or "collective"
+    seller_id: Optional[str] = None
+    ca_target: Optional[float] = None
+    ventes_target: Optional[int] = None
+    indice_vente_target: Optional[float] = None
+    panier_moyen_target: Optional[float] = None
+    start_date: str
+    end_date: str
+
 # ===== AUTH HELPERS =====
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
