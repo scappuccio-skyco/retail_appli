@@ -51,6 +51,7 @@ export default function ManagerSettings() {
         axios.get(`${API}/manager/challenges`, { headers })
       ]);
       
+      console.log('KPI Config loaded:', configRes.data);
       setKpiConfig(configRes.data);
       setObjectives(objectivesRes.data);
       setChallenges(challengesRes.data);
