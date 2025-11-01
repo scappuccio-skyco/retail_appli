@@ -151,44 +151,47 @@ export default function ManagerSettings() {
           <h2 className="text-2xl font-bold">Configuration des KPI</h2>
         </div>
         
-        {kpiConfig && (
+        {kpiConfig ? (
           <div className="space-y-4">
-            <label className="flex items-center gap-3">
+            <p className="text-sm text-gray-500 mb-4">
+              Debug: track_ca={String(kpiConfig.track_ca)}, track_ventes={String(kpiConfig.track_ventes)}
+            </p>
+            <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={kpiConfig.track_ca}
+                checked={kpiConfig.track_ca === true}
                 onChange={(e) => updateKPIConfig('track_ca', e.target.checked)}
-                className="w-5 h-5"
+                className="w-5 h-5 cursor-pointer"
               />
               <span className="text-lg">Chiffre d'affaires (CA)</span>
             </label>
             
-            <label className="flex items-center gap-3">
+            <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={kpiConfig.track_ventes}
+                checked={kpiConfig.track_ventes === true}
                 onChange={(e) => updateKPIConfig('track_ventes', e.target.checked)}
-                className="w-5 h-5"
+                className="w-5 h-5 cursor-pointer"
               />
               <span className="text-lg">Nombre de ventes</span>
             </label>
             
-            <label className="flex items-center gap-3">
+            <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={kpiConfig.track_clients}
+                checked={kpiConfig.track_clients === true}
                 onChange={(e) => updateKPIConfig('track_clients', e.target.checked)}
-                className="w-5 h-5"
+                className="w-5 h-5 cursor-pointer"
               />
               <span className="text-lg">Nombre de clients</span>
             </label>
             
-            <label className="flex items-center gap-3">
+            <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
-                checked={kpiConfig.track_articles}
+                checked={kpiConfig.track_articles === true}
                 onChange={(e) => updateKPIConfig('track_articles', e.target.checked)}
-                className="w-5 h-5"
+                className="w-5 h-5 cursor-pointer"
               />
               <span className="text-lg">Nombre d'articles</span>
             </label>
@@ -199,6 +202,8 @@ export default function ManagerSettings() {
               </p>
             </div>
           </div>
+        ) : (
+          <p className="text-gray-500">Chargement de la configuration...</p>
         )}
       </div>
 
