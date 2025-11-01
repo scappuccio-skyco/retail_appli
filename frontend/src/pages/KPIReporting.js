@@ -272,53 +272,85 @@ export default function KPIReporting({ user, onBack }) {
           </div>
         ) : (
           <>
-            {/* Summary Cards */}
-            {stats && (
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-                <div className="glass-morphism rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">💰</span>
-                    <p className="text-sm text-gray-600">CA Total</p>
+            {/* Summary Cards - Dynamiques selon config */}
+            {stats && kpiConfig && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                {kpiConfig.track_ca && stats.totalCA !== undefined && (
+                  <div className="glass-morphism rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">💰</span>
+                      <p className="text-sm text-gray-600">CA Total</p>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-800">{stats.totalCA}€</p>
+                    <p className="text-xs text-gray-500 mt-1">{stats.nbJours} jours</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-800">{stats.totalCA}€</p>
-                  <p className="text-xs text-gray-500 mt-1">{stats.nbJours} jours</p>
-                </div>
+                )}
 
-                <div className="glass-morphism rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">🛍️</span>
-                    <p className="text-sm text-gray-600">Ventes</p>
+                {kpiConfig.track_ventes && stats.totalVentes !== undefined && (
+                  <div className="glass-morphism rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">🛍️</span>
+                      <p className="text-sm text-gray-600">Ventes</p>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-800">{stats.totalVentes}</p>
+                    <p className="text-xs text-gray-500 mt-1">Total période</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-800">{stats.totalVentes}</p>
-                  <p className="text-xs text-gray-500 mt-1">Total période</p>
-                </div>
+                )}
 
-                <div className="glass-morphism rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">👥</span>
-                    <p className="text-sm text-gray-600">Clients</p>
+                {kpiConfig.track_clients && stats.totalClients !== undefined && (
+                  <div className="glass-morphism rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">👥</span>
+                      <p className="text-sm text-gray-600">Clients</p>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-800">{stats.totalClients}</p>
+                    <p className="text-xs text-gray-500 mt-1">Accueillis</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-800">{stats.totalClients}</p>
-                  <p className="text-xs text-gray-500 mt-1">Accueillis</p>
-                </div>
+                )}
 
-                <div className="glass-morphism rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">🛒</span>
-                    <p className="text-sm text-gray-600">Panier Moyen</p>
+                {kpiConfig.track_articles && stats.totalArticles !== undefined && (
+                  <div className="glass-morphism rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">📦</span>
+                      <p className="text-sm text-gray-600">Articles</p>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-800">{stats.totalArticles}</p>
+                    <p className="text-xs text-gray-500 mt-1">Vendus</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-800">{stats.avgPanierMoyen}€</p>
-                  <p className="text-xs text-gray-500 mt-1">Moyenne période</p>
-                </div>
+                )}
 
-                <div className="glass-morphism rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">📈</span>
-                    <p className="text-sm text-gray-600">Taux Transfo</p>
+                {stats.avgPanierMoyen !== undefined && (
+                  <div className="glass-morphism rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">🛒</span>
+                      <p className="text-sm text-gray-600">Panier Moyen</p>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-800">{stats.avgPanierMoyen}€</p>
+                    <p className="text-xs text-gray-500 mt-1">Moyenne</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-800">{stats.avgTauxTransfo}%</p>
-                  <p className="text-xs text-gray-500 mt-1">Moyenne période</p>
-                </div>
+                )}
+
+                {stats.avgTauxTransfo !== undefined && (
+                  <div className="glass-morphism rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">📈</span>
+                      <p className="text-sm text-gray-600">Taux Transfo</p>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-800">{stats.avgTauxTransfo}%</p>
+                    <p className="text-xs text-gray-500 mt-1">Moyenne</p>
+                  </div>
+                )}
+
+                {stats.avgIndiceVente !== undefined && (
+                  <div className="glass-morphism rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">💎</span>
+                      <p className="text-sm text-gray-600">Indice Vente</p>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-800">{stats.avgIndiceVente}€</p>
+                    <p className="text-xs text-gray-500 mt-1">Moyenne</p>
+                  </div>
+                )}
               </div>
             )}
 
