@@ -49,22 +49,40 @@ export default function KPIReporting({ user, onBack }) {
 
   // Calculate aggregated stats
   const calculateStats = () => {
-    if (entries.length === 0) return null;
+    if (entries.length === 0 || !kpiConfig) return null;
 
-    const totalCA = entries.reduce((sum, e) => sum + (e.ca_journalier || 0), 0);
-    const totalVentes = entries.reduce((sum, e) => sum + (e.nb_ventes || 0), 0);
-    const totalClients = entries.reduce((sum, e) => sum + (e.nb_clients || 0), 0);
-    const avgPanierMoyen = entries.reduce((sum, e) => sum + (e.panier_moyen || 0), 0) / entries.length;
-    const avgTauxTransfo = entries.reduce((sum, e) => sum + (e.taux_transformation || 0), 0) / entries.length;
+    const stats = { nbJours: entries.length };
+    
+    if (kpiConfig.track_ca) {
+      stats.totalCA = entries.reduce((sum, e) => sum + (e.ca_journalier || 0), 0).toFixed(2);
+    }
+    
+    if (kpiConfig.track_ventes) {
+      stats.totalVentes = entries.reduce((sum, e) => sum + (e.nb_ventes || 0), 0);
+    }
+    
+    if (kpiConfig.track_clients) {
+      stats.totalClients = entries.reduce((sum, e) => sum + (e.nb_clients || 0), 0);
+    }
+    
+    if (kpiConfig.track_articles) {
+      stats.totalArticles = entries.reduce((sum, e) => sum + (e.nb_articles || 0), 0);
+    }
+    
+    // KPI calculés
+    if (kpiConfig.track_ca && kpiConfig.track_ventes) {
+      stats.avgPanierMoyen = (entries.reduce((sum, e) => sum + (e.panier_moyen || 0), 0) / entries.length).toFixed(2);
+    }
+    
+    if (kpiConfig.track_ventes && kpiConfig.track_clients) {
+      stats.avgTauxTransfo = (entries.reduce((sum, e) => sum + (e.taux_transformation || 0), 0) / entries.length).toFixed(2);
+    }
+    
+    if (kpiConfig.track_ca && kpiConfig.track_articles) {
+      stats.avgIndiceVente = (entries.reduce((sum, e) => sum + (e.indice_vente || 0), 0) / entries.length).toFixed(2);
+    }
 
-    return {
-      totalCA: totalCA.toFixed(2),
-      totalVentes,
-      totalClients,
-      avgPanierMoyen: avgPanierMoyen.toFixed(2),
-      avgTauxTransfo: avgTauxTransfo.toFixed(2),
-      nbJours: entries.length
-    };
+    return stats;
   };
 
   // Prepare chart data
