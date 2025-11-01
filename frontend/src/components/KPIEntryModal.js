@@ -159,74 +159,103 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
           {/* Info Box */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
             <p className="text-sm text-blue-800">
-              💡 Remplissez ces 3 données simples. Le système calculera automatiquement votre panier moyen et taux de transformation.
+              💡 Remplissez les données demandées. Les KPI dérivés seront calculés automatiquement.
             </p>
           </div>
 
-          {/* KPI Inputs */}
+          {/* KPI Inputs - Dynamic based on config */}
           <div className="space-y-4 mb-6">
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">💰</span>
-                <label className="font-medium text-gray-800">
-                  Chiffre d'affaires
-                </label>
+            {kpiConfig?.track_ca && (
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">💰</span>
+                  <label className="font-medium text-gray-800">
+                    Chiffre d'affaires
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={caJournalier}
+                    onChange={(e) => setCaJournalier(e.target.value)}
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                  />
+                  <span className="text-gray-600 font-medium min-w-[40px]">€</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={caJournalier}
-                  onChange={(e) => setCaJournalier(e.target.value)}
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
-                />
-                <span className="text-gray-600 font-medium min-w-[40px]">€</span>
-              </div>
-            </div>
+            )}
 
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">🛍️</span>
-                <label className="font-medium text-gray-800">
-                  Nombre de ventes
-                </label>
+            {kpiConfig?.track_ventes && (
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">🛍️</span>
+                  <label className="font-medium text-gray-800">
+                    Nombre de ventes
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={nbVentes}
+                    onChange={(e) => setNbVentes(e.target.value)}
+                    placeholder="0"
+                    step="1"
+                    min="0"
+                    className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                  />
+                  <span className="text-gray-600 font-medium min-w-[40px]">ventes</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={nbVentes}
-                  onChange={(e) => setNbVentes(e.target.value)}
-                  placeholder="0"
-                  step="1"
-                  min="0"
-                  className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
-                />
-                <span className="text-gray-600 font-medium min-w-[40px]">ventes</span>
-              </div>
-            </div>
+            )}
 
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">👥</span>
-                <label className="font-medium text-gray-800">
-                  Nombre de clients accueillis
-                </label>
+            {kpiConfig?.track_clients && (
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">👥</span>
+                  <label className="font-medium text-gray-800">
+                    Nombre de clients accueillis
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={nbClients}
+                    onChange={(e) => setNbClients(e.target.value)}
+                    placeholder="0"
+                    step="1"
+                    min="0"
+                    className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                  />
+                  <span className="text-gray-600 font-medium min-w-[40px]">clients</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={nbClients}
-                  onChange={(e) => setNbClients(e.target.value)}
-                  placeholder="0"
-                  step="1"
-                  min="0"
-                  className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
-                />
-                <span className="text-gray-600 font-medium min-w-[40px]">clients</span>
+            )}
+
+            {kpiConfig?.track_articles && (
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">📦</span>
+                  <label className="font-medium text-gray-800">
+                    Nombre d'articles vendus
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={nbArticles}
+                    onChange={(e) => setNbArticles(e.target.value)}
+                    placeholder="0"
+                    step="1"
+                    min="0"
+                    className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                  />
+                  <span className="text-gray-600 font-medium min-w-[40px]">articles</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Comment */}
