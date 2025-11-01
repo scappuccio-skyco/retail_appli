@@ -460,6 +460,32 @@ export default function KPIReporting({ user, onBack }) {
                   </ResponsiveContainer>
                 </div>
               )}
+
+              {/* Indice de Vente - Afficher seulement si CA ET Articles sont configurés */}
+              {kpiConfig?.track_ca && kpiConfig?.track_articles && (
+                <div className="glass-morphism rounded-2xl p-6">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">💎 Indice de Vente</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="date" stroke="#6b7280" fontSize={12} />
+                      <YAxis stroke="#6b7280" fontSize={12} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                        formatter={(value) => `${value}€`}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="indiceVente" 
+                        stroke="#f59e0b" 
+                        strokeWidth={3}
+                        name="Indice de Vente"
+                        dot={{ fill: '#f59e0b', r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
 
             {/* Detailed Table - Accordion - Conditionnel selon config KPI */}
