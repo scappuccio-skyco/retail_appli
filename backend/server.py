@@ -344,22 +344,27 @@ class KPIEntry(BaseModel):
     ca_journalier: float = 0
     nb_ventes: int = 0
     nb_clients: int = 0
+    nb_articles: int = 0  # NEW: Number of articles sold
     # Calculated KPIs
     panier_moyen: float = 0
     taux_transformation: float = 0
-    indice_vente: float = 0
+    indice_vente: float = 0  # CA / nb_articles
     comment: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class KPIEntryCreate(BaseModel):
     date: str
-    ca_journalier: float
-    nb_ventes: int
-    nb_clients: int
+    ca_journalier: float = 0
+    nb_ventes: int = 0
+    nb_clients: int = 0
+    nb_articles: int = 0
     comment: Optional[str] = None
 
 class KPIConfigUpdate(BaseModel):
-    enabled: bool
+    track_ca: Optional[bool] = None
+    track_ventes: Optional[bool] = None
+    track_clients: Optional[bool] = None
+    track_articles: Optional[bool] = None
 
 # ===== AUTH HELPERS =====
 def hash_password(password: str) -> str:
