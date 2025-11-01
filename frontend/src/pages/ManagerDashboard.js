@@ -205,11 +205,11 @@ export default function ManagerDashboard({ user, onLogout }) {
               </button>
             )}
             <button
-              onClick={() => setShowKPIConfigModal(true)}
+              onClick={() => navigate('/manager/settings')}
               className="btn-secondary flex items-center gap-2"
             >
               <Settings className="w-5 h-5" />
-              Configurer KPI
+              KPI & Challenges
             </button>
             <button
               data-testid="invite-seller-button"
