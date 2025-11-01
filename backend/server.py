@@ -2366,6 +2366,45 @@ async def get_seller_challenges(current_user: dict = Depends(get_current_user)):
     if not user or not user.get('manager_id'):
         return []
     
+
+# Endpoint for seller to get their manager's KPI config
+@api_router.get("/seller/kpi-config")
+async def get_seller_kpi_config(current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access this endpoint")
+    
+    # Get seller's manager_id
+    user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    if not user or not user.get('manager_id'):
+        # No manager, return default config (all enabled)
+        return {
+            "track_ca": True,
+            "track_ventes": True,
+            "track_clients": True,
+            "track_articles": True
+        }
+    
+    manager_id = user['manager_id']
+    
+    # Get manager's KPI config
+    config = await db.kpi_configs.find_one({"manager_id": manager_id}, {"_id": 0})
+    
+    if not config:
+        # No config found, return default (all enabled)
+        return {
+            "track_ca": True,
+            "track_ventes": True,
+            "track_clients": True,
+            "track_articles": True
+        }
+    
+    return {
+        "track_ca": config.get('track_ca', True),
+        "track_ventes": config.get('track_ventes', True),
+        "track_clients": config.get('track_clients', True),
+        "track_articles": config.get('track_articles', True)
+    }
+
     manager_id = user['manager_id']
     
     # Get challenges: collective OR individual for this seller
