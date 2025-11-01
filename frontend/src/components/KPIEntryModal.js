@@ -64,6 +64,135 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
     }
   };
 
+  const calculateAverages = () => {
+    if (historicalData.length === 0) return null;
+    
+    const totals = {
+      ca: 0,
+      ventes: 0,
+      clients: 0,
+      articles: 0,
+      count: 0
+    };
+    
+    historicalData.forEach(entry => {
+      totals.ca += entry.ca_journalier || 0;
+      totals.ventes += entry.nb_ventes || 0;
+      totals.clients += entry.nb_clients || 0;
+      totals.articles += entry.nb_articles || 0;
+      totals.count += 1;
+    });
+    
+    return {
+      avgCA: totals.count > 0 ? totals.ca / totals.count : 0,
+      avgVentes: totals.count > 0 ? totals.ventes / totals.count : 0,
+      avgClients: totals.count > 0 ? totals.clients / totals.count : 0,
+      avgArticles: totals.count > 0 ? totals.articles / totals.count : 0
+    };
+  };
+
+  const checkAnomalies = () => {
+    const averages = calculateAverages();
+    if (!averages || historicalData.length < 5) {
+      // Not enough data to compare, skip validation
+      return [];
+    }
+    
+    const detectedWarnings = [];
+    const THRESHOLD_HIGH = 1.5; // 150% of average
+    const THRESHOLD_LOW = 0.5;  // 50% of average
+    
+    // Check CA
+    if (kpiConfig?.track_ca && caJournalier) {
+      const value = parseFloat(caJournalier);
+      if (averages.avgCA > 0) {
+        if (value > averages.avgCA * THRESHOLD_HIGH) {
+          detectedWarnings.push({
+            kpi: 'Chiffre d\'affaires',
+            value: `${value.toFixed(2)}€`,
+            average: `${averages.avgCA.toFixed(2)}€`,
+            percentage: ((value / averages.avgCA - 1) * 100).toFixed(0)
+          });
+        } else if (value < averages.avgCA * THRESHOLD_LOW && value > 0) {
+          detectedWarnings.push({
+            kpi: 'Chiffre d\'affaires',
+            value: `${value.toFixed(2)}€`,
+            average: `${averages.avgCA.toFixed(2)}€`,
+            percentage: ((value / averages.avgCA - 1) * 100).toFixed(0)
+          });
+        }
+      }
+    }
+    
+    // Check Ventes
+    if (kpiConfig?.track_ventes && nbVentes) {
+      const value = parseInt(nbVentes);
+      if (averages.avgVentes > 0) {
+        if (value > averages.avgVentes * THRESHOLD_HIGH) {
+          detectedWarnings.push({
+            kpi: 'Nombre de ventes',
+            value: value,
+            average: Math.round(averages.avgVentes),
+            percentage: ((value / averages.avgVentes - 1) * 100).toFixed(0)
+          });
+        } else if (value < averages.avgVentes * THRESHOLD_LOW && value > 0) {
+          detectedWarnings.push({
+            kpi: 'Nombre de ventes',
+            value: value,
+            average: Math.round(averages.avgVentes),
+            percentage: ((value / averages.avgVentes - 1) * 100).toFixed(0)
+          });
+        }
+      }
+    }
+    
+    // Check Clients
+    if (kpiConfig?.track_clients && nbClients) {
+      const value = parseInt(nbClients);
+      if (averages.avgClients > 0) {
+        if (value > averages.avgClients * THRESHOLD_HIGH) {
+          detectedWarnings.push({
+            kpi: 'Nombre de clients',
+            value: value,
+            average: Math.round(averages.avgClients),
+            percentage: ((value / averages.avgClients - 1) * 100).toFixed(0)
+          });
+        } else if (value < averages.avgClients * THRESHOLD_LOW && value > 0) {
+          detectedWarnings.push({
+            kpi: 'Nombre de clients',
+            value: value,
+            average: Math.round(averages.avgClients),
+            percentage: ((value / averages.avgClients - 1) * 100).toFixed(0)
+          });
+        }
+      }
+    }
+    
+    // Check Articles
+    if (kpiConfig?.track_articles && nbArticles) {
+      const value = parseInt(nbArticles);
+      if (averages.avgArticles > 0) {
+        if (value > averages.avgArticles * THRESHOLD_HIGH) {
+          detectedWarnings.push({
+            kpi: 'Nombre d\'articles',
+            value: value,
+            average: Math.round(averages.avgArticles),
+            percentage: ((value / averages.avgArticles - 1) * 100).toFixed(0)
+          });
+        } else if (value < averages.avgArticles * THRESHOLD_LOW && value > 0) {
+          detectedWarnings.push({
+            kpi: 'Nombre d\'articles',
+            value: value,
+            average: Math.round(averages.avgArticles),
+            percentage: ((value / averages.avgArticles - 1) * 100).toFixed(0)
+          });
+        }
+      }
+    }
+    
+    return detectedWarnings;
+  };
+
   const handleSubmit = async () => {
     // Validate only required fields based on config
     const missingFields = [];
@@ -77,6 +206,19 @@ export default function KPIEntryModal({ onClose, onSuccess }) {
       return;
     }
 
+    // Check for anomalies
+    const detectedWarnings = checkAnomalies();
+    if (detectedWarnings.length > 0) {
+      setWarnings(detectedWarnings);
+      setShowWarningModal(true);
+      return;
+    }
+
+    // No warnings, proceed with save
+    await saveKPIData();
+  };
+
+  const saveKPIData = async () => {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
