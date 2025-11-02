@@ -11,6 +11,7 @@ import TeamBilanIA from '../components/TeamBilanIA';
 import ManagerProfileModal from '../components/ManagerProfileModal';
 import TeamBilanModal from '../components/TeamBilanModal';
 import SellerDetailView from '../components/SellerDetailView';
+import GuideProfilsModal from '../components/GuideProfilsModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
