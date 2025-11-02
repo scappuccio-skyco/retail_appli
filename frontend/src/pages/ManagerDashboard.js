@@ -45,6 +45,7 @@ export default function ManagerDashboard({ user, onLogout }) {
     tauxTransfo: true,
     indiceVente: true
   }); // New state for dashboard chart visibility
+  const [showGuideModal, setShowGuideModal] = useState(false); // New state for guide modal
 
   useEffect(() => {
     fetchData();
