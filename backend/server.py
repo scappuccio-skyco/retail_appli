@@ -182,6 +182,9 @@ class ManagerDiagnosticResult(BaseModel):
     axe_progression: str
     recommandation: str
     exemple_concret: str
+    # DISC Profile fields
+    disc_dominant: str = None  # Dominant, Influent, Stable, Consciencieux
+    disc_percentages: dict = None  # {'D': 30, 'I': 40, 'S': 20, 'C': 10}
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ManagerDiagnosticCreate(BaseModel):
