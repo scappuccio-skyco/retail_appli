@@ -52,7 +52,17 @@ export default function ManagerDashboard({ user, onLogout }) {
     fetchData();
     fetchManagerDiagnostic();
     fetchTeamBilan();
+    fetchKpiConfig();
   }, []);
+
+  const fetchKpiConfig = async () => {
+    try {
+      const res = await axios.get(`${API}/manager/kpi-config`);
+      setKpiConfig(res.data);
+    } catch (err) {
+      console.error('Error fetching KPI config:', err);
+    }
+  };
 
   const fetchData = async () => {
     try {
