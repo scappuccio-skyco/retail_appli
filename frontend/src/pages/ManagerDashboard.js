@@ -349,6 +349,23 @@ export default function ManagerDashboard({ user, onLogout }) {
                   {generatingTeamBilan ? 'Génération...' : 'Relancer'}
                 </button>
               </div>
+
+              {/* Week Selector */}
+              {allTeamBilans.length > 1 && (
+                <div className="mb-3">
+                  <select
+                    value={selectedBilanIndex}
+                    onChange={(e) => handleBilanChange(parseInt(e.target.value))}
+                    className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-[#ffd871] focus:outline-none bg-white"
+                  >
+                    {allTeamBilans.map((bilan, index) => (
+                      <option key={index} value={index}>
+                        {index === 0 ? '📅 Semaine actuelle' : `📅 ${bilan.periode}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               
               <div 
                 onClick={() => setShowTeamBilanModal(true)}
@@ -359,10 +376,58 @@ export default function ManagerDashboard({ user, onLogout }) {
                   <p className="text-sm text-gray-800 font-medium line-clamp-2">{teamBilan.synthese}</p>
                 </div>
                 
+                {/* All KPIs Grid */}
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-blue-50 rounded-lg p-2 text-center">
-                    <p className="text-xs text-blue-600">💰 CA</p>
-                    <p className="text-sm font-bold text-blue-900">{(teamBilan.kpi_resume.ca_total / 1000).toFixed(0)}k€</p>
+                  {teamBilan.kpi_resume.ca_total !== undefined && (
+                    <div className="bg-blue-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-blue-600">💰 CA</p>
+                      <p className="text-sm font-bold text-blue-900">{(teamBilan.kpi_resume.ca_total / 1000).toFixed(0)}k€</p>
+                    </div>
+                  )}
+                  {teamBilan.kpi_resume.ventes !== undefined && (
+                    <div className="bg-green-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-green-600">🛒 Ventes</p>
+                      <p className="text-sm font-bold text-green-900">{teamBilan.kpi_resume.ventes}</p>
+                    </div>
+                  )}
+                  {teamBilan.kpi_resume.clients !== undefined && (
+                    <div className="bg-purple-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-purple-600">👥 Clients</p>
+                      <p className="text-sm font-bold text-purple-900">{teamBilan.kpi_resume.clients}</p>
+                    </div>
+                  )}
+                  {teamBilan.kpi_resume.articles !== undefined && (
+                    <div className="bg-orange-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-orange-600">📦 Articles</p>
+                      <p className="text-sm font-bold text-orange-900">{teamBilan.kpi_resume.articles}</p>
+                    </div>
+                  )}
+                  {teamBilan.kpi_resume.panier_moyen !== undefined && (
+                    <div className="bg-indigo-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-indigo-600">💳 Panier M.</p>
+                      <p className="text-sm font-bold text-indigo-900">{teamBilan.kpi_resume.panier_moyen.toFixed(0)}€</p>
+                    </div>
+                  )}
+                  {teamBilan.kpi_resume.taux_transformation !== undefined && (
+                    <div className="bg-pink-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-pink-600">📈 Taux</p>
+                      <p className="text-sm font-bold text-pink-900">{teamBilan.kpi_resume.taux_transformation.toFixed(0)}%</p>
+                    </div>
+                  )}
+                  {teamBilan.kpi_resume.indice_vente !== undefined && (
+                    <div className="bg-teal-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-teal-600">🎯 Indice</p>
+                      <p className="text-sm font-bold text-teal-900">{teamBilan.kpi_resume.indice_vente.toFixed(1)}</p>
+                    </div>
+                  )}
+                </div>
+                
+                <p className="text-sm text-gray-500 text-center mt-4">
+                  Cliquer pour voir le bilan complet →
+                </p>
+              </div>
+            </div>
+          ) : (
                   </div>
                   <div className="bg-green-50 rounded-lg p-2 text-center">
                     <p className="text-xs text-green-600">🛒 Ventes</p>
