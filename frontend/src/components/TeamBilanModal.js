@@ -71,9 +71,6 @@ export default function TeamBilanModal({ bilan, onClose }) {
               </div>
             )}
           </div>
-              <p className="text-lg font-bold text-pink-900">{bilan.kpi_resume.taux_transformation.toFixed(1)}%</p>
-            </div>
-          </div>
 
           {/* Synthèse */}
           <div className="bg-gradient-to-r from-[#ffd871] to-yellow-200 rounded-xl p-4 mb-4">
