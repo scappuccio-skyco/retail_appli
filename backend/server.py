@@ -2102,24 +2102,41 @@ Génère un bilan au format JSON avec :
     
     return TeamBilan(**bilan_data)
 
-@api_router.post("/manager/team-bilan", response_model=TeamBilan)
-async def generate_team_bilan(current_user: dict = Depends(get_current_user)):
+@api_router.post("/manager/team-bilan")
+async def generate_team_bilan(
+    start_date: str = None,  # Format YYYY-MM-DD
+    end_date: str = None,    # Format YYYY-MM-DD
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate team bilan for a specific period or current week"""
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can generate team bilan")
     
     # Get all sellers for this manager
     sellers = await db.users.find({"manager_id": current_user['id'], "role": "seller"}, {"_id": 0}).to_list(1000)
     
-    print(f"DEBUG: Manager ID: {current_user['id']}")
-    print(f"DEBUG: Found {len(sellers)} sellers")
-    
     if not sellers:
         raise HTTPException(status_code=404, detail="No sellers in your team")
     
-    # Calculate period (last 7 days)
-    end_date = datetime.now(timezone.utc)
-    start_date = end_date - timedelta(days=7)
-    periode = f"Semaine du {start_date.strftime('%d/%m')} au {end_date.strftime('%d/%m')}"
+    # Determine period
+    if start_date and end_date:
+        start = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end = datetime.strptime(end_date, '%Y-%m-%d').date()
+    else:
+        # Default: current week (Monday to Sunday)
+        today = datetime.now(timezone.utc).date()
+        start = today - timedelta(days=today.weekday())
+        end = start + timedelta(days=6)
+    
+    # Generate bilan using the helper function
+    bilan = await generate_team_bilan_for_period(
+        manager_id=current_user['id'],
+        start_date=start,
+        end_date=end,
+        sellers=sellers
+    )
+    
+    return bilan
     
     # Collect data for all sellers
     team_data = []
