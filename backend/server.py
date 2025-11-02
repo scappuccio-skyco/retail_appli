@@ -1891,6 +1891,7 @@ async def generate_team_bilan(current_user: dict = Depends(get_current_user)):
     total_ca = 0
     total_ventes = 0
     total_clients = 0
+    total_articles = 0
     competences_sum = {"accueil": 0, "decouverte": 0, "argumentation": 0, "closing": 0, "fidelisation": 0}
     competences_count = 0
     
@@ -1906,10 +1907,12 @@ async def generate_team_bilan(current_user: dict = Depends(get_current_user)):
         seller_ca = sum(e.get('ca_journalier', 0) for e in kpi_entries)
         seller_ventes = sum(e.get('nb_ventes', 0) for e in kpi_entries)
         seller_clients = sum(e.get('nb_clients', 0) for e in kpi_entries)
+        seller_articles = sum(e.get('nb_articles', 0) for e in kpi_entries)
         
         total_ca += seller_ca
         total_ventes += seller_ventes
         total_clients += seller_clients
+        total_articles += seller_articles
         
         # Get latest competences (from diagnostic or latest debrief)
         diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0})
