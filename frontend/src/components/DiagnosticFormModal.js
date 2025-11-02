@@ -353,11 +353,11 @@ export default function DiagnosticFormModal({ onClose, onSuccess }) {
             {currentQuestion.type === 'choice' ? (
               <div className="space-y-3">
                 {currentQuestion.options.map((option, optIndex) => {
-                  const isSelected = responses[currentQuestion.id] === option;
+                  const isSelected = responses[currentQuestion.id] === option || responses[currentQuestion.id] === optIndex;
                   return (
                     <div
                       key={optIndex}
-                      onClick={() => handleAnswer(option)}
+                      onClick={() => handleAnswer(option, optIndex)}
                       className={`w-full text-left p-4 rounded-xl border-2 transition-all cursor-pointer ${
                         isSelected
                           ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
