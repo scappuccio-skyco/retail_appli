@@ -34,6 +34,16 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [showDetailView, setShowDetailView] = useState(false);
   const [loading, setLoading] = useState(true);
   const [generatingTeamBilan, setGeneratingTeamBilan] = useState(false);
+  const [visibleDashboardCharts, setVisibleDashboardCharts] = useState({
+    ca: true,
+    ventesVsClients: true,
+    ventes: true,
+    clients: true,
+    articles: true,
+    panierMoyen: true,
+    tauxTransfo: true,
+    indiceVente: true
+  }); // New state for dashboard chart visibility
 
   useEffect(() => {
     fetchData();
