@@ -2078,7 +2078,7 @@ Génère un bilan au format JSON avec :
         "periode": periode,
         "synthese": ai_result.get('synthese', ''),
         "points_forts": ai_result.get('points_forts', []),
-        "points_amelioration": ai_result.get('points_amelioration', []),
+        "points_attention": ai_result.get('points_attention', []),
         "recommandations": ai_result.get('recommandations', []),
         "kpi_resume": {
             "ca_total": round(total_ca, 2),
