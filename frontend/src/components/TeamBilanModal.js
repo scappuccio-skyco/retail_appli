@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Sparkles, X, TrendingUp, AlertTriangle, Target, MessageSquare } from 'lucide-react';
 
 export default function TeamBilanModal({ bilan, onClose }) {
-  const [showDataSources, setShowDataSources] = useState(false);
-
   if (!bilan) return null;
 
   return (
