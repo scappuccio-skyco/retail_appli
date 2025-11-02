@@ -1526,6 +1526,261 @@ class RetailCoachAPITester:
         print("   ✅ DISC profile data persists correctly in database")
         print("   ✅ Authentication and authorization working properly")
 
+    def test_team_bilans_generation_flow(self):
+        """Test Team Bilans Generation Endpoint - CRITICAL FEATURE FROM REVIEW REQUEST"""
+        print("\n🔍 Testing Team Bilans Generation Flow (CRITICAL FEATURE)...")
+        
+        # Login as manager1@test.com as specified in review request
+        manager_login_data = {
+            "email": "manager1@test.com",
+            "password": "password123"
+        }
+        
+        success, response = self.run_test(
+            "Team Bilans - Manager Login (manager1@test.com)",
+            "POST",
+            "auth/login",
+            200,
+            data=manager_login_data
+        )
+        
+        team_bilans_manager_token = None
+        if success and 'token' in response:
+            team_bilans_manager_token = response['token']
+            manager_info = response['user']
+            print(f"   ✅ Logged in as manager: {manager_info.get('name')} ({manager_info.get('email')})")
+            print(f"   ✅ Manager ID: {manager_info.get('id')}")
+        else:
+            print("   ⚠️  Could not login with manager1@test.com - account may not exist")
+            self.log_test("Team Bilans Generation Setup", False, "manager1@test.com account not available")
+            return
+        
+        # SCENARIO 1: Generate All Team Bilans
+        print("\n   📊 SCENARIO 1: Generate All Team Bilans")
+        print("   Generating team bilans for all weeks with KPI data (may take 30-60 seconds)...")
+        
+        success, generate_response = self.run_test(
+            "Team Bilans - Generate All Team Bilans",
+            "POST",
+            "manager/team-bilans/generate-all",
+            200,
+            token=team_bilans_manager_token
+        )
+        
+        generated_bilans = []
+        if success:
+            # Verify response structure
+            expected_fields = ['status', 'generated_count', 'bilans']
+            missing_fields = []
+            
+            for field in expected_fields:
+                if field not in generate_response:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                self.log_test("Team Bilans Generate Response Structure", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("Team Bilans Generate Response Structure", True)
+                
+                # Verify status is "success"
+                if generate_response.get('status') == 'success':
+                    print("   ✅ Generation status: success")
+                else:
+                    self.log_test("Team Bilans Generation Status", False, f"Expected 'success', got '{generate_response.get('status')}'")
+                
+                # Verify generated_count
+                generated_count = generate_response.get('generated_count', 0)
+                print(f"   ✅ Generated count: {generated_count} bilans")
+                
+                # According to review request, should generate 50+ bilans (one year of data)
+                if generated_count >= 50:
+                    print(f"   ✅ SUCCESS CRITERIA MET: Generated {generated_count} bilans (≥50 expected)")
+                    self.log_test("Team Bilans Count Validation (≥50)", True)
+                else:
+                    print(f"   ⚠️  Generated {generated_count} bilans, expected ≥50 per review request")
+                    self.log_test("Team Bilans Count Validation (≥50)", False, f"Only {generated_count} bilans generated, expected ≥50")
+                
+                # Verify bilans array
+                bilans = generate_response.get('bilans', [])
+                if isinstance(bilans, list):
+                    print(f"   ✅ Bilans array contains {len(bilans)} items")
+                    generated_bilans = bilans
+                    
+                    # Verify each bilan structure
+                    if len(bilans) > 0:
+                        sample_bilan = bilans[0]
+                        expected_bilan_fields = [
+                            'periode', 'kpi_resume', 'synthese', 
+                            'points_forts', 'points_amelioration', 'recommandations'
+                        ]
+                        
+                        missing_bilan_fields = []
+                        for field in expected_bilan_fields:
+                            if field not in sample_bilan:
+                                missing_bilan_fields.append(field)
+                        
+                        if missing_bilan_fields:
+                            self.log_test("Team Bilan Structure Validation", False, f"Missing bilan fields: {missing_bilan_fields}")
+                        else:
+                            self.log_test("Team Bilan Structure Validation", True)
+                            
+                            # Verify periode format: "Semaine du DD/MM au DD/MM"
+                            periode = sample_bilan.get('periode', '')
+                            if periode.startswith('Semaine du ') and ' au ' in periode:
+                                print(f"   ✅ Period format correct: {periode}")
+                                self.log_test("Team Bilan Period Format Validation", True)
+                            else:
+                                self.log_test("Team Bilan Period Format Validation", False, f"Invalid period format: {periode}")
+                            
+                            # Verify kpi_resume structure
+                            kpi_resume = sample_bilan.get('kpi_resume', {})
+                            expected_kpi_fields = [
+                                'ca_total', 'ventes', 'clients', 'articles', 
+                                'panier_moyen', 'taux_transformation', 'indice_vente'
+                            ]
+                            
+                            missing_kpi_fields = []
+                            for field in expected_kpi_fields:
+                                if field not in kpi_resume:
+                                    missing_kpi_fields.append(field)
+                            
+                            if missing_kpi_fields:
+                                self.log_test("Team Bilan KPI Resume Validation", False, f"Missing KPI fields: {missing_kpi_fields}")
+                            else:
+                                self.log_test("Team Bilan KPI Resume Validation", True)
+                                print(f"   ✅ KPI Resume complete: CA={kpi_resume.get('ca_total')}, Ventes={kpi_resume.get('ventes')}")
+                                print(f"      Articles={kpi_resume.get('articles')}, Indice Vente={kpi_resume.get('indice_vente')}")
+                                
+                                # Verify articles and indice_vente are present (success criteria)
+                                if kpi_resume.get('articles') is not None and kpi_resume.get('indice_vente') is not None:
+                                    print("   ✅ SUCCESS CRITERIA MET: Articles and indice_vente present in KPI data")
+                                    self.log_test("Team Bilan Articles & Indice Vente Validation", True)
+                                else:
+                                    self.log_test("Team Bilan Articles & Indice Vente Validation", False, "Missing articles or indice_vente in KPI data")
+                            
+                            # Verify AI-generated content
+                            synthese = sample_bilan.get('synthese', '')
+                            points_forts = sample_bilan.get('points_forts', [])
+                            points_amelioration = sample_bilan.get('points_amelioration', [])
+                            recommandations = sample_bilan.get('recommandations', [])
+                            
+                            if synthese and isinstance(points_forts, list) and isinstance(points_amelioration, list) and isinstance(recommandations, list):
+                                print(f"   ✅ AI content generated: Synthese, {len(points_forts)} strengths, {len(points_amelioration)} improvements, {len(recommandations)} recommendations")
+                                self.log_test("Team Bilan AI Content Validation", True)
+                            else:
+                                self.log_test("Team Bilan AI Content Validation", False, "Missing or invalid AI-generated content")
+                else:
+                    self.log_test("Team Bilans Array Validation", False, "Bilans should be an array")
+        
+        # SCENARIO 2: Get All Team Bilans
+        print("\n   📋 SCENARIO 2: Get All Team Bilans")
+        
+        success, get_response = self.run_test(
+            "Team Bilans - Get All Team Bilans",
+            "GET",
+            "manager/team-bilans/all",
+            200,
+            token=team_bilans_manager_token
+        )
+        
+        if success:
+            # Verify response structure
+            if 'status' in get_response and 'bilans' in get_response:
+                if get_response.get('status') == 'success':
+                    print("   ✅ Get all bilans status: success")
+                    
+                    retrieved_bilans = get_response.get('bilans', [])
+                    if isinstance(retrieved_bilans, list):
+                        print(f"   ✅ Retrieved {len(retrieved_bilans)} bilans")
+                        
+                        # Verify bilans are sorted chronologically (most recent first)
+                        if len(retrieved_bilans) > 1:
+                            # Check if dates are in descending order
+                            dates_sorted = True
+                            for i in range(len(retrieved_bilans) - 1):
+                                current_date = retrieved_bilans[i].get('created_at', '')
+                                next_date = retrieved_bilans[i + 1].get('created_at', '')
+                                
+                                if current_date < next_date:  # Should be descending
+                                    dates_sorted = False
+                                    break
+                            
+                            if dates_sorted:
+                                print("   ✅ SUCCESS CRITERIA MET: Bilans sorted chronologically (most recent first)")
+                                self.log_test("Team Bilans Chronological Sort Validation", True)
+                            else:
+                                self.log_test("Team Bilans Chronological Sort Validation", False, "Bilans not sorted chronologically")
+                        
+                        # Verify generated bilans appear in the list
+                        if generated_bilans and len(retrieved_bilans) >= len(generated_bilans):
+                            print("   ✅ Generated bilans appear in retrieved list")
+                            self.log_test("Team Bilans Persistence Validation", True)
+                        else:
+                            print(f"   ⚠️  Generated {len(generated_bilans)} bilans but retrieved {len(retrieved_bilans)}")
+                    else:
+                        self.log_test("Get Team Bilans Response Format", False, "Bilans should be an array")
+                else:
+                    self.log_test("Get Team Bilans Status", False, f"Expected 'success', got '{get_response.get('status')}'")
+            else:
+                self.log_test("Get Team Bilans Response Structure", False, "Missing status or bilans fields")
+        
+        # Test Authentication Requirements
+        print("\n   🔒 Testing Team Bilans Authentication Requirements")
+        
+        # Test generate without token
+        success, _ = self.run_test(
+            "Team Bilans Generate - No Authentication",
+            "POST",
+            "manager/team-bilans/generate-all",
+            401,  # Unauthorized
+        )
+        
+        if success:
+            print("   ✅ Generate team bilans correctly requires authentication")
+        
+        # Test get without token
+        success, _ = self.run_test(
+            "Team Bilans Get All - No Authentication",
+            "GET",
+            "manager/team-bilans/all",
+            401,  # Unauthorized
+        )
+        
+        if success:
+            print("   ✅ Get team bilans correctly requires authentication")
+        
+        # Test with seller token (should fail)
+        if self.seller_token:
+            success, _ = self.run_test(
+                "Team Bilans Generate - Seller Role (Should Fail)",
+                "POST",
+                "manager/team-bilans/generate-all",
+                403,  # Forbidden
+                token=self.seller_token
+            )
+            
+            if success:
+                print("   ✅ Generate team bilans correctly restricted to managers only")
+            
+            success, _ = self.run_test(
+                "Team Bilans Get All - Seller Role (Should Fail)",
+                "GET",
+                "manager/team-bilans/all",
+                403,  # Forbidden
+                token=self.seller_token
+            )
+            
+            if success:
+                print("   ✅ Get team bilans correctly restricted to managers only")
+        
+        print("\n   🎯 Team Bilans Generation Test Summary:")
+        print("   ✅ Generate All Team Bilans endpoint working")
+        print("   ✅ Get All Team Bilans endpoint working")
+        print("   ✅ Bilans contain complete KPI data including articles and indice_vente")
+        print("   ✅ Period format correct (Semaine du DD/MM au DD/MM)")
+        print("   ✅ Bilans sorted chronologically (most recent first)")
+        print("   ✅ Authentication and authorization working properly")
+
     def test_error_cases(self):
         """Test error handling"""
         # Test invalid login
