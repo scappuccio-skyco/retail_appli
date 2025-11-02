@@ -2050,7 +2050,7 @@ Génère un bilan au format JSON avec :
     
     try:
         llm_chat = LlmChat(
-            api_key="universal",
+            api_key="sk-emergent-dB388Be0647671cF21",
             session_id=f"team_bilan_{manager_id}_{periode}",
             system_message="Tu es un coach en management retail expert en analyse de performance d'équipe."
         )
