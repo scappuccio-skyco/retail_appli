@@ -207,6 +207,13 @@ export default function ManagerDashboard({ user, onLogout }) {
             </div>
           </div>
           <div className="flex gap-3 flex-wrap">
+            <button
+              onClick={() => setShowGuideModal(true)}
+              className="btn-secondary flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-lg"
+            >
+              <span className="text-lg">📚</span>
+              Guide des Profils
+            </button>
             {!managerDiagnostic && (
               <button
                 onClick={() => setShowManagerDiagnostic(true)}
