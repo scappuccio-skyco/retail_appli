@@ -397,6 +397,93 @@ export default function SellerDetailView({ seller, onBack }) {
               Tout
             </button>
           </div>
+
+          {/* Chart visibility toggles */}
+          <div className="bg-white rounded-xl p-4 border border-gray-200 mb-6">
+            <p className="text-sm font-semibold text-gray-700 mb-3">📊 Graphiques affichés :</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setVisibleCharts(prev => ({ ...prev, ca: !prev.ca }))}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  visibleCharts.ca
+                    ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
+                    : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
+                }`}
+              >
+                💰 CA
+              </button>
+              <button
+                onClick={() => setVisibleCharts(prev => ({ ...prev, ventes: !prev.ventes }))}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  visibleCharts.ventes
+                    ? 'bg-green-100 text-green-700 border-2 border-green-300'
+                    : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
+                }`}
+              >
+                🛍️ Ventes
+              </button>
+              <button
+                onClick={() => setVisibleCharts(prev => ({ ...prev, clients: !prev.clients }))}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  visibleCharts.clients
+                    ? 'bg-purple-100 text-purple-700 border-2 border-purple-300'
+                    : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
+                }`}
+              >
+                👥 Clients
+              </button>
+              <button
+                onClick={() => setVisibleCharts(prev => ({ ...prev, articles: !prev.articles }))}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  visibleCharts.articles
+                    ? 'bg-amber-100 text-amber-700 border-2 border-amber-300'
+                    : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
+                }`}
+              >
+                📦 Articles
+              </button>
+              <button
+                onClick={() => setVisibleCharts(prev => ({ ...prev, ventesVsClients: !prev.ventesVsClients }))}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  visibleCharts.ventesVsClients
+                    ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-300'
+                    : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
+                }`}
+              >
+                📊 Ventes vs Clients
+              </button>
+              <button
+                onClick={() => setVisibleCharts(prev => ({ ...prev, panierMoyen: !prev.panierMoyen }))}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  visibleCharts.panierMoyen
+                    ? 'bg-teal-100 text-teal-700 border-2 border-teal-300'
+                    : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
+                }`}
+              >
+                🛒 Panier Moyen
+              </button>
+              <button
+                onClick={() => setVisibleCharts(prev => ({ ...prev, tauxTransfo: !prev.tauxTransfo }))}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  visibleCharts.tauxTransfo
+                    ? 'bg-pink-100 text-pink-700 border-2 border-pink-300'
+                    : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
+                }`}
+              >
+                📈 Taux Transfo
+              </button>
+              <button
+                onClick={() => setVisibleCharts(prev => ({ ...prev, indiceVente: !prev.indiceVente }))}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  visibleCharts.indiceVente
+                    ? 'bg-orange-100 text-orange-700 border-2 border-orange-300'
+                    : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
+                }`}
+              >
+                💎 Indice Vente
+              </button>
+            </div>
+          </div>
           
           {kpiEntries.length > 0 ? (
             <>
