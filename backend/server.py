@@ -1403,6 +1403,15 @@ async def create_manager_diagnostic(diagnostic_data: ManagerDiagnosticCreate, cu
     # Analyze with AI
     ai_analysis = await analyze_manager_diagnostic_with_ai(diagnostic_data.responses)
     
+    # Calculate DISC profile from questions 11-18
+    disc_responses = {}
+    for q_id in range(11, 19):  # Questions 11 to 18
+        q_key = str(q_id)
+        if q_key in diagnostic_data.responses:
+            disc_responses[q_key] = diagnostic_data.responses[q_key]
+    
+    disc_profile = calculate_disc_profile(disc_responses)
+    
     # Create diagnostic result
     diagnostic_obj = ManagerDiagnosticResult(
         manager_id=current_user['id'],
@@ -1413,7 +1422,9 @@ async def create_manager_diagnostic(diagnostic_data: ManagerDiagnosticCreate, cu
         force_2=ai_analysis['force_2'],
         axe_progression=ai_analysis['axe_progression'],
         recommandation=ai_analysis['recommandation'],
-        exemple_concret=ai_analysis['exemple_concret']
+        exemple_concret=ai_analysis['exemple_concret'],
+        disc_dominant=disc_profile['dominant'],
+        disc_percentages=disc_profile['percentages']
     )
     
     doc = diagnostic_obj.model_dump()
