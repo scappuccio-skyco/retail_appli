@@ -202,6 +202,7 @@ class TeamBilan(BaseModel):
     points_forts: list[str]  # Liste des points forts
     points_attention: list[str]  # Liste des points d'attention
     recommandations: list[str]  # Recommandations
+    analyses_vendeurs: list[dict] = []  # Analyse détaillée par vendeur
     kpi_resume: dict  # Résumé des KPIs (CA, ventes, etc.)
     competences_moyenne: dict  # Moyenne des compétences de l'équipe
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
