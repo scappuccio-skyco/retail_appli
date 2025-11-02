@@ -545,55 +545,227 @@ export default function SellerDetailView({ seller, onBack }) {
                 </div>
               </div>
 
-              {/* Graphiques */}
+              {/* Graphiques - Affichés selon les filtres */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Graphique CA */}
-                <div className="bg-white rounded-xl p-4 border border-gray-200">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4">💰 Évolution du CA</h3>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <LineChart data={(() => {
-                      const filteredEntries = kpiFilter === '7j' 
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-                        : kpiFilter === '30j'
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-                        : kpiEntries;
-                      return filteredEntries.map(e => ({
-                        date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-                        CA: e.ca_journalier || 0
-                      }));
-                    })()}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                      <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
-                      <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
-                      <Tooltip contentStyle={{ backgroundColor: '#fff', border: '2px solid #3b82f6', borderRadius: '8px' }} />
-                      <Line type="monotone" dataKey="CA" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                {visibleCharts.ca && (
+                  <div className="bg-white rounded-xl p-4 border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4">💰 Évolution du CA</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={(() => {
+                        const filteredEntries = kpiFilter === '7j' 
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                          : kpiFilter === '30j'
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                          : kpiEntries;
+                        return filteredEntries.map(e => ({
+                          date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+                          CA: e.ca_journalier || 0
+                        }));
+                      })()}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                        <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
+                        <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
+                        <Tooltip contentStyle={{ backgroundColor: '#fff', border: '2px solid #3b82f6', borderRadius: '8px' }} />
+                        <Line type="monotone" dataKey="CA" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
 
                 {/* Graphique Ventes */}
-                <div className="bg-white rounded-xl p-4 border border-gray-200">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4">🛒 Évolution des ventes</h3>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <LineChart data={(() => {
-                      const filteredEntries = kpiFilter === '7j' 
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-                        : kpiFilter === '30j'
-                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-                        : kpiEntries;
-                      return filteredEntries.map(e => ({
-                        date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-                        Ventes: e.nb_ventes || 0
-                      }));
-                    })()}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                      <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
-                      <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
-                      <Tooltip contentStyle={{ backgroundColor: '#fff', border: '2px solid #10b981', borderRadius: '8px' }} />
-                      <Line type="monotone" dataKey="Ventes" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                {visibleCharts.ventes && (
+                  <div className="bg-white rounded-xl p-4 border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4">🛍️ Évolution des ventes</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={(() => {
+                        const filteredEntries = kpiFilter === '7j' 
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                          : kpiFilter === '30j'
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                          : kpiEntries;
+                        return filteredEntries.map(e => ({
+                          date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+                          Ventes: e.nb_ventes || 0
+                        }));
+                      })()}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                        <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
+                        <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
+                        <Tooltip contentStyle={{ backgroundColor: '#fff', border: '2px solid #10b981', borderRadius: '8px' }} />
+                        <Line type="monotone" dataKey="Ventes" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Graphique Clients */}
+                {visibleCharts.clients && (
+                  <div className="bg-white rounded-xl p-4 border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4">👥 Évolution des clients</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={(() => {
+                        const filteredEntries = kpiFilter === '7j' 
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                          : kpiFilter === '30j'
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                          : kpiEntries;
+                        return filteredEntries.map(e => ({
+                          date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+                          Clients: e.nb_clients || 0
+                        }));
+                      })()}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                        <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
+                        <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
+                        <Tooltip contentStyle={{ backgroundColor: '#fff', border: '2px solid #9333ea', borderRadius: '8px' }} />
+                        <Line type="monotone" dataKey="Clients" stroke="#9333ea" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Graphique Articles */}
+                {visibleCharts.articles && (
+                  <div className="bg-white rounded-xl p-4 border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4">📦 Évolution des articles vendus</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={(() => {
+                        const filteredEntries = kpiFilter === '7j' 
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                          : kpiFilter === '30j'
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                          : kpiEntries;
+                        return filteredEntries.map(e => ({
+                          date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+                          Articles: e.nb_articles || 0
+                        }));
+                      })()}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                        <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
+                        <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
+                        <Tooltip contentStyle={{ backgroundColor: '#fff', border: '2px solid #f59e0b', borderRadius: '8px' }} />
+                        <Line type="monotone" dataKey="Articles" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Graphique Ventes vs Clients */}
+                {visibleCharts.ventesVsClients && (
+                  <div className="bg-white rounded-xl p-4 border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4">📊 Ventes vs Clients</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={(() => {
+                        const filteredEntries = kpiFilter === '7j' 
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                          : kpiFilter === '30j'
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                          : kpiEntries;
+                        return filteredEntries.map(e => ({
+                          date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+                          Ventes: e.nb_ventes || 0,
+                          Clients: e.nb_clients || 0
+                        }));
+                      })()}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                        <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
+                        <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
+                        <Tooltip contentStyle={{ backgroundColor: '#fff', border: '2px solid #6366f1', borderRadius: '8px' }} />
+                        <Legend />
+                        <Bar dataKey="Ventes" fill="#ffd871" name="Ventes" />
+                        <Bar dataKey="Clients" fill="#93c5fd" name="Clients" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Graphique Panier Moyen */}
+                {visibleCharts.panierMoyen && (
+                  <div className="bg-white rounded-xl p-4 border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4">🛒 Panier Moyen</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={(() => {
+                        const filteredEntries = kpiFilter === '7j' 
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                          : kpiFilter === '30j'
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                          : kpiEntries;
+                        return filteredEntries.map(e => ({
+                          date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+                          PanierMoyen: e.panier_moyen || 0
+                        }));
+                      })()}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                        <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
+                        <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#fff', border: '2px solid #14b8a6', borderRadius: '8px' }}
+                          formatter={(value) => `${value.toFixed(2)}€`}
+                        />
+                        <Line type="monotone" dataKey="PanierMoyen" stroke="#14b8a6" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Graphique Taux de Transformation */}
+                {visibleCharts.tauxTransfo && (
+                  <div className="bg-white rounded-xl p-4 border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4">📈 Taux de Transformation</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={(() => {
+                        const filteredEntries = kpiFilter === '7j' 
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                          : kpiFilter === '30j'
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                          : kpiEntries;
+                        return filteredEntries.map(e => ({
+                          date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+                          TauxTransfo: e.taux_transformation || 0
+                        }));
+                      })()}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                        <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
+                        <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#fff', border: '2px solid #ec4899', borderRadius: '8px' }}
+                          formatter={(value) => `${value.toFixed(2)}%`}
+                        />
+                        <Line type="monotone" dataKey="TauxTransfo" stroke="#ec4899" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Graphique Indice de Vente */}
+                {visibleCharts.indiceVente && (
+                  <div className="bg-white rounded-xl p-4 border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4">💎 Indice de Vente</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={(() => {
+                        const filteredEntries = kpiFilter === '7j' 
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                          : kpiFilter === '30j'
+                          ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                          : kpiEntries;
+                        return filteredEntries.map(e => ({
+                          date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+                          IndiceVente: e.indice_vente || 0
+                        }));
+                      })()}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                        <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
+                        <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#fff', border: '2px solid #f97316', borderRadius: '8px' }}
+                          formatter={(value) => `${value.toFixed(2)}€`}
+                        />
+                        <Line type="monotone" dataKey="IndiceVente" stroke="#f97316" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
               </div>
             </>
           ) : (
