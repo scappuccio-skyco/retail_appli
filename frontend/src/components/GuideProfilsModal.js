@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function GuideProfilsModal({ onClose }) {
-  const [activeTab, setActiveTab] = useState('vente');
+  const [activeTab, setActiveTab] = useState('management');
   const [currentProfile, setCurrentProfile] = useState(0);
   const [selectedManagerProfile, setSelectedManagerProfile] = useState('Dominant');
   const [selectedSellerProfile, setSelectedSellerProfile] = useState('Dominant');
