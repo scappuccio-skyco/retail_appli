@@ -245,9 +245,12 @@ export default function DiagnosticFormModal({ onClose, onSuccess }) {
   const progress = ((currentStep + 1) / QUESTIONS.length) * 100;
   const questionsRemaining = QUESTIONS.length - (currentStep + 1);
 
-  const handleAnswer = useCallback((answer) => {
+  const handleAnswer = useCallback((answer, optionIndex = null) => {
     if (isTransitioning || loading) return;
-    setResponses(prev => ({ ...prev, [currentQuestion.id]: answer }));
+    // For DISC questions (16-23), store the index if provided; otherwise store the text
+    const isDISCQuestion = currentQuestion.id >= 16 && currentQuestion.id <= 23;
+    const valueToStore = (isDISCQuestion && optionIndex !== null) ? optionIndex : answer;
+    setResponses(prev => ({ ...prev, [currentQuestion.id]: valueToStore }));
   }, [currentQuestion.id, isTransitioning, loading]);
 
   const canGoNext = useCallback(() => {
