@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sparkles, X, TrendingUp, AlertTriangle, Target } from 'lucide-react';
 
-export default function TeamBilanModal({ bilan, onClose }) {
+export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
   if (!bilan) return null;
 
   return (
