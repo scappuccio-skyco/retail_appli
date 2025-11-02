@@ -676,6 +676,16 @@ export default function GuideProfilsModal({ onClose }) {
         {/* Tabs */}
         <div className="flex border-b border-gray-200 bg-gray-50 px-6">
           <button
+            onClick={() => handleTabChange('management')}
+            className={`flex-1 py-4 text-sm font-semibold transition-colors ${
+              activeTab === 'management'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            👔 Styles de Management
+          </button>
+          <button
             onClick={() => handleTabChange('vente')}
             className={`flex-1 py-4 text-sm font-semibold transition-colors ${
               activeTab === 'vente'
@@ -694,16 +704,6 @@ export default function GuideProfilsModal({ onClose }) {
             }`}
           >
             🎨 Profils DISC
-          </button>
-          <button
-            onClick={() => handleTabChange('management')}
-            className={`flex-1 py-4 text-sm font-semibold transition-colors ${
-              activeTab === 'management'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            👔 Styles de Management
           </button>
           <button
             onClick={() => handleTabChange('compatibilite')}
