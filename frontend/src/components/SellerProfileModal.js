@@ -113,6 +113,7 @@ export default function SellerProfileModal({ diagnostic, onClose }) {
             </p>
           </div>
         </div>
+        </div>
       </div>
 
       {showGuide && (
