@@ -618,9 +618,9 @@ export default function GuideProfilsModal({ onClose }) {
   };
 
   const getCurrentProfiles = () => {
+    if (activeTab === 'management') return managementStyles;
     if (activeTab === 'vente') return venteProfiles;
     if (activeTab === 'disc') return discProfiles;
-    if (activeTab === 'management') return managementStyles;
     return [];
   };
 
