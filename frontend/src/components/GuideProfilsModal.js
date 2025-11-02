@@ -489,116 +489,116 @@ export default function GuideProfilsModal({ onClose }) {
 
   const compatibilityMatrix = [
     {
-      manager: 'D',
-      seller: 'D',
+      manager: 'Dominant',
+      seller: 'Dominant',
       status: 'warning',
       description: 'Risque de conflit de pouvoir',
       conseil: 'Respecter les zones d\'autonomie de chacun. Définir clairement qui décide quoi. Transformer la compétition en collaboration.'
     },
     {
-      manager: 'D',
-      seller: 'I',
+      manager: 'Dominant',
+      seller: 'Influent',
       status: 'good',
       description: 'Complémentaire',
-      conseil: 'Le D apporte la structure, le I l\'enthousiasme. Valoriser l\'énergie du I tout en fixant des cadres clairs.'
+      conseil: 'Le Dominant apporte la structure, l\'Influent l\'enthousiasme. Valoriser l\'énergie de l\'Influent tout en fixant des cadres clairs.'
     },
     {
-      manager: 'D',
-      seller: 'S',
+      manager: 'Dominant',
+      seller: 'Stable',
       status: 'warning',
       description: 'Risque de stress',
-      conseil: 'Le S a besoin de temps. Annoncer les changements en avance. Expliquer le pourquoi. Éviter la pression excessive.'
+      conseil: 'Le Stable a besoin de temps. Annoncer les changements en avance. Expliquer le pourquoi. Éviter la pression excessive.'
     },
     {
-      manager: 'D',
-      seller: 'C',
+      manager: 'Dominant',
+      seller: 'Consciencieux',
       status: 'good',
       description: 'Efficacité opérationnelle',
-      conseil: 'Le D fixe les objectifs, le C assure la qualité. Laisser du temps au C pour analyser avant de décider.'
+      conseil: 'Le Dominant fixe les objectifs, le Consciencieux assure la qualité. Laisser du temps au Consciencieux pour analyser avant de décider.'
     },
     {
-      manager: 'I',
-      seller: 'I',
+      manager: 'Influent',
+      seller: 'Influent',
       status: 'warning',
       description: 'Risque de dispersion',
-      conseil: 'Beaucoup d\'enthousiasme mais manque de structure. Établir des process clairs. Compléter avec un C dans l\'équipe.'
+      conseil: 'Beaucoup d\'enthousiasme mais manque de structure. Établir des process clairs. Compléter avec un Consciencieux dans l\'équipe.'
     },
     {
-      manager: 'I',
-      seller: 'S',
+      manager: 'Influent',
+      seller: 'Stable',
       status: 'excellent',
       description: 'Excellente synergie',
-      conseil: 'Le I motive, le S stabilise. Parfait équilibre entre dynamisme et fiabilité.'
+      conseil: 'L\'Influent motive, le Stable stabilise. Parfait équilibre entre dynamisme et fiabilité.'
     },
     {
-      manager: 'I',
-      seller: 'D',
+      manager: 'Influent',
+      seller: 'Dominant',
       status: 'good',
       description: 'Énergie communicative',
-      conseil: 'Le I inspire, le D exécute. Attention : le D a besoin de concret, pas que de motivation.'
+      conseil: 'L\'Influent inspire, le Dominant exécute. Attention : le Dominant a besoin de concret, pas que de motivation.'
     },
     {
-      manager: 'I',
-      seller: 'C',
+      manager: 'Influent',
+      seller: 'Consciencieux',
       status: 'neutral',
       description: 'Différences à gérer',
-      conseil: 'Le I est spontané, le C est analytique. Respecter le besoin de données du C. Structurer la communication.'
+      conseil: 'L\'Influent est spontané, le Consciencieux est analytique. Respecter le besoin de données du Consciencieux. Structurer la communication.'
     },
     {
-      manager: 'S',
-      seller: 'S',
+      manager: 'Stable',
+      seller: 'Stable',
       status: 'warning',
       description: 'Trop de stabilité',
       conseil: 'Risque de manque de dynamisme. Intégrer des challenges progressifs. Encourager la prise d\'initiative.'
     },
     {
-      manager: 'S',
-      seller: 'C',
+      manager: 'Stable',
+      seller: 'Consciencieux',
       status: 'excellent',
       description: 'Harmonie et qualité',
-      conseil: 'Le S crée l\'harmonie, le C assure la qualité. Duo parfait pour l\'excellence opérationnelle.'
+      conseil: 'Le Stable crée l\'harmonie, le Consciencieux assure la qualité. Duo parfait pour l\'excellence opérationnelle.'
     },
     {
-      manager: 'S',
-      seller: 'D',
+      manager: 'Stable',
+      seller: 'Dominant',
       status: 'warning',
       description: 'Rythmes différents',
-      conseil: 'Le D va vite, le S va posément. Définir des rythmes compatibles. Le S peut freiner les excès du D.'
+      conseil: 'Le Dominant va vite, le Stable va posément. Définir des rythmes compatibles. Le Stable peut freiner les excès du Dominant.'
     },
     {
-      manager: 'S',
-      seller: 'I',
+      manager: 'Stable',
+      seller: 'Influent',
       status: 'good',
       description: 'Équilibre émotionnel',
-      conseil: 'Le S stabilise l\'enthousiasme du I. Belle complémentarité. Attention à ne pas brider le I.'
+      conseil: 'Le Stable stabilise l\'enthousiasme de l\'Influent. Belle complémentarité. Attention à ne pas brider l\'Influent.'
     },
     {
-      manager: 'C',
-      seller: 'C',
+      manager: 'Consciencieux',
+      seller: 'Consciencieux',
       status: 'warning',
       description: 'Sur-analyse',
       conseil: 'Risque de paralysie par l\'analyse. Fixer des deadlines. Accepter le "suffisamment bon".'
     },
     {
-      manager: 'C',
-      seller: 'D',
+      manager: 'Consciencieux',
+      seller: 'Dominant',
       status: 'neutral',
       description: 'Qualité vs rapidité',
-      conseil: 'Le C veut la perfection, le D veut l\'action. Trouver le bon équilibre. Définir les standards minimums.'
+      conseil: 'Le Consciencieux veut la perfection, le Dominant veut l\'action. Trouver le bon équilibre. Définir les standards minimums.'
     },
     {
-      manager: 'C',
-      seller: 'I',
+      manager: 'Consciencieux',
+      seller: 'Influent',
       status: 'neutral',
       description: 'Structure vs spontanéité',
-      conseil: 'Le C structure, le I improvise. Canaliser la créativité du I avec des process. Le C peut apprendre la flexibilité.'
+      conseil: 'Le Consciencieux structure, l\'Influent improvise. Canaliser la créativité de l\'Influent avec des process. Le Consciencieux peut apprendre la flexibilité.'
     },
     {
-      manager: 'C',
-      seller: 'S',
+      manager: 'Consciencieux',
+      seller: 'Stable',
       status: 'good',
       description: 'Excellence tranquille',
-      conseil: 'Le C fixe les standards, le S les applique fidèlement. Duo efficace pour la qualité constante.'
+      conseil: 'Le Consciencieux fixe les standards, le Stable les applique fidèlement. Duo efficace pour la qualité constante.'
     }
   ];
 
