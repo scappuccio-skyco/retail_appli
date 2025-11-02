@@ -2063,6 +2063,24 @@ async def get_latest_team_bilan(current_user: dict = Depends(get_current_user)):
     
     return {"status": "success", "bilan": bilan}
 
+@api_router.get("/manager/team-bilans/all")
+async def get_all_team_bilans(current_user: dict = Depends(get_current_user)):
+    """Get all team bilans for the manager, sorted by date (most recent first)"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access team bilans")
+    
+    bilans = await db.team_bilans.find(
+        {"manager_id": current_user['id']},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(length=None)
+    
+    # Convert datetime strings to datetime objects
+    for bilan in bilans:
+        if isinstance(bilan.get('created_at'), str):
+            bilan['created_at'] = datetime.fromisoformat(bilan['created_at'])
+    
+    return {"status": "success", "bilans": bilans}
+
 # ===== CONFLICT RESOLUTION ROUTES =====
 
 async def generate_conflict_resolution_analysis(
