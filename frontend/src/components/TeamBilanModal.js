@@ -84,7 +84,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
               <h3 className="font-bold text-green-900">💪 Points forts</h3>
             </div>
             <ul className="space-y-2">
-              {bilan.points_forts.map((point, idx) => (
+              {bilan.points_forts && bilan.points_forts.map((point, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-green-800">
                   <span className="text-green-600 mt-1">✓</span>
                   <span>{point}</span>
@@ -100,7 +100,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
               <h3 className="font-bold text-orange-900">⚠️ Points d'attention</h3>
             </div>
             <ul className="space-y-2">
-              {bilan.points_attention.map((point, idx) => (
+              {bilan.points_attention && bilan.points_attention.map((point, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-orange-800">
                   <span className="text-orange-600 mt-1">!</span>
                   <span>{point}</span>
