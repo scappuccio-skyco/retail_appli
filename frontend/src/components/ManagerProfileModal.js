@@ -58,31 +58,31 @@ export default function ManagerProfileModal({ diagnostic, onClose, onRedo }) {
               </div>
 
               {/* DISC Profile Section */}
-              {diagnostic.disc_profile && (
+              {diagnostic.disc_dominant && (
                 <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border-2 border-purple-200">
                   <p className="text-sm font-semibold text-purple-900 mb-4">🎭 Profil DISC :</p>
                   <div className="mb-4">
                     <p className="text-lg font-bold text-purple-800 mb-2">
-                      Type dominant : <span className="text-2xl text-indigo-700">{diagnostic.disc_profile.dominant}</span>
+                      Type dominant : <span className="text-2xl text-indigo-700">{diagnostic.disc_dominant}</span>
                     </p>
                   </div>
                   
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="bg-white rounded-lg p-3 text-center shadow-sm">
                       <p className="text-xs text-gray-600 mb-1">Dominant</p>
-                      <p className="text-2xl font-bold text-red-600">{diagnostic.disc_profile.percentages?.D || 0}%</p>
+                      <p className="text-2xl font-bold text-red-600">{diagnostic.disc_percentages?.D || 0}%</p>
                     </div>
                     <div className="bg-white rounded-lg p-3 text-center shadow-sm">
                       <p className="text-xs text-gray-600 mb-1">Influent</p>
-                      <p className="text-2xl font-bold text-yellow-600">{diagnostic.disc_profile.percentages?.I || 0}%</p>
+                      <p className="text-2xl font-bold text-yellow-600">{diagnostic.disc_percentages?.I || 0}%</p>
                     </div>
                     <div className="bg-white rounded-lg p-3 text-center shadow-sm">
                       <p className="text-xs text-gray-600 mb-1">Stable</p>
-                      <p className="text-2xl font-bold text-green-600">{diagnostic.disc_profile.percentages?.S || 0}%</p>
+                      <p className="text-2xl font-bold text-green-600">{diagnostic.disc_percentages?.S || 0}%</p>
                     </div>
                     <div className="bg-white rounded-lg p-3 text-center shadow-sm">
                       <p className="text-xs text-gray-600 mb-1">Consciencieux</p>
-                      <p className="text-2xl font-bold text-blue-600">{diagnostic.disc_profile.percentages?.C || 0}%</p>
+                      <p className="text-2xl font-bold text-blue-600">{diagnostic.disc_percentages?.C || 0}%</p>
                     </div>
                   </div>
                 </div>
