@@ -88,11 +88,12 @@ export default function ManagerDashboard({ user, onLogout }) {
         setTeamBilan(allRes.data.bilans[0]); // Most recent by default
         setSelectedBilanIndex(0);
       } else {
-        // Fallback to latest endpoint
-        const res = await axios.get(`${API}/manager/team-bilan/latest`);
-        if (res.data.status === 'success') {
-          setTeamBilan(res.data.bilan);
-          setAllTeamBilans([res.data.bilan]);
+        // No bilans found, generate them all
+        console.log('No bilans found, generating all bilans...');
+        const generateRes = await axios.post(`${API}/manager/team-bilans/generate-all`);
+        if (generateRes.data.status === 'success' && generateRes.data.bilans.length > 0) {
+          setAllTeamBilans(generateRes.data.bilans);
+          setTeamBilan(generateRes.data.bilans[0]);
           setSelectedBilanIndex(0);
         }
       }
@@ -104,16 +105,17 @@ export default function ManagerDashboard({ user, onLogout }) {
   const regenerateTeamBilan = async () => {
     setGeneratingTeamBilan(true);
     try {
-      const res = await axios.post(`${API}/manager/team-bilan`);
-      if (res.data) {
-        setTeamBilan(res.data);
-        // Refresh all bilans
-        fetchTeamBilan();
-        toast.success('Analyse d\'équipe régénérée avec succès !');
+      // Regenerate all bilans
+      const res = await axios.post(`${API}/manager/team-bilans/generate-all`);
+      if (res.data && res.data.bilans) {
+        setAllTeamBilans(res.data.bilans);
+        setTeamBilan(res.data.bilans[0]);
+        setSelectedBilanIndex(0);
+        toast.success(`${res.data.generated_count} bilans générés avec succès !`);
       }
     } catch (err) {
       console.error('Error regenerating team bilan:', err);
-      toast.error('Erreur lors de la régénération de l\'analyse');
+      toast.error('Erreur lors de la régénération des bilans');
     } finally {
       setGeneratingTeamBilan(false);
     }
