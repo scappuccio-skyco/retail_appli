@@ -2046,23 +2046,23 @@ async def generate_team_bilan_for_period(manager_id: str, start_date: date, end_
 Génère un bilan au format JSON avec :
 - synthese : Une phrase d'accroche résumant la performance de la semaine
 - points_forts : Liste de 2-3 points forts observés
-- points_amelioration : Liste de 2-3 points à améliorer
+- points_attention : Liste de 2-3 points d'attention à surveiller
 - recommandations : Liste de 2-3 actions concrètes à mettre en place
 """
     
     try:
-        response = await litellm.acompletion(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
+        llm_chat = LlmChat(api_key="universal", model="gpt-4o-mini")
+        response = await llm_chat.send_message(
+            messages=[UserMessage(content=prompt)],
+            json_mode=True
         )
-        ai_result = json.loads(response.choices[0].message.content)
+        ai_result = json.loads(response.message_content)
     except Exception as e:
         print(f"AI generation failed: {e}")
         ai_result = {
             "synthese": f"Performance de l'équipe pour la période {periode}",
             "points_forts": ["Données collectées"],
-            "points_amelioration": ["À analyser"],
+            "points_attention": ["À analyser"],
             "recommandations": ["Continuer le suivi"]
         }
     
