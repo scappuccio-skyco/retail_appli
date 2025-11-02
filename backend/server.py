@@ -1953,7 +1953,7 @@ async def generate_all_team_bilans(current_user: dict = Depends(get_current_user
 
 async def generate_team_bilan_for_period(manager_id: str, start_date: date, end_date: date, sellers: list):
     """Helper function to generate a team bilan for a specific period"""
-    periode = f"Semaine du {start_date.strftime('%d/%m')} au {end_date.strftime('%d/%m')}"
+    periode = f"Semaine du {start_date.strftime('%d/%m/%y')} au {end_date.strftime('%d/%m/%y')}"
     
     # Collect data for all sellers
     team_data = []
