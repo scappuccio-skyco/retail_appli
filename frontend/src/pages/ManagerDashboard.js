@@ -116,17 +116,37 @@ export default function ManagerDashboard({ user, onLogout }) {
   const regenerateTeamBilan = async () => {
     setGeneratingTeamBilan(true);
     try {
-      // Regenerate all bilans
-      const res = await axios.post(`${API}/manager/team-bilans/generate-all`);
-      if (res.data && res.data.bilans) {
-        setAllTeamBilans(res.data.bilans);
-        setTeamBilan(res.data.bilans[0]);
-        setSelectedBilanIndex(0);
-        toast.success(`${res.data.generated_count} bilans générés avec succès !`);
+      // Extract start and end dates from the current bilan period
+      // Format: "Semaine du DD/MM au DD/MM"
+      const periode = teamBilan.periode;
+      const match = periode.match(/(\d{2})\/(\d{2}) au (\d{2})\/(\d{2})/);
+      
+      if (!match) {
+        toast.error('Format de période invalide');
+        return;
+      }
+      
+      const [, startDay, startMonth, endDay, endMonth] = match;
+      const currentYear = new Date().getFullYear();
+      
+      // Build start and end dates in YYYY-MM-DD format
+      const startDate = `${currentYear}-${startMonth}-${startDay}`;
+      const endDate = `${currentYear}-${endMonth}-${endDay}`;
+      
+      // Regenerate only the current week's bilan
+      const res = await axios.post(`${API}/manager/team-bilan?start_date=${startDate}&end_date=${endDate}`);
+      
+      if (res.data) {
+        // Update the bilan in the list
+        const updatedBilans = [...allTeamBilans];
+        updatedBilans[selectedBilanIndex] = res.data;
+        setAllTeamBilans(updatedBilans);
+        setTeamBilan(res.data);
+        toast.success('Bilan régénéré avec succès !');
       }
     } catch (err) {
       console.error('Error regenerating team bilan:', err);
-      toast.error('Erreur lors de la régénération des bilans');
+      toast.error('Erreur lors de la régénération du bilan');
     } finally {
       setGeneratingTeamBilan(false);
     }
