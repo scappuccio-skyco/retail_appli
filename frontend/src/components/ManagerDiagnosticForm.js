@@ -223,10 +223,12 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const handleSelectOption = (questionId, option) => {
+  const handleSelectOption = (questionId, option, optionIndex) => {
+    // For DISC questions (11-18), store the index; for others, store the text
+    const isDISCQuestion = questionId >= 11 && questionId <= 18;
     setResponses(prev => ({
       ...prev,
-      [questionId]: option
+      [questionId]: isDISCQuestion ? optionIndex : option
     }));
   };
 
