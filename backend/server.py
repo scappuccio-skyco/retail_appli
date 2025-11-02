@@ -2115,6 +2115,7 @@ Consignes :
         "points_forts": ai_result.get('points_forts', []),
         "points_attention": ai_result.get('points_attention', []),
         "recommandations": ai_result.get('recommandations', []),
+        "analyses_vendeurs": ai_result.get('analyses_vendeurs', []),
         "kpi_resume": {
             "ca_total": round(total_ca, 2),
             "ventes": total_ventes,
