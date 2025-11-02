@@ -131,6 +131,91 @@ const questions = [
         ]
       }
     ]
+  },
+  {
+    section: "🎨 Ton profil DISC",
+    items: [
+      {
+        id: 11,
+        text: "En réunion d'équipe, tu préfères :",
+        options: [
+          "Prendre les devants et diriger la discussion vers des décisions concrètes",
+          "Créer une ambiance positive et encourager chacun à participer",
+          "Écouter attentivement tous les points de vue avant de conclure",
+          "Présenter des données précises et suivre un ordre du jour structuré"
+        ]
+      },
+      {
+        id: 12,
+        text: "Face à un changement important dans l'organisation, ta réaction naturelle est de :",
+        options: [
+          "Agir rapidement et prendre les choses en main",
+          "Communiquer avec enthousiasme pour embarquer l'équipe",
+          "Prendre le temps d'analyser l'impact sur chacun",
+          "Étudier en détail les implications avant de valider"
+        ]
+      },
+      {
+        id: 13,
+        text: "Quand tu dois donner un feedback difficile à un collaborateur, tu :",
+        options: [
+          "Vas droit au but avec des faits et des attentes claires",
+          "Commences par du positif pour maintenir la relation",
+          "Choisis un moment calme et t'assures qu'il se sent en confiance",
+          "Prépares des exemples précis et des arguments documentés"
+        ]
+      },
+      {
+        id: 14,
+        text: "Dans ton travail quotidien, tu es plus à l'aise avec :",
+        options: [
+          "Les défis et les situations qui demandent des décisions rapides",
+          "Les interactions sociales et le travail en équipe",
+          "Les routines stables et un environnement prévisible",
+          "L'analyse de données et les process bien définis"
+        ]
+      },
+      {
+        id: 15,
+        text: "Un conflit éclate entre deux vendeurs. Ta première réaction est de :",
+        options: [
+          "Intervenir immédiatement et trancher pour rétablir l'ordre",
+          "Réunir tout le monde pour discuter ouvertement du problème",
+          "Parler à chacun individuellement pour comprendre leur ressenti",
+          "Analyser la situation objectivement avant de prendre position"
+        ]
+      },
+      {
+        id: 16,
+        text: "Quand tu fixes des objectifs à ton équipe, tu privilégies :",
+        options: [
+          "Des objectifs ambitieux qui poussent à se dépasser",
+          "Des objectifs motivants présentés de manière inspirante",
+          "Des objectifs progressifs qui respectent le rythme de chacun",
+          "Des objectifs précis avec des indicateurs mesurables"
+        ]
+      },
+      {
+        id: 17,
+        text: "Si tu devais décrire ton style de communication, ce serait :",
+        options: [
+          "Direct et efficace, je vais à l'essentiel",
+          "Chaleureux et expressif, j'aime créer du lien",
+          "Patient et à l'écoute, je prends le temps",
+          "Précis et factuel, je m'appuie sur des données"
+        ]
+      },
+      {
+        id: 18,
+        text: "Face à une deadline serrée, tu as tendance à :",
+        options: [
+          "Accélérer le rythme et exiger des résultats rapides",
+          "Motiver l'équipe avec de l'énergie et de l'optimisme",
+          "Garder ton calme et rassurer ton équipe",
+          "Planifier méthodiquement chaque étape restante"
+        ]
+      }
+    ]
   }
 ];
 
