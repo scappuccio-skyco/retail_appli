@@ -85,6 +85,20 @@ export default function SellerProfileModal({ diagnostic, onClose }) {
             </div>
           </div>
 
+          {/* Guide des Profils Button */}
+          <div className="mt-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border-2 border-blue-200">
+            <p className="text-sm text-gray-700 mb-3 text-center">
+              💡 Envie de mieux comprendre les différents profils de vente ?
+            </p>
+            <button
+              onClick={() => setShowGuide(true)}
+              className="w-full btn-primary bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-xl flex items-center justify-center gap-2 py-3"
+            >
+              <BookOpen className="w-5 h-5" />
+              📚 Consulter le Guide des Profils
+            </button>
+          </div>
+
           {/* Button to redo test */}
           <div className="mt-6 text-center">
             <button
@@ -100,6 +114,10 @@ export default function SellerProfileModal({ diagnostic, onClose }) {
           </div>
         </div>
       </div>
-    </div>
+
+      {showGuide && (
+        <GuideProfilsModal onClose={() => setShowGuide(false)} />
+      )}
+    </>
   );
 }
