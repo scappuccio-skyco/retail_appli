@@ -1119,14 +1119,10 @@ export default function GuideProfilsModal({ onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-between items-center">
+        <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-center items-center">
           <p className="text-xs text-gray-500">
             Retail Coach 2.0 - Guide des Profils
           </p>
-          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-            <Download className="w-4 h-4" />
-            Télécharger PDF
-          </button>
         </div>
       </div>
     </div>
