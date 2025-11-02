@@ -2102,6 +2102,9 @@ async def generate_team_bilan(current_user: dict = Depends(get_current_user)):
     # Get all sellers for this manager
     sellers = await db.users.find({"manager_id": current_user['id'], "role": "seller"}, {"_id": 0}).to_list(1000)
     
+    print(f"DEBUG: Manager ID: {current_user['id']}")
+    print(f"DEBUG: Found {len(sellers)} sellers")
+    
     if not sellers:
         raise HTTPException(status_code=404, detail="No sellers in your team")
     
