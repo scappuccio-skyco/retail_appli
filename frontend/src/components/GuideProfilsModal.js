@@ -686,16 +686,6 @@ export default function GuideProfilsModal({ onClose }) {
             👔 Styles de Management
           </button>
           <button
-            onClick={() => handleTabChange('vente')}
-            className={`flex-1 py-4 text-sm font-semibold transition-colors ${
-              activeTab === 'vente'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            🛍️ Profils de Vente
-          </button>
-          <button
             onClick={() => handleTabChange('disc')}
             className={`flex-1 py-4 text-sm font-semibold transition-colors ${
               activeTab === 'disc'
@@ -704,6 +694,16 @@ export default function GuideProfilsModal({ onClose }) {
             }`}
           >
             🎨 Profils DISC
+          </button>
+          <button
+            onClick={() => handleTabChange('vente')}
+            className={`flex-1 py-4 text-sm font-semibold transition-colors ${
+              activeTab === 'vente'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            🛍️ Profils de Vente
           </button>
           <button
             onClick={() => handleTabChange('compatibilite')}
