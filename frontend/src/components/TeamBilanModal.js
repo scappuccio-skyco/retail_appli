@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Sparkles, X, TrendingUp, AlertTriangle, Target, MessageSquare } from 'lucide-react';
+import React from 'react';
+import { Sparkles, X, TrendingUp, AlertTriangle, Target } from 'lucide-react';
 
 export default function TeamBilanModal({ bilan, onClose }) {
   if (!bilan) return null;
