@@ -165,6 +165,9 @@ class DiagnosticResult(BaseModel):
     score_argumentation: float = 0
     score_closing: float = 0
     score_fidelisation: float = 0
+    # DISC Profile fields
+    disc_dominant: str = None  # Dominant, Influent, Stable, Consciencieux
+    disc_percentages: dict = None  # {'D': 30, 'I': 40, 'S': 20, 'C': 10}
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class DiagnosticCreate(BaseModel):
