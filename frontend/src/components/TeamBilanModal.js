@@ -125,6 +125,58 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
             </ul>
           </div>
 
+          {/* Analyses détaillées par vendeur */}
+          {bilan.analyses_vendeurs && bilan.analyses_vendeurs.length > 0 && (
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-4 mb-4 border-2 border-purple-200">
+              <h3 className="font-bold text-purple-900 mb-4">👥 Analyse détaillée par vendeur</h3>
+              <div className="space-y-4">
+                {bilan.analyses_vendeurs.map((analyse, idx) => (
+                  <div key={idx} className="bg-white rounded-lg p-4 shadow-sm">
+                    <h4 className="text-lg font-bold text-purple-800 mb-2">
+                      {analyse.vendeur}
+                    </h4>
+                    <p className="text-gray-700 mb-3 italic">{analyse.performance}</p>
+                    
+                    <div className="grid md:grid-cols-2 gap-3 mb-3">
+                      {analyse.points_forts && analyse.points_forts.length > 0 && (
+                        <div className="bg-green-50 rounded p-3">
+                          <p className="text-xs font-semibold text-green-700 mb-2">✓ Points forts</p>
+                          <ul className="text-sm text-green-800 space-y-1">
+                            {analyse.points_forts.map((point, i) => (
+                              <li key={i}>• {point}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {analyse.axes_progression && analyse.axes_progression.length > 0 && (
+                        <div className="bg-orange-50 rounded p-3">
+                          <p className="text-xs font-semibold text-orange-700 mb-2">📈 Axes de progression</p>
+                          <ul className="text-sm text-orange-800 space-y-1">
+                            {analyse.axes_progression.map((axe, i) => (
+                              <li key={i}>• {axe}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {analyse.recommandations && analyse.recommandations.length > 0 && (
+                      <div className="bg-blue-50 rounded p-3">
+                        <p className="text-xs font-semibold text-blue-700 mb-2">🎯 Recommandations personnalisées</p>
+                        <ul className="text-sm text-blue-800 space-y-1">
+                          {analyse.recommandations.map((reco, i) => (
+                            <li key={i}>• {reco}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Compétences moyennes */}
           {bilan.competences_moyenne && Object.keys(bilan.competences_moyenne).length > 0 && (
             <div className="bg-gray-50 rounded-xl p-4 mb-4">
