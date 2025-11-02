@@ -117,21 +117,33 @@ export default function ManagerDashboard({ user, onLogout }) {
     setGeneratingTeamBilan(true);
     try {
       // Extract start and end dates from the current bilan period
-      // Format: "Semaine du DD/MM au DD/MM"
+      // Format: "Semaine du DD/MM/YY au DD/MM/YY" or "Semaine du DD/MM au DD/MM"
       const periode = teamBilan.periode;
-      const match = periode.match(/(\d{2})\/(\d{2}) au (\d{2})\/(\d{2})/);
+      let match = periode.match(/(\d{2})\/(\d{2})\/(\d{2}) au (\d{2})\/(\d{2})\/(\d{2})/);
       
-      if (!match) {
-        toast.error('Format de période invalide');
-        return;
+      let startDay, startMonth, startYear, endDay, endMonth, endYear;
+      
+      if (match) {
+        // New format with year: DD/MM/YY
+        [, startDay, startMonth, startYear, endDay, endMonth, endYear] = match;
+        startYear = `20${startYear}`; // Convert 25 to 2025
+        endYear = `20${endYear}`;
+      } else {
+        // Old format without year: DD/MM
+        match = periode.match(/(\d{2})\/(\d{2}) au (\d{2})\/(\d{2})/);
+        if (!match) {
+          toast.error('Format de période invalide');
+          return;
+        }
+        [, startDay, startMonth, endDay, endMonth] = match;
+        const currentYear = new Date().getFullYear();
+        startYear = currentYear;
+        endYear = currentYear;
       }
       
-      const [, startDay, startMonth, endDay, endMonth] = match;
-      const currentYear = new Date().getFullYear();
-      
       // Build start and end dates in YYYY-MM-DD format
-      const startDate = `${currentYear}-${startMonth}-${startDay}`;
-      const endDate = `${currentYear}-${endMonth}-${endDay}`;
+      const startDate = `${startYear}-${startMonth}-${startDay}`;
+      const endDate = `${endYear}-${endMonth}-${endDay}`;
       
       // Regenerate only the current week's bilan
       const res = await axios.post(`${API}/manager/team-bilan?start_date=${startDate}&end_date=${endDate}`);
