@@ -98,16 +98,8 @@ export default function ManagerDashboard({ user, onLogout }) {
         setAllTeamBilans(allRes.data.bilans);
         setTeamBilan(allRes.data.bilans[0]); // Most recent by default
         setSelectedBilanIndex(0);
-      } else {
-        // No bilans found, generate them all
-        console.log('No bilans found, generating all bilans...');
-        const generateRes = await axios.post(`${API}/manager/team-bilans/generate-all`);
-        if (generateRes.data.status === 'success' && generateRes.data.bilans.length > 0) {
-          setAllTeamBilans(generateRes.data.bilans);
-          setTeamBilan(generateRes.data.bilans[0]);
-          setSelectedBilanIndex(0);
-        }
       }
+      // If no bilans, user will see "Generate bilan" button
     } catch (err) {
       console.error('Error fetching team bilan:', err);
     }
