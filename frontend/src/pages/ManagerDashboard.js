@@ -36,6 +36,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [showDetailView, setShowDetailView] = useState(false);
   const [loading, setLoading] = useState(true);
   const [generatingTeamBilan, setGeneratingTeamBilan] = useState(false);
+  const [kpiConfig, setKpiConfig] = useState(null); // Configuration KPI du manager
   const [visibleDashboardCharts, setVisibleDashboardCharts] = useState({
     ca: true,
     ventesVsClients: true,
