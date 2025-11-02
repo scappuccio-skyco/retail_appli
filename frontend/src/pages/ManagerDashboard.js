@@ -431,25 +431,25 @@ export default function ManagerDashboard({ user, onLogout }) {
                       <p className="text-sm font-bold text-purple-900">{teamBilan.kpi_resume.clients}</p>
                     </div>
                   )}
-                  {teamBilan.kpi_resume.articles !== undefined && (
+                  {kpiConfig?.track_articles && teamBilan.kpi_resume.articles !== undefined && (
                     <div className="bg-orange-50 rounded-lg p-2 text-center">
                       <p className="text-xs text-orange-600">📦 Articles</p>
                       <p className="text-sm font-bold text-orange-900">{teamBilan.kpi_resume.articles}</p>
                     </div>
                   )}
-                  {teamBilan.kpi_resume.panier_moyen !== undefined && (
+                  {kpiConfig?.track_ca && kpiConfig?.track_ventes && teamBilan.kpi_resume.panier_moyen !== undefined && (
                     <div className="bg-indigo-50 rounded-lg p-2 text-center">
                       <p className="text-xs text-indigo-600">💳 Panier M.</p>
                       <p className="text-sm font-bold text-indigo-900">{teamBilan.kpi_resume.panier_moyen.toFixed(0)}€</p>
                     </div>
                   )}
-                  {teamBilan.kpi_resume.taux_transformation !== undefined && (
+                  {kpiConfig?.track_ventes && kpiConfig?.track_clients && teamBilan.kpi_resume.taux_transformation !== undefined && (
                     <div className="bg-pink-50 rounded-lg p-2 text-center">
                       <p className="text-xs text-pink-600">📈 Taux Transfo</p>
                       <p className="text-sm font-bold text-pink-900">{teamBilan.kpi_resume.taux_transformation.toFixed(0)}%</p>
                     </div>
                   )}
-                  {teamBilan.kpi_resume.indice_vente !== undefined && (
+                  {kpiConfig?.track_articles && kpiConfig?.track_clients && teamBilan.kpi_resume.indice_vente !== undefined && (
                     <div className="bg-teal-50 rounded-lg p-2 text-center">
                       <p className="text-xs text-teal-600">🎯 Indice</p>
                       <p className="text-sm font-bold text-teal-900">{teamBilan.kpi_resume.indice_vente.toFixed(1)}</p>
