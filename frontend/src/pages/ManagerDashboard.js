@@ -410,7 +410,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                   )}
                   {teamBilan.kpi_resume.taux_transformation !== undefined && (
                     <div className="bg-pink-50 rounded-lg p-2 text-center">
-                      <p className="text-xs text-pink-600">📈 Taux</p>
+                      <p className="text-xs text-pink-600">📈 Taux Transfo</p>
                       <p className="text-sm font-bold text-pink-900">{teamBilan.kpi_resume.taux_transformation.toFixed(0)}%</p>
                     </div>
                   )}
