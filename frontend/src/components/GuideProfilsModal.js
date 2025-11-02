@@ -644,6 +644,16 @@ export default function GuideProfilsModal({ onClose }) {
     setCurrentProfile(0);
   };
 
+  const getSelectedCompatibility = () => {
+    return compatibilityMatrix.find(
+      item => item.manager === selectedManagerProfile && item.seller === selectedSellerProfile
+    );
+  };
+
+  const selectedCompatibility = getSelectedCompatibility();
+
+  const discProfileOptions = ['Dominant', 'Influent', 'Stable', 'Consciencieux'];
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
