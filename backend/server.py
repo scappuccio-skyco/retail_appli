@@ -1940,9 +1940,10 @@ async def generate_team_bilan(current_user: dict = Depends(get_current_user)):
             "scores": latest_scores
         })
     
-    # Calculate averages
+    # Calculate averages and all KPIs
     panier_moyen_equipe = total_ca / total_ventes if total_ventes > 0 else 0
     taux_transfo_equipe = (total_ventes / total_clients * 100) if total_clients > 0 else 0
+    indice_vente_equipe = (total_articles / total_clients) if total_clients > 0 else 0
     
     competences_moyenne = {}
     if competences_count > 0:
