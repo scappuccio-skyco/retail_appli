@@ -1088,6 +1088,7 @@ export default function ManagerDashboard({ user, onLogout }) {
       {showTeamBilanModal && (
         <TeamBilanModal
           bilan={teamBilan}
+          kpiConfig={kpiConfig}
           onClose={() => setShowTeamBilanModal(false)}
         />
       )}
