@@ -341,12 +341,41 @@ export default function GuideProfilsModal({ onClose }) {
 
   const managementStyles = [
     {
+      id: 'pilote',
+      name: 'Le Pilote',
+      icon: '⚡',
+      color: 'red',
+      description: 'Le manager orienté résultats et plans d\'action',
+      approche: 'Orienté résultats, aime les chiffres, la clarté et les plans d\'action. Le Pilote recherche constamment l\'efficacité et la rapidité dans ses décisions.',
+      discTypique: 'D (Dominant)',
+      caracteristiques: [
+        'Fixe des objectifs clairs et chiffrés',
+        'Aime les chiffres et les tableaux de bord',
+        'Prend des décisions rapides et pragmatiques',
+        'Communication directe et sans détour',
+        'Focus sur les résultats et la performance'
+      ],
+      efficaceAvec: [
+        'Vendeurs expérimentés et autonomes',
+        'Situations de crise ou de redressement',
+        'Profils D qui apprécient la clarté',
+        'Objectifs ambitieux à court terme'
+      ],
+      attention: [
+        'Peut manquer d\'empathie dans la relation',
+        'Risque de créer du stress dans l\'équipe',
+        'Peut négliger le développement individuel',
+        'Besoin d\'apprendre à ralentir et écouter'
+      ],
+      exemple: 'Pierre ouvre le brief : "Objectif du jour : 20 ventes, panier moyen 150€. Hier on était à 17, on peut mieux faire. Marie, tu prends le secteur cosmétique. Paul, l\'électro. Questions ? Pas de questions ? Go !"'
+    },
+    {
       id: 'coach',
       name: 'Le Coach',
       icon: '🎯',
       color: 'blue',
-      description: 'Développe les talents individuels',
-      approche: 'Développe les compétences individuelles par l\'écoute active, le questionnement et l\'accompagnement personnalisé',
+      description: 'Le manager bienveillant qui accompagne individuellement',
+      approche: 'Bienveillant, à l\'écoute, accompagne individuellement. Le Coach développe les compétences de chaque vendeur par l\'écoute active et le questionnement.',
       discTypique: 'I-S (Influent-Stable)',
       caracteristiques: [
         'Écoute active et questionnement puissant',
@@ -367,123 +396,94 @@ export default function GuideProfilsModal({ onClose }) {
         'Peut avoir du mal avec les décisions difficiles',
         'Besoin de fixer des limites claires'
       ],
-      exemple: 'Sarah prend le temps avec chaque vendeur. "Qu\'est-ce qui t\'a bloqué dans cette vente ? Comment pourrais-tu faire différemment la prochaine fois ?" Elle développe l\'autonomie.'
+      exemple: 'Sarah prend le temps avec chaque vendeur : "Qu\'est-ce qui t\'a bloqué dans cette vente ? Comment pourrais-tu faire différemment la prochaine fois ? Qu\'est-ce que tu as appris aujourd\'hui ?" Elle développe l\'autonomie.'
     },
     {
-      id: 'directif',
-      name: 'Le Directif',
-      icon: '⚡',
-      color: 'red',
-      description: 'Fixe des objectifs clairs et contrôle les résultats',
-      approche: 'Fixe des objectifs clairs, prend des décisions rapides et contrôle les résultats de près',
-      discTypique: 'D (Dominant)',
-      caracteristiques: [
-        'Fixe des objectifs clairs et chiffrés',
-        'Prend des décisions rapides',
-        'Contrôle régulier des résultats',
-        'Communication directe et sans détour',
-        'Exigence élevée'
-      ],
-      efficaceAvec: [
-        'Vendeurs expérimentés et autonomes',
-        'Situations de crise ou de transformation',
-        'Profils D qui apprécient la clarté',
-        'Objectifs ambitieux à court terme'
-      ],
-      attention: [
-        'Peut démotiver les profils S et I',
-        'Risque de micro-management',
-        'Peut créer du stress excessif',
-        'Manque parfois d\'écoute'
-      ],
-      exemple: 'Marc fixe des objectifs chaque lundi : "Cette semaine : +15% de CA, focus produits premium. Debrief vendredi 18h. Des questions ? Non ? Alors go !"'
-    },
-    {
-      id: 'facilitateur',
-      name: 'Le Facilitateur',
-      icon: '🤝',
-      color: 'green',
-      description: 'Crée les conditions de réussite',
-      approche: 'Crée les conditions optimales de réussite en enlevant les obstacles et en soutenant l\'équipe',
-      discTypique: 'S-C (Stable-Consciencieux)',
-      caracteristiques: [
-        'Enlève les obstacles et simplifie les process',
-        'Soutien logistique et opérationnel',
-        'Organisation optimale',
-        'Disponibilité et écoute',
-        'Focus sur les conditions de travail'
-      ],
-      efficaceAvec: [
-        'Équipes autonomes et matures',
-        'Tous les profils (très adaptable)',
-        'Environnements stables',
-        'Gestion du quotidien'
-      ],
-      attention: [
-        'Peut manquer de vision stratégique',
-        'Risque d\'être trop en retrait',
-        'Besoin de complément pour la direction',
-        'Peut éviter les décisions difficiles'
-      ],
-      exemple: 'Julie s\'assure que tout roule : "Vous avez besoin de quoi pour réussir ? Stock ? Formation ? Planning ajusté ? Je m\'occupe de tout."'
-    },
-    {
-      id: 'mentor',
-      name: 'Le Mentor',
-      icon: '🎓',
-      color: 'purple',
-      description: 'Transmet son expérience et son savoir-faire',
-      approche: 'Partage son expérience, guide par l\'exemple et transmet son savoir-faire',
-      discTypique: 'C-S (Consciencieux-Stable)',
-      caracteristiques: [
-        'Partage son expérience terrain',
-        'Guide par l\'exemple (lead by doing)',
-        'Transmission de savoir-faire',
-        'Patience et pédagogie',
-        'Focus sur la maîtrise technique'
-      ],
-      efficaceAvec: [
-        'Nouveaux vendeurs',
-        'Profils C qui aiment apprendre',
-        'Situations d\'apprentissage technique',
-        'Transmission de l\'expertise métier'
-      ],
-      attention: [
-        'Peut être trop dans le détail',
-        'Risque de "à mon époque..."',
-        'Peut bloquer l\'innovation',
-        'Besoin de lâcher prise'
-      ],
-      exemple: 'Pierre montre à ses vendeurs : "Regarde comment je fais avec ce client difficile. Ensuite, à ton tour, je t\'observe et on débrief."'
-    },
-    {
-      id: 'visionnaire',
-      name: 'Le Visionnaire',
-      icon: '🚀',
+      id: 'dynamiseur',
+      name: 'Le Dynamiseur',
+      icon: '🔥',
       color: 'orange',
-      description: 'Inspire et motive par une vision long terme',
-      approche: 'Inspire et motive par une vision à long terme, encourage l\'innovation et la transformation',
-      discTypique: 'D-I (Dominant-Influent)',
+      description: 'Le manager motivant qui met de l\'énergie dans l\'équipe',
+      approche: 'Motivant, charismatique, met de l\'énergie dans l\'équipe. Le Dynamiseur crée une dynamique positive et embarque son équipe avec enthousiasme.',
+      discTypique: 'I (Influent)',
       caracteristiques: [
-        'Inspire avec une vision claire',
-        'Encourage l\'innovation',
-        'Pense stratégie et long terme',
-        'Crée l\'enthousiasme',
-        'Challenge le statu quo'
+        'Énergie communicative et enthousiasme',
+        'Crée une ambiance positive et motivante',
+        'Célèbre les victoires et les réussites',
+        'Communication inspirante et engageante',
+        'Fédère l\'équipe autour d\'objectifs communs'
       ],
       efficaceAvec: [
-        'Changements majeurs',
-        'Profils I et D qui aiment l\'aventure',
-        'Lancement de nouveaux concepts',
-        'Équipes qui ont besoin d\'un souffle'
+        'Équipes qui manquent de dynamisme',
+        'Profils I qui ont besoin de reconnaissance',
+        'Lancements de produits ou animations',
+        'Périodes de challenge et de compétition'
       ],
       attention: [
-        'Peut négliger l\'opérationnel',
-        'Besoin d\'un bras droit S ou C',
-        'Peut déstabiliser les profils S',
-        'Risque de trop de changements'
+        'Peut manquer de rigueur sur le suivi',
+        'Risque de privilégier la forme sur le fond',
+        'Peut être trop dans l\'émotion',
+        'Besoin de structure et de process'
       ],
-      exemple: 'Laura peint un tableau du futur : "Dans 6 mois, on sera la référence. Voici comment : nouveau concept, nouvelle formation, nouveaux outils. Qui est partant ?"'
+      exemple: 'Marc arrive en brief avec un sourire : "Team ! Hier vous avez été incroyables, +25% sur les ventes ! Aujourd\'hui on vise encore plus haut ! Qui se sent prêt à cartonner ? Allez, on y va avec la pêche !" L\'énergie est palpable.'
+    },
+    {
+      id: 'stratege',
+      name: 'Le Stratège',
+      icon: '📊',
+      color: 'purple',
+      description: 'Le manager structuré et méthodique',
+      approche: 'Structuré, processus, rigoureux et méthodique. Le Stratège planifie avec précision et s\'assure que tout est bien organisé.',
+      discTypique: 'C (Consciencieux)',
+      caracteristiques: [
+        'Planification rigoureuse et détaillée',
+        'Process et procédures bien définis',
+        'Analyse des données et des résultats',
+        'Suivi précis et régulier des indicateurs',
+        'Organisation optimale des ressources'
+      ],
+      efficaceAvec: [
+        'Environnements complexes nécessitant de la rigueur',
+        'Profils C qui aiment la structure',
+        'Situations nécessitant de la conformité',
+        'Projets nécessitant une planification précise'
+      ],
+      attention: [
+        'Peut être trop rigide et manquer de flexibilité',
+        'Risque de sur-planifier et ralentir l\'action',
+        'Peut noyer l\'équipe sous les détails',
+        'Besoin d\'accepter l\'imprévu et l\'improvisation'
+      ],
+      exemple: 'Julie présente un planning détaillé : "Cette semaine, focus produits premium. Lundi-mardi : formation argumentaire. Mercredi-vendredi : mise en pratique avec objectif 30% de premium. J\'ai préparé un tableau de suivi pour chacun."'
+    },
+    {
+      id: 'inspire',
+      name: 'L\'Inspire',
+      icon: '🌟',
+      color: 'teal',
+      description: 'Le manager empathique qui donne du sens',
+      approche: 'Empathique, donne du sens et fédère autour d\'une vision. L\'Inspire crée une culture d\'équipe forte et connecte chacun à un objectif supérieur.',
+      discTypique: 'S-I (Stable-Influent)',
+      caracteristiques: [
+        'Donne du sens au travail quotidien',
+        'Crée une culture d\'équipe forte',
+        'Empathie et connexion émotionnelle',
+        'Valorise la contribution de chacun',
+        'Vision long terme et valeurs partagées'
+      ],
+      efficaceAvec: [
+        'Équipes qui ont perdu le sens',
+        'Profils S et I sensibles aux valeurs',
+        'Changements culturels',
+        'Construction d\'une identité d\'équipe'
+      ],
+      attention: [
+        'Peut manquer de pragmatisme opérationnel',
+        'Risque de négliger les résultats court terme',
+        'Peut être trop idéaliste',
+        'Besoin de compléter la vision par de l\'action'
+      ],
+      exemple: 'Laura réunit son équipe : "Ce qu\'on fait ici, ce n\'est pas juste vendre. C\'est aider les gens à trouver ce qui leur correspond vraiment. Chaque client qui repart satisfait, c\'est notre fierté. On construit quelque chose ensemble."'
     }
   ];
 
