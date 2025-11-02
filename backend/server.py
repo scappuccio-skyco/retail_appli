@@ -2056,7 +2056,8 @@ Génère un bilan au format JSON avec :
         )
         user_message = UserMessage(text=prompt)
         response = await llm_chat.send_message(user_message)
-        ai_result = json.loads(response.message_content)
+        # response is already a string with the AI response
+        ai_result = json.loads(response)
     except Exception as e:
         print(f"AI generation failed: {e}")
         ai_result = {
