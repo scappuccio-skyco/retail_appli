@@ -1850,6 +1850,9 @@ class RetailCoachAPITester:
         self.test_conflict_resolution_flow()
         self.test_conflict_resolution_authorization()
 
+        # CRITICAL: Team Bilans Generation tests (FROM REVIEW REQUEST)
+        self.test_team_bilans_generation_flow()
+
         # Sales operations
         sale_id = self.test_sales_operations()
 
