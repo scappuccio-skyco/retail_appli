@@ -2137,8 +2137,8 @@ async def generate_team_bilan(
     )
     
     return bilan
-    
-    # Collect data for all sellers
+
+@api_router.get("/manager/team-bilan/latest")
     team_data = []
     total_ca = 0
     total_ventes = 0
