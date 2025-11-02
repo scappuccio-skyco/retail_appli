@@ -1232,6 +1232,15 @@ async def create_diagnostic(diagnostic_data: DiagnosticCreate, current_user: dic
     # Analyze with AI
     ai_analysis = await analyze_diagnostic_with_ai(diagnostic_data.responses)
     
+    # Calculate DISC profile from questions 16-23
+    disc_responses = {}
+    for q_id in range(16, 24):  # Questions 16 to 23
+        q_key = str(q_id)
+        if q_key in diagnostic_data.responses:
+            disc_responses[q_key] = diagnostic_data.responses[q_key]
+    
+    disc_profile = calculate_disc_profile(disc_responses)
+    
     # Create diagnostic result
     diagnostic_obj = DiagnosticResult(
         seller_id=current_user['id'],
@@ -1244,7 +1253,9 @@ async def create_diagnostic(diagnostic_data: DiagnosticCreate, current_user: dic
         score_decouverte=ai_analysis.get('score_decouverte', 3.0),
         score_argumentation=ai_analysis.get('score_argumentation', 3.0),
         score_closing=ai_analysis.get('score_closing', 3.0),
-        score_fidelisation=ai_analysis.get('score_fidelisation', 3.0)
+        score_fidelisation=ai_analysis.get('score_fidelisation', 3.0),
+        disc_dominant=disc_profile['dominant'],
+        disc_percentages=disc_profile['percentages']
     )
     
     doc = diagnostic_obj.model_dump()
