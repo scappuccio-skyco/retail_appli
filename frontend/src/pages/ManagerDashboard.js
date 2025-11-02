@@ -414,17 +414,14 @@ export default function ManagerDashboard({ user, onLogout }) {
               </div>
 
               {/* Week Navigation with Arrows */}
-              {allTeamBilans.length > 0 && (
+              {teamBilan && (
                 <div className="mb-3 flex items-center justify-between bg-white rounded-lg px-3 py-2 border-2 border-gray-200">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (selectedBilanIndex < allTeamBilans.length - 1) {
-                        handleBilanChange(selectedBilanIndex + 1);
-                      }
+                      handleWeekNavigation('prev');
                     }}
-                    disabled={selectedBilanIndex >= allTeamBilans.length - 1}
-                    className="text-gray-600 hover:text-gray-800 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+                    className="text-gray-600 hover:text-gray-800 transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -432,17 +429,15 @@ export default function ManagerDashboard({ user, onLogout }) {
                   </button>
                   
                   <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    📅 {selectedBilanIndex === 0 ? 'Semaine actuelle' : teamBilan.periode}
+                    📅 {currentWeekOffset === 0 ? 'Semaine actuelle' : teamBilan.periode}
                   </span>
                   
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (selectedBilanIndex > 0) {
-                        handleBilanChange(selectedBilanIndex - 1);
-                      }
+                      handleWeekNavigation('next');
                     }}
-                    disabled={selectedBilanIndex <= 0}
+                    disabled={currentWeekOffset >= 0}
                     className="text-gray-600 hover:text-gray-800 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
