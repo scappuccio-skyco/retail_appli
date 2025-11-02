@@ -2049,7 +2049,11 @@ Génère un bilan au format JSON avec :
 """
     
     try:
-        llm_chat = LlmChat(api_key="universal")
+        llm_chat = LlmChat(
+            api_key="universal",
+            session_id=f"team_bilan_{manager_id}_{periode}",
+            system_message="Tu es un coach en management retail expert en analyse de performance d'équipe."
+        )
         response = await llm_chat.send_message(
             messages=[UserMessage(content=prompt)],
             json_mode=True
