@@ -1913,6 +1913,8 @@ async def generate_all_team_bilans(current_user: dict = Depends(get_current_user
     generated_bilans = []
     week_start = oldest_monday
     
+    print(f"DEBUG: Week range from {oldest_monday} to {current_monday}")
+    
     while week_start <= current_monday:
         week_end = week_start + timedelta(days=6)
         
@@ -1926,6 +1928,7 @@ async def generate_all_team_bilans(current_user: dict = Depends(get_current_user
         })
         
         if has_data:
+            print(f"DEBUG: Generating bilan for week {week_start.strftime('%d/%m')} - {week_end.strftime('%d/%m')}")
             # Generate bilan for this week
             try:
                 bilan = await generate_team_bilan_for_period(
@@ -1937,6 +1940,8 @@ async def generate_all_team_bilans(current_user: dict = Depends(get_current_user
                 generated_bilans.append(bilan)
             except Exception as e:
                 print(f"Error generating bilan for week {week_start}: {e}")
+        else:
+            print(f"DEBUG: No data for week {week_start.strftime('%d/%m')} - {week_end.strftime('%d/%m')}")
         
         # Move to next week
         week_start += timedelta(days=7)
