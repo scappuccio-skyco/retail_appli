@@ -30,6 +30,8 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [managerDiagnostic, setManagerDiagnostic] = useState(null);
   const [showManagerProfileModal, setShowManagerProfileModal] = useState(false);
   const [teamBilan, setTeamBilan] = useState(null);
+  const [allTeamBilans, setAllTeamBilans] = useState([]);
+  const [selectedBilanIndex, setSelectedBilanIndex] = useState(0);
   const [showTeamBilanModal, setShowTeamBilanModal] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
   const [loading, setLoading] = useState(true);
