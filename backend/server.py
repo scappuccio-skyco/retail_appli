@@ -1884,11 +1884,14 @@ async def generate_all_team_bilans(current_user: dict = Depends(get_current_user
     
     # Get date range of all KPI data
     seller_ids = [s['id'] for s in sellers]
+    print(f"DEBUG: Seller IDs: {seller_ids[:3]}...")  # Show first 3
     oldest_kpi = await db.kpi_entries.find_one(
         {"seller_id": {"$in": seller_ids}},
         {"_id": 0, "date": 1},
         sort=[("date", 1)]
     )
+    
+    print(f"DEBUG: Oldest KPI: {oldest_kpi}")
     
     if not oldest_kpi:
         raise HTTPException(status_code=404, detail="No KPI data found")
