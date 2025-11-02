@@ -1870,6 +1870,230 @@ async def get_seller_competences_history(seller_id: str, current_user: dict = De
     return history
 
 # ===== TEAM BILAN IA =====
+@api_router.post("/manager/team-bilans/generate-all")
+async def generate_all_team_bilans(current_user: dict = Depends(get_current_user)):
+    """Generate team bilans for all weeks of the year where there is KPI data"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can generate team bilans")
+    
+    # Get all sellers for this manager
+    sellers = await db.users.find({"manager_id": current_user['id'], "role": "seller"}, {"_id": 0}).to_list(1000)
+    
+    if not sellers:
+        raise HTTPException(status_code=404, detail="No sellers in your team")
+    
+    # Get date range of all KPI data
+    seller_ids = [s['id'] for s in sellers]
+    oldest_kpi = await db.kpi_entries.find_one(
+        {"seller_id": {"$in": seller_ids}},
+        {"_id": 0, "date": 1},
+        sort=[("date", 1)]
+    )
+    
+    if not oldest_kpi:
+        raise HTTPException(status_code=404, detail="No KPI data found")
+    
+    # Parse oldest date
+    if isinstance(oldest_kpi['date'], str):
+        oldest_date = datetime.strptime(oldest_kpi['date'], '%Y-%m-%d').date()
+    else:
+        oldest_date = oldest_kpi['date']
+    
+    # Get the Monday of the week containing oldest_date
+    oldest_monday = oldest_date - timedelta(days=oldest_date.weekday())
+    
+    # Get current date
+    today = datetime.now(timezone.utc).date()
+    current_monday = today - timedelta(days=today.weekday())
+    
+    # Generate bilans for all weeks from oldest to current
+    generated_bilans = []
+    week_start = oldest_monday
+    
+    while week_start <= current_monday:
+        week_end = week_start + timedelta(days=6)
+        
+        # Check if this week has any KPI data
+        has_data = await db.kpi_entries.find_one({
+            "seller_id": {"$in": seller_ids},
+            "date": {
+                "$gte": week_start.strftime('%Y-%m-%d'),
+                "$lte": week_end.strftime('%Y-%m-%d')
+            }
+        })
+        
+        if has_data:
+            # Generate bilan for this week
+            try:
+                bilan = await generate_team_bilan_for_period(
+                    manager_id=current_user['id'],
+                    start_date=week_start,
+                    end_date=week_end,
+                    sellers=sellers
+                )
+                generated_bilans.append(bilan)
+            except Exception as e:
+                print(f"Error generating bilan for week {week_start}: {e}")
+        
+        # Move to next week
+        week_start += timedelta(days=7)
+    
+    return {
+        "status": "success",
+        "generated_count": len(generated_bilans),
+        "bilans": generated_bilans
+    }
+
+async def generate_team_bilan_for_period(manager_id: str, start_date: date, end_date: date, sellers: list):
+    """Helper function to generate a team bilan for a specific period"""
+    periode = f"Semaine du {start_date.strftime('%d/%m')} au {end_date.strftime('%d/%m')}"
+    
+    # Collect data for all sellers
+    team_data = []
+    total_ca = 0
+    total_ventes = 0
+    total_clients = 0
+    total_articles = 0
+    competences_sum = {"accueil": 0, "decouverte": 0, "argumentation": 0, "closing": 0, "fidelisation": 0}
+    competences_count = 0
+    
+    for seller in sellers:
+        seller_id = seller['id']
+        
+        # Get KPIs for this period
+        kpi_entries = await db.kpi_entries.find({
+            "seller_id": seller_id,
+            "date": {
+                "$gte": start_date.strftime('%Y-%m-%d'),
+                "$lte": end_date.strftime('%Y-%m-%d')
+            }
+        }, {"_id": 0}).to_list(1000)
+        
+        seller_ca = sum(e.get('ca_journalier', 0) for e in kpi_entries)
+        seller_ventes = sum(e.get('nb_ventes', 0) for e in kpi_entries)
+        seller_clients = sum(e.get('nb_clients', 0) for e in kpi_entries)
+        seller_articles = sum(e.get('nb_articles', 0) for e in kpi_entries)
+        
+        total_ca += seller_ca
+        total_ventes += seller_ventes
+        total_clients += seller_clients
+        total_articles += seller_articles
+        
+        # Get diagnostic for competences
+        diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0})
+        if diagnostic and diagnostic.get('competences'):
+            for comp in competences_sum:
+                competences_sum[comp] += diagnostic['competences'].get(comp, 0)
+            competences_count += 1
+        
+        team_data.append({
+            "seller_name": seller['name'],
+            "seller_email": seller['email'],
+            "ca": seller_ca,
+            "ventes": seller_ventes,
+            "clients": seller_clients
+        })
+    
+    # Calculate averages and all KPIs
+    panier_moyen_equipe = total_ca / total_ventes if total_ventes > 0 else 0
+    taux_transfo_equipe = (total_ventes / total_clients * 100) if total_clients > 0 else 0
+    indice_vente_equipe = (total_articles / total_clients) if total_clients > 0 else 0
+    
+    competences_moyenne = {}
+    if competences_count > 0:
+        for comp in competences_sum:
+            competences_moyenne[comp] = round(competences_sum[comp] / competences_count, 2)
+    
+    # Build context and call AI
+    manager = await db.users.find_one({"id": manager_id}, {"_id": 0})
+    manager_diagnostic = await db.manager_diagnostics.find_one({"manager_id": manager_id}, {"_id": 0})
+    
+    manager_context = f"""Profil Manager :
+- Style de management : {manager_diagnostic.get('profil_nom', 'Non défini') if manager_diagnostic else 'Non défini'}
+- Nombre de vendeurs : {len(sellers)}
+"""
+    
+    kpi_context = f"""KPIs de l'équipe pour la période {periode} :
+- CA Total : {total_ca:.2f}€
+- Nombre de ventes : {total_ventes}
+- Nombre de clients : {total_clients}
+- Nombre d'articles : {total_articles}
+- Panier moyen : {panier_moyen_equipe:.2f}€
+- Taux de transformation : {taux_transfo_equipe:.2f}%
+- Indice de vente : {indice_vente_equipe:.2f}
+"""
+    
+    team_context = "Détails par vendeur :\n"
+    for seller_data in team_data:
+        team_context += f"- {seller_data['seller_name']} : CA {seller_data['ca']:.0f}€, {seller_data['ventes']} ventes, {seller_data['clients']} clients\n"
+    
+    prompt = f"""Tu es un coach en management retail. Analyse les performances de cette équipe et génère un bilan structuré.
+
+{manager_context}
+
+{kpi_context}
+
+{team_context}
+
+Génère un bilan au format JSON avec :
+- synthese : Une phrase d'accroche résumant la performance de la semaine
+- points_forts : Liste de 2-3 points forts observés
+- points_amelioration : Liste de 2-3 points à améliorer
+- recommandations : Liste de 2-3 actions concrètes à mettre en place
+"""
+    
+    try:
+        response = await litellm.acompletion(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        ai_result = json.loads(response.choices[0].message.content)
+    except Exception as e:
+        print(f"AI generation failed: {e}")
+        ai_result = {
+            "synthese": f"Performance de l'équipe pour la période {periode}",
+            "points_forts": ["Données collectées"],
+            "points_amelioration": ["À analyser"],
+            "recommandations": ["Continuer le suivi"]
+        }
+    
+    # Check if bilan already exists for this period
+    existing = await db.team_bilans.find_one({
+        "manager_id": manager_id,
+        "periode": periode
+    })
+    
+    bilan_data = {
+        "id": existing['id'] if existing else str(uuid.uuid4()),
+        "manager_id": manager_id,
+        "periode": periode,
+        "synthese": ai_result.get('synthese', ''),
+        "points_forts": ai_result.get('points_forts', []),
+        "points_amelioration": ai_result.get('points_amelioration', []),
+        "recommandations": ai_result.get('recommandations', []),
+        "kpi_resume": {
+            "ca_total": round(total_ca, 2),
+            "ventes": total_ventes,
+            "clients": total_clients,
+            "articles": total_articles,
+            "panier_moyen": round(panier_moyen_equipe, 2),
+            "taux_transformation": round(taux_transfo_equipe, 2),
+            "indice_vente": round(indice_vente_equipe, 2)
+        },
+        "competences_moyenne": competences_moyenne,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Upsert the bilan
+    await db.team_bilans.update_one(
+        {"manager_id": manager_id, "periode": periode},
+        {"$set": bilan_data},
+        upsert=True
+    )
+    
+    return TeamBilan(**bilan_data)
+
 @api_router.post("/manager/team-bilan", response_model=TeamBilan)
 async def generate_team_bilan(current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'manager':
