@@ -89,29 +89,20 @@ export default function TeamBilanModal({ bilan, onClose }) {
             </ul>
           </div>
 
-          {/* Actions prioritaires */}
+          {/* Actions prioritaires / Recommandations */}
           <div className="bg-blue-50 rounded-xl p-4 mb-4">
             <div className="flex items-center gap-2 mb-3">
               <Target className="w-5 h-5 text-blue-600" />
-              <h3 className="font-bold text-blue-900">🎯 3 Actions prioritaires</h3>
+              <h3 className="font-bold text-blue-900">🎯 Recommandations</h3>
             </div>
             <ul className="space-y-2">
-              {bilan.actions_prioritaires.map((action, idx) => (
+              {bilan.recommandations && bilan.recommandations.map((action, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-blue-800">
                   <span className="text-blue-600 font-bold mt-1">{idx + 1}.</span>
                   <span>{action}</span>
                 </li>
               ))}
             </ul>
-          </div>
-
-          {/* Suggestion de brief */}
-          <div className="bg-purple-50 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-2 mb-3">
-              <MessageSquare className="w-5 h-5 text-purple-600" />
-              <h3 className="font-bold text-purple-900">💬 Suggestion de brief</h3>
-            </div>
-            <p className="text-purple-800 italic">"{bilan.suggestion_brief}"</p>
           </div>
 
           {/* Compétences moyennes */}
