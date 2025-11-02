@@ -426,14 +426,27 @@ backend_new:
         agent: "testing"
         comment: "COMPREHENSIVE KPI BACKEND TESTING COMPLETED SUCCESSFULLY: ✅ ALL 3 REVIEW REQUEST SCENARIOS PASSED PERFECTLY. ✅ Scenario 1 (Get Seller KPI Configuration): GET /api/seller/kpi-config returns correct manager's KPI configuration with all fields (track_ca: true, track_ventes: true, track_clients: true, track_articles: true) as expected for vendeur2@test.com. ✅ Scenario 2 (KPI Entries with Time Filters): GET /api/seller/kpi-entries?days=X works correctly for all tested periods (7, 30, 90, 365 days) returning appropriate number of entries with all KPI fields present (ca_journalier, nb_ventes, nb_clients, nb_articles, panier_moyen, taux_transformation, indice_vente). ✅ Scenario 3 (Get All KPI Entries): GET /api/seller/kpi-entries returns exactly 367 entries as specified in review request. ✅ All calculated KPIs present and correctly computed (panier_moyen: 147.36, taux_transformation: 83.33, indice_vente: 73.68). ✅ Authentication working properly for both seller and manager accounts (vendeur2@test.com, manager1@test.com). ✅ Manager KPI configuration endpoint working correctly. ✅ Data matches expectations from review request - seller has manager with all KPIs configured. BACKEND KPI FUNCTIONALITY IS FULLY OPERATIONAL AND READY FOR FRONTEND DYNAMIC DISPLAY."
 
+  - task: "DISC Profile Display - Manager & Seller Modals"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/ManagerProfileModal.js, /app/frontend/src/components/SellerProfileModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "DISC PROFILE DISPLAY IMPLEMENTED: ✅ Added DISC profile section to ManagerProfileModal.js showing: 1) Dominant DISC type (Dominant, Influent, Stable, Consciencieux), 2) Percentage breakdown for all 4 DISC types (D, I, S, C) with color-coded cards. ✅ Added identical DISC profile section to SellerProfileModal.js. ✅ Both modals now display disc_dominant and disc_percentages from diagnostic data. ✅ Frontend forms (ManagerDiagnosticForm.js, DiagnosticFormModal.js) updated to send option indices (0-3) for DISC questions instead of text, enabling proper DISC calculation in backend. ✅ DISC questions: Manager Q11-18, Seller Q16-23 now store indices. ✅ Visual design: Purple gradient card with 4 white sub-cards showing percentages. Needs testing to verify: 1) DISC profile appears in profile modals after diagnostic, 2) Percentages calculated correctly, 3) Dominant type displayed properly."
+
 metadata:
   created_by: "main_agent"
-  version: "1.5"
-  test_sequence: 5
+  version: "1.6"
+  test_sequence: 6
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "DISC Profile Display - Manager & Seller Modals"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
