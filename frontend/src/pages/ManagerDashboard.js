@@ -428,23 +428,6 @@ export default function ManagerDashboard({ user, onLogout }) {
               </div>
             </div>
           ) : (
-                  </div>
-                  <div className="bg-green-50 rounded-lg p-2 text-center">
-                    <p className="text-xs text-green-600">🛒 Ventes</p>
-                    <p className="text-sm font-bold text-green-900">{teamBilan.kpi_resume.ventes}</p>
-                  </div>
-                  <div className="bg-purple-50 rounded-lg p-2 text-center">
-                    <p className="text-xs text-purple-600">📈 Taux</p>
-                    <p className="text-sm font-bold text-purple-900">{teamBilan.kpi_resume.taux_transformation.toFixed(0)}%</p>
-                  </div>
-                </div>
-                
-                <p className="text-sm text-gray-500 text-center mt-4">
-                  Cliquer pour voir le bilan complet →
-                </p>
-              </div>
-            </div>
-          ) : (
             <div className="glass-morphism rounded-2xl p-6 border-2 border-dashed border-gray-300">
               <div className="flex items-center gap-3 mb-4">
                 <Sparkles className="w-6 h-6 text-[#ffd871]" />
