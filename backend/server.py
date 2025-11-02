@@ -2055,7 +2055,7 @@ Génère un bilan au format JSON avec :
             system_message="Tu es un coach en management retail expert en analyse de performance d'équipe."
         )
         response = await llm_chat.send_message(
-            messages=[UserMessage(content=prompt)],
+            messages=[UserMessage(text=prompt)],
             json_mode=True
         )
         ai_result = json.loads(response.message_content)
