@@ -2041,23 +2041,38 @@ async def generate_team_bilan_for_period(manager_id: str, start_date: date, end_
 
 {team_context}
 
-Génère un bilan au format JSON avec :
-- synthese : Une phrase d'accroche résumant la performance de la semaine
-- points_forts : Liste de 2-3 points forts observés
-- points_attention : Liste de 2-3 points d'attention à surveiller
-- recommandations : Liste de 2-3 actions concrètes à mettre en place
+IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou après. Format exact :
+{{
+  "synthese": "Une phrase résumant la performance",
+  "points_forts": ["Point 1", "Point 2"],
+  "points_attention": ["Point 1", "Point 2"],
+  "recommandations": ["Action 1", "Action 2"]
+}}
 """
     
     try:
         llm_chat = LlmChat(
             api_key="sk-emergent-dB388Be0647671cF21",
             session_id=f"team_bilan_{manager_id}_{periode}",
-            system_message="Tu es un coach en management retail expert en analyse de performance d'équipe."
+            system_message="Tu es un coach en management retail. Tu réponds TOUJOURS en JSON valide uniquement."
         )
         user_message = UserMessage(text=prompt)
         response = await llm_chat.send_message(user_message)
-        # response is already a string with the AI response
-        ai_result = json.loads(response)
+        
+        # Clean response (remove markdown, extra text, etc.)
+        response_clean = response.strip()
+        if "```json" in response_clean:
+            response_clean = response_clean.split("```json")[1].split("```")[0].strip()
+        elif "```" in response_clean:
+            response_clean = response_clean.split("```")[1].split("```")[0].strip()
+        
+        # Find JSON object in response
+        start_idx = response_clean.find('{')
+        end_idx = response_clean.rfind('}') + 1
+        if start_idx >= 0 and end_idx > start_idx:
+            response_clean = response_clean[start_idx:end_idx]
+        
+        ai_result = json.loads(response_clean)
     except Exception as e:
         print(f"AI generation failed: {e}")
         ai_result = {
