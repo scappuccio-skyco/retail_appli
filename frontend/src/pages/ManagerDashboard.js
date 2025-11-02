@@ -963,6 +963,12 @@ export default function ManagerDashboard({ user, onLogout }) {
           onClose={() => setShowTeamBilanModal(false)}
         />
       )}
+
+      {showGuideModal && (
+        <GuideProfilsModal
+          onClose={() => setShowGuideModal(false)}
+        />
+      )}
     </div>
   );
 }
