@@ -182,11 +182,6 @@ export default function ManagerDashboard({ user, onLogout }) {
     }
   };
 
-  const handleBilanChange = (index) => {
-    setSelectedBilanIndex(index);
-    setTeamBilan(allTeamBilans[index]);
-  };
-
   const fetchSellerStats = async (sellerId) => {
     try {
       const [statsRes, diagRes, kpiRes] = await Promise.all([
