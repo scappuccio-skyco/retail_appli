@@ -2059,6 +2059,8 @@ IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou a
         user_message = UserMessage(text=prompt)
         response = await llm_chat.send_message(user_message)
         
+        print(f"DEBUG: AI raw response: {response[:200]}...")  # First 200 chars
+        
         # Clean response (remove markdown, extra text, etc.)
         response_clean = response.strip()
         if "```json" in response_clean:
