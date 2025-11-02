@@ -136,6 +136,102 @@ const QUESTIONS = [
     theme: "Fidélisation 🤝",
     question: "Qu'est-ce qui fait qu'un client devient fidèle selon toi ?",
     type: "text"
+  },
+  {
+    id: 16,
+    theme: "Profil DISC 🎨",
+    question: "Face à un client indécis, tu préfères :",
+    type: "choice",
+    options: [
+      "Prendre les devants et le guider fermement vers une décision",
+      "Créer une connexion chaleureuse et le rassurer avec enthousiasme",
+      "Prendre le temps d'écouter toutes ses hésitations patiemment",
+      "Lui présenter tous les détails techniques pour qu'il décide en connaissance de cause"
+    ]
+  },
+  {
+    id: 17,
+    theme: "Profil DISC 🎨",
+    question: "Quand tu reçois un feedback négatif de ton manager, tu :",
+    type: "choice",
+    options: [
+      "Cherches immédiatement à corriger et à prouver ta valeur",
+      "Discutes avec tes collègues pour comprendre et garder le moral",
+      "Prends du recul et réfléchis calmement à comment t'améliorer",
+      "Analyses en détail ce qui n'a pas fonctionné pour ne plus recommencer"
+    ]
+  },
+  {
+    id: 18,
+    theme: "Profil DISC 🎨",
+    question: "Dans ton quotidien de vente, tu es plus à l'aise avec :",
+    type: "choice",
+    options: [
+      "Les challenges et les objectifs ambitieux à atteindre",
+      "Les interactions sociales et la création de liens",
+      "Les routines stables et un environnement prévisible",
+      "Les procédures claires et les méthodes bien définies"
+    ]
+  },
+  {
+    id: 19,
+    theme: "Profil DISC 🎨",
+    question: "Quand tu dois travailler en équipe sur un projet, tu as tendance à :",
+    type: "choice",
+    options: [
+      "Prendre la lead et organiser le travail des autres",
+      "Créer une bonne ambiance et motiver tout le monde",
+      "Soutenir l'équipe et t'assurer que chacun se sent bien",
+      "Vérifier que tout est bien fait selon les standards"
+    ]
+  },
+  {
+    id: 20,
+    theme: "Profil DISC 🎨",
+    question: "Face à un changement de procédure dans le magasin, tu :",
+    type: "choice",
+    options: [
+      "T'adaptes rapidement et cherches à optimiser la nouvelle façon de faire",
+      "Partages ton enthousiasme et aides les autres à s'adapter",
+      "As besoin de temps pour comprendre et intégrer le changement",
+      "Vérifies tous les détails pour t'assurer de bien appliquer la nouvelle procédure"
+    ]
+  },
+  {
+    id: 21,
+    theme: "Profil DISC 🎨",
+    question: "Ton style de communication avec les clients, c'est plutôt :",
+    type: "choice",
+    options: [
+      "Direct et efficace, je vais à l'essentiel",
+      "Chaleureux et expressif, je crée de la complicité",
+      "Patient et à l'écoute, je prends mon temps",
+      "Précis et factuel, je m'appuie sur les caractéristiques"
+    ]
+  },
+  {
+    id: 22,
+    theme: "Profil DISC 🎨",
+    question: "Ce qui te motive le plus dans la vente, c'est :",
+    type: "choice",
+    options: [
+      "Atteindre et dépasser mes objectifs",
+      "Créer des relations authentiques avec les clients",
+      "La stabilité et la routine rassurante du métier",
+      "Maîtriser parfaitement mon produit et mon expertise"
+    ]
+  },
+  {
+    id: 23,
+    theme: "Profil DISC 🎨",
+    question: "En fin de journée chargée, tu es plutôt :",
+    type: "choice",
+    options: [
+      "Energisé par les résultats et prêt à recommencer demain",
+      "Content des belles interactions que tu as eues",
+      "Soulagé que tout se soit bien passé sans accroc",
+      "Satisfait d'avoir bien respecté toutes les procédures"
+    ]
   }
 ];
 
