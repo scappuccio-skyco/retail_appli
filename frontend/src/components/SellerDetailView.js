@@ -19,6 +19,16 @@ export default function SellerDetailView({ seller, onBack }) {
   const [showAllDebriefs, setShowAllDebriefs] = useState(false); // New state for debriefs display
   const [kpiFilter, setKpiFilter] = useState('7j'); // New state for KPI filter: '7j', '30j', 'tout'
   const [showConflictModal, setShowConflictModal] = useState(false); // New state for conflict modal
+  const [visibleCharts, setVisibleCharts] = useState({
+    ca: true,
+    ventes: true,
+    clients: true,
+    articles: true,
+    ventesVsClients: true,
+    panierMoyen: true,
+    tauxTransfo: true,
+    indiceVente: true
+  }); // New state for chart visibility toggles
 
   useEffect(() => {
     fetchSellerData();
