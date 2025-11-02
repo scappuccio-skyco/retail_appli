@@ -2097,7 +2097,8 @@ Consignes :
             "synthese": f"Performance de l'équipe pour la période {periode}",
             "points_forts": ["Données collectées"],
             "points_attention": ["À analyser"],
-            "recommandations": ["Continuer le suivi"]
+            "recommandations": ["Continuer le suivi"],
+            "analyses_vendeurs": []
         }
     
     # Check if bilan already exists for this period
