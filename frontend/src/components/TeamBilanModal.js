@@ -142,43 +142,6 @@ export default function TeamBilanModal({ bilan, onClose }) {
               </div>
             </div>
           )}
-
-          {/* Données sources */}
-          <div>
-            <button
-              onClick={() => setShowDataSources(!showDataSources)}
-              className="btn-secondary w-full mb-3"
-            >
-              {showDataSources ? 'Masquer' : 'Voir'} les données sources 📊
-            </button>
-            
-            {showDataSources && bilan.donnees_sources && (
-              <div className="bg-white border-2 border-blue-300 rounded-xl p-4 animate-fadeIn">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b-2 border-blue-200">
-                        <th className="text-left py-2 px-3 text-blue-900">Vendeur</th>
-                        <th className="text-right py-2 px-3 text-blue-900">CA</th>
-                        <th className="text-right py-2 px-3 text-blue-900">Ventes</th>
-                        <th className="text-right py-2 px-3 text-blue-900">Panier Moyen</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bilan.donnees_sources.map((seller, idx) => (
-                        <tr key={idx} className="border-b border-blue-100 hover:bg-blue-50">
-                          <td className="py-2 px-3 font-medium text-gray-800">{seller.name}</td>
-                          <td className="text-right py-2 px-3 text-gray-700">{seller.ca.toFixed(2)}€</td>
-                          <td className="text-right py-2 px-3 text-gray-700">{seller.ventes}</td>
-                          <td className="text-right py-2 px-3 text-gray-700">{seller.panier_moyen.toFixed(2)}€</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>
