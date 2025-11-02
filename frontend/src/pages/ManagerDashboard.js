@@ -261,6 +261,40 @@ export default function ManagerDashboard({ user, onLogout }) {
                 </h4>
                 <p className="text-gray-700 text-sm line-clamp-2 mb-3">{managerDiagnostic.profil_description}</p>
                 
+                {/* DISC Profile Display */}
+                {managerDiagnostic.disc_dominant && (
+                  <div className="bg-white bg-opacity-70 rounded-lg p-3 mb-3">
+                    <p className="text-xs font-semibold text-gray-700 mb-1">
+                      🎨 Profil DISC : {managerDiagnostic.disc_dominant}
+                    </p>
+                    <div className="flex gap-1 mt-2">
+                      {managerDiagnostic.disc_percentages && Object.entries(managerDiagnostic.disc_percentages).map(([letter, percent]) => (
+                        <div key={letter} className="flex-1">
+                          <div className="text-xs text-center font-semibold mb-1">
+                            {letter === 'D' && '🔴'}
+                            {letter === 'I' && '🟡'}
+                            {letter === 'S' && '🟢'}
+                            {letter === 'C' && '🔵'}
+                            {' '}{letter}
+                          </div>
+                          <div className="bg-gray-200 h-2 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full ${
+                                letter === 'D' ? 'bg-red-500' :
+                                letter === 'I' ? 'bg-yellow-500' :
+                                letter === 'S' ? 'bg-green-500' :
+                                'bg-blue-500'
+                              }`}
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+                          <div className="text-xs text-center text-gray-600 mt-1">{percent}%</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="bg-white bg-opacity-70 rounded-lg p-3">
                   <p className="text-xs font-semibold text-gray-700 mb-1">💪 Forces clés</p>
                   <p className="text-xs text-gray-600 line-clamp-2">
