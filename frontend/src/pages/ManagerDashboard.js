@@ -155,14 +155,8 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const fetchTeamBilan = async () => {
     try {
-      // Fetch all bilans
-      const allRes = await axios.get(`${API}/manager/team-bilans/all`);
-      if (allRes.data.status === 'success' && allRes.data.bilans.length > 0) {
-        setAllTeamBilans(allRes.data.bilans);
-        setTeamBilan(allRes.data.bilans[0]); // Most recent by default
-        setSelectedBilanIndex(0);
-      }
-      // If no bilans, user will see "Generate bilan" button
+      const weekDates = getWeekDates(0); // Semaine actuelle
+      await fetchBilanForWeek(weekDates.startISO, weekDates.endISO, weekDates.periode);
     } catch (err) {
       console.error('Error fetching team bilan:', err);
     }
