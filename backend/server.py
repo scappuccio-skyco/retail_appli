@@ -2044,11 +2044,26 @@ async def generate_team_bilan_for_period(manager_id: str, start_date: date, end_
 
 IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou après. Format exact :
 {{
-  "synthese": "Une phrase résumant la performance",
-  "points_forts": ["Point 1", "Point 2"],
-  "points_attention": ["Point 1", "Point 2"],
-  "recommandations": ["Action 1", "Action 2"]
+  "synthese": "Une phrase résumant la performance globale de l'équipe",
+  "points_forts": ["Point fort 1", "Point fort 2"],
+  "points_attention": ["Point d'attention 1", "Point d'attention 2"],
+  "recommandations": ["Action d'équipe 1", "Action d'équipe 2"],
+  "analyses_vendeurs": [
+    {{
+      "vendeur": "Prénom du vendeur",
+      "performance": "Phrase résumant sa performance (CA, ventes, points forts)",
+      "points_forts": ["Son point fort 1", "Son point fort 2"],
+      "axes_progression": ["Axe à améliorer 1", "Axe à améliorer 2"],
+      "recommandations": ["Action personnalisée 1", "Action personnalisée 2"]
+    }}
+  ]
 }}
+
+Consignes :
+- Analyse CHAQUE vendeur individuellement avec ses propres KPIs
+- Sois précis avec les chiffres (utilise UNIQUEMENT les données fournies ci-dessus)
+- Recommandations concrètes et actionnables pour chaque vendeur
+- Ton professionnel mais encourageant
 """
     
     try:
