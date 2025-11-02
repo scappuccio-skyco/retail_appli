@@ -413,19 +413,19 @@ export default function ManagerDashboard({ user, onLogout }) {
                 
                 {/* All KPIs Grid */}
                 <div className="grid grid-cols-3 gap-2">
-                  {teamBilan.kpi_resume.ca_total !== undefined && (
+                  {kpiConfig?.track_ca && teamBilan.kpi_resume.ca_total !== undefined && (
                     <div className="bg-blue-50 rounded-lg p-2 text-center">
                       <p className="text-xs text-blue-600">💰 CA</p>
                       <p className="text-sm font-bold text-blue-900">{(teamBilan.kpi_resume.ca_total / 1000).toFixed(0)}k€</p>
                     </div>
                   )}
-                  {teamBilan.kpi_resume.ventes !== undefined && (
+                  {kpiConfig?.track_ventes && teamBilan.kpi_resume.ventes !== undefined && (
                     <div className="bg-green-50 rounded-lg p-2 text-center">
                       <p className="text-xs text-green-600">🛒 Ventes</p>
                       <p className="text-sm font-bold text-green-900">{teamBilan.kpi_resume.ventes}</p>
                     </div>
                   )}
-                  {teamBilan.kpi_resume.clients !== undefined && (
+                  {kpiConfig?.track_clients && teamBilan.kpi_resume.clients !== undefined && (
                     <div className="bg-purple-50 rounded-lg p-2 text-center">
                       <p className="text-xs text-purple-600">👥 Clients</p>
                       <p className="text-sm font-bold text-purple-900">{teamBilan.kpi_resume.clients}</p>
