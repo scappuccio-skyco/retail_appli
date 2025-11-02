@@ -2049,7 +2049,7 @@ Génère un bilan au format JSON avec :
 """
     
     try:
-        llm_chat = LlmChat(api_key="universal", model="gpt-4o-mini")
+        llm_chat = LlmChat(api_key="universal")
         response = await llm_chat.send_message(
             messages=[UserMessage(content=prompt)],
             json_mode=True
