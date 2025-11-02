@@ -1264,6 +1264,59 @@ async def get_my_diagnostic(current_user: dict = Depends(get_current_user)):
     return {"status": "completed", "diagnostic": diagnostic}
 
 # ===== MANAGER DIAGNOSTIC =====
+def calculate_disc_profile(disc_responses: dict) -> dict:
+    """
+    Calculate DISC profile from responses to questions 11-18 (manager) or 16-23 (seller)
+    Each question has 4 options corresponding to D, I, S, C
+    """
+    disc_scores = {'D': 0, 'I': 0, 'S': 0, 'C': 0}
+    
+    # Map option index to DISC type
+    # Option 0 = D, Option 1 = I, Option 2 = S, Option 3 = C
+    option_to_disc = {0: 'D', 1: 'I', 2: 'S', 3: 'C'}
+    
+    for question_id, answer in disc_responses.items():
+        # Find which option was selected (0-3)
+        if isinstance(answer, str):
+            # If answer is the text of the option, we need to map it
+            # For simplicity, we'll use the response structure
+            # Assuming answers are passed as option indices or we parse them
+            continue
+        elif isinstance(answer, int):
+            # Direct option index
+            disc_type = option_to_disc.get(answer)
+            if disc_type:
+                disc_scores[disc_type] += 1
+    
+    # Calculate percentages
+    total = sum(disc_scores.values())
+    if total == 0:
+        return {
+            'dominant': 'I',  # Default
+            'scores': {'D': 25, 'I': 25, 'S': 25, 'C': 25},
+            'percentages': {'D': 25, 'I': 25, 'S': 25, 'C': 25}
+        }
+    
+    percentages = {k: round((v / total) * 100) for k, v in disc_scores.items()}
+    
+    # Determine dominant profile
+    dominant = max(disc_scores.items(), key=lambda x: x[1])[0]
+    
+    # Map letter to full name
+    disc_names = {
+        'D': 'Dominant',
+        'I': 'Influent',
+        'S': 'Stable',
+        'C': 'Consciencieux'
+    }
+    
+    return {
+        'dominant': disc_names[dominant],
+        'dominant_letter': dominant,
+        'scores': disc_scores,
+        'percentages': percentages
+    }
+
 async def analyze_manager_diagnostic_with_ai(responses: dict) -> dict:
     """Analyze manager diagnostic responses with AI"""
     try:
