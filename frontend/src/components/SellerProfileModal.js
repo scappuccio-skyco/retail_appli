@@ -1,9 +1,11 @@
-import React from 'react';
-import { Sparkles, X, RefreshCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sparkles, X, RefreshCw, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import GuideProfilsModal from './GuideProfilsModal';
 
 export default function SellerProfileModal({ diagnostic, onClose }) {
   const navigate = useNavigate();
+  const [showGuide, setShowGuide] = useState(false);
   
   if (!diagnostic) return null;
 
@@ -13,7 +15,8 @@ export default function SellerProfileModal({ diagnostic, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl my-8">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 p-6 rounded-t-2xl relative">
