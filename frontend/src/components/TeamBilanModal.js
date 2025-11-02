@@ -29,25 +29,50 @@ export default function TeamBilanModal({ bilan, onClose }) {
         {/* Content */}
         <div className="p-6 max-h-[70vh] overflow-y-auto">
           {/* KPI Summary */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-xs text-blue-600 mb-1">💰 CA</p>
-              <p className="text-lg font-bold text-blue-900">{bilan.kpi_resume.ca_total.toFixed(0)}€</p>
-            </div>
-            <div className="bg-green-50 rounded-lg p-3">
-              <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
-              <p className="text-lg font-bold text-green-900">{bilan.kpi_resume.ventes}</p>
-            </div>
-            <div className="bg-purple-50 rounded-lg p-3">
-              <p className="text-xs text-purple-600 mb-1">👥 Clients</p>
-              <p className="text-lg font-bold text-purple-900">{bilan.kpi_resume.clients}</p>
-            </div>
-            <div className="bg-orange-50 rounded-lg p-3">
-              <p className="text-xs text-orange-600 mb-1">🧮 P. Moyen</p>
-              <p className="text-lg font-bold text-orange-900">{bilan.kpi_resume.panier_moyen.toFixed(0)}€</p>
-            </div>
-            <div className="bg-pink-50 rounded-lg p-3">
-              <p className="text-xs text-pink-600 mb-1">📈 Taux</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            {bilan.kpi_resume.ca_total !== undefined && (
+              <div className="bg-blue-50 rounded-lg p-3">
+                <p className="text-xs text-blue-600 mb-1">💰 CA</p>
+                <p className="text-lg font-bold text-blue-900">{bilan.kpi_resume.ca_total.toFixed(0)}€</p>
+              </div>
+            )}
+            {bilan.kpi_resume.ventes !== undefined && (
+              <div className="bg-green-50 rounded-lg p-3">
+                <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
+                <p className="text-lg font-bold text-green-900">{bilan.kpi_resume.ventes}</p>
+              </div>
+            )}
+            {bilan.kpi_resume.clients !== undefined && (
+              <div className="bg-purple-50 rounded-lg p-3">
+                <p className="text-xs text-purple-600 mb-1">👥 Clients</p>
+                <p className="text-lg font-bold text-purple-900">{bilan.kpi_resume.clients}</p>
+              </div>
+            )}
+            {bilan.kpi_resume.articles !== undefined && (
+              <div className="bg-orange-50 rounded-lg p-3">
+                <p className="text-xs text-orange-600 mb-1">📦 Articles</p>
+                <p className="text-lg font-bold text-orange-900">{bilan.kpi_resume.articles}</p>
+              </div>
+            )}
+            {bilan.kpi_resume.panier_moyen !== undefined && (
+              <div className="bg-indigo-50 rounded-lg p-3">
+                <p className="text-xs text-indigo-600 mb-1">💳 P. Moyen</p>
+                <p className="text-lg font-bold text-indigo-900">{bilan.kpi_resume.panier_moyen.toFixed(0)}€</p>
+              </div>
+            )}
+            {bilan.kpi_resume.taux_transformation !== undefined && (
+              <div className="bg-pink-50 rounded-lg p-3">
+                <p className="text-xs text-pink-600 mb-1">📈 Taux Transfo</p>
+                <p className="text-lg font-bold text-pink-900">{bilan.kpi_resume.taux_transformation.toFixed(0)}%</p>
+              </div>
+            )}
+            {bilan.kpi_resume.indice_vente !== undefined && (
+              <div className="bg-teal-50 rounded-lg p-3">
+                <p className="text-xs text-teal-600 mb-1">🎯 Indice</p>
+                <p className="text-lg font-bold text-teal-900">{bilan.kpi_resume.indice_vente.toFixed(1)}</p>
+              </div>
+            )}
+          </div>
               <p className="text-lg font-bold text-pink-900">{bilan.kpi_resume.taux_transformation.toFixed(1)}%</p>
             </div>
           </div>
