@@ -971,49 +971,149 @@ export default function GuideProfilsModal({ onClose }) {
               )}
             </div>
           ) : activeTab === 'compatibilite' ? (
-            <div className="space-y-4">
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-5 border border-blue-200">
-                <h3 className="font-bold text-gray-800 mb-2">🎯 Matrice de Compatibilité Manager-Vendeur</h3>
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+                <h3 className="font-bold text-gray-800 mb-2">🎯 Compatibilité Manager-Vendeur DISC</h3>
                 <p className="text-sm text-gray-600">
-                  Comprendre les synergies et les tensions potentielles entre profils DISC
+                  Sélectionnez les profils DISC du manager et du vendeur pour voir leur compatibilité
                 </p>
               </div>
 
-              <div className="space-y-3">
-                {compatibilityMatrix.map((item, index) => {
-                  const statusColors = {
-                    excellent: 'bg-green-100 border-green-300 text-green-800',
-                    good: 'bg-blue-100 border-blue-300 text-blue-800',
-                    neutral: 'bg-yellow-100 border-yellow-300 text-yellow-800',
-                    warning: 'bg-orange-100 border-orange-300 text-orange-800'
-                  };
-                  const statusIcons = {
-                    excellent: '⭐',
-                    good: '✅',
-                    neutral: '⚖️',
-                    warning: '⚠️'
-                  };
+              {/* Filtres de sélection */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="bg-white rounded-xl border-2 border-gray-200 p-5">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    👔 Profil du Manager
+                  </label>
+                  <select
+                    value={selectedManagerProfile}
+                    onChange={(e) => setSelectedManagerProfile(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800 font-medium"
+                  >
+                    {discProfileOptions.map(profile => (
+                      <option key={profile} value={profile}>
+                        {profile === 'Dominant' && '🔴 '}
+                        {profile === 'Influent' && '🟡 '}
+                        {profile === 'Stable' && '🟢 '}
+                        {profile === 'Consciencieux' && '🔵 '}
+                        {profile}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                  return (
-                    <div key={index} className={`${statusColors[item.status]} rounded-xl p-4 border-2`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">{statusIcons[item.status]}</span>
-                          <span className="font-bold text-sm">
-                            Manager {item.manager} + Vendeur {item.seller}
-                          </span>
-                        </div>
-                        <span className="text-xs font-semibold px-2 py-1 rounded-full bg-white bg-opacity-50">
-                          {item.description}
+                <div className="bg-white rounded-xl border-2 border-gray-200 p-5">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    🛍️ Profil du Vendeur
+                  </label>
+                  <select
+                    value={selectedSellerProfile}
+                    onChange={(e) => setSelectedSellerProfile(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800 font-medium"
+                  >
+                    {discProfileOptions.map(profile => (
+                      <option key={profile} value={profile}>
+                        {profile === 'Dominant' && '🔴 '}
+                        {profile === 'Influent' && '🟡 '}
+                        {profile === 'Stable' && '🟢 '}
+                        {profile === 'Consciencieux' && '🔵 '}
+                        {profile}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Affichage de la compatibilité sélectionnée */}
+              {selectedCompatibility && (
+                <div className="animate-fadeIn">
+                  <div className={`${
+                    selectedCompatibility.status === 'excellent' ? 'bg-green-100 border-green-300 text-green-800' :
+                    selectedCompatibility.status === 'good' ? 'bg-blue-100 border-blue-300 text-blue-800' :
+                    selectedCompatibility.status === 'neutral' ? 'bg-yellow-100 border-yellow-300 text-yellow-800' :
+                    'bg-orange-100 border-orange-300 text-orange-800'
+                  } rounded-2xl p-6 border-2`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <span className="text-4xl">
+                          {selectedCompatibility.status === 'excellent' && '⭐'}
+                          {selectedCompatibility.status === 'good' && '✅'}
+                          {selectedCompatibility.status === 'neutral' && '⚖️'}
+                          {selectedCompatibility.status === 'warning' && '⚠️'}
                         </span>
+                        <div>
+                          <h4 className="text-xl font-bold">
+                            Manager {selectedManagerProfile} + Vendeur {selectedSellerProfile}
+                          </h4>
+                          <p className="text-sm font-semibold mt-1 opacity-80">
+                            {selectedCompatibility.description}
+                          </p>
+                        </div>
                       </div>
+                      <div className={`px-4 py-2 rounded-full text-xs font-bold ${
+                        selectedCompatibility.status === 'excellent' ? 'bg-green-200' :
+                        selectedCompatibility.status === 'good' ? 'bg-blue-200' :
+                        selectedCompatibility.status === 'neutral' ? 'bg-yellow-200' :
+                        'bg-orange-200'
+                      }`}>
+                        {selectedCompatibility.status === 'excellent' && 'EXCELLENTE'}
+                        {selectedCompatibility.status === 'good' && 'BONNE'}
+                        {selectedCompatibility.status === 'neutral' && 'NEUTRE'}
+                        {selectedCompatibility.status === 'warning' && 'ATTENTION'}
+                      </div>
+                    </div>
+
+                    <div className="bg-white bg-opacity-50 rounded-xl p-5 mt-4">
+                      <h5 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                        💡 Conseil d'adaptation
+                      </h5>
                       <p className="text-sm leading-relaxed">
-                        <span className="font-semibold">Conseil :</span> {item.conseil}
+                        {selectedCompatibility.conseil}
                       </p>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+
+                  {/* Conseils complémentaires selon le statut */}
+                  {selectedCompatibility.status === 'excellent' && (
+                    <div className="bg-green-50 rounded-xl p-5 border border-green-200 mt-4">
+                      <p className="text-sm text-green-800 font-medium">
+                        🌟 Cette combinaison est idéale ! Les deux profils se complètent naturellement. 
+                        Cultivez cette synergie en encourageant la communication ouverte et en valorisant 
+                        les forces de chacun.
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedCompatibility.status === 'good' && (
+                    <div className="bg-blue-50 rounded-xl p-5 border border-blue-200 mt-4">
+                      <p className="text-sm text-blue-800 font-medium">
+                        👍 Belle compatibilité ! Ces profils fonctionnent bien ensemble avec quelques 
+                        ajustements de communication. Restez attentif aux besoins spécifiques de chaque profil.
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedCompatibility.status === 'warning' && (
+                    <div className="bg-orange-50 rounded-xl p-5 border border-orange-200 mt-4">
+                      <p className="text-sm text-orange-800 font-medium">
+                        ⚠️ Cette combinaison nécessite une attention particulière. Les différences de style 
+                        peuvent créer des tensions. Établissez des règles claires de communication et des 
+                        attentes explicites dès le départ.
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedCompatibility.status === 'neutral' && (
+                    <div className="bg-yellow-50 rounded-xl p-5 border border-yellow-200 mt-4">
+                      <p className="text-sm text-yellow-800 font-medium">
+                        ⚖️ Compatibilité modérée. Ces profils ont des approches différentes qui peuvent 
+                        être complémentaires si bien gérées. La clé : communication claire et respect mutuel 
+                        des différences de style.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : null}
         </div>
