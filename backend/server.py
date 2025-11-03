@@ -3346,7 +3346,7 @@ async def get_active_seller_objectives(current_user: dict = Depends(get_current_
     objectives = await db.manager_objectives.find(
         {
             "manager_id": manager_id,
-            "period_end": {"$gte": today}  # Only objectives that haven't ended yet
+            "period_end": {"$gt": today}  # Only objectives that haven't ended yet (strict >)
         },
         {"_id": 0}
     ).sort("period_start", 1).to_list(10)
