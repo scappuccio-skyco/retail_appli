@@ -40,12 +40,13 @@ export default function SellerDetailView({ seller, onBack }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const [statsRes, diagRes, debriefsRes, competencesRes, kpiRes] = await Promise.all([
+      const [statsRes, diagRes, debriefsRes, competencesRes, kpiRes, kpiConfigRes] = await Promise.all([
         axios.get(`${API}/manager/seller/${seller.id}/stats`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/diagnostic/seller/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/manager/debriefs/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/manager/competences-history/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/manager/kpi-entries/${seller.id}?days=30`, { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(`${API}/manager/kpi-entries/${seller.id}?days=30`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/manager/kpi-config`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
 
       // Extract LIVE scores from stats endpoint (harmonized with manager overview)
@@ -73,6 +74,7 @@ export default function SellerDetailView({ seller, onBack }) {
       setDebriefs(debriefsRes.data);
       setCompetencesHistory(competencesRes.data); // Keep historical data for evolution chart
       setKpiEntries(kpiRes.data);
+      setKpiConfig(kpiConfigRes.data); // Store manager's KPI configuration
     } catch (err) {
       console.error('Error loading seller data:', err);
       toast.error('Erreur de chargement des données du vendeur');
