@@ -2382,6 +2382,9 @@ class RetailCoachAPITester:
         print("🚀 Starting Retail Coach 2.0 API Tests")
         print("=" * 50)
 
+        # CRITICAL: Test the specific review request FIRST
+        self.test_competence_data_harmonization()
+
         # Authentication tests
         self.test_user_registration()
         self.test_user_login()
