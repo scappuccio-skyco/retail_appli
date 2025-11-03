@@ -1883,7 +1883,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                                 </div>
 
                                 {/* Recommandations */}
-                                {compatibilityResult.recommandations && (
+                                {compatibilityResult.recommandations ? (
                                   <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-5 border-2 border-purple-200">
                                     <h5 className="font-bold text-purple-900 mb-4 flex items-center gap-2">
                                       💡 Recommandations pour un fonctionnement optimal
@@ -1919,6 +1919,10 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                                         </ul>
                                       </div>
                                     </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-center text-gray-500 text-sm py-2">
+                                    Recommandations non disponibles pour cette combinaison
                                   </div>
                                 )}
                               </div>
