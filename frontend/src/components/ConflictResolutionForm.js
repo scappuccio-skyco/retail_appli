@@ -392,13 +392,13 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         <div className="space-y-6">
           <AIRecommendations recommendations={state.aiRecommendations} />
           
-          {/* Button to go back to form */}
+          {/* Button to go back to overview */}
           <div className="text-center">
             <button
-              onClick={() => dispatch({ type: 'BACK_TO_FORM' })}
+              onClick={() => dispatch({ type: 'BACK_TO_OVERVIEW' })}
               className="btn-secondary px-8 py-3"
             >
-              ← Nouvelle consultation
+              ← Retour à l'aperçu
             </button>
           </div>
         </div>
