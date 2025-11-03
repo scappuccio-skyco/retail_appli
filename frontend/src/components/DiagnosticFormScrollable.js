@@ -243,7 +243,7 @@ const questions = [
   }
 ];
 
-export default function DiagnosticFormModal({ onClose, onSuccess }) {
+export default function DiagnosticFormScrollable({ onComplete }) {
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -268,13 +268,14 @@ export default function DiagnosticFormModal({ onClose, onSuccess }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API}/diagnostic`, { responses }, {
+      const response = await axios.post(`${API}/diagnostic`, { responses }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       toast.success('Ton profil vendeur est prêt ! 🔥');
-      onSuccess();
-      onClose();
+      if (onComplete) {
+        onComplete(response.data);
+      }
     } catch (err) {
       console.error('Error submitting diagnostic:', err);
       toast.error('Erreur lors de l\'analyse du profil');
@@ -284,16 +285,10 @@ export default function DiagnosticFormModal({ onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-8">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 p-6 rounded-t-2xl relative">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
+        <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 p-6 rounded-t-2xl"
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="w-8 h-8 text-gray-800" />
             <h2 className="text-2xl font-bold text-gray-800">Identifier mon profil vendeur</h2>
