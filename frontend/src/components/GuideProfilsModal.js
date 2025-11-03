@@ -1676,7 +1676,130 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {profile && (
+          {activeSection === 'compatibilite' ? (
+            /* Compatibility Selector Interface */
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border-2 border-blue-200">
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">🤝 Testeur de Compatibilité</h3>
+                <p className="text-gray-600 mb-6">Sélectionnez un type de management et un profil de vente pour découvrir leur compatibilité</p>
+                
+                {/* Dropdowns */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {/* Management Type Selector */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Type de Management
+                    </label>
+                    <select
+                      value={selectedManagementType}
+                      onChange={(e) => setSelectedManagementType(e.target.value)}
+                      className="w-full p-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none bg-white"
+                    >
+                      <option value="">-- Choisir --</option>
+                      <option value="Pilote">🎯 Le Pilote</option>
+                      <option value="Coach">🏋️ Le Coach</option>
+                      <option value="Stratège">🧠 Le Stratège</option>
+                      <option value="Leader Inspirant">⚡ Le Leader Inspirant</option>
+                      <option value="Facilitateur">🤝 Le Facilitateur</option>
+                      <option value="Tacticien">⚙️ Le Tacticien</option>
+                      <option value="Mentor">🎓 Le Mentor</option>
+                    </select>
+                  </div>
+
+                  {/* Selling Style Selector */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Profil de Vente
+                    </label>
+                    <select
+                      value={selectedSellingStyle}
+                      onChange={(e) => setSelectedSellingStyle(e.target.value)}
+                      className="w-full p-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none bg-white"
+                    >
+                      <option value="">-- Choisir --</option>
+                      <option value="Convivial">🤝 Le Convivial</option>
+                      <option value="Dynamique">⚡ Le Dynamique</option>
+                      <option value="Explorateur">🔍 L'Explorateur</option>
+                      <option value="Technique">🔧 Le Technique</option>
+                      <option value="Challenger">🏆 Le Challenger</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Compatibility Result */}
+              {(() => {
+                const result = getCompatibilityResult(selectedManagementType, selectedSellingStyle);
+                
+                if (!result) {
+                  return (
+                    <div className="text-center py-12 text-gray-500">
+                      <p className="text-lg">👆 Sélectionnez un type de management et un profil de vente pour voir la compatibilité</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-6 animate-fadeIn">
+                    {/* Result Header */}
+                    <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 border-2 border-blue-300">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-2xl font-bold text-gray-800">{result.title}</h3>
+                        <span className="text-3xl">{result.score}</span>
+                      </div>
+                      <p className="text-lg text-gray-700 font-medium">{result.description}</p>
+                    </div>
+
+                    {/* Caractéristiques */}
+                    <div className="bg-white rounded-xl border-2 border-gray-200 p-5">
+                      <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                        ✨ Caractéristiques de la relation
+                      </h4>
+                      <ul className="space-y-2">
+                        {result.caracteristiques.map((item, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-gray-700">
+                            <span className="text-blue-500 mt-1">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Forces et Points d'attention */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-green-50 rounded-xl border-2 border-green-200 p-5">
+                        <h4 className="font-bold text-green-900 mb-3 flex items-center gap-2">
+                          ✅ Forces de ce duo
+                        </h4>
+                        <ul className="space-y-2">
+                          {result.forces.map((item, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-green-800">
+                              <span className="text-green-600 mt-1">✓</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="bg-orange-50 rounded-xl border-2 border-orange-200 p-5">
+                        <h4 className="font-bold text-orange-900 mb-3 flex items-center gap-2">
+                          ⚠️ Points d'attention
+                        </h4>
+                        <ul className="space-y-2">
+                          {result.attention.map((item, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-orange-800">
+                              <span className="text-orange-600 mt-1">!</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          ) : profile && (
             <div className="space-y-6">
               {/* Profile Header */}
               <div className={`${getColorClasses(profile.color)} rounded-2xl p-6 border-2`}>
