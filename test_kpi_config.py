@@ -252,10 +252,10 @@ class KPIConfigTester:
         if success:
             print("   ✅ GET /api/manager/kpi-config correctly requires authentication")
         
-        # Test POST without token
+        # Test PUT without token
         success, _ = self.run_test(
-            "KPI Config POST - No Authentication",
-            "POST",
+            "KPI Config PUT - No Authentication",
+            "PUT",
             "manager/kpi-config",
             403,  # Should be 403 for manager endpoints
             data={"track_ca": True}
