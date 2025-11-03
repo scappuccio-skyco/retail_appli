@@ -452,6 +452,111 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
+        {/* Active Challenges Section */}
+        {activeChallenges.length > 0 && (
+          <div className="glass-morphism rounded-2xl p-6 mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Award className="w-6 h-6 text-[#ffd871]" />
+              <h3 className="text-2xl font-bold text-gray-800">🎯 Mes Objectifs & Challenges Actifs</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeChallenges.map((challenge) => {
+                const progressPercentage = (() => {
+                  if (challenge.ca_target) return (challenge.progress_ca / challenge.ca_target) * 100;
+                  if (challenge.ventes_target) return (challenge.progress_ventes / challenge.ventes_target) * 100;
+                  if (challenge.indice_vente_target) return (challenge.progress_indice_vente / challenge.indice_vente_target) * 100;
+                  if (challenge.panier_moyen_target) return (challenge.progress_panier_moyen / challenge.panier_moyen_target) * 100;
+                  return 0;
+                })();
+
+                const daysRemaining = Math.ceil((new Date(challenge.end_date) - new Date()) / (1000 * 60 * 60 * 24));
+                const isPersonal = challenge.type === 'individual' && challenge.seller_id === user.id;
+
+                return (
+                  <div 
+                    key={challenge.id} 
+                    className={`rounded-xl p-4 border-2 hover:shadow-lg transition-all ${
+                      isPersonal 
+                        ? 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-300' 
+                        : 'bg-gradient-to-br from-amber-50 to-yellow-50 border-[#ffd871]'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <h4 className="font-bold text-gray-800 text-lg line-clamp-2">{challenge.title}</h4>
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${
+                        isPersonal 
+                          ? 'bg-purple-100 text-purple-700' 
+                          : 'bg-green-100 text-green-700'
+                      }`}>
+                        {isPersonal ? '👤 Personnel' : '🏆 Équipe'}
+                      </span>
+                    </div>
+
+                    {challenge.description && (
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{challenge.description}</p>
+                    )}
+
+                    {/* Progress Bar */}
+                    <div className="mb-3">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs text-gray-600">Progression</span>
+                        <span className="text-xs font-bold text-gray-800">{Math.min(100, progressPercentage.toFixed(0))}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div 
+                          className={`h-2.5 rounded-full transition-all ${
+                            isPersonal 
+                              ? 'bg-gradient-to-r from-purple-400 to-pink-400' 
+                              : 'bg-gradient-to-r from-[#ffd871] to-yellow-300'
+                          }`}
+                          style={{ width: `${Math.min(100, progressPercentage)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Targets */}
+                    <div className="space-y-1 mb-3">
+                      {challenge.ca_target && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">💰 CA:</span>
+                          <span className="font-semibold text-gray-800">{challenge.progress_ca.toFixed(0)}€ / {challenge.ca_target}€</span>
+                        </div>
+                      )}
+                      {challenge.ventes_target && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">🛍️ Ventes:</span>
+                          <span className="font-semibold text-gray-800">{challenge.progress_ventes} / {challenge.ventes_target}</span>
+                        </div>
+                      )}
+                      {challenge.panier_moyen_target && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">🛒 Panier Moyen:</span>
+                          <span className="font-semibold text-gray-800">{challenge.progress_panier_moyen.toFixed(2)}€ / {challenge.panier_moyen_target}€</span>
+                        </div>
+                      )}
+                      {challenge.indice_vente_target && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">💎 Indice Vente:</span>
+                          <span className="font-semibold text-gray-800">{challenge.progress_indice_vente.toFixed(1)} / {challenge.indice_vente_target}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Time remaining */}
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      <span>⏰</span>
+                      <span>
+                        {daysRemaining > 0 ? `${daysRemaining} jour${daysRemaining > 1 ? 's' : ''} restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine aujourd\'hui'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Compact Cards: Profile + Bilan Individuel (side by side like manager dashboard) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Profile Card */}
