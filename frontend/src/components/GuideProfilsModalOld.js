@@ -1,0 +1,1135 @@
+import React, { useState } from 'react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+
+export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
+  // Define tabs based on user role
+  const allTabs = userRole === 'seller' 
+    ? ['vente', 'disc']  // Only 2 tabs for sellers
+    : ['management', 'disc', 'vente', 'compatibilite'];  // All 4 tabs for managers
+  
+  const [activeTab, setActiveTab] = useState(allTabs[0]);
+  const [currentProfile, setCurrentProfile] = useState(0);
+  const [selectedManagerProfile, setSelectedManagerProfile] = useState('Dominant');
+  const [selectedSellerProfile, setSelectedSellerProfile] = useState('Dominant');
+
+  const venteProfiles = [
+    {
+      id: 'convivial',
+      name: 'Le Convivial',
+      icon: '🤝',
+      color: 'blue',
+      description: 'Le vendeur qui crée naturellement du lien avec les clients',
+      caracteristiques: [
+        'Crée facilement du lien avec les clients',
+        'Excellente écoute et empathie naturelle',
+        'Préfère les relations long terme aux ventes one-shot',
+        'Atmosphère chaleureuse et rassurante'
+      ],
+      forces: [
+        'Fidélisation client exceptionnelle',
+        'Atmosphère magasin accueillante',
+        'Client se sent compris et écouté',
+        'Bouche-à-oreille positif naturel'
+      ],
+      developpement: [
+        'Peut manquer d\'assertivité au moment du closing',
+        'Risque de trop se disperser en discussions',
+        'Besoin de structurer davantage le process de vente',
+        'Peut avoir du mal à gérer les clients pressés'
+      ],
+      conseilManager: 'Valorisez son relationnel exceptionnel tout en l\'aidant à structurer avec des scripts de closing simples. Fixez des objectifs de conversion tout en maintenant sa spontanéité.',
+      exemple: 'Sophie accueille chaque client avec un sourire sincère. Elle prend le temps de discuter, de comprendre leurs besoins réels. Ses clients reviennent souvent car ils se sentent comme chez un ami.'
+    },
+    {
+      id: 'performer',
+      name: 'Le Performer',
+      icon: '🎯',
+      color: 'red',
+      description: 'Le vendeur orienté résultats et compétition',
+      caracteristiques: [
+        'Orienté résultats et chiffres avant tout',
+        'Compétitif et ambitieux',
+        'Adore les challenges et défis',
+        'Énergie communicative et motivante'
+      ],
+      forces: [
+        'Atteint ou dépasse systématiquement les objectifs',
+        'Énergique et motivant pour toute l\'équipe',
+        'Closing efficace et sans hésitation',
+        'Gestion du temps optimale'
+      ],
+      developpement: [
+        'Peut négliger la relation client au profit du résultat',
+        'Risque de burn-out si mal encadré',
+        'Parfois trop direct avec les clients',
+        'Peut créer une pression négative dans l\'équipe'
+      ],
+      conseilManager: 'Canalisez son énergie avec des objectifs clairs et ambitieux. Attention à l\'équilibre vie pro/perso. Valorisez aussi la qualité de la relation client, pas que les chiffres.',
+      exemple: 'Marc challenge quotidiennement son record personnel. Il transforme chaque vente en opportunité de dépassement. Son tableau de bord est toujours vert, mais il doit apprendre à ralentir avec certains clients.'
+    },
+    {
+      id: 'challenger',
+      name: 'Le Challenger',
+      icon: '🚀',
+      color: 'purple',
+      description: 'Le vendeur qui ose sortir des sentiers battus',
+      caracteristiques: [
+        'Aime sortir de sa zone de confort',
+        'Teste constamment de nouvelles approches',
+        'Questionne le statu quo de manière constructive',
+        'Adaptabilité remarquable'
+      ],
+      forces: [
+        'Innovation dans les techniques de vente',
+        'Excellente adaptabilité aux clients difficiles',
+        'Dynamise l\'équipe avec ses idées',
+        'Gestion efficace des objections complexes'
+      ],
+      developpement: [
+        'Résultats parfois instables',
+        'Besoin d\'un cadre pour ne pas se disperser',
+        'Parfois trop créatif au détriment du process',
+        'Peut déstabiliser les clients traditionnels'
+      ],
+      conseilManager: 'Donnez-lui de l\'autonomie tout en fixant un cadre clair. Parfait pour tester de nouvelles approches ou former sur l\'adaptabilité. Canalisez sa créativité.',
+      exemple: 'Léa n\'hésite pas à sortir du script. Face à un client sceptique, elle invente une démo originale qui fait mouche. Ses méthodes ne marchent pas toujours, mais quand ça marche, c\'est spectaculaire.'
+    },
+    {
+      id: 'analyste',
+      name: 'L\'Analyste',
+      icon: '🔍',
+      color: 'indigo',
+      description: 'Le vendeur expert qui maîtrise son sujet sur le bout des doigts',
+      caracteristiques: [
+        'Maîtrise parfaite du produit et de ses spécificités',
+        'Approche méthodique et structurée',
+        'Répond à toutes les objections techniques',
+        'Préparation minutieuse avant chaque vente'
+      ],
+      forces: [
+        'Crédibilité technique exceptionnelle',
+        'Rassure les clients experts ou exigeants',
+        'Très peu de retours produits',
+        'Argumentation solide et documentée'
+      ],
+      developpement: [
+        'Peut noyer le client sous l\'information',
+        'Manque parfois de spontanéité',
+        'Process de closing peut être long',
+        'Peut sur-analyser au lieu d\'agir'
+      ],
+      conseilManager: 'Encouragez la simplification et le storytelling. Valorisez son expertise tout en lui apprenant à adapter son discours. Parfait pour les produits techniques ou premium.',
+      exemple: 'Thomas connaît chaque référence par cœur. Face à un client technophile, il déroule une argumentation imparable. Mais parfois, un client simple veut juste "le bleu" sans 10 minutes d\'explications.'
+    },
+    {
+      id: 'relationnel',
+      name: 'Le Relationnel',
+      icon: '🎭',
+      color: 'pink',
+      description: 'Le vendeur qui transforme chaque vente en expérience mémorable',
+      caracteristiques: [
+        'Transforme chaque vente en expérience unique',
+        'Storytelling naturel et captivant',
+        'Énergie communicative et enthousiasme',
+        'Crée des émotions positives'
+      ],
+      forces: [
+        'Clients enthousiastes et engagés',
+        'Bouche-à-oreille viral',
+        'Ambiance magasin dynamique et vivante',
+        'Mémorabilité de l\'expérience client'
+      ],
+      developpement: [
+        'Besoin de structure dans le suivi administratif',
+        'Peut oublier les détails opérationnels',
+        'Risque de sur-promesse',
+        'Dépendant de son humeur du jour'
+      ],
+      conseilManager: 'Encadrez avec des check-lists et process clairs. Laissez libre cours à sa créativité relationnelle. Parfait pour les lancements produits ou événements spéciaux.',
+      exemple: 'Emma raconte l\'histoire derrière chaque produit comme un conte. Les clients repartent ravis, avec des étoiles dans les yeux. Mais le suivi SAV n\'est pas son fort...'
+    },
+    {
+      id: 'consultant',
+      name: 'Le Consultant',
+      icon: '⚖️',
+      color: 'teal',
+      description: 'Le vendeur qui privilégie le conseil à la vente pure',
+      caracteristiques: [
+        'Approche conseil avant approche vente',
+        'Recherche la solution optimale pour le client',
+        'Éthique forte et transparence',
+        'Peut refuser une vente si inadaptée'
+      ],
+      forces: [
+        'Confiance client maximale',
+        'Ventes de très haute qualité (peu de retours)',
+        'Fidélisation exceptionnelle',
+        'Image de marque premium'
+      ],
+      developpement: [
+        'Peut laisser partir des clients (vente "manquée")',
+        'Volume de ventes parfois plus faible',
+        'Perfectionniste (peut ralentir le process)',
+        'Peut frustrer le management sur les objectifs'
+      ],
+      conseilManager: 'Valorisez la qualité plutôt que la quantité. Parfait pour les produits premium ou le conseil personnalisé. Mesurez la satisfaction client, pas que le CA.',
+      exemple: 'Paul conseille parfois à un client de ne PAS acheter si le produit ne correspond pas. Résultat : une confiance totale et un taux de retour quasi nul. Mais son CA mensuel est en dents de scie.'
+    }
+  ];
+
+  const discProfiles = [
+    {
+      id: 'dominant',
+      name: 'Dominant',
+      letter: 'D',
+      icon: '🔴',
+      color: 'red',
+      motCle: 'RÉSULTATS',
+      description: 'Direct, décisif et orienté action',
+      comportements: [
+        'Direct et franc dans sa communication',
+        'Prend des décisions rapides',
+        'Aime les défis et la compétition',
+        'Impatient avec les détails',
+        'Veut contrôler son environnement',
+        'Fonctionne bien sous pression'
+      ],
+      communication: {
+        aFaire: [
+          'Soyez concis et direct',
+          'Focalisez sur les résultats',
+          'Donnez des options et laissez décider',
+          'Allez droit au but',
+          'Respectez son besoin d\'autonomie'
+        ],
+        aEviter: [
+          'Les longs discours détaillés',
+          'Perdre du temps en préliminaires',
+          'Être trop émotionnel',
+          'Micro-manager',
+          'Éviter les conflits directs'
+        ]
+      },
+      motivation: [
+        '🎯 Challenges et objectifs ambitieux',
+        '🏆 Reconnaissance des résultats',
+        '⚡ Nouveaux projets stimulants',
+        '👑 Autonomie et pouvoir de décision',
+        '📈 Possibilités d\'avancement rapide'
+      ],
+      exemple: 'En réunion, David va droit au but : "Quel est l\'objectif ? Qui fait quoi ? On valide et on y va." Il n\'a pas le temps pour les discussions qui tournent en rond.'
+    },
+    {
+      id: 'influent',
+      name: 'Influent',
+      letter: 'I',
+      icon: '🟡',
+      color: 'yellow',
+      motCle: 'RELATION',
+      description: 'Enthousiaste, sociable et inspirant',
+      comportements: [
+        'Enthousiaste et optimiste',
+        'Aime parler et partager',
+        'Spontané et expressif',
+        'Besoin de reconnaissance sociale',
+        'Évite les conflits',
+        'Peut manquer de rigueur dans les détails'
+      ],
+      communication: {
+        aFaire: [
+          'Soyez chaleureux et positif',
+          'Racontez des histoires',
+          'Encouragez et félicitez publiquement',
+          'Créez un environnement fun',
+          'Impliquez socialement'
+        ],
+        aEviter: [
+          'Être trop sérieux ou froid',
+          'Critiquer publiquement',
+          'Environnement isolé',
+          'Communication uniquement écrite',
+          'Ignorer leurs idées'
+        ]
+      },
+      motivation: [
+        '🌟 Reconnaissance publique',
+        '👥 Travail d\'équipe et socialisation',
+        '🎉 Environnement fun et dynamique',
+        '💡 Possibilité d\'innover',
+        '🎤 Opportunités de présentation'
+      ],
+      exemple: 'Marie anime chaque briefing avec enthousiasme. Elle transforme chaque victoire en célébration. Son énergie est communicative, mais elle oublie parfois les deadlines.'
+    },
+    {
+      id: 'stable',
+      name: 'Stable',
+      letter: 'S',
+      icon: '🟢',
+      color: 'green',
+      motCle: 'HARMONIE',
+      description: 'Calme, patient et fiable',
+      comportements: [
+        'Calme et patient',
+        'Fiable et loyal',
+        'Besoin de sécurité',
+        'N\'aime pas les changements brusques',
+        'Excellent écoutant',
+        'Évite les confrontations'
+      ],
+      communication: {
+        aFaire: [
+          'Prenez le temps d\'écouter',
+          'Expliquez le "pourquoi"',
+          'Rassurez et accompagnez',
+          'Préparez les changements',
+          'Valorisez leur constance'
+        ],
+        aEviter: [
+          'Changements brutaux',
+          'Conflits directs',
+          'Pression excessive',
+          'Ignorer leurs inquiétudes',
+          'Manque de reconnaissance'
+        ]
+      },
+      motivation: [
+        '🤝 Stabilité et routine',
+        '💙 Environnement harmonieux',
+        '🛡️ Sécurité de l\'emploi',
+        '👨‍👩‍👧‍👦 Esprit d\'équipe',
+        '📅 Prévisibilité'
+      ],
+      exemple: 'Jean est le pilier de l\'équipe. Toujours à l\'heure, toujours fiable. Mais quand le manager annonce une réorganisation, il a besoin de temps pour s\'adapter.'
+    },
+    {
+      id: 'consciencieux',
+      name: 'Consciencieux',
+      letter: 'C',
+      icon: '🔵',
+      color: 'blue',
+      motCle: 'QUALITÉ',
+      description: 'Analytique, précis et méthodique',
+      comportements: [
+        'Analytique et précis',
+        'Perfectionniste',
+        'Besoin de données et preuves',
+        'Respecte les règles et procédures',
+        'Réfléchi avant d\'agir',
+        'Peut être trop critique'
+      ],
+      communication: {
+        aFaire: [
+          'Apportez des données et faits',
+          'Soyez précis et structuré',
+          'Donnez du temps pour analyser',
+          'Respectez leur expertise',
+          'Documentez par écrit'
+        ],
+        aEviter: [
+          'Être trop émotionnel',
+          'Approximations',
+          'Décisions hâtives',
+          'Manque de préparation',
+          'Ignorer les détails'
+        ]
+      },
+      motivation: [
+        '📊 Qualité et précision',
+        '🎓 Expertise reconnue',
+        '📋 Processus clairs',
+        '🔬 Amélioration continue',
+        '🏅 Standards élevés'
+      ],
+      exemple: 'Claire analyse chaque chiffre en détail. Avant de valider une action, elle veut voir les données. Son travail est impeccable, mais elle peut ralentir les décisions urgentes.'
+    }
+  ];
+
+  const managementStyles = [
+    {
+      id: 'pilote',
+      name: 'Le Pilote',
+      icon: '⚡',
+      color: 'red',
+      description: 'Le manager orienté résultats et plans d\'action',
+      approche: 'Orienté résultats, aime les chiffres, la clarté et les plans d\'action. Le Pilote recherche constamment l\'efficacité et la rapidité dans ses décisions.',
+      discTypique: 'D (Dominant)',
+      caracteristiques: [
+        'Fixe des objectifs clairs et chiffrés',
+        'Aime les chiffres et les tableaux de bord',
+        'Prend des décisions rapides et pragmatiques',
+        'Communication directe et sans détour',
+        'Focus sur les résultats et la performance'
+      ],
+      efficaceAvec: [
+        'Vendeurs expérimentés et autonomes',
+        'Situations de crise ou de redressement',
+        'Profils D qui apprécient la clarté',
+        'Objectifs ambitieux à court terme'
+      ],
+      attention: [
+        'Peut manquer d\'empathie dans la relation',
+        'Risque de créer du stress dans l\'équipe',
+        'Peut négliger le développement individuel',
+        'Besoin d\'apprendre à ralentir et écouter'
+      ],
+      exemple: 'Pierre ouvre le brief : "Objectif du jour : 20 ventes, panier moyen 150€. Hier on était à 17, on peut mieux faire. Marie, tu prends le secteur cosmétique. Paul, l\'électro. Questions ? Pas de questions ? Go !"'
+    },
+    {
+      id: 'coach',
+      name: 'Le Coach',
+      icon: '🎯',
+      color: 'blue',
+      description: 'Le manager bienveillant qui accompagne individuellement',
+      approche: 'Bienveillant, à l\'écoute, accompagne individuellement. Le Coach développe les compétences de chaque vendeur par l\'écoute active et le questionnement.',
+      discTypique: 'I-S (Influent-Stable)',
+      caracteristiques: [
+        'Écoute active et questionnement puissant',
+        'Accompagnement personnalisé de chaque vendeur',
+        'Développement des compétences individuelles',
+        'Feedback constructif et régulier',
+        'Crée un environnement de confiance'
+      ],
+      efficaceAvec: [
+        'Vendeurs en développement',
+        'Profils S et I qui ont besoin d\'encouragement',
+        'Situations d\'apprentissage',
+        'Équipes jeunes ou en formation'
+      ],
+      attention: [
+        'Peut manquer de fermeté quand nécessaire',
+        'Risque de sur-investissement émotionnel',
+        'Peut avoir du mal avec les décisions difficiles',
+        'Besoin de fixer des limites claires'
+      ],
+      exemple: 'Sarah prend le temps avec chaque vendeur : "Qu\'est-ce qui t\'a bloqué dans cette vente ? Comment pourrais-tu faire différemment la prochaine fois ? Qu\'est-ce que tu as appris aujourd\'hui ?" Elle développe l\'autonomie.'
+    },
+    {
+      id: 'dynamiseur',
+      name: 'Le Dynamiseur',
+      icon: '🔥',
+      color: 'orange',
+      description: 'Le manager motivant qui met de l\'énergie dans l\'équipe',
+      approche: 'Motivant, charismatique, met de l\'énergie dans l\'équipe. Le Dynamiseur crée une dynamique positive et embarque son équipe avec enthousiasme.',
+      discTypique: 'I (Influent)',
+      caracteristiques: [
+        'Énergie communicative et enthousiasme',
+        'Crée une ambiance positive et motivante',
+        'Célèbre les victoires et les réussites',
+        'Communication inspirante et engageante',
+        'Fédère l\'équipe autour d\'objectifs communs'
+      ],
+      efficaceAvec: [
+        'Équipes qui manquent de dynamisme',
+        'Profils I qui ont besoin de reconnaissance',
+        'Lancements de produits ou animations',
+        'Périodes de challenge et de compétition'
+      ],
+      attention: [
+        'Peut manquer de rigueur sur le suivi',
+        'Risque de privilégier la forme sur le fond',
+        'Peut être trop dans l\'émotion',
+        'Besoin de structure et de process'
+      ],
+      exemple: 'Marc arrive en brief avec un sourire : "Team ! Hier vous avez été incroyables, +25% sur les ventes ! Aujourd\'hui on vise encore plus haut ! Qui se sent prêt à cartonner ? Allez, on y va avec la pêche !" L\'énergie est palpable.'
+    },
+    {
+      id: 'stratege',
+      name: 'Le Stratège',
+      icon: '📊',
+      color: 'purple',
+      description: 'Le manager structuré et méthodique',
+      approche: 'Structuré, processus, rigoureux et méthodique. Le Stratège planifie avec précision et s\'assure que tout est bien organisé.',
+      discTypique: 'C (Consciencieux)',
+      caracteristiques: [
+        'Planification rigoureuse et détaillée',
+        'Process et procédures bien définis',
+        'Analyse des données et des résultats',
+        'Suivi précis et régulier des indicateurs',
+        'Organisation optimale des ressources'
+      ],
+      efficaceAvec: [
+        'Environnements complexes nécessitant de la rigueur',
+        'Profils C qui aiment la structure',
+        'Situations nécessitant de la conformité',
+        'Projets nécessitant une planification précise'
+      ],
+      attention: [
+        'Peut être trop rigide et manquer de flexibilité',
+        'Risque de sur-planifier et ralentir l\'action',
+        'Peut noyer l\'équipe sous les détails',
+        'Besoin d\'accepter l\'imprévu et l\'improvisation'
+      ],
+      exemple: 'Julie présente un planning détaillé : "Cette semaine, focus produits premium. Lundi-mardi : formation argumentaire. Mercredi-vendredi : mise en pratique avec objectif 30% de premium. J\'ai préparé un tableau de suivi pour chacun."'
+    },
+    {
+      id: 'inspire',
+      name: 'L\'Inspire',
+      icon: '🌟',
+      color: 'teal',
+      description: 'Le manager empathique qui donne du sens',
+      approche: 'Empathique, donne du sens et fédère autour d\'une vision. L\'Inspire crée une culture d\'équipe forte et connecte chacun à un objectif supérieur.',
+      discTypique: 'S-I (Stable-Influent)',
+      caracteristiques: [
+        'Donne du sens au travail quotidien',
+        'Crée une culture d\'équipe forte',
+        'Empathie et connexion émotionnelle',
+        'Valorise la contribution de chacun',
+        'Vision long terme et valeurs partagées'
+      ],
+      efficaceAvec: [
+        'Équipes qui ont perdu le sens',
+        'Profils S et I sensibles aux valeurs',
+        'Changements culturels',
+        'Construction d\'une identité d\'équipe'
+      ],
+      attention: [
+        'Peut manquer de pragmatisme opérationnel',
+        'Risque de négliger les résultats court terme',
+        'Peut être trop idéaliste',
+        'Besoin de compléter la vision par de l\'action'
+      ],
+      exemple: 'Laura réunit son équipe : "Ce qu\'on fait ici, ce n\'est pas juste vendre. C\'est aider les gens à trouver ce qui leur correspond vraiment. Chaque client qui repart satisfait, c\'est notre fierté. On construit quelque chose ensemble."'
+    }
+  ];
+
+  const compatibilityMatrix = [
+    {
+      manager: 'Dominant',
+      seller: 'Dominant',
+      status: 'warning',
+      description: 'Risque de conflit de pouvoir',
+      conseil: 'Respecter les zones d\'autonomie de chacun. Définir clairement qui décide quoi. Transformer la compétition en collaboration.'
+    },
+    {
+      manager: 'Dominant',
+      seller: 'Influent',
+      status: 'good',
+      description: 'Complémentaire',
+      conseil: 'Le Dominant apporte la structure, l\'Influent l\'enthousiasme. Valoriser l\'énergie de l\'Influent tout en fixant des cadres clairs.'
+    },
+    {
+      manager: 'Dominant',
+      seller: 'Stable',
+      status: 'warning',
+      description: 'Risque de stress',
+      conseil: 'Le Stable a besoin de temps. Annoncer les changements en avance. Expliquer le pourquoi. Éviter la pression excessive.'
+    },
+    {
+      manager: 'Dominant',
+      seller: 'Consciencieux',
+      status: 'good',
+      description: 'Efficacité opérationnelle',
+      conseil: 'Le Dominant fixe les objectifs, le Consciencieux assure la qualité. Laisser du temps au Consciencieux pour analyser avant de décider.'
+    },
+    {
+      manager: 'Influent',
+      seller: 'Influent',
+      status: 'warning',
+      description: 'Risque de dispersion',
+      conseil: 'Beaucoup d\'enthousiasme mais manque de structure. Établir des process clairs. Compléter avec un Consciencieux dans l\'équipe.'
+    },
+    {
+      manager: 'Influent',
+      seller: 'Stable',
+      status: 'excellent',
+      description: 'Excellente synergie',
+      conseil: 'L\'Influent motive, le Stable stabilise. Parfait équilibre entre dynamisme et fiabilité.'
+    },
+    {
+      manager: 'Influent',
+      seller: 'Dominant',
+      status: 'good',
+      description: 'Énergie communicative',
+      conseil: 'L\'Influent inspire, le Dominant exécute. Attention : le Dominant a besoin de concret, pas que de motivation.'
+    },
+    {
+      manager: 'Influent',
+      seller: 'Consciencieux',
+      status: 'neutral',
+      description: 'Différences à gérer',
+      conseil: 'L\'Influent est spontané, le Consciencieux est analytique. Respecter le besoin de données du Consciencieux. Structurer la communication.'
+    },
+    {
+      manager: 'Stable',
+      seller: 'Stable',
+      status: 'warning',
+      description: 'Trop de stabilité',
+      conseil: 'Risque de manque de dynamisme. Intégrer des challenges progressifs. Encourager la prise d\'initiative.'
+    },
+    {
+      manager: 'Stable',
+      seller: 'Consciencieux',
+      status: 'excellent',
+      description: 'Harmonie et qualité',
+      conseil: 'Le Stable crée l\'harmonie, le Consciencieux assure la qualité. Duo parfait pour l\'excellence opérationnelle.'
+    },
+    {
+      manager: 'Stable',
+      seller: 'Dominant',
+      status: 'warning',
+      description: 'Rythmes différents',
+      conseil: 'Le Dominant va vite, le Stable va posément. Définir des rythmes compatibles. Le Stable peut freiner les excès du Dominant.'
+    },
+    {
+      manager: 'Stable',
+      seller: 'Influent',
+      status: 'good',
+      description: 'Équilibre émotionnel',
+      conseil: 'Le Stable stabilise l\'enthousiasme de l\'Influent. Belle complémentarité. Attention à ne pas brider l\'Influent.'
+    },
+    {
+      manager: 'Consciencieux',
+      seller: 'Consciencieux',
+      status: 'warning',
+      description: 'Sur-analyse',
+      conseil: 'Risque de paralysie par l\'analyse. Fixer des deadlines. Accepter le "suffisamment bon".'
+    },
+    {
+      manager: 'Consciencieux',
+      seller: 'Dominant',
+      status: 'neutral',
+      description: 'Qualité vs rapidité',
+      conseil: 'Le Consciencieux veut la perfection, le Dominant veut l\'action. Trouver le bon équilibre. Définir les standards minimums.'
+    },
+    {
+      manager: 'Consciencieux',
+      seller: 'Influent',
+      status: 'neutral',
+      description: 'Structure vs spontanéité',
+      conseil: 'Le Consciencieux structure, l\'Influent improvise. Canaliser la créativité de l\'Influent avec des process. Le Consciencieux peut apprendre la flexibilité.'
+    },
+    {
+      manager: 'Consciencieux',
+      seller: 'Stable',
+      status: 'good',
+      description: 'Excellence tranquille',
+      conseil: 'Le Consciencieux fixe les standards, le Stable les applique fidèlement. Duo efficace pour la qualité constante.'
+    }
+  ];
+
+  const getColorClasses = (color) => {
+    const colors = {
+      blue: 'bg-blue-100 text-blue-700 border-blue-300',
+      red: 'bg-red-100 text-red-700 border-red-300',
+      purple: 'bg-purple-100 text-purple-700 border-purple-300',
+      indigo: 'bg-indigo-100 text-indigo-700 border-indigo-300',
+      pink: 'bg-pink-100 text-pink-700 border-pink-300',
+      teal: 'bg-teal-100 text-teal-700 border-teal-300',
+      yellow: 'bg-yellow-100 text-yellow-700 border-yellow-300',
+      green: 'bg-green-100 text-green-700 border-green-300',
+      orange: 'bg-orange-100 text-orange-700 border-orange-300'
+    };
+    return colors[color] || colors.blue;
+  };
+
+  const getCurrentProfiles = () => {
+    if (activeTab === 'management') return managementStyles;
+    if (activeTab === 'vente') return venteProfiles;
+    if (activeTab === 'disc') return discProfiles;
+    return [];
+  };
+
+  const profiles = getCurrentProfiles();
+  const profile = profiles[currentProfile];
+
+  const nextProfile = () => {
+    if (currentProfile < profiles.length - 1) {
+      setCurrentProfile(currentProfile + 1);
+    }
+  };
+
+  const prevProfile = () => {
+    if (currentProfile > 0) {
+      setCurrentProfile(currentProfile - 1);
+    }
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setCurrentProfile(0);
+  };
+
+  const getSelectedCompatibility = () => {
+    return compatibilityMatrix.find(
+      item => item.manager === selectedManagerProfile && item.seller === selectedSellerProfile
+    );
+  };
+
+  const selectedCompatibility = getSelectedCompatibility();
+
+  const discProfileOptions = ['Dominant', 'Influent', 'Stable', 'Consciencieux'];
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-6 text-white">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold">📚 Guide des Profils</h2>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <p className="text-blue-100 text-sm mt-2">
+            Comprenez les différents profils pour mieux adapter votre communication
+          </p>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-gray-200 bg-gray-50 px-6">
+          <button
+            onClick={() => handleTabChange('management')}
+            className={`flex-1 py-4 text-sm font-semibold transition-colors ${
+              activeTab === 'management'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            👔 Styles de Management
+          </button>
+          <button
+            onClick={() => handleTabChange('disc')}
+            className={`flex-1 py-4 text-sm font-semibold transition-colors ${
+              activeTab === 'disc'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            🎨 Profils DISC
+          </button>
+          <button
+            onClick={() => handleTabChange('vente')}
+            className={`flex-1 py-4 text-sm font-semibold transition-colors ${
+              activeTab === 'vente'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            🛍️ Profils de Vente
+          </button>
+          <button
+            onClick={() => handleTabChange('compatibilite')}
+            className={`flex-1 py-4 text-sm font-semibold transition-colors ${
+              activeTab === 'compatibilite'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            🤝 Compatibilité
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {activeTab !== 'compatibilite' && profile ? (
+            <div className="space-y-6">
+              {/* Profile Header */}
+              <div className={`${getColorClasses(profile.color)} rounded-2xl p-6 border-2`}>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl">{profile.icon}</span>
+                    <div>
+                      <h3 className="text-2xl font-bold">{profile.name}</h3>
+                      {profile.motCle && (
+                        <p className="text-sm font-semibold mt-1">Mot-clé : {profile.motCle}</p>
+                      )}
+                    </div>
+                  </div>
+                  {profile.letter && (
+                    <div className="text-3xl font-bold opacity-50">{profile.letter}</div>
+                  )}
+                </div>
+                <p className="text-sm leading-relaxed">{profile.description}</p>
+              </div>
+
+              {/* Navigation entre profils */}
+              <div className="flex items-center justify-between py-2">
+                <button
+                  onClick={prevProfile}
+                  disabled={currentProfile === 0}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    currentProfile === 0
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-blue-600 hover:bg-blue-50'
+                  }`}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                  Précédent
+                </button>
+                <span className="text-sm text-gray-600">
+                  {currentProfile + 1} / {profiles.length}
+                </span>
+                <button
+                  onClick={nextProfile}
+                  disabled={currentProfile === profiles.length - 1}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    currentProfile === profiles.length - 1
+                      ? 'text-gray-400 cursor-not-allowed'
+                      : 'text-blue-600 hover:bg-blue-50'
+                  }`}
+                >
+                  Suivant
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Profils de Vente */}
+              {activeTab === 'vente' && (
+                <>
+                  <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      ✨ Caractéristiques
+                    </h4>
+                    <ul className="space-y-2">
+                      {profile.caracteristiques.map((item, index) => (
+                        <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
+                          <span className="text-blue-500 mt-0.5">•</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-green-50 rounded-xl border border-green-200 p-5">
+                      <h4 className="font-bold text-green-800 mb-3 flex items-center gap-2">
+                        ✅ Forces
+                      </h4>
+                      <ul className="space-y-2">
+                        {profile.forces.map((item, index) => (
+                          <li key={index} className="flex items-start gap-2 text-sm text-green-700">
+                            <span className="mt-0.5">✓</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="bg-orange-50 rounded-xl border border-orange-200 p-5">
+                      <h4 className="font-bold text-orange-800 mb-3 flex items-center gap-2">
+                        📈 Zones de développement
+                      </h4>
+                      <ul className="space-y-2">
+                        {profile.developpement.map((item, index) => (
+                          <li key={index} className="flex items-start gap-2 text-sm text-orange-700">
+                            <span className="mt-0.5">→</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 rounded-xl border border-blue-200 p-5">
+                    <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
+                      💡 Conseil Manager
+                    </h4>
+                    <p className="text-sm text-blue-700 leading-relaxed">{profile.conseilManager}</p>
+                  </div>
+
+                  <div className="bg-purple-50 rounded-xl border border-purple-200 p-5">
+                    <h4 className="font-bold text-purple-800 mb-2 flex items-center gap-2">
+                      📖 Exemple concret
+                    </h4>
+                    <p className="text-sm text-purple-700 leading-relaxed italic">{profile.exemple}</p>
+                  </div>
+                </>
+              )}
+
+              {/* Profils DISC */}
+              {activeTab === 'disc' && (
+                <>
+                  <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      🎭 Comportements typiques
+                    </h4>
+                    <ul className="space-y-2">
+                      {profile.comportements.map((item, index) => (
+                        <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
+                          <span className="text-blue-500 mt-0.5">•</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-green-50 rounded-xl border border-green-200 p-5">
+                      <h4 className="font-bold text-green-800 mb-3 flex items-center gap-2">
+                        ✅ Communication : À faire
+                      </h4>
+                      <ul className="space-y-2">
+                        {profile.communication.aFaire.map((item, index) => (
+                          <li key={index} className="flex items-start gap-2 text-sm text-green-700">
+                            <span className="mt-0.5">✓</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="bg-red-50 rounded-xl border border-red-200 p-5">
+                      <h4 className="font-bold text-red-800 mb-3 flex items-center gap-2">
+                        ❌ Communication : À éviter
+                      </h4>
+                      <ul className="space-y-2">
+                        {profile.communication.aEviter.map((item, index) => (
+                          <li key={index} className="flex items-start gap-2 text-sm text-red-700">
+                            <span className="mt-0.5">✗</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="bg-yellow-50 rounded-xl border border-yellow-200 p-5">
+                    <h4 className="font-bold text-yellow-800 mb-3 flex items-center gap-2">
+                      🎯 Leviers de motivation
+                    </h4>
+                    <ul className="space-y-2">
+                      {profile.motivation.map((item, index) => (
+                        <li key={index} className="text-sm text-yellow-700">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="bg-purple-50 rounded-xl border border-purple-200 p-5">
+                    <h4 className="font-bold text-purple-800 mb-2 flex items-center gap-2">
+                      📖 Exemple concret
+                    </h4>
+                    <p className="text-sm text-purple-700 leading-relaxed italic">{profile.exemple}</p>
+                  </div>
+                </>
+              )}
+
+              {/* Styles de Management */}
+              {activeTab === 'management' && (
+                <>
+                  <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <h4 className="font-bold text-gray-800 mb-2">📋 Approche</h4>
+                    <p className="text-sm text-gray-700 mb-4">{profile.approche}</p>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-semibold text-gray-700">Profil DISC typique :</span>
+                      <span className={`px-3 py-1 rounded-full font-medium ${getColorClasses(profile.color)}`}>
+                        {profile.discTypique}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      ✨ Caractéristiques
+                    </h4>
+                    <ul className="space-y-2">
+                      {profile.caracteristiques.map((item, index) => (
+                        <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
+                          <span className="text-blue-500 mt-0.5">•</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-green-50 rounded-xl border border-green-200 p-5">
+                      <h4 className="font-bold text-green-800 mb-3 flex items-center gap-2">
+                        ✅ Efficace avec
+                      </h4>
+                      <ul className="space-y-2">
+                        {profile.efficaceAvec.map((item, index) => (
+                          <li key={index} className="flex items-start gap-2 text-sm text-green-700">
+                            <span className="mt-0.5">✓</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="bg-orange-50 rounded-xl border border-orange-200 p-5">
+                      <h4 className="font-bold text-orange-800 mb-3 flex items-center gap-2">
+                        ⚠️ Points d'attention
+                      </h4>
+                      <ul className="space-y-2">
+                        {profile.attention.map((item, index) => (
+                          <li key={index} className="flex items-start gap-2 text-sm text-orange-700">
+                            <span className="mt-0.5">→</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="bg-purple-50 rounded-xl border border-purple-200 p-5">
+                    <h4 className="font-bold text-purple-800 mb-2 flex items-center gap-2">
+                      📖 Exemple concret
+                    </h4>
+                    <p className="text-sm text-purple-700 leading-relaxed italic">{profile.exemple}</p>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : activeTab === 'compatibilite' ? (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+                <h3 className="font-bold text-gray-800 mb-2">🎯 Compatibilité Manager-Vendeur DISC</h3>
+                <p className="text-sm text-gray-600">
+                  Sélectionnez les profils DISC du manager et du vendeur pour voir leur compatibilité
+                </p>
+              </div>
+
+              {/* Filtres de sélection */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="bg-white rounded-xl border-2 border-gray-200 p-5">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    👔 Profil du Manager
+                  </label>
+                  <select
+                    value={selectedManagerProfile}
+                    onChange={(e) => setSelectedManagerProfile(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800 font-medium"
+                  >
+                    {discProfileOptions.map(profile => (
+                      <option key={profile} value={profile}>
+                        {profile === 'Dominant' && '🔴 '}
+                        {profile === 'Influent' && '🟡 '}
+                        {profile === 'Stable' && '🟢 '}
+                        {profile === 'Consciencieux' && '🔵 '}
+                        {profile}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="bg-white rounded-xl border-2 border-gray-200 p-5">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    🛍️ Profil du Vendeur
+                  </label>
+                  <select
+                    value={selectedSellerProfile}
+                    onChange={(e) => setSelectedSellerProfile(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800 font-medium"
+                  >
+                    {discProfileOptions.map(profile => (
+                      <option key={profile} value={profile}>
+                        {profile === 'Dominant' && '🔴 '}
+                        {profile === 'Influent' && '🟡 '}
+                        {profile === 'Stable' && '🟢 '}
+                        {profile === 'Consciencieux' && '🔵 '}
+                        {profile}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Affichage de la compatibilité sélectionnée */}
+              {selectedCompatibility && (
+                <div className="animate-fadeIn">
+                  <div className={`${
+                    selectedCompatibility.status === 'excellent' ? 'bg-green-100 border-green-300 text-green-800' :
+                    selectedCompatibility.status === 'good' ? 'bg-blue-100 border-blue-300 text-blue-800' :
+                    selectedCompatibility.status === 'neutral' ? 'bg-yellow-100 border-yellow-300 text-yellow-800' :
+                    'bg-orange-100 border-orange-300 text-orange-800'
+                  } rounded-2xl p-6 border-2`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <span className="text-4xl">
+                          {selectedCompatibility.status === 'excellent' && '⭐'}
+                          {selectedCompatibility.status === 'good' && '✅'}
+                          {selectedCompatibility.status === 'neutral' && '⚖️'}
+                          {selectedCompatibility.status === 'warning' && '⚠️'}
+                        </span>
+                        <div>
+                          <h4 className="text-xl font-bold">
+                            Manager {selectedManagerProfile} + Vendeur {selectedSellerProfile}
+                          </h4>
+                          <p className="text-sm font-semibold mt-1 opacity-80">
+                            {selectedCompatibility.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`px-4 py-2 rounded-full text-xs font-bold ${
+                        selectedCompatibility.status === 'excellent' ? 'bg-green-200' :
+                        selectedCompatibility.status === 'good' ? 'bg-blue-200' :
+                        selectedCompatibility.status === 'neutral' ? 'bg-yellow-200' :
+                        'bg-orange-200'
+                      }`}>
+                        {selectedCompatibility.status === 'excellent' && 'EXCELLENTE'}
+                        {selectedCompatibility.status === 'good' && 'BONNE'}
+                        {selectedCompatibility.status === 'neutral' && 'NEUTRE'}
+                        {selectedCompatibility.status === 'warning' && 'ATTENTION'}
+                      </div>
+                    </div>
+
+                    <div className="bg-white bg-opacity-50 rounded-xl p-5 mt-4">
+                      <h5 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                        💡 Conseil d'adaptation
+                      </h5>
+                      <p className="text-sm leading-relaxed">
+                        {selectedCompatibility.conseil}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Conseils complémentaires selon le statut */}
+                  {selectedCompatibility.status === 'excellent' && (
+                    <div className="bg-green-50 rounded-xl p-5 border border-green-200 mt-4">
+                      <p className="text-sm text-green-800 font-medium">
+                        🌟 Cette combinaison est idéale ! Les deux profils se complètent naturellement. 
+                        Cultivez cette synergie en encourageant la communication ouverte et en valorisant 
+                        les forces de chacun.
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedCompatibility.status === 'good' && (
+                    <div className="bg-blue-50 rounded-xl p-5 border border-blue-200 mt-4">
+                      <p className="text-sm text-blue-800 font-medium">
+                        👍 Belle compatibilité ! Ces profils fonctionnent bien ensemble avec quelques 
+                        ajustements de communication. Restez attentif aux besoins spécifiques de chaque profil.
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedCompatibility.status === 'warning' && (
+                    <div className="bg-orange-50 rounded-xl p-5 border border-orange-200 mt-4">
+                      <p className="text-sm text-orange-800 font-medium">
+                        ⚠️ Cette combinaison nécessite une attention particulière. Les différences de style 
+                        peuvent créer des tensions. Établissez des règles claires de communication et des 
+                        attentes explicites dès le départ.
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedCompatibility.status === 'neutral' && (
+                    <div className="bg-yellow-50 rounded-xl p-5 border border-yellow-200 mt-4">
+                      <p className="text-sm text-yellow-800 font-medium">
+                        ⚖️ Compatibilité modérée. Ces profils ont des approches différentes qui peuvent 
+                        être complémentaires si bien gérées. La clé : communication claire et respect mutuel 
+                        des différences de style.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-center items-center">
+          <p className="text-xs text-gray-500">
+            Retail Coach 2.0 - Guide des Profils
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
