@@ -1,336 +1,363 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { X, Sparkles } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const QUESTIONS = [
+// Questions organisées par sections comme le manager
+const questions = [
   {
-    id: 1,
-    theme: "Accueil 👋",
-    themeColor: "from-blue-50 to-blue-100",
-    question: "Un client entre alors que tu termines une vente. Que fais-tu ?",
-    type: "choice",
-    options: [
-      "Je lui fais un signe ou un mot pour lui montrer que je l'ai vu.",
-      "Je finis ma vente et je vais le voir ensuite.",
-      "J'envoie un regard ou un sourire, mais je reste concentré sur mon client actuel."
+    section: "🟡 Accueil & Premier Contact",
+    items: [
+      {
+        id: 1,
+        text: "Un client entre alors que tu termines une vente. Que fais-tu ?",
+        type: "choice",
+        options: [
+          "Je lui fais un signe ou un mot pour lui montrer que je l'ai vu.",
+          "Je finis ma vente et je vais le voir ensuite.",
+          "J'envoie un regard ou un sourire, mais je reste concentré sur mon client actuel."
+        ]
+      },
+      {
+        id: 2,
+        text: "Qu'est-ce qui, selon toi, donne envie à un client de te faire confiance dès les premières secondes ?",
+        type: "text"
+      },
+      {
+        id: 3,
+        text: 'Un client te dit : "Je cherche un cadeau mais je ne sais pas trop quoi."',
+        type: "choice",
+        options: [
+          "Je lui montre quelques idées pour l'inspirer.",
+          "Je lui pose des questions pour savoir à qui c'est destiné.",
+          "Je lui demande ce qu'il a déjà offert pour éviter les doublons."
+        ]
+      }
     ]
   },
   {
-    id: 2,
-    theme: "Accueil 👋",
-    themeColor: "from-blue-50 to-blue-100",
-    question: "Qu'est-ce qui, selon toi, donne envie à un client de te faire confiance dès les premières secondes ?",
-    type: "text"
-  },
-  {
-    id: 3,
-    theme: "Accueil 👋",
-    themeColor: "from-blue-50 to-blue-100",
-    question: 'Un client te dit : "Je cherche un cadeau mais je ne sais pas trop quoi."',
-    type: "choice",
-    options: [
-      "Je lui montre quelques idées pour l'inspirer.",
-      "Je lui pose des questions pour savoir à qui c'est destiné.",
-      "Je lui demande ce qu'il a déjà offert pour éviter les doublons."
+    section: "🟡 Découverte des Besoins",
+    items: [
+      {
+        id: 4,
+        text: "Quand un client parle beaucoup, comment réagis-tu ?",
+        type: "choice",
+        options: [
+          "Je l'écoute attentivement pour trouver ce qu'il veut vraiment.",
+          "J'essaie de recentrer doucement la conversation.",
+          "Je partage aussi pour créer une vraie discussion."
+        ]
+      },
+      {
+        id: 5,
+        text: "Raconte une situation où tu as découvert un besoin caché chez un client.",
+        type: "text"
+      },
+      {
+        id: 6,
+        text: 'Un client répond : "Je cherche juste à comparer." Que fais-tu ?',
+        type: "choice",
+        options: [
+          "Je lui demande ce qu'il compare pour mieux le conseiller.",
+          "Je lui propose mes meilleures offres pour le convaincre.",
+          "Je respecte sa démarche et reste disponible."
+        ]
+      }
     ]
   },
   {
-    id: 4,
-    theme: "Découverte 🔍",
-    themeColor: "from-green-50 to-green-100",
-    question: "Quand un client parle beaucoup, comment réagis-tu ?",
-    type: "choice",
-    options: [
-      "Je l'écoute attentivement pour trouver ce qu'il veut vraiment.",
-      "J'essaie de recentrer doucement la conversation.",
-      "Je partage aussi pour créer une vraie discussion."
+    section: "🟡 Argumentation & Persuasion",
+    items: [
+      {
+        id: 7,
+        text: "Comment présentes-tu un produit à un client hésitant ?",
+        type: "choice",
+        options: [
+          "Je mets en avant les caractéristiques techniques.",
+          "Je montre comment ça répond à ses besoins.",
+          "Je partage des avis d'autres clients satisfaits."
+        ]
+      },
+      {
+        id: 8,
+        text: "Décris une fois où tu as su adapter ton discours pour convaincre un client difficile.",
+        type: "text"
+      },
+      {
+        id: 9,
+        text: 'Un client dit : "C\'est trop cher." Quelle est ta première réaction ?',
+        type: "choice",
+        options: [
+          "Je justifie le prix en expliquant la valeur.",
+          "Je propose une alternative moins chère.",
+          "Je comprends son budget et j'adapte ma proposition."
+        ]
+      }
     ]
   },
   {
-    id: 5,
-    theme: "Découverte 🔍",
-    themeColor: "from-green-50 to-green-100",
-    question: "Quand tu présentes un produit, qu'est-ce que tu cherches avant tout ?",
-    type: "choice",
-    options: [
-      "Donner envie en racontant une histoire ou une émotion.",
-      "Montrer ce qui correspond exactement à son besoin.",
-      "Mettre en avant les différences avec les autres produits."
+    section: "🟡 Closing & Finalisation",
+    items: [
+      {
+        id: 10,
+        text: "Comment sais-tu qu'un client est prêt à acheter ?",
+        type: "text"
+      },
+      {
+        id: 11,
+        text: "Un client hésite encore après toutes tes explications. Que fais-tu ?",
+        type: "choice",
+        options: [
+          "Je le relance gentiment pour le rassurer.",
+          "Je lui laisse du temps pour réfléchir.",
+          "Je lui propose un dernier argument décisif."
+        ]
+      },
+      {
+        id: 12,
+        text: "Quelle est ta technique préférée pour finaliser une vente ?",
+        type: "text"
+      }
     ]
   },
   {
-    id: 6,
-    theme: "Découverte 🔍",
-    themeColor: "from-green-50 to-green-100",
-    question: "Un client hésite entre deux produits. Que fais-tu ?",
-    type: "choice",
-    options: [
-      "Je lui reformule ses priorités pour l'aider à trancher.",
-      "Je lui montre la différence directement, visuellement ou par essai.",
-      "Je propose le produit avec le meilleur rapport qualité-prix."
+    section: "🟡 Fidélisation Client",
+    items: [
+      {
+        id: 13,
+        text: "Après une vente, que fais-tu pour que le client revienne ?",
+        type: "text"
+      },
+      {
+        id: 14,
+        text: 'Un ancien client revient avec un problème sur son achat. Tu fais quoi ?',
+        type: "choice",
+        options: [
+          "Je trouve une solution rapidement pour le satisfaire.",
+          "Je l'écoute d'abord pour comprendre le problème.",
+          "Je lui propose une compensation pour garder sa confiance."
+        ]
+      },
+      {
+        id: 15,
+        text: "Qu'est-ce qui fait qu'un client devient fidèle selon toi ?",
+        type: "text"
+      }
     ]
   },
   {
-    id: 7,
-    theme: "Vente 💬",
-    themeColor: "from-purple-50 to-purple-100",
-    question: 'Quand un client dit : "Je vais réfléchir", tu réagis comment ?',
-    type: "choice",
-    options: [
-      "Je le laisse partir avec un mot gentil.",
-      "Je lui rappelle l'avantage principal du produit.",
-      "Je lui propose de repasser ou de réserver l'article."
+    section: "🎨 Profil DISC - Ton Style de Vente",
+    items: [
+      {
+        id: 16,
+        text: "Face à un client indécis, tu préfères :",
+        type: "choice",
+        options: [
+          "Prendre les devants et le guider fermement vers une décision",
+          "Créer une connexion chaleureuse et le rassurer avec enthousiasme",
+          "Prendre le temps d'écouter toutes ses hésitations patiemment",
+          "Lui présenter tous les détails techniques pour qu'il décide en connaissance de cause"
+        ]
+      },
+      {
+        id: 17,
+        text: "Quand tu as plusieurs clients en même temps, tu :",
+        type: "choice",
+        options: [
+          "Gères la situation avec rapidité et efficacité",
+          "Gardes le sourire et crées une ambiance sympa pour tout le monde",
+          "Restes calme et méthodique pour ne rien oublier",
+          "T'assures que chaque client reçoive une réponse précise"
+        ]
+      },
+      {
+        id: 18,
+        text: "Ce qui te frustre le plus dans ton travail, c'est :",
+        type: "choice",
+        options: [
+          "L'inaction ou la lenteur",
+          "Le manque de reconnaissance ou d'ambiance",
+          "Les changements trop brusques ou le stress",
+          "Le manque de rigueur ou les erreurs"
+        ]
+      },
+      {
+        id: 19,
+        text: "Ton approche avec un nouveau produit en rayon :",
+        type: "choice",
+        options: [
+          "Je me lance tout de suite pour le tester en conditions réelles",
+          "J'en parle avec enthousiasme aux clients dès que possible",
+          "Je prends le temps de bien le comprendre avant d'en parler",
+          "J'étudie toutes les caractéristiques pour maîtriser chaque détail"
+        ]
+      },
+      {
+        id: 20,
+        text: "Dans une équipe, tu es plutôt :",
+        type: "choice",
+        options: [
+          "Celui qui mène et qui pousse les autres à avancer",
+          "Celui qui motive et qui crée la bonne ambiance",
+          "Celui qui écoute et qui soutient",
+          "Celui qui organise et qui veille à la qualité"
+        ]
+      },
+      {
+        id: 21,
+        text: "Ton style de communication avec les clients, c'est plutôt :",
+        type: "choice",
+        options: [
+          "Direct et efficace, je vais à l'essentiel",
+          "Chaleureux et expressif, je crée de la complicité",
+          "Patient et à l'écoute, je prends mon temps",
+          "Précis et factuel, je m'appuie sur les caractéristiques"
+        ]
+      },
+      {
+        id: 22,
+        text: "Ce qui te motive le plus dans la vente, c'est :",
+        type: "choice",
+        options: [
+          "Atteindre et dépasser mes objectifs",
+          "Créer des relations authentiques avec les clients",
+          "La stabilité et la routine rassurante du métier",
+          "Maîtriser parfaitement mon produit et mon expertise"
+        ]
+      },
+      {
+        id: 23,
+        text: "En fin de journée chargée, tu es plutôt :",
+        type: "choice",
+        options: [
+          "Energisé par les résultats et prêt à recommencer demain",
+          "Content des belles interactions que tu as eues",
+          "Soulagé que tout se soit bien passé sans accroc",
+          "Satisfait d'avoir bien respecté toutes les procédures"
+        ]
+      }
     ]
-  },
-  {
-    id: 8,
-    theme: "Vente 💬",
-    themeColor: "from-purple-50 to-purple-100",
-    question: "Qu'est-ce qui, selon toi, fait la différence entre une vente réussie et une vente ratée ?",
-    type: "text"
-  },
-  {
-    id: 9,
-    theme: "Conclusion 💰",
-    themeColor: "from-yellow-50 to-yellow-100",
-    question: "Après la vente, tu fais quoi ?",
-    type: "choice",
-    options: [
-      "Je le remercie simplement avec le sourire.",
-      "Je parle d'une nouveauté ou d'une prochaine visite.",
-      "Je note une info sur lui pour mieux le reconnaître la prochaine fois."
-    ]
-  },
-  {
-    id: 10,
-    theme: "Conclusion 💰",
-    themeColor: "from-yellow-50 to-yellow-100",
-    question: "Comment fais-tu pour qu'un client se souvienne de toi ?",
-    type: "text"
-  },
-  {
-    id: 11,
-    theme: "Fidélisation 💌",
-    themeColor: "from-pink-50 to-pink-100",
-    question: "Quand une vente ne se conclut pas, tu ressens plutôt :",
-    type: "choice",
-    options: [
-      "De la frustration, j'aurais voulu mieux faire.",
-      "De la déception, mais je passe vite à autre chose.",
-      "De la curiosité : j'essaie de comprendre pourquoi."
-    ]
-  },
-  {
-    id: 12,
-    theme: "Motivation ⚙️",
-    themeColor: "from-orange-50 to-orange-100",
-    question: "Dans une journée difficile, qu'est-ce qui te redonne de l'énergie ?",
-    type: "choice",
-    options: [
-      "Le contact avec un client sympa.",
-      "Un mot positif d'un collègue ou du manager.",
-      "Un challenge ou un objectif à atteindre."
-    ]
-  },
-  {
-    id: 13,
-    theme: "Motivation ⚙️",
-    themeColor: "from-orange-50 to-orange-100",
-    question: "Ce que tu préfères dans ton métier de vendeur, c'est :",
-    type: "choice",
-    options: [
-      "Le contact avec les gens.",
-      "Les défis et les résultats.",
-      "Apprendre et parler des produits."
-    ]
-  },
-  {
-    id: 14,
-    theme: "Motivation ⚙️",
-    themeColor: "from-orange-50 to-orange-100",
-    question: "Si tu devais choisir une phrase qui te ressemble le plus :",
-    type: "choice",
-    options: [
-      '"Je veux que mes clients passent un bon moment."',
-      '"Je veux que mes ventes montent en flèche."',
-      '"Je veux devenir un vrai expert dans ce que je vends."'
-    ]
-  },
-  {
-    id: 15,
-    theme: "Motivation ⚙️",
-    themeColor: "from-orange-50 to-orange-100",
-    question: "En un mot, comment te décrirais-tu en tant que vendeur ?",
-    type: "text"
   }
 ];
 
-export default function DiagnosticFormScrollable({ onComplete }) {
+export default function DiagnosticFormModal({ onClose, onSuccess }) {
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(false);
-  const questionRefs = useRef({});
 
-  const handleAnswer = (questionId, answer) => {
-    setResponses(prev => ({ ...prev, [questionId]: answer }));
-    
-    // Auto-scroll to next unanswered question
-    setTimeout(() => {
-      const nextUnanswered = QUESTIONS.find(q => 
-        q.id > questionId && (!responses[q.id] || responses[q.id].toString().trim() === '')
-      );
-      if (nextUnanswered && questionRefs.current[nextUnanswered.id]) {
-        questionRefs.current[nextUnanswered.id].scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center' 
-        });
-      }
-    }, 300);
-  };
-
-  const isComplete = () => {
-    return QUESTIONS.every(q => {
-      const answer = responses[q.id];
-      return answer && answer.toString().trim() !== '';
-    });
+  const handleAnswer = (questionId, answer, optionIndex = null) => {
+    // For DISC questions (16-23), store the index; for others, store the text
+    const isDISCQuestion = questionId >= 16 && questionId <= 23;
+    const valueToStore = (isDISCQuestion && optionIndex !== null) ? optionIndex : answer;
+    setResponses(prev => ({
+      ...prev,
+      [questionId]: valueToStore
+    }));
   };
 
   const handleSubmit = async () => {
-    if (loading || !isComplete()) return;
-    
+    // Check if all questions are answered
+    const totalQuestions = questions.reduce((sum, section) => sum + section.items.length, 0);
+    if (Object.keys(responses).length < totalQuestions) {
+      toast.error('Merci de répondre à toutes les questions');
+      return;
+    }
+
     setLoading(true);
-    
     try {
-      const response = await axios.post(`${API}/diagnostic`, { responses });
-      console.log('✅ Diagnostic submission successful:', response.data);
-      toast.success('Diagnostic complété avec succès!');
+      const token = localStorage.getItem('token');
+      await axios.post(`${API}/diagnostic`, { responses }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       
-      setTimeout(() => {
-        console.log('🎯 Calling onComplete callback...');
-        if (onComplete) {
-          onComplete(response.data);
-        } else {
-          window.location.href = '/';
-        }
-      }, 1500);
-      
+      toast.success('Ton profil vendeur est prêt ! 🔥');
+      onSuccess();
+      onClose();
     } catch (err) {
-      console.error('❌ Diagnostic submission error:', err);
-      toast.error(err.response?.data?.detail || 'Erreur lors de l\'envoi du diagnostic');
+      console.error('Error submitting diagnostic:', err);
+      toast.error('Erreur lors de l\'analyse du profil');
+    } finally {
       setLoading(false);
     }
   };
 
-  const answeredCount = Object.keys(responses).filter(k => responses[k] && responses[k].toString().trim() !== '').length;
-  const progress = (answeredCount / QUESTIONS.length) * 100;
-
   return (
-    <div className="min-h-screen p-4 bg-gradient-to-br from-[#fffef9] to-[#fff9e6]">
-      <div className="max-w-3xl mx-auto py-8">
-        {/* Sticky Header */}
-        <div className="glass-morphism rounded-3xl shadow-2xl p-6 mb-6 sticky top-4 z-10 backdrop-blur-lg">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <img src="/logo.jpg" alt="Logo" className="w-12 h-12 rounded-xl shadow-md object-cover" />
-              <div>
-                <h1 className="text-lg font-bold text-gray-800">Diagnostic vendeur</h1>
-                <p className="text-xs text-gray-600">{answeredCount}/{QUESTIONS.length} répondues</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-[#ffd871]">{Math.round(progress)}%</div>
-            </div>
-          </div>
-
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-            <div
-              className="bg-[#ffd871] h-2 rounded-full transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-8">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 p-6 rounded-t-2xl relative">
           <button
-            onClick={handleSubmit}
-            disabled={!isComplete() || loading}
-            className={`w-full py-3 rounded-full font-semibold shadow-lg transition-all ${
-              isComplete() && !loading
-                ? 'bg-[#ffd871] text-gray-800 hover:shadow-xl hover:scale-105 cursor-pointer'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
-            }`}
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 transition-colors"
           >
-            {loading ? '✨ Analyse en cours...' : isComplete() ? '🎉 Terminer le diagnostic' : `📝 ${QUESTIONS.length - answeredCount} questions restantes`}
+            <X className="w-6 h-6" />
           </button>
+          <div className="flex items-center gap-3 mb-2">
+            <Sparkles className="w-8 h-8 text-gray-800" />
+            <h2 className="text-2xl font-bold text-gray-800">Identifier mon profil vendeur</h2>
+          </div>
+          <p className="text-gray-700">Découvre ton style de vente et ton profil DISC pour recevoir un coaching personnalisé.</p>
         </div>
 
-        {/* Questions */}
-        <div className="space-y-6">
-          {QUESTIONS.map((question, index) => {
-            const isAnswered = responses[question.id] && responses[question.id].toString().trim() !== '';
-            return (
-              <div
-                key={question.id}
-                ref={el => questionRefs.current[question.id] = el}
-                className={`glass-morphism rounded-2xl p-6 shadow-lg transition-all duration-300 ${
-                  isAnswered ? 'border-2 border-[#ffd871]' : 'border-2 border-transparent'
-                }`}
-              >
-                {/* Question Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className={`inline-block px-3 py-1 bg-gradient-to-r ${question.themeColor} rounded-full text-xs font-medium text-gray-800 mb-2`}>
-                      {question.theme}
-                    </div>
-                    <h3 className="text-base font-semibold text-gray-800 flex items-start gap-2">
-                      <span className="text-[#ffd871] font-bold">{index + 1}.</span>
-                      <span>{question.question}</span>
-                    </h3>
-                  </div>
-                  {isAnswered && (
-                    <div className="ml-3 flex-shrink-0">
-                      <div className="w-8 h-8 bg-[#ffd871] rounded-full flex items-center justify-center">
-                        <span className="text-white text-lg">✓</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Answer Options */}
-                {question.type === 'choice' ? (
-                  <div className="space-y-2">
-                    {question.options.map((option, optIndex) => {
-                      const isSelected = responses[question.id] === option;
-                      return (
-                        <div
-                          key={optIndex}
-                          onClick={() => handleAnswer(question.id, option)}
-                          className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                            isSelected
-                              ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10 scale-[1.02]'
-                              : 'border-gray-200 hover:border-[#ffd871] hover:bg-gray-50'
+        {/* Content */}
+        <div className="p-6 max-h-[70vh] overflow-y-auto">
+          {questions.map((section, sectionIdx) => (
+            <div key={sectionIdx} className="mb-8">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">{section.section}</h3>
+              
+              {section.items.map((question) => (
+                <div key={question.id} className="mb-6 bg-gray-50 rounded-xl p-5">
+                  <p className="text-gray-800 font-medium mb-4">
+                    {question.id}. {question.text}
+                  </p>
+                  
+                  {question.type === 'choice' ? (
+                    <div className="space-y-2">
+                      {question.options.map((option, optionIdx) => (
+                        <button
+                          key={optionIdx}
+                          onClick={() => handleAnswer(question.id, option, optionIdx)}
+                          className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                            responses[question.id] === option || responses[question.id] === optionIdx
+                              ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-20 font-medium'
+                              : 'border-gray-200 hover:border-[#ffd871] hover:bg-gray-100'
                           }`}
                         >
-                          <p className="text-gray-800 text-sm">{option}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <textarea
-                    value={responses[question.id] || ''}
-                    onChange={(e) => handleAnswer(question.id, e.target.value)}
-                    placeholder="Écris ta réponse ici..."
-                    rows={4}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
-                  />
-                )}
-              </div>
-            );
-          })}
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <textarea
+                      value={responses[question.id] || ''}
+                      onChange={(e) => handleAnswer(question.id, e.target.value)}
+                      placeholder="Écris ta réponse ici..."
+                      rows={4}
+                      className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-[#ffd871] focus:outline-none resize-none"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-between items-center">
+          <p className="text-sm text-gray-600">
+            {Object.keys(responses).length} / {questions.reduce((sum, s) => sum + s.items.length, 0)} questions répondues
+          </p>
+          <button
+            onClick={handleSubmit}
+            disabled={loading || Object.keys(responses).length < questions.reduce((sum, s) => sum + s.items.length, 0)}
+            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Analyse en cours...' : 'Découvrir mon profil'}
+          </button>
         </div>
       </div>
     </div>
   );
 }
-
