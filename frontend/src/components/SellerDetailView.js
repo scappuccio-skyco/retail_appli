@@ -212,46 +212,6 @@ export default function SellerDetailView({ seller, onBack }) {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="glass-morphism rounded-2xl p-6 card-hover">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Évaluations</p>
-              <p className="text-3xl font-bold text-gray-800">{kpiStats.totalEvaluations}</p>
-              <p className="text-xs text-gray-500">Diagnostic + Débriefs</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-morphism rounded-2xl p-6 card-hover">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-              <MessageSquare className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Ventes (7j)</p>
-              <p className="text-3xl font-bold text-gray-800">{kpiStats.totalVentes}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-morphism rounded-2xl p-6 card-hover">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">CA (7j)</p>
-              <p className="text-3xl font-bold text-gray-800">{kpiStats.totalCA.toFixed(0)}€</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Diagnostic Profile */}
       {diagnostic ? (
         <div className="glass-morphism rounded-2xl p-6 mb-8">
