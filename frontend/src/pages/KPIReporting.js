@@ -200,17 +200,17 @@ export default function KPIReporting({ user, onBack }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#fffef9] to-[#fff9e6] p-4">
+      <div className="p-4">
         <div className="text-center py-12">Chargement...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fffef9] to-[#fff9e6] p-4">
-      <div className="max-w-7xl mx-auto py-8">
+    <div className="p-4">
+      <div className="max-w-full mx-auto">
         {/* Header */}
-        <div className="glass-morphism rounded-2xl p-6 mb-6">
+        <div className="glass-morphism rounded-2xl p-6 mb-6">`
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <button
