@@ -648,9 +648,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "SellerDetailView - Competence Data Harmonization"
-    - "SellerDetailView - Dynamic KPI Display Based on Manager Configuration"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
