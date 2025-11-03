@@ -84,7 +84,22 @@ export default function ManagerDashboard({ user, onLogout }) {
     fetchTeamBilan();
     fetchKpiConfig();
     fetchActiveChallenges();
+    fetchActiveObjectives();
   }, []);
+
+  const fetchActiveObjectives = async () => {
+    try {
+      console.log('🎯 Fetching active objectives...');
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/manager/objectives/active`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('🎯 Active objectives received:', res.data);
+      setActiveObjectives(res.data);
+    } catch (err) {
+      console.error('❌ Error fetching active objectives:', err);
+    }
+  };
 
   const fetchActiveChallenges = async () => {
     try {
