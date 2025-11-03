@@ -574,9 +574,24 @@ backend_challenges:
         agent: "testing"
         comment: "CHALLENGE CREATION API TESTING COMPLETED SUCCESSFULLY: ✅ POST /api/manager/challenges endpoint working correctly. ✅ Challenge creation with exact review request data structure validated: title, description, type='collective', ca_target=10000, ventes_target=50, start_date='2025-01-01', end_date='2025-12-31'. ✅ All input fields correctly saved and returned in response. ✅ System fields properly generated: id (UUID), manager_id (from authenticated user), created_at (timestamp), status (defaults to 'active'). ✅ Data persistence verified - created challenges appear in both GET /api/manager/challenges and GET /api/manager/challenges/active endpoints. ✅ Authentication working correctly - requires manager role and valid token. ✅ Challenge progress calculation function available for KPI tracking. ✅ Challenge model supports both collective and individual types with proper validation."
 
+frontend_tab_architecture:
+  - task: "Conflict Resolution Tab Integration - New Architecture"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/SellerDetailView.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "User requested testing of new 'Gestion de Conflit' tab architecture. Changed from modal-based to tab-based implementation to work like other tabs (Compétences, KPI, Débriefs). Need to verify: 1) 4 tabs visible in SellerDetailView, 2) 'Gestion de Conflit' tab activates with yellow style, 3) Content displays in panel below (not modal), 4) Overview shows title, 'Nouvelle consultation' button, and history section, 5) Form displays with 5 questions, 6) Navigation between tabs works smoothly."
+
 agent_communication:
   - agent: "main"
     message: "DYNAMIC KPI DISPLAY FEATURE IMPLEMENTED: ✅ User requested that in SellerDetailView, KPI charts should only appear if manager has validated those KPIs, and visibility toggle buttons should only show for available charts. ✅ SOLUTION: 1) Added kpiConfig fetch to get manager's KPI configuration. 2) Created availableCharts logic that determines which charts are available based on kpiConfig (e.g., panierMoyen requires both track_ca AND track_ventes). 3) Conditioned KPI cards display on kpiConfig (only show configured KPIs). 4) Conditioned visibility toggle buttons to only show for available charts. 5) Updated all chart displays to check BOTH availableCharts AND visibleCharts before rendering. ✅ Result: Charts now dynamically adapt to manager's KPI configuration - unconfigured KPIs don't show cards, buttons, or graphs. Ready for testing."
+  - agent: "main"
+    message: "NEW TAB ARCHITECTURE FOR CONFLICT RESOLUTION IMPLEMENTED: ✅ User requested testing of modified 'Gestion de Conflit' interface in SellerDetailView. Changed from modal overlay to standard tab implementation to match other tabs (Compétences, KPI, Débriefs). ✅ IMPLEMENTATION: 1) 'Gestion de Conflit' now appears as 4th tab with same styling as other tabs, 2) Content displays in main panel below tabs (not in modal), 3) ConflictResolutionForm component integrated directly into tab content, 4) Tab activation uses same yellow gradient styling as other tabs. ✅ TESTING NEEDED: Verify tab navigation, content display, form functionality, and smooth user experience. Ready for comprehensive testing with manager@test.com account."
   - agent: "testing"
     message: "ACTIVE CHALLENGES DISPLAY COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY: ✅ CRITICAL REVIEW REQUEST VERIFIED - ALL SUCCESS CRITERIA MET. ✅ SCENARIO 1: Manager login (manager1@test.com) successful, GET /api/manager/challenges returns 1 total challenge in database with complete details. ✅ SCENARIO 2: GET /api/manager/challenges/active returns 1 active collective challenge with proper date filtering (today 2025-11-03 within 2025-01-01 to 2025-12-31 range). ✅ SCENARIO 3: Challenge creation API working correctly (skipped as active challenge already exists). ✅ ROOT CAUSE IDENTIFIED: Backend APIs are working correctly and returning active challenges. If manager dashboard shows nothing, the issue is in frontend integration, not backend data availability. ✅ BACKEND ENDPOINTS VERIFIED: All challenge endpoints functional with proper authentication, data structure, and filtering. ✅ RECOMMENDATION: Check frontend challenge display components and API integration to resolve dashboard display issue. The backend challenge functionality is fully operational and production-ready."
   - agent: "main"
