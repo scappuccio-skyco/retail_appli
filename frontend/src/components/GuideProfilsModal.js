@@ -432,12 +432,36 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
     }
   ];
 
-  // Styles de management (6 profils)
+  // Styles de management (7 profils)
   const managementStyles = [
     {
-      name: 'Le Coach',
+      name: 'Le Pilote',
       icon: '🎯',
       color: 'blue',
+      description: 'Structuré, orienté résultats et action concrète',
+      caracteristiques: [
+        'Ce manager conduit l\'équipe vers des objectifs clairs',
+        'Il formalise, structure et met en place des process',
+        'Communication directe et orientée résultats',
+        'Prend les décisions rapidement et assume'
+      ],
+      forces: [
+        'Capacité à fixer et atteindre les objectifs',
+        'Organisation et structuration de l\'équipe',
+        'Clarté dans les attentes et la direction',
+        'Performance mesurable et constante'
+      ],
+      attention: [
+        'Peut être perçu comme trop directif',
+        'Risque de négliger l\'aspect humain',
+        'Parfois inflexible sur les méthodes',
+        'Besoin d\'apprendre à déléguer'
+      ]
+    },
+    {
+      name: 'Le Coach',
+      icon: '🏋️',
+      color: 'green',
       description: 'Développe et accompagne son équipe vers l\'excellence',
       caracteristiques: [
         'Accompagne individuellement chaque vendeur',
