@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function GuideProfilsModal({ onClose }) {
-  const [activeTab, setActiveTab] = useState('management');
+export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
+  // Define tabs based on user role
+  const allTabs = userRole === 'seller' 
+    ? ['vente', 'disc']  // Only 2 tabs for sellers
+    : ['management', 'disc', 'vente', 'compatibilite'];  // All 4 tabs for managers
+  
+  const [activeTab, setActiveTab] = useState(allTabs[0]);
   const [currentProfile, setCurrentProfile] = useState(0);
   const [selectedManagerProfile, setSelectedManagerProfile] = useState('Dominant');
   const [selectedSellerProfile, setSelectedSellerProfile] = useState('Dominant');
