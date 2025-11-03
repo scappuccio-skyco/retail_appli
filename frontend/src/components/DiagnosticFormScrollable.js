@@ -23,8 +23,14 @@ const questions = [
       },
       {
         id: 2,
-        text: "Qu'est-ce qui, selon toi, donne envie à un client de te faire confiance dès les premières secondes ?",
-        type: "text"
+        text: "Qu'est-ce qui donne envie à un client de te faire confiance dès les premières secondes ?",
+        type: "choice",
+        options: [
+          "Mon sourire et mon attitude accueillante",
+          "Ma disponibilité immédiate et mon écoute",
+          "Mon professionnalisme et ma présentation",
+          "Ma connaissance des produits"
+        ]
       },
       {
         id: 3,
@@ -53,8 +59,14 @@ const questions = [
       },
       {
         id: 5,
-        text: "Raconte une situation où tu as découvert un besoin caché chez un client.",
-        type: "text"
+        text: "Comment découvres-tu un besoin caché chez un client ?",
+        type: "choice",
+        options: [
+          "En posant des questions ouvertes sur son usage",
+          "En écoutant attentivement ce qu'il ne dit pas",
+          "En observant ses réactions face aux produits",
+          "En proposant des produits complémentaires"
+        ]
       },
       {
         id: 6,
@@ -83,8 +95,14 @@ const questions = [
       },
       {
         id: 8,
-        text: "Décris une fois où tu as su adapter ton discours pour convaincre un client difficile.",
-        type: "text"
+        text: "Comment adaptes-tu ton discours pour convaincre un client difficile ?",
+        type: "choice",
+        options: [
+          "Je reste sur mes arguments et j'insiste sur la valeur",
+          "J'écoute ses objections et j'adapte ma présentation",
+          "Je change de produit pour mieux correspondre à ses attentes",
+          "Je fais des concessions sur le prix ou les services"
+        ]
       },
       {
         id: 9,
@@ -104,7 +122,13 @@ const questions = [
       {
         id: 10,
         text: "Comment sais-tu qu'un client est prêt à acheter ?",
-        type: "text"
+        type: "choice",
+        options: [
+          "Il pose des questions sur la livraison ou le paiement",
+          "Il manipule le produit avec attention",
+          "Il arrête de poser des questions et semble décidé",
+          "Il me demande s'il y a des promotions"
+        ]
       },
       {
         id: 11,
@@ -119,7 +143,13 @@ const questions = [
       {
         id: 12,
         text: "Quelle est ta technique préférée pour finaliser une vente ?",
-        type: "text"
+        type: "choice",
+        options: [
+          "Proposer un choix entre deux options",
+          "Créer un sentiment d'urgence (stock limité, promo)",
+          "Résumer tous les avantages du produit",
+          "Proposer des facilités de paiement"
+        ]
       }
     ]
   },
@@ -129,7 +159,13 @@ const questions = [
       {
         id: 13,
         text: "Après une vente, que fais-tu pour que le client revienne ?",
-        type: "text"
+        type: "choice",
+        options: [
+          "Je lui propose de rejoindre le programme de fidélité",
+          "Je prends ses coordonnées pour le tenir informé",
+          "Je lui donne des conseils d'utilisation personnalisés",
+          "Je lui parle des prochaines nouveautés"
+        ]
       },
       {
         id: 14,
@@ -144,7 +180,13 @@ const questions = [
       {
         id: 15,
         text: "Qu'est-ce qui fait qu'un client devient fidèle selon toi ?",
-        type: "text"
+        type: "choice",
+        options: [
+          "La qualité du service et l'attention portée",
+          "Les prix compétitifs et les promotions",
+          "La relation personnelle créée avec lui",
+          "La qualité constante des produits"
+        ]
       }
     ]
   },
@@ -243,7 +285,7 @@ const questions = [
   }
 ];
 
-export default function DiagnosticFormScrollable({ onComplete }) {
+export default function DiagnosticFormModal({ onClose, onSuccess }) {
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -268,14 +310,13 @@ export default function DiagnosticFormScrollable({ onComplete }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${API}/diagnostic`, { responses }, {
+      await axios.post(`${API}/diagnostic`, { responses }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       toast.success('Ton profil vendeur est prêt ! 🔥');
-      if (onComplete) {
-        onComplete(response.data);
-      }
+      onSuccess();
+      onClose();
     } catch (err) {
       console.error('Error submitting diagnostic:', err);
       toast.error('Erreur lors de l\'analyse du profil');
@@ -285,10 +326,16 @@ export default function DiagnosticFormScrollable({ onComplete }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 p-6 rounded-t-2xl">
+        <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 p-6 rounded-t-2xl relative">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="w-8 h-8 text-gray-800" />
             <h2 className="text-2xl font-bold text-gray-800">Identifier mon profil vendeur</h2>
@@ -297,7 +344,7 @@ export default function DiagnosticFormScrollable({ onComplete }) {
         </div>
 
         {/* Content */}
-        <div className="bg-white p-6 rounded-b-2xl shadow-2xl">
+        <div className="p-6 max-h-[70vh] overflow-y-auto">
           {questions.map((section, sectionIdx) => (
             <div key={sectionIdx} className="mb-8">
               <h3 className="text-lg font-bold text-gray-800 mb-4">{section.section}</h3>
@@ -324,15 +371,7 @@ export default function DiagnosticFormScrollable({ onComplete }) {
                         </button>
                       ))}
                     </div>
-                  ) : (
-                    <textarea
-                      value={responses[question.id] || ''}
-                      onChange={(e) => handleAnswer(question.id, e.target.value)}
-                      placeholder="Écris ta réponse ici..."
-                      rows={4}
-                      className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-[#ffd871] focus:outline-none resize-none"
-                    />
-                  )}
+                  ) : null}
                 </div>
               ))}
             </div>
