@@ -169,7 +169,7 @@ class CompetenceHarmonizationTester:
         success, diagnostic_response = self.run_test(
             "Scenario 2 - Get Seller Diagnostic",
             "GET",
-            f"diagnostic/{target_seller_id}",
+            f"diagnostic/seller/{target_seller_id}",
             200,
             token=harmonization_manager_token
         )
