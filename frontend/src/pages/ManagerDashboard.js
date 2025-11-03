@@ -730,6 +730,77 @@ export default function ManagerDashboard({ user, onLogout }) {
           </div>
         )}
 
+        {/* Active Objectives Section */}
+        {activeObjectives.length > 0 && (
+          <div className="glass-morphism rounded-2xl p-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Target className="w-6 h-6 text-purple-500" />
+                <h3 className="text-2xl font-bold text-gray-800">🎯 Objectifs Actifs</h3>
+              </div>
+              <button
+                onClick={() => setShowSettingsModal(true)}
+                className="btn-secondary text-sm flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Gérer
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeObjectives.map((objective) => {
+                const daysRemaining = Math.ceil((new Date(objective.period_end) - new Date()) / (1000 * 60 * 60 * 24));
+
+                return (
+                  <div 
+                    key={objective.id} 
+                    className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-300 hover:shadow-lg transition-all"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <h4 className="font-bold text-gray-800 text-lg line-clamp-2">{objective.title}</h4>
+                    </div>
+
+                    {/* Période */}
+                    <div className="text-xs text-gray-600 mb-3">
+                      📅 {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
+                    </div>
+
+                    {/* Targets */}
+                    <div className="space-y-1 mb-3">
+                      {objective.ca_target && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">💰 Objectif CA:</span>
+                          <span className="font-semibold text-gray-800">{objective.ca_target}€</span>
+                        </div>
+                      )}
+                      {objective.panier_moyen_target && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">🛒 Panier Moyen:</span>
+                          <span className="font-semibold text-gray-800">{objective.panier_moyen_target}€</span>
+                        </div>
+                      )}
+                      {objective.indice_vente_target && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">💎 Indice Vente:</span>
+                          <span className="font-semibold text-gray-800">{objective.indice_vente_target}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Time remaining */}
+                    <div className="flex items-center gap-2 text-xs text-gray-600 mt-3 pt-3 border-t border-purple-200">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>
+                        {daysRemaining > 0 ? `${daysRemaining} jour${daysRemaining > 1 ? 's' : ''} restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine aujourd\'hui'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="glass-morphism rounded-2xl p-6 card-hover">
