@@ -364,10 +364,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     totalCA: recentKpis.reduce((sum, e) => sum + (e.ca_journalier || 0), 0)
   };
 
-  // If showing KPI reporting, render that component AFTER all hooks
-  if (showKPIReporting) {
-    return <KPIReporting user={user} onBack={() => setShowKPIReporting(false)} />;
-  }
+  // KPI Reporting Modal will be rendered at the end of the JSX
 
   if (loading) {
     return (
