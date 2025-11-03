@@ -1853,6 +1853,10 @@ class RetailCoachAPITester:
         # CRITICAL: Team Bilans Generation tests (FROM REVIEW REQUEST)
         self.test_team_bilans_generation_flow()
 
+        # CRITICAL: Seller Individual Bilan tests (NEW FEATURE FROM REVIEW REQUEST)
+        self.test_seller_individual_bilan_flow()
+        self.test_seller_bilan_authorization()
+
         # Sales operations
         sale_id = self.test_sales_operations()
 
