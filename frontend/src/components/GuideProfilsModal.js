@@ -777,6 +777,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
     if (activeSection === 'niveau') return niveaux;
     if (activeSection === 'motivation') return motivations;
     if (activeSection === 'disc') return discProfiles;
+    if (activeSection === 'compatibilite') return compatibilityGuide;
     return [];
   };
 
