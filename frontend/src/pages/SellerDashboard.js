@@ -47,6 +47,8 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
 
   useEffect(() => {
     fetchData();
+    fetchKpiConfig();
+    fetchBilanIndividuel();
   }, []);
 
   const fetchData = async () => {
