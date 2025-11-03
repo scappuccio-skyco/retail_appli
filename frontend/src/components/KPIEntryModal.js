@@ -278,7 +278,9 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
         <div className="border-b border-gray-200 p-6 flex justify-between items-center flex-shrink-0">
           <div className="flex items-center gap-3">
             <Calendar className="w-6 h-6 text-[#ffd871]" />
-            <h2 className="text-2xl font-bold text-gray-800">Mes KPI du jour</h2>
+            <h2 className="text-2xl font-bold text-gray-800">
+              {editEntry ? 'Modifier mes KPIs' : 'Mes KPI du jour'}
+            </h2>
           </div>
           <button
             onClick={onClose}
