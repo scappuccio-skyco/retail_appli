@@ -432,6 +432,154 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
     }
   ];
 
+  // Styles de management (6 profils)
+  const managementStyles = [
+    {
+      name: 'Le Coach',
+      icon: '🎯',
+      color: 'blue',
+      description: 'Développe et accompagne son équipe vers l\'excellence',
+      caracteristiques: [
+        'Accompagne individuellement chaque vendeur',
+        'Identifie les forces et axes de progrès',
+        'Crée un environnement d\'apprentissage',
+        'Feedback constructifs et réguliers'
+      ],
+      forces: [
+        'Développement des compétences de l\'équipe',
+        'Montée en autonomie des vendeurs',
+        'Culture de l\'amélioration continue',
+        'Engagement et motivation élevés'
+      ],
+      attention: [
+        'Peut manquer de recul sur le court terme',
+        'Risque de surinvestissement émotionnel',
+        'Besoin de trouver l\'équilibre coaching/résultats',
+        'Parfois trop patient avec les non-performants'
+      ]
+    },
+    {
+      name: 'Le Stratège',
+      icon: '🧠',
+      color: 'purple',
+      description: 'Vision claire et organisation millimétrée',
+      caracteristiques: [
+        'Définit des objectifs clairs et mesurables',
+        'Organise les ressources et planifie',
+        'Anticipe les besoins et opportunités',
+        'Prend du recul pour optimiser'
+      ],
+      forces: [
+        'Performance équipe prévisible et stable',
+        'Optimisation des ressources',
+        'Anticipation des problèmes',
+        'Décisions basées sur les données'
+      ],
+      attention: [
+        'Peut être trop rigide dans l\'exécution',
+        'Risque de sous-estimer l\'humain',
+        'Peut manquer de spontanéité',
+        'Parfois déconnecté du terrain'
+      ]
+    },
+    {
+      name: 'Le Leader Inspirant',
+      icon: '⚡',
+      color: 'yellow',
+      description: 'Énergise et mobilise par l\'exemple et la vision',
+      caracteristiques: [
+        'Inspire par sa passion et son énergie',
+        'Donne du sens aux actions',
+        'Crée une dynamique d\'équipe forte',
+        'Montre l\'exemple sur le terrain'
+      ],
+      forces: [
+        'Équipe motivée et engagée',
+        'Culture de l\'excellence',
+        'Ambiance positive et stimulante',
+        'Capacité à relever les défis'
+      ],
+      attention: [
+        'Peut créer une dépendance à sa présence',
+        'Risque d\'épuisement (sien et équipe)',
+        'Parfois trop exigeant',
+        'Difficulté à déléguer'
+      ]
+    },
+    {
+      name: 'Le Facilitateur',
+      icon: '🤝',
+      color: 'green',
+      description: 'Crée les conditions de réussite et facilite les échanges',
+      caracteristiques: [
+        'Écoute et prend en compte les besoins',
+        'Facilite la collaboration',
+        'Résout les blocages et conflits',
+        'Crée un environnement bienveillant'
+      ],
+      forces: [
+        'Cohésion d\'équipe exceptionnelle',
+        'Climat de confiance',
+        'Communication fluide',
+        'Bien-être au travail'
+      ],
+      attention: [
+        'Peut manquer d\'autorité dans les moments critiques',
+        'Risque d\'éviter les conflits nécessaires',
+        'Parfois trop consensuel',
+        'Difficulté à prendre des décisions impopulaires'
+      ]
+    },
+    {
+      name: 'Le Tacticien',
+      icon: '⚙️',
+      color: 'orange',
+      description: 'Expert de l\'opérationnel et de l\'exécution',
+      caracteristiques: [
+        'Maîtrise les process et outils',
+        'Optimise l\'opérationnel au quotidien',
+        'Réactif et pragmatique',
+        'Focalisé sur les résultats immédiats'
+      ],
+      forces: [
+        'Efficacité opérationnelle maximale',
+        'Résolution rapide des problèmes',
+        'Maîtrise des indicateurs',
+        'Performance court terme'
+      ],
+      attention: [
+        'Peut manquer de vision long terme',
+        'Risque de micro-management',
+        'Parfois trop focus sur les process',
+        'Difficulté à prendre du recul'
+      ]
+    },
+    {
+      name: 'Le Mentor',
+      icon: '🎓',
+      color: 'red',
+      description: 'Transmet son expertise et forme les talents',
+      caracteristiques: [
+        'Partage son expérience et ses savoirs',
+        'Forme individuellement',
+        'Patience et pédagogie',
+        'Valorise la montée en compétence'
+      ],
+      forces: [
+        'Développement durable des talents',
+        'Transmission de l\'expertise',
+        'Culture d\'apprentissage',
+        'Équipe autonome à terme'
+      ],
+      attention: [
+        'Peut être trop patient',
+        'Risque de favoriser certains profils',
+        'Parfois moins focus sur les résultats',
+        'Difficulté à sanctionner'
+      ]
+    }
+  ];
+
   const getColorClasses = (color) => {
     const colors = {
       blue: 'bg-blue-50 border-blue-200',
