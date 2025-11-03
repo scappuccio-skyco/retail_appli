@@ -371,15 +371,7 @@ export default function DiagnosticFormModal({ onClose, onSuccess }) {
                         </button>
                       ))}
                     </div>
-                  ) : (
-                    <textarea
-                      value={responses[question.id] || ''}
-                      onChange={(e) => handleAnswer(question.id, e.target.value)}
-                      placeholder="Écris ta réponse ici..."
-                      rows={4}
-                      className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-[#ffd871] focus:outline-none resize-none"
-                    />
-                  )}
+                  ) : null}
                 </div>
               ))}
             </div>
