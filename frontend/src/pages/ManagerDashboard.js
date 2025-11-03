@@ -338,7 +338,7 @@ export default function ManagerDashboard({ user, onLogout }) {
               </button>
             )}
             <button
-              onClick={() => navigate('/manager/settings')}
+              onClick={() => setShowSettingsModal(true)}
               className="btn-secondary flex items-center gap-2"
             >
               <Settings className="w-5 h-5" />
