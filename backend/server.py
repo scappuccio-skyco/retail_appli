@@ -3337,6 +3337,50 @@ async def create_challenge(challenge_data: ChallengeCreate, current_user: dict =
     
     return challenge
 
+@api_router.put("/manager/challenges/{challenge_id}")
+async def update_challenge(
+    challenge_id: str,
+    challenge_data: ChallengeCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can update challenges")
+    
+    # Check if challenge exists and belongs to this manager
+    existing_challenge = await db.challenges.find_one(
+        {"id": challenge_id, "manager_id": current_user['id']},
+        {"_id": 0}
+    )
+    
+    if not existing_challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    
+    # Verify seller exists if individual challenge
+    if challenge_data.type == "individual":
+        if not challenge_data.seller_id:
+            raise HTTPException(status_code=400, detail="seller_id required for individual challenges")
+        
+        seller = await db.users.find_one(
+            {"id": challenge_data.seller_id, "manager_id": current_user['id']},
+            {"_id": 0}
+        )
+        if not seller:
+            raise HTTPException(status_code=404, detail="Seller not found in your team")
+    
+    # Update challenge
+    update_data = challenge_data.model_dump()
+    update_data['manager_id'] = current_user['id']
+    
+    await db.challenges.update_one(
+        {"id": challenge_id},
+        {"$set": update_data}
+    )
+    
+    # Get updated challenge
+    updated_challenge = await db.challenges.find_one({"id": challenge_id}, {"_id": 0})
+    
+    return updated_challenge
+
 async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
     """Calculate progress for a challenge"""
     start_date = challenge['start_date']
