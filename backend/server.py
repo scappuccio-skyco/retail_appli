@@ -3313,7 +3313,7 @@ async def get_active_seller_challenges(current_user: dict = Depends(get_current_
         {
             "manager_id": manager_id,
             "status": "active",
-            "end_date": {"$gte": today},  # Only filter by end_date - show challenges that haven't ended yet
+            "end_date": {"$gt": today},  # Only challenges that haven't ended yet (strict >)
             "$or": [
                 {"type": "collective"},
                 {"type": "individual", "seller_id": current_user['id']}
