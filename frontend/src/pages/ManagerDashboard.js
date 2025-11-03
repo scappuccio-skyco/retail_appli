@@ -363,14 +363,6 @@ export default function ManagerDashboard({ user, onLogout }) {
               KPI & Challenges
             </button>
             <button
-              data-testid="invite-seller-button"
-              onClick={() => setShowInviteModal(true)}
-              className="btn-primary flex items-center gap-2"
-            >
-              <UserPlus className="w-5 h-5" />
-              Inviter un Vendeur
-            </button>
-            <button
               data-testid="logout-button"
               onClick={onLogout}
               className="btn-secondary flex items-center gap-2"
