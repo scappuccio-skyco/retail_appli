@@ -161,6 +161,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
       await axios.post(`${API}/manager/objectives`, cleanedData, { headers });
       toast.success('Objectif créé avec succès');
       setNewObjective({
+        title: '',
         ca_target: '',
         indice_vente_target: '',
         panier_moyen_target: '',
