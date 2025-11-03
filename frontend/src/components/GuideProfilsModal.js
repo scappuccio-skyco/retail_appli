@@ -1881,6 +1881,46 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                                     </ul>
                                   </div>
                                 </div>
+
+                                {/* Recommandations */}
+                                {compatibilityResult.recommandations && (
+                                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-5 border-2 border-purple-200">
+                                    <h5 className="font-bold text-purple-900 mb-4 flex items-center gap-2">
+                                      💡 Recommandations pour un fonctionnement optimal
+                                    </h5>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                      {/* Recommandations Manager */}
+                                      <div>
+                                        <h6 className="font-semibold text-purple-800 mb-2 text-sm flex items-center gap-2">
+                                          👔 Pour vous (Manager)
+                                        </h6>
+                                        <ul className="space-y-2">
+                                          {compatibilityResult.recommandations.manager.map((item, idx) => (
+                                            <li key={idx} className="flex items-start gap-2 text-xs text-purple-900">
+                                              <span className="text-purple-600 mt-0.5">▸</span>
+                                              <span>{item}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+
+                                      {/* Recommandations Vendeur */}
+                                      <div>
+                                        <h6 className="font-semibold text-blue-800 mb-2 text-sm flex items-center gap-2">
+                                          👤 Pour {seller.name.split(' ')[0]}
+                                        </h6>
+                                        <ul className="space-y-2">
+                                          {compatibilityResult.recommandations.vendeur.map((item, idx) => (
+                                            <li key={idx} className="flex items-start gap-2 text-xs text-blue-900">
+                                              <span className="text-blue-600 mt-0.5">▸</span>
+                                              <span>{item}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           );
