@@ -167,6 +167,10 @@ export default function SellerDetailView({ seller, onBack }) {
     indiceVente: false
   };
 
+  // Debug: Log available charts
+  console.log('📈 Available Charts:', availableCharts);
+  console.log('🔍 kpiConfig exists:', !!kpiConfig);
+
   // Calculate KPI stats (last 7 days)
   const last7Days = new Date();
   last7Days.setDate(last7Days.getDate() - 7);
