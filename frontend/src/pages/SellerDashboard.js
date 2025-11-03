@@ -41,6 +41,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showBilanModal, setShowBilanModal] = useState(false);
   const [showDiagnosticFormModal, setShowDiagnosticFormModal] = useState(false);
+  const [showCompetencesModal, setShowCompetencesModal] = useState(false);
   // States for Bilan Individuel
   const [bilanIndividuel, setBilanIndividuel] = useState(null);
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
