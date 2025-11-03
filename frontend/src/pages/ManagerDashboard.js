@@ -11,6 +11,7 @@ import TeamBilanIA from '../components/TeamBilanIA';
 import ManagerProfileModal from '../components/ManagerProfileModal';
 import TeamBilanModal from '../components/TeamBilanModal';
 import SellerDetailView from '../components/SellerDetailView';
+import ManagerSettingsModal from '../components/ManagerSettingsModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -37,6 +38,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [generatingTeamBilan, setGeneratingTeamBilan] = useState(false);
   const [kpiConfig, setKpiConfig] = useState(null); // Configuration KPI du manager
   const [activeChallenges, setActiveChallenges] = useState([]); // Challenges collectifs actifs
+  const [showSettingsModal, setShowSettingsModal] = useState(false); // Modal for settings
   const [visibleDashboardCharts, setVisibleDashboardCharts] = useState({
     ca: true,
     ventesVsClients: true,
