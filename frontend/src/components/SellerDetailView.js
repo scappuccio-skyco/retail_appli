@@ -147,29 +147,37 @@ export default function SellerDetailView({ seller, onBack }) {
   });
 
   // Determine which charts should be available based on manager's KPI configuration
-  const availableCharts = kpiConfig ? {
-    ca: kpiConfig.track_ca === true,
-    ventes: kpiConfig.track_ventes === true,
-    clients: kpiConfig.track_clients === true,
-    articles: kpiConfig.track_articles === true,
-    ventesVsClients: kpiConfig.track_ventes === true && kpiConfig.track_clients === true,
-    panierMoyen: kpiConfig.track_ca === true && kpiConfig.track_ventes === true,
-    tauxTransfo: kpiConfig.track_ventes === true && kpiConfig.track_clients === true,
-    indiceVente: kpiConfig.track_ca === true && kpiConfig.track_ventes === true && kpiConfig.track_articles === true
-  } : {
-    ca: false,
-    ventes: false,
-    clients: false,
-    articles: false,
-    ventesVsClients: false,
-    panierMoyen: false,
-    tauxTransfo: false,
-    indiceVente: false
-  };
-
-  // Debug: Log available charts
-  console.log('📈 Available Charts:', availableCharts);
-  console.log('🔍 kpiConfig exists:', !!kpiConfig);
+  const availableCharts = React.useMemo(() => {
+    if (!kpiConfig) {
+      return {
+        ca: false,
+        ventes: false,
+        clients: false,
+        articles: false,
+        ventesVsClients: false,
+        panierMoyen: false,
+        tauxTransfo: false,
+        indiceVente: false
+      };
+    }
+    
+    const charts = {
+      ca: kpiConfig.track_ca === true,
+      ventes: kpiConfig.track_ventes === true,
+      clients: kpiConfig.track_clients === true,
+      articles: kpiConfig.track_articles === true,
+      ventesVsClients: kpiConfig.track_ventes === true && kpiConfig.track_clients === true,
+      panierMoyen: kpiConfig.track_ca === true && kpiConfig.track_ventes === true,
+      tauxTransfo: kpiConfig.track_ventes === true && kpiConfig.track_clients === true,
+      indiceVente: kpiConfig.track_ca === true && kpiConfig.track_ventes === true && kpiConfig.track_articles === true
+    };
+    
+    // Debug: Log available charts
+    console.log('📈 Available Charts calculated:', charts);
+    console.log('🔍 kpiConfig:', kpiConfig);
+    
+    return charts;
+  }, [kpiConfig]);
 
   // Calculate KPI stats (last 7 days)
   const last7Days = new Date();
