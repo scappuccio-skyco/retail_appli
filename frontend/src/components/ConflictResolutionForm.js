@@ -64,7 +64,8 @@ const initialState = {
   conflictHistory: [],
   expandedHistoryItems: {},
   loadingHistory: true,
-  showResult: false // Add showResult to control view
+  showResult: false,
+  showForm: false // Start with overview, not form
 };
 
 export default function ConflictResolutionForm({ sellerId, sellerName }) {
