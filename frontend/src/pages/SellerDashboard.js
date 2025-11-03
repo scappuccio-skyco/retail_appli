@@ -212,6 +212,29 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     }
   };
 
+  const refreshCompetenceScores = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const liveScoresRes = await axios.get(`${API}/diagnostic/me/live-scores`, { headers: { Authorization: `Bearer ${token}` } });
+      if (liveScoresRes.data && liveScoresRes.data.live_scores) {
+        const { live_scores, diagnostic_age_days } = liveScoresRes.data;
+        const scoreEntry = {
+          date: new Date().toISOString(),
+          score_accueil: live_scores.score_accueil,
+          score_decouverte: live_scores.score_decouverte,
+          score_argumentation: live_scores.score_argumentation,
+          score_closing: live_scores.score_closing,
+          score_fidelisation: live_scores.score_fidelisation,
+          days_since_diagnostic: diagnostic_age_days
+        };
+        setCompetencesHistory([scoreEntry]);
+        toast.success('✨ Tes compétences ont été mises à jour !');
+      }
+    } catch (err) {
+      console.log('Unable to refresh competence scores');
+    }
+  };
+
   const fetchBilanIndividuel = async () => {
     try {
       const weekDates = getWeekDates(0); // Semaine actuelle
