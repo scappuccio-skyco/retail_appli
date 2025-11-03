@@ -640,50 +640,104 @@ export default function ManagerDashboard({ user, onLogout }) {
                       const objective = activeObjectives[currentObjectiveIndex];
                       const daysRemaining = Math.ceil((new Date(objective.period_end) - new Date()) / (1000 * 60 * 60 * 24));
 
+                      // Calculate progress percentage
+                      const progressPercentage = (() => {
+                        if (objective.ca_target && objective.progress_ca !== undefined) {
+                          return (objective.progress_ca / objective.ca_target) * 100;
+                        }
+                        if (objective.panier_moyen_target && objective.progress_panier_moyen !== undefined) {
+                          return (objective.progress_panier_moyen / objective.panier_moyen_target) * 100;
+                        }
+                        if (objective.indice_vente_target && objective.progress_indice_vente !== undefined) {
+                          return (objective.progress_indice_vente / objective.indice_vente_target) * 100;
+                        }
+                        return 0;
+                      })();
+
+                      const status = objective.status || 'in_progress';
+
                       return (
                         <div 
                           key={objective.id} 
                           className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-300 hover:shadow-lg transition-all h-[280px] flex flex-col"
                         >
-                          <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start justify-between mb-2">
                             <h4 className="font-bold text-gray-800 text-lg line-clamp-1">{objective.title}</h4>
-                            <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ml-2">
-                              ✅ Actif
-                            </span>
+                            <div className="flex flex-col gap-1 items-end">
+                              {status === 'achieved' && (
+                                <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+                                  🎉 Atteint !
+                                </span>
+                              )}
+                              {status === 'failed' && (
+                                <span className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+                                  ⚠️ Non atteint
+                                </span>
+                              )}
+                              {status === 'in_progress' && (
+                                <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+                                  ⏳ En cours
+                                </span>
+                              )}
+                            </div>
                           </div>
 
                           {/* Période */}
-                          <div className="text-xs text-gray-600 mb-3">
+                          <div className="text-xs text-gray-600 mb-2">
                             📅 {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
                           </div>
 
-                          {/* Targets */}
-                          <div className="space-y-2 mb-3 flex-1">
+                          {/* Progress Bar */}
+                          <div className="mb-2">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-gray-600">Progression</span>
+                              <span className="text-xs font-bold text-gray-800">{Math.min(100, progressPercentage.toFixed(0))}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all ${
+                                  status === 'achieved' ? 'bg-gradient-to-r from-green-400 to-green-500' :
+                                  status === 'failed' ? 'bg-gradient-to-r from-red-400 to-red-500' :
+                                  'bg-gradient-to-r from-purple-400 to-pink-400'
+                                }`}
+                                style={{ width: `${Math.min(100, progressPercentage)}%` }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          {/* Targets with Progress */}
+                          <div className="space-y-1 mb-2 flex-1">
                             {objective.ca_target && (
                               <div className="flex justify-between text-xs">
-                                <span className="text-gray-600">💰 Objectif CA:</span>
-                                <span className="font-semibold text-gray-800">{objective.ca_target}€</span>
+                                <span className="text-gray-600">💰 CA:</span>
+                                <span className="font-semibold text-gray-800">
+                                  {(objective.progress_ca || 0).toFixed(0)}€ / {objective.ca_target}€
+                                </span>
                               </div>
                             )}
                             {objective.panier_moyen_target && (
                               <div className="flex justify-between text-xs">
-                                <span className="text-gray-600">🛒 Panier Moyen:</span>
-                                <span className="font-semibold text-gray-800">{objective.panier_moyen_target}€</span>
+                                <span className="text-gray-600">🛒 Panier M.:</span>
+                                <span className="font-semibold text-gray-800">
+                                  {(objective.progress_panier_moyen || 0).toFixed(1)}€ / {objective.panier_moyen_target}€
+                                </span>
                               </div>
                             )}
                             {objective.indice_vente_target && (
                               <div className="flex justify-between text-xs">
-                                <span className="text-gray-600">💎 Indice Vente:</span>
-                                <span className="font-semibold text-gray-800">{objective.indice_vente_target}</span>
+                                <span className="text-gray-600">💎 Indice:</span>
+                                <span className="font-semibold text-gray-800">
+                                  {(objective.progress_indice_vente || 0).toFixed(1)} / {objective.indice_vente_target}
+                                </span>
                               </div>
                             )}
                           </div>
 
                           {/* Time remaining */}
-                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-auto pt-3 border-t border-purple-200">
+                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-auto pt-2 border-t border-purple-200">
                             <Clock className="w-3.5 h-3.5" />
                             <span>
-                              {daysRemaining > 0 ? `${daysRemaining} jour${daysRemaining > 1 ? 's' : ''} restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine aujourd\'hui'}
+                              {daysRemaining > 0 ? `${daysRemaining}j restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine'}
                             </span>
                           </div>
                         </div>
