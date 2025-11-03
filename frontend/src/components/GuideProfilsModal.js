@@ -883,6 +883,18 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
               🎭 DISC
             </button>
           )}
+          {allSections.includes('compatibilite') && (
+            <button
+              onClick={() => handleSectionChange('compatibilite')}
+              className={`px-4 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${
+                activeSection === 'compatibilite'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              🤝 Compatibilité
+            </button>
+          )}
         </div>
 
         {/* Content */}
