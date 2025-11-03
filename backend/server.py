@@ -1159,6 +1159,297 @@ async def analyze_diagnostic_with_ai(responses: dict) -> dict:
 
 {responses_text}
 
+Analyse ses réponses pour identifier :
+- son style de vente dominant (Convivial, Explorateur, Dynamique, Discret ou Stratège)
+- son niveau global selon cette échelle gamifiée (utilise ces niveaux UNIQUEMENT) :
+  * **Explorateur** (🟢 Niveau 1) : Découvre le terrain, teste, apprend les bases. Curieux et volontaire.
+  * **Challenger** (🟡 Niveau 2) : A pris ses repères, cherche à performer, teste de nouvelles approches.
+  * **Ambassadeur** (🟠 Niveau 3) : Inspire confiance, maîtrise les étapes de la vente, partage ses pratiques.
+  * **Maître du Jeu** (🔴 Niveau 4) : Expert de la relation client, capable d'adapter son style et d'entraîner les autres.
+- ses leviers de motivation (Relation, Reconnaissance, Performance, Découverte)
+
+Rédige un retour structuré :
+- Une phrase d'introduction qui décrit son style.
+- Deux points forts concrets observés dans ses réponses.
+- Un axe d'amélioration principal avec un conseil précis.
+- Une phrase motivante adaptée à son profil.
+
+Utilise un ton bienveillant, professionnel et simple. Évite le jargon.
+
+Réponds au format JSON avec cette structure exacte :
+{{
+  "style": "Convivial|Explorateur|Dynamique|Discret|Stratège",
+  "level": "Explorateur|Challenger|Ambassadeur|Maître du Jeu",
+  "motivation": "Relation|Reconnaissance|Performance|Découverte",
+  "summary": "Ton analyse complète en texte"
+}}"""
+        
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
+        
+        # Parse JSON response
+        import json
+        # Remove markdown code blocks if present
+        clean_response = response.strip()
+        if clean_response.startswith("```json"):
+            clean_response = clean_response[7:]
+        if clean_response.startswith("```"):
+            clean_response = clean_response[3:]
+        if clean_response.endswith("```"):
+            clean_response = clean_response[:-3]
+        clean_response = clean_response.strip()
+        
+        result = json.loads(clean_response)
+        return result
+    except Exception as e:
+        logging.error(f"AI diagnostic analysis error: {str(e)}")
+        # Fallback analysis
+        return {
+            "style": "Convivial",
+            "level": "Challenger",
+            "motivation": "Relation",
+            "summary": "Profil en cours d'analyse. Votre diagnostic a été enregistré avec succès."
+        }
+
+def calculate_competence_scores_from_questionnaire(responses: dict) -> dict:
+    """
+    Calculate competence scores from questionnaire responses
+    Questions 1-15 are mapped to 5 competences (3 questions each)
+    """
+    # Mapping: Question ID -> Competence
+    # Q1-3: Accueil, Q4-6: Découverte, Q7-9: Argumentation, Q10-12: Closing, Q13-15: Fidélisation
+    competence_mapping = {
+        'accueil': [1, 2, 3],
+        'decouverte': [4, 5, 6],
+        'argumentation': [7, 8, 9],
+        'closing': [10, 11, 12],
+        'fidelisation': [13, 14, 15]
+    }
+    
+    # Scoring system: Each question has different point values based on quality of answer
+    # For choice questions: option index 0=high score, 1=medium, 2=low (generally)
+    # We'll use a scoring matrix based on question content
+    
+    question_scores = {
+        # Accueil (Q1-3)
+        1: [5, 3, 4],  # Q1: "signe/mot" (5), "finis puis vois" (3), "regard/sourire" (4)
+        2: [5, 4, 3, 2],  # Q2: sourire/attitude (5), disponibilité (4), professionnalisme (3), connaissance (2)
+        3: [3, 5, 4],  # Q3: "montre idées" (3), "pose questions" (5), "évite doublons" (4)
+        
+        # Découverte (Q4-6)
+        4: [5, 4, 3],  # Q4: "écoute attentivement" (5), "recentre" (4), "partage" (3)
+        5: [5, 4, 4, 3],  # Q5: questions ouvertes (5), écoute (4), observe (4), complémentaires (3)
+        6: [5, 3, 4],  # Q6: "demande ce qu'il compare" (5), "propose offres" (3), "respecte" (4)
+        
+        # Argumentation (Q7-9)
+        7: [3, 5, 4],  # Q7: "caractéristiques" (3), "répond besoins" (5), "avis clients" (4)
+        8: [3, 5, 4, 3],  # Q8: "reste arguments" (3), "écoute objections" (5), "change produit" (4), "concessions" (3)
+        9: [4, 3, 5],  # Q9: "justifie prix" (4), "propose moins cher" (3), "comprend budget" (5)
+        
+        # Closing (Q10-12)
+        10: [5, 4, 5, 3],  # Q10: livraison/paiement (5), manipule produit (4), arrête questions (5), demande promos (3)
+        11: [4, 3, 5],  # Q11: "relance" (4), "laisse temps" (3), "dernier argument" (5)
+        12: [5, 4, 5, 3],  # Q12: choix entre deux (5), urgence (4), résume avantages (5), facilités (3)
+        
+        # Fidélisation (Q13-15)
+        13: [4, 4, 5, 5],  # Q13: programme fidélité (4), coordonnées (4), conseils (5), nouveautés (5)
+        14: [4, 5, 3],  # Q14: "solution rapide" (4), "écoute d'abord" (5), "compensation" (3)
+        15: [5, 3, 5, 4]   # Q15: qualité service (5), prix (3), relation perso (5), qualité produit (4)
+    }
+    
+    scores = {
+        'accueil': [],
+        'decouverte': [],
+        'argumentation': [],
+        'closing': [],
+        'fidelisation': []
+    }
+    
+    # Calculate scores for each competence
+    for competence, question_ids in competence_mapping.items():
+        for q_id in question_ids:
+            q_key = str(q_id)
+            if q_key in responses:
+                response_value = responses[q_key]
+                
+                # If response is an integer (option index), use it directly
+                if isinstance(response_value, int):
+                    option_idx = response_value
+                    if q_id in question_scores and option_idx < len(question_scores[q_id]):
+                        scores[competence].append(question_scores[q_id][option_idx])
+                    else:
+                        scores[competence].append(3.0)  # Default middle score
+                else:
+                    # If response is text (shouldn't happen now but fallback)
+                    scores[competence].append(3.0)
+    
+    # Calculate averages
+    final_scores = {}
+    for competence, score_list in scores.items():
+        if score_list:
+            final_scores[f'score_{competence}'] = round(sum(score_list) / len(score_list), 1)
+        else:
+            final_scores[f'score_{competence}'] = 3.0
+    
+    return final_scores
+
+async def calculate_competence_adjustment_from_kpis(seller_id: str, initial_scores: dict, days_since_diagnostic: int) -> dict:
+    """
+    Calculate competence score adjustments based on KPI performance
+    Returns adjusted scores that blend questionnaire + KPI performance
+    """
+    # Get KPI entries from last 30 days
+    thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).date()
+    kpi_entries = await db.kpi_entries.find({
+        "seller_id": seller_id,
+        "date": {"$gte": thirty_days_ago.strftime('%Y-%m-%d')}
+    }, {"_id": 0}).to_list(1000)
+    
+    if not kpi_entries or len(kpi_entries) < 5:
+        # Not enough data, return initial scores
+        return initial_scores
+    
+    # Calculate KPI averages
+    total_ca = sum(e.get('ca_journalier', 0) for e in kpi_entries)
+    total_ventes = sum(e.get('nb_ventes', 0) for e in kpi_entries)
+    total_clients = sum(e.get('nb_clients', 0) for e in kpi_entries)
+    total_articles = sum(e.get('nb_articles', 0) for e in kpi_entries)
+    
+    days_count = len(kpi_entries)
+    
+    # Calculate metrics
+    panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
+    taux_transfo = (total_ventes / total_clients * 100) if total_clients > 0 else 0
+    indice_vente = total_articles / total_clients if total_clients > 0 else 0
+    clients_per_day = total_clients / days_count if days_count > 0 else 0
+    ca_per_day = total_ca / days_count if days_count > 0 else 0
+    
+    # KPI → Competence scoring (normalize to 1-5 scale)
+    kpi_scores = {}
+    
+    # Accueil: Based on number of clients approached per day
+    # Good: >20 clients/day, Average: 10-20, Low: <10
+    if clients_per_day >= 20:
+        kpi_scores['score_accueil'] = 5.0
+    elif clients_per_day >= 15:
+        kpi_scores['score_accueil'] = 4.0
+    elif clients_per_day >= 10:
+        kpi_scores['score_accueil'] = 3.5
+    elif clients_per_day >= 5:
+        kpi_scores['score_accueil'] = 2.5
+    else:
+        kpi_scores['score_accueil'] = 2.0
+    
+    # Découverte: Harder to measure, use indirect indicator (articles per transaction)
+    # Good discovery = more articles per sale
+    articles_per_vente = total_articles / total_ventes if total_ventes > 0 else 0
+    if articles_per_vente >= 3:
+        kpi_scores['score_decouverte'] = 5.0
+    elif articles_per_vente >= 2.5:
+        kpi_scores['score_decouverte'] = 4.0
+    elif articles_per_vente >= 2:
+        kpi_scores['score_decouverte'] = 3.5
+    elif articles_per_vente >= 1.5:
+        kpi_scores['score_decouverte'] = 3.0
+    else:
+        kpi_scores['score_decouverte'] = 2.5
+    
+    # Argumentation: Based on panier moyen and indice de vente
+    # Higher basket = better argumentation
+    if panier_moyen >= 80:
+        arg_score_1 = 5.0
+    elif panier_moyen >= 60:
+        arg_score_1 = 4.0
+    elif panier_moyen >= 40:
+        arg_score_1 = 3.5
+    elif panier_moyen >= 20:
+        arg_score_1 = 3.0
+    else:
+        arg_score_1 = 2.5
+    
+    if indice_vente >= 3:
+        arg_score_2 = 5.0
+    elif indice_vente >= 2.5:
+        arg_score_2 = 4.0
+    elif indice_vente >= 2:
+        arg_score_2 = 3.5
+    elif indice_vente >= 1.5:
+        arg_score_2 = 3.0
+    else:
+        arg_score_2 = 2.5
+    
+    kpi_scores['score_argumentation'] = round((arg_score_1 + arg_score_2) / 2, 1)
+    
+    # Closing: Based on taux de transformation
+    if taux_transfo >= 70:
+        kpi_scores['score_closing'] = 5.0
+    elif taux_transfo >= 60:
+        kpi_scores['score_closing'] = 4.5
+    elif taux_transfo >= 50:
+        kpi_scores['score_closing'] = 4.0
+    elif taux_transfo >= 40:
+        kpi_scores['score_closing'] = 3.5
+    elif taux_transfo >= 30:
+        kpi_scores['score_closing'] = 3.0
+    else:
+        kpi_scores['score_closing'] = 2.5
+    
+    # Fidélisation: Based on CA consistency and regularity
+    # If CA per day is stable and good = good fidelization
+    if ca_per_day >= 1000:
+        kpi_scores['score_fidelisation'] = 5.0
+    elif ca_per_day >= 700:
+        kpi_scores['score_fidelisation'] = 4.0
+    elif ca_per_day >= 500:
+        kpi_scores['score_fidelisation'] = 3.5
+    elif ca_per_day >= 300:
+        kpi_scores['score_fidelisation'] = 3.0
+    else:
+        kpi_scores['score_fidelisation'] = 2.5
+    
+    # Blending formula based on time since diagnostic
+    # Week 1-2 (0-14 days): 100% questionnaire
+    # Week 3-4 (15-28 days): 70% questionnaire + 30% KPIs
+    # Month 2+ (29+ days): 30% questionnaire + 70% KPIs
+    
+    if days_since_diagnostic <= 14:
+        weight_questionnaire = 1.0
+        weight_kpis = 0.0
+    elif days_since_diagnostic <= 28:
+        weight_questionnaire = 0.7
+        weight_kpis = 0.3
+    else:
+        weight_questionnaire = 0.3
+        weight_kpis = 0.7
+    
+    # Blend scores
+    blended_scores = {}
+    for key in ['score_accueil', 'score_decouverte', 'score_argumentation', 'score_closing', 'score_fidelisation']:
+        initial = initial_scores.get(key, 3.0)
+        kpi = kpi_scores.get(key, 3.0)
+        blended_scores[key] = round(initial * weight_questionnaire + kpi * weight_kpis, 1)
+    
+    return blended_scores
+
+async def analyze_diagnostic_with_ai(responses: dict) -> dict:
+    """Analyze diagnostic responses with AI"""
+    try:
+        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"diagnostic_{uuid.uuid4()}",
+            system_message="Tu es un expert en analyse comportementale de vendeurs retail."
+        ).with_model("openai", "gpt-4o-mini")
+        
+        # Format responses for prompt
+        responses_text = ""
+        for q_num, answer in responses.items():
+            responses_text += f"\nQuestion {q_num}: {answer}\n"
+        
+        prompt = f"""Voici les réponses d'un vendeur à un test comportemental de 15 questions :
+
+{responses_text}
+
 1. Analyse ses réponses pour identifier :
    - son style de vente dominant (Convivial, Explorateur, Dynamique, Discret ou Stratège)
    - son niveau global selon cette échelle gamifiée (utilise ces niveaux UNIQUEMENT) :
