@@ -75,6 +75,13 @@ export default function SellerDetailView({ seller, onBack }) {
       setCompetencesHistory(competencesRes.data); // Keep historical data for evolution chart
       setKpiEntries(kpiRes.data);
       setKpiConfig(kpiConfigRes.data); // Store manager's KPI configuration
+      
+      // Debug: Log KPI configuration
+      console.log('📊 KPI Configuration loaded:', kpiConfigRes.data);
+      console.log('✅ track_ca:', kpiConfigRes.data?.track_ca);
+      console.log('✅ track_ventes:', kpiConfigRes.data?.track_ventes);
+      console.log('✅ track_clients:', kpiConfigRes.data?.track_clients);
+      console.log('✅ track_articles:', kpiConfigRes.data?.track_articles);
     } catch (err) {
       console.error('Error loading seller data:', err);
       toast.error('Erreur de chargement des données du vendeur');
