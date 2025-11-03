@@ -544,6 +544,22 @@ agent_communication:
   - agent: "testing"
     message: "🎯 DISC PROFILE DISPLAY FRONTEND TESTING COMPLETED SUCCESSFULLY: ✅ COMPREHENSIVE VERIFICATION OF ALL REVIEW REQUEST SCENARIOS COMPLETED PERFECTLY. ✅ LOGIN & AUTHENTICATION: Successfully logged in as manager1@test.com and accessed manager dashboard without issues. ✅ COMPACT PROFILE CARD VERIFICATION: Found and verified complete DISC profile display in compact card showing: Management style 'Le Coach', DISC label '🎨 Profil DISC : Influent', and all 4 DISC percentages (D=12%, I=75%, S=12%, C=0%) with proper color coding (🔴 D, 🟡 I, 🟢 S, 🔵 C). ✅ MODAL FUNCTIONALITY: Successfully clicked 'Cliquer pour voir le profil complet →' link and opened full profile modal. ✅ FULL MODAL DISC SECTION: Verified complete DISC section in modal with purple gradient background, title '🎭 Profil DISC :', dominant type display 'Type dominant : Influent', and all 4 DISC cards showing correct percentages (Dominant 12%, Influent 75%, Stable 12%, Consciencieux 0%). ✅ DATA ACCURACY: Dominant type 'Influent' correctly matches highest percentage (75%), confirming proper calculation and display logic. ✅ VISUAL DESIGN: Purple gradient DISC section with white sub-cards displaying percentages correctly, matching design specifications perfectly. ✅ USER EXPERIENCE: Smooth navigation from compact card to full modal, clear visual hierarchy, and intuitive DISC profile presentation. ✅ SCREENSHOTS CAPTURED: Documented both compact profile card and full modal with DISC section visible for verification. ALL EXPECTED RESULTS ACHIEVED - DISC PROFILE DISPLAY FEATURE IS FULLY FUNCTIONAL AND PRODUCTION-READY."
 
+backend_kpi_configuration:
+  - task: "Manager KPI Configuration API - Dynamic KPI Display"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Manager KPI configuration endpoints for dynamic KPI display in SellerDetailView. GET /api/manager/kpi-config and PUT /api/manager/kpi-config endpoints implemented. Allows managers to configure which KPIs (track_ca, track_ventes, track_clients, track_articles) are enabled for their team. Frontend uses this configuration to show/hide KPI charts and cards dynamically."
+      - working: true
+        agent: "testing"
+        comment: "DYNAMIC KPI DISPLAY TESTING COMPLETED SUCCESSFULLY - ALL REVIEW REQUEST SCENARIOS PASSED: ✅ SCENARIO 1 (Check Manager's Current KPI Configuration): Successfully logged in as manager1@test.com, GET /api/manager/kpi-config returns current configuration with all 4 KPIs enabled (track_ca=True, track_ventes=True, track_clients=True, track_articles=True). This explains why user sees all graphs - all KPIs are currently configured. ✅ SCENARIO 2 (Modify KPI Configuration): PUT /api/manager/kpi-config successfully updates configuration to limited set (track_ca=True, track_ventes=True, track_clients=False, track_articles=False). Configuration persistence verified - changes saved correctly and retrieved via GET request. ✅ SCENARIO 3 (Frontend Format Verification): GET /api/manager/kpi-config returns correct format for frontend consumption with all required boolean flags (track_ca, track_ventes, track_clients, track_articles) as proper boolean types. ✅ AUTHENTICATION WORKING: Both GET and PUT endpoints correctly require authentication (403 without token). ✅ CONFIGURATION RESTORATION: Successfully restored original configuration after testing. ✅ ALL SUCCESS CRITERIA MET: Current KPI config retrieved ✓, KPI config can be modified ✓, Modified config persists ✓, Response format correct for frontend ✓. The dynamic KPI display functionality is working correctly - user sees all graphs because manager has all KPIs enabled."
+
 backend_new_seller_bilan:
   - task: "Seller Bilan Individuel API - Generate Individual Bilan"
     implemented: true
