@@ -15,7 +15,7 @@ import DiagnosticFormModal from '../components/DiagnosticFormModal';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export default function SellerDashboard({ user, diagnostic, onLogout }) {
+export default function SellerDashboard({ user, diagnostic: initialDiagnostic, onLogout }) {
   const navigate = useNavigate();
   const [evaluations, setEvaluations] = useState([]);
   const [sales, setSales] = useState([]);
@@ -23,6 +23,7 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const [debriefs, setDebriefs] = useState([]);
   const [competencesHistory, setCompetencesHistory] = useState([]);
   const [kpiEntries, setKpiEntries] = useState([]);
+  const [diagnostic, setDiagnostic] = useState(initialDiagnostic);
   const [showEvalModal, setShowEvalModal] = useState(false);
   const [showDebriefModal, setShowDebriefModal] = useState(false);
   const [showKPIModal, setShowKPIModal] = useState(false);
