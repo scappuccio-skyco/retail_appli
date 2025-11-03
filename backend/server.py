@@ -2659,6 +2659,23 @@ Consignes :
         "periode": periode
     })
     
+    # Build KPI resume with only available metrics
+    kpi_resume = {}
+    if kpi_config.get('track_ca'):
+        kpi_resume["ca_total"] = round(total_ca, 2)
+    if kpi_config.get('track_ventes'):
+        kpi_resume["ventes"] = total_ventes
+    if kpi_config.get('track_clients'):
+        kpi_resume["clients"] = total_clients
+    if kpi_config.get('track_articles'):
+        kpi_resume["articles"] = total_articles
+    if panier_moyen is not None:
+        kpi_resume["panier_moyen"] = round(panier_moyen, 2)
+    if taux_transfo is not None:
+        kpi_resume["taux_transformation"] = round(taux_transfo, 2)
+    if indice_vente is not None:
+        kpi_resume["indice_vente"] = round(indice_vente, 2)
+    
     bilan_data = {
         "id": existing['id'] if existing else str(uuid.uuid4()),
         "seller_id": seller_id,
@@ -2667,15 +2684,7 @@ Consignes :
         "points_forts": ai_result.get('points_forts', []),
         "points_attention": ai_result.get('points_attention', []),
         "recommandations": ai_result.get('recommandations', []),
-        "kpi_resume": {
-            "ca_total": round(total_ca, 2),
-            "ventes": total_ventes,
-            "clients": total_clients,
-            "articles": total_articles,
-            "panier_moyen": round(panier_moyen, 2),
-            "taux_transformation": round(taux_transfo, 2),
-            "indice_vente": round(indice_vente, 2)
-        },
+        "kpi_resume": kpi_resume,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
