@@ -12,6 +12,7 @@ export default function SellerDetailView({ seller, onBack }) {
   const [diagnostic, setDiagnostic] = useState(null);
   const [debriefs, setDebriefs] = useState([]);
   const [competencesHistory, setCompetencesHistory] = useState([]);
+  const [liveCompetences, setLiveCompetences] = useState(null); // NEW: Live scores for current radar
   const [kpiEntries, setKpiEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
