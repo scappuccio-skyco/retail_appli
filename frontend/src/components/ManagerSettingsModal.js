@@ -509,7 +509,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">💎 Objectif Indice Vente</label>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">💎 Objectif Indice Vente</label>
+                            <div className="group relative">
+                              <span className="cursor-help text-blue-500 text-xs">ℹ️</span>
+                              <div className="invisible group-hover:visible absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg">
+                                Moyenne d'articles par vente (Nb Articles / Nb Ventes). Mesure l'efficacité de la vente additionnelle.
+                              </div>
+                            </div>
+                          </div>
                           <input
                             type="number"
                             step="0.1"
@@ -522,6 +530,12 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                             placeholder="Ex: 2.5"
                           />
                         </div>
+                      </div>
+
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                        <p className="text-xs text-blue-800">
+                          💡 <strong>Astuce :</strong> Remplissez au moins un objectif KPI. Vous pouvez combiner plusieurs KPIs pour un challenge complet.
+                        </p>
                       </div>
 
                       <div className="flex gap-3">
