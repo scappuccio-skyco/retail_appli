@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { LogOut, Plus, TrendingUp, Award, MessageSquare, Sparkles, BarChart3 } from 'lucide-react';
+import { LogOut, Plus, TrendingUp, Award, MessageSquare, Sparkles, BarChart3, RefreshCw } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import EvaluationModal from '../components/EvaluationModal';
 import DebriefModal from '../components/DebriefModal';
 import KPIEntryModal from '../components/KPIEntryModal';
 import KPIReporting from './KPIReporting';
 import SellerProfileModal from '../components/SellerProfileModal';
-import LastDebriefModal from '../components/LastDebriefModal';
+import BilanIndividuelModal from '../components/BilanIndividuelModal';
 import DiagnosticFormModal from '../components/DiagnosticFormModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
