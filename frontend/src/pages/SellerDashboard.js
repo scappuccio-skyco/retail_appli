@@ -88,6 +88,16 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         setCompetencesHistory([]);
       }
       
+      // Try to load diagnostic info
+      try {
+        const diagnosticRes = await axios.get(`${API}/diagnostic/me`, { headers: { Authorization: `Bearer ${token}` } });
+        if (diagnosticRes.data) {
+          setDiagnostic(diagnosticRes.data);
+        }
+      } catch (err) {
+        console.log('No diagnostic available yet');
+      }
+      
       // Get KPI entries
       try {
         const kpiRes = await axios.get(`${API}/seller/kpi-entries`, { headers: { Authorization: `Bearer ${token}` } });
