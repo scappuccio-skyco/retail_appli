@@ -1531,8 +1531,11 @@ async def create_diagnostic(diagnostic_data: DiagnosticCreate, current_user: dic
     if existing:
         await db.diagnostics.delete_one({"seller_id": current_user['id']})
     
-    # Analyze with AI
+    # Analyze with AI (only for style, level, motivation - NOT scores anymore)
     ai_analysis = await analyze_diagnostic_with_ai(diagnostic_data.responses)
+    
+    # Calculate competence scores from questionnaire responses (NEW ALGORITHMIC METHOD)
+    competence_scores = calculate_competence_scores_from_questionnaire(diagnostic_data.responses)
     
     # Calculate DISC profile from questions 16-23
     disc_responses = {}
@@ -1551,11 +1554,11 @@ async def create_diagnostic(diagnostic_data: DiagnosticCreate, current_user: dic
         style=ai_analysis['style'],
         level=ai_analysis['level'],
         motivation=ai_analysis['motivation'],
-        score_accueil=ai_analysis.get('score_accueil', 3.0),
-        score_decouverte=ai_analysis.get('score_decouverte', 3.0),
-        score_argumentation=ai_analysis.get('score_argumentation', 3.0),
-        score_closing=ai_analysis.get('score_closing', 3.0),
-        score_fidelisation=ai_analysis.get('score_fidelisation', 3.0),
+        score_accueil=competence_scores.get('score_accueil', 3.0),
+        score_decouverte=competence_scores.get('score_decouverte', 3.0),
+        score_argumentation=competence_scores.get('score_argumentation', 3.0),
+        score_closing=competence_scores.get('score_closing', 3.0),
+        score_fidelisation=competence_scores.get('score_fidelisation', 3.0),
         disc_dominant=disc_profile['dominant'],
         disc_percentages=disc_profile['percentages']
     )
