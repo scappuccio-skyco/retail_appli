@@ -269,6 +269,31 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                 </form>
               )}
 
+              {/* Objectives Tab */}
+              {activeTab === 'objectives' && (
+                <div className="bg-blue-50 rounded-xl p-6 border-2 border-blue-200">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4">🎯 Objectifs d'Équipe</h3>
+                  <p className="text-gray-600 mb-6">
+                    Les objectifs sont utilisés pour suivre les performances globales de votre équipe sur une période définie.
+                    Contrairement aux challenges, les objectifs sont des cibles de référence sans aspect compétitif.
+                  </p>
+                  
+                  <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-yellow-800">
+                      💡 <strong>Astuce :</strong> Utilisez les <strong>Objectifs</strong> pour fixer des cibles mensuelles/trimestrielles, 
+                      et les <strong>Challenges</strong> pour créer des défis motivants à court terme avec progression visible.
+                    </p>
+                  </div>
+
+                  <div className="text-center py-8 text-gray-500">
+                    <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                    <p className="font-semibold">Fonctionnalité en développement</p>
+                    <p className="text-sm mt-2">La gestion des objectifs d'équipe sera bientôt disponible.</p>
+                    <p className="text-sm mt-1">En attendant, utilisez les <strong>Challenges</strong> pour suivre vos objectifs.</p>
+                  </div>
+                </div>
+              )}
+
               {/* Challenges Tab */}
               {activeTab === 'challenges' && (
                 <div className="space-y-6">
