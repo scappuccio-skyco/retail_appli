@@ -38,6 +38,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [generatingTeamBilan, setGeneratingTeamBilan] = useState(false);
   const [kpiConfig, setKpiConfig] = useState(null); // Configuration KPI du manager
   const [activeChallenges, setActiveChallenges] = useState([]); // Challenges collectifs actifs
+  const [activeObjectives, setActiveObjectives] = useState([]); // Objectifs actifs
   const [showSettingsModal, setShowSettingsModal] = useState(false); // Modal for settings
   const [visibleDashboardCharts, setVisibleDashboardCharts] = useState({
     ca: true,
