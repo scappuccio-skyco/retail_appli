@@ -946,7 +946,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                     )}
 
                     {/* Clients seuls */}
-                    {visibleDashboardCharts.clients && (
+                    {availableDashboardCharts.clients && visibleDashboardCharts.clients && (
                       <div className="bg-white rounded-xl p-4 border border-gray-200">
                         <h4 className="text-sm font-semibold text-gray-700 mb-3">👥 Évolution des clients</h4>
                         <ResponsiveContainer width="100%" height={150}>
