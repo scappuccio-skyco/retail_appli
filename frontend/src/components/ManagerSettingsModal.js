@@ -140,7 +140,23 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
   const handleCreateObjective = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/manager/objectives`, newObjective, { headers });
+      // Clean data - remove empty strings and convert to numbers
+      const cleanedData = {
+        period_start: newObjective.period_start,
+        period_end: newObjective.period_end
+      };
+      
+      if (newObjective.ca_target && newObjective.ca_target !== '') {
+        cleanedData.ca_target = parseFloat(newObjective.ca_target);
+      }
+      if (newObjective.indice_vente_target && newObjective.indice_vente_target !== '') {
+        cleanedData.indice_vente_target = parseFloat(newObjective.indice_vente_target);
+      }
+      if (newObjective.panier_moyen_target && newObjective.panier_moyen_target !== '') {
+        cleanedData.panier_moyen_target = parseFloat(newObjective.panier_moyen_target);
+      }
+      
+      await axios.post(`${API}/manager/objectives`, cleanedData, { headers });
       toast.success('Objectif créé avec succès');
       setNewObjective({
         ca_target: '',
