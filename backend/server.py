@@ -3328,6 +3328,35 @@ async def get_active_seller_challenges(current_user: dict = Depends(get_current_
     
     return challenges
 
+@api_router.get("/seller/objectives/active")
+async def get_active_seller_objectives(current_user: dict = Depends(get_current_user)):
+    """Get active team objectives for display in seller dashboard"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access objectives")
+    
+    # Get manager
+    user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    if not user or not user.get('manager_id'):
+        return []
+    
+    manager_id = user['manager_id']
+    today = datetime.now(timezone.utc).date().isoformat()
+    
+    # Get active objectives from the seller's manager
+    objectives = await db.manager_objectives.find(
+        {
+            "manager_id": manager_id,
+            "period_end": {"$gte": today}  # Only objectives that haven't ended yet
+        },
+        {"_id": 0}
+    ).sort("period_start", 1).to_list(10)
+    
+    # Calculate progress for each objective
+    for objective in objectives:
+        await calculate_objective_progress(objective, manager_id)
+    
+    return objectives
+
 # Endpoint for seller to get their manager's KPI config
 @api_router.get("/seller/kpi-config")
 async def get_seller_kpi_config(current_user: dict = Depends(get_current_user)):
