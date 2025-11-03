@@ -47,6 +47,33 @@ export default function ManagerDashboard({ user, onLogout }) {
     indiceVente: true
   }); // New state for dashboard chart visibility
 
+  // Determine which charts should be available based on manager's KPI configuration
+  const availableDashboardCharts = useMemo(() => {
+    if (!kpiConfig) {
+      return {
+        ca: false,
+        ventes: false,
+        clients: false,
+        articles: false,
+        ventesVsClients: false,
+        panierMoyen: false,
+        tauxTransfo: false,
+        indiceVente: false
+      };
+    }
+    
+    return {
+      ca: kpiConfig.track_ca === true,
+      ventes: kpiConfig.track_ventes === true,
+      clients: kpiConfig.track_clients === true,
+      articles: kpiConfig.track_articles === true,
+      ventesVsClients: kpiConfig.track_ventes === true && kpiConfig.track_clients === true,
+      panierMoyen: kpiConfig.track_ca === true && kpiConfig.track_ventes === true,
+      tauxTransfo: kpiConfig.track_ventes === true && kpiConfig.track_clients === true,
+      indiceVente: kpiConfig.track_ca === true && kpiConfig.track_ventes === true && kpiConfig.track_articles === true
+    };
+  }, [kpiConfig]);
+
   useEffect(() => {
     fetchData();
     fetchManagerDiagnostic();
