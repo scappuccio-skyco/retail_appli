@@ -23,8 +23,14 @@ const questions = [
       },
       {
         id: 2,
-        text: "Qu'est-ce qui, selon toi, donne envie à un client de te faire confiance dès les premières secondes ?",
-        type: "text"
+        text: "Qu'est-ce qui donne envie à un client de te faire confiance dès les premières secondes ?",
+        type: "choice",
+        options: [
+          "Mon sourire et mon attitude accueillante",
+          "Ma disponibilité immédiate et mon écoute",
+          "Mon professionnalisme et ma présentation",
+          "Ma connaissance des produits"
+        ]
       },
       {
         id: 3,
@@ -53,8 +59,14 @@ const questions = [
       },
       {
         id: 5,
-        text: "Raconte une situation où tu as découvert un besoin caché chez un client.",
-        type: "text"
+        text: "Comment découvres-tu un besoin caché chez un client ?",
+        type: "choice",
+        options: [
+          "En posant des questions ouvertes sur son usage",
+          "En écoutant attentivement ce qu'il ne dit pas",
+          "En observant ses réactions face aux produits",
+          "En proposant des produits complémentaires"
+        ]
       },
       {
         id: 6,
@@ -83,8 +95,14 @@ const questions = [
       },
       {
         id: 8,
-        text: "Décris une fois où tu as su adapter ton discours pour convaincre un client difficile.",
-        type: "text"
+        text: "Comment adaptes-tu ton discours pour convaincre un client difficile ?",
+        type: "choice",
+        options: [
+          "Je reste sur mes arguments et j'insiste sur la valeur",
+          "J'écoute ses objections et j'adapte ma présentation",
+          "Je change de produit pour mieux correspondre à ses attentes",
+          "Je fais des concessions sur le prix ou les services"
+        ]
       },
       {
         id: 9,
@@ -104,7 +122,13 @@ const questions = [
       {
         id: 10,
         text: "Comment sais-tu qu'un client est prêt à acheter ?",
-        type: "text"
+        type: "choice",
+        options: [
+          "Il pose des questions sur la livraison ou le paiement",
+          "Il manipule le produit avec attention",
+          "Il arrête de poser des questions et semble décidé",
+          "Il me demande s'il y a des promotions"
+        ]
       },
       {
         id: 11,
@@ -119,7 +143,13 @@ const questions = [
       {
         id: 12,
         text: "Quelle est ta technique préférée pour finaliser une vente ?",
-        type: "text"
+        type: "choice",
+        options: [
+          "Proposer un choix entre deux options",
+          "Créer un sentiment d'urgence (stock limité, promo)",
+          "Résumer tous les avantages du produit",
+          "Proposer des facilités de paiement"
+        ]
       }
     ]
   },
@@ -129,7 +159,13 @@ const questions = [
       {
         id: 13,
         text: "Après une vente, que fais-tu pour que le client revienne ?",
-        type: "text"
+        type: "choice",
+        options: [
+          "Je lui propose de rejoindre le programme de fidélité",
+          "Je prends ses coordonnées pour le tenir informé",
+          "Je lui donne des conseils d'utilisation personnalisés",
+          "Je lui parle des prochaines nouveautés"
+        ]
       },
       {
         id: 14,
@@ -144,7 +180,13 @@ const questions = [
       {
         id: 15,
         text: "Qu'est-ce qui fait qu'un client devient fidèle selon toi ?",
-        type: "text"
+        type: "choice",
+        options: [
+          "La qualité du service et l'attention portée",
+          "Les prix compétitifs et les promotions",
+          "La relation personnelle créée avec lui",
+          "La qualité constante des produits"
+        ]
       }
     ]
   },
