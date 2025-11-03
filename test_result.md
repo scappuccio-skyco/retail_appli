@@ -141,6 +141,51 @@ backend:
         agent: "testing"
         comment: "UPDATED DEBRIEF RETRIEVAL RE-TESTED: ✅ GET /api/debriefs works perfectly with NEW data structure. ✅ Returns array with all NEW fields intact (produit, type_client, situation_vente, description_vente, moment_perte_client, raisons_echec, amelioration_pensee). ✅ All 4 NEW AI analysis fields properly persisted and retrieved (ai_analyse, ai_points_travailler, ai_recommandation, ai_exemple_concret). ✅ Backward compatibility confirmed - old debriefs still accessible. ✅ Tested with vendeur2@test.com - retrieved 2 debriefs successfully including newly created ones."
 
+  - task: "Manager Objectives API - Get All Objectives"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend API endpoint GET /api/manager/objectives to retrieve all manager's objectives. Part of active objectives display feature."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE TESTING COMPLETED: ✅ GET /api/manager/objectives works correctly. ✅ Returns array of manager's objectives with all required fields (id, manager_id, title, ca_target, period_start, period_end, created_at). ✅ Authentication properly enforced (403 for unauthenticated requests). ✅ Data structure validated - all objective fields present and correctly formatted. ✅ Tested with manager1@test.com account successfully. ✅ Initially found 0 objectives in database, which explains empty manager dashboard display."
+
+  - task: "Manager Objectives API - Get Active Objectives"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend API endpoint GET /api/manager/objectives/active to retrieve only active objectives (period_end >= today) for manager dashboard display."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE TESTING COMPLETED: ✅ GET /api/manager/objectives/active works correctly with proper date filtering logic. ✅ Returns array of active objectives where period_end >= today. ✅ Date filtering verified - endpoint correctly filters objectives by current date (2025-11-03). ✅ Authentication properly enforced (403 for unauthenticated requests). ✅ Initially returned 0 active objectives because no objectives existed in database. ✅ ROOT CAUSE IDENTIFIED: Manager dashboard shows nothing because no objectives exist in database, not because of API issues."
+
+  - task: "Manager Objectives API - Create Objective"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend API endpoint POST /api/manager/objectives to create new objectives. Part of objectives management feature."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE TESTING COMPLETED: ✅ POST /api/manager/objectives works perfectly. ✅ Successfully created test objective with data from review request (title: 'Test Objectif Décembre', ca_target: 50000, period: 2025-12-01 to 2025-12-31). ✅ All required fields properly saved (id, manager_id, title, ca_target, period_start, period_end, created_at). ✅ Data integrity verified - created objective data matches input data exactly. ✅ Created objective immediately appears in active objectives list (GET /api/manager/objectives/active). ✅ Active objectives count increased from 0 to 1 after creation. ✅ Authentication properly enforced. ✅ SOLUTION VERIFIED: After creating objective, active objectives endpoint returns 1 objective correctly."
+
 old_backend:
 old_backend:
   - task: "Diagnostic API - Create Diagnostic"
