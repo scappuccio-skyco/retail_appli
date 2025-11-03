@@ -1573,17 +1573,71 @@ async def create_diagnostic(diagnostic_data: DiagnosticCreate, current_user: dic
 @api_router.get("/diagnostic/me")
 async def get_my_diagnostic(current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'seller':
-        raise HTTPException(status_code=403, detail="Only sellers can access their diagnostic")
+        raise HTTPException(status_code=403, detail="Only sellers can access diagnostics")
     
     diagnostic = await db.diagnostics.find_one({"seller_id": current_user['id']}, {"_id": 0})
-    
     if not diagnostic:
-        return {"status": "not_completed", "diagnostic": None}
+        raise HTTPException(status_code=404, detail="No diagnostic found")
     
+    # Convert datetime string back to datetime object if needed
     if isinstance(diagnostic.get('created_at'), str):
         diagnostic['created_at'] = datetime.fromisoformat(diagnostic['created_at'])
     
-    return {"status": "completed", "diagnostic": diagnostic}
+    return diagnostic
+
+@api_router.get("/diagnostic/me/live-scores")
+async def get_my_live_competence_scores(current_user: dict = Depends(get_current_user)):
+    """
+    Get live competence scores that blend questionnaire + KPI performance
+    Scores evolve over time based on actual performance
+    """
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access diagnostics")
+    
+    # Get diagnostic
+    diagnostic = await db.diagnostics.find_one({"seller_id": current_user['id']}, {"_id": 0})
+    if not diagnostic:
+        raise HTTPException(status_code=404, detail="No diagnostic found. Please complete the diagnostic first.")
+    
+    # Calculate days since diagnostic
+    created_at = diagnostic.get('created_at')
+    if isinstance(created_at, str):
+        created_at = datetime.fromisoformat(created_at)
+    
+    days_since = (datetime.now(timezone.utc) - created_at).days
+    
+    # Get initial scores from diagnostic
+    initial_scores = {
+        'score_accueil': diagnostic.get('score_accueil', 3.0),
+        'score_decouverte': diagnostic.get('score_decouverte', 3.0),
+        'score_argumentation': diagnostic.get('score_argumentation', 3.0),
+        'score_closing': diagnostic.get('score_closing', 3.0),
+        'score_fidelisation': diagnostic.get('score_fidelisation', 3.0)
+    }
+    
+    # Calculate adjusted scores with KPIs
+    adjusted_scores = await calculate_competence_adjustment_from_kpis(
+        seller_id=current_user['id'],
+        initial_scores=initial_scores,
+        days_since_diagnostic=days_since
+    )
+    
+    return {
+        "status": "success",
+        "diagnostic_age_days": days_since,
+        "blending_info": {
+            "questionnaire_weight": 1.0 if days_since <= 14 else (0.7 if days_since <= 28 else 0.3),
+            "kpi_weight": 0.0 if days_since <= 14 else (0.3 if days_since <= 28 else 0.7)
+        },
+        "initial_scores": initial_scores,
+        "live_scores": adjusted_scores,
+        "evolution": {
+            key: round(adjusted_scores[key] - initial_scores[key], 1)
+            for key in initial_scores.keys()
+        }
+    }
+
+@api_router.get("/diagnostic/{seller_id}")
 
 # ===== MANAGER DIAGNOSTIC =====
 def calculate_disc_profile(disc_responses: dict) -> dict:
