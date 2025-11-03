@@ -604,6 +604,154 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
     }
   ];
 
+  // Guide de compatibilité Manager-Vendeur
+  const compatibilityGuide = [
+    {
+      name: 'Manager Pilote × Vendeur Dynamique',
+      icon: '🎯⚡',
+      color: 'blue',
+      description: 'Alliance orientée performance et résultats',
+      caracteristiques: [
+        'Communication directe et efficace',
+        'Focus commun sur les objectifs',
+        'Rythme soutenu et dynamique',
+        'Peu de friction dans l\'exécution'
+      ],
+      forces: [
+        'Atteinte rapide des objectifs',
+        'Efficacité maximale',
+        'Alignement naturel sur les résultats',
+        'Décisions rapides'
+      ],
+      attention: [
+        'Risque de négliger l\'humain',
+        'Peut manquer de recul',
+        'Besoin de célébrer les réussites',
+        'Attention au surmenage'
+      ]
+    },
+    {
+      name: 'Manager Coach × Vendeur Explorateur',
+      icon: '🏋️🔍',
+      color: 'green',
+      description: 'Duo idéal pour le développement',
+      caracteristiques: [
+        'Apprentissage continu favorisé',
+        'Feedback réguliers et constructifs',
+        'Curiosité encouragée',
+        'Progression rapide'
+      ],
+      forces: [
+        'Développement optimal des compétences',
+        'Montée en autonomie rapide',
+        'Motivation et engagement élevés',
+        'Culture d\'excellence'
+      ],
+      attention: [
+        'Risque de surinvestissement',
+        'Peut manquer de pression résultats',
+        'Besoin de fixer des deadlines',
+        'Attention à la sur-analyse'
+      ]
+    },
+    {
+      name: 'Manager Stratège × Vendeur Convivial',
+      icon: '🧠🤝',
+      color: 'purple',
+      description: 'Complémentarité organisation-relation',
+      caracteristiques: [
+        'Structure apportée par le manager',
+        'Humanité apportée par le vendeur',
+        'Équilibre process et relation',
+        'Vision stratégique avec exécution chaleureuse'
+      ],
+      forces: [
+        'Performance avec fidélisation',
+        'Process respectés avec flexibilité',
+        'Clients satisfaits et objectifs atteints',
+        'Équilibre durable'
+      ],
+      attention: [
+        'Communication à adapter (direct vs relationnel)',
+        'Rythmes différents à synchroniser',
+        'Besoin de compromis',
+        'Patience requise des deux côtés'
+      ]
+    },
+    {
+      name: 'Manager Leader Inspirant × Tous profils',
+      icon: '⚡✨',
+      color: 'yellow',
+      description: 'Catalyseur universel de performance',
+      caracteristiques: [
+        'Inspire et motive tous les profils',
+        'Donne du sens aux actions',
+        'Crée une dynamique positive',
+        'Adaptable à chaque personnalité'
+      ],
+      forces: [
+        'Engagement équipe maximal',
+        'Culture de dépassement',
+        'Cohésion forte',
+        'Résultats exceptionnels'
+      ],
+      attention: [
+        'Peut créer de la dépendance',
+        'Besoin de varier les styles',
+        'Attention à l\'épuisement',
+        'Délégation nécessaire'
+      ]
+    },
+    {
+      name: 'Manager Facilitateur × Vendeur Convivial',
+      icon: '🤝❤️',
+      color: 'pink',
+      description: 'Duo relationnel fort',
+      caracteristiques: [
+        'Ambiance exceptionnelle',
+        'Communication fluide',
+        'Confiance mutuelle',
+        'Bien-être prioritaire'
+      ],
+      forces: [
+        'Fidélisation client maximale',
+        'Turnover minimal',
+        'Satisfaction équipe élevée',
+        'Climat de travail idéal'
+      ],
+      attention: [
+        'Peut manquer d\'assertivité',
+        'Risque d\'éviter les conflits',
+        'Besoin de focus résultats',
+        'Attention aux décisions difficiles'
+      ]
+    },
+    {
+      name: 'Points clés de compatibilité',
+      icon: '🔑',
+      color: 'orange',
+      description: 'Les fondamentaux d\'une bonne relation Manager-Vendeur',
+      caracteristiques: [
+        'Communication adaptée au profil',
+        'Reconnaissance des forces de chacun',
+        'Patience et écoute mutuelle',
+        'Objectifs clairs et partagés'
+      ],
+      forces: [
+        'Utiliser les différences comme forces',
+        'S\'adapter plutôt que d\'imposer',
+        'Feedback réguliers et ajustés',
+        'Célébrer les réussites ensemble'
+      ],
+      attention: [
+        'Éviter les jugements hâtifs',
+        'Ne pas chercher à changer l\'autre',
+        'Respecter les rythmes différents',
+        'Communiquer sur les attentes'
+      ]
+    }
+  ];
+
   const getColorClasses = (color) => {
     const colors = {
       blue: 'bg-blue-50 border-blue-200',
