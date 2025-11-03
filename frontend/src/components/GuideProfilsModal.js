@@ -840,7 +840,21 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
             'Risque de négliger l\'aspect humain',
             'Besoin de célébrer les réussites',
             'Attention au surmenage'
-          ]
+          ],
+          recommandations: {
+            manager: [
+              'Prenez le temps de célébrer les victoires ensemble',
+              'Intégrez des moments informels pour renforcer la relation',
+              'Veillez au bien-être et à l\'équilibre vie pro/perso',
+              'Variez les challenges pour maintenir la motivation'
+            ],
+            vendeur: [
+              'N\'hésitez pas à demander des pauses si besoin',
+              'Partagez vos idées d\'amélioration de process',
+              'Profitez de l\'alignement pour viser l\'excellence',
+              'Gardez un œil sur la satisfaction client'
+            ]
+          }
         },
         'Explorateur': {
           score: '⭐⭐⭐',
