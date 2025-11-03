@@ -151,7 +151,7 @@ export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnost
       </div>
 
       {showGuide && (
-        <GuideProfilsModal onClose={() => setShowGuide(false)} />
+        <GuideProfilsModal onClose={() => setShowGuide(false)} userRole="seller" />
       )}
     </>
   );
