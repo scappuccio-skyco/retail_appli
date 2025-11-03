@@ -48,6 +48,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
   const [generatingBilan, setGeneratingBilan] = useState(false);
   const [kpiConfig, setKpiConfig] = useState(null);
+  const [activeChallenges, setActiveChallenges] = useState([]); // Challenges actifs (collectifs + personnels)
 
   useEffect(() => {
     fetchData();
