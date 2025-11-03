@@ -14,6 +14,7 @@ export default function SellerDetailView({ seller, onBack }) {
   const [competencesHistory, setCompetencesHistory] = useState([]);
   const [liveCompetences, setLiveCompetences] = useState(null); // NEW: Live scores for current radar
   const [kpiEntries, setKpiEntries] = useState([]);
+  const [kpiConfig, setKpiConfig] = useState(null); // NEW: Manager's KPI configuration
   const [loading, setLoading] = useState(true);
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [activeTab, setActiveTab] = useState('competences'); // New state for tabs
