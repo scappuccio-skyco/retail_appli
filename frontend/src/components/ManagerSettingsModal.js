@@ -306,7 +306,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                     <form onSubmit={editingChallenge ? handleUpdateChallenge : handleCreateChallenge} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Titre *</label>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">Titre *</label>
+                            <div className="group relative">
+                              <span className="cursor-help text-blue-500 text-xs">ℹ️</span>
+                              <div className="invisible group-hover:visible absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg">
+                                Donnez un nom accrocheur à votre challenge (ex: "Challenge Parfums", "Top Vendeur du Mois")
+                              </div>
+                            </div>
+                          </div>
                           <input
                             type="text"
                             required
@@ -321,7 +329,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">Description</label>
+                            <div className="group relative">
+                              <span className="cursor-help text-blue-500 text-xs">ℹ️</span>
+                              <div className="invisible group-hover:visible absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg">
+                                Expliquez les règles et l'objectif du challenge pour motiver vos équipes
+                              </div>
+                            </div>
+                          </div>
                           <textarea
                             value={editingChallenge ? editingChallenge.description : newChallenge.description}
                             onChange={(e) => editingChallenge
@@ -335,7 +351,16 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Type *</label>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">Type *</label>
+                            <div className="group relative">
+                              <span className="cursor-help text-blue-500 text-xs">ℹ️</span>
+                              <div className="invisible group-hover:visible absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg">
+                                <strong>Collectif :</strong> Toute l'équipe travaille ensemble vers l'objectif<br/>
+                                <strong>Individuel :</strong> Challenge personnel pour un vendeur spécifique
+                              </div>
+                            </div>
+                          </div>
                           <select
                             required
                             value={editingChallenge ? editingChallenge.type : newChallenge.type}
