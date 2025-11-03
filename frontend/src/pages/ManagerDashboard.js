@@ -80,7 +80,20 @@ export default function ManagerDashboard({ user, onLogout }) {
     fetchManagerDiagnostic();
     fetchTeamBilan();
     fetchKpiConfig();
+    fetchActiveChallenges();
   }, []);
+
+  const fetchActiveChallenges = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/manager/challenges/active`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setActiveChallenges(res.data);
+    } catch (err) {
+      console.error('Error fetching active challenges:', err);
+    }
+  };
 
   // Calculer les dates de la semaine basée sur currentWeekOffset
   const getWeekDates = (offset) => {
