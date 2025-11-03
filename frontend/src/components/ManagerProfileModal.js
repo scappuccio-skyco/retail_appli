@@ -121,7 +121,7 @@ export default function ManagerProfileModal({ diagnostic, onClose, onRedo }) {
       </div>
 
       {showGuide && (
-        <GuideProfilsModal onClose={() => setShowGuide(false)} />
+        <GuideProfilsModal onClose={() => setShowGuide(false)} userRole="manager" />
       )}
     </>
   );
