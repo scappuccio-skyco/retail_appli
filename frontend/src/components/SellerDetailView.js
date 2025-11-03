@@ -463,23 +463,6 @@ export default function SellerDetailView({ seller, onBack }) {
             </button>
           </div>
 
-          {/* DEBUG: Display KPI Config Status */}
-          <div className="bg-red-50 border-2 border-red-500 rounded-xl p-4 mb-6">
-            <p className="text-sm font-bold text-red-900 mb-2">🐛 DEBUG MODE (à retirer en production)</p>
-            <p className="text-xs text-red-800">kpiConfig exists: {kpiConfig ? 'OUI ✅' : 'NON ❌'}</p>
-            {kpiConfig && (
-              <>
-                <p className="text-xs text-red-800">track_ca: {kpiConfig.track_ca ? '✅' : '❌'}</p>
-                <p className="text-xs text-red-800">track_ventes: {kpiConfig.track_ventes ? '✅' : '❌'}</p>
-                <p className="text-xs text-red-800">track_clients: {kpiConfig.track_clients ? '✅' : '❌'}</p>
-                <p className="text-xs text-red-800">track_articles: {kpiConfig.track_articles ? '✅' : '❌'}</p>
-                <p className="text-xs text-red-800 mt-2 font-bold">Graphiques disponibles:</p>
-                <p className="text-xs text-red-800">CA: {availableCharts.ca ? '✅' : '❌'} | Ventes: {availableCharts.ventes ? '✅' : '❌'} | Clients: {availableCharts.clients ? '✅' : '❌'} | Articles: {availableCharts.articles ? '✅' : '❌'}</p>
-                <p className="text-xs text-red-800">Ventes vs Clients: {availableCharts.ventesVsClients ? '✅' : '❌'} | Panier Moyen: {availableCharts.panierMoyen ? '✅' : '❌'} | Taux Transfo: {availableCharts.tauxTransfo ? '✅' : '❌'} | Indice Vente: {availableCharts.indiceVente ? '✅' : '❌'}</p>
-              </>
-            )}
-          </div>
-
           {/* Chart visibility toggles - Only show buttons for available charts */}
           {Object.values(availableCharts).some(v => v) && (
           <div className="bg-white rounded-xl p-4 border border-gray-200 mb-6">
