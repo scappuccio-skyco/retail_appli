@@ -683,7 +683,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              👔 Management
+              👔 Type de management
             </button>
           )}
           {allSections.includes('style_vente') && (
