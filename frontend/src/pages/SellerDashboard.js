@@ -1001,9 +1001,15 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           onClose={() => setShowDiagnosticFormModal(false)}
           onSuccess={() => {
             setShowDiagnosticFormModal(false);
-            toast.success('Diagnostic complété! Rechargement...');
-            setTimeout(() => window.location.reload(), 1000);
+            fetchData(); // Reload data including diagnostic
           }}
+        />
+      )}
+
+      {/* Competences Explication Modal */}
+      {showCompetencesModal && (
+        <CompetencesExplicationModal
+          onClose={() => setShowCompetencesModal(false)}
         />
       )}
     </div>
