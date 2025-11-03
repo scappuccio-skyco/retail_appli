@@ -758,6 +758,9 @@ export default function ManagerDashboard({ user, onLogout }) {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <h4 className="font-bold text-gray-800 text-lg line-clamp-2">{objective.title}</h4>
+                      <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ml-2">
+                        ✅ Actif
+                      </span>
                     </div>
 
                     {/* Période */}
