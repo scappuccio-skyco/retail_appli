@@ -37,8 +37,13 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const [showAllDebriefs, setShowAllDebriefs] = useState(false);
   // New states for modals
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showLastDebriefModal, setShowLastDebriefModal] = useState(false);
+  const [showBilanModal, setShowBilanModal] = useState(false);
   const [showDiagnosticFormModal, setShowDiagnosticFormModal] = useState(false);
+  // States for Bilan Individuel
+  const [bilanIndividuel, setBilanIndividuel] = useState(null);
+  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
+  const [generatingBilan, setGeneratingBilan] = useState(false);
+  const [kpiConfig, setKpiConfig] = useState(null);
 
   useEffect(() => {
     fetchData();
