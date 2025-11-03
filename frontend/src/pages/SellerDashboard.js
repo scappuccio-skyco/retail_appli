@@ -945,11 +945,12 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
         />
       )}
 
-      {/* Last Debrief Modal */}
-      {showLastDebriefModal && debriefs.length > 0 && (
-        <LastDebriefModal
-          debrief={debriefs[0]}
-          onClose={() => setShowLastDebriefModal(false)}
+      {/* Bilan Individuel Modal */}
+      {showBilanModal && bilanIndividuel && (
+        <BilanIndividuelModal
+          bilan={bilanIndividuel}
+          kpiConfig={kpiConfig}
+          onClose={() => setShowBilanModal(false)}
         />
       )}
 
