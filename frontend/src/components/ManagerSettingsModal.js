@@ -169,6 +169,16 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
             📊 Configuration KPI
           </button>
           <button
+            onClick={() => setActiveTab('objectives')}
+            className={`px-6 py-4 font-semibold transition-all ${
+              activeTab === 'objectives'
+                ? 'border-b-4 border-[#ffd871] text-gray-800'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            🎯 Objectifs
+          </button>
+          <button
             onClick={() => setActiveTab('challenges')}
             className={`px-6 py-4 font-semibold transition-all ${
               activeTab === 'challenges'
