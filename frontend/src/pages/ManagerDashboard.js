@@ -1431,6 +1431,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           onClose={() => setShowSettingsModal(false)}
           onUpdate={() => {
             fetchActiveChallenges();
+            fetchActiveObjectives();
             fetchKpiConfig();
           }}
         />
