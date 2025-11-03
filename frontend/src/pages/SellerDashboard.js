@@ -730,26 +730,48 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   </div>
                   
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    <div className="bg-blue-50 rounded-lg p-3">
-                      <p className="text-xs text-blue-600 mb-1">💰 CA</p>
-                      <p className="text-lg font-bold text-blue-900">{entry.ca_journalier.toFixed(2)}€</p>
-                    </div>
-                    <div className="bg-green-50 rounded-lg p-3">
-                      <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
-                      <p className="text-lg font-bold text-green-900">{entry.nb_ventes}</p>
-                    </div>
-                    <div className="bg-purple-50 rounded-lg p-3">
-                      <p className="text-xs text-purple-600 mb-1">👥 Clients</p>
-                      <p className="text-lg font-bold text-purple-900">{entry.nb_clients}</p>
-                    </div>
-                    <div className="bg-orange-50 rounded-lg p-3">
-                      <p className="text-xs text-orange-600 mb-1">🧮 Panier Moyen</p>
-                      <p className="text-lg font-bold text-orange-900">{entry.panier_moyen.toFixed(2)}€</p>
-                    </div>
-                    <div className="bg-pink-50 rounded-lg p-3">
-                      <p className="text-xs text-pink-600 mb-1">📊 Taux Transfo</p>
-                      <p className="text-lg font-bold text-pink-900">{entry.taux_transformation.toFixed(2)}%</p>
-                    </div>
+                    {kpiConfig?.track_ca && (
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <p className="text-xs text-blue-600 mb-1">💰 CA</p>
+                        <p className="text-lg font-bold text-blue-900">{entry.ca_journalier?.toFixed(2)}€</p>
+                      </div>
+                    )}
+                    {kpiConfig?.track_ventes && (
+                      <div className="bg-green-50 rounded-lg p-3">
+                        <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
+                        <p className="text-lg font-bold text-green-900">{entry.nb_ventes}</p>
+                      </div>
+                    )}
+                    {kpiConfig?.track_clients && (
+                      <div className="bg-purple-50 rounded-lg p-3">
+                        <p className="text-xs text-purple-600 mb-1">👥 Clients</p>
+                        <p className="text-lg font-bold text-purple-900">{entry.nb_clients}</p>
+                      </div>
+                    )}
+                    {kpiConfig?.track_articles && (
+                      <div className="bg-orange-50 rounded-lg p-3">
+                        <p className="text-xs text-orange-600 mb-1">📦 Articles</p>
+                        <p className="text-lg font-bold text-orange-900">{entry.nb_articles || 0}</p>
+                      </div>
+                    )}
+                    {kpiConfig?.track_ca && kpiConfig?.track_ventes && (
+                      <div className="bg-indigo-50 rounded-lg p-3">
+                        <p className="text-xs text-indigo-600 mb-1">🧮 Panier Moyen</p>
+                        <p className="text-lg font-bold text-indigo-900">{entry.panier_moyen?.toFixed(2)}€</p>
+                      </div>
+                    )}
+                    {kpiConfig?.track_ventes && kpiConfig?.track_clients && (
+                      <div className="bg-pink-50 rounded-lg p-3">
+                        <p className="text-xs text-pink-600 mb-1">📊 Taux Transfo</p>
+                        <p className="text-lg font-bold text-pink-900">{entry.taux_transformation?.toFixed(2)}%</p>
+                      </div>
+                    )}
+                    {kpiConfig?.track_articles && kpiConfig?.track_clients && (
+                      <div className="bg-teal-50 rounded-lg p-3">
+                        <p className="text-xs text-teal-600 mb-1">🎯 Indice Vente</p>
+                        <p className="text-lg font-bold text-teal-900">{entry.indice_vente?.toFixed(2)}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
