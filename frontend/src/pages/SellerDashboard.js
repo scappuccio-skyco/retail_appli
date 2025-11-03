@@ -105,6 +105,115 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
     }
   };
 
+  // Helper functions for Bilan Individuel
+  const getWeekDates = (offset) => {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Offset pour atteindre le lundi
+    
+    const currentMonday = new Date(today);
+    currentMonday.setDate(today.getDate() + mondayOffset + (offset * 7));
+    
+    const sunday = new Date(currentMonday);
+    sunday.setDate(currentMonday.getDate() + 6);
+    
+    const formatDate = (date) => {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = String(date.getFullYear()).slice(-2);
+      return `${day}/${month}/${year}`;
+    };
+    
+    return {
+      start: currentMonday,
+      end: sunday,
+      startFormatted: formatDate(currentMonday),
+      endFormatted: formatDate(sunday),
+      periode: `Semaine du ${formatDate(currentMonday)} au ${formatDate(sunday)}`,
+      startISO: currentMonday.toISOString().split('T')[0],
+      endISO: sunday.toISOString().split('T')[0]
+    };
+  };
+
+  const handleWeekNavigation = (direction) => {
+    const newOffset = direction === 'prev' ? currentWeekOffset - 1 : currentWeekOffset + 1;
+    setCurrentWeekOffset(newOffset);
+    
+    // Charger le bilan pour cette semaine
+    const weekDates = getWeekDates(newOffset);
+    fetchBilanForWeek(weekDates.startISO, weekDates.endISO, weekDates.periode);
+  };
+
+  const fetchBilanForWeek = async (startDate, endDate, periode) => {
+    try {
+      const token = localStorage.getItem('token');
+      // Chercher si un bilan existe pour cette semaine
+      const res = await axios.get(`${API}/seller/bilan-individuel/all`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.data.status === 'success' && res.data.bilans) {
+        const bilan = res.data.bilans.find(b => b.periode === periode);
+        if (bilan) {
+          setBilanIndividuel(bilan);
+        } else {
+          // Créer un bilan vide avec la période correcte
+          setBilanIndividuel({
+            periode,
+            synthese: '',
+            kpi_resume: {},
+            points_forts: [],
+            points_attention: [],
+            recommandations: []
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching bilan for week:', err);
+    }
+  };
+
+  const fetchKpiConfig = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/seller/kpi-config`, { headers: { Authorization: `Bearer ${token}` } });
+      setKpiConfig(res.data);
+    } catch (err) {
+      console.error('Error fetching KPI config:', err);
+    }
+  };
+
+  const fetchBilanIndividuel = async () => {
+    try {
+      const weekDates = getWeekDates(0); // Semaine actuelle
+      await fetchBilanForWeek(weekDates.startISO, weekDates.endISO, weekDates.periode);
+    } catch (err) {
+      console.error('Error fetching individual bilan:', err);
+    }
+  };
+
+  const regenerateBilan = async () => {
+    setGeneratingBilan(true);
+    try {
+      const token = localStorage.getItem('token');
+      const weekDates = getWeekDates(currentWeekOffset);
+      
+      // Regenerate the bilan for this week
+      const res = await axios.post(
+        `${API}/seller/bilan-individuel?start_date=${weekDates.startISO}&end_date=${weekDates.endISO}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (res.data) {
+        setBilanIndividuel(res.data);
+        toast.success('Bilan régénéré avec succès !');
+      }
+    } catch (err) {
+      console.error('Error regenerating bilan:', err);
+      toast.error('Erreur lors de la régénération du bilan');
+    } finally {
+      setGeneratingBilan(false);
+    }
+  };
+
   const handleEvaluationCreated = () => {
     fetchData();
     setShowEvalModal(false);
