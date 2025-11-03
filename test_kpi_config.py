@@ -132,8 +132,8 @@ class KPIConfigTester:
         }
         
         success, update_response = self.run_test(
-            "SCENARIO 2 - POST /api/manager/kpi-config (Limited Config)",
-            "POST",
+            "SCENARIO 2 - PUT /api/manager/kpi-config (Limited Config)",
+            "PUT",
             "manager/kpi-config",
             200,
             data=limited_config,
