@@ -59,14 +59,28 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
         axios.get(`${API}/sales`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/seller/tasks`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/debriefs`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/competences/history`, { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(`${API}/diagnostic/me/live-scores`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
       
       setEvaluations(evalsRes.data);
       setSales(salesRes.data);
       setTasks(tasksRes.data);
       setDebriefs(debriefsRes.data);
-      setCompetencesHistory(competencesRes.data);
+      
+      // Process live scores response
+      if (liveScoresRes.data && liveScoresRes.data.live_scores) {
+        const { live_scores, diagnostic_age_days } = liveScoresRes.data;
+        const scoreEntry = {
+          date: new Date().toISOString(),
+          score_accueil: live_scores.score_accueil,
+          score_decouverte: live_scores.score_decouverte,
+          score_argumentation: live_scores.score_argumentation,
+          score_closing: live_scores.score_closing,
+          score_fidelisation: live_scores.score_fidelisation,
+          days_since_diagnostic: diagnostic_age_days
+        };
+        setCompetencesHistory([scoreEntry]);
+      }
       
       // Get KPI entries
       try {
