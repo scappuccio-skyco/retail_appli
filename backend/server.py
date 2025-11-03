@@ -2223,6 +2223,207 @@ async def get_all_team_bilans(current_user: dict = Depends(get_current_user)):
     
     return {"status": "success", "bilans": bilans}
 
+# ===== SELLER INDIVIDUAL BILAN ROUTES =====
+
+async def generate_seller_bilan_for_period(seller_id: str, start_date: date, end_date: date, seller: dict):
+    """Helper function to generate an individual bilan for a seller for a specific period"""
+    periode = f"Semaine du {start_date.strftime('%d/%m/%y')} au {end_date.strftime('%d/%m/%y')}"
+    
+    # Get KPIs for this period
+    kpi_entries = await db.kpi_entries.find({
+        "seller_id": seller_id,
+        "date": {
+            "$gte": start_date.strftime('%Y-%m-%d'),
+            "$lte": end_date.strftime('%Y-%m-%d')
+        }
+    }, {"_id": 0}).to_list(1000)
+    
+    # Calculate totals
+    total_ca = sum(e.get('ca_journalier', 0) for e in kpi_entries)
+    total_ventes = sum(e.get('nb_ventes', 0) for e in kpi_entries)
+    total_clients = sum(e.get('nb_clients', 0) for e in kpi_entries)
+    total_articles = sum(e.get('nb_articles', 0) for e in kpi_entries)
+    
+    # Calculate KPIs
+    panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
+    taux_transfo = (total_ventes / total_clients * 100) if total_clients > 0 else 0
+    indice_vente = (total_articles / total_clients) if total_clients > 0 else 0
+    
+    # Get seller diagnostic
+    diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0})
+    
+    # Build context for AI
+    seller_context = f"""Vendeur : {seller.get('name', 'Vendeur')}
+Profil de vente :
+- Style : {diagnostic.get('style', 'Non défini') if diagnostic else 'Non défini'}
+- Niveau : {diagnostic.get('level', 'Non défini') if diagnostic else 'Non défini'}
+- Motivation : {diagnostic.get('motivation', 'Non définie') if diagnostic else 'Non définie'}
+"""
+    
+    if diagnostic and diagnostic.get('disc_dominant'):
+        seller_context += f"- Profil DISC : {diagnostic['disc_dominant']}\n"
+    
+    kpi_context = f"""KPIs pour la période {periode} :
+- CA Total : {total_ca:.2f}€
+- Nombre de ventes : {total_ventes}
+- Nombre de clients : {total_clients}
+- Nombre d'articles : {total_articles}
+- Panier moyen : {panier_moyen:.2f}€
+- Taux de transformation : {taux_transfo:.2f}%
+- Indice de vente : {indice_vente:.2f}
+"""
+    
+    # Count days with KPI entries in the period
+    jours_actifs = len(kpi_entries)
+    
+    prompt = f"""Tu es un coach en vente retail. Analyse les performances INDIVIDUELLES de ce vendeur pour la semaine et génère un bilan personnalisé et STRICTEMENT individuel (aucune comparaison avec d'autres vendeurs).
+
+{seller_context}
+
+{kpi_context}
+
+Jours actifs : {jours_actifs} jours avec des KPIs saisis
+
+IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou après. Format exact :
+{{
+  "synthese": "Une phrase résumant la performance individuelle du vendeur cette semaine",
+  "points_forts": ["Point fort personnel 1", "Point fort personnel 2"],
+  "points_attention": ["Point d'attention personnel 1", "Point d'attention personnel 2"],
+  "recommandations": ["Action personnalisée 1", "Action personnalisée 2", "Action personnalisée 3"]
+}}
+
+Consignes :
+- Analyse STRICTEMENT INDIVIDUELLE (ne mentionne JAMAIS d'autres vendeurs, l'équipe ou de comparaisons)
+- Sois précis avec les chiffres du vendeur (utilise UNIQUEMENT ses données)
+- Recommandations concrètes et personnalisées pour ce vendeur spécifiquement
+- Mentionne son profil (style, niveau, DISC) dans l'analyse si pertinent
+- Ton professionnel mais encourageant et motivant
+- Utilise le tutoiement ("tu", "ton", "ta")
+"""
+    
+    try:
+        llm_chat = LlmChat(
+            api_key="sk-emergent-dB388Be0647671cF21",
+            session_id=f"seller_bilan_{seller_id}_{periode}",
+            system_message="Tu es un coach en vente retail. Tu réponds TOUJOURS en JSON valide uniquement. Tu tutoies le vendeur."
+        )
+        user_message = UserMessage(text=prompt)
+        response = await llm_chat.send_message(user_message)
+        
+        print(f"DEBUG Seller Bilan: AI raw response: {response[:200]}...")
+        
+        # Clean response (remove markdown, extra text, etc.)
+        response_clean = response.strip()
+        if "```json" in response_clean:
+            response_clean = response_clean.split("```json")[1].split("```")[0].strip()
+        elif "```" in response_clean:
+            response_clean = response_clean.split("```")[1].split("```")[0].strip()
+        
+        # Find JSON object in response
+        start_idx = response_clean.find('{')
+        end_idx = response_clean.rfind('}') + 1
+        if start_idx >= 0 and end_idx > start_idx:
+            response_clean = response_clean[start_idx:end_idx]
+        
+        ai_result = json.loads(response_clean)
+    except Exception as e:
+        print(f"AI generation failed for seller bilan: {e}")
+        ai_result = {
+            "synthese": f"Bilan de ta semaine du {start_date.strftime('%d/%m')} au {end_date.strftime('%d/%m')}",
+            "points_forts": ["Performance enregistrée"],
+            "points_attention": ["À analyser"],
+            "recommandations": ["Continue ton suivi régulier"]
+        }
+    
+    # Check if bilan already exists for this period
+    existing = await db.seller_bilans.find_one({
+        "seller_id": seller_id,
+        "periode": periode
+    })
+    
+    bilan_data = {
+        "id": existing['id'] if existing else str(uuid.uuid4()),
+        "seller_id": seller_id,
+        "periode": periode,
+        "synthese": ai_result.get('synthese', ''),
+        "points_forts": ai_result.get('points_forts', []),
+        "points_attention": ai_result.get('points_attention', []),
+        "recommandations": ai_result.get('recommandations', []),
+        "kpi_resume": {
+            "ca_total": round(total_ca, 2),
+            "ventes": total_ventes,
+            "clients": total_clients,
+            "articles": total_articles,
+            "panier_moyen": round(panier_moyen, 2),
+            "taux_transformation": round(taux_transfo, 2),
+            "indice_vente": round(indice_vente, 2)
+        },
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Upsert the bilan
+    await db.seller_bilans.update_one(
+        {"seller_id": seller_id, "periode": periode},
+        {"$set": bilan_data},
+        upsert=True
+    )
+    
+    return SellerBilan(**bilan_data)
+
+@api_router.post("/seller/bilan-individuel")
+async def generate_seller_bilan(
+    start_date: str = None,  # Format YYYY-MM-DD
+    end_date: str = None,    # Format YYYY-MM-DD
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate individual bilan for the current seller for a specific period or current week"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can generate individual bilan")
+    
+    # Get seller info
+    seller = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not found")
+    
+    # Determine period
+    if start_date and end_date:
+        start = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end = datetime.strptime(end_date, '%Y-%m-%d').date()
+    else:
+        # Default: current week (Monday to Sunday)
+        today = datetime.now(timezone.utc).date()
+        start = today - timedelta(days=today.weekday())
+        end = start + timedelta(days=6)
+    
+    # Generate bilan using the helper function
+    bilan = await generate_seller_bilan_for_period(
+        seller_id=current_user['id'],
+        start_date=start,
+        end_date=end,
+        seller=seller
+    )
+    
+    return bilan
+
+@api_router.get("/seller/bilan-individuel/all")
+async def get_all_seller_bilans(current_user: dict = Depends(get_current_user)):
+    """Get all individual bilans for the current seller, sorted by date (most recent first)"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access individual bilans")
+    
+    bilans = await db.seller_bilans.find(
+        {"seller_id": current_user['id']},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(length=None)
+    
+    # Convert datetime strings to datetime objects
+    for bilan in bilans:
+        if isinstance(bilan.get('created_at'), str):
+            bilan['created_at'] = datetime.fromisoformat(bilan['created_at'])
+    
+    return {"status": "success", "bilans": bilans}
+
 # ===== CONFLICT RESOLUTION ROUTES =====
 
 async def generate_conflict_resolution_analysis(
