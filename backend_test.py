@@ -2589,6 +2589,265 @@ class RetailCoachAPITester:
         print("   ✅ Response format is correct for frontend consumption")
         print("   📊 Test explains why user might see all graphs (if all KPIs are enabled)")
 
+    def test_active_challenges_display(self):
+        """Test Active Challenges Display - CRITICAL REVIEW REQUEST"""
+        print("\n🔍 Testing Active Challenges Display (CRITICAL REVIEW REQUEST)...")
+        
+        # Login as manager1@test.com as specified in review request
+        manager_login_data = {
+            "email": "manager1@test.com",
+            "password": "password123"
+        }
+        
+        success, response = self.run_test(
+            "Challenge Test - Manager Login (manager1@test.com)",
+            "POST",
+            "auth/login",
+            200,
+            data=manager_login_data
+        )
+        
+        challenge_manager_token = None
+        if success and 'token' in response:
+            challenge_manager_token = response['token']
+            manager_info = response['user']
+            print(f"   ✅ Logged in as manager: {manager_info.get('name')} ({manager_info.get('email')})")
+            print(f"   ✅ Manager ID: {manager_info.get('id')}")
+        else:
+            print("   ⚠️  Could not login with manager1@test.com - account may not exist")
+            self.log_test("Active Challenges Display Setup", False, "manager1@test.com account not available")
+            return
+        
+        # SCENARIO 1: Check if Any Challenges Exist
+        print("\n   📋 SCENARIO 1: Check if Any Challenges Exist")
+        success, all_challenges_response = self.run_test(
+            "Challenge Scenario 1 - GET /api/manager/challenges (all challenges)",
+            "GET",
+            "manager/challenges",
+            200,
+            token=challenge_manager_token
+        )
+        
+        total_challenges = 0
+        if success:
+            if isinstance(all_challenges_response, list):
+                total_challenges = len(all_challenges_response)
+                print(f"   ✅ Total challenges found: {total_challenges}")
+                
+                if total_challenges > 0:
+                    # Document challenge details
+                    for i, challenge in enumerate(all_challenges_response[:3]):  # Show first 3
+                        print(f"   📊 Challenge {i+1}: '{challenge.get('title')}' - Status: {challenge.get('status')} - Type: {challenge.get('type')}")
+                        print(f"      Period: {challenge.get('start_date')} to {challenge.get('end_date')}")
+                else:
+                    print("   ⚠️  No challenges found in database")
+            else:
+                self.log_test("All Challenges Response Format", False, "Response should be an array")
+        
+        # SCENARIO 2: Check Active Challenges Endpoint
+        print("\n   🎯 SCENARIO 2: Check Active Challenges Endpoint")
+        success, active_challenges_response = self.run_test(
+            "Challenge Scenario 2 - GET /api/manager/challenges/active",
+            "GET",
+            "manager/challenges/active",
+            200,
+            token=challenge_manager_token
+        )
+        
+        active_collective_challenges = 0
+        if success:
+            if isinstance(active_challenges_response, list):
+                active_collective_challenges = len(active_challenges_response)
+                print(f"   ✅ Active collective challenges found: {active_collective_challenges}")
+                
+                if active_collective_challenges > 0:
+                    # Document active challenge details
+                    for i, challenge in enumerate(active_challenges_response):
+                        print(f"   🏆 Active Challenge {i+1}: '{challenge.get('title')}'")
+                        print(f"      Type: {challenge.get('type')} - Status: {challenge.get('status')}")
+                        print(f"      Period: {challenge.get('start_date')} to {challenge.get('end_date')}")
+                        
+                        # Check date filters
+                        from datetime import datetime
+                        today = datetime.now().strftime('%Y-%m-%d')
+                        start_date = challenge.get('start_date')
+                        end_date = challenge.get('end_date')
+                        
+                        if start_date <= today <= end_date:
+                            print(f"      ✅ Date range valid (today {today} is within {start_date} to {end_date})")
+                        else:
+                            print(f"      ⚠️  Date range issue: today {today} not within {start_date} to {end_date}")
+                else:
+                    print("   ⚠️  No active collective challenges found - this explains why dashboard shows nothing")
+                    print("   📝 This is likely the root cause of the user's issue")
+            else:
+                self.log_test("Active Challenges Response Format", False, "Response should be an array")
+        
+        # SCENARIO 3: Create a Test Active Challenge (if none exist)
+        print("\n   ➕ SCENARIO 3: Create a Test Active Challenge")
+        
+        if active_collective_challenges == 0:
+            print("   📝 No active challenges found, creating test challenge as requested...")
+            
+            # Create challenge with exact data from review request
+            challenge_data = {
+                "title": "Test Challenge Collectif",
+                "description": "Challenge de test pour affichage dashboard",
+                "type": "collective",
+                "ca_target": 10000,
+                "ventes_target": 50,
+                "start_date": "2025-01-01",
+                "end_date": "2025-12-31"
+            }
+            
+            success, create_response = self.run_test(
+                "Challenge Scenario 3 - POST /api/manager/challenges",
+                "POST",
+                "manager/challenges",
+                200,
+                data=challenge_data,
+                token=challenge_manager_token
+            )
+            
+            if success:
+                print("   ✅ Test challenge created successfully")
+                print(f"   📊 Challenge ID: {create_response.get('id')}")
+                print(f"   📊 Title: {create_response.get('title')}")
+                print(f"   📊 Type: {create_response.get('type')}")
+                print(f"   📊 Status: {create_response.get('status')}")
+                print(f"   📊 CA Target: {create_response.get('ca_target')}")
+                print(f"   📊 Ventes Target: {create_response.get('ventes_target')}")
+                
+                # Verify challenge is created with correct data
+                input_fields = ['title', 'description', 'type', 'ca_target', 'ventes_target', 'start_date', 'end_date']
+                missing_fields = []
+                
+                for field in input_fields:
+                    if field not in create_response or create_response[field] != challenge_data[field]:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    self.log_test("Challenge Creation Data Validation", False, f"Missing or incorrect fields: {missing_fields}")
+                else:
+                    self.log_test("Challenge Creation Data Validation", True)
+                    print("   ✅ All challenge data correctly saved")
+                
+                # Verify system fields
+                system_fields = ['id', 'manager_id', 'created_at']
+                missing_system_fields = []
+                
+                for field in system_fields:
+                    if field not in create_response:
+                        missing_system_fields.append(field)
+                
+                if missing_system_fields:
+                    self.log_test("Challenge System Fields Validation", False, f"Missing system fields: {missing_system_fields}")
+                else:
+                    self.log_test("Challenge System Fields Validation", True)
+                    print(f"   ✅ Manager ID: {create_response.get('manager_id')}")
+                    print(f"   ✅ Created At: {create_response.get('created_at')}")
+                
+                # VERIFICATION: GET /api/manager/challenges/active again to confirm it appears
+                print("\n   🔍 VERIFICATION: Check if new challenge appears in active challenges")
+                success, verify_response = self.run_test(
+                    "Challenge Verification - GET /api/manager/challenges/active (after creation)",
+                    "GET",
+                    "manager/challenges/active",
+                    200,
+                    token=challenge_manager_token
+                )
+                
+                if success and isinstance(verify_response, list):
+                    new_active_count = len(verify_response)
+                    print(f"   ✅ Active challenges after creation: {new_active_count}")
+                    
+                    # Check if our created challenge is in the list
+                    created_challenge_id = create_response.get('id')
+                    found_challenge = None
+                    
+                    for challenge in verify_response:
+                        if challenge.get('id') == created_challenge_id:
+                            found_challenge = challenge
+                            break
+                    
+                    if found_challenge:
+                        print("   ✅ Created challenge appears in active challenges list")
+                        print(f"   ✅ Challenge in list: '{found_challenge.get('title')}' - Status: {found_challenge.get('status')}")
+                        self.log_test("Challenge Active List Verification", True)
+                    else:
+                        self.log_test("Challenge Active List Verification", False, "Created challenge not found in active challenges list")
+                        print("   ❌ Created challenge does not appear in active challenges - possible date filter issue")
+                        
+                        # Debug: Check if challenge appears in all challenges
+                        success, all_after_create = self.run_test(
+                            "Challenge Debug - GET /api/manager/challenges (after creation)",
+                            "GET",
+                            "manager/challenges",
+                            200,
+                            token=challenge_manager_token
+                        )
+                        
+                        if success and isinstance(all_after_create, list):
+                            found_in_all = any(c.get('id') == created_challenge_id for c in all_after_create)
+                            if found_in_all:
+                                print("   🔍 Challenge found in all challenges but not in active - check date filters")
+                            else:
+                                print("   🔍 Challenge not found in all challenges either - creation may have failed")
+                else:
+                    self.log_test("Challenge Verification Response", False, "Could not verify active challenges after creation")
+            else:
+                print("   ❌ Failed to create test challenge")
+        else:
+            print(f"   ✅ Active challenges already exist ({active_collective_challenges}), skipping creation")
+        
+        # SUMMARY
+        print("\n   📋 ACTIVE CHALLENGES DISPLAY TEST SUMMARY")
+        print(f"   📊 Total challenges in database: {total_challenges}")
+        print(f"   🎯 Active collective challenges: {active_collective_challenges}")
+        
+        if active_collective_challenges == 0:
+            print("   🔍 ROOT CAUSE IDENTIFIED: No active collective challenges exist")
+            print("   💡 SOLUTION: Manager needs to create active challenges with current date range")
+            print("   📝 RECOMMENDATION: Check challenge date filters (start_date ≤ today ≤ end_date)")
+        else:
+            print("   ✅ Active challenges exist - dashboard should display them")
+            print("   🔍 If dashboard still shows nothing, check frontend integration")
+        
+        # Test Authentication Requirements
+        print("\n   🔒 Testing Challenge Authentication Requirements")
+        
+        # Test without token
+        success, _ = self.run_test(
+            "Challenge Auth - No Token (All Challenges)",
+            "GET",
+            "manager/challenges",
+            401,  # Unauthorized
+        )
+        
+        if success:
+            print("   ✅ All challenges endpoint correctly requires authentication")
+        
+        success, _ = self.run_test(
+            "Challenge Auth - No Token (Active Challenges)",
+            "GET",
+            "manager/challenges/active",
+            401,  # Unauthorized
+        )
+        
+        if success:
+            print("   ✅ Active challenges endpoint correctly requires authentication")
+        
+        success, _ = self.run_test(
+            "Challenge Auth - No Token (Create Challenge)",
+            "POST",
+            "manager/challenges",
+            401,  # Unauthorized
+            data={"title": "Test", "type": "collective"}
+        )
+        
+        if success:
+            print("   ✅ Create challenge endpoint correctly requires authentication")
+
     def run_all_tests(self):
         """Run all tests in sequence"""
         print("🚀 Starting Retail Coach 2.0 API Tests")
