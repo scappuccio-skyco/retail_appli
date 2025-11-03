@@ -967,52 +967,6 @@ export default function ManagerDashboard({ user, onLogout }) {
           </div>
         )}
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="glass-morphism rounded-2xl p-6 card-hover">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-[#ffd871] bg-opacity-20 rounded-xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-gray-800" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Total Vendeurs</p>
-                <p className="text-3xl font-bold text-gray-800">{sellers.length}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="glass-morphism rounded-2xl p-6 card-hover">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Évaluations Totales</p>
-                <p className="text-3xl font-bold text-gray-800">
-                  {sellers.reduce((sum, s) => sum + s.total_evaluations, 0)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="glass-morphism rounded-2xl p-6 card-hover">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                <Award className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Score Moyen Équipe</p>
-                <p className="text-3xl font-bold text-gray-800">
-                  {sellers.length > 0
-                    ? (sellers.reduce((sum, s) => sum + s.avg_score, 0) / sellers.length).toFixed(2)
-                    : 0}
-                  /5
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Invitations Section */}
         {invitations.length > 0 && (
           <div className="glass-morphism rounded-2xl p-6 mb-8">
