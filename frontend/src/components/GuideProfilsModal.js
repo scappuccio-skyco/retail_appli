@@ -138,6 +138,12 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
         'Teste différentes approches',
         'Construit sa confiance'
       ],
+      forces: [
+        'Grande capacité d\'apprentissage',
+        'Fraîcheur et enthousiasme',
+        'Ouverture d\'esprit totale',
+        'Aucune mauvaise habitude'
+      ],
       objectifs: [
         'Maîtriser les bases de la vente',
         'Gagner en confiance',
@@ -156,6 +162,12 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
         'Vise la performance',
         'Teste de nouvelles approches',
         'Confiance établie'
+      ],
+      forces: [
+        'Bases solides acquises',
+        'Motivation à progresser',
+        'Autonomie croissante',
+        'Résultats en amélioration'
       ],
       objectifs: [
         'Améliorer ses résultats',
@@ -176,6 +188,12 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
         'Modèle pour l\'équipe',
         'Maîtrise complète'
       ],
+      forces: [
+        'Expertise reconnue',
+        'Résultats constants',
+        'Capacité à former',
+        'Leadership naturel'
+      ],
       objectifs: [
         'Transmettre son expertise',
         'Coacher les nouveaux',
@@ -194,6 +212,12 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
         'Adapte son style à chaque client',
         'Leader naturel',
         'Forme et inspire'
+      ],
+      forces: [
+        'Maîtrise totale',
+        'Adaptabilité extrême',
+        'Vision stratégique',
+        'Mentor d\'excellence'
       ],
       objectifs: [
         'Excellence constante',
