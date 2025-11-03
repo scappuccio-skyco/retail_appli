@@ -305,22 +305,22 @@ export default function DebriefModal({ onClose, onSuccess }) {
 
               {/* Description */}
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
-                  Comment la vente s'est déroulée selon toi ?
+                <label className="block text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <span className="text-lg">✍️</span> Comment la vente s'est déroulée selon toi ?
                 </label>
                 <textarea
                   value={formData.description_vente}
                   onChange={(e) => handleChange('description_vente', e.target.value)}
                   placeholder="Décris brièvement la scène..."
                   rows={3}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none shadow-sm"
                 />
               </div>
 
               {/* Moment blocage */}
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
-                  À quel moment la vente a basculé ou s'est bloquée ?
+                <label className="block text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <span className="text-lg">⏱️</span> À quel moment la vente a basculé ou s'est bloquée ?
                 </label>
                 <div className="space-y-2">
                   {[
@@ -335,10 +335,10 @@ export default function DebriefModal({ onClose, onSuccess }) {
                       key={moment}
                       type="button"
                       onClick={() => handleChange('moment_perte_client', moment)}
-                      className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
+                      className={`w-full text-left p-3 rounded-xl border-2 text-sm font-medium transition-all ${
                         formData.moment_perte_client === moment
-                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                          : 'border-gray-200 hover:border-[#ffd871]'
+                          ? 'border-purple-500 bg-purple-50 text-purple-700 shadow-md'
+                          : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
                       }`}
                     >
                       {moment}
@@ -351,15 +351,15 @@ export default function DebriefModal({ onClose, onSuccess }) {
                     value={formData.moment_perte_autre}
                     onChange={(e) => handleChange('moment_perte_autre', e.target.value)}
                     placeholder="Précisez..."
-                    className="w-full mt-2 px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                    className="w-full mt-2 px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all shadow-sm"
                   />
                 )}
               </div>
 
               {/* Raisons */}
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
-                  Pourquoi penses-tu que le client n'a pas acheté ?
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <span className="text-lg">🤔</span> Pourquoi penses-tu que le client n'a pas acheté ?
                 </label>
                 <div className="space-y-2">
                   {[
