@@ -394,6 +394,7 @@ class ManagerObjectives(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     manager_id: str
+    title: str  # Nom de l'objectif
     ca_target: Optional[float] = None
     indice_vente_target: Optional[float] = None
     panier_moyen_target: Optional[float] = None
@@ -403,6 +404,7 @@ class ManagerObjectives(BaseModel):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ManagerObjectivesCreate(BaseModel):
+    title: str  # Nom de l'objectif
     ca_target: Optional[float] = None
     indice_vente_target: Optional[float] = None
     panier_moyen_target: Optional[float] = None
