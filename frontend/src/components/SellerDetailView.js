@@ -994,6 +994,7 @@ export default function SellerDetailView({ seller, onBack }) {
           </div>
         </div>
       )}
+      </div> {/* Fermeture du conteneur max-w-7xl */}
     </div>
   );
 }
