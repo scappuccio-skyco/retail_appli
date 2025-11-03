@@ -147,7 +147,7 @@ export default function SellerDetailView({ seller, onBack }) {
   });
 
   // Determine which charts should be available based on manager's KPI configuration
-  const availableCharts = React.useMemo(() => {
+  const availableCharts = useMemo(() => {
     if (!kpiConfig) {
       return {
         ca: false,
