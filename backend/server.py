@@ -3176,6 +3176,84 @@ async def get_seller_challenges(current_user: dict = Depends(get_current_user)):
     if not user or not user.get('manager_id'):
         return []
     
+    manager_id = user['manager_id']
+    
+    # Get collective challenges + individual challenges assigned to this seller
+    challenges = await db.challenges.find(
+        {
+            "manager_id": manager_id,
+            "$or": [
+                {"type": "collective"},
+                {"type": "individual", "seller_id": current_user['id']}
+            ]
+        },
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    # Calculate progress for each challenge
+    for challenge in challenges:
+        await calculate_challenge_progress(challenge)
+    
+    return challenges
+
+@api_router.get("/manager/challenges/active")
+async def get_active_manager_challenges(current_user: dict = Depends(get_current_user)):
+    """Get only active collective challenges for display in manager dashboard"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access challenges")
+    
+    today = datetime.now(timezone.utc).date().isoformat()
+    challenges = await db.challenges.find(
+        {
+            "manager_id": current_user['id'],
+            "type": "collective",
+            "status": "active",
+            "start_date": {"$lte": today},
+            "end_date": {"$gte": today}
+        },
+        {"_id": 0}
+    ).sort("end_date", 1).to_list(10)
+    
+    # Calculate progress for each challenge
+    for challenge in challenges:
+        await calculate_challenge_progress(challenge)
+    
+    return challenges
+
+@api_router.get("/seller/challenges/active")
+async def get_active_seller_challenges(current_user: dict = Depends(get_current_user)):
+    """Get only active challenges (collective + personal) for display in seller dashboard"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access their challenges")
+    
+    # Get manager
+    user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    if not user or not user.get('manager_id'):
+        return []
+    
+    manager_id = user['manager_id']
+    today = datetime.now(timezone.utc).date().isoformat()
+    
+    # Get active collective challenges + active individual challenges assigned to this seller
+    challenges = await db.challenges.find(
+        {
+            "manager_id": manager_id,
+            "status": "active",
+            "start_date": {"$lte": today},
+            "end_date": {"$gte": today},
+            "$or": [
+                {"type": "collective"},
+                {"type": "individual", "seller_id": current_user['id']}
+            ]
+        },
+        {"_id": 0}
+    ).sort("end_date", 1).to_list(10)
+    
+    # Calculate progress for each challenge
+    for challenge in challenges:
+        await calculate_challenge_progress(challenge)
+    
+    return challenges
 
 # Endpoint for seller to get their manager's KPI config
 @api_router.get("/seller/kpi-config")
