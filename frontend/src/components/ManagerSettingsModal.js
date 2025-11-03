@@ -442,7 +442,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">💰 Objectif CA (€)</label>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">💰 Objectif CA (€)</label>
+                            <div className="group relative">
+                              <span className="cursor-help text-blue-500 text-xs">ℹ️</span>
+                              <div className="invisible group-hover:visible absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg">
+                                Chiffre d'affaires cible total pour la période du challenge. Au moins un objectif KPI est requis.
+                              </div>
+                            </div>
+                          </div>
                           <input
                             type="number"
                             value={editingChallenge ? editingChallenge.ca_target : newChallenge.ca_target}
@@ -456,7 +464,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">🛍️ Objectif Ventes</label>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">🛍️ Objectif Ventes</label>
+                            <div className="group relative">
+                              <span className="cursor-help text-blue-500 text-xs">ℹ️</span>
+                              <div className="invisible group-hover:visible absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg">
+                                Nombre de ventes à réaliser. Laissez vide si vous ne voulez pas suivre ce KPI pour ce challenge.
+                              </div>
+                            </div>
+                          </div>
                           <input
                             type="number"
                             value={editingChallenge ? editingChallenge.ventes_target : newChallenge.ventes_target}
@@ -470,7 +486,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">🛒 Objectif Panier Moyen (€)</label>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">🛒 Objectif Panier Moyen (€)</label>
+                            <div className="group relative">
+                              <span className="cursor-help text-blue-500 text-xs">ℹ️</span>
+                              <div className="invisible group-hover:visible absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg">
+                                Valeur moyenne souhaitée par transaction (CA / Nombre de ventes)
+                              </div>
+                            </div>
+                          </div>
                           <input
                             type="number"
                             step="0.01"
