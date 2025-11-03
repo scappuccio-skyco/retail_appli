@@ -382,7 +382,7 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
           </div>
         )}
 
-        {/* Compact Cards: Profile + Last Debrief (side by side like manager dashboard) */}
+        {/* Compact Cards: Profile + Bilan Individuel (side by side like manager dashboard) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Profile Card */}
           {diagnostic && (
@@ -413,35 +413,175 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
                   <p className="text-sm font-bold text-orange-900">{diagnostic.motivation}</p>
                 </div>
               </div>
+              
+              {/* DISC Profile Display */}
+              {diagnostic.disc_dominant && (
+                <div className="bg-white bg-opacity-70 rounded-lg p-3 mt-3">
+                  <p className="text-xs font-semibold text-gray-700 mb-1">
+                    🎨 Profil DISC : {diagnostic.disc_dominant}
+                  </p>
+                  <div className="flex gap-1 mt-2">
+                    {diagnostic.disc_percentages && Object.entries(diagnostic.disc_percentages).map(([letter, percent]) => (
+                      <div key={letter} className="flex-1">
+                        <div className="text-xs text-center font-semibold mb-1">
+                          {letter === 'D' && '🔴'}
+                          {letter === 'I' && '🟡'}
+                          {letter === 'S' && '🟢'}
+                          {letter === 'C' && '🔵'}
+                          {' '}{letter}
+                        </div>
+                        <div className="bg-gray-200 h-2 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${
+                              letter === 'D' ? 'bg-red-500' :
+                              letter === 'I' ? 'bg-yellow-500' :
+                              letter === 'S' ? 'bg-green-500' :
+                              'bg-blue-500'
+                            }`}
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
+                        <div className="text-xs text-center text-gray-600 mt-1">{percent}%</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Last Debrief Card */}
-          {debriefs.length > 0 && (
-            <div 
-              className="glass-morphism rounded-2xl p-6 cursor-pointer hover:shadow-xl transition-all border-2 border-transparent hover:border-blue-500"
-              onClick={() => setShowLastDebriefModal(true)}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-400 rounded-xl flex items-center justify-center">
-                  <MessageSquare className="w-6 h-6 text-white" />
+          {/* Bilan Individuel Card */}
+          {bilanIndividuel ? (
+            <div className="glass-morphism rounded-2xl p-6 border-2 border-transparent hover:border-[#ffd871] transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="w-6 h-6 text-[#ffd871]" />
+                  <h3 className="text-xl font-bold text-gray-800">🤖 Mon Bilan Individuel</h3>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-800">Mon Dernier Débrief IA</h3>
-                  <p className="text-sm text-gray-600">Cliquer pour voir les détails →</p>
-                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    regenerateBilan();
+                  }}
+                  disabled={generatingBilan}
+                  className="flex items-center gap-2 px-3 py-2 bg-[#ffd871] hover:bg-yellow-400 text-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                >
+                  <RefreshCw className={`w-4 h-4 ${generatingBilan ? 'animate-spin' : ''}`} />
+                  {generatingBilan ? 'Génération...' : 'Relancer'}
+                </button>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>🗓️</span>
-                  <span>{new Date(debriefs[0].created_at).toLocaleDateString('fr-FR', { 
-                    day: 'numeric', 
-                    month: 'long' 
-                  })}</span>
+
+              {/* Week Navigation with Arrows */}
+              {bilanIndividuel && (
+                <div className="mb-3 flex items-center justify-between bg-white rounded-lg px-3 py-2 border-2 border-gray-200">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleWeekNavigation('prev');
+                    }}
+                    className="text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  
+                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    📅 {currentWeekOffset === 0 ? 'Semaine actuelle' : bilanIndividuel.periode}
+                  </span>
+                  
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleWeekNavigation('next');
+                    }}
+                    disabled={currentWeekOffset >= 0}
+                    className="text-gray-600 hover:text-gray-800 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </div>
-                <p className="text-sm text-gray-700 line-clamp-2">
-                  {debriefs[0].ai_recommendation || debriefs[0].description_vente || "Débrief disponible"}
+              )}
+              
+              <div 
+                onClick={() => setShowBilanModal(true)}
+                className="cursor-pointer space-y-3"
+              >
+                <div className="bg-gradient-to-r from-[#ffd871] to-yellow-200 rounded-xl p-3">
+                  <p className="text-xs text-gray-700 mb-1">{bilanIndividuel.periode}</p>
+                  <p className="text-sm text-gray-800 font-medium line-clamp-2">{bilanIndividuel.synthese}</p>
+                </div>
+                
+                {/* All KPIs Grid */}
+                <div className="grid grid-cols-3 gap-2">
+                  {kpiConfig?.track_ca && bilanIndividuel.kpi_resume.ca_total !== undefined && (
+                    <div className="bg-blue-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-blue-600">💰 CA</p>
+                      <p className="text-sm font-bold text-blue-900">{(bilanIndividuel.kpi_resume.ca_total / 1000).toFixed(1)}k€</p>
+                    </div>
+                  )}
+                  {kpiConfig?.track_ventes && bilanIndividuel.kpi_resume.ventes !== undefined && (
+                    <div className="bg-green-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-green-600">🛒 Ventes</p>
+                      <p className="text-sm font-bold text-green-900">{bilanIndividuel.kpi_resume.ventes}</p>
+                    </div>
+                  )}
+                  {kpiConfig?.track_clients && bilanIndividuel.kpi_resume.clients !== undefined && (
+                    <div className="bg-purple-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-purple-600">👥 Clients</p>
+                      <p className="text-sm font-bold text-purple-900">{bilanIndividuel.kpi_resume.clients}</p>
+                    </div>
+                  )}
+                  {kpiConfig?.track_articles && bilanIndividuel.kpi_resume.articles !== undefined && (
+                    <div className="bg-orange-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-orange-600">📦 Articles</p>
+                      <p className="text-sm font-bold text-orange-900">{bilanIndividuel.kpi_resume.articles}</p>
+                    </div>
+                  )}
+                  {kpiConfig?.track_ca && kpiConfig?.track_ventes && bilanIndividuel.kpi_resume.panier_moyen !== undefined && (
+                    <div className="bg-indigo-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-indigo-600">💳 Panier M.</p>
+                      <p className="text-sm font-bold text-indigo-900">{bilanIndividuel.kpi_resume.panier_moyen.toFixed(0)}€</p>
+                    </div>
+                  )}
+                  {kpiConfig?.track_ventes && kpiConfig?.track_clients && bilanIndividuel.kpi_resume.taux_transformation !== undefined && (
+                    <div className="bg-pink-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-pink-600">📈 Taux Transfo</p>
+                      <p className="text-sm font-bold text-pink-900">{bilanIndividuel.kpi_resume.taux_transformation.toFixed(0)}%</p>
+                    </div>
+                  )}
+                  {kpiConfig?.track_articles && kpiConfig?.track_clients && bilanIndividuel.kpi_resume.indice_vente !== undefined && (
+                    <div className="bg-teal-50 rounded-lg p-2 text-center">
+                      <p className="text-xs text-teal-600">🎯 Indice</p>
+                      <p className="text-sm font-bold text-teal-900">{bilanIndividuel.kpi_resume.indice_vente.toFixed(1)}</p>
+                    </div>
+                  )}
+                </div>
+                
+                <p className="text-sm text-gray-500 text-center mt-4">
+                  Cliquer pour voir le bilan complet →
                 </p>
+              </div>
+            </div>
+          ) : (
+            <div className="glass-morphism rounded-2xl p-6 border-2 border-dashed border-gray-300">
+              <div className="flex items-center gap-3 mb-4">
+                <Sparkles className="w-6 h-6 text-[#ffd871]" />
+                <h3 className="text-xl font-bold text-gray-800">🤖 Mon Bilan Individuel</h3>
+              </div>
+              
+              <div className="text-center py-8">
+                <p className="text-gray-600 mb-4">Aucun bilan généré pour le moment</p>
+                <button
+                  onClick={regenerateBilan}
+                  disabled={generatingBilan}
+                  className="flex items-center gap-2 px-4 py-3 bg-[#ffd871] hover:bg-yellow-400 text-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium mx-auto"
+                >
+                  <Sparkles className={`w-5 h-5 ${generatingBilan ? 'animate-spin' : ''}`} />
+                  {generatingBilan ? 'Génération en cours...' : 'Générer mon bilan'}
+                </button>
               </div>
             </div>
           )}
