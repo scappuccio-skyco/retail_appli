@@ -864,7 +864,11 @@ export default function ManagerDashboard({ user, onLogout }) {
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
                               <div 
-                                className="bg-gradient-to-r from-[#ffd871] to-yellow-300 h-2 rounded-full transition-all"
+                                className={`h-2 rounded-full transition-all ${
+                                  status === 'completed' ? 'bg-gradient-to-r from-green-400 to-green-500' :
+                                  status === 'failed' ? 'bg-gradient-to-r from-red-400 to-red-500' :
+                                  'bg-gradient-to-r from-[#ffd871] to-yellow-300'
+                                }`}
                                 style={{ width: `${Math.min(100, progressPercentage)}%` }}
                               ></div>
                             </div>
