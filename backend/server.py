@@ -2956,7 +2956,11 @@ async def create_conflict_resolution(
     
     try:
         # Fetch seller info
+        logger.info(f"Searching for seller_id={conflict.seller_id} with manager_id={current_user['id']}")
         seller = await db.users.find_one({"id": conflict.seller_id, "manager_id": current_user['id']}, {"_id": 0})
+        logger.info(f"Seller found: {seller is not None}")
+        if seller:
+            logger.info(f"Seller data: {seller.get('name', 'N/A')}, manager_id={seller.get('manager_id')}")
         if not seller:
             raise HTTPException(status_code=404, detail="Seller not found or not under your management")
         
