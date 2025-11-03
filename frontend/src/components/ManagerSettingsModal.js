@@ -137,6 +137,54 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
     }
   };
 
+  const handleCreateObjective = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/manager/objectives`, newObjective, { headers });
+      toast.success('Objectif créé avec succès');
+      setNewObjective({
+        ca_target: '',
+        indice_vente_target: '',
+        panier_moyen_target: '',
+        period_start: '',
+        period_end: ''
+      });
+      fetchData();
+      if (onUpdate) onUpdate();
+    } catch (err) {
+      console.error('Error creating objective:', err);
+      toast.error('Erreur lors de la création de l\'objectif');
+    }
+  };
+
+  const handleUpdateObjective = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`${API}/manager/objectives/${editingObjective.id}`, editingObjective, { headers });
+      toast.success('Objectif modifié avec succès');
+      setEditingObjective(null);
+      fetchData();
+      if (onUpdate) onUpdate();
+    } catch (err) {
+      console.error('Error updating objective:', err);
+      toast.error('Erreur lors de la modification de l\'objectif');
+    }
+  };
+
+  const handleDeleteObjective = async (objectiveId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet objectif ?')) {
+      try {
+        await axios.delete(`${API}/manager/objectives/${objectiveId}`, { headers });
+        toast.success('Objectif supprimé avec succès');
+        fetchData();
+        if (onUpdate) onUpdate();
+      } catch (err) {
+        console.error('Error deleting objective:', err);
+        toast.error('Erreur lors de la suppression');
+      }
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
