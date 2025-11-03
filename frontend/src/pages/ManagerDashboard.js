@@ -590,10 +590,10 @@ export default function ManagerDashboard({ user, onLogout }) {
         {/* Team Bilan IA */}
         {/* <TeamBilanIA /> */}
 
-        {/* Objectives & Challenges Side-by-Side Layout */}
+        {/* Objectives & Challenges Side-by-Side Layout with Carousel */}
         {(activeObjectives.length > 0 || activeChallenges.length > 0) && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Active Objectives Section (Left Column) */}
+            {/* Active Objectives Section (Left Column) - Carousel */}
             {activeObjectives.length > 0 && (
               <div className="glass-morphism rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
@@ -610,64 +610,106 @@ export default function ManagerDashboard({ user, onLogout }) {
                   </button>
                 </div>
 
-                <div className="space-y-4">
-                  {activeObjectives.map((objective) => {
-                    const daysRemaining = Math.ceil((new Date(objective.period_end) - new Date()) / (1000 * 60 * 60 * 24));
-
-                    return (
-                      <div 
-                        key={objective.id} 
-                        className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-300 hover:shadow-lg transition-all"
+                {/* Carousel Navigation & Card */}
+                <div className="relative">
+                  {/* Navigation Buttons */}
+                  {activeObjectives.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => setCurrentObjectiveIndex((prev) => (prev > 0 ? prev - 1 : activeObjectives.length - 1))}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
                       >
-                        <div className="flex items-start justify-between mb-3">
-                          <h4 className="font-bold text-gray-800 text-lg line-clamp-2">{objective.title}</h4>
-                          <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ml-2">
-                            ✅ Actif
-                          </span>
-                        </div>
+                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setCurrentObjectiveIndex((prev) => (prev < activeObjectives.length - 1 ? prev + 1 : 0))}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
+                      >
+                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
 
-                        {/* Période */}
-                        <div className="text-xs text-gray-600 mb-3">
-                          📅 {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
-                        </div>
+                  {/* Objective Card */}
+                  <div className="px-8">
+                    {(() => {
+                      const objective = activeObjectives[currentObjectiveIndex];
+                      const daysRemaining = Math.ceil((new Date(objective.period_end) - new Date()) / (1000 * 60 * 60 * 24));
 
-                        {/* Targets */}
-                        <div className="space-y-1 mb-3">
-                          {objective.ca_target && (
-                            <div className="flex justify-between text-xs">
-                              <span className="text-gray-600">💰 Objectif CA:</span>
-                              <span className="font-semibold text-gray-800">{objective.ca_target}€</span>
-                            </div>
-                          )}
-                          {objective.panier_moyen_target && (
-                            <div className="flex justify-between text-xs">
-                              <span className="text-gray-600">🛒 Panier Moyen:</span>
-                              <span className="font-semibold text-gray-800">{objective.panier_moyen_target}€</span>
-                            </div>
-                          )}
-                          {objective.indice_vente_target && (
-                            <div className="flex justify-between text-xs">
-                              <span className="text-gray-600">💎 Indice Vente:</span>
-                              <span className="font-semibold text-gray-800">{objective.indice_vente_target}</span>
-                            </div>
-                          )}
-                        </div>
+                      return (
+                        <div 
+                          key={objective.id} 
+                          className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-300 hover:shadow-lg transition-all h-[280px] flex flex-col"
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <h4 className="font-bold text-gray-800 text-lg line-clamp-1">{objective.title}</h4>
+                            <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ml-2">
+                              ✅ Actif
+                            </span>
+                          </div>
 
-                        {/* Time remaining */}
-                        <div className="flex items-center gap-2 text-xs text-gray-600 mt-3 pt-3 border-t border-purple-200">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>
-                            {daysRemaining > 0 ? `${daysRemaining} jour${daysRemaining > 1 ? 's' : ''} restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine aujourd\'hui'}
-                          </span>
+                          {/* Période */}
+                          <div className="text-xs text-gray-600 mb-3">
+                            📅 {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
+                          </div>
+
+                          {/* Targets */}
+                          <div className="space-y-2 mb-3 flex-1">
+                            {objective.ca_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">💰 Objectif CA:</span>
+                                <span className="font-semibold text-gray-800">{objective.ca_target}€</span>
+                              </div>
+                            )}
+                            {objective.panier_moyen_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">🛒 Panier Moyen:</span>
+                                <span className="font-semibold text-gray-800">{objective.panier_moyen_target}€</span>
+                              </div>
+                            )}
+                            {objective.indice_vente_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">💎 Indice Vente:</span>
+                                <span className="font-semibold text-gray-800">{objective.indice_vente_target}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Time remaining */}
+                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-auto pt-3 border-t border-purple-200">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>
+                              {daysRemaining > 0 ? `${daysRemaining} jour${daysRemaining > 1 ? 's' : ''} restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine aujourd\'hui'}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })()}
+                  </div>
+
+                  {/* Pagination Dots */}
+                  {activeObjectives.length > 1 && (
+                    <div className="flex justify-center gap-2 mt-4">
+                      {activeObjectives.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentObjectiveIndex(index)}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            index === currentObjectiveIndex ? 'bg-purple-500 w-4' : 'bg-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* Active Challenges Section (Right Column) */}
+            {/* Active Challenges Section (Right Column) - Carousel */}
             {activeChallenges.length > 0 && (
               <div className="glass-morphism rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
@@ -684,127 +726,170 @@ export default function ManagerDashboard({ user, onLogout }) {
                   </button>
                 </div>
 
-                <div className="space-y-4">
-                  {activeChallenges.map((challenge) => {
-                    const progressPercentage = (() => {
-                      if (challenge.ca_target) return (challenge.progress_ca / challenge.ca_target) * 100;
-                      if (challenge.ventes_target) return (challenge.progress_ventes / challenge.ventes_target) * 100;
-                      if (challenge.indice_vente_target) return (challenge.progress_indice_vente / challenge.indice_vente_target) * 100;
-                      if (challenge.panier_moyen_target) return (challenge.progress_panier_moyen / challenge.panier_moyen_target) * 100;
-                      return 0;
-                    })();
-
-                    const daysRemaining = Math.ceil((new Date(challenge.end_date) - new Date()) / (1000 * 60 * 60 * 24));
-                    const daysUntilStart = Math.ceil((new Date(challenge.start_date) - new Date()) / (1000 * 60 * 60 * 24));
-                    const hasStarted = daysUntilStart <= 0;
-
-                    return (
-                      <div 
-                        key={challenge.id} 
-                        className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-4 border-2 border-[#ffd871] hover:shadow-lg transition-all"
+                {/* Carousel Navigation & Card */}
+                <div className="relative">
+                  {/* Navigation Buttons */}
+                  {activeChallenges.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => setCurrentChallengeIndex((prev) => (prev > 0 ? prev - 1 : activeChallenges.length - 1))}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
                       >
-                        <div className="flex items-start justify-between mb-3">
-                          <h4 className="font-bold text-gray-800 text-lg line-clamp-2">{challenge.title}</h4>
-                          <div className="flex flex-col gap-1 items-end">
-                            <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
-                              {challenge.type === 'collective' ? '🏆 Collectif' : '👤 Individuel'}
-                            </span>
-                            {!hasStarted && (
-                              <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
-                                ⏳ Commence dans {daysUntilStart} j
+                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setCurrentChallengeIndex((prev) => (prev < activeChallenges.length - 1 ? prev + 1 : 0))}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
+                      >
+                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+
+                  {/* Challenge Card */}
+                  <div className="px-8">
+                    {(() => {
+                      const challenge = activeChallenges[currentChallengeIndex];
+                      const progressPercentage = (() => {
+                        if (challenge.ca_target) return (challenge.progress_ca / challenge.ca_target) * 100;
+                        if (challenge.ventes_target) return (challenge.progress_ventes / challenge.ventes_target) * 100;
+                        if (challenge.indice_vente_target) return (challenge.progress_indice_vente / challenge.indice_vente_target) * 100;
+                        if (challenge.panier_moyen_target) return (challenge.progress_panier_moyen / challenge.panier_moyen_target) * 100;
+                        return 0;
+                      })();
+
+                      const daysRemaining = Math.ceil((new Date(challenge.end_date) - new Date()) / (1000 * 60 * 60 * 24));
+                      const daysUntilStart = Math.ceil((new Date(challenge.start_date) - new Date()) / (1000 * 60 * 60 * 24));
+                      const hasStarted = daysUntilStart <= 0;
+
+                      return (
+                        <div 
+                          key={challenge.id} 
+                          className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-4 border-2 border-[#ffd871] hover:shadow-lg transition-all h-[280px] flex flex-col"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-bold text-gray-800 text-lg line-clamp-1">{challenge.title}</h4>
+                            <div className="flex flex-col gap-1 items-end">
+                              <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+                                {challenge.type === 'collective' ? '🏆 Collectif' : '👤 Individuel'}
                               </span>
+                              {!hasStarted && (
+                                <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+                                  ⏳ Dans {daysUntilStart}j
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {challenge.description && (
+                            <p className="text-gray-600 text-xs mb-2 line-clamp-1">{challenge.description}</p>
+                          )}
+
+                          {/* Progress Bar */}
+                          <div className="mb-2">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-gray-600">Progression</span>
+                              <span className="text-xs font-bold text-gray-800">{Math.min(100, progressPercentage.toFixed(0))}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-gradient-to-r from-[#ffd871] to-yellow-300 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, progressPercentage)}%` }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          {/* Targets */}
+                          <div className="space-y-1 mb-2 flex-1">
+                            {challenge.ca_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">💰 CA:</span>
+                                <span className="font-semibold text-gray-800">{challenge.progress_ca.toFixed(0)}€ / {challenge.ca_target}€</span>
+                              </div>
+                            )}
+                            {challenge.ventes_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">🛍️ Ventes:</span>
+                                <span className="font-semibold text-gray-800">{challenge.progress_ventes} / {challenge.ventes_target}</span>
+                              </div>
+                            )}
+                            {challenge.panier_moyen_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">🛒 Panier M.:</span>
+                                <span className="font-semibold text-gray-800">{challenge.progress_panier_moyen.toFixed(1)}€ / {challenge.panier_moyen_target}€</span>
+                              </div>
+                            )}
+                            {challenge.indice_vente_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">💎 Indice:</span>
+                                <span className="font-semibold text-gray-800">{challenge.progress_indice_vente.toFixed(1)} / {challenge.indice_vente_target}</span>
+                              </div>
                             )}
                           </div>
-                        </div>
 
-                        {challenge.description && (
-                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{challenge.description}</p>
-                        )}
-
-                        {/* Progress Bar */}
-                        <div className="mb-3">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-xs text-gray-600">Progression</span>
-                            <span className="text-xs font-bold text-gray-800">{Math.min(100, progressPercentage.toFixed(0))}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div 
-                              className="bg-gradient-to-r from-[#ffd871] to-yellow-300 h-2.5 rounded-full transition-all"
-                              style={{ width: `${Math.min(100, progressPercentage)}%` }}
-                            ></div>
-                          </div>
-                        </div>
-
-                        {/* Targets */}
-                        <div className="space-y-1 mb-3">
-                          {challenge.ca_target && (
-                            <div className="flex justify-between text-xs">
-                              <span className="text-gray-600">💰 CA:</span>
-                              <span className="font-semibold text-gray-800">{challenge.progress_ca.toFixed(0)}€ / {challenge.ca_target}€</span>
+                          {/* Time remaining */}
+                          <div className="flex items-center justify-between gap-2 text-xs text-gray-600 mt-auto pt-2 border-t border-gray-200">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-3.5 h-3.5" />
+                              <span>
+                                {daysRemaining > 0 ? `${daysRemaining}j restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine'}
+                              </span>
                             </div>
-                          )}
-                          {challenge.ventes_target && (
-                            <div className="flex justify-between text-xs">
-                              <span className="text-gray-600">🛍️ Ventes:</span>
-                              <span className="font-semibold text-gray-800">{challenge.progress_ventes} / {challenge.ventes_target}</span>
-                            </div>
-                          )}
-                          {challenge.panier_moyen_target && (
-                            <div className="flex justify-between text-xs">
-                              <span className="text-gray-600">🛒 Panier Moyen:</span>
-                              <span className="font-semibold text-gray-800">{challenge.progress_panier_moyen.toFixed(2)}€ / {challenge.panier_moyen_target}€</span>
-                            </div>
-                          )}
-                          {challenge.indice_vente_target && (
-                            <div className="flex justify-between text-xs">
-                              <span className="text-gray-600">💎 Indice Vente:</span>
-                              <span className="font-semibold text-gray-800">{challenge.progress_indice_vente.toFixed(1)} / {challenge.indice_vente_target}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Time remaining */}
-                        <div className="flex items-center justify-between gap-2 text-xs text-gray-600 mt-3 pt-3 border-t border-gray-200">
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>
-                              {daysRemaining > 0 ? `${daysRemaining} jour${daysRemaining > 1 ? 's' : ''} restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine aujourd\'hui'}
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => setShowSettingsModal(true)}
-                              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-1.5 rounded transition-all"
-                              title="Modifier"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={async () => {
-                                if (window.confirm(`Êtes-vous sûr de vouloir supprimer le challenge "${challenge.title}" ?`)) {
-                                  try {
-                                    const token = localStorage.getItem('token');
-                                    await axios.delete(`${API}/manager/challenges/${challenge.id}`, {
-                                      headers: { Authorization: `Bearer ${token}` }
-                                    });
-                                    toast.success('Challenge supprimé avec succès');
-                                    fetchActiveChallenges(); // Refresh the list
-                                  } catch (err) {
-                                    console.error('Error deleting challenge:', err);
-                                    toast.error('Erreur lors de la suppression du challenge');
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setShowSettingsModal(true)}
+                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-1 rounded transition-all"
+                                title="Modifier"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (window.confirm(`Êtes-vous sûr de vouloir supprimer le challenge "${challenge.title}" ?`)) {
+                                    try {
+                                      const token = localStorage.getItem('token');
+                                      await axios.delete(`${API}/manager/challenges/${challenge.id}`, {
+                                        headers: { Authorization: `Bearer ${token}` }
+                                      });
+                                      toast.success('Challenge supprimé avec succès');
+                                      fetchActiveChallenges();
+                                      setCurrentChallengeIndex(0); // Reset to first card
+                                    } catch (err) {
+                                      console.error('Error deleting challenge:', err);
+                                      toast.error('Erreur lors de la suppression du challenge');
+                                    }
                                   }
-                                }
-                              }}
-                              className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1.5 rounded transition-all"
-                              title="Supprimer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                                }}
+                                className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1 rounded transition-all"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })()}
+                  </div>
+
+                  {/* Pagination Dots */}
+                  {activeChallenges.length > 1 && (
+                    <div className="flex justify-center gap-2 mt-4">
+                      {activeChallenges.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentChallengeIndex(index)}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            index === currentChallengeIndex ? 'bg-[#ffd871] w-4' : 'bg-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
