@@ -2534,6 +2534,29 @@ Profil de vente :
     # Count days with KPI entries in the period
     jours_actifs = len(kpi_entries)
     
+    # Check if we have enough data
+    if jours_actifs == 0:
+        # No KPI data for this period
+        return SellerBilan(
+            id=str(uuid.uuid4()),
+            seller_id=seller_id,
+            periode=periode,
+            synthese=f"Aucun KPI enregistré pour la semaine du {start_date.strftime('%d/%m')} au {end_date.strftime('%d/%m')}. Pense à entrer tes KPIs quotidiennement pour suivre ta progression !",
+            points_forts=[""],
+            points_attention=["Entre tes KPIs chaque jour pour avoir un bilan précis"],
+            recommandations=["Commence par saisir tes KPIs (CA, Ventes, Clients, Articles) via le bouton '+ Nouveau KPI'"],
+            kpi_resume={
+                "ca_total": 0,
+                "ventes": 0,
+                "clients": 0,
+                "articles": 0,
+                "panier_moyen": 0,
+                "taux_transformation": 0,
+                "indice_vente": 0
+            },
+            created_at=datetime.now(timezone.utc)
+        )
+    
     prompt = f"""Tu es un coach en vente retail. Analyse les performances INDIVIDUELLES de ce vendeur pour la semaine et génère un bilan personnalisé et STRICTEMENT individuel (aucune comparaison avec d'autres vendeurs).
 
 {seller_context}
