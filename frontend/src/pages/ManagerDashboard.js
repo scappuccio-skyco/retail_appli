@@ -759,10 +759,12 @@ export default function ManagerDashboard({ user, onLogout }) {
 
                 {activeTab === 'kpi' && sellerKPIs.length > 0 && (
                   <div className="space-y-4 max-h-[600px] overflow-y-auto animate-fadeIn">
-                    {/* Chart visibility toggles */}
+                    {/* Chart visibility toggles - Only show buttons for available charts */}
+                    {Object.values(availableDashboardCharts).some(v => v) && (
                     <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200 sticky top-0 z-10">
                       <p className="text-xs font-semibold text-gray-700 mb-2">📊 Graphiques affichés :</p>
                       <div className="flex flex-wrap gap-1.5">
+                        {availableDashboardCharts.ca && (
                         <button
                           onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, ca: !prev.ca }))}
                           className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
@@ -773,6 +775,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                         >
                           💰 CA
                         </button>
+                        )}
+                        {availableDashboardCharts.ventesVsClients && (
                         <button
                           onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, ventesVsClients: !prev.ventesVsClients }))}
                           className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
@@ -783,6 +787,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                         >
                           📊 Ventes vs Clients
                         </button>
+                        )}
+                        {availableDashboardCharts.ventes && (
                         <button
                           onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, ventes: !prev.ventes }))}
                           className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
@@ -793,6 +799,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                         >
                           🛍️ Ventes
                         </button>
+                        )}
+                        {availableDashboardCharts.clients && (
                         <button
                           onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, clients: !prev.clients }))}
                           className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
@@ -803,6 +811,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                         >
                           👥 Clients
                         </button>
+                        )}
+                        {availableDashboardCharts.articles && (
                         <button
                           onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, articles: !prev.articles }))}
                           className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
@@ -813,6 +823,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                         >
                           📦 Articles
                         </button>
+                        )}
+                        {availableDashboardCharts.panierMoyen && (
                         <button
                           onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, panierMoyen: !prev.panierMoyen }))}
                           className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
@@ -823,6 +835,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                         >
                           🛒 Panier Moyen
                         </button>
+                        )}
+                        {availableDashboardCharts.tauxTransfo && (
                         <button
                           onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, tauxTransfo: !prev.tauxTransfo }))}
                           className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
@@ -833,6 +847,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                         >
                           📈 Taux Transfo
                         </button>
+                        )}
+                        {availableDashboardCharts.indiceVente && (
                         <button
                           onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, indiceVente: !prev.indiceVente }))}
                           className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
@@ -843,11 +859,13 @@ export default function ManagerDashboard({ user, onLogout }) {
                         >
                           💎 Indice Vente
                         </button>
+                        )}
                       </div>
                     </div>
+                    )}
 
                     {/* Évolution du CA */}
-                    {visibleDashboardCharts.ca && (
+                    {availableDashboardCharts.ca && visibleDashboardCharts.ca && (
                       <div className="bg-white rounded-xl p-4 border border-gray-200">
                         <h4 className="text-sm font-semibold text-gray-700 mb-3">💰 Évolution du CA</h4>
                         <ResponsiveContainer width="100%" height={150}>
