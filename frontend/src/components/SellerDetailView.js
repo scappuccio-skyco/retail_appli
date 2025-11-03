@@ -38,16 +38,38 @@ export default function SellerDetailView({ seller, onBack }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const [diagRes, debriefsRes, competencesRes, kpiRes] = await Promise.all([
-        axios.get(`${API}/diagnostic/seller/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
+      const [statsRes, debriefsRes, kpiRes] = await Promise.all([
+        axios.get(`${API}/manager/seller/${seller.id}/stats`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/manager/debriefs/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/manager/competences-history/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/manager/kpi-entries/${seller.id}?days=30`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
 
-      setDiagnostic(diagRes.data);
+      // Extract data from stats response (which includes live scores)
+      const statsData = statsRes.data;
+      setDiagnostic(statsData.seller.diagnostic || null);
       setDebriefs(debriefsRes.data);
-      setCompetencesHistory(competencesRes.data);
+      
+      // Convert live scores to competences history format for compatibility
+      // Use the LIVE scores from stats (harmonized with manager overview)
+      const liveScores = statsData.avg_radar_scores || {
+        accueil: 0,
+        decouverte: 0,
+        argumentation: 0,
+        closing: 0,
+        fidelisation: 0
+      };
+      
+      const competencesData = [{
+        type: "live",
+        date: new Date().toISOString(),
+        score_accueil: liveScores.accueil,
+        score_decouverte: liveScores.decouverte,
+        score_argumentation: liveScores.argumentation,
+        score_closing: liveScores.closing,
+        score_fidelisation: liveScores.fidelisation
+      }];
+      
+      setCompetencesHistory(competencesData);
       setKpiEntries(kpiRes.data);
     } catch (err) {
       console.error('Error loading seller data:', err);
