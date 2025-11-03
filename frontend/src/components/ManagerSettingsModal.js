@@ -568,10 +568,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h4 className="font-bold text-gray-800">
-                                    📅 Période: {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
-                                  </h4>
+                                <h4 className="font-bold text-gray-800 text-lg mb-2">
+                                  🎯 {objective.title}
+                                </h4>
+                                <div className="text-sm text-gray-600 mb-2">
+                                  📅 Période: {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
                                 </div>
                                 <div className="flex flex-wrap gap-3 text-sm text-gray-600">
                                   {objective.ca_target && <span>💰 CA: {objective.ca_target}€</span>}
