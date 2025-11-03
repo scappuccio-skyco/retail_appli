@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Sparkles, X, RefreshCw, BookOpen } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import GuideProfilsModal from './GuideProfilsModal';
 
 export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnostic }) {
