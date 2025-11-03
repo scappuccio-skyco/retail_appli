@@ -50,6 +50,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [kpiConfig, setKpiConfig] = useState(null);
   const [activeChallenges, setActiveChallenges] = useState([]); // Challenges actifs (collectifs + personnels)
   const [activeObjectives, setActiveObjectives] = useState([]); // Objectifs d'équipe actifs
+  const [currentObjectiveIndex, setCurrentObjectiveIndex] = useState(0); // Carousel for objectives
+  const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0); // Carousel for challenges
 
   useEffect(() => {
     fetchData();
