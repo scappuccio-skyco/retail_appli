@@ -674,6 +674,323 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           )}
         </div>
 
+        {/* Objectives & Challenges Carousel Section */}
+        {(activeObjectives.length > 0 || activeChallenges.length > 0) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Team Objectives Section (Left) - Carousel */}
+            {activeObjectives.length > 0 && (
+              <div className="glass-morphism rounded-2xl p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <Award className="w-6 h-6 text-purple-500" />
+                  <h3 className="text-xl font-bold text-gray-800">🎯 Objectifs d'Équipe</h3>
+                </div>
+
+                {/* Carousel Navigation & Card */}
+                <div className="relative">
+                  {/* Navigation Buttons */}
+                  {activeObjectives.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => setCurrentObjectiveIndex((prev) => (prev > 0 ? prev - 1 : activeObjectives.length - 1))}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
+                      >
+                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setCurrentObjectiveIndex((prev) => (prev < activeObjectives.length - 1 ? prev + 1 : 0))}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
+                      >
+                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+
+                  {/* Objective Card */}
+                  <div className="px-8">
+                    {(() => {
+                      const objective = activeObjectives[currentObjectiveIndex];
+                      const daysRemaining = Math.ceil((new Date(objective.period_end) - new Date()) / (1000 * 60 * 60 * 24));
+
+                      // Calculate progress percentage
+                      const progressPercentage = (() => {
+                        if (objective.ca_target && objective.progress_ca !== undefined) {
+                          return (objective.progress_ca / objective.ca_target) * 100;
+                        }
+                        if (objective.panier_moyen_target && objective.progress_panier_moyen !== undefined) {
+                          return (objective.progress_panier_moyen / objective.panier_moyen_target) * 100;
+                        }
+                        if (objective.indice_vente_target && objective.progress_indice_vente !== undefined) {
+                          return (objective.progress_indice_vente / objective.indice_vente_target) * 100;
+                        }
+                        return 0;
+                      })();
+
+                      const status = objective.status || 'in_progress';
+
+                      return (
+                        <div 
+                          key={objective.id} 
+                          className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-300 hover:shadow-lg transition-all h-[280px] flex flex-col"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-bold text-gray-800 text-lg line-clamp-1">{objective.title}</h4>
+                            <div className="flex flex-col gap-1 items-end">
+                              {status === 'achieved' && (
+                                <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+                                  🎉 Atteint !
+                                </span>
+                              )}
+                              {status === 'failed' && (
+                                <span className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+                                  ⚠️ Non atteint
+                                </span>
+                              )}
+                              {status === 'in_progress' && (
+                                <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+                                  ⏳ En cours
+                                </span>
+                              )}
+                              <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+                                👥 Équipe
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Période */}
+                          <div className="text-xs text-gray-600 mb-2">
+                            📅 {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
+                          </div>
+
+                          {/* Progress Bar */}
+                          <div className="mb-2">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-gray-600">Progression</span>
+                              <span className="text-xs font-bold text-gray-800">{Math.min(100, progressPercentage.toFixed(0))}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all ${
+                                  status === 'achieved' ? 'bg-gradient-to-r from-green-400 to-green-500' :
+                                  status === 'failed' ? 'bg-gradient-to-r from-red-400 to-red-500' :
+                                  'bg-gradient-to-r from-purple-400 to-pink-400'
+                                }`}
+                                style={{ width: `${Math.min(100, progressPercentage)}%` }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          {/* Targets with Progress */}
+                          <div className="space-y-1 mb-2 flex-1">
+                            {objective.ca_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">💰 CA:</span>
+                                <span className="font-semibold text-gray-800">
+                                  {(objective.progress_ca || 0).toFixed(0)}€ / {objective.ca_target}€
+                                </span>
+                              </div>
+                            )}
+                            {objective.panier_moyen_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">🛒 Panier M.:</span>
+                                <span className="font-semibold text-gray-800">
+                                  {(objective.progress_panier_moyen || 0).toFixed(1)}€ / {objective.panier_moyen_target}€
+                                </span>
+                              </div>
+                            )}
+                            {objective.indice_vente_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">💎 Indice:</span>
+                                <span className="font-semibold text-gray-800">
+                                  {(objective.progress_indice_vente || 0).toFixed(1)} / {objective.indice_vente_target}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Time remaining */}
+                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-auto pt-2 border-t border-purple-200">
+                            <span>⏰</span>
+                            <span>
+                              {daysRemaining > 0 ? `${daysRemaining}j restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Pagination Dots */}
+                  {activeObjectives.length > 1 && (
+                    <div className="flex justify-center gap-2 mt-4">
+                      {activeObjectives.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentObjectiveIndex(index)}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            index === currentObjectiveIndex ? 'bg-purple-500 w-4' : 'bg-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Challenges Section (Right) - Carousel */}
+            {activeChallenges.length > 0 && (
+              <div className="glass-morphism rounded-2xl p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <Award className="w-6 h-6 text-[#ffd871]" />
+                  <h3 className="text-xl font-bold text-gray-800">🏆 Mes Challenges</h3>
+                </div>
+
+                {/* Carousel Navigation & Card */}
+                <div className="relative">
+                  {/* Navigation Buttons */}
+                  {activeChallenges.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => setCurrentChallengeIndex((prev) => (prev > 0 ? prev - 1 : activeChallenges.length - 1))}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
+                      >
+                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setCurrentChallengeIndex((prev) => (prev < activeChallenges.length - 1 ? prev + 1 : 0))}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
+                      >
+                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+
+                  {/* Challenge Card */}
+                  <div className="px-8">
+                    {(() => {
+                      const challenge = activeChallenges[currentChallengeIndex];
+                      const progressPercentage = (() => {
+                        if (challenge.ca_target) return (challenge.progress_ca / challenge.ca_target) * 100;
+                        if (challenge.ventes_target) return (challenge.progress_ventes / challenge.ventes_target) * 100;
+                        if (challenge.indice_vente_target) return (challenge.progress_indice_vente / challenge.indice_vente_target) * 100;
+                        if (challenge.panier_moyen_target) return (challenge.progress_panier_moyen / challenge.panier_moyen_target) * 100;
+                        return 0;
+                      })();
+
+                      const daysRemaining = Math.ceil((new Date(challenge.end_date) - new Date()) / (1000 * 60 * 60 * 24));
+                      const isPersonal = challenge.type === 'individual' && challenge.seller_id === user.id;
+
+                      return (
+                        <div 
+                          key={challenge.id} 
+                          className={`rounded-xl p-4 border-2 hover:shadow-lg transition-all h-[280px] flex flex-col ${
+                            isPersonal 
+                              ? 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-300' 
+                              : 'bg-gradient-to-br from-amber-50 to-yellow-50 border-[#ffd871]'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-bold text-gray-800 text-lg line-clamp-1">{challenge.title}</h4>
+                            <span className={`text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap ${
+                              isPersonal 
+                                ? 'bg-purple-100 text-purple-700' 
+                                : 'bg-green-100 text-green-700'
+                            }`}>
+                              {isPersonal ? '👤 Personnel' : '🏆 Équipe'}
+                            </span>
+                          </div>
+
+                          {challenge.description && (
+                            <p className="text-gray-600 text-xs mb-2 line-clamp-1">{challenge.description}</p>
+                          )}
+
+                          {/* Progress Bar */}
+                          <div className="mb-2">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-gray-600">Progression</span>
+                              <span className="text-xs font-bold text-gray-800">{Math.min(100, progressPercentage.toFixed(0))}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all ${
+                                  isPersonal 
+                                    ? 'bg-gradient-to-r from-purple-400 to-pink-400' 
+                                    : 'bg-gradient-to-r from-[#ffd871] to-yellow-300'
+                                }`}
+                                style={{ width: `${Math.min(100, progressPercentage)}%` }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          {/* Targets */}
+                          <div className="space-y-1 mb-2 flex-1">
+                            {challenge.ca_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">💰 CA:</span>
+                                <span className="font-semibold text-gray-800">{challenge.progress_ca.toFixed(0)}€ / {challenge.ca_target}€</span>
+                              </div>
+                            )}
+                            {challenge.ventes_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">🛍️ Ventes:</span>
+                                <span className="font-semibold text-gray-800">{challenge.progress_ventes} / {challenge.ventes_target}</span>
+                              </div>
+                            )}
+                            {challenge.panier_moyen_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">🛒 Panier M.:</span>
+                                <span className="font-semibold text-gray-800">{challenge.progress_panier_moyen.toFixed(1)}€ / {challenge.panier_moyen_target}€</span>
+                              </div>
+                            )}
+                            {challenge.indice_vente_target && (
+                              <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">💎 Indice:</span>
+                                <span className="font-semibold text-gray-800">{challenge.progress_indice_vente.toFixed(1)} / {challenge.indice_vente_target}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Time remaining */}
+                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-auto pt-2 border-t border-gray-200">
+                            <span>⏰</span>
+                            <span>
+                              {daysRemaining > 0 ? `${daysRemaining}j restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Pagination Dots */}
+                  {activeChallenges.length > 1 && (
+                    <div className="flex justify-center gap-2 mt-4">
+                      {activeChallenges.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentChallengeIndex(index)}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            index === currentChallengeIndex ? 'bg-[#ffd871] w-4' : 'bg-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Radar Chart */}
