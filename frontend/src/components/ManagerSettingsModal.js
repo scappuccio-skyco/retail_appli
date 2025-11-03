@@ -181,6 +181,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
     try {
       // Clean data - remove empty strings and convert to numbers
       const cleanedData = {
+        title: editingObjective.title,
         period_start: editingObjective.period_start,
         period_end: editingObjective.period_end
       };
