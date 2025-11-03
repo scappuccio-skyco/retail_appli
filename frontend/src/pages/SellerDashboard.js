@@ -915,6 +915,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           onSuccess={() => {
             setShowKPIModal(false);
             fetchData();
+            refreshCompetenceScores(); // Refresh scores after KPI entry
           }}
         />
       )}
