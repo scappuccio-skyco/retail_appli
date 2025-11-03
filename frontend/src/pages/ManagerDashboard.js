@@ -1002,7 +1002,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                     )}
 
                     {/* Panier Moyen */}
-                    {visibleDashboardCharts.panierMoyen && (
+                    {availableDashboardCharts.panierMoyen && visibleDashboardCharts.panierMoyen && (
                       <div className="bg-white rounded-xl p-4 border border-gray-200">
                         <h4 className="text-sm font-semibold text-gray-700 mb-3">🛒 Panier Moyen</h4>
                         <ResponsiveContainer width="100%" height={150}>
