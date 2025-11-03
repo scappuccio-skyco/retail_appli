@@ -3471,6 +3471,60 @@ async def delete_challenge(challenge_id: str, current_user: dict = Depends(get_c
     
     return {"message": "Challenge deleted successfully", "id": challenge_id}
 
+async def calculate_objective_progress(objective: dict, manager_id: str):
+    """Calculate progress for an objective (team-wide)"""
+    start_date = objective['period_start']
+    end_date = objective['period_end']
+    
+    # Get all sellers for this manager
+    sellers = await db.users.find({"manager_id": manager_id, "role": "seller"}, {"_id": 0, "id": 1}).to_list(1000)
+    seller_ids = [s['id'] for s in sellers]
+    
+    # Get KPI entries for all sellers in date range
+    entries = await db.kpi_entries.find({
+        "seller_id": {"$in": seller_ids},
+        "date": {"$gte": start_date, "$lte": end_date}
+    }, {"_id": 0}).to_list(10000)
+    
+    # Calculate totals
+    total_ca = sum(e.get('ca_journalier', 0) for e in entries)
+    total_ventes = sum(e.get('nb_ventes', 0) for e in entries)
+    total_articles = sum(e.get('nb_articles', 0) for e in entries)
+    
+    # Calculate averages
+    panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
+    indice_vente = total_ca / total_articles if total_articles > 0 else 0
+    
+    # Update progress
+    objective['progress_ca'] = total_ca
+    objective['progress_panier_moyen'] = panier_moyen
+    objective['progress_indice_vente'] = indice_vente
+    
+    # Determine status
+    today = datetime.now(timezone.utc).date().isoformat()
+    if today > end_date:
+        # Check if objective is met
+        objective_met = True
+        if objective.get('ca_target') and total_ca < objective['ca_target']:
+            objective_met = False
+        if objective.get('panier_moyen_target') and panier_moyen < objective['panier_moyen_target']:
+            objective_met = False
+        if objective.get('indice_vente_target') and indice_vente < objective['indice_vente_target']:
+            objective_met = False
+        
+        objective['status'] = 'achieved' if objective_met else 'failed'
+    else:
+        # Check if already achieved
+        objective_met = True
+        if objective.get('ca_target') and total_ca < objective['ca_target']:
+            objective_met = False
+        if objective.get('panier_moyen_target') and panier_moyen < objective['panier_moyen_target']:
+            objective_met = False
+        if objective.get('indice_vente_target') and indice_vente < objective['indice_vente_target']:
+            objective_met = False
+        
+        objective['status'] = 'achieved' if objective_met else 'in_progress'
+
 async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
     """Calculate progress for a challenge"""
     start_date = challenge['start_date']
