@@ -615,10 +615,10 @@ export default function SellerDetailView({ seller, onBack }) {
                 </div>
               </div>
 
-              {/* Graphiques - Affichés selon les filtres */}
+              {/* Graphiques - Affichés selon les filtres ET la configuration du manager */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Graphique CA */}
-                {visibleCharts.ca && (
+                {availableCharts.ca && visibleCharts.ca && (
                   <div className="bg-white rounded-xl p-4 border border-gray-200">
                     <h3 className="text-lg font-bold text-gray-800 mb-4">💰 Évolution du CA</h3>
                     <ResponsiveContainer width="100%" height={250}>
