@@ -373,10 +373,10 @@ export default function DebriefModal({ onClose, onSuccess }) {
                       key={raison}
                       type="button"
                       onClick={() => handleChange('raisons_echec', raison)}
-                      className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
+                      className={`w-full text-left p-3 rounded-xl border-2 text-sm font-medium transition-all ${
                         formData.raisons_echec === raison
-                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                          : 'border-gray-200 hover:border-[#ffd871]'
+                          ? 'border-purple-500 bg-purple-50 text-purple-700 shadow-md'
+                          : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
                       }`}
                     >
                       {raison}
@@ -389,22 +389,39 @@ export default function DebriefModal({ onClose, onSuccess }) {
                     onChange={(e) => handleChange('raisons_echec_autre', e.target.value)}
                     placeholder="Précisez..."
                     rows={2}
-                    className="w-full mt-2 px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
+                    className="w-full mt-2 px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all resize-none shadow-sm"
                   />
                 )}
+              </div>
+            </div>
+
+            {/* SECTION 3 - TON RÉFLEXION */}
+            <div className="bg-white rounded-xl p-6 border-2 border-green-100 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
+                  3
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">
+                    Ta réflexion
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Prends du recul sur cette expérience.
+                  </p>
+                </div>
               </div>
 
               {/* Amélioration */}
               <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
-                  Qu'aurais-tu pu faire différemment selon toi ?
+                <label className="block text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <span className="text-lg">💡</span> Qu'aurais-tu pu faire différemment selon toi ?
                 </label>
                 <textarea
                   value={formData.amelioration_pensee}
                   onChange={(e) => handleChange('amelioration_pensee', e.target.value)}
                   placeholder="Partage tes réflexions..."
-                  rows={3}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
+                  rows={4}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all resize-none shadow-sm"
                 />
               </div>
             </div>
@@ -412,18 +429,28 @@ export default function DebriefModal({ onClose, onSuccess }) {
         </div>
 
         {/* Actions */}
-        <div className="border-t border-gray-200 p-6 flex gap-3 flex-shrink-0">
+        <div className="bg-gradient-to-r from-gray-50 to-white border-t-2 border-gray-200 p-6 flex gap-3 flex-shrink-0 rounded-b-2xl">
           <button
             type="button"
             onClick={handleSubmit}
             disabled={!isComplete() || loading}
-            className={`flex-1 py-3 rounded-full font-semibold transition-all ${
+            className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all shadow-lg ${
               isComplete() && !loading
-                ? 'bg-[#ffd871] text-gray-800 hover:shadow-lg'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
-            {loading ? 'Analyse en cours...' : 'Recevoir mon coaching'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Sparkles className="w-5 h-5 animate-pulse" />
+                Analyse en cours...
+              </span>
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                Recevoir mon coaching IA
+              </span>
+            )}
           </button>
         </div>
       </div>
