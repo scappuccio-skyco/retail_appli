@@ -696,7 +696,7 @@ export default function SellerDetailView({ seller, onBack }) {
                 )}
 
                 {/* Graphique Articles */}
-                {visibleCharts.articles && (
+                {availableCharts.articles && visibleCharts.articles && (
                   <div className="bg-white rounded-xl p-4 border border-gray-200">
                     <h3 className="text-lg font-bold text-gray-800 mb-4">📦 Évolution des articles vendus</h3>
                     <ResponsiveContainer width="100%" height={250}>
