@@ -652,7 +652,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
     if (activeSection === 'niveau') return '⭐ Niveaux d\'Expérience';
     if (activeSection === 'motivation') return '⚡ Leviers de Motivation';
     if (activeSection === 'disc') return '🎭 Profils DISC';
-    if (activeSection === 'management') return '👔 Styles de Management';
+    if (activeSection === 'management') return '👔 Type de Management';
     if (activeSection === 'compatibilite') return '🤝 Compatibilité';
     return '';
   };
