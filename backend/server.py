@@ -3238,15 +3238,14 @@ async def get_active_seller_challenges(current_user: dict = Depends(get_current_
         {
             "manager_id": manager_id,
             "status": "active",
-            "start_date": {"$lte": today},
-            "end_date": {"$gte": today},
+            "end_date": {"$gte": today},  # Only filter by end_date - show challenges that haven't ended yet
             "$or": [
                 {"type": "collective"},
                 {"type": "individual", "seller_id": current_user['id']}
             ]
         },
         {"_id": 0}
-    ).sort("end_date", 1).to_list(10)
+    ).sort("start_date", 1).to_list(10)  # Sort by start_date to show upcoming first
     
     # Calculate progress for each challenge
     for challenge in challenges:
