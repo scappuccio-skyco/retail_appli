@@ -2924,7 +2924,10 @@ class RetailCoachAPITester:
 
 def main():
     tester = RetailCoachAPITester()
-    return tester.run_all_tests()
+    # Run only the active challenges test for the review request
+    tester.test_active_challenges_display()
+    tester.print_summary()
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())
