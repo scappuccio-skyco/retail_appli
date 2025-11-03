@@ -309,8 +309,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           <div className="flex items-center gap-2 mb-2">
                             <label className="block text-sm font-semibold text-gray-700">Titre *</label>
                             <div className="group relative">
-                              <span className="cursor-help text-blue-500 text-xs">ℹ️</span>
-                              <div className="invisible group-hover:visible absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg">
+                              <div className="w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-blue-600 transition-all">
+                                ?
+                              </div>
+                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-blue-600 text-white text-sm rounded-lg shadow-2xl border-2 border-blue-400">
+                                <div className="font-semibold mb-1">💡 Conseil :</div>
                                 Donnez un nom accrocheur à votre challenge (ex: "Challenge Parfums", "Top Vendeur du Mois")
                               </div>
                             </div>
