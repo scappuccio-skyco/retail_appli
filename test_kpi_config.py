@@ -226,7 +226,7 @@ class KPIConfigTester:
             
             success, restore_response = self.run_test(
                 "Restore Original KPI Configuration",
-                "POST",
+                "PUT",
                 "manager/kpi-config",
                 200,
                 data=restore_config,
