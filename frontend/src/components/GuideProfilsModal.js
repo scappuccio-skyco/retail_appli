@@ -9,6 +9,10 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
   
   const [activeSection, setActiveSection] = useState(allSections[0]);
   const [currentProfile, setCurrentProfile] = useState(0);
+  
+  // States for compatibility selector
+  const [selectedManagementType, setSelectedManagementType] = useState('');
+  const [selectedSellingStyle, setSelectedSellingStyle] = useState('');
 
   // Styles de vente (5 profils)
   const stylesVente = [
