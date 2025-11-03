@@ -3203,6 +3203,23 @@ async def delete_manager_objectives(objective_id: str, current_user: dict = Depe
     
     return {"message": "Objectives deleted successfully", "id": objective_id}
 
+@api_router.get("/manager/objectives/active")
+async def get_active_manager_objectives(current_user: dict = Depends(get_current_user)):
+    """Get only active objectives for display in manager dashboard"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access objectives")
+    
+    today = datetime.now(timezone.utc).date().isoformat()
+    objectives = await db.manager_objectives.find(
+        {
+            "manager_id": current_user['id'],
+            "period_end": {"$gte": today}  # Only objectives that haven't ended yet
+        },
+        {"_id": 0}
+    ).sort("period_start", 1).to_list(10)
+    
+    return objectives
+
 # ===== CHALLENGE ENDPOINTS =====
 @api_router.get("/manager/challenges")
 async def get_manager_challenges(current_user: dict = Depends(get_current_user)):
