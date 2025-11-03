@@ -1337,6 +1337,17 @@ export default function ManagerDashboard({ user, onLogout }) {
           onClose={() => setShowTeamBilanModal(false)}
         />
       )}
+
+      {showSettingsModal && (
+        <ManagerSettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+          onUpdate={() => {
+            fetchActiveChallenges();
+            fetchKpiConfig();
+          }}
+        />
+      )}
     </div>
   );
 }
