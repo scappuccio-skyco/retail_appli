@@ -3105,10 +3105,13 @@ class RetailCoachAPITester:
         print("🚀 Starting Retail Coach 2.0 API Tests")
         print("=" * 50)
 
-        # CRITICAL: Test the ACTIVE CHALLENGES DISPLAY review request FIRST
+        # CRITICAL: Test the ACTIVE OBJECTIVES DISPLAY review request FIRST
+        self.test_active_objectives_display()
+
+        # CRITICAL: Test the ACTIVE CHALLENGES DISPLAY review request
         self.test_active_challenges_display()
 
-        # CRITICAL: Test the specific review request FIRST
+        # CRITICAL: Test the specific review request
         self.test_dynamic_kpi_display_sellerdetailview()
 
         # Authentication tests
