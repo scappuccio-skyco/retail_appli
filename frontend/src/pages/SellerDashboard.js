@@ -469,19 +469,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         )}
 
         {/* Active Challenges Section */}
-        {/* Objectives & Challenges Section - Separated like Manager Dashboard */}
-        {(activeObjectives.length > 0 || activeChallenges.length > 0) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Team Objectives Section (Left) */}
-            {activeObjectives.length > 0 && (
-              <div className="glass-morphism rounded-2xl p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <Award className="w-6 h-6 text-purple-500" />
-                  <h3 className="text-xl font-bold text-gray-800">🎯 Objectifs d'Équipe</h3>
-                </div>
-
-                <div className="space-y-4">
-                  {activeObjectives.map((objective) => {
+        {/* Compact Cards: Profile + Bilan Individuel (side by side like manager dashboard) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Profile Card */}
+          {diagnostic && (
                     const daysRemaining = Math.ceil((new Date(objective.period_end) - new Date()) / (1000 * 60 * 60 * 24));
                     
                     // Calculate progress percentage
