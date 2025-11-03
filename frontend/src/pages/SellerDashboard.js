@@ -951,12 +951,17 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
       {showKPIModal && (
         <KPIEntryModal
-          onClose={() => setShowKPIModal(false)}
+          onClose={() => {
+            setShowKPIModal(false);
+            setEditingKPI(null);
+          }}
           onSuccess={() => {
             setShowKPIModal(false);
+            setEditingKPI(null);
             fetchData();
             refreshCompetenceScores(); // Refresh scores after KPI entry
           }}
+          editEntry={editingKPI}
         />
       )}
 
