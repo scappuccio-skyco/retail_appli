@@ -207,6 +207,18 @@ class TeamBilan(BaseModel):
     competences_moyenne: dict  # Moyenne des compétences de l'équipe
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class SellerBilan(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    seller_id: str
+    periode: str  # "Semaine du X au Y"
+    synthese: str  # Synthèse globale de la semaine du vendeur
+    points_forts: list[str]  # Liste des points forts personnels
+    points_attention: list[str]  # Liste des points d'attention personnels
+    recommandations: list[str]  # Recommandations personnalisées
+    kpi_resume: dict  # Résumé des KPIs personnels (CA, ventes, etc.)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 class ManagerRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
