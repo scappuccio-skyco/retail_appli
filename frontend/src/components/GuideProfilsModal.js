@@ -756,6 +756,779 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
     }
   ];
 
+  // Compatibility matrix function
+  const getCompatibilityResult = (managementType, sellingStyle) => {
+    if (!managementType || !sellingStyle) return null;
+
+    // Matrice de compatibilité
+    const compatibilityMatrix = {
+      'Pilote': {
+        'Convivial': {
+          score: '⭐⭐⭐',
+          title: 'Manager Pilote × Vendeur Convivial',
+          description: 'Complémentarité structure-relation',
+          caracteristiques: [
+            'Le manager apporte structure et objectifs clairs',
+            'Le vendeur apporte chaleur et relation client',
+            'Équilibre entre performance et fidélisation',
+            'Communication à adapter'
+          ],
+          forces: [
+            'Résultats mesurables avec clients satisfaits',
+            'Process respectés avec flexibilité relationnelle',
+            'Équilibre durable'
+          ],
+          attention: [
+            'Rythmes différents (direct vs relationnel)',
+            'Le manager doit valoriser l\'aspect humain',
+            'Le vendeur doit accepter les objectifs chiffrés'
+          ]
+        },
+        'Dynamique': {
+          score: '⭐⭐⭐⭐⭐',
+          title: 'Manager Pilote × Vendeur Dynamique',
+          description: 'Alliance parfaite orientée performance',
+          caracteristiques: [
+            'Communication directe et efficace',
+            'Focus commun sur les objectifs',
+            'Rythme soutenu et dynamique',
+            'Peu de friction dans l\'exécution'
+          ],
+          forces: [
+            'Atteinte rapide des objectifs',
+            'Efficacité maximale',
+            'Alignement naturel sur les résultats'
+          ],
+          attention: [
+            'Risque de négliger l\'aspect humain',
+            'Besoin de célébrer les réussites',
+            'Attention au surmenage'
+          ]
+        },
+        'Explorateur': {
+          score: '⭐⭐⭐',
+          title: 'Manager Pilote × Vendeur Explorateur',
+          description: 'Complémentarité action-réflexion',
+          caracteristiques: [
+            'Le manager donne le cap et la structure',
+            'Le vendeur apporte créativité et curiosité',
+            'Besoin de compromis sur le tempo',
+            'Communication régulière nécessaire'
+          ],
+          forces: [
+            'Innovation cadrée et structurée',
+            'Solutions créatives aux problèmes',
+            'Développement mutuel'
+          ],
+          attention: [
+            'Patience requise des deux côtés',
+            'Le vendeur peut se sentir bridé',
+            'Le manager doit laisser de l\'espace'
+          ]
+        },
+        'Technique': {
+          score: '⭐⭐⭐⭐',
+          title: 'Manager Pilote × Vendeur Technique',
+          description: 'Duo d\'experts orienté résultats',
+          caracteristiques: [
+            'Excellence technique et méthodologie',
+            'Respect mutuel des compétences',
+            'Process et expertise valorisés',
+            'Communication factuelle'
+          ],
+          forces: [
+            'Performance technique exceptionnelle',
+            'Crédibilité client maximale',
+            'Fiabilité et rigueur'
+          ],
+          attention: [
+            'Risque de sur-technicité',
+            'Aspect humain à ne pas négliger',
+            'Besoin de souplesse parfois'
+          ]
+        },
+        'Challenger': {
+          score: '⭐⭐⭐⭐',
+          title: 'Manager Pilote × Vendeur Challenger',
+          description: 'Émulation et dépassement',
+          caracteristiques: [
+            'Objectifs ambitieux fixés',
+            'Culture du dépassement',
+            'Compétition saine',
+            'Respect mutuel de la performance'
+          ],
+          forces: [
+            'Résultats exceptionnels',
+            'Motivation par les défis',
+            'Progression continue'
+          ],
+          attention: [
+            'Besoin d\'équilibrer pression et bien-être',
+            'Célébrer les succès ensemble',
+            'Éviter la surcompétition'
+          ]
+        }
+      },
+      'Coach': {
+        'Convivial': {
+          score: '⭐⭐⭐⭐',
+          title: 'Manager Coach × Vendeur Convivial',
+          description: 'Alliance développement et relation',
+          caracteristiques: [
+            'Accompagnement personnalisé',
+            'Développement des soft skills',
+            'Culture de bienveillance',
+            'Écoute mutuelle'
+          ],
+          forces: [
+            'Fidélisation client maximale',
+            'Bien-être au travail',
+            'Progression douce et durable'
+          ],
+          attention: [
+            'Focus résultats à maintenir',
+            'Besoin d\'assertivité parfois',
+            'Fixer des limites claires'
+          ]
+        },
+        'Dynamique': {
+          score: '⭐⭐⭐',
+          title: 'Manager Coach × Vendeur Dynamique',
+          description: 'Rythmes différents à synchroniser',
+          caracteristiques: [
+            'Le manager prend le temps du développement',
+            'Le vendeur veut de l\'action rapide',
+            'Besoin de trouver un équilibre',
+            'Patience mutuelle requise'
+          ],
+          forces: [
+            'Performance avec développement',
+            'Le vendeur apprend à se poser',
+            'Résultats durables'
+          ],
+          attention: [
+            'Le vendeur peut s\'impatienter',
+            'Le manager doit accepter le tempo',
+            'Communication sur les attentes'
+          ]
+        },
+        'Explorateur': {
+          score: '⭐⭐⭐⭐⭐',
+          title: 'Manager Coach × Vendeur Explorateur',
+          description: 'Duo idéal pour le développement',
+          caracteristiques: [
+            'Apprentissage continu favorisé',
+            'Feedback réguliers et constructifs',
+            'Curiosité encouragée',
+            'Progression rapide'
+          ],
+          forces: [
+            'Développement optimal des compétences',
+            'Montée en autonomie rapide',
+            'Motivation et engagement élevés'
+          ],
+          attention: [
+            'Risque de surinvestissement',
+            'Peut manquer de pression résultats',
+            'Attention à la sur-analyse'
+          ]
+        },
+        'Technique': {
+          score: '⭐⭐⭐⭐',
+          title: 'Manager Coach × Vendeur Technique',
+          description: 'Expertise + Développement',
+          caracteristiques: [
+            'Valorisation de l\'expertise',
+            'Développement continu des compétences',
+            'Accompagnement technique',
+            'Culture d\'excellence'
+          ],
+          forces: [
+            'Expert en devenir',
+            'Transmission de savoirs',
+            'Excellence technique'
+          ],
+          attention: [
+            'Ne pas oublier l\'humain',
+            'Équilibrer technique et relationnel',
+            'Focus résultats'
+          ]
+        },
+        'Challenger': {
+          score: '⭐⭐⭐',
+          title: 'Manager Coach × Vendeur Challenger',
+          description: 'Développement vs Performance',
+          caracteristiques: [
+            'Le manager veut développer',
+            'Le vendeur veut performer',
+            'Besoin de compromis',
+            'Coaching orienté résultats'
+          ],
+          forces: [
+            'Développement de champion',
+            'Performance durable',
+            'Équilibre bien-être et résultats'
+          ],
+          attention: [
+            'Le vendeur peut trouver le coaching lent',
+            'Le manager doit s\'adapter',
+            'Célébrer les victoires'
+          ]
+        }
+      },
+      'Stratège': {
+        'Convivial': {
+          score: '⭐⭐⭐',
+          title: 'Manager Stratège × Vendeur Convivial',
+          description: 'Vision stratégique et chaleur humaine',
+          caracteristiques: [
+            'Structure apportée par le manager',
+            'Humanité apportée par le vendeur',
+            'Complémentarité organisation-relation',
+            'Communication à adapter'
+          ],
+          forces: [
+            'Performance avec fidélisation',
+            'Process respectés avec flexibilité',
+            'Clients satisfaits et objectifs atteints'
+          ],
+          attention: [
+            'Rythmes différents à synchroniser',
+            'Le manager doit valoriser le relationnel',
+            'Le vendeur doit accepter la planification'
+          ]
+        },
+        'Dynamique': {
+          score: '⭐⭐⭐⭐',
+          title: 'Manager Stratège × Vendeur Dynamique',
+          description: 'Vision et action',
+          caracteristiques: [
+            'Stratégie claire définie',
+            'Exécution rapide et efficace',
+            'Complémentarité réflexion-action',
+            'Performance optimisée'
+          ],
+          forces: [
+            'Objectifs clairs et atteints',
+            'Efficacité maximale',
+            'Anticipation et réactivité'
+          ],
+          attention: [
+            'Le vendeur peut trouver la planification lourde',
+            'Besoin de flexibilité',
+            'Communication régulière'
+          ]
+        },
+        'Explorateur': {
+          score: '⭐⭐⭐⭐',
+          title: 'Manager Stratège × Vendeur Explorateur',
+          description: 'Innovation stratégique',
+          caracteristiques: [
+            'Vision long terme',
+            'Exploration cadrée',
+            'Innovation structurée',
+            'Complémentarité vision-créativité'
+          ],
+          forces: [
+            'Solutions innovantes et viables',
+            'Développement durable',
+            'Anticipation des tendances'
+          ],
+          attention: [
+            'Le vendeur peut se sentir limité',
+            'Besoin de liberté encadrée',
+            'Patience des deux côtés'
+          ]
+        },
+        'Technique': {
+          score: '⭐⭐⭐⭐⭐',
+          title: 'Manager Stratège × Vendeur Technique',
+          description: 'Excellence stratégique et technique',
+          caracteristiques: [
+            'Vision long terme et expertise',
+            'Process optimisés',
+            'Excellence opérationnelle',
+            'Respect mutuel des compétences'
+          ],
+          forces: [
+            'Performance exceptionnelle durable',
+            'Référence sur le marché',
+            'Efficacité maximale'
+          ],
+          attention: [
+            'Risque de sur-optimisation',
+            'Ne pas négliger l\'humain',
+            'Rester flexible'
+          ]
+        },
+        'Challenger': {
+          score: '⭐⭐⭐⭐',
+          title: 'Manager Stratège × Vendeur Challenger',
+          description: 'Ambition stratégique',
+          caracteristiques: [
+            'Objectifs ambitieux et structurés',
+            'Vision de conquête',
+            'Planification des victoires',
+            'Culture de l\'excellence'
+          ],
+          forces: [
+            'Leadership marché',
+            'Résultats exceptionnels',
+            'Croissance continue'
+          ],
+          attention: [
+            'Équilibrer ambition et réalisme',
+            'Célébrer les étapes',
+            'Attention au surmenage'
+          ]
+        }
+      },
+      'Leader Inspirant': {
+        'Convivial': {
+          score: '⭐⭐⭐⭐⭐',
+          title: 'Manager Leader Inspirant × Vendeur Convivial',
+          description: 'Synergie humaine exceptionnelle',
+          caracteristiques: [
+            'Énergie positive et chaleur',
+            'Culture de bienveillance',
+            'Inspiration et relation',
+            'Ambiance exceptionnelle'
+          ],
+          forces: [
+            'Engagement maximal',
+            'Fidélisation client et équipe',
+            'Bien-être au travail',
+            'Résultats avec plaisir'
+          ],
+          attention: [
+            'Ne pas négliger la structure',
+            'Fixer des objectifs clairs',
+            'Éviter l\'excès d\'émotionnel'
+          ]
+        },
+        'Dynamique': {
+          score: '⭐⭐⭐⭐⭐',
+          title: 'Manager Leader Inspirant × Vendeur Dynamique',
+          description: 'Duo d\'action et d\'énergie',
+          caracteristiques: [
+            'Énergie décuplée',
+            'Action rapide et inspirée',
+            'Culture du dépassement',
+            'Performance exceptionnelle'
+          ],
+          forces: [
+            'Résultats extraordinaires',
+            'Motivation maximale',
+            'Ambiance électrique',
+            'Conquête de nouveaux sommets'
+          ],
+          attention: [
+            'Attention à l\'épuisement',
+            'Besoin de pauses',
+            'Célébrer mais aussi reposer'
+          ]
+        },
+        'Explorateur': {
+          score: '⭐⭐⭐⭐⭐',
+          title: 'Manager Leader Inspirant × Vendeur Explorateur',
+          description: 'Innovation inspirée',
+          caracteristiques: [
+            'Vision inspirante',
+            'Créativité encouragée',
+            'Culture de l\'innovation',
+            'Liberté d\'explorer'
+          ],
+          forces: [
+            'Solutions innovantes',
+            'Développement unique',
+            'Différenciation marché',
+            'Engagement maximal'
+          ],
+          attention: [
+            'Structurer l\'innovation',
+            'Fixer des jalons',
+            'Mesurer les résultats'
+          ]
+        },
+        'Technique': {
+          score: '⭐⭐⭐⭐',
+          title: 'Manager Leader Inspirant × Vendeur Technique',
+          description: 'Excellence inspirée',
+          caracteristiques: [
+            'Expertise valorisée et inspirée',
+            'Culture de l\'excellence',
+            'Passion technique communicative',
+            'Fierté du métier'
+          ],
+          forces: [
+            'Expertise de référence',
+            'Passion contagieuse',
+            'Excellence reconnue',
+            'Innovation technique'
+          ],
+          attention: [
+            'Ne pas survaloriser la technique',
+            'Équilibrer avec le relationnel',
+            'Rester accessible'
+          ]
+        },
+        'Challenger': {
+          score: '⭐⭐⭐⭐⭐',
+          title: 'Manager Leader Inspirant × Vendeur Challenger',
+          description: 'Champions ensemble',
+          caracteristiques: [
+            'Culture de champion',
+            'Défis inspirants',
+            'Dépassement permanent',
+            'Excellence recherchée'
+          ],
+          forces: [
+            'Performance exceptionnelle',
+            'Records battus',
+            'Leadership d\'équipe',
+            'Résultats historiques'
+          ],
+          attention: [
+            'Attention à l\'épuisement mutuel',
+            'Célébrer les victoires',
+            'Accepter les limites'
+          ]
+        }
+      },
+      'Facilitateur': {
+        'Convivial': {
+          score: '⭐⭐⭐⭐⭐',
+          title: 'Manager Facilitateur × Vendeur Convivial',
+          description: 'Duo relationnel exceptionnel',
+          caracteristiques: [
+            'Ambiance exceptionnelle',
+            'Communication fluide',
+            'Confiance mutuelle',
+            'Bien-être prioritaire'
+          ],
+          forces: [
+            'Fidélisation client maximale',
+            'Turnover minimal',
+            'Satisfaction équipe élevée',
+            'Climat de travail idéal'
+          ],
+          attention: [
+            'Peut manquer d\'assertivité',
+            'Besoin de focus résultats',
+            'Attention aux décisions difficiles'
+          ]
+        },
+        'Dynamique': {
+          score: '⭐⭐⭐',
+          title: 'Manager Facilitateur × Vendeur Dynamique',
+          description: 'Rythmes à synchroniser',
+          caracteristiques: [
+            'Le manager facilite',
+            'Le vendeur fonce',
+            'Besoin d\'équilibre',
+            'Communication sur les attentes'
+          ],
+          forces: [
+            'Le vendeur se sent soutenu',
+            'Fluidité opérationnelle',
+            'Peu de conflits'
+          ],
+          attention: [
+            'Le vendeur peut manquer de challenge',
+            'Besoin de stimulation',
+            'Fixer des objectifs ambitieux'
+          ]
+        },
+        'Explorateur': {
+          score: '⭐⭐⭐⭐',
+          title: 'Manager Facilitateur × Vendeur Explorateur',
+          description: 'Exploration facilitée',
+          caracteristiques: [
+            'Espace d\'exploration donné',
+            'Soutien et facilitation',
+            'Culture de l\'innovation',
+            'Confiance mutuelle'
+          ],
+          forces: [
+            'Innovation libre',
+            'Développement créatif',
+            'Bien-être et performance',
+            'Solutions originales'
+          ],
+          attention: [
+            'Besoin de cadre parfois',
+            'Fixer des jalons',
+            'Mesurer les résultats'
+          ]
+        },
+        'Technique': {
+          score: '⭐⭐⭐',
+          title: 'Manager Facilitateur × Vendeur Technique',
+          description: 'Expertise facilitée',
+          caracteristiques: [
+            'Conditions optimales créées',
+            'Expertise valorisée',
+            'Soutien opérationnel',
+            'Peu de contraintes'
+          ],
+          forces: [
+            'Excellence technique',
+            'Concentration maximale',
+            'Satisfaction au travail'
+          ],
+          attention: [
+            'Besoin de challenge',
+            'Focus résultats',
+            'Stimulation nécessaire'
+          ]
+        },
+        'Challenger': {
+          score: '⭐⭐',
+          title: 'Manager Facilitateur × Vendeur Challenger',
+          description: 'Besoin de stimulation',
+          caracteristiques: [
+            'Le manager facilite',
+            'Le vendeur a besoin de défis',
+            'Incompatibilité possible',
+            'Ajustements nécessaires'
+          ],
+          forces: [
+            'Environnement sans stress',
+            'Soutien permanent',
+            'Peu de conflits'
+          ],
+          attention: [
+            'Le vendeur peut s\'ennuyer',
+            'Besoin de challenges',
+            'Le manager doit pousser plus'
+          ]
+        }
+      },
+      'Tacticien': {
+        'Convivial': {
+          score: '⭐⭐',
+          title: 'Manager Tacticien × Vendeur Convivial',
+          description: 'Process vs Relation',
+          caracteristiques: [
+            'Le manager focus process',
+            'Le vendeur focus relation',
+            'Besoin de compromis',
+            'Communication essentielle'
+          ],
+          forces: [
+            'Efficacité opérationnelle',
+            'Clients satisfaits malgré tout',
+            'Complémentarité possible'
+          ],
+          attention: [
+            'Le vendeur peut se sentir bridé',
+            'Le manager doit valoriser l\'humain',
+            'Besoin de flexibilité'
+          ]
+        },
+        'Dynamique': {
+          score: '⭐⭐⭐⭐',
+          title: 'Manager Tacticien × Vendeur Dynamique',
+          description: 'Opérationnel et efficace',
+          caracteristiques: [
+            'Optimisation opérationnelle',
+            'Exécution rapide',
+            'Process efficaces',
+            'Performance court terme'
+          ],
+          forces: [
+            'Efficacité maximale',
+            'Résolution rapide',
+            'Résultats immédiats',
+            'Peu de perte de temps'
+          ],
+          attention: [
+            'Risque de micro-management',
+            'Vision long terme à garder',
+            'Aspect humain à préserver'
+          ]
+        },
+        'Explorateur': {
+          score: '⭐⭐',
+          title: 'Manager Tacticien × Vendeur Explorateur',
+          description: 'Process vs Créativité',
+          caracteristiques: [
+            'Le manager veut des process',
+            'Le vendeur veut explorer',
+            'Friction possible',
+            'Compromis difficile'
+          ],
+          forces: [
+            'Process structurés',
+            'Créativité cadrée',
+            'Équilibre possible'
+          ],
+          attention: [
+            'Le vendeur peut se sentir étouffé',
+            'Le manager doit lâcher prise',
+            'Communication cruciale'
+          ]
+        },
+        'Technique': {
+          score: '⭐⭐⭐⭐⭐',
+          title: 'Manager Tacticien × Vendeur Technique',
+          description: 'Excellence opérationnelle',
+          caracteristiques: [
+            'Process optimisés',
+            'Expertise technique',
+            'Rigueur partagée',
+            'Excellence opérationnelle'
+          ],
+          forces: [
+            'Performance technique maximale',
+            'Efficacité exceptionnelle',
+            'Fiabilité totale',
+            'Référence du marché'
+          ],
+          attention: [
+            'Risque de sur-process',
+            'Ne pas oublier l\'humain',
+            'Rester flexible'
+          ]
+        },
+        'Challenger': {
+          score: '⭐⭐⭐',
+          title: 'Manager Tacticien × Vendeur Challenger',
+          description: 'Performance opérationnelle',
+          caracteristiques: [
+            'Process de performance',
+            'Optimisation continue',
+            'Focus résultats',
+            'Efficacité recherchée'
+          ],
+          forces: [
+            'Résultats mesurables',
+            'Performance optimisée',
+            'Dépassement structuré'
+          ],
+          attention: [
+            'Le vendeur peut trouver ça lourd',
+            'Besoin de souplesse',
+            'Célébrer les victoires'
+          ]
+        }
+      },
+      'Mentor': {
+        'Convivial': {
+          score: '⭐⭐⭐⭐⭐',
+          title: 'Manager Mentor × Vendeur Convivial',
+          description: 'Transmission et relation',
+          caracteristiques: [
+            'Transmission avec patience',
+            'Développement relationnel',
+            'Culture de l\'apprentissage',
+            'Respect mutuel'
+          ],
+          forces: [
+            'Développement exceptionnel',
+            'Fidélisation client et vendeur',
+            'Expertise transmise',
+            'Bien-être au travail'
+          ],
+          attention: [
+            'Focus résultats à maintenir',
+            'Besoin de challenges',
+            'Éviter la sur-protection'
+          ]
+        },
+        'Dynamique': {
+          score: '⭐⭐',
+          title: 'Manager Mentor × Vendeur Dynamique',
+          description: 'Patience vs Action',
+          caracteristiques: [
+            'Le manager prend son temps',
+            'Le vendeur veut aller vite',
+            'Rythmes incompatibles',
+            'Frustration possible'
+          ],
+          forces: [
+            'Le vendeur apprend la patience',
+            'Expertise transmise',
+            'Développement durable'
+          ],
+          attention: [
+            'Le vendeur peut s\'impatienter',
+            'Le manager doit accélérer',
+            'Communication essentielle'
+          ]
+        },
+        'Explorateur': {
+          score: '⭐⭐⭐⭐⭐',
+          title: 'Manager Mentor × Vendeur Explorateur',
+          description: 'Transmission et curiosité',
+          caracteristiques: [
+            'Partage d\'expertise',
+            'Curiosité encouragée',
+            'Apprentissage profond',
+            'Développement unique'
+          ],
+          forces: [
+            'Expert en devenir',
+            'Innovation et tradition',
+            'Excellence durable',
+            'Passion transmise'
+          ],
+          attention: [
+            'Besoin de résultats aussi',
+            'Éviter la sur-analyse',
+            'Fixer des deadlines'
+          ]
+        },
+        'Technique': {
+          score: '⭐⭐⭐⭐⭐',
+          title: 'Manager Mentor × Vendeur Technique',
+          description: 'Transmission d\'excellence',
+          caracteristiques: [
+            'Maître et apprenti',
+            'Excellence technique transmise',
+            'Respect profond mutuel',
+            'Culture de l\'expertise'
+          ],
+          forces: [
+            'Expertise exceptionnelle',
+            'Continuité du savoir',
+            'Référence du marché',
+            'Fierté du métier'
+          ],
+          attention: [
+            'Ne pas oublier le commercial',
+            'Équilibrer technique et vente',
+            'Rester accessible aux clients'
+          ]
+        },
+        'Challenger': {
+          score: '⭐⭐',
+          title: 'Manager Mentor × Vendeur Challenger',
+          description: 'Patience vs Ambition',
+          caracteristiques: [
+            'Le manager forme patiemment',
+            'Le vendeur veut performer vite',
+            'Rythmes différents',
+            'Ajustement nécessaire'
+          ],
+          forces: [
+            'Formation solide',
+            'Bases excellentes',
+            'Développement structuré'
+          ],
+          attention: [
+            'Le vendeur peut trouver ça lent',
+            'Le manager doit challenger',
+            'Fixer des objectifs ambitieux'
+          ]
+        }
+      }
+    };
+
+    const result = compatibilityMatrix[managementType]?.[sellingStyle];
+    return result || null;
+  };
+
   const getColorClasses = (color) => {
     const colors = {
       blue: 'bg-blue-50 border-blue-200',
