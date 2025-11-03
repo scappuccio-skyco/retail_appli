@@ -3283,7 +3283,7 @@ async def get_active_manager_challenges(current_user: dict = Depends(get_current
             "manager_id": current_user['id'],
             "type": "collective",
             "status": "active",
-            "end_date": {"$gte": today}  # Only filter by end_date - show challenges that haven't ended yet
+            "end_date": {"$gt": today}  # Only challenges that haven't ended yet (strict >)
         },
         {"_id": 0}
     ).sort("start_date", 1).to_list(10)  # Sort by start_date to show upcoming first
