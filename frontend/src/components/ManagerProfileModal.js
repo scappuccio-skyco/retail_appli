@@ -10,7 +10,7 @@ export default function ManagerProfileModal({ diagnostic, onClose, onRedo }) {
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-8">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl my-8">
           {/* Header */}
           <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 p-6 rounded-t-2xl relative">
             <button
