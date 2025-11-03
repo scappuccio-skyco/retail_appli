@@ -2595,7 +2595,7 @@ class RetailCoachAPITester:
         print("=" * 50)
 
         # CRITICAL: Test the specific review request FIRST
-        self.test_competence_data_harmonization()
+        self.test_dynamic_kpi_display_sellerdetailview()
 
         # Authentication tests
         self.test_user_registration()
@@ -2608,6 +2608,9 @@ class RetailCoachAPITester:
         # CRITICAL: KPI Dynamic Reporting tests (FROM REVIEW REQUEST)
         self.test_kpi_dynamic_reporting_flow()
         self.test_manager_kpi_configuration()
+        
+        # CRITICAL: Competence Data Harmonization tests
+        self.test_competence_data_harmonization()
 
         # CRITICAL: Diagnostic flow tests (as requested)
         self.test_diagnostic_flow()
