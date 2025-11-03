@@ -1453,22 +1453,51 @@ export default function ManagerDashboard({ user, onLogout }) {
                         {sellerStats.evaluations.slice(0, 5).map((evaluation) => (
                           <div
                             key={evaluation.id}
-                            className="bg-white rounded-lg p-4 border border-gray-200"
+                            className="bg-white rounded-xl p-5 border border-gray-200 hover:shadow-md transition-shadow"
                           >
-                            <p className="text-xs text-gray-500 mb-2">
-                              {new Date(evaluation.created_at).toLocaleDateString('fr-FR')}
+                            <p className="text-xs text-gray-500 mb-3 font-medium">
+                              📅 {new Date(evaluation.created_at).toLocaleDateString('fr-FR', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}
                             </p>
-                            <div className="flex gap-2 text-xs mb-3">
-                              <span>A: {evaluation.accueil}</span>
-                              <span>D: {evaluation.decouverte}</span>
-                              <span>Ar: {evaluation.argumentation}</span>
-                              <span>C: {evaluation.closing}</span>
-                              <span>F: {evaluation.fidelisation}</span>
+                            
+                            {/* Compétences avec badges colorés */}
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
+                              <div className="bg-blue-50 rounded-lg p-2 text-center">
+                                <p className="text-xs text-blue-600 font-semibold mb-1">Accueil</p>
+                                <p className="text-lg font-bold text-blue-700">{evaluation.accueil}/5</p>
+                              </div>
+                              <div className="bg-green-50 rounded-lg p-2 text-center">
+                                <p className="text-xs text-green-600 font-semibold mb-1">Découverte</p>
+                                <p className="text-lg font-bold text-green-700">{evaluation.decouverte}/5</p>
+                              </div>
+                              <div className="bg-purple-50 rounded-lg p-2 text-center">
+                                <p className="text-xs text-purple-600 font-semibold mb-1">Argumentation</p>
+                                <p className="text-lg font-bold text-purple-700">{evaluation.argumentation}/5</p>
+                              </div>
+                              <div className="bg-orange-50 rounded-lg p-2 text-center">
+                                <p className="text-xs text-orange-600 font-semibold mb-1">Closing</p>
+                                <p className="text-lg font-bold text-orange-700">{evaluation.closing}/5</p>
+                              </div>
+                              <div className="bg-pink-50 rounded-lg p-2 text-center">
+                                <p className="text-xs text-pink-600 font-semibold mb-1">Fidélisation</p>
+                                <p className="text-lg font-bold text-pink-700">{evaluation.fidelisation}/5</p>
+                              </div>
                             </div>
+                            
                             {evaluation.ai_feedback && (
-                              <p className="text-xs text-gray-700 bg-[#ffd871] bg-opacity-10 p-3 rounded-lg">
-                                {evaluation.ai_feedback}
-                              </p>
+                              <div className="bg-gradient-to-r from-[#ffd871] to-yellow-100 bg-opacity-20 p-3 rounded-lg border-l-4 border-[#ffd871]">
+                                <p className="text-xs font-semibold text-gray-700 mb-1 flex items-center gap-1">
+                                  <Sparkles className="w-3 h-3" />
+                                  Coach IA
+                                </p>
+                                <p className="text-xs text-gray-700 leading-relaxed">
+                                  {evaluation.ai_feedback}
+                                </p>
+                              </div>
                             )}
                           </div>
                         ))}
