@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import axios from 'axios';
 
 export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
   // Define sections based on user role
@@ -10,9 +11,43 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
   const [activeSection, setActiveSection] = useState(allSections[0]);
   const [currentProfile, setCurrentProfile] = useState(0);
   
-  // States for compatibility selector
-  const [selectedManagementType, setSelectedManagementType] = useState('');
-  const [selectedSellingStyle, setSelectedSellingStyle] = useState('');
+  // States for real compatibility data
+  const [managerProfile, setManagerProfile] = useState(null);
+  const [teamSellers, setTeamSellers] = useState([]);
+  const [loadingCompatibility, setLoadingCompatibility] = useState(false);
+  
+  const API = process.env.REACT_APP_BACKEND_URL || '';
+
+  // Fetch manager and sellers data for compatibility
+  useEffect(() => {
+    if (activeSection === 'compatibilite' && userRole === 'manager') {
+      fetchCompatibilityData();
+    }
+  }, [activeSection]);
+
+  const fetchCompatibilityData = async () => {
+    setLoadingCompatibility(true);
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Get manager info
+      const managerRes = await axios.get(`${API}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setManagerProfile(managerRes.data);
+      
+      // Get sellers
+      const sellersRes = await axios.get(`${API}/manager/sellers`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTeamSellers(sellersRes.data);
+      
+    } catch (error) {
+      console.error('Error fetching compatibility data:', error);
+    } finally {
+      setLoadingCompatibility(false);
+    }
+  };
 
   // Styles de vente (5 profils)
   const stylesVente = [
