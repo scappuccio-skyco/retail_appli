@@ -600,6 +600,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
   };
 
   const getCurrentProfiles = () => {
+    if (activeSection === 'management') return managementStyles;
     if (activeSection === 'style_vente') return stylesVente;
     if (activeSection === 'niveau') return niveaux;
     if (activeSection === 'motivation') return motivations;
