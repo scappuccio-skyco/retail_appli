@@ -598,6 +598,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                 })();
 
                 const daysRemaining = Math.ceil((new Date(challenge.end_date) - new Date()) / (1000 * 60 * 60 * 24));
+                const daysUntilStart = Math.ceil((new Date(challenge.start_date) - new Date()) / (1000 * 60 * 60 * 24));
+                const hasStarted = daysUntilStart <= 0;
 
                 return (
                   <div 
@@ -606,8 +608,15 @@ export default function ManagerDashboard({ user, onLogout }) {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <h4 className="font-bold text-gray-800 text-lg line-clamp-2">{challenge.title}</h4>
-                      <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
-                        {challenge.type === 'collective' ? '🏆 Collectif' : '👤 Individuel'}
+                      <div className="flex flex-col gap-1 items-end">
+                        <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+                          {challenge.type === 'collective' ? '🏆 Collectif' : '👤 Individuel'}
+                        </span>
+                        {!hasStarted && (
+                          <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+                            ⏳ Commence dans {daysUntilStart} j
+                          </span>
+                        )}
                       </span>
                     </div>
 
