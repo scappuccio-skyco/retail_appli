@@ -85,13 +85,15 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const fetchActiveChallenges = async () => {
     try {
+      console.log('🎯 Fetching active challenges...');
       const token = localStorage.getItem('token');
       const res = await axios.get(`${API}/manager/challenges/active`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('🎯 Active challenges received:', res.data);
       setActiveChallenges(res.data);
     } catch (err) {
-      console.error('Error fetching active challenges:', err);
+      console.error('❌ Error fetching active challenges:', err);
     }
   };
 
