@@ -38,19 +38,20 @@ export default function SellerDetailView({ seller, onBack }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const [statsRes, debriefsRes, kpiRes] = await Promise.all([
+      const [statsRes, diagRes, debriefsRes, kpiRes] = await Promise.all([
         axios.get(`${API}/manager/seller/${seller.id}/stats`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/diagnostic/seller/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/manager/debriefs/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/manager/kpi-entries/${seller.id}?days=30`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
 
-      // Extract data from stats response (which includes live scores)
+      // Extract data from stats response (which includes LIVE scores harmonized with overview)
       const statsData = statsRes.data;
-      setDiagnostic(statsData.seller.diagnostic || null);
+      setDiagnostic(diagRes.data);
       setDebriefs(debriefsRes.data);
       
-      // Convert live scores to competences history format for compatibility
-      // Use the LIVE scores from stats (harmonized with manager overview)
+      // Use the LIVE scores from stats endpoint (same as manager overview)
+      // This ensures consistency between overview and detail view
       const liveScores = statsData.avg_radar_scores || {
         accueil: 0,
         decouverte: 0,
