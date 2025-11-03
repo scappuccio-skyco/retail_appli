@@ -512,9 +512,12 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           <div className="flex items-center gap-2 mb-2">
                             <label className="block text-sm font-semibold text-gray-700">🛒 Objectif Panier Moyen (€)</label>
                             <div className="group relative">
-                              <span className="cursor-help text-blue-500 text-xs">ℹ️</span>
-                              <div className="invisible group-hover:visible absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg">
-                                Valeur moyenne souhaitée par transaction (CA / Nombre de ventes)
+                              <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-green-600 transition-all">
+                                ?
+                              </div>
+                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-green-600 text-white text-sm rounded-lg shadow-2xl border-2 border-green-400">
+                                <div className="font-semibold mb-1">🛒 Panier Moyen :</div>
+                                Valeur moyenne par transaction (CA ÷ Nb de ventes). Mesure l'efficacité commerciale.
                               </div>
                             </div>
                           </div>
