@@ -613,6 +613,7 @@ export default function SellerDetailView({ seller, onBack }) {
                     })()}€
                   </p>
                 </div>
+                )}
               </div>
 
               {/* Graphiques - Affichés selon les filtres ET la configuration du manager */}
