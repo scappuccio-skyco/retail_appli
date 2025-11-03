@@ -3149,6 +3149,58 @@ async def create_manager_objectives(objectives_data: ManagerObjectivesCreate, cu
     
     return objectives
 
+@api_router.put("/manager/objectives/{objective_id}")
+async def update_manager_objectives(
+    objective_id: str,
+    objectives_data: ManagerObjectivesCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can update objectives")
+    
+    # Check if objectives exist and belong to this manager
+    existing_objectives = await db.manager_objectives.find_one(
+        {"id": objective_id, "manager_id": current_user['id']},
+        {"_id": 0}
+    )
+    
+    if not existing_objectives:
+        raise HTTPException(status_code=404, detail="Objectives not found")
+    
+    # Update objectives
+    update_data = objectives_data.model_dump()
+    update_data['manager_id'] = current_user['id']
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.manager_objectives.update_one(
+        {"id": objective_id},
+        {"$set": update_data}
+    )
+    
+    # Get updated objectives
+    updated_objectives = await db.manager_objectives.find_one({"id": objective_id}, {"_id": 0})
+    
+    return updated_objectives
+
+@api_router.delete("/manager/objectives/{objective_id}")
+async def delete_manager_objectives(objective_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can delete objectives")
+    
+    # Check if objectives exist and belong to this manager
+    existing_objectives = await db.manager_objectives.find_one(
+        {"id": objective_id, "manager_id": current_user['id']},
+        {"_id": 0}
+    )
+    
+    if not existing_objectives:
+        raise HTTPException(status_code=404, detail="Objectives not found")
+    
+    # Delete objectives
+    await db.manager_objectives.delete_one({"id": objective_id})
+    
+    return {"message": "Objectives deleted successfully", "id": objective_id}
+
 # ===== CHALLENGE ENDPOINTS =====
 @api_router.get("/manager/challenges")
 async def get_manager_challenges(current_user: dict = Depends(get_current_user)):
