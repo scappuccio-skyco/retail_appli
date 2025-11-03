@@ -754,6 +754,17 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 </div>
               ))}
             </div>
+            
+            {/* Bouton Voir tous mes KPIs */}
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => navigate('/kpi-reporting')}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                <BarChart3 className="w-5 h-5" />
+                Voir tous mes KPIs
+              </button>
+            </div>
           </div>
         )}
 
