@@ -360,10 +360,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           <div className="flex items-center gap-2 mb-2">
                             <label className="block text-sm font-semibold text-gray-700">Type *</label>
                             <div className="group relative">
-                              <span className="cursor-help text-blue-500 text-xs">ℹ️</span>
-                              <div className="invisible group-hover:visible absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg">
-                                <strong>Collectif :</strong> Toute l'équipe travaille ensemble vers l'objectif<br/>
-                                <strong>Individuel :</strong> Challenge personnel pour un vendeur spécifique
+                              <div className="w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-blue-600 transition-all">
+                                ?
+                              </div>
+                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-80 p-3 bg-blue-600 text-white text-sm rounded-lg shadow-2xl border-2 border-blue-400">
+                                <div className="font-semibold mb-2">🎯 Différence entre les types :</div>
+                                <div className="space-y-2">
+                                  <div><strong>🏆 Collectif :</strong> Toute l'équipe travaille ensemble vers l'objectif commun</div>
+                                  <div><strong>👤 Individuel :</strong> Challenge personnel pour un vendeur spécifique</div>
+                                </div>
                               </div>
                             </div>
                           </div>
