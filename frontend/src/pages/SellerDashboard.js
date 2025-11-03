@@ -711,10 +711,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         </div>
 
-        {/* Derniers KPIs rentrés */}
+        {/* Mes derniers KPIs enregistrés */}
         {kpiEntries.length > 0 && (
           <div className="glass-morphism rounded-2xl p-6 mt-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 Derniers KPIs rentrés</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 Mes derniers KPIs enregistrés</h2>
             <div className="space-y-4">
               {kpiEntries.slice(0, 3).map((entry) => (
                 <div
