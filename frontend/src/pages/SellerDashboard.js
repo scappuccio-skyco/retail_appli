@@ -49,13 +49,27 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [generatingBilan, setGeneratingBilan] = useState(false);
   const [kpiConfig, setKpiConfig] = useState(null);
   const [activeChallenges, setActiveChallenges] = useState([]); // Challenges actifs (collectifs + personnels)
+  const [activeObjectives, setActiveObjectives] = useState([]); // Objectifs d'équipe actifs
 
   useEffect(() => {
     fetchData();
     fetchKpiConfig();
     fetchBilanIndividuel();
     fetchActiveChallenges();
+    fetchActiveObjectives();
   }, []);
+
+  const fetchActiveObjectives = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/seller/objectives/active`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setActiveObjectives(res.data);
+    } catch (err) {
+      console.error('Error fetching active objectives:', err);
+    }
+  };
 
   const fetchActiveChallenges = async () => {
     try {
