@@ -215,17 +215,7 @@ export default function SellerDetailView({ seller, onBack }) {
       {/* Diagnostic Profile */}
       {diagnostic ? (
         <div className="glass-morphism rounded-2xl p-6 mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Profil de vente</h2>
-            <button
-              onClick={handleResetDiagnostic}
-              className="btn-secondary px-4 py-2 text-sm flex items-center gap-2"
-              title="Réinitialiser le profil"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refaire le test
-            </button>
-          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Profil de vente</h2>
           
           <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 rounded-xl p-4 shadow-lg">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
