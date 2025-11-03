@@ -667,11 +667,43 @@ export default function ManagerDashboard({ user, onLogout }) {
                     </div>
 
                     {/* Time remaining */}
-                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>
-                        {daysRemaining > 0 ? `${daysRemaining} jour${daysRemaining > 1 ? 's' : ''} restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine aujourd\'hui'}
-                      </span>
+                    <div className="flex items-center justify-between gap-2 text-xs text-gray-600 mt-3 pt-3 border-t border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>
+                          {daysRemaining > 0 ? `${daysRemaining} jour${daysRemaining > 1 ? 's' : ''} restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine aujourd\'hui'}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => navigate(`/manager/settings?edit=${challenge.id}`)}
+                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-1.5 rounded transition-all"
+                          title="Modifier"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (window.confirm(`Êtes-vous sûr de vouloir supprimer le challenge "${challenge.title}" ?`)) {
+                              try {
+                                const token = localStorage.getItem('token');
+                                await axios.delete(`${API}/manager/challenges/${challenge.id}`, {
+                                  headers: { Authorization: `Bearer ${token}` }
+                                });
+                                toast.success('Challenge supprimé avec succès');
+                                fetchActiveChallenges(); // Refresh the list
+                              } catch (err) {
+                                console.error('Error deleting challenge:', err);
+                                toast.error('Erreur lors de la suppression du challenge');
+                              }
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1.5 rounded transition-all"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
