@@ -2926,8 +2926,17 @@ def main():
     tester = RetailCoachAPITester()
     # Run only the active challenges test for the review request
     tester.test_active_challenges_display()
-    tester.print_summary()
-    return 0
+    
+    # Print summary
+    print("\n" + "=" * 50)
+    print(f"📊 Test Summary: {tester.tests_passed}/{tester.tests_run} tests passed")
+    
+    if tester.tests_passed == tester.tests_run:
+        print("🎉 All tests passed!")
+        return 0
+    else:
+        print("⚠️  Some tests failed. Check details above.")
+        return 1
 
 if __name__ == "__main__":
     sys.exit(main())
