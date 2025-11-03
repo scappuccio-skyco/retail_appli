@@ -780,7 +780,7 @@ export default function SellerDetailView({ seller, onBack }) {
                 )}
 
                 {/* Graphique Taux de Transformation */}
-                {visibleCharts.tauxTransfo && (
+                {availableCharts.tauxTransfo && visibleCharts.tauxTransfo && (
                   <div className="bg-white rounded-xl p-4 border border-gray-200">
                     <h3 className="text-lg font-bold text-gray-800 mb-4">📈 Taux de Transformation</h3>
                     <ResponsiveContainer width="100%" height={250}>
