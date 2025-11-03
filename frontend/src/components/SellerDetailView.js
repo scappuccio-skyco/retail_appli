@@ -106,10 +106,8 @@ export default function SellerDetailView({ seller, onBack }) {
     }
   };
 
-  // Calculate current competences (from last entry in history)
-  const currentCompetences = competencesHistory.length > 0
-    ? competencesHistory[competencesHistory.length - 1]
-    : null;
+  // Calculate current competences (use LIVE scores for consistency with overview)
+  const currentCompetences = liveCompetences;
 
   const radarData = currentCompetences
     ? [
