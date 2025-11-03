@@ -318,23 +318,6 @@ export default function ManagerDashboard({ user, onLogout }) {
     );
   }
 
-  // Show seller detail view in modal
-  if (showDetailView && selectedSeller) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div className="bg-white rounded-2xl w-full max-w-7xl max-h-[95vh] overflow-y-auto">
-          <SellerDetailView 
-            seller={selectedSeller} 
-            onBack={() => {
-              setShowDetailView(false);
-              setSelectedSeller(null);
-            }}
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div data-testid="manager-dashboard" className="min-h-screen p-4 md:p-8">
       {/* Header */}
