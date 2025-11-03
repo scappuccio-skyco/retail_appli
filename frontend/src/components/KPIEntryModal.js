@@ -6,15 +6,15 @@ import { X, Calendar, AlertTriangle } from 'lucide-react';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export default function KPIEntryModal({ onClose, onSuccess }) {
+export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) {
   const [enabled, setEnabled] = useState(false);
   const [kpiConfig, setKpiConfig] = useState(null);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [caJournalier, setCaJournalier] = useState('');
-  const [nbVentes, setNbVentes] = useState('');
-  const [nbClients, setNbClients] = useState('');
-  const [nbArticles, setNbArticles] = useState('');
-  const [comment, setComment] = useState('');
+  const [date, setDate] = useState(editEntry?.date || new Date().toISOString().split('T')[0]);
+  const [caJournalier, setCaJournalier] = useState(editEntry?.ca_journalier?.toString() || '');
+  const [nbVentes, setNbVentes] = useState(editEntry?.nb_ventes?.toString() || '');
+  const [nbClients, setNbClients] = useState(editEntry?.nb_clients?.toString() || '');
+  const [nbArticles, setNbArticles] = useState(editEntry?.nb_articles?.toString() || '');
+  const [comment, setComment] = useState(editEntry?.comment || '');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [historicalData, setHistoricalData] = useState([]);
