@@ -398,7 +398,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                         )}
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Date de début *</label>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">Date de début *</label>
+                            <div className="group relative">
+                              <span className="cursor-help text-blue-500 text-xs">ℹ️</span>
+                              <div className="invisible group-hover:visible absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg">
+                                Le challenge peut commencer dans le futur. Il apparaîtra dans le dashboard avec un badge "Commence dans X jours"
+                              </div>
+                            </div>
+                          </div>
                           <input
                             type="date"
                             required
@@ -412,7 +420,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Date de fin *</label>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">Date de fin *</label>
+                            <div className="group relative">
+                              <span className="cursor-help text-blue-500 text-xs">ℹ️</span>
+                              <div className="invisible group-hover:visible absolute left-0 top-6 z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded-lg shadow-lg">
+                                Date limite du challenge. Après cette date, le challenge sera marqué comme terminé
+                              </div>
+                            </div>
+                          </div>
                           <input
                             type="date"
                             required
