@@ -54,7 +54,20 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     fetchData();
     fetchKpiConfig();
     fetchBilanIndividuel();
+    fetchActiveChallenges();
   }, []);
+
+  const fetchActiveChallenges = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/seller/challenges/active`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setActiveChallenges(res.data);
+    } catch (err) {
+      console.error('Error fetching active challenges:', err);
+    }
+  };
 
   const fetchData = async () => {
     try {
