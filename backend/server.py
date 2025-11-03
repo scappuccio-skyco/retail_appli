@@ -1127,11 +1127,50 @@ async def get_seller_stats(seller_id: str, current_user: dict = Depends(get_curr
         if isinstance(evaluation.get('created_at'), str):
             evaluation['created_at'] = datetime.fromisoformat(evaluation['created_at'])
     
-    # Calculate average radar scores
+    # Try to get LIVE scores (adjusted with KPIs) instead of static diagnostic scores
     avg_radar = {"accueil": 0, "decouverte": 0, "argumentation": 0, "closing": 0, "fidelisation": 0}
-    if evals:
-        for key in avg_radar.keys():
-            avg_radar[key] = round(sum(e[key] for e in evals) / len(evals), 2)
+    
+    if diagnostic:
+        # Calculate days since diagnostic
+        created_at = diagnostic.get('created_at')
+        if isinstance(created_at, str):
+            created_at = datetime.fromisoformat(created_at)
+        days_since = (datetime.now(timezone.utc) - created_at).days
+        
+        # Get initial scores from diagnostic
+        initial_scores = {
+            'score_accueil': diagnostic.get('score_accueil', 3.0),
+            'score_decouverte': diagnostic.get('score_decouverte', 3.0),
+            'score_argumentation': diagnostic.get('score_argumentation', 3.0),
+            'score_closing': diagnostic.get('score_closing', 3.0),
+            'score_fidelisation': diagnostic.get('score_fidelisation', 3.0)
+        }
+        
+        # Calculate adjusted scores with KPIs
+        try:
+            adjusted_scores = await calculate_competence_adjustment_from_kpis(
+                seller_id=seller_id,
+                initial_scores=initial_scores,
+                days_since_diagnostic=days_since
+            )
+            
+            # Use live scores
+            avg_radar = {
+                "accueil": adjusted_scores.get('score_accueil', 3.0),
+                "decouverte": adjusted_scores.get('score_decouverte', 3.0),
+                "argumentation": adjusted_scores.get('score_argumentation', 3.0),
+                "closing": adjusted_scores.get('score_closing', 3.0),
+                "fidelisation": adjusted_scores.get('score_fidelisation', 3.0)
+            }
+        except:
+            # Fallback to initial scores if KPI adjustment fails
+            avg_radar = {
+                "accueil": initial_scores['score_accueil'],
+                "decouverte": initial_scores['score_decouverte'],
+                "argumentation": initial_scores['score_argumentation'],
+                "closing": initial_scores['score_closing'],
+                "fidelisation": initial_scores['score_fidelisation']
+            }
     
     return {
         "seller": seller,
