@@ -578,14 +578,28 @@ frontend_new_seller_bilan:
         agent: "main"
         comment: "Created modal component for detailed view of seller's individual bilan. Similar structure to TeamBilanModal but with personal/tutoiement language. Displays: KPI summary (respects manager config), synthèse, points forts, points d'attention, recommandations personnalisées. Needs testing."
 
+frontend_competence_harmonization:
+  - task: "SellerDetailView - Competence Data Harmonization"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/SellerDetailView.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "USER REPORTED ISSUE: When manager clicks on seller and then 'Voir tous les détails', the competence data displayed in SellerDetailView differs from the overview in ManagerDashboard. ISSUE IDENTIFIED: SellerDetailView was using /manager/competences-history endpoint which returns STATIC historical scores from diagnostic and debriefs, while ManagerDashboard overview uses /manager/seller/{seller_id}/stats endpoint which returns LIVE scores calculated with calculate_competence_adjustment_from_kpis (blended with KPI data). FIX IMPLEMENTED: Updated SellerDetailView to fetch LIVE scores from /manager/seller/{seller_id}/stats endpoint for the current radar chart, ensuring consistency with manager overview. Historical competences-history data is still fetched for the evolution chart. Added new state 'liveCompetences' to store LIVE scores separately. Now both overview and detail view use the same harmonized data source. Needs testing to verify consistency between overview and detail view."
+
 metadata:
   created_by: "main_agent"
-  version: "1.8"
-  test_sequence: 8
+  version: "1.9"
+  test_sequence: 9
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "SellerDetailView - Competence Data Harmonization"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
