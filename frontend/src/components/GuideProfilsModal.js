@@ -5,7 +5,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
   // Define sections based on user role
   const allSections = userRole === 'seller' 
     ? ['style_vente', 'niveau', 'motivation', 'disc']  // 4 sections for sellers
-    : ['management', 'style_vente', 'niveau', 'motivation', 'disc'];  // 5 sections for managers (removed compatibilite)
+    : ['management', 'style_vente', 'niveau', 'motivation', 'disc', 'compatibilite'];  // 6 sections for managers
   
   const [activeSection, setActiveSection] = useState(allSections[0]);
   const [currentProfile, setCurrentProfile] = useState(0);
