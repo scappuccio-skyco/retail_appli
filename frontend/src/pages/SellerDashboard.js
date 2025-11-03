@@ -54,12 +54,11 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const [evalsRes, salesRes, tasksRes, debriefsRes, competencesRes] = await Promise.all([
+      const [evalsRes, salesRes, tasksRes, debriefsRes] = await Promise.all([
         axios.get(`${API}/evaluations`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/sales`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/seller/tasks`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/debriefs`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/diagnostic/me/live-scores`, { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(`${API}/debriefs`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
       
       setEvaluations(evalsRes.data);
@@ -67,19 +66,25 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
       setTasks(tasksRes.data);
       setDebriefs(debriefsRes.data);
       
-      // Process live scores response
-      if (liveScoresRes.data && liveScoresRes.data.live_scores) {
-        const { live_scores, diagnostic_age_days } = liveScoresRes.data;
-        const scoreEntry = {
-          date: new Date().toISOString(),
-          score_accueil: live_scores.score_accueil,
-          score_decouverte: live_scores.score_decouverte,
-          score_argumentation: live_scores.score_argumentation,
-          score_closing: live_scores.score_closing,
-          score_fidelisation: live_scores.score_fidelisation,
-          days_since_diagnostic: diagnostic_age_days
-        };
-        setCompetencesHistory([scoreEntry]);
+      // Try to load live scores (non-blocking)
+      try {
+        const liveScoresRes = await axios.get(`${API}/diagnostic/me/live-scores`, { headers: { Authorization: `Bearer ${token}` } });
+        if (liveScoresRes.data && liveScoresRes.data.live_scores) {
+          const { live_scores, diagnostic_age_days } = liveScoresRes.data;
+          const scoreEntry = {
+            date: new Date().toISOString(),
+            score_accueil: live_scores.score_accueil,
+            score_decouverte: live_scores.score_decouverte,
+            score_argumentation: live_scores.score_argumentation,
+            score_closing: live_scores.score_closing,
+            score_fidelisation: live_scores.score_fidelisation,
+            days_since_diagnostic: diagnostic_age_days
+          };
+          setCompetencesHistory([scoreEntry]);
+        }
+      } catch (err) {
+        console.log('No diagnostic or live scores available yet');
+        setCompetencesHistory([]);
       }
       
       // Get KPI entries
