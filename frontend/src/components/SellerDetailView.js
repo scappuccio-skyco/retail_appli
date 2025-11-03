@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { ArrowLeft, TrendingUp, Award, MessageSquare, BarChart3, Calendar, RefreshCw } from 'lucide-react';
