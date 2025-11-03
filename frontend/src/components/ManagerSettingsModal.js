@@ -319,25 +319,225 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
 
               {/* Objectives Tab */}
               {activeTab === 'objectives' && (
-                <div className="bg-blue-50 rounded-xl p-6 border-2 border-blue-200">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">🎯 Objectifs d'Équipe</h3>
-                  <p className="text-gray-600 mb-6">
-                    Les objectifs sont utilisés pour suivre les performances globales de votre équipe sur une période définie.
-                    Contrairement aux challenges, les objectifs sont des cibles de référence sans aspect compétitif.
-                  </p>
-                  
-                  <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-yellow-800">
-                      💡 <strong>Astuce :</strong> Utilisez les <strong>Objectifs</strong> pour fixer des cibles mensuelles/trimestrielles, 
-                      et les <strong>Challenges</strong> pour créer des défis motivants à court terme avec progression visible.
+                <div className="space-y-6">
+                  <div className="bg-blue-50 rounded-xl p-6 border-2 border-blue-200 mb-6">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">🎯 Objectifs d'Équipe</h3>
+                    <p className="text-gray-600 mb-4">
+                      Les objectifs sont utilisés pour suivre les performances globales de votre équipe sur une période définie.
+                      Contrairement aux challenges, les objectifs sont des cibles de référence sans aspect compétitif.
                     </p>
+                    
+                    <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+                      <p className="text-sm text-yellow-800">
+                        💡 <strong>Astuce :</strong> Utilisez les <strong>Objectifs</strong> pour fixer des cibles mensuelles/trimestrielles, 
+                        et les <strong>Challenges</strong> pour créer des défis motivants à court terme avec progression visible.
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="text-center py-8 text-gray-500">
-                    <Target className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                    <p className="font-semibold">Fonctionnalité en développement</p>
-                    <p className="text-sm mt-2">La gestion des objectifs d'équipe sera bientôt disponible.</p>
-                    <p className="text-sm mt-1">En attendant, utilisez les <strong>Challenges</strong> pour suivre vos objectifs.</p>
+                  {/* Create/Edit Objective Form */}
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-300">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">
+                      {editingObjective ? '✏️ Modifier l\'Objectif' : '➕ Créer un Objectif'}
+                    </h3>
+                    
+                    <form onSubmit={editingObjective ? handleUpdateObjective : handleCreateObjective} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">Période de début *</label>
+                            <div className="group relative">
+                              <div className="w-5 h-5 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-purple-600 transition-all">
+                                ?
+                              </div>
+                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-purple-600 text-white text-sm rounded-lg shadow-2xl border-2 border-purple-400">
+                                <div className="font-semibold mb-1">📅 Début de période :</div>
+                                Date de début pour la mesure des objectifs (ex: 1er du mois)
+                              </div>
+                            </div>
+                          </div>
+                          <input
+                            type="date"
+                            required
+                            value={editingObjective ? editingObjective.period_start : newObjective.period_start}
+                            onChange={(e) => editingObjective
+                              ? setEditingObjective({ ...editingObjective, period_start: e.target.value })
+                              : setNewObjective({ ...newObjective, period_start: e.target.value })
+                            }
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">Période de fin *</label>
+                            <div className="group relative">
+                              <div className="w-5 h-5 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-purple-600 transition-all">
+                                ?
+                              </div>
+                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-purple-600 text-white text-sm rounded-lg shadow-2xl border-2 border-purple-400">
+                                <div className="font-semibold mb-1">📅 Fin de période :</div>
+                                Date de fin de la période de mesure (ex: dernier jour du mois)
+                              </div>
+                            </div>
+                          </div>
+                          <input
+                            type="date"
+                            required
+                            value={editingObjective ? editingObjective.period_end : newObjective.period_end}
+                            onChange={(e) => editingObjective
+                              ? setEditingObjective({ ...editingObjective, period_end: e.target.value })
+                              : setNewObjective({ ...newObjective, period_end: e.target.value })
+                            }
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">💰 Objectif CA (€)</label>
+                            <div className="group relative">
+                              <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-green-600 transition-all">
+                                ?
+                              </div>
+                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-green-600 text-white text-sm rounded-lg shadow-2xl border-2 border-green-400">
+                                <div className="font-semibold mb-1">💰 Chiffre d'Affaires :</div>
+                                Objectif de CA global pour la période. Au moins un KPI doit être rempli.
+                              </div>
+                            </div>
+                          </div>
+                          <input
+                            type="number"
+                            value={editingObjective ? editingObjective.ca_target : newObjective.ca_target}
+                            onChange={(e) => editingObjective
+                              ? setEditingObjective({ ...editingObjective, ca_target: e.target.value })
+                              : setNewObjective({ ...newObjective, ca_target: e.target.value })
+                            }
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                            placeholder="Ex: 50000"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">🛒 Objectif Panier Moyen (€)</label>
+                            <div className="group relative">
+                              <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-green-600 transition-all">
+                                ?
+                              </div>
+                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-green-600 text-white text-sm rounded-lg shadow-2xl border-2 border-green-400">
+                                <div className="font-semibold mb-1">🛒 Panier Moyen :</div>
+                                Valeur moyenne souhaitée par transaction sur la période
+                              </div>
+                            </div>
+                          </div>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={editingObjective ? editingObjective.panier_moyen_target : newObjective.panier_moyen_target}
+                            onChange={(e) => editingObjective
+                              ? setEditingObjective({ ...editingObjective, panier_moyen_target: e.target.value })
+                              : setNewObjective({ ...newObjective, panier_moyen_target: e.target.value })
+                            }
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                            placeholder="Ex: 150"
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <div className="flex items-center gap-2 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700">💎 Objectif Indice Vente</label>
+                            <div className="group relative">
+                              <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-green-600 transition-all">
+                                ?
+                              </div>
+                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-green-600 text-white text-sm rounded-lg shadow-2xl border-2 border-green-400">
+                                <div className="font-semibold mb-1">💎 Indice de Vente :</div>
+                                Moyenne d'articles par vente visée (Nb Articles ÷ Nb Ventes)
+                              </div>
+                            </div>
+                          </div>
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={editingObjective ? editingObjective.indice_vente_target : newObjective.indice_vente_target}
+                            onChange={(e) => editingObjective
+                              ? setEditingObjective({ ...editingObjective, indice_vente_target: e.target.value })
+                              : setNewObjective({ ...newObjective, indice_vente_target: e.target.value })
+                            }
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                            placeholder="Ex: 2.5"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button
+                          type="submit"
+                          className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all"
+                        >
+                          {editingObjective ? '💾 Enregistrer les modifications' : '➕ Créer l\'Objectif'}
+                        </button>
+                        {editingObjective && (
+                          <button
+                            type="button"
+                            onClick={() => setEditingObjective(null)}
+                            className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-all"
+                          >
+                            Annuler
+                          </button>
+                        )}
+                      </div>
+                    </form>
+                  </div>
+
+                  {/* Objectives List */}
+                  <div className="bg-white rounded-xl p-6 border-2 border-gray-200">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">📋 Liste des Objectifs</h3>
+                    
+                    {objectives.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">Aucun objectif créé pour le moment</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {objectives.map((objective) => (
+                          <div
+                            key={objective.id}
+                            className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200 hover:border-purple-400 transition-all"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className="font-bold text-gray-800">
+                                    📅 Période: {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
+                                  </h4>
+                                </div>
+                                <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                                  {objective.ca_target && <span>💰 CA: {objective.ca_target}€</span>}
+                                  {objective.panier_moyen_target && <span>🛒 Panier Moyen: {objective.panier_moyen_target}€</span>}
+                                  {objective.indice_vente_target && <span>💎 Indice Vente: {objective.indice_vente_target}</span>}
+                                </div>
+                              </div>
+                              <div className="flex gap-2 ml-4">
+                                <button
+                                  onClick={() => setEditingObjective(objective)}
+                                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded transition-all"
+                                  title="Modifier"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteObjective(objective.id)}
+                                  className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded transition-all"
+                                  title="Supprimer"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
