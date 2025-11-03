@@ -650,6 +650,18 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
 
         {/* Tabs */}
         <div className="flex border-b border-gray-200 bg-gray-50 px-6 overflow-x-auto">
+          {allSections.includes('management') && (
+            <button
+              onClick={() => handleSectionChange('management')}
+              className={`px-4 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${
+                activeSection === 'management'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              👔 Management
+            </button>
+          )}
           {allSections.includes('style_vente') && (
             <button
               onClick={() => handleSectionChange('style_vente')}
