@@ -443,10 +443,12 @@ export default function SellerDetailView({ seller, onBack }) {
             </button>
           </div>
 
-          {/* Chart visibility toggles */}
+          {/* Chart visibility toggles - Only show buttons for available charts */}
+          {Object.values(availableCharts).some(v => v) && (
           <div className="bg-white rounded-xl p-4 border border-gray-200 mb-6">
             <p className="text-sm font-semibold text-gray-700 mb-3">📊 Graphiques affichés :</p>
             <div className="flex flex-wrap gap-2">
+              {availableCharts.ca && (
               <button
                 onClick={() => setVisibleCharts(prev => ({ ...prev, ca: !prev.ca }))}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -457,6 +459,8 @@ export default function SellerDetailView({ seller, onBack }) {
               >
                 💰 CA
               </button>
+              )}
+              {availableCharts.ventes && (
               <button
                 onClick={() => setVisibleCharts(prev => ({ ...prev, ventes: !prev.ventes }))}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -467,6 +471,8 @@ export default function SellerDetailView({ seller, onBack }) {
               >
                 🛍️ Ventes
               </button>
+              )}
+              {availableCharts.clients && (
               <button
                 onClick={() => setVisibleCharts(prev => ({ ...prev, clients: !prev.clients }))}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -477,6 +483,8 @@ export default function SellerDetailView({ seller, onBack }) {
               >
                 👥 Clients
               </button>
+              )}
+              {availableCharts.articles && (
               <button
                 onClick={() => setVisibleCharts(prev => ({ ...prev, articles: !prev.articles }))}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -487,6 +495,8 @@ export default function SellerDetailView({ seller, onBack }) {
               >
                 📦 Articles
               </button>
+              )}
+              {availableCharts.ventesVsClients && (
               <button
                 onClick={() => setVisibleCharts(prev => ({ ...prev, ventesVsClients: !prev.ventesVsClients }))}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
