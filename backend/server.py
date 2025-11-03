@@ -2611,6 +2611,8 @@ IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou a
 Consignes :
 - Analyse STRICTEMENT INDIVIDUELLE (ne mentionne JAMAIS d'autres vendeurs, l'équipe ou de comparaisons)
 - Sois précis avec les chiffres du vendeur (utilise UNIQUEMENT ses données)
+- NE PARLE QUE DES INDICATEURS FOURNIS CI-DESSUS (ne mentionne pas d'indicateurs absents)
+- Si un indicateur n'est pas listé, ne l'invente pas et ne le mentionne pas
 - Recommandations concrètes et personnalisées pour ce vendeur spécifiquement
 - Mentionne son profil (style, niveau, DISC) dans l'analyse si pertinent
 - Ton professionnel mais encourageant et motivant
