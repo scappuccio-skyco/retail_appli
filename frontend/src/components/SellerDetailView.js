@@ -550,8 +550,9 @@ export default function SellerDetailView({ seller, onBack }) {
           
           {kpiEntries.length > 0 ? (
             <>
-              {/* KPI Cards */}
+              {/* KPI Cards - Only show configured KPIs */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                {kpiConfig && kpiConfig.track_ca && (
                 <div className="bg-blue-50 rounded-xl p-4">
                   <p className="text-sm text-blue-600 mb-2">💰 CA Total</p>
                   <p className="text-2xl font-bold text-blue-900">
@@ -565,6 +566,8 @@ export default function SellerDetailView({ seller, onBack }) {
                     })()}€
                   </p>
                 </div>
+                )}
+                {kpiConfig && kpiConfig.track_ventes && (
                 <div className="bg-green-50 rounded-xl p-4">
                   <p className="text-sm text-green-600 mb-2">🛒 Ventes</p>
                   <p className="text-2xl font-bold text-green-900">
@@ -578,6 +581,8 @@ export default function SellerDetailView({ seller, onBack }) {
                     })()}
                   </p>
                 </div>
+                )}
+                {kpiConfig && kpiConfig.track_clients && (
                 <div className="bg-purple-50 rounded-xl p-4">
                   <p className="text-sm text-purple-600 mb-2">👥 Clients</p>
                   <p className="text-2xl font-bold text-purple-900">
@@ -591,6 +596,8 @@ export default function SellerDetailView({ seller, onBack }) {
                     })()}
                   </p>
                 </div>
+                )}
+                {kpiConfig && kpiConfig.track_ca && kpiConfig.track_ventes && (
                 <div className="bg-orange-50 rounded-xl p-4">
                   <p className="text-sm text-orange-600 mb-2">🧮 Panier Moyen</p>
                   <p className="text-2xl font-bold text-orange-900">
