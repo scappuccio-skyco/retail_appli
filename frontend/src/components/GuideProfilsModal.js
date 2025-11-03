@@ -910,7 +910,21 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
             'Risque de sur-technicité',
             'Aspect humain à ne pas négliger',
             'Besoin de souplesse parfois'
-          ]
+          ],
+          recommandations: {
+            manager: [
+              'Valorisez l\'expertise technique comme levier commercial',
+              'Donnez de l\'autonomie sur les méthodes',
+              'Encouragez le partage de connaissances en équipe',
+              'Équilibrez excellence technique et relationnel client'
+            ],
+            vendeur: [
+              'Traduisez votre expertise en bénéfices clients',
+              'Utilisez la structure pour renforcer votre crédibilité',
+              'Partagez vos connaissances avec l\'équipe',
+              'Développez aussi vos soft skills'
+            ]
+          }
         },
         'Challenger': {
           score: '⭐⭐⭐⭐',
