@@ -89,25 +89,6 @@ export default function SellerDetailView({ seller, onBack }) {
     }));
   };
 
-  const handleResetDiagnostic = async () => {
-    if (!window.confirm(`Êtes-vous sûr de vouloir réinitialiser le profil de ${seller.name} ? Cela supprimera son diagnostic actuel et lui permettra de refaire le test.`)) {
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${API}/manager/seller/${seller.id}/diagnostic`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      toast.success('Profil réinitialisé avec succès');
-      setDiagnostic(null);
-    } catch (err) {
-      console.error('Error resetting diagnostic:', err);
-      toast.error('Erreur lors de la réinitialisation du profil');
-    }
-  };
-
   // Calculate current competences (use LIVE scores for consistency with overview)
   const currentCompetences = liveCompetences;
 
