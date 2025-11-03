@@ -176,7 +176,23 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
   const handleUpdateObjective = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${API}/manager/objectives/${editingObjective.id}`, editingObjective, { headers });
+      // Clean data - remove empty strings and convert to numbers
+      const cleanedData = {
+        period_start: editingObjective.period_start,
+        period_end: editingObjective.period_end
+      };
+      
+      if (editingObjective.ca_target && editingObjective.ca_target !== '') {
+        cleanedData.ca_target = parseFloat(editingObjective.ca_target);
+      }
+      if (editingObjective.indice_vente_target && editingObjective.indice_vente_target !== '') {
+        cleanedData.indice_vente_target = parseFloat(editingObjective.indice_vente_target);
+      }
+      if (editingObjective.panier_moyen_target && editingObjective.panier_moyen_target !== '') {
+        cleanedData.panier_moyen_target = parseFloat(editingObjective.panier_moyen_target);
+      }
+      
+      await axios.put(`${API}/manager/objectives/${editingObjective.id}`, cleanedData, { headers });
       toast.success('Objectif modifié avec succès');
       setEditingObjective(null);
       fetchData();
