@@ -1060,7 +1060,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                     )}
 
                     {/* Indice de Vente */}
-                    {visibleDashboardCharts.indiceVente && (
+                    {availableDashboardCharts.indiceVente && visibleDashboardCharts.indiceVente && (
                       <div className="bg-white rounded-xl p-4 border border-gray-200">
                         <h4 className="text-sm font-semibold text-gray-700 mb-3">💎 Indice de Vente</h4>
                         <ResponsiveContainer width="100%" height={150}>
