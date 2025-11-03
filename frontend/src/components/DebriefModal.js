@@ -165,70 +165,81 @@ export default function DebriefModal({ onClose, onSuccess }) {
   // Form view
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
-        <div className="border-b border-gray-200 p-6 flex justify-between items-center flex-shrink-0">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-1">
-              💬 Une vente n'a pas abouti ?
-            </h2>
-            <p className="text-gray-600 text-sm">Fais-en ton meilleur apprentissage !</p>
-          </div>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+        {/* Header with gradient */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-6 rounded-t-2xl relative flex-shrink-0">
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-4xl">💬</span>
+            <div>
+              <h2 className="text-2xl font-bold text-white">
+                Une vente n'a pas abouti ?
+              </h2>
+              <p className="text-white text-opacity-90">Fais-en ton meilleur apprentissage !</p>
+            </div>
+          </div>
         </div>
 
         {/* Progress Bar - Sticky */}
-        <div className="px-6 pt-4 pb-2 border-b border-gray-100 flex-shrink-0 bg-white sticky top-0 z-10">
+        <div className="px-6 pt-4 pb-3 bg-gradient-to-b from-gray-50 to-white border-b border-gray-200 flex-shrink-0 sticky top-0 z-10">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-gray-700">
+            <p className="text-sm font-semibold text-gray-800">
               {answeredCount()} / 7 questions répondues
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm font-bold text-blue-600">
               {Math.round((answeredCount() / 7) * 100)}%
             </p>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
             <div
-              className="bg-[#ffd871] h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-300 shadow-sm"
               style={{ width: `${(answeredCount() / 7) * 100}%` }}
             />
           </div>
         </div>
 
         {/* Form Content - Scrollable */}
-        <div className="px-6 py-6 overflow-y-auto flex-1">
+        <div className="px-6 py-6 overflow-y-auto flex-1 bg-gray-50">
           <div className="space-y-6">
             {/* SECTION 1 - CONTEXTE RAPIDE */}
-            <div className="pb-4 border-b border-gray-200">
-              <h3 className="text-lg font-bold text-gray-800 mb-1">
-                Section 1 — Contexte rapide
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Dis-moi rapidement le contexte de cette vente.
-              </p>
+            <div className="bg-white rounded-xl p-6 border-2 border-blue-100 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
+                  1
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">
+                    Contexte rapide
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Dis-moi rapidement le contexte de cette vente.
+                  </p>
+                </div>
+              </div>
 
               {/* Produit */}
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
-                  Produit ou service proposé
+                <label className="block text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <span className="text-lg">📦</span> Produit ou service proposé
                 </label>
                 <input
                   type="text"
                   value={formData.produit}
                   onChange={(e) => handleChange('produit', e.target.value)}
                   placeholder="Ex: iPhone 15, forfait mobile..."
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
                 />
               </div>
 
               {/* Type de client */}
               <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
-                  Type de client
+                <label className="block text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <span className="text-lg">👤</span> Type de client
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {['Nouveau client', 'Client fidèle', 'Touriste / passage', 'Indécis', 'Autre'].map(type => (
@@ -236,10 +247,10 @@ export default function DebriefModal({ onClose, onSuccess }) {
                       key={type}
                       type="button"
                       onClick={() => handleChange('type_client', type)}
-                      className={`p-3 rounded-xl border-2 text-sm transition-all ${
+                      className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
                         formData.type_client === type
-                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                          : 'border-gray-200 hover:border-[#ffd871]'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md'
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
                       }`}
                     >
                       {type}
@@ -250,8 +261,8 @@ export default function DebriefModal({ onClose, onSuccess }) {
 
               {/* Situation de la vente */}
               <div>
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
-                  Situation de la vente
+                <label className="block text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  <span className="text-lg">📍</span> Situation de la vente
                 </label>
                 <div className="space-y-2">
                   {[
@@ -263,10 +274,10 @@ export default function DebriefModal({ onClose, onSuccess }) {
                       key={situation}
                       type="button"
                       onClick={() => handleChange('situation_vente', situation)}
-                      className={`w-full text-left p-3 rounded-xl border-2 text-sm transition-all ${
+                      className={`w-full text-left p-3 rounded-xl border-2 text-sm font-medium transition-all ${
                         formData.situation_vente === situation
-                          ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
-                          : 'border-gray-200 hover:border-[#ffd871]'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md'
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
                       }`}
                     >
                       {situation}
@@ -277,13 +288,20 @@ export default function DebriefModal({ onClose, onSuccess }) {
             </div>
 
             {/* SECTION 2 - CE QUI S'EST PASSÉ */}
-            <div>
-              <h3 className="text-lg font-bold text-gray-800 mb-1">
-                Section 2 — Ce qui s'est passé
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Décris en quelques mots ce qui s'est passé.
-              </p>
+            <div className="bg-white rounded-xl p-6 border-2 border-purple-100 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
+                  2
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">
+                    Ce qui s'est passé
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Décris en quelques mots ce qui s'est passé.
+                  </p>
+                </div>
+              </div>
 
               {/* Description */}
               <div className="mb-4">
