@@ -1426,6 +1426,15 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           onClose={() => setShowCompetencesModal(false)}
         />
       )}
+
+      {/* KPI Reporting Modal */}
+      {showKPIReporting && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowKPIReporting(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-7xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <KPIReporting user={user} onBack={() => setShowKPIReporting(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
