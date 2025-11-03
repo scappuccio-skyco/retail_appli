@@ -918,7 +918,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                     )}
 
                     {/* Ventes seules */}
-                    {visibleDashboardCharts.ventes && (
+                    {availableDashboardCharts.ventes && visibleDashboardCharts.ventes && (
                       <div className="bg-white rounded-xl p-4 border border-gray-200">
                         <h4 className="text-sm font-semibold text-gray-700 mb-3">🛍️ Évolution des ventes</h4>
                         <ResponsiveContainer width="100%" height={150}>
