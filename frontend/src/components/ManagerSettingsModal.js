@@ -30,7 +30,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
     indice_vente_target: '',
     panier_moyen_target: '',
     start_date: '',
-    end_date: ''
+    end_date: '',
+    status: 'active' // Default status
   });
 
   // New objective form
