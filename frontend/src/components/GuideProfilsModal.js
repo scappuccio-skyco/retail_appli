@@ -347,6 +347,12 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
         'Focus sur les résultats',
         'Propose des défis',
         'Laisse de l\'autonomie'
+      ],
+      attention: [
+        'Peut être trop direct',
+        'Risque d\'impatience',
+        'Peut négliger les émotions',
+        'Besoin de contrôler'
       ]
     },
     {
@@ -366,6 +372,12 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
         'Laisse de l\'espace pour parler',
         'Valorise et encourage',
         'Crée une ambiance fun'
+      ],
+      attention: [
+        'Peut manquer de rigueur',
+        'Risque de dispersion',
+        'Peut négliger les détails',
+        'Besoin de reconnaissance'
       ]
     },
     {
@@ -385,6 +397,12 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
         'Explique les changements',
         'Valorise la contribution',
         'Crée un cadre sécurisant'
+      ],
+      attention: [
+        'Résistance aux changements',
+        'Peut manquer d\'assertivité',
+        'Évite trop les conflits',
+        'Besoin de temps pour s\'adapter'
       ]
     },
     {
@@ -404,6 +422,12 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
         'Fournis des données',
         'Respecte les procédures',
         'Laisse du temps pour réfléchir'
+      ],
+      attention: [
+        'Peut être trop perfectionniste',
+        'Risque de sur-analyser',
+        'Peut manquer de spontanéité',
+        'Besoin de temps pour décider'
       ]
     }
   ];
