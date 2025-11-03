@@ -617,7 +617,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                             ⏳ Commence dans {daysUntilStart} j
                           </span>
                         )}
-                      </span>
+                      </div>
                     </div>
 
                     {challenge.description && (
