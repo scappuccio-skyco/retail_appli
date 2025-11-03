@@ -1815,6 +1815,307 @@ class RetailCoachAPITester:
                 }
             )
 
+    def test_seller_individual_bilan_flow(self):
+        """Test Seller Individual Bilan functionality - NEW FEATURE FROM REVIEW REQUEST"""
+        print("\n🔍 Testing Seller Individual Bilan Flow (NEW FEATURE)...")
+        
+        # Login as vendeur2@test.com as specified in review request
+        login_data = {
+            "email": "vendeur2@test.com",
+            "password": "password123"
+        }
+        
+        success, response = self.run_test(
+            "Seller Bilan - Login as vendeur2@test.com",
+            "POST",
+            "auth/login",
+            200,
+            data=login_data
+        )
+        
+        seller_bilan_token = None
+        if success and 'token' in response:
+            seller_bilan_token = response['token']
+            seller_info = response['user']
+            print(f"   ✅ Logged in as: {seller_info.get('name')} ({seller_info.get('email')})")
+            print(f"   ✅ Seller ID: {seller_info.get('id')}")
+        else:
+            print("   ⚠️  Could not login with vendeur2@test.com - account may not exist")
+            self.log_test("Seller Individual Bilan Setup", False, "vendeur2@test.com account not available")
+            return
+        
+        # SCENARIO 1: Generate Individual Bilan for Current Week (without query params)
+        print("\n   📊 SCENARIO 1: Generate Individual Bilan for Current Week")
+        
+        print("   Generating individual bilan for current week (may take 10-15 seconds)...")
+        success, bilan_response = self.run_test(
+            "Seller Bilan Scenario 1 - Generate Current Week Bilan",
+            "POST",
+            "seller/bilan-individuel",
+            200,
+            token=seller_bilan_token
+        )
+        
+        created_bilan = None
+        if success:
+            created_bilan = bilan_response
+            print("   ✅ Individual bilan generated successfully")
+            
+            # Verify required fields are present
+            required_fields = ['id', 'seller_id', 'periode', 'synthese', 'points_forts', 'points_attention', 'recommandations', 'kpi_resume']
+            missing_fields = []
+            
+            for field in required_fields:
+                if field not in bilan_response:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                self.log_test("Seller Bilan Required Fields Validation", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("Seller Bilan Required Fields Validation", True)
+                print(f"   ✅ Bilan ID: {bilan_response.get('id')}")
+                print(f"   ✅ Seller ID: {bilan_response.get('seller_id')}")
+                print(f"   ✅ Period: {bilan_response.get('periode')}")
+                
+                # Verify period format: "Semaine du DD/MM/YY au DD/MM/YY"
+                periode = bilan_response.get('periode', '')
+                if periode.startswith('Semaine du ') and ' au ' in periode:
+                    print(f"   ✅ Period format correct: {periode}")
+                    self.log_test("Seller Bilan Period Format Validation", True)
+                else:
+                    self.log_test("Seller Bilan Period Format Validation", False, f"Invalid period format: {periode}")
+            
+            # Verify AI-generated content in French with tutoiement
+            ai_content_fields = ['synthese', 'points_forts', 'points_attention', 'recommandations']
+            missing_ai_fields = []
+            
+            for field in ai_content_fields:
+                if field not in bilan_response or not bilan_response[field]:
+                    missing_ai_fields.append(field)
+            
+            if missing_ai_fields:
+                self.log_test("Seller Bilan AI Content Validation", False, f"Missing AI content fields: {missing_ai_fields}")
+            else:
+                self.log_test("Seller Bilan AI Content Validation", True)
+                print(f"   ✅ Synthese: {bilan_response.get('synthese', '')[:100]}...")
+                
+                # Verify points_forts is an array
+                points_forts = bilan_response.get('points_forts', [])
+                if isinstance(points_forts, list) and len(points_forts) > 0:
+                    print(f"   ✅ Points Forts ({len(points_forts)} items): {points_forts[0][:80]}...")
+                else:
+                    self.log_test("Points Forts Format Validation", False, "points_forts should be a non-empty array")
+                
+                # Verify points_attention is an array
+                points_attention = bilan_response.get('points_attention', [])
+                if isinstance(points_attention, list) and len(points_attention) > 0:
+                    print(f"   ✅ Points Attention ({len(points_attention)} items): {points_attention[0][:80]}...")
+                else:
+                    self.log_test("Points Attention Format Validation", False, "points_attention should be a non-empty array")
+                
+                # Verify recommandations is an array
+                recommandations = bilan_response.get('recommandations', [])
+                if isinstance(recommandations, list) and len(recommandations) > 0:
+                    print(f"   ✅ Recommandations ({len(recommandations)} items): {recommandations[0][:80]}...")
+                else:
+                    self.log_test("Recommandations Format Validation", False, "recommandations should be a non-empty array")
+                
+                # Check for French tutoiement indicators
+                all_text = f"{bilan_response.get('synthese', '')} {' '.join(points_forts)} {' '.join(points_attention)} {' '.join(recommandations)}"
+                tutoiement_indicators = ['tu ', 'ton ', 'ta ', 'tes ']
+                
+                if any(indicator in all_text.lower() for indicator in tutoiement_indicators):
+                    print("   ✅ AI analysis uses tutoiement (tu/ton/ta) as required")
+                    self.log_test("Tutoiement Usage Validation", True)
+                else:
+                    print("   ⚠️  AI analysis may not be using tutoiement consistently")
+                
+                # Verify STRICTLY individual analysis (no team comparisons)
+                team_indicators = ['équipe', 'autres vendeurs', 'collègues', 'comparé', 'par rapport']
+                if any(indicator in all_text.lower() for indicator in team_indicators):
+                    self.log_test("Individual Analysis Validation", False, "AI analysis contains team comparisons - should be strictly individual")
+                else:
+                    print("   ✅ AI analysis is strictly individual (no team comparisons)")
+                    self.log_test("Individual Analysis Validation", True)
+            
+            # Verify KPI resume structure
+            kpi_resume = bilan_response.get('kpi_resume', {})
+            if isinstance(kpi_resume, dict):
+                expected_kpi_fields = ['ca_total', 'ventes', 'clients', 'articles', 'panier_moyen', 'taux_transformation', 'indice_vente']
+                missing_kpi_fields = []
+                
+                for field in expected_kpi_fields:
+                    if field not in kpi_resume:
+                        missing_kpi_fields.append(field)
+                
+                if missing_kpi_fields:
+                    self.log_test("KPI Resume Fields Validation", False, f"Missing KPI fields: {missing_kpi_fields}")
+                else:
+                    self.log_test("KPI Resume Fields Validation", True)
+                    print(f"   ✅ KPI Resume: CA={kpi_resume.get('ca_total')}€, Ventes={kpi_resume.get('ventes')}, Clients={kpi_resume.get('clients')}")
+                    print(f"   ✅ KPI Resume: Articles={kpi_resume.get('articles')}, Panier Moyen={kpi_resume.get('panier_moyen')}€")
+                    print(f"   ✅ KPI Resume: Taux Transfo={kpi_resume.get('taux_transformation')}%, Indice Vente={kpi_resume.get('indice_vente')}")
+            else:
+                self.log_test("KPI Resume Structure Validation", False, "kpi_resume should be a dictionary")
+        
+        # SCENARIO 2: Generate Bilan for Specific Week
+        print("\n   📅 SCENARIO 2: Generate Bilan for Specific Week")
+        
+        success, specific_bilan_response = self.run_test(
+            "Seller Bilan Scenario 2 - Generate Specific Week Bilan",
+            "POST",
+            "seller/bilan-individuel?start_date=2024-10-21&end_date=2024-10-27",
+            200,
+            token=seller_bilan_token
+        )
+        
+        if success:
+            print("   ✅ Specific week bilan generated successfully")
+            
+            # Verify period matches the specified dates
+            periode = specific_bilan_response.get('periode', '')
+            if '21/10' in periode and '27/10' in periode:
+                print(f"   ✅ Period matches specified dates: {periode}")
+                self.log_test("Specific Week Period Validation", True)
+            else:
+                self.log_test("Specific Week Period Validation", False, f"Period doesn't match specified dates: {periode}")
+            
+            # Verify it's a different bilan from the current week one
+            if created_bilan and specific_bilan_response.get('id') != created_bilan.get('id'):
+                print("   ✅ Specific week bilan is different from current week bilan")
+                self.log_test("Different Bilan Validation", True)
+            else:
+                print("   ⚠️  Specific week bilan may be the same as current week bilan")
+        
+        # SCENARIO 3: Get All Individual Bilans
+        print("\n   📋 SCENARIO 3: Get All Individual Bilans")
+        
+        success, all_bilans_response = self.run_test(
+            "Seller Bilan Scenario 3 - Get All Individual Bilans",
+            "GET",
+            "seller/bilan-individuel/all",
+            200,
+            token=seller_bilan_token
+        )
+        
+        if success:
+            # Verify response structure
+            if 'status' in all_bilans_response and 'bilans' in all_bilans_response:
+                if all_bilans_response.get('status') == 'success':
+                    print(f"   ✅ Response status: {all_bilans_response.get('status')}")
+                    self.log_test("Get All Bilans Response Structure", True)
+                    
+                    bilans = all_bilans_response.get('bilans', [])
+                    if isinstance(bilans, list):
+                        print(f"   ✅ Retrieved {len(bilans)} individual bilan(s)")
+                        
+                        # Verify bilans are sorted by date (most recent first)
+                        if len(bilans) > 1:
+                            dates_sorted = True
+                            for i in range(len(bilans) - 1):
+                                current_date = bilans[i].get('created_at')
+                                next_date = bilans[i + 1].get('created_at')
+                                
+                                if current_date and next_date:
+                                    if isinstance(current_date, str):
+                                        current_date = datetime.fromisoformat(current_date)
+                                    if isinstance(next_date, str):
+                                        next_date = datetime.fromisoformat(next_date)
+                                    
+                                    if current_date < next_date:
+                                        dates_sorted = False
+                                        break
+                            
+                            if dates_sorted:
+                                print("   ✅ Bilans are sorted by date (most recent first)")
+                                self.log_test("Bilans Date Sorting Validation", True)
+                            else:
+                                self.log_test("Bilans Date Sorting Validation", False, "Bilans are not properly sorted by date")
+                        
+                        # Verify each bilan has all required fields
+                        if len(bilans) > 0:
+                            first_bilan = bilans[0]
+                            required_fields = ['id', 'seller_id', 'periode', 'synthese', 'points_forts', 'points_attention', 'recommandations', 'kpi_resume']
+                            
+                            all_fields_present = all(field in first_bilan for field in required_fields)
+                            if all_fields_present:
+                                print("   ✅ All required fields present in retrieved bilans")
+                                self.log_test("Retrieved Bilans Fields Validation", True)
+                            else:
+                                missing = [f for f in required_fields if f not in first_bilan]
+                                self.log_test("Retrieved Bilans Fields Validation", False, f"Missing fields in retrieved bilans: {missing}")
+                        
+                        # Verify created bilans are in the list
+                        if created_bilan:
+                            found_current = any(b.get('id') == created_bilan.get('id') for b in bilans)
+                            if found_current:
+                                print("   ✅ Current week bilan found in retrieved list")
+                            else:
+                                self.log_test("Current Week Bilan Persistence", False, "Current week bilan not found in retrieved list")
+                        
+                        if specific_bilan_response:
+                            found_specific = any(b.get('id') == specific_bilan_response.get('id') for b in bilans)
+                            if found_specific:
+                                print("   ✅ Specific week bilan found in retrieved list")
+                            else:
+                                self.log_test("Specific Week Bilan Persistence", False, "Specific week bilan not found in retrieved list")
+                    else:
+                        self.log_test("Get All Bilans Bilans Array", False, "bilans should be an array")
+                else:
+                    self.log_test("Get All Bilans Response Structure", False, f"Expected status 'success', got '{all_bilans_response.get('status')}'")
+            else:
+                self.log_test("Get All Bilans Response Structure", False, "Response should contain 'status' and 'bilans' fields")
+
+    def test_seller_bilan_authorization(self):
+        """Test Seller Individual Bilan authorization scenarios"""
+        print("\n🔍 Testing Seller Individual Bilan Authorization...")
+        
+        # Test 1: Generate bilan without authentication
+        success, response = self.run_test(
+            "Seller Bilan - No Authentication (Generate)",
+            "POST",
+            "seller/bilan-individuel",
+            401,  # Unauthorized
+        )
+        
+        if success:
+            print("   ✅ Correctly requires authentication for bilan generation")
+        
+        # Test 2: Get bilans without authentication
+        success, response = self.run_test(
+            "Seller Bilan - No Authentication (Get All)",
+            "GET",
+            "seller/bilan-individuel/all",
+            401,  # Unauthorized
+        )
+        
+        if success:
+            print("   ✅ Correctly requires authentication for getting bilans")
+        
+        # Test 3: Try as manager role (should fail)
+        if self.manager_token:
+            success, response = self.run_test(
+                "Seller Bilan - Manager Role (Should Fail Generate)",
+                "POST",
+                "seller/bilan-individuel",
+                403,  # Forbidden
+                token=self.manager_token
+            )
+            
+            if success:
+                print("   ✅ Correctly prevents managers from generating seller bilans")
+            
+            success, response = self.run_test(
+                "Seller Bilan - Manager Role (Should Fail Get All)",
+                "GET",
+                "seller/bilan-individuel/all",
+                403,  # Forbidden
+                token=self.manager_token
+            )
+            
+            if success:
+                print("   ✅ Correctly prevents managers from accessing seller bilans")
+
     def run_all_tests(self):
         """Run all tests in sequence"""
         print("🚀 Starting Retail Coach 2.0 API Tests")
