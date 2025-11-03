@@ -50,6 +50,8 @@ export default function ManagerDashboard({ user, onLogout }) {
     tauxTransfo: true,
     indiceVente: true
   }); // New state for dashboard chart visibility
+  const [currentObjectiveIndex, setCurrentObjectiveIndex] = useState(0); // Carousel for objectives
+  const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0); // Carousel for challenges
 
   // Determine which charts should be available based on manager's KPI configuration
   const availableDashboardCharts = useMemo(() => {
