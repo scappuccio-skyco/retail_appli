@@ -987,7 +987,17 @@ export default function ManagerDashboard({ user, onLogout }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Sellers List */}
           <div className="glass-morphism rounded-2xl p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Équipe de Vente</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Équipe de Vente</h2>
+              <button
+                data-testid="invite-seller-button"
+                onClick={() => setShowInviteModal(true)}
+                className="btn-primary flex items-center gap-2 text-sm"
+              >
+                <UserPlus className="w-4 h-4" />
+                Inviter un Vendeur
+              </button>
+            </div>
             {sellers.length > 0 ? (
               <div className="space-y-3">
                 {sellers.map((seller) => (
