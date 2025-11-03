@@ -751,7 +751,7 @@ export default function SellerDetailView({ seller, onBack }) {
                 )}
 
                 {/* Graphique Panier Moyen */}
-                {visibleCharts.panierMoyen && (
+                {availableCharts.panierMoyen && visibleCharts.panierMoyen && (
                   <div className="bg-white rounded-xl p-4 border border-gray-200">
                     <h3 className="text-lg font-bold text-gray-800 mb-4">🛒 Panier Moyen</h3>
                     <ResponsiveContainer width="100%" height={250}>
