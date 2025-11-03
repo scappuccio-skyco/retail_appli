@@ -34,12 +34,14 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
       const managerRes = await axios.get(`${API}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Manager data:', managerRes.data);
       setManagerProfile(managerRes.data);
       
       // Get sellers
       const sellersRes = await axios.get(`${API}/manager/sellers`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('Sellers data:', sellersRes.data);
       setTeamSellers(sellersRes.data);
       
     } catch (error) {
