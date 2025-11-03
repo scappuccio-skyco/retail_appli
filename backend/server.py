@@ -2608,11 +2608,13 @@ IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou a
   "recommandations": ["Action personnalisée 1", "Action personnalisée 2", "Action personnalisée 3"]
 }}
 
-Consignes :
+Consignes CRITIQUES :
 - Analyse STRICTEMENT INDIVIDUELLE (ne mentionne JAMAIS d'autres vendeurs, l'équipe ou de comparaisons)
 - Sois précis avec les chiffres du vendeur (utilise UNIQUEMENT ses données)
-- NE PARLE QUE DES INDICATEURS FOURNIS CI-DESSUS (ne mentionne pas d'indicateurs absents)
-- Si un indicateur n'est pas listé, ne l'invente pas et ne le mentionne pas
+- NE PARLE QUE DES INDICATEURS FOURNIS CI-DESSUS dans la liste des KPIs
+- Si un indicateur n'est PAS listé ci-dessus (ex: clients, articles), c'est parce qu'il N'EST PAS SUIVI par le manager - NE LE MENTIONNE PAS DU TOUT
+- Ne demande JAMAIS au vendeur de saisir un indicateur qui n'est pas dans la liste des KPIs
+- Les "points d'attention" doivent porter UNIQUEMENT sur les performances réelles sur les indicateurs suivis, PAS sur des données manquantes
 - Recommandations concrètes et personnalisées pour ce vendeur spécifiquement
 - Mentionne son profil (style, niveau, DISC) dans l'analyse si pertinent
 - Ton professionnel mais encourageant et motivant
