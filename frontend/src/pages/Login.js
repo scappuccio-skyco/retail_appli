@@ -71,7 +71,7 @@ export default function Login({ onLogin }) {
       }
       
       const res = await axios.post(`${API}${endpoint}`, payload);
-      toast.success(isRegister ? 'Compte créé avec succès!' : 'Connexion réussie!');
+      // toast.success(isRegister ? 'Compte créé avec succès!' : 'Connexion réussie!');
       onLogin(res.data.user, res.data.token);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Erreur de connexion');
