@@ -819,7 +819,21 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
             'Rythmes différents (direct vs relationnel)',
             'Le manager doit valoriser l\'aspect humain',
             'Le vendeur doit accepter les objectifs chiffrés'
-          ]
+          ],
+          recommandations: {
+            manager: [
+              'Valorisez la qualité relationnelle et la fidélisation client',
+              'Donnez du temps pour construire les relations',
+              'Expliquez le "pourquoi" derrière les objectifs',
+              'Reconnaissez les soft skills autant que les chiffres'
+            ],
+            vendeur: [
+              'Utilisez votre relationnel pour atteindre les objectifs',
+              'Montrez l\'impact business de vos relations clients',
+              'Acceptez la structure comme un cadre libérateur',
+              'Proposez des KPIs relationnels (satisfaction, fidélité)'
+            ]
+          }
         },
         'Dynamique': {
           score: '⭐⭐⭐⭐⭐',
