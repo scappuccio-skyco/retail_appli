@@ -3218,6 +3218,10 @@ async def get_active_manager_objectives(current_user: dict = Depends(get_current
         {"_id": 0}
     ).sort("period_start", 1).to_list(10)
     
+    # Calculate progress for each objective
+    for objective in objectives:
+        await calculate_objective_progress(objective, current_user['id'])
+    
     return objectives
 
 # ===== CHALLENGE ENDPOINTS =====
