@@ -507,6 +507,8 @@ export default function SellerDetailView({ seller, onBack }) {
               >
                 📊 Ventes vs Clients
               </button>
+              )}
+              {availableCharts.panierMoyen && (
               <button
                 onClick={() => setVisibleCharts(prev => ({ ...prev, panierMoyen: !prev.panierMoyen }))}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -517,6 +519,8 @@ export default function SellerDetailView({ seller, onBack }) {
               >
                 🛒 Panier Moyen
               </button>
+              )}
+              {availableCharts.tauxTransfo && (
               <button
                 onClick={() => setVisibleCharts(prev => ({ ...prev, tauxTransfo: !prev.tauxTransfo }))}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -527,6 +531,8 @@ export default function SellerDetailView({ seller, onBack }) {
               >
                 📈 Taux Transfo
               </button>
+              )}
+              {availableCharts.indiceVente && (
               <button
                 onClick={() => setVisibleCharts(prev => ({ ...prev, indiceVente: !prev.indiceVente }))}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -537,8 +543,10 @@ export default function SellerDetailView({ seller, onBack }) {
               >
                 💎 Indice Vente
               </button>
+              )}
             </div>
           </div>
+          )}
           
           {kpiEntries.length > 0 ? (
             <>
