@@ -2487,6 +2487,30 @@ async def generate_seller_bilan_for_period(seller_id: str, start_date: date, end
     """Helper function to generate an individual bilan for a seller for a specific period"""
     periode = f"Semaine du {start_date.strftime('%d/%m/%y')} au {end_date.strftime('%d/%m/%y')}"
     
+    # Get manager's KPI configuration
+    seller_user = await db.users.find_one({"id": seller_id}, {"_id": 0})
+    if not seller_user or not seller_user.get('manager_id'):
+        # Fallback: all KPIs enabled
+        kpi_config = {
+            "track_ca": True,
+            "track_ventes": True,
+            "track_clients": True,
+            "track_articles": True
+        }
+    else:
+        manager = await db.users.find_one({"id": seller_user['manager_id']}, {"_id": 0})
+        kpi_config = manager.get('kpiConfig', {
+            "track_ca": True,
+            "track_ventes": True,
+            "track_clients": True,
+            "track_articles": True
+        }) if manager else {
+            "track_ca": True,
+            "track_ventes": True,
+            "track_clients": True,
+            "track_articles": True
+        }
+    
     # Get KPIs for this period
     kpi_entries = await db.kpi_entries.find({
         "seller_id": seller_id,
@@ -2502,10 +2526,10 @@ async def generate_seller_bilan_for_period(seller_id: str, start_date: date, end
     total_clients = sum(e.get('nb_clients', 0) for e in kpi_entries)
     total_articles = sum(e.get('nb_articles', 0) for e in kpi_entries)
     
-    # Calculate KPIs
-    panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
-    taux_transfo = (total_ventes / total_clients * 100) if total_clients > 0 else 0
-    indice_vente = (total_articles / total_clients) if total_clients > 0 else 0
+    # Calculate derived KPIs ONLY if base metrics are tracked
+    panier_moyen = (total_ca / total_ventes) if (kpi_config.get('track_ca') and kpi_config.get('track_ventes') and total_ventes > 0) else None
+    taux_transfo = ((total_ventes / total_clients * 100) if total_clients > 0 else None) if (kpi_config.get('track_ventes') and kpi_config.get('track_clients')) else None
+    indice_vente = ((total_articles / total_clients) if total_clients > 0 else None) if (kpi_config.get('track_articles') and kpi_config.get('track_clients')) else None
     
     # Get seller diagnostic
     diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0})
@@ -2521,15 +2545,26 @@ Profil de vente :
     if diagnostic and diagnostic.get('disc_dominant'):
         seller_context += f"- Profil DISC : {diagnostic['disc_dominant']}\n"
     
-    kpi_context = f"""KPIs pour la période {periode} :
-- CA Total : {total_ca:.2f}€
-- Nombre de ventes : {total_ventes}
-- Nombre de clients : {total_clients}
-- Nombre d'articles : {total_articles}
-- Panier moyen : {panier_moyen:.2f}€
-- Taux de transformation : {taux_transfo:.2f}%
-- Indice de vente : {indice_vente:.2f}
-"""
+    # Build KPI context with ONLY tracked metrics
+    kpi_lines = []
+    kpi_lines.append(f"KPIs pour la période {periode} :")
+    
+    if kpi_config.get('track_ca'):
+        kpi_lines.append(f"- CA Total : {total_ca:.2f}€")
+    if kpi_config.get('track_ventes'):
+        kpi_lines.append(f"- Nombre de ventes : {total_ventes}")
+    if kpi_config.get('track_clients'):
+        kpi_lines.append(f"- Nombre de clients : {total_clients}")
+    if kpi_config.get('track_articles'):
+        kpi_lines.append(f"- Nombre d'articles : {total_articles}")
+    if panier_moyen is not None:
+        kpi_lines.append(f"- Panier moyen : {panier_moyen:.2f}€")
+    if taux_transfo is not None:
+        kpi_lines.append(f"- Taux de transformation : {taux_transfo:.2f}%")
+    if indice_vente is not None:
+        kpi_lines.append(f"- Indice de vente : {indice_vente:.2f}")
+    
+    kpi_context = "\n".join(kpi_lines)
     
     # Count days with KPI entries in the period
     jours_actifs = len(kpi_entries)
