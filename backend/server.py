@@ -3381,6 +3381,25 @@ async def update_challenge(
     
     return updated_challenge
 
+@api_router.delete("/manager/challenges/{challenge_id}")
+async def delete_challenge(challenge_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can delete challenges")
+    
+    # Check if challenge exists and belongs to this manager
+    existing_challenge = await db.challenges.find_one(
+        {"id": challenge_id, "manager_id": current_user['id']},
+        {"_id": 0}
+    )
+    
+    if not existing_challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    
+    # Delete challenge
+    await db.challenges.delete_one({"id": challenge_id})
+    
+    return {"message": "Challenge deleted successfully", "id": challenge_id}
+
 async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
     """Calculate progress for a challenge"""
     start_date = challenge['start_date']
