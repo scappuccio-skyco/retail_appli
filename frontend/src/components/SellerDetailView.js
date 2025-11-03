@@ -165,10 +165,6 @@ export default function SellerDetailView({ seller, onBack }) {
       indiceVente: kpiConfig.track_ca === true && kpiConfig.track_ventes === true && kpiConfig.track_articles === true
     };
     
-    // Debug: Log available charts
-    console.log('📈 Available Charts calculated:', charts);
-    console.log('🔍 kpiConfig:', kpiConfig);
-    
     return charts;
   }, [kpiConfig]);
 
