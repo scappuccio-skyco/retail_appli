@@ -581,7 +581,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                 <h3 className="text-2xl font-bold text-gray-800">🎯 Objectifs & Challenges Actifs</h3>
               </div>
               <button
-                onClick={() => navigate('/manager/settings')}
+                onClick={() => setShowSettingsModal(true)}
                 className="btn-secondary text-sm flex items-center gap-2"
               >
                 <Settings className="w-4 h-4" />
