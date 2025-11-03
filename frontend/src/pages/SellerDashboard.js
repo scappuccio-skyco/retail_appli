@@ -942,6 +942,7 @@ export default function SellerDashboard({ user, diagnostic, onLogout }) {
         <SellerProfileModal
           diagnostic={diagnostic}
           onClose={() => setShowProfileModal(false)}
+          onRedoDiagnostic={() => setShowDiagnosticFormModal(true)}
         />
       )}
 
