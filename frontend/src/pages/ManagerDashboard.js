@@ -678,7 +678,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                       </div>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => navigate(`/manager/settings?edit=${challenge.id}`)}
+                          onClick={() => setShowSettingsModal(true)}
                           className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-1.5 rounded transition-all"
                           title="Modifier"
                         >
