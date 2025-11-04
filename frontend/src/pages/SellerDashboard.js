@@ -852,8 +852,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </div>
 
               {/* Section Reordering */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <p className="text-sm font-semibold text-gray-700 mb-3">Réorganiser les sections :</p>
+              <div className="mt-6 pt-6 border-t-2 border-purple-100">
+                <p className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
+                  Réorganiser l'ordre des sections
+                </p>
                 <div className="space-y-2">
                   {sectionOrder.map((sectionId, index) => {
                     const sectionNames = {
@@ -864,20 +867,23 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                       debriefs: '📝 Débriefs'
                     };
                     return (
-                      <div key={sectionId} className="flex items-center justify-between bg-white rounded-lg p-3 border-2 border-gray-200">
-                        <span className="font-medium text-gray-800">{sectionNames[sectionId]}</span>
+                      <div key={sectionId} className="flex items-center justify-between bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 transition-all shadow-sm">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-bold text-gray-400">#{index + 1}</span>
+                          <span className="font-semibold text-gray-800">{sectionNames[sectionId]}</span>
+                        </div>
                         <div className="flex gap-2">
                           <button
                             onClick={() => moveSectionUp(sectionId)}
                             disabled={index === 0}
                             className={`p-2 rounded-lg transition-all ${
                               index === 0
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                                ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                                : 'bg-purple-100 text-purple-600 hover:bg-purple-200 hover:shadow-md'
                             }`}
                             title="Monter"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                             </svg>
                           </button>
@@ -886,12 +892,12 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                             disabled={index === sectionOrder.length - 1}
                             className={`p-2 rounded-lg transition-all ${
                               index === sectionOrder.length - 1
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                                ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                                : 'bg-purple-100 text-purple-600 hover:bg-purple-200 hover:shadow-md'
                             }`}
                             title="Descendre"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
                           </button>
