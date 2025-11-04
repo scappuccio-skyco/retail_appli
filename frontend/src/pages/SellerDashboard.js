@@ -829,33 +829,29 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 </div>
               )}
               
-              {/* Points forts - Remplir l'espace */}
-              {diagnostic.strengths && diagnostic.strengths.length > 0 && (
-                <div className="mt-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-3 border-l-4 border-green-500">
-                  <p className="text-xs font-semibold text-green-800 mb-2">✨ Tes points forts :</p>
-                  <ul className="space-y-1">
-                    {diagnostic.strengths.slice(0, 3).map((strength, idx) => (
-                      <li key={idx} className="text-xs text-green-700 flex items-start gap-1">
-                        <span className="text-green-500 mt-0.5">•</span>
-                        <span>{strength}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              {/* Points à améliorer */}
-              {diagnostic.weaknesses && diagnostic.weaknesses.length > 0 && (
-                <div className="mt-2 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-3 border-l-4 border-orange-500">
-                  <p className="text-xs font-semibold text-orange-800 mb-2">🎯 À développer :</p>
-                  <ul className="space-y-1">
-                    {diagnostic.weaknesses.slice(0, 2).map((weakness, idx) => (
-                      <li key={idx} className="text-xs text-orange-700 flex items-start gap-1">
-                        <span className="text-orange-500 mt-0.5">•</span>
-                        <span>{weakness}</span>
-                      </li>
-                    ))}
-                  </ul>
+              {/* Commentaire personnalisé IA */}
+              {diagnostic.ai_profile_summary && (
+                <div className="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border-l-4 border-purple-500">
+                  <div className="flex items-start gap-2 mb-2">
+                    <Sparkles className="w-4 h-4 text-purple-600 mt-0.5" />
+                    <p className="text-xs font-semibold text-purple-900">Analyse IA de ton profil :</p>
+                  </div>
+                  <p className="text-xs text-purple-800 leading-relaxed">
+                    {diagnostic.ai_profile_summary.length > 200 
+                      ? `${diagnostic.ai_profile_summary.substring(0, 200)}...` 
+                      : diagnostic.ai_profile_summary}
+                  </p>
+                  {diagnostic.ai_profile_summary.length > 200 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowProfileModal(true);
+                      }}
+                      className="text-xs text-purple-600 hover:text-purple-800 font-semibold mt-2 flex items-center gap-1"
+                    >
+                      Lire la suite →
+                    </button>
+                  )}
                 </div>
               )}
             </div>
