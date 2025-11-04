@@ -3555,7 +3555,6 @@ async def get_seller_kpi_config(current_user: dict = Depends(get_current_user)):
     return {
         "track_ca": config.get('track_ca', True),
         "track_ventes": config.get('track_ventes', True),
-        "track_clients": config.get('track_clients', True),
         "track_articles": config.get('track_articles', True)
     }
 
