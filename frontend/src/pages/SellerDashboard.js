@@ -473,7 +473,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
     if (weekKPIs.length > 0) {
       weekKPIs.forEach(entry => {
-        kpi_resume.ca_total += entry.ca || 0;
+        kpi_resume.ca_total += entry.ca_journalier || 0;
         kpi_resume.ventes += entry.nb_ventes || 0;
         kpi_resume.articles += entry.nb_articles || 0;
       });
