@@ -2572,7 +2572,6 @@ async def generate_seller_bilan_for_period(seller_id: str, start_date: date, end
     # Calculate totals
     total_ca = sum(e.get('ca_journalier', 0) for e in kpi_entries)
     total_ventes = sum(e.get('nb_ventes', 0) for e in kpi_entries)
-    total_clients = sum(e.get('nb_clients', 0) for e in kpi_entries)
     total_articles = sum(e.get('nb_articles', 0) for e in kpi_entries)
     
     # Calculate derived KPIs ONLY if base metrics are tracked
