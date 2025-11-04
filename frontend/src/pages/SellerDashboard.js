@@ -1632,7 +1632,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
         {/* Mes derniers débriefs */}
         {dashboardFilters.showDebriefs && (
-          <div className="glass-morphism rounded-2xl p-6 mt-8">
+          <div className="glass-morphism rounded-2xl p-6 mt-8" style={{ order: getSectionOrder('debriefs') }}>
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-800">📝 Mes derniers Debriefs</h2>
             <button
