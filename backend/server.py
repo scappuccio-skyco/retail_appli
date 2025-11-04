@@ -2715,8 +2715,6 @@ Consignes CRITIQUES :
         kpi_resume["ca_total"] = round(total_ca, 2)
     if kpi_config.get('track_ventes'):
         kpi_resume["ventes"] = total_ventes
-    if kpi_config.get('track_clients'):
-        kpi_resume["clients"] = total_clients
     if kpi_config.get('track_articles'):
         kpi_resume["articles"] = total_articles
     if panier_moyen is not None:
