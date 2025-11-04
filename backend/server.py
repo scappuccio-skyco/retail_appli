@@ -372,8 +372,8 @@ class KPIEntry(BaseModel):
     nb_articles: int = 0  # NEW: Number of articles sold
     # Calculated KPIs
     panier_moyen: float = 0
-    taux_transformation: float = 0
-    indice_vente: float = 0  # CA / nb_articles
+    taux_transformation: Optional[float] = None  # Not calculated at seller level, only at store level
+    indice_vente: float = 0  # Articles / ventes (UPT)
     comment: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
