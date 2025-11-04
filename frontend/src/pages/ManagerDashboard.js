@@ -907,7 +907,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                       return (
                         <div 
                           key={challenge.id} 
-                          className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-4 border-2 border-[#ffd871] hover:shadow-lg transition-all h-[280px] flex flex-col"
+                          className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-4 border-2 border-[#ffd871] hover:shadow-lg transition-all min-h-[280px] flex flex-col"
                         >
                           <div className="flex items-start justify-between mb-2">
                             <h4 className="font-bold text-gray-800 text-lg line-clamp-1">{challenge.title}</h4>
