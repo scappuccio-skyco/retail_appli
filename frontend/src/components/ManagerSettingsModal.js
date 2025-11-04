@@ -400,8 +400,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                               <span className="text-xl">🎯</span>
                             </div>
                             <div className="flex-1">
-                              <p className="font-semibold text-teal-900">Indice de Vente</p>
-                              <p className="text-xs text-teal-600">Articles ÷ Clients × 100</p>
+                              <p className="font-semibold text-teal-900">Indice de Vente (UPT)</p>
+                              <p className="text-xs text-teal-600">Articles ÷ Ventes</p>
                             </div>
                             <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
                               ✓ Actif
