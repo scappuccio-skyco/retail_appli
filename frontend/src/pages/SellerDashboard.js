@@ -953,41 +953,22 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               onClick={() => setShowProfileModal(true)}
               className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
             >
-              <div className="relative h-48 bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 flex items-center justify-center">
-                <div className="absolute inset-0 bg-black opacity-20 group-hover:opacity-10 transition-opacity"></div>
-                <div className="relative z-10 text-center text-white">
-                  <div className="w-20 h-20 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
-                    <Sparkles className="w-10 h-10" />
-                  </div>
-                  <h3 className="text-2xl font-bold">Mon Profil de Vente</h3>
-                  <p className="text-sm mt-2 opacity-90">Cliquer pour voir les détails →</p>
-                </div>
-              </div>
-              <div className="p-4 bg-white">
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="text-center">
-                    <p className="text-xs text-purple-600 mb-1">Style</p>
-                    <p className="text-sm font-bold text-purple-900">{diagnostic.style}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-green-600 mb-1">Niveau</p>
-                    <p className="text-sm font-bold text-green-900">{diagnostic.level}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-orange-600 mb-1">DISC</p>
-                    <p className="text-sm font-bold text-orange-900">{diagnostic.disc_dominant}</p>
+              <div className="relative h-48 overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1556761175-b413da4baf72?w=800&h=400&fit=crop" 
+                  alt="Mon Profil de Vente"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-900/70 via-pink-900/70 to-red-900/70 group-hover:from-purple-900/60 group-hover:via-pink-900/60 group-hover:to-red-900/60 transition-all"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                      <Sparkles className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-2xl font-bold">Mon Profil de Vente</h3>
+                    <p className="text-sm mt-2 opacity-90">Cliquer pour voir les détails →</p>
                   </div>
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowDiagnosticModal(true);
-                  }}
-                  className="w-full mt-3 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:shadow-lg text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Relancer le diagnostic
-                </button>
               </div>
             </div>
           )}
