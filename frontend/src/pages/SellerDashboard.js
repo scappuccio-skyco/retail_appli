@@ -828,6 +828,36 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   </div>
                 </div>
               )}
+              
+              {/* Points forts - Remplir l'espace */}
+              {diagnostic.strengths && diagnostic.strengths.length > 0 && (
+                <div className="mt-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-3 border-l-4 border-green-500">
+                  <p className="text-xs font-semibold text-green-800 mb-2">✨ Tes points forts :</p>
+                  <ul className="space-y-1">
+                    {diagnostic.strengths.slice(0, 3).map((strength, idx) => (
+                      <li key={idx} className="text-xs text-green-700 flex items-start gap-1">
+                        <span className="text-green-500 mt-0.5">•</span>
+                        <span>{strength}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {/* Points à améliorer */}
+              {diagnostic.weaknesses && diagnostic.weaknesses.length > 0 && (
+                <div className="mt-2 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-3 border-l-4 border-orange-500">
+                  <p className="text-xs font-semibold text-orange-800 mb-2">🎯 À développer :</p>
+                  <ul className="space-y-1">
+                    {diagnostic.weaknesses.slice(0, 2).map((weakness, idx) => (
+                      <li key={idx} className="text-xs text-orange-700 flex items-start gap-1">
+                        <span className="text-orange-500 mt-0.5">•</span>
+                        <span>{weakness}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 
