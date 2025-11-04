@@ -1602,7 +1602,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
         {/* Mes derniers KPIs enregistrés */}
         {dashboardFilters.showKPI && (
-          <div className="glass-morphism rounded-2xl p-6 mt-8">
+          <div className="glass-morphism rounded-2xl p-6 mt-8" style={{ order: getSectionOrder('kpi') }}>
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-800">📊 Mes KPI</h2>
               <div className="flex gap-2">
