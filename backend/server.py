@@ -3306,16 +3306,44 @@ async def get_daily_challenge(current_user: dict = Depends(get_current_user)):
     # Generate new challenge with AI
     try:
         # Get seller's diagnostic to personalize
-        diagnostic = await db.diagnostic_results.find_one({
+        diagnostic = await db.diagnostics.find_one({
             "seller_id": current_user['id']
         }, {"_id": 0})
+        
+        # Get last 5 challenges to analyze performance and avoid repetition
+        recent_challenges = await db.daily_challenges.find(
+            {"seller_id": current_user['id']},
+            {"_id": 0}
+        ).sort("date", -1).limit(5).to_list(5)
+        
+        # Analyze performance trend for difficulty adaptation (Option A)
+        last_3_results = [ch.get('challenge_result') for ch in recent_challenges[:3] if ch.get('completed')]
+        difficulty_level = "normal"
+        
+        if len(last_3_results) >= 3:
+            if all(r == 'success' for r in last_3_results):
+                difficulty_level = "plus_difficile"  # 3 successes → increase difficulty
+            elif last_3_results[:2] == ['failed', 'failed']:
+                difficulty_level = "plus_facile"  # 2 failures → decrease difficulty
+            elif 'partial' in last_3_results:
+                difficulty_level = "normal"  # Keep current level
+        
+        # Collect feedback comments for AI context
+        feedback_context = []
+        for ch in recent_challenges:
+            if ch.get('completed') and ch.get('feedback_comment'):
+                feedback_context.append({
+                    'competence': ch.get('competence'),
+                    'result': ch.get('challenge_result'),
+                    'comment': ch.get('feedback_comment')
+                })
         
         if not diagnostic:
             # Default challenge if no diagnostic
             competences = ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']
             selected_competence = competences[datetime.now().day % len(competences)]
         else:
-            # Find weakest competence
+            # Find weakest competences (Option B: Rotation)
             scores = {
                 'accueil': diagnostic.get('score_accueil', 3),
                 'decouverte': diagnostic.get('score_decouverte', 3),
@@ -3323,7 +3351,23 @@ async def get_daily_challenge(current_user: dict = Depends(get_current_user)):
                 'closing': diagnostic.get('score_closing', 3),
                 'fidelisation': diagnostic.get('score_fidelisation', 3)
             }
-            selected_competence = min(scores, key=scores.get)
+            
+            # Get recently worked competences to avoid repetition
+            recent_competences = [ch.get('competence') for ch in recent_challenges[:3]]
+            
+            # Sort competences by score (weakest first)
+            sorted_competences = sorted(scores.items(), key=lambda x: x[1])
+            
+            # Smart rotation: alternate between weakest and other weak competences
+            selected_competence = None
+            for comp, score in sorted_competences:
+                if comp not in recent_competences[:2]:  # Not in last 2 challenges
+                    selected_competence = comp
+                    break
+            
+            # Fallback to weakest if all were recently used
+            if not selected_competence:
+                selected_competence = sorted_competences[0][0]
         
         # Generate AI challenge
         from emergentintegrations.openai import UniversalOpenAI
