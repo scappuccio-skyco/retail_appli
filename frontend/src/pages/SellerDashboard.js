@@ -709,7 +709,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto flex flex-col">
         {/* Tasks Section */}
         {tasks.length > 0 && (
           <div className="glass-morphism rounded-2xl p-6 mb-8 border-2 border-[#ffd871]">
