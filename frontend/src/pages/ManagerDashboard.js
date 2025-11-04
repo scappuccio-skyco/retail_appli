@@ -166,6 +166,7 @@ export default function ManagerDashboard({ user, onLogout }) {
     fetchKpiConfig();
     fetchActiveChallenges();
     fetchActiveObjectives();
+    fetchStoreKPIStats();
   }, []);
 
   const fetchActiveObjectives = async () => {
