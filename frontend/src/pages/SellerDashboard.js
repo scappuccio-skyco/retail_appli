@@ -964,8 +964,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             </div>
           )}
 
-        )}
-
         {/* Objectives and Challenges Card */}
         {((activeObjectives.length > 0 && dashboardFilters.showObjectives) || (activeChallenges.length > 0 && dashboardFilters.showChallenges)) && (
           <div 
