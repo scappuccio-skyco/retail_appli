@@ -1778,27 +1778,27 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   </div>
                 )
               ) : (
-                <div className="space-y-3">
-                  <div className={`flex-1 rounded-xl p-4 flex items-center justify-center gap-2 ${
+                <div className="space-y-2">
+                  <div className={`rounded-lg p-3 flex items-center justify-center gap-2 ${
                     dailyChallenge.challenge_result === 'success' 
                       ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800'
                       : dailyChallenge.challenge_result === 'partial'
                       ? 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800'
                       : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800'
                   }`}>
-                    <span className="text-2xl">
+                    <span className="text-xl">
                       {dailyChallenge.challenge_result === 'success' ? '🎉' : 
                        dailyChallenge.challenge_result === 'partial' ? '💪' : '🤔'}
                     </span>
-                    <span className="font-bold">
+                    <span className="font-bold text-sm">
                       {dailyChallenge.challenge_result === 'success' ? 'Challenge réussi !' : 
                        dailyChallenge.challenge_result === 'partial' ? 'Challenge difficile' : 'Challenge non réussi'}
                     </span>
                   </div>
                   {dailyChallenge.feedback_comment && (
-                    <div className="bg-white rounded-lg p-3 border border-gray-200">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">Ton commentaire :</p>
-                      <p className="text-sm text-gray-800 italic">{dailyChallenge.feedback_comment}</p>
+                    <div className="bg-white rounded-lg p-2 border border-gray-200">
+                      <p className="text-xs font-semibold text-gray-600 mb-0.5">Ton commentaire :</p>
+                      <p className="text-xs text-gray-800 italic">{dailyChallenge.feedback_comment}</p>
                     </div>
                   )}
                 </div>
