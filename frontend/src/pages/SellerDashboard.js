@@ -920,45 +920,82 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             </div>
           )}
 
-          {/* Bilan Individuel Card - Visual */}
+          {/* Bilan Individuel Card - With KPI Preview */}
           {bilanIndividuel && dashboardFilters.showBilan && (
-            <div 
-              onClick={() => setShowBilanModal(true)}
-              className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
-            >
-              <div className="relative h-48 bg-gradient-to-br from-blue-400 via-cyan-400 to-teal-400 flex items-center justify-center">
-                <div className="absolute inset-0 bg-black opacity-20 group-hover:opacity-10 transition-opacity"></div>
-                <div className="relative z-10 text-center text-white">
-                  <div className="w-20 h-20 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
-                    <TrendingUp className="w-10 h-10" />
-                  </div>
-                  <h3 className="text-2xl font-bold">🤖 Mon Bilan Individuel</h3>
-                  <p className="text-sm mt-2 opacity-90">Cliquer pour voir les détails →</p>
-                </div>
-              </div>
-              <div className="p-4 bg-white">
-                {bilanIndividuel.competences_cles && bilanIndividuel.competences_cles.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs font-semibold text-gray-600 mb-2">Top 3 compétences :</p>
-                    <div className="flex flex-wrap gap-1">
-                      {bilanIndividuel.competences_cles.slice(0, 3).map((comp, idx) => (
-                        <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                          {comp}
-                        </span>
-                      ))}
+            <div className="glass-morphism rounded-2xl border-2 border-transparent hover:border-[#ffd871] transition-all">
+              <div className="p-4">
+                {/* Header with navigation */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-teal-400 rounded-lg flex items-center justify-center">
+                      <TrendingUp className="w-6 h-6 text-white" />
                     </div>
+                    <h3 className="text-lg font-bold text-gray-800">🤖 Mon Bilan Individuel</h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setCurrentWeekOffset(currentWeekOffset - 1);
+                        fetchBilanIndividuel(currentWeekOffset - 1);
+                      }}
+                      className="p-1.5 bg-gray-200 hover:bg-gray-300 rounded-lg transition-all"
+                      title="Semaine précédente"
+                    >
+                      <ChevronLeft className="w-4 h-4 text-gray-700" />
+                    </button>
+                    <span className="text-xs font-medium text-gray-600 min-w-[100px] text-center">
+                      📅 {currentWeekOffset === 0 ? 'Semaine actuelle' : bilanIndividuel.periode}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setCurrentWeekOffset(currentWeekOffset + 1);
+                        fetchBilanIndividuel(currentWeekOffset + 1);
+                      }}
+                      disabled={currentWeekOffset === 0}
+                      className="p-1.5 bg-gray-200 hover:bg-gray-300 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Semaine suivante"
+                    >
+                      <ChevronRight className="w-4 h-4 text-gray-700" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* KPI Grid */}
+                {bilanIndividuel.kpi_resume && (
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    {kpiConfig?.track_ca && bilanIndividuel.kpi_resume.ca_total !== undefined && (
+                      <div className="bg-blue-50 rounded-lg p-2">
+                        <p className="text-xs text-blue-600">💰 CA</p>
+                        <p className="text-sm font-bold text-blue-900">{bilanIndividuel.kpi_resume.ca_total.toFixed(0)}€</p>
+                      </div>
+                    )}
+                    {kpiConfig?.track_ventes && bilanIndividuel.kpi_resume.ventes !== undefined && (
+                      <div className="bg-green-50 rounded-lg p-2">
+                        <p className="text-xs text-green-600">🛒 Ventes</p>
+                        <p className="text-sm font-bold text-green-900">{bilanIndividuel.kpi_resume.ventes}</p>
+                      </div>
+                    )}
+                    {kpiConfig?.track_articles && bilanIndividuel.kpi_resume.articles !== undefined && (
+                      <div className="bg-orange-50 rounded-lg p-2">
+                        <p className="text-xs text-orange-600">📦 Articles</p>
+                        <p className="text-sm font-bold text-orange-900">{bilanIndividuel.kpi_resume.articles}</p>
+                      </div>
+                    )}
+                    {kpiConfig?.track_ca && kpiConfig?.track_ventes && bilanIndividuel.kpi_resume.panier_moyen !== undefined && (
+                      <div className="bg-indigo-50 rounded-lg p-2">
+                        <p className="text-xs text-indigo-600">💳 P. Moyen</p>
+                        <p className="text-sm font-bold text-indigo-900">{bilanIndividuel.kpi_resume.panier_moyen.toFixed(0)}€</p>
+                      </div>
+                    )}
                   </div>
                 )}
+
+                {/* Click to see more */}
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    regenerateBilan();
-                  }}
-                  disabled={generatingBilan}
-                  className="w-full px-3 py-2 bg-gradient-to-r from-blue-500 to-teal-500 hover:shadow-lg text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  onClick={() => setShowBilanModal(true)}
+                  className="w-full text-center py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-all"
                 >
-                  <RefreshCw className={`w-4 h-4 ${generatingBilan ? 'animate-spin' : ''}`} />
-                  {generatingBilan ? 'Génération...' : 'Regénérer le bilan'}
+                  Cliquer pour voir le bilan complet →
                 </button>
               </div>
             </div>
