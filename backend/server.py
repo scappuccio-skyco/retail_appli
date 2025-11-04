@@ -3426,7 +3426,7 @@ Le challenge doit être :
             system_message="Tu es un coach retail expert qui crée des challenges personnalisés. Tu réponds UNIQUEMENT en JSON valide."
         ).with_model("openai", "gpt-4o-mini")
         
-        response = await chat.send_message(prompt)
+        response = await chat.send_message(UserMessage(text=prompt))
         
         # Parse JSON response
         import json
