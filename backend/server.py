@@ -381,7 +381,6 @@ class KPIEntryCreate(BaseModel):
     date: str
     ca_journalier: float = 0
     nb_ventes: int = 0
-    nb_clients: int = 0
     nb_articles: int = 0
     comment: Optional[str] = None
 
