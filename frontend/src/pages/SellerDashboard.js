@@ -479,29 +479,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => setShowKPIReporting(true)}
-              className="btn-secondary flex items-center gap-2"
-            >
-              <BarChart3 className="w-5 h-5" />
-              Reporting KPI
-            </button>
-            <button
-              onClick={() => setShowKPIModal(true)}
-              className="btn-secondary flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              Saisir KPI
-            </button>
-            <button
-              data-testid="debrief-button"
-              onClick={() => setShowDebriefModal(true)}
-              className="btn-primary flex items-center gap-2"
-              style={{ backgroundColor: '#FFD871', color: '#1f2937' }}
-            >
-              <MessageSquare className="w-5 h-5" />
-              Débriefer ma vente
-            </button>
-            <button
               data-testid="logout-button"
               onClick={onLogout}
               className="btn-secondary flex items-center gap-2"
