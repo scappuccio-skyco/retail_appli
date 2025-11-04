@@ -149,11 +149,34 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     localStorage.setItem('seller_dashboard_filters', JSON.stringify(dashboardFilters));
   }, [dashboardFilters]);
 
+  // Save section order
+  useEffect(() => {
+    localStorage.setItem('seller_section_order', JSON.stringify(sectionOrder));
+  }, [sectionOrder]);
+
   const toggleFilter = (filterName) => {
     setDashboardFilters(prev => ({
       ...prev,
       [filterName]: !prev[filterName]
     }));
+  };
+
+  const moveSectionUp = (sectionId) => {
+    const index = sectionOrder.indexOf(sectionId);
+    if (index > 0) {
+      const newOrder = [...sectionOrder];
+      [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+      setSectionOrder(newOrder);
+    }
+  };
+
+  const moveSectionDown = (sectionId) => {
+    const index = sectionOrder.indexOf(sectionId);
+    if (index < sectionOrder.length - 1) {
+      const newOrder = [...sectionOrder];
+      [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+      setSectionOrder(newOrder);
+    }
   };
 
   const fetchActiveObjectives = async () => {
