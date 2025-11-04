@@ -1594,6 +1594,23 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         />
       )}
 
+      {showKPIHistoryModal && (
+        <KPIHistoryModal
+          kpiEntries={kpiEntries}
+          kpiConfig={kpiConfig}
+          onClose={() => setShowKPIHistoryModal(false)}
+          onNewKPI={() => {
+            setShowKPIHistoryModal(false);
+            setShowKPIModal(true);
+          }}
+          onEditKPI={(entry) => {
+            setEditingKPI(entry);
+            setShowKPIHistoryModal(false);
+            setShowKPIModal(true);
+          }}
+        />
+      )}
+
       {/* Diagnostic Modal */}
       {showDiagnosticModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
