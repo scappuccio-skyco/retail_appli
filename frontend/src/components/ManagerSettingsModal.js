@@ -323,19 +323,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                       <label className="flex items-center gap-3 p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 cursor-pointer transition-all">
                         <input
                           type="checkbox"
-                          checked={kpiConfig.track_clients}
-                          onChange={(e) => setKpiConfig({ ...kpiConfig, track_clients: e.target.checked })}
-                          className="w-5 h-5 text-blue-600"
-                        />
-                        <div>
-                          <p className="font-semibold text-gray-800">👥 Nombre de Clients</p>
-                          <p className="text-xs text-gray-500">Clients accueillis</p>
-                        </div>
-                      </label>
-
-                      <label className="flex items-center gap-3 p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 cursor-pointer transition-all">
-                        <input
-                          type="checkbox"
                           checked={kpiConfig.track_articles}
                           onChange={(e) => setKpiConfig({ ...kpiConfig, track_articles: e.target.checked })}
                           className="w-5 h-5 text-blue-600"
