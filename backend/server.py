@@ -2114,7 +2114,6 @@ async def get_team_kpi_summary(current_user: dict = Depends(get_current_user)):
             "seven_day_averages": {
                 "ca_journalier": round(avg_ca, 2),
                 "nb_ventes": round(avg_ventes, 1),
-                "nb_clients": round(avg_clients, 1),
                 "panier_moyen": round(avg_panier, 2),
                 "taux_transformation": round(avg_taux, 2)
             }
