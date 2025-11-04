@@ -1520,18 +1520,32 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         )}
 
         {/* Mes derniers KPIs enregistrés */}
-        {kpiEntries.length > 0 && dashboardFilters.showKPI && (
+        {dashboardFilters.showKPI && (
           <div className="glass-morphism rounded-2xl p-6 mt-8">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-800">📊 Mes derniers KPIs enregistrés</h2>
-              <button
-                onClick={() => setShowKPIHistoryModal(true)}
-                className="btn-primary inline-flex items-center gap-2"
-              >
-                <BarChart3 className="w-5 h-5" />
-                Voir mes KPI
-              </button>
+              <h2 className="text-2xl font-bold text-gray-800">📊 Mes KPI</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowKPIModal(true)}
+                  className="btn-secondary inline-flex items-center gap-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  Saisir KPI
+                </button>
+                <button
+                  onClick={() => setShowKPIHistoryModal(true)}
+                  className="btn-primary inline-flex items-center gap-2"
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  Historique
+                </button>
+              </div>
             </div>
+            {kpiEntries.length > 0 && (
+              <p className="text-sm text-gray-600 mt-2">
+                {kpiEntries.length} KPI enregistré{kpiEntries.length > 1 ? 's' : ''}
+              </p>
+            )}
           </div>
         )}
 
