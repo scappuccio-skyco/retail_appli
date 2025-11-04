@@ -3281,6 +3281,174 @@ async def get_store_kpi_stats(current_user: dict = Depends(get_current_user)):
         }
     }
 
+# ===== DAILY CHALLENGE ENDPOINTS =====
+@api_router.get("/seller/daily-challenge")
+async def get_daily_challenge(current_user: dict = Depends(get_current_user)):
+    """Get or generate daily challenge for seller"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access daily challenges")
+    
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    # Check if challenge exists for today
+    existing_challenge = await db.daily_challenges.find_one({
+        "seller_id": current_user['id'],
+        "date": today
+    }, {"_id": 0})
+    
+    if existing_challenge:
+        return existing_challenge
+    
+    # Generate new challenge with AI
+    try:
+        # Get seller's diagnostic to personalize
+        diagnostic = await db.diagnostic_results.find_one({
+            "seller_id": current_user['id']
+        }, {"_id": 0})
+        
+        if not diagnostic:
+            # Default challenge if no diagnostic
+            competences = ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']
+            selected_competence = competences[datetime.now().day % len(competences)]
+        else:
+            # Find weakest competence
+            scores = {
+                'accueil': diagnostic.get('score_accueil', 3),
+                'decouverte': diagnostic.get('score_decouverte', 3),
+                'argumentation': diagnostic.get('score_argumentation', 3),
+                'closing': diagnostic.get('score_closing', 3),
+                'fidelisation': diagnostic.get('score_fidelisation', 3)
+            }
+            selected_competence = min(scores, key=scores.get)
+        
+        # Generate AI challenge
+        from emergentintegrations.openai import UniversalOpenAI
+        llm_key = os.environ.get('LLM_UNIVERSAL_KEY')
+        if not llm_key:
+            raise ValueError("Missing LLM_UNIVERSAL_KEY")
+        
+        client = UniversalOpenAI(api_key=llm_key)
+        
+        competence_names = {
+            'accueil': 'Accueil',
+            'decouverte': 'Découverte',
+            'argumentation': 'Argumentation',
+            'closing': 'Closing',
+            'fidelisation': 'Fidélisation'
+        }
+        
+        prompt = f"""Tu es un coach retail expert. Génère un challenge quotidien personnalisé pour un vendeur.
+
+Compétence à travailler : {competence_names[selected_competence]}
+
+Profil du vendeur :
+- Style : {diagnostic.get('style', 'Non défini') if diagnostic else 'Non défini'}
+- Niveau : {diagnostic.get('level', 'Intermédiaire') if diagnostic else 'Intermédiaire'}
+- Profil DISC : {diagnostic.get('disc_dominant', 'Non défini') if diagnostic else 'Non défini'}
+
+Format de réponse (JSON strict) :
+{{
+  "title": "Nom court du challenge (max 40 caractères)",
+  "description": "Description concrète du défi à réaliser aujourd'hui (2-3 phrases, tutoiement)",
+  "pedagogical_tip": "Rappel ou exemple concret de technique (1-2 phrases)",
+  "reason": "Pourquoi ce défi pour ce vendeur (1-2 phrases, lien avec son profil)"
+}}
+
+Le challenge doit être :
+- Concret et réalisable en une journée
+- Mesurable (nombre de fois à faire)
+- Motivant et positif
+- Adapté au profil du vendeur"""
+
+        response = await client.chat.completions.acreate(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        
+        import json
+        challenge_data = json.loads(response.choices[0].message.content)
+        
+        # Create challenge
+        new_challenge = DailyChallenge(
+            seller_id=current_user['id'],
+            date=today,
+            competence=selected_competence,
+            title=challenge_data['title'],
+            description=challenge_data['description'],
+            pedagogical_tip=challenge_data['pedagogical_tip'],
+            reason=challenge_data['reason']
+        )
+        
+        await db.daily_challenges.insert_one(new_challenge.dict())
+        
+        return new_challenge.dict()
+        
+    except Exception as e:
+        logging.error(f"Error generating daily challenge: {str(e)}")
+        # Fallback challenge
+        fallback = DailyChallenge(
+            seller_id=current_user['id'],
+            date=today,
+            competence='accueil',
+            title="Sourire et Contact Visuel",
+            description="Aujourd'hui, établis un contact visuel et souris sincèrement à chaque client que tu accueilles. Compte combien de fois tu le fais !",
+            pedagogical_tip="Un sourire authentique crée instantanément une connexion positive. Pense à sourire avec les yeux aussi !",
+            reason="L'accueil est la première impression que tu donnes. Un excellent accueil augmente significativement tes chances de vente."
+        )
+        await db.daily_challenges.insert_one(fallback.dict())
+        return fallback.dict()
+
+@api_router.post("/seller/daily-challenge/complete")
+async def complete_daily_challenge(
+    data: DailyChallengeComplete,
+    current_user: dict = Depends(get_current_user)
+):
+    """Mark daily challenge as completed"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can complete challenges")
+    
+    # Update challenge
+    result = await db.daily_challenges.update_one(
+        {
+            "id": data.challenge_id,
+            "seller_id": current_user['id']
+        },
+        {
+            "$set": {
+                "completed": True,
+                "completed_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    
+    # Get updated challenge
+    challenge = await db.daily_challenges.find_one({
+        "id": data.challenge_id
+    }, {"_id": 0})
+    
+    return challenge
+
+@api_router.post("/seller/daily-challenge/refresh")
+async def refresh_daily_challenge(current_user: dict = Depends(get_current_user)):
+    """Generate a new challenge for today (replace existing)"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can refresh challenges")
+    
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    # Delete existing challenge for today
+    await db.daily_challenges.delete_many({
+        "seller_id": current_user['id'],
+        "date": today
+    })
+    
+    # Generate new one
+    return await get_daily_challenge(current_user)
+
 # ===== MANAGER OBJECTIVES ENDPOINTS =====
 @api_router.get("/manager/objectives")
 async def get_manager_objectives(current_user: dict = Depends(get_current_user)):
