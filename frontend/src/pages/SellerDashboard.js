@@ -1699,22 +1699,95 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3">
-                {!dailyChallenge.completed ? (
-                  <button
-                    onClick={completeDailyChallenge}
-                    disabled={loadingChallenge}
-                    className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg text-white font-bold py-3 px-6 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    ✅ J'ai relevé le défi !
-                  </button>
-                ) : (
-                  <div className="flex-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">
-                    <span className="text-2xl">🎉</span>
-                    <span>Bravo ! Challenge complété</span>
+              {!dailyChallenge.completed ? (
+                !showFeedbackForm ? (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowFeedbackForm(true)}
+                      disabled={loadingChallenge}
+                      className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg text-white font-bold py-3 px-6 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      ✅ J'ai relevé le défi !
+                    </button>
                   </div>
-                )}
-              </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold text-gray-700">Comment s'est passé le challenge ?</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        onClick={() => completeDailyChallenge('success')}
+                        disabled={loadingChallenge}
+                        className="bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 flex flex-col items-center gap-1"
+                      >
+                        <span className="text-2xl">✅</span>
+                        <span className="text-xs">Réussi</span>
+                      </button>
+                      <button
+                        onClick={() => completeDailyChallenge('partial')}
+                        disabled={loadingChallenge}
+                        className="bg-gradient-to-r from-orange-500 to-orange-600 hover:shadow-lg text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 flex flex-col items-center gap-1"
+                      >
+                        <span className="text-2xl">⚠️</span>
+                        <span className="text-xs">Difficile</span>
+                      </button>
+                      <button
+                        onClick={() => completeDailyChallenge('failed')}
+                        disabled={loadingChallenge}
+                        className="bg-gradient-to-r from-red-500 to-red-600 hover:shadow-lg text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 flex flex-col items-center gap-1"
+                      >
+                        <span className="text-2xl">❌</span>
+                        <span className="text-xs">Échoué</span>
+                      </button>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-700 mb-1 block">
+                        Commentaire (optionnel)
+                      </label>
+                      <textarea
+                        value={challengeFeedbackComment}
+                        onChange={(e) => setChallengeFeedbackComment(e.target.value)}
+                        placeholder="Partage ton ressenti, tes difficultés, ce qui a bien fonctionné..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                        rows={3}
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowFeedbackForm(false);
+                        setChallengeFeedbackComment('');
+                      }}
+                      className="w-full text-sm text-gray-600 hover:text-gray-800 py-2 transition-colors"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                )
+              ) : (
+                <div className="space-y-3">
+                  <div className={`flex-1 rounded-xl p-4 flex items-center justify-center gap-2 ${
+                    dailyChallenge.challenge_result === 'success' 
+                      ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800'
+                      : dailyChallenge.challenge_result === 'partial'
+                      ? 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800'
+                      : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800'
+                  }`}>
+                    <span className="text-2xl">
+                      {dailyChallenge.challenge_result === 'success' ? '🎉' : 
+                       dailyChallenge.challenge_result === 'partial' ? '💪' : '🤔'}
+                    </span>
+                    <span className="font-bold">
+                      {dailyChallenge.challenge_result === 'success' ? 'Challenge réussi !' : 
+                       dailyChallenge.challenge_result === 'partial' ? 'Challenge difficile' : 'Challenge non réussi'}
+                    </span>
+                  </div>
+                  {dailyChallenge.feedback_comment && (
+                    <div className="bg-white rounded-lg p-3 border border-gray-200">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">Ton commentaire :</p>
+                      <p className="text-sm text-gray-800 italic">{dailyChallenge.feedback_comment}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
