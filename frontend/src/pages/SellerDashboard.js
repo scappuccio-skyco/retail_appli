@@ -753,7 +753,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         {/* Active Challenges Section */}
         {/* Compact Cards: Profile + Bilan Individuel (side by side like manager dashboard) */}
         {(dashboardFilters.showProfile || dashboardFilters.showBilan) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" style={{ order: getSectionOrder('profile') }}>
             {/* Profile Card */}
             {diagnostic && dashboardFilters.showProfile && (
             <div 
