@@ -2272,7 +2272,6 @@ async def generate_team_bilan_for_period(manager_id: str, start_date: date, end_
     team_data = []
     total_ca = 0
     total_ventes = 0
-    total_clients = 0
     total_articles = 0
     competences_sum = {"accueil": 0, "decouverte": 0, "argumentation": 0, "closing": 0, "fidelisation": 0}
     competences_count = 0
