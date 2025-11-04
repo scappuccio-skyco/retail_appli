@@ -440,26 +440,80 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     fetchBilanForWeek(weekDates.startISO, weekDates.endISO, weekDates.periode);
   };
 
+  const calculateWeeklyKPI = (startDate, endDate) => {
+    // Filtrer les KPI de la semaine
+    const weekKPIs = kpiEntries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= startDate && entryDate <= endDate;
+    });
+
+    // Calculer les totaux et moyennes
+    const kpi_resume = {
+      ca_total: 0,
+      ventes: 0,
+      articles: 0,
+      panier_moyen: 0,
+      taux_transformation: 0,
+      indice_vente: 0
+    };
+
+    if (weekKPIs.length > 0) {
+      weekKPIs.forEach(entry => {
+        kpi_resume.ca_total += entry.ca || 0;
+        kpi_resume.ventes += entry.nb_ventes || 0;
+        kpi_resume.articles += entry.nb_articles || 0;
+      });
+
+      // Calculer les moyennes
+      if (kpi_resume.ventes > 0) {
+        kpi_resume.panier_moyen = kpi_resume.ca_total / kpi_resume.ventes;
+      }
+      
+      if (kpi_resume.ventes > 0) {
+        kpi_resume.indice_vente = kpi_resume.articles / kpi_resume.ventes;
+      }
+
+      // Calculer taux transformation si on a des prospects (KPI magasin manager)
+      // Pour l'instant on ne l'affiche que si disponible dans un bilan existant
+    }
+
+    return kpi_resume;
+  };
+
   const fetchBilanForWeek = async (startDate, endDate, periode) => {
     try {
       const token = localStorage.getItem('token');
-      // Chercher si un bilan existe pour cette semaine
+      
+      // 1. Calculer automatiquement les KPI de la semaine
+      const kpi_resume = calculateWeeklyKPI(startDate, endDate);
+      
+      // 2. Chercher si un bilan IA existe pour cette semaine
       const res = await axios.get(`${API}/seller/bilan-individuel/all`, { headers: { Authorization: `Bearer ${token}` } });
+      let existingBilan = null;
+      
       if (res.data.status === 'success' && res.data.bilans) {
-        const bilan = res.data.bilans.find(b => b.periode === periode);
-        if (bilan) {
-          setBilanIndividuel(bilan);
-        } else {
-          // Créer un bilan vide avec la période correcte
-          setBilanIndividuel({
-            periode,
-            synthese: '',
-            kpi_resume: {},
-            points_forts: [],
-            points_attention: [],
-            recommandations: []
-          });
-        }
+        existingBilan = res.data.bilans.find(b => b.periode === periode);
+      }
+
+      // 3. Créer l'objet bilan avec KPI calculés + analyse IA si disponible
+      if (existingBilan) {
+        // Bilan IA existe : on garde l'analyse mais on met à jour les KPI avec les calculs actuels
+        setBilanIndividuel({
+          ...existingBilan,
+          kpi_resume, // KPI recalculés automatiquement
+          periode
+        });
+      } else {
+        // Pas de bilan IA : on affiche juste les KPI calculés
+        setBilanIndividuel({
+          periode,
+          kpi_resume,
+          synthese: '',
+          points_forts: [],
+          points_attention: [],
+          recommandations: [],
+          competences_cles: []
+        });
       }
     } catch (err) {
       console.error('Error fetching bilan for week:', err);
