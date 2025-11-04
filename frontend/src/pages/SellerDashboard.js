@@ -448,12 +448,14 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     fetchBilanForWeek(weekDates.startISO, weekDates.endISO, weekDates.periode);
   };
 
-  const calculateWeeklyKPI = (startDate, endDate) => {
+  const calculateWeeklyKPI = (startDate, endDate, allKpiEntries) => {
     // Filtrer les KPI de la semaine
-    const weekKPIs = kpiEntries.filter(entry => {
+    const weekKPIs = allKpiEntries.filter(entry => {
       const entryDate = new Date(entry.date);
       return entryDate >= startDate && entryDate <= endDate;
     });
+
+    console.log('Calculating KPI for week:', { startDate, endDate, weekKPIs });
 
     // Calculer les totaux et moyennes
     const kpi_resume = {
@@ -480,11 +482,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       if (kpi_resume.ventes > 0) {
         kpi_resume.indice_vente = kpi_resume.articles / kpi_resume.ventes;
       }
-
-      // Calculer taux transformation si on a des prospects (KPI magasin manager)
-      // Pour l'instant on ne l'affiche que si disponible dans un bilan existant
     }
 
+    console.log('Calculated KPI resume:', kpi_resume);
     return kpi_resume;
   };
 
@@ -492,10 +492,16 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     try {
       const token = localStorage.getItem('token');
       
-      // 1. Calculer automatiquement les KPI de la semaine
-      const kpi_resume = calculateWeeklyKPI(startDate, endDate);
+      // 1. D'abord récupérer tous les KPI du vendeur
+      const kpiRes = await axios.get(`${API}/seller/kpi-entries`, { headers: { Authorization: `Bearer ${token}` } });
+      const allKpiEntries = kpiRes.data || [];
       
-      // 2. Chercher si un bilan IA existe pour cette semaine
+      console.log('All KPI entries loaded:', allKpiEntries.length);
+      
+      // 2. Calculer automatiquement les KPI de la semaine
+      const kpi_resume = calculateWeeklyKPI(startDate, endDate, allKpiEntries);
+      
+      // 3. Chercher si un bilan IA existe pour cette semaine
       const res = await axios.get(`${API}/seller/bilan-individuel/all`, { headers: { Authorization: `Bearer ${token}` } });
       let existingBilan = null;
       
@@ -503,7 +509,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         existingBilan = res.data.bilans.find(b => b.periode === periode);
       }
 
-      // 3. Créer l'objet bilan avec KPI calculés + analyse IA si disponible
+      // 4. Créer l'objet bilan avec KPI calculés + analyse IA si disponible
       if (existingBilan) {
         // Bilan IA existe : on garde l'analyse mais on met à jour les KPI avec les calculs actuels
         setBilanIndividuel({
