@@ -87,6 +87,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [diagnostic, setDiagnostic] = useState(initialDiagnostic);
   const [showEvalModal, setShowEvalModal] = useState(false);
   const [showDebriefModal, setShowDebriefModal] = useState(false);
+  const [showDebriefHistoryModal, setShowDebriefHistoryModal] = useState(false);
   const [showKPIModal, setShowKPIModal] = useState(false);
   const [editingKPI, setEditingKPI] = useState(null);
   const [showKPIReporting, setShowKPIReporting] = useState(false);
