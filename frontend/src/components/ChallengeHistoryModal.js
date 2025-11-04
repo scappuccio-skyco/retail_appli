@@ -117,7 +117,7 @@ export default function ChallengeHistoryModal({ onClose }) {
             </div>
           ) : (
             <div className="space-y-4">
-              {challenges.map((challenge) => (
+              {displayedChallenges.map((challenge) => (
                 <div
                   key={challenge.id}
                   className={`border-2 rounded-xl transition-all ${
