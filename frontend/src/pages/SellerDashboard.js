@@ -761,7 +761,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           )}
 
           {/* Bilan Individuel Card */}
-          {bilanIndividuel ? (
+          {bilanIndividuel && dashboardFilters.showBilan ? (
             <div className="glass-morphism rounded-2xl p-6 border-2 border-transparent hover:border-[#ffd871] transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
