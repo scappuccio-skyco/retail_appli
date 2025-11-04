@@ -1217,6 +1217,209 @@ class RetailCoachAPITester:
                 if field in config_response:
                     print(f"   ✅ {field}: {config_response[field]}")
 
+    def test_kpi_configuration_endpoints(self):
+        """Test KPI Configuration Endpoints - CRITICAL FEATURE FROM REVIEW REQUEST"""
+        print("\n🔍 Testing KPI Configuration Endpoints (CRITICAL FEATURE)...")
+        
+        # Test with manager credentials as specified in review request
+        manager_credentials = [
+            {"email": "manager@demo.com", "password": "demo123"},
+            {"email": "manager1@test.com", "password": "password123"}
+        ]
+        
+        manager_token = None
+        manager_info = None
+        
+        # Try to login with available manager accounts
+        for creds in manager_credentials:
+            success, response = self.run_test(
+                f"KPI Config Test - Manager Login ({creds['email']})",
+                "POST",
+                "auth/login",
+                200,
+                data=creds
+            )
+            
+            if success and 'token' in response:
+                manager_token = response['token']
+                manager_info = response['user']
+                print(f"   ✅ Logged in as manager: {manager_info.get('name')} ({manager_info.get('email')})")
+                print(f"   ✅ Manager ID: {manager_info.get('id')}")
+                break
+        
+        if not manager_token:
+            print("   ⚠️  Could not login with any manager account - accounts may not exist")
+            self.log_test("KPI Configuration Setup", False, "No manager account available")
+            return
+        
+        # TEST 1: GET /api/manager/kpi-config endpoint
+        print("\n   📋 TEST 1: GET KPI Configuration")
+        success, config_response = self.run_test(
+            "KPI Config Test 1 - GET /api/manager/kpi-config",
+            "GET",
+            "manager/kpi-config",
+            200,
+            token=manager_token
+        )
+        
+        if success:
+            # Verify response contains required fields
+            required_fields = ['track_ca', 'track_ventes', 'track_clients', 'track_articles']
+            missing_fields = []
+            
+            for field in required_fields:
+                if field not in config_response:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                self.log_test("KPI Config GET - Fields Validation", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("KPI Config GET - Fields Validation", True)
+                print(f"   ✅ Track CA: {config_response.get('track_ca')}")
+                print(f"   ✅ Track Ventes: {config_response.get('track_ventes')}")
+                print(f"   ✅ Track Clients: {config_response.get('track_clients')}")
+                print(f"   ✅ Track Articles: {config_response.get('track_articles')}")
+        
+        # TEST 2: PUT /api/manager/kpi-config endpoint
+        print("\n   📝 TEST 2: PUT KPI Configuration")
+        
+        # Test data as specified in review request
+        kpi_update_data = {
+            "track_ca": True,
+            "track_ventes": True,
+            "track_clients": False,
+            "track_articles": False
+        }
+        
+        success, put_response = self.run_test(
+            "KPI Config Test 2 - PUT /api/manager/kpi-config",
+            "PUT",
+            "manager/kpi-config",
+            200,
+            data=kpi_update_data,
+            token=manager_token
+        )
+        
+        if success:
+            # Verify response is 200 OK (not 405)
+            print("   ✅ PUT request successful - Status 200 OK (not 405)")
+            
+            # Verify updated configuration is returned
+            for field, expected_value in kpi_update_data.items():
+                if field in put_response and put_response[field] == expected_value:
+                    print(f"   ✅ {field}: {put_response[field]} (updated correctly)")
+                else:
+                    self.log_test("KPI Config PUT - Update Validation", False, f"Field {field} not updated correctly")
+            
+            self.log_test("KPI Config PUT - Update Success", True)
+        else:
+            print("   ❌ PUT request failed - This is the reported issue!")
+        
+        # TEST 3: OPTIONS /api/manager/kpi-config (preflight request)
+        print("\n   🔍 TEST 3: OPTIONS Preflight Request")
+        
+        try:
+            import requests
+            url = f"{self.base_url}/manager/kpi-config"
+            headers = {'Authorization': f'Bearer {manager_token}'}
+            
+            print(f"   Sending OPTIONS request to: {url}")
+            options_response = requests.options(url, headers=headers, timeout=30)
+            
+            print(f"   OPTIONS Response Status: {options_response.status_code}")
+            print(f"   OPTIONS Response Headers: {dict(options_response.headers)}")
+            
+            # Check Allow header for PUT method
+            allow_header = options_response.headers.get('Allow', '')
+            access_control_allow_methods = options_response.headers.get('Access-Control-Allow-Methods', '')
+            
+            if 'PUT' in allow_header or 'PUT' in access_control_allow_methods or '*' in access_control_allow_methods:
+                print("   ✅ OPTIONS response includes PUT method")
+                self.log_test("KPI Config OPTIONS - PUT Method Allowed", True)
+            else:
+                print(f"   ❌ OPTIONS response does not include PUT method")
+                print(f"   Allow header: {allow_header}")
+                print(f"   Access-Control-Allow-Methods: {access_control_allow_methods}")
+                self.log_test("KPI Config OPTIONS - PUT Method Allowed", False, "PUT method not in Allow headers")
+            
+            if options_response.status_code in [200, 204]:
+                self.log_test("KPI Config OPTIONS - Status Code", True)
+            else:
+                self.log_test("KPI Config OPTIONS - Status Code", False, f"Expected 200/204, got {options_response.status_code}")
+                
+        except Exception as e:
+            self.log_test("KPI Config OPTIONS - Request", False, f"OPTIONS request failed: {str(e)}")
+        
+        # TEST 4: POST /api/manager/kpi-config (should return 405)
+        print("\n   🚫 TEST 4: POST Method (Should Return 405)")
+        
+        success, post_response = self.run_test(
+            "KPI Config Test 4 - POST /api/manager/kpi-config (Should Fail)",
+            "POST",
+            "manager/kpi-config",
+            405,  # Method Not Allowed
+            data=kpi_update_data,
+            token=manager_token
+        )
+        
+        if success:
+            print("   ✅ POST method correctly returns 405 Method Not Allowed")
+            print("   This confirms backend only supports GET and PUT as expected")
+        else:
+            print("   ⚠️  POST method did not return 405 - unexpected behavior")
+        
+        # TEST 5: Authentication Tests
+        print("\n   🔒 TEST 5: Authentication Requirements")
+        
+        # Test GET without token
+        success, _ = self.run_test(
+            "KPI Config Auth Test - GET without token",
+            "GET",
+            "manager/kpi-config",
+            401,  # Unauthorized
+        )
+        
+        if success:
+            print("   ✅ GET correctly requires authentication")
+        
+        # Test PUT without token
+        success, _ = self.run_test(
+            "KPI Config Auth Test - PUT without token",
+            "PUT",
+            "manager/kpi-config",
+            401,  # Unauthorized
+            data=kpi_update_data
+        )
+        
+        if success:
+            print("   ✅ PUT correctly requires authentication")
+        
+        # TEST 6: Verify configuration persistence
+        print("\n   💾 TEST 6: Configuration Persistence")
+        
+        success, final_config = self.run_test(
+            "KPI Config Test 6 - Verify Persistence",
+            "GET",
+            "manager/kpi-config",
+            200,
+            token=manager_token
+        )
+        
+        if success:
+            # Check if the PUT changes were persisted
+            persistence_ok = True
+            for field, expected_value in kpi_update_data.items():
+                if field not in final_config or final_config[field] != expected_value:
+                    persistence_ok = False
+                    break
+            
+            if persistence_ok:
+                print("   ✅ Configuration changes persisted correctly")
+                self.log_test("KPI Config Persistence", True)
+            else:
+                print("   ❌ Configuration changes not persisted")
+                self.log_test("KPI Config Persistence", False, "PUT changes not persisted")
+
     def test_disc_profile_integration(self):
         """Test DISC Profile Integration for Manager Diagnostic - CRITICAL FEATURE FROM REVIEW REQUEST"""
         print("\n🔍 Testing DISC Profile Integration for Manager Diagnostic (CRITICAL FEATURE)...")
