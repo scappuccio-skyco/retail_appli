@@ -920,83 +920,28 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             </div>
           )}
 
-          {/* Bilan Individuel Card - With KPI Preview */}
+          {/* Bilan Individuel Card - Visual */}
           {bilanIndividuel && dashboardFilters.showBilan && (
-            <div className="glass-morphism rounded-2xl border-2 border-transparent hover:border-[#ffd871] transition-all">
-              <div className="p-4">
-                {/* Header with navigation */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-teal-400 rounded-lg flex items-center justify-center">
-                      <TrendingUp className="w-6 h-6 text-white" />
+            <div 
+              onClick={() => setShowBilanModal(true)}
+              className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
+            >
+              <div className="relative h-48 overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1608222351212-18fe0ec7b13b?w=800&h=400&fit=crop" 
+                  alt="Mon Bilan Individuel"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-teal-900/70 group-hover:from-blue-900/60 group-hover:to-teal-900/60 transition-all"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                      <TrendingUp className="w-8 h-8" />
                     </div>
-                    <h3 className="text-lg font-bold text-gray-800">🤖 Mon Bilan Individuel</h3>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        setCurrentWeekOffset(currentWeekOffset - 1);
-                        fetchBilanIndividuel(currentWeekOffset - 1);
-                      }}
-                      className="p-1.5 bg-gray-200 hover:bg-gray-300 rounded-lg transition-all"
-                      title="Semaine précédente"
-                    >
-                      <ChevronLeft className="w-4 h-4 text-gray-700" />
-                    </button>
-                    <span className="text-xs font-medium text-gray-600 min-w-[100px] text-center">
-                      📅 {currentWeekOffset === 0 ? 'Semaine actuelle' : bilanIndividuel.periode}
-                    </span>
-                    <button
-                      onClick={() => {
-                        setCurrentWeekOffset(currentWeekOffset + 1);
-                        fetchBilanIndividuel(currentWeekOffset + 1);
-                      }}
-                      disabled={currentWeekOffset === 0}
-                      className="p-1.5 bg-gray-200 hover:bg-gray-300 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      title="Semaine suivante"
-                    >
-                      <ChevronRight className="w-4 h-4 text-gray-700" />
-                    </button>
+                    <h2 className="text-2xl font-bold">🤖 Mon Bilan Individuel</h2>
+                    <p className="text-sm mt-2 opacity-90">Voir mes KPI hebdomadaires →</p>
                   </div>
                 </div>
-
-                {/* KPI Grid */}
-                {bilanIndividuel.kpi_resume && (
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    {kpiConfig?.track_ca && bilanIndividuel.kpi_resume.ca_total !== undefined && (
-                      <div className="bg-blue-50 rounded-lg p-2">
-                        <p className="text-xs text-blue-600">💰 CA</p>
-                        <p className="text-sm font-bold text-blue-900">{bilanIndividuel.kpi_resume.ca_total.toFixed(0)}€</p>
-                      </div>
-                    )}
-                    {kpiConfig?.track_ventes && bilanIndividuel.kpi_resume.ventes !== undefined && (
-                      <div className="bg-green-50 rounded-lg p-2">
-                        <p className="text-xs text-green-600">🛒 Ventes</p>
-                        <p className="text-sm font-bold text-green-900">{bilanIndividuel.kpi_resume.ventes}</p>
-                      </div>
-                    )}
-                    {kpiConfig?.track_articles && bilanIndividuel.kpi_resume.articles !== undefined && (
-                      <div className="bg-orange-50 rounded-lg p-2">
-                        <p className="text-xs text-orange-600">📦 Articles</p>
-                        <p className="text-sm font-bold text-orange-900">{bilanIndividuel.kpi_resume.articles}</p>
-                      </div>
-                    )}
-                    {kpiConfig?.track_ca && kpiConfig?.track_ventes && bilanIndividuel.kpi_resume.panier_moyen !== undefined && (
-                      <div className="bg-indigo-50 rounded-lg p-2">
-                        <p className="text-xs text-indigo-600">💳 P. Moyen</p>
-                        <p className="text-sm font-bold text-indigo-900">{bilanIndividuel.kpi_resume.panier_moyen.toFixed(0)}€</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Click to see more */}
-                <button
-                  onClick={() => setShowBilanModal(true)}
-                  className="w-full text-center py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-all"
-                >
-                  Cliquer pour voir le bilan complet →
-                </button>
               </div>
             </div>
           )}
