@@ -895,13 +895,14 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </div>
             </div>
           )}
-        </div>
+          </div>
+        )}
 
         {/* Objectives & Challenges Carousel Section */}
-        {(activeObjectives.length > 0 || activeChallenges.length > 0) && (
+        {((activeObjectives.length > 0 && dashboardFilters.showObjectives) || (activeChallenges.length > 0 && dashboardFilters.showChallenges)) && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Team Objectives Section (Left) - Carousel */}
-            {activeObjectives.length > 0 && (
+            {activeObjectives.length > 0 && dashboardFilters.showObjectives && (
               <div className="glass-morphism rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-6">
                   <Award className="w-6 h-6 text-purple-500" />
