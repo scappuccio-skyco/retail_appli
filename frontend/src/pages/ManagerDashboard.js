@@ -922,7 +922,50 @@ export default function ManagerDashboard({ user, onLogout }) {
 
                           {/* Targets with improved clarity */}
                           <div className="space-y-2 mb-2 flex-1">
-                            {challenge.ca_target && (() => {
+                            {challenge.ca_target && (
+                              <ProgressIndicator
+                                label="Chiffre d'Affaires"
+                                emoji="💰"
+                                target={challenge.ca_target}
+                                progress={challenge.progress_ca}
+                                type="currency"
+                                colorScheme="blue"
+                              />
+                            )}
+                            
+                            {challenge.ventes_target && (
+                              <ProgressIndicator
+                                label="Nombre de Ventes"
+                                emoji="🛍️"
+                                target={challenge.ventes_target}
+                                progress={challenge.progress_ventes}
+                                type="number"
+                                colorScheme="green"
+                              />
+                            )}
+                            
+                            {challenge.panier_moyen_target && (
+                              <ProgressIndicator
+                                label="Panier Moyen"
+                                emoji="🛒"
+                                target={challenge.panier_moyen_target}
+                                progress={challenge.progress_panier_moyen}
+                                type="decimal"
+                                colorScheme="purple"
+                              />
+                            )}
+                            
+                            {challenge.indice_vente_target && (
+                              <ProgressIndicator
+                                label="Indice de Vente"
+                                emoji="💎"
+                                target={challenge.indice_vente_target}
+                                progress={challenge.progress_indice_vente}
+                                type="decimal"
+                                colorScheme="yellow"
+                              />
+                            )}
+                          </div>
                               const progressCA = (challenge.progress_ca / challenge.ca_target) * 100;
                               const reste = challenge.ca_target - challenge.progress_ca;
                               return (
