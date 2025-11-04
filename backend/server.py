@@ -2579,10 +2579,20 @@ async def generate_seller_bilan_for_period(seller_id: str, start_date: date, end
         }
     }, {"_id": 0}).to_list(1000)
     
+    # Debug logging
+    print(f"DEBUG: Bilan generation for seller {seller_id}")
+    print(f"DEBUG: Date range: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
+    print(f"DEBUG: Found {len(kpi_entries)} KPI entries")
+    if kpi_entries:
+        print(f"DEBUG: First entry: {kpi_entries[0]}")
+    print(f"DEBUG: KPI config: {kpi_config}")
+    
     # Calculate totals
     total_ca = sum(e.get('ca_journalier', 0) for e in kpi_entries)
     total_ventes = sum(e.get('nb_ventes', 0) for e in kpi_entries)
     total_articles = sum(e.get('nb_articles', 0) for e in kpi_entries)
+    
+    print(f"DEBUG: Totals - CA: {total_ca}, Ventes: {total_ventes}, Articles: {total_articles}")
     
     # Calculate derived KPIs ONLY if base metrics are tracked
     panier_moyen = (total_ca / total_ventes) if (kpi_config.get('track_ca') and kpi_config.get('track_ventes') and total_ventes > 0) else None
