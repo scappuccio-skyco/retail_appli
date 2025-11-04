@@ -892,15 +892,15 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
       <div className="max-w-7xl mx-auto flex flex-col">
         {/* Tasks Section - Always visible - Compact */}
-        <div className="glass-morphism rounded-2xl p-4 mb-6 border-2 border-[#ffd871]">
-          <h2 className="text-xl font-bold text-gray-800 mb-3">Mes tâches à faire</h2>
+        <div className="glass-morphism rounded-2xl p-3 mb-6 border-2 border-[#ffd871]">
+          <h2 className="text-lg font-bold text-gray-800 mb-2">Mes tâches à faire</h2>
           
           {tasks.length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="bg-white rounded-lg p-3 border border-gray-200 hover:shadow-md transition-all cursor-pointer"
+                  className="bg-white rounded-lg p-2 border border-gray-200 hover:shadow-md transition-all cursor-pointer"
                   onClick={() => {
                     if (task.type === 'diagnostic') {
                       setShowDiagnosticModal(true);
@@ -917,12 +917,12 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 flex-1">
-                      <span className="text-2xl">{task.icon}</span>
+                      <span className="text-xl">{task.icon}</span>
                       <div className="flex-1">
                         <h3 className="text-sm font-semibold text-gray-800">{task.title}</h3>
                       </div>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       task.priority === 'high' ? 'bg-red-100 text-red-700' : 
                       task.priority === 'important' ? 'bg-orange-100 text-orange-700' :
                       'bg-yellow-100 text-yellow-700'
@@ -934,11 +934,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               ))}
             </div>
           ) : (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-8 text-center border-2 border-green-200">
-              <div className="text-6xl mb-4">🎉</div>
-              <h3 className="text-2xl font-bold text-green-800 mb-2">Bravo !</h3>
-              <p className="text-green-700 text-lg">Tu as rempli toutes tes tâches du jour !</p>
-              <p className="text-green-600 text-sm mt-2">Continue comme ça, tu es au top ! 💪</p>
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 text-center border-2 border-green-200">
+              <div className="text-4xl mb-2">🎉</div>
+              <h3 className="text-lg font-bold text-green-800 mb-1">Bravo !</h3>
+              <p className="text-green-700 text-sm">Tu as rempli toutes tes tâches du jour !</p>
+              <p className="text-green-600 text-xs mt-1">Continue comme ça, tu es au top ! 💪</p>
             </div>
           )}
         </div>
