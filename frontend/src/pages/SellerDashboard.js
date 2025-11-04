@@ -138,6 +138,18 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     fetchActiveObjectives();
   }, []);
 
+  // Save filter preferences
+  useEffect(() => {
+    localStorage.setItem('seller_dashboard_filters', JSON.stringify(dashboardFilters));
+  }, [dashboardFilters]);
+
+  const toggleFilter = (filterName) => {
+    setDashboardFilters(prev => ({
+      ...prev,
+      [filterName]: !prev[filterName]
+    }));
+  };
+
   const fetchActiveObjectives = async () => {
     try {
       const token = localStorage.getItem('token');
