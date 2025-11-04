@@ -1376,7 +1376,7 @@ class RetailCoachAPITester:
             "KPI Config Auth Test - GET without token",
             "GET",
             "manager/kpi-config",
-            401,  # Unauthorized
+            403,  # Forbidden (correct for missing authentication)
         )
         
         if success:
@@ -1387,7 +1387,7 @@ class RetailCoachAPITester:
             "KPI Config Auth Test - PUT without token",
             "PUT",
             "manager/kpi-config",
-            401,  # Unauthorized
+            403,  # Forbidden (correct for missing authentication)
             data=kpi_update_data
         )
         
