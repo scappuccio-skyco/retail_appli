@@ -3370,12 +3370,12 @@ async def get_daily_challenge(current_user: dict = Depends(get_current_user)):
                 selected_competence = sorted_competences[0][0]
         
         # Generate AI challenge
-        from emergentintegrations.openai import UniversalOpenAI
+        from emergentintegrations import openai as emergent_openai
         llm_key = os.environ.get('LLM_UNIVERSAL_KEY')
         if not llm_key:
             raise ValueError("Missing LLM_UNIVERSAL_KEY")
         
-        client = UniversalOpenAI(api_key=llm_key)
+        client = emergent_openai.Client(api_key=llm_key)
         
         competence_names = {
             'accueil': 'Accueil',
