@@ -358,7 +358,6 @@ class KPIConfiguration(BaseModel):
     # KPIs that sellers can fill
     track_ca: bool = True
     track_ventes: bool = True
-    track_clients: bool = True
     track_articles: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
