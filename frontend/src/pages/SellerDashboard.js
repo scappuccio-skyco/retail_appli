@@ -1690,36 +1690,30 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-5 border-2 border-orange-200">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full">
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-4 border-2 border-orange-200">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full">
                   {dailyChallenge.competence.toUpperCase()}
                 </span>
-                <h3 className="text-lg font-bold text-gray-900">{dailyChallenge.title}</h3>
+                <h3 className="text-base font-bold text-gray-900">{dailyChallenge.title}</h3>
               </div>
 
-              {/* Le Défi */}
-              <div className="bg-white rounded-lg p-4 mb-3">
-                <p className="text-xs font-semibold text-orange-900 mb-2 flex items-center gap-2">
-                  <span className="text-lg">💪</span> Ton Défi :
-                </p>
+              {/* Le Défi - Compact */}
+              <div className="bg-white rounded-lg p-3 mb-2">
+                <p className="text-xs font-semibold text-orange-900 mb-1">💪 Ton Défi :</p>
                 <p className="text-sm text-gray-800">{dailyChallenge.description}</p>
               </div>
 
-              {/* Rappel Pédagogique */}
-              <div className="bg-white rounded-lg p-4 mb-3">
-                <p className="text-xs font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                  <span className="text-lg">🎓</span> Rappel :
-                </p>
-                <p className="text-sm text-gray-800 italic">{dailyChallenge.pedagogical_tip}</p>
-              </div>
-
-              {/* Pourquoi ce défi */}
-              <div className="bg-white rounded-lg p-4 mb-4">
-                <p className="text-xs font-semibold text-purple-900 mb-2 flex items-center gap-2">
-                  <span className="text-lg">📊</span> Pourquoi ce défi ?
-                </p>
-                <p className="text-sm text-gray-800">{dailyChallenge.reason}</p>
+              {/* Rappel & Pourquoi - Combinés et compacts */}
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-xs font-semibold text-blue-900 mb-1">🎓 Rappel</p>
+                  <p className="text-xs text-gray-700 italic">{dailyChallenge.pedagogical_tip}</p>
+                </div>
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-xs font-semibold text-purple-900 mb-1">📊 Pourquoi ?</p>
+                  <p className="text-xs text-gray-700">{dailyChallenge.reason}</p>
+                </div>
               </div>
 
               {/* Actions */}
