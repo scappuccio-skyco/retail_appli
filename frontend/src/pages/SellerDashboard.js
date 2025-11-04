@@ -1393,11 +1393,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-800">📝 Mes derniers Debriefs</h2>
             <button
-              onClick={() => setShowDebriefModal(true)}
+              onClick={() => setShowDebriefHistoryModal(true)}
               className="btn-primary inline-flex items-center gap-2"
             >
               <MessageSquare className="w-5 h-5" />
-              Débriefer ma vente
+              Voir mes débriefs
             </button>
           </div>
         </div>
