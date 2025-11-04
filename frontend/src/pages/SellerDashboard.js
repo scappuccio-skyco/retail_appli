@@ -1570,6 +1570,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             </button>
           </div>
         </div>
+        )}
       </div>
 
       {showEvalModal && (
