@@ -806,14 +806,68 @@ frontend_competence_harmonization:
         agent: "main"
         comment: "USER REQUEST: Adapt KPI view in SellerDetailView based on manager's validated KPIs. Charts should only appear if corresponding KPIs are configured by manager, and visibility toggle buttons should only show for available charts. IMPLEMENTATION: 1) Added kpiConfig state to store manager's KPI configuration fetched from /api/manager/kpi-config. 2) Created availableCharts object that determines which charts are available based on kpiConfig (e.g., ca requires track_ca=true, panierMoyen requires track_ca AND track_ventes). 3) Updated KPI cards to conditionally render based on kpiConfig (only show CA card if track_ca=true, etc.). 4) Updated visibility toggle buttons section to only show buttons for available charts (wrapped in condition checking if any chart is available). 5) Updated all chart displays to check BOTH availableCharts AND visibleCharts (e.g., availableCharts.ca && visibleCharts.ca). Result: Charts now respect manager configuration - only configured KPIs show their cards, toggle buttons, and graphs. Needs testing to verify proper filtering."
 
+backend_daily_challenge:
+  - task: "Daily Challenge Feedback System - Complete Challenge with Feedback"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend endpoint /api/seller/daily-challenge/complete already implemented to accept challenge_id, result ('success', 'partial', 'failed'), and optional comment. Stores feedback in MongoDB daily_challenges collection. Needs testing to verify: 1) Feedback storage, 2) Different result types, 3) Optional comment handling."
+  
+  - task: "Daily Challenge History API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "New endpoint GET /api/seller/daily-challenge/history created to retrieve all past challenges for a seller, sorted by date (most recent first). Returns up to 100 challenges with all fields including completed status, challenge_result, and feedback_comment. Needs testing."
+
+frontend_daily_challenge:
+  - task: "Daily Challenge Feedback UI"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/SellerDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated challenge section to show feedback form when 'J'ai relevé le défi!' is clicked. Form includes 3 buttons (Réussi ✅, Difficile ⚠️, Échoué ❌), optional comment textarea, and cancel button. After completion, displays colored badge based on result (green/orange/red) and shows feedback comment if provided. completeDailyChallenge function modified to accept result parameter and send to backend. Needs testing."
+  
+  - task: "ChallengeHistoryModal Component"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/ChallengeHistoryModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created modal component to display challenge history. Features: Date display with French formatting, colored badges for results (success/partial/failed), expandable entries showing full challenge details, feedback comments, completion timestamps. Fetches data from /api/seller/daily-challenge/history. Modal opens from 'Historique' button in challenge card header. Needs testing."
+
 metadata:
   created_by: "main_agent"
-  version: "2.1"
-  test_sequence: 11
+  version: "2.2"
+  test_sequence: 12
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Daily Challenge Feedback System - Complete Challenge with Feedback"
+    - "Daily Challenge History API"
+    - "Daily Challenge Feedback UI"
+    - "ChallengeHistoryModal Component"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
