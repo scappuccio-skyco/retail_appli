@@ -1263,6 +1263,13 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         <BilanIndividuelModal
           bilan={bilanIndividuel}
           kpiConfig={kpiConfig}
+          currentWeekOffset={currentWeekOffset}
+          onWeekChange={(offset) => {
+            setCurrentWeekOffset(offset);
+            fetchBilanIndividuel(offset);
+          }}
+          onRegenerate={regenerateBilan}
+          generatingBilan={generatingBilan}
           onClose={() => setShowBilanModal(false)}
         />
       )}
