@@ -319,13 +319,14 @@ CALCULATED_KPIS = {
     "taux_transformation": {
         "name": "Taux de transformation",
         "unit": "%",
-        "formula": "(nb_ventes / nb_clients) * 100",
-        "icon": "📈"
+        "formula": "(nb_ventes / nb_prospects) * 100",
+        "icon": "📈",
+        "note": "Calculé au niveau magasin uniquement (manager)"
     },
     "indice_vente": {
-        "name": "Indice de vente",
-        "unit": "ventes/client",
-        "formula": "nb_ventes / nb_clients",
+        "name": "Indice de vente (UPT)",
+        "unit": "articles/vente",
+        "formula": "nb_articles / nb_ventes",
         "icon": "📊"
     }
 }
