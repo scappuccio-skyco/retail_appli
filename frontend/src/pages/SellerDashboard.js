@@ -1538,6 +1538,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             )}
           </div>
         </div>
+        )}
 
         {/* Mes derniers KPIs enregistrés */}
         {kpiEntries.length > 0 && (
