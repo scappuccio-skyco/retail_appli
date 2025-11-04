@@ -87,7 +87,12 @@ export default function ChallengeHistoryModal({ onClose }) {
             </div>
             <div>
               <h2 className="text-2xl font-bold">Mon Historique de Challenges</h2>
-              <p className="text-sm text-orange-100">Tous mes défis quotidiens</p>
+              <p className="text-sm text-orange-100">
+                {displayLimit >= challenges.length 
+                  ? `${challenges.length} challenge${challenges.length > 1 ? 's' : ''} affiché${challenges.length > 1 ? 's' : ''}`
+                  : `Affichage de ${displayLimit} sur ${challenges.length} challenges`
+                }
+              </p>
             </div>
           </div>
           <button
