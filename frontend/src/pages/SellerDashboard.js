@@ -513,6 +513,142 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         </div>
       </div>
 
+      {/* Dashboard Filters Bar */}
+      <div className="max-w-7xl mx-auto mb-6">
+        <div className="glass-morphism rounded-2xl p-4">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                🎛️ Personnaliser l'affichage
+              </button>
+              {showFilters && (
+                <div className="text-sm text-gray-600 ml-2">
+                  Cliquez sur les sections pour les masquer/afficher
+                </div>
+              )}
+            </div>
+            
+            {/* Quick stats */}
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <span>
+                {Object.values(dashboardFilters).filter(v => v === true).length - 1} sections affichées
+              </span>
+            </div>
+          </div>
+
+          {/* Filter Toggles */}
+          {showFilters && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                <button
+                  onClick={() => toggleFilter('showProfile')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                    dashboardFilters.showProfile
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {dashboardFilters.showProfile ? '✅' : '⬜'}
+                    <span className="text-xs">👤 Profil</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showCompetences')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                    dashboardFilters.showCompetences
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {dashboardFilters.showCompetences ? '✅' : '⬜'}
+                    <span className="text-xs">⭐ Compétences</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showObjectives')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                    dashboardFilters.showObjectives
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {dashboardFilters.showObjectives ? '✅' : '⬜'}
+                    <span className="text-xs">🎯 Objectifs</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showChallenges')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                    dashboardFilters.showChallenges
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {dashboardFilters.showChallenges ? '✅' : '⬜'}
+                    <span className="text-xs">🏆 Challenges</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showKPI')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                    dashboardFilters.showKPI
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {dashboardFilters.showKPI ? '✅' : '⬜'}
+                    <span className="text-xs">📊 KPI</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showDebriefs')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                    dashboardFilters.showDebriefs
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {dashboardFilters.showDebriefs ? '✅' : '⬜'}
+                    <span className="text-xs">📝 Débriefs</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showBilan')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                    dashboardFilters.showBilan
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {dashboardFilters.showBilan ? '✅' : '⬜'}
+                    <span className="text-xs">📈 Bilan</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto">
         {/* Tasks Section */}
         {tasks.length > 0 && (
