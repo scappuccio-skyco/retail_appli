@@ -1552,11 +1552,14 @@ class RetailCoachAPITester:
         # SCENARIO 3: Verify Individual Bilan Generation Uses Correct Data
         print("\n   📋 SCENARIO 3: Verify Individual Bilan Generation Uses Correct Data")
         
-        # POST /api/seller/bilan-individuel (current week)
+        # Test with a specific date that has data (using query parameters)
+        test_date = kpi_entries_response[0].get('date') if kpi_entries_response else '2025-10-30'
+        
+        # POST /api/seller/bilan-individuel with query parameters
         success, bilan_response = self.run_test(
-            "KPI Bug Fix - POST /api/seller/bilan-individuel",
+            "KPI Bug Fix - POST /api/seller/bilan-individuel (with date)",
             "POST",
-            "seller/bilan-individuel",
+            f"seller/bilan-individuel?start_date={test_date}&end_date={test_date}",
             200,
             token=kpi_seller_token
         )
