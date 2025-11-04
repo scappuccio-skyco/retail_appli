@@ -1428,16 +1428,17 @@ async def calculate_competence_adjustment_from_kpis(seller_id: str, initial_scor
     
     kpi_scores['score_argumentation'] = round((arg_score_1 + arg_score_2) / 2, 1)
     
-    # Closing: Based on taux de transformation
-    if taux_transfo >= 70:
+    # Closing: Based on sales consistency (ventes per day)
+    # Higher sales per day indicates better closing ability
+    if ventes_per_day >= 10:
         kpi_scores['score_closing'] = 5.0
-    elif taux_transfo >= 60:
+    elif ventes_per_day >= 8:
         kpi_scores['score_closing'] = 4.5
-    elif taux_transfo >= 50:
+    elif ventes_per_day >= 6:
         kpi_scores['score_closing'] = 4.0
-    elif taux_transfo >= 40:
+    elif ventes_per_day >= 4:
         kpi_scores['score_closing'] = 3.5
-    elif taux_transfo >= 30:
+    elif ventes_per_day >= 2:
         kpi_scores['score_closing'] = 3.0
     else:
         kpi_scores['score_closing'] = 2.5
