@@ -1375,18 +1375,18 @@ async def calculate_competence_adjustment_from_kpis(seller_id: str, initial_scor
     # KPI → Competence scoring (normalize to 1-5 scale)
     kpi_scores = {}
     
-    # Accueil: Based on number of clients approached per day
-    # Good: >20 clients/day, Average: 10-20, Low: <10
-    if clients_per_day >= 20:
+    # Accueil: Based on number of sales per day (proxy for client interaction)
+    # Good: >10 ventes/day, Average: 5-10, Low: <5
+    if ventes_per_day >= 10:
         kpi_scores['score_accueil'] = 5.0
-    elif clients_per_day >= 15:
+    elif ventes_per_day >= 7:
         kpi_scores['score_accueil'] = 4.0
-    elif clients_per_day >= 10:
+    elif ventes_per_day >= 5:
         kpi_scores['score_accueil'] = 3.5
-    elif clients_per_day >= 5:
-        kpi_scores['score_accueil'] = 2.5
+    elif ventes_per_day >= 3:
+        kpi_scores['score_accueil'] = 3.0
     else:
-        kpi_scores['score_accueil'] = 2.0
+        kpi_scores['score_accueil'] = 2.5
     
     # Découverte: Harder to measure, use indirect indicator (articles per transaction)
     # Good discovery = more articles per sale
