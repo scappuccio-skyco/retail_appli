@@ -1729,44 +1729,41 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm font-semibold text-gray-700">Comment s'est passé le challenge ?</p>
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-gray-700">Comment ça s'est passé ?</p>
                     <div className="grid grid-cols-3 gap-2">
                       <button
                         onClick={() => completeDailyChallenge('success')}
                         disabled={loadingChallenge}
-                        className="bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 flex flex-col items-center gap-1"
+                        className="bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg text-white font-bold py-2 px-3 rounded-lg transition-all disabled:opacity-50 flex flex-col items-center gap-0.5"
                       >
-                        <span className="text-2xl">✅</span>
+                        <span className="text-xl">✅</span>
                         <span className="text-xs">Réussi</span>
                       </button>
                       <button
                         onClick={() => completeDailyChallenge('partial')}
                         disabled={loadingChallenge}
-                        className="bg-gradient-to-r from-orange-500 to-orange-600 hover:shadow-lg text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 flex flex-col items-center gap-1"
+                        className="bg-gradient-to-r from-orange-500 to-orange-600 hover:shadow-lg text-white font-bold py-2 px-3 rounded-lg transition-all disabled:opacity-50 flex flex-col items-center gap-0.5"
                       >
-                        <span className="text-2xl">⚠️</span>
+                        <span className="text-xl">⚠️</span>
                         <span className="text-xs">Difficile</span>
                       </button>
                       <button
                         onClick={() => completeDailyChallenge('failed')}
                         disabled={loadingChallenge}
-                        className="bg-gradient-to-r from-red-500 to-red-600 hover:shadow-lg text-white font-bold py-3 px-4 rounded-xl transition-all disabled:opacity-50 flex flex-col items-center gap-1"
+                        className="bg-gradient-to-r from-red-500 to-red-600 hover:shadow-lg text-white font-bold py-2 px-3 rounded-lg transition-all disabled:opacity-50 flex flex-col items-center gap-0.5"
                       >
-                        <span className="text-2xl">❌</span>
+                        <span className="text-xl">❌</span>
                         <span className="text-xs">Échoué</span>
                       </button>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-gray-700 mb-1 block">
-                        Commentaire (optionnel)
-                      </label>
                       <textarea
                         value={challengeFeedbackComment}
                         onChange={(e) => setChallengeFeedbackComment(e.target.value)}
-                        placeholder="Partage ton ressenti, tes difficultés, ce qui a bien fonctionné..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
-                        rows={3}
+                        placeholder="Commentaire optionnel..."
+                        className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                        rows={2}
                       />
                     </div>
                     <button
@@ -1774,7 +1771,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                         setShowFeedbackForm(false);
                         setChallengeFeedbackComment('');
                       }}
-                      className="w-full text-sm text-gray-600 hover:text-gray-800 py-2 transition-colors"
+                      className="w-full text-xs text-gray-600 hover:text-gray-800 py-1 transition-colors"
                     >
                       Annuler
                     </button>
