@@ -2547,7 +2547,6 @@ async def generate_seller_bilan_for_period(seller_id: str, start_date: date, end
         kpi_config = {
             "track_ca": True,
             "track_ventes": True,
-            "track_clients": True,
             "track_articles": True
         }
     else:
