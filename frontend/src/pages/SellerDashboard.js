@@ -992,7 +992,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                       return (
                         <div 
                           key={challenge.id} 
-                          className={`rounded-xl p-4 border-2 hover:shadow-lg transition-all h-[280px] flex flex-col ${
+                          className={`rounded-xl p-4 border-2 hover:shadow-lg transition-all min-h-[280px] flex flex-col ${
                             isPersonal 
                               ? 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-300' 
                               : 'bg-gradient-to-br from-amber-50 to-yellow-50 border-[#ffd871]'
