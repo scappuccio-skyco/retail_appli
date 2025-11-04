@@ -3101,7 +3101,6 @@ async def get_kpi_config(current_user: dict = Depends(get_current_user)):
             manager_id=current_user['id'],
             track_ca=True,
             track_ventes=True,
-            track_clients=True,
             track_articles=True
         )
         doc = default_config.model_dump()
