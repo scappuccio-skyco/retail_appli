@@ -1149,11 +1149,14 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             setShowKPIModal(false);
             setEditingKPI(null);
           }}
-          onSuccess={() => {
+          onSuccess={async () => {
             setShowKPIModal(false);
             setEditingKPI(null);
-            fetchData();
+            await fetchData(); // Recharger les KPI
             refreshCompetenceScores(); // Refresh scores after KPI entry
+            // Recalculer automatiquement les KPI de la semaine actuelle
+            fetchBilanIndividuel(0);
+            toast.success('📊 KPI enregistré ! Les totaux hebdomadaires sont mis à jour.');
           }}
           editEntry={editingKPI}
         />
