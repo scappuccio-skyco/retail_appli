@@ -2312,8 +2312,8 @@ async def generate_team_bilan_for_period(manager_id: str, start_date: date, end_
     
     # Calculate averages and all KPIs
     panier_moyen_equipe = total_ca / total_ventes if total_ventes > 0 else 0
-    taux_transfo_equipe = (total_ventes / total_clients * 100) if total_clients > 0 else 0
-    indice_vente_equipe = (total_articles / total_clients) if total_clients > 0 else 0
+    taux_transfo_equipe = 0  # No longer tracking clients
+    indice_vente_equipe = (total_articles / total_ventes) if total_ventes > 0 else 0
     
     competences_moyenne = {}
     if competences_count > 0:
