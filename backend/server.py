@@ -282,6 +282,24 @@ class StoreKPICreate(BaseModel):
     date: str
     nb_prospects: int
 
+# ===== DAILY CHALLENGE MODELS =====
+class DailyChallenge(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    seller_id: str
+    date: str  # Format: YYYY-MM-DD
+    competence: str  # accueil, decouverte, argumentation, closing, fidelisation
+    title: str  # Ex: "Technique de Closing"
+    description: str  # Le défi concret
+    pedagogical_tip: str  # Le rappel/exemple
+    reason: str  # Pourquoi ce défi pour ce vendeur
+    completed: bool = False
+    completed_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class DailyChallengeComplete(BaseModel):
+    challenge_id: str
+
 # ===== KPI MODELS =====
 # KPI that sellers enter (raw data)
 SELLER_INPUT_KPIS = {
