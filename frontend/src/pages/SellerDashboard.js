@@ -1373,83 +1373,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         {/* Mes derniers KPIs enregistrés */}
         {kpiEntries.length > 0 && (
           <div className="glass-morphism rounded-2xl p-6 mt-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 Mes derniers KPIs enregistrés</h2>
-            <div className="space-y-4">
-              {kpiEntries.slice(0, 3).map((entry) => (
-                <div
-                  key={entry.id}
-                  className="bg-white rounded-xl p-4 border border-gray-200 hover:shadow-md transition-all"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">
-                        🗓️ {new Date(entry.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setEditingKPI(entry);
-                        setShowKPIModal(true);
-                      }}
-                      className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      Modifier
-                    </button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    {kpiConfig?.track_ca && (
-                      <div className="bg-blue-50 rounded-lg p-3">
-                        <p className="text-xs text-blue-600 mb-1">💰 CA</p>
-                        <p className="text-lg font-bold text-blue-900">{entry.ca_journalier?.toFixed(2)}€</p>
-                      </div>
-                    )}
-                    {kpiConfig?.track_ventes && (
-                      <div className="bg-green-50 rounded-lg p-3">
-                        <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
-                        <p className="text-lg font-bold text-green-900">{entry.nb_ventes}</p>
-                      </div>
-                    )}
-                    {kpiConfig?.track_clients && (
-                      <div className="bg-purple-50 rounded-lg p-3">
-                        <p className="text-xs text-purple-600 mb-1">👥 Clients</p>
-                        <p className="text-lg font-bold text-purple-900">{entry.nb_clients}</p>
-                      </div>
-                    )}
-                    {kpiConfig?.track_articles && (
-                      <div className="bg-orange-50 rounded-lg p-3">
-                        <p className="text-xs text-orange-600 mb-1">📦 Articles</p>
-                        <p className="text-lg font-bold text-orange-900">{entry.nb_articles || 0}</p>
-                      </div>
-                    )}
-                    {kpiConfig?.track_ca && kpiConfig?.track_ventes && (
-                      <div className="bg-indigo-50 rounded-lg p-3">
-                        <p className="text-xs text-indigo-600 mb-1">🧮 Panier Moyen</p>
-                        <p className="text-lg font-bold text-indigo-900">{entry.panier_moyen?.toFixed(2)}€</p>
-                      </div>
-                    )}
-                    {kpiConfig?.track_ventes && kpiConfig?.track_clients && (
-                      <div className="bg-pink-50 rounded-lg p-3">
-                        <p className="text-xs text-pink-600 mb-1">📊 Taux Transfo</p>
-                        <p className="text-lg font-bold text-pink-900">{entry.taux_transformation?.toFixed(2)}%</p>
-                      </div>
-                    )}
-                    {kpiConfig?.track_articles && kpiConfig?.track_clients && (
-                      <div className="bg-teal-50 rounded-lg p-3">
-                        <p className="text-xs text-teal-600 mb-1">🎯 Indice Vente</p>
-                        <p className="text-lg font-bold text-teal-900">{entry.indice_vente?.toFixed(2)}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Bouton Voir tous mes KPIs */}
-            <div className="mt-6 text-center">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-800">📊 Mes derniers KPIs enregistrés</h2>
               <button
                 onClick={() => setShowKPIReporting(true)}
                 className="btn-primary inline-flex items-center gap-2"
