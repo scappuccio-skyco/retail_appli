@@ -468,6 +468,21 @@ frontend_new:
         comment: "🎯 SELLER DETAIL MODAL COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY: ✅ ALL 11 REVIEW REQUEST REQUIREMENTS VERIFIED (100% PASS RATE). ✅ COMPLETE WORKFLOW TESTED: Login with manager@demo.com → Access Manager Dashboard → Select Sophie Martin seller → Verify seller info in 'Détails Vendeur' section → Click 'Voir tous les détails' button → VERIFIED: Modal opens over dashboard (not page replacement) → VERIFIED: Modal displays complete SellerDetailView with all 4 tabs (Compétences, KPI, Débriefs, Gestion de Conflit) → VERIFIED: Black semi-transparent overlay (rgba(0,0,0,0.5)) visible behind modal → Click '← Retour' button → VERIFIED: Modal closes and returns to dashboard → VERIFIED: Dashboard remains in background with seller selection preserved. ✅ TECHNICAL VERIFICATION: Modal overlay styling confirmed (position: fixed, z-index: 50, proper background), SellerDetailView content fully functional within modal, smooth navigation and intuitive user experience. ✅ NO CRITICAL ISSUES FOUND: All functionality working as expected, modal behavior perfect, dashboard preservation confirmed. ✅ PRODUCTION READY: The new modal architecture for seller details is fully functional and provides the exact user experience requested. Modal implementation is robust and ready for production use."
 
 backend_new:
+  - task: "KPI Configuration API - GET and PUT Methods"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "user"
+        comment: "User experiencing HTTP 405 (Method Not Allowed) error when trying to save KPI configuration from manager settings modal. Code has been updated to use axios.put() instead of axios.post(), services have been restarted, but the error persists after cache clear."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE KPI CONFIGURATION TESTING COMPLETED SUCCESSFULLY: ✅ GET /api/manager/kpi-config works correctly - returns all required fields (track_ca, track_ventes, track_clients, track_articles). ✅ PUT /api/manager/kpi-config works correctly - Status 200 OK (not 405), updates configuration properly, returns updated values. ✅ OPTIONS /api/manager/kpi-config now works correctly - Status 200 OK with proper CORS headers including 'GET, PUT, OPTIONS' in Access-Control-Allow-Methods. ✅ POST method correctly returns 405 Method Not Allowed as expected. ✅ Authentication working properly (403 for unauthenticated requests). ✅ Configuration persistence verified - PUT changes are saved and retrieved correctly. ✅ ISSUE RESOLVED: Added explicit OPTIONS handler to fix CORS preflight requests. The 405 error was caused by missing OPTIONS support, not the PUT method itself."
+
   - task: "Conflict Resolution API - Create Conflict Resolution"
     implemented: true
     working: true
