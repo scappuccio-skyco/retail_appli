@@ -831,6 +831,21 @@ frontend_new_seller_bilan:
       - working: "NA"
         agent: "main"
         comment: "Created modal component for detailed view of seller's individual bilan. Similar structure to TeamBilanModal but with personal/tutoiement language. Displays: KPI summary (respects manager config), synthèse, points forts, points d'attention, recommandations personnalisées. Needs testing."
+  
+  - task: "KPI Field Name Bug - CA and Panier Moyen Display Zero"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/SellerDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reported that 'Chiffre d'Affaires' (CA) and 'Panier Moyen' display as 0 in Bilan Individuel Modal, while other KPIs like 'Ventes' and 'Articles' show correct values."
+      - working: "NA"
+        agent: "main"
+        comment: "BUG IDENTIFIED AND FIXED: Root cause was field name mismatch in calculateWeeklyKPI function (line 476). Backend KPIEntry model uses 'ca_journalier' field (server.py line 392), but frontend code was accessing 'entry.ca' which doesn't exist. Fixed by changing 'entry.ca' to 'entry.ca_journalier'. This caused CA to stay at 0, which also made panier_moyen = 0 (since it's calculated as ca_total / ventes). Ready for testing to verify CA and Panier Moyen now display correct values."
 
 frontend_competence_harmonization:
   - task: "SellerDetailView - Competence Data Harmonization"
