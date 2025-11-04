@@ -3459,6 +3459,20 @@ async def refresh_daily_challenge(current_user: dict = Depends(get_current_user)
     # Generate new one
     return await get_daily_challenge(current_user)
 
+@api_router.get("/seller/daily-challenge/history")
+async def get_daily_challenge_history(current_user: dict = Depends(get_current_user)):
+    """Get all past daily challenges for the seller"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access challenge history")
+    
+    # Get all challenges for this seller, sorted by date (most recent first)
+    challenges = await db.daily_challenges.find(
+        {"seller_id": current_user['id']},
+        {"_id": 0}
+    ).sort("date", -1).to_list(100)
+    
+    return challenges
+
 # ===== MANAGER OBJECTIVES ENDPOINTS =====
 @api_router.get("/manager/objectives")
 async def get_manager_objectives(current_user: dict = Depends(get_current_user)):
