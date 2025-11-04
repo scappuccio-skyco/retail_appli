@@ -824,11 +824,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           <h2 className="text-xl font-bold text-gray-800 mb-3">Mes tâches à faire</h2>
           
           {tasks.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="bg-white rounded-xl p-4 border border-gray-200 hover:shadow-md transition-all cursor-pointer"
+                  className="bg-white rounded-lg p-3 border border-gray-200 hover:shadow-md transition-all cursor-pointer"
                   onClick={() => {
                     if (task.type === 'diagnostic') {
                       setShowDiagnosticModal(true);
