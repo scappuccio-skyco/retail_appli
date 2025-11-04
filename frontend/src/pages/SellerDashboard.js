@@ -1207,18 +1207,31 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         )}
 
         {/* Objectives & Challenges Carousel Section */}
-        {/* Objectifs & Challenges - Simplified */}
+        {/* Objectifs & Challenges - Visual Card */}
         {((activeObjectives.length > 0 && dashboardFilters.showObjectives) || (activeChallenges.length > 0 && dashboardFilters.showChallenges)) && (
-          <div className="glass-morphism rounded-2xl p-6 mb-8" style={{ order: getSectionOrder('objectives') }}>
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-800">🎯 Objectifs et Challenges</h2>
-              <button
-                onClick={() => setShowObjectivesModal(true)}
-                className="px-4 py-2 bg-[#ffd871] hover:bg-[#ffc940] text-gray-800 font-semibold rounded-lg transition-all flex items-center gap-2"
-              >
-                <MessageSquare className="w-4 h-4" />
-                Voir tout
-              </button>
+          <div 
+            onClick={() => setShowObjectivesModal(true)}
+            className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 mb-8 border-2 border-transparent hover:border-[#ffd871]"
+            style={{ order: getSectionOrder('objectives') }}
+          >
+            <div className="relative h-48 overflow-hidden">
+              <img 
+                src="https://images.unsplash.com/photo-1758599543129-5269a8f29e68?w=800&h=400&fit=crop" 
+                alt="Objectifs et Challenges"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/70 to-pink-900/70 group-hover:from-purple-900/60 group-hover:to-pink-900/60 transition-all"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center text-white">
+                  <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                    <Award className="w-8 h-8" />
+                  </div>
+                  <h2 className="text-2xl font-bold">🎯 Objectifs et Challenges</h2>
+                  <p className="text-sm mt-2 opacity-90">
+                    {activeObjectives.length} objectifs • {activeChallenges.length} challenges
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}
