@@ -847,6 +847,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   {sectionOrder.map((sectionId, index) => {
                     const sectionNames = {
                       profile: '👤 Profil de Vente',
+                      bilan: '📈 Bilan Individuel',
                       objectives: '🎯 Objectifs & Challenges',
                       competences: '🔥 Challenge du Jour IA',
                       kpi: '📊 Mes KPI',
