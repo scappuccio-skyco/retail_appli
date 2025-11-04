@@ -8,6 +8,7 @@ import EvaluationModal from '../components/EvaluationModal';
 import DebriefModal from '../components/DebriefModal';
 import DebriefHistoryModal from '../components/DebriefHistoryModal';
 import KPIEntryModal from '../components/KPIEntryModal';
+import KPIHistoryModal from '../components/KPIHistoryModal';
 import KPIReporting from './KPIReporting';
 import SellerProfileModal from '../components/SellerProfileModal';
 import BilanIndividuelModal from '../components/BilanIndividuelModal';
