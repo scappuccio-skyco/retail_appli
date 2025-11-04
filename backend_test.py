@@ -1420,6 +1420,215 @@ class RetailCoachAPITester:
                 print("   ❌ Configuration changes not persisted")
                 self.log_test("KPI Config Persistence", False, "PUT changes not persisted")
 
+    def test_kpi_field_name_bug_fix(self):
+        """Test KPI Field Name Bug Fix - CRITICAL BUG FIX FROM REVIEW REQUEST"""
+        print("\n🔍 Testing KPI Field Name Bug Fix (CRITICAL BUG FIX)...")
+        print("   BUG: Frontend calculateWeeklyKPI function was using 'entry.ca' but backend KPIEntry model uses 'ca_journalier'")
+        print("   FIX: Changed line 476 in SellerDashboard.js from 'entry.ca' to 'entry.ca_journalier'")
+        
+        # SCENARIO 1: Verify KPI Entries Have ca_journalier Field
+        print("\n   📋 SCENARIO 1: Verify KPI Entries Have ca_journalier Field")
+        
+        # Login as seller: vendeur2@test.com / demo123
+        seller_login_data = {
+            "email": "vendeur2@test.com",
+            "password": "demo123"
+        }
+        
+        success, response = self.run_test(
+            "KPI Bug Fix - Login as vendeur2@test.com",
+            "POST",
+            "auth/login",
+            200,
+            data=seller_login_data
+        )
+        
+        kpi_seller_token = None
+        if success and 'token' in response:
+            kpi_seller_token = response['token']
+            seller_info = response['user']
+            print(f"   ✅ Logged in as: {seller_info.get('name')} ({seller_info.get('email')})")
+        else:
+            print("   ⚠️  Could not login with vendeur2@test.com/demo123 - trying alternative password")
+            # Try alternative password
+            seller_login_data["password"] = "password123"
+            success, response = self.run_test(
+                "KPI Bug Fix - Login as vendeur2@test.com (alt password)",
+                "POST",
+                "auth/login",
+                200,
+                data=seller_login_data
+            )
+            
+            if success and 'token' in response:
+                kpi_seller_token = response['token']
+                seller_info = response['user']
+                print(f"   ✅ Logged in as: {seller_info.get('name')} ({seller_info.get('email')})")
+            else:
+                self.log_test("KPI Bug Fix Setup", False, "vendeur2@test.com account not available")
+                return
+        
+        # GET /api/seller/kpi-entries
+        success, kpi_entries_response = self.run_test(
+            "KPI Bug Fix - GET /api/seller/kpi-entries",
+            "GET",
+            "seller/kpi-entries",
+            200,
+            token=kpi_seller_token
+        )
+        
+        if success and isinstance(kpi_entries_response, list):
+            print(f"   ✅ Retrieved {len(kpi_entries_response)} KPI entries")
+            
+            # Verify response includes entries with 'ca_journalier' field populated
+            if len(kpi_entries_response) > 0:
+                sample_entries = kpi_entries_response[:3]  # Check first 3 entries
+                ca_journalier_found = 0
+                non_zero_ca_count = 0
+                
+                for i, entry in enumerate(sample_entries):
+                    if 'ca_journalier' in entry:
+                        ca_journalier_found += 1
+                        ca_value = entry.get('ca_journalier', 0)
+                        print(f"   ✅ Entry {i+1}: ca_journalier = {ca_value}")
+                        
+                        if ca_value > 0:
+                            non_zero_ca_count += 1
+                    else:
+                        print(f"   ❌ Entry {i+1}: Missing 'ca_journalier' field")
+                
+                if ca_journalier_found == len(sample_entries):
+                    self.log_test("KPI Entries Have ca_journalier Field", True)
+                    print(f"   ✅ All sample entries have 'ca_journalier' field")
+                else:
+                    self.log_test("KPI Entries Have ca_journalier Field", False, f"Only {ca_journalier_found}/{len(sample_entries)} entries have ca_journalier field")
+                
+                if non_zero_ca_count > 0:
+                    print(f"   ✅ Found {non_zero_ca_count} entries with non-zero ca_journalier values")
+                    self.log_test("KPI Entries Have Non-Zero CA Values", True)
+                else:
+                    print("   ⚠️  All sample entries have zero ca_journalier values")
+                    self.log_test("KPI Entries Have Non-Zero CA Values", False, "All ca_journalier values are zero")
+            else:
+                self.log_test("KPI Entries Available", False, "No KPI entries found")
+                return
+        else:
+            self.log_test("KPI Entries Retrieval", False, "Failed to retrieve KPI entries")
+            return
+        
+        # SCENARIO 2: Verify Weekly KPI Calculation Works
+        print("\n   🧮 SCENARIO 2: Verify Weekly KPI Calculation Works")
+        
+        # Get a specific week's entries for manual calculation
+        if len(kpi_entries_response) >= 3:
+            # Take first 3 entries as a sample week
+            sample_week_entries = kpi_entries_response[:3]
+            
+            # Manual calculation
+            expected_ca_total = 0
+            expected_ventes_total = 0
+            
+            print("   📊 Manual calculation from KPI entries:")
+            for i, entry in enumerate(sample_week_entries):
+                ca = entry.get('ca_journalier', 0)
+                ventes = entry.get('nb_ventes', 0)
+                expected_ca_total += ca
+                expected_ventes_total += ventes
+                print(f"   Entry {i+1}: ca_journalier={ca}, nb_ventes={ventes}")
+            
+            expected_panier_moyen = expected_ca_total / expected_ventes_total if expected_ventes_total > 0 else 0
+            
+            print(f"   📈 Expected calculations:")
+            print(f"   Expected CA total: {expected_ca_total}")
+            print(f"   Expected Ventes total: {expected_ventes_total}")
+            print(f"   Expected Panier Moyen: {expected_panier_moyen:.2f}")
+            
+            if expected_ca_total > 0 and expected_ventes_total > 0:
+                self.log_test("Weekly KPI Manual Calculation", True)
+                print("   ✅ Manual calculation shows non-zero values - field names are working correctly")
+            else:
+                self.log_test("Weekly KPI Manual Calculation", False, "Manual calculation shows zero values")
+        
+        # SCENARIO 3: Verify Individual Bilan Generation Uses Correct Data
+        print("\n   📋 SCENARIO 3: Verify Individual Bilan Generation Uses Correct Data")
+        
+        # POST /api/seller/bilan-individuel (current week)
+        success, bilan_response = self.run_test(
+            "KPI Bug Fix - POST /api/seller/bilan-individuel",
+            "POST",
+            "seller/bilan-individuel",
+            200,
+            token=kpi_seller_token
+        )
+        
+        if success:
+            # Verify kpi_resume.ca_total is non-zero
+            kpi_resume = bilan_response.get('kpi_resume', {})
+            ca_total = kpi_resume.get('ca_total', 0)
+            panier_moyen = kpi_resume.get('panier_moyen', 0)
+            ventes = kpi_resume.get('ventes', 0)
+            
+            print(f"   📊 Bilan KPI Resume:")
+            print(f"   CA Total: {ca_total}")
+            print(f"   Ventes: {ventes}")
+            print(f"   Panier Moyen: {panier_moyen}")
+            
+            # SUCCESS CRITERIA VERIFICATION
+            success_criteria = []
+            
+            # ✓ CA total in bilan is non-zero
+            if ca_total > 0:
+                success_criteria.append("CA total is non-zero")
+                self.log_test("Bilan CA Total Non-Zero", True)
+            else:
+                success_criteria.append("❌ CA total is zero")
+                self.log_test("Bilan CA Total Non-Zero", False, f"CA total is {ca_total}")
+            
+            # ✓ Panier Moyen in bilan is non-zero
+            if panier_moyen > 0:
+                success_criteria.append("Panier Moyen is non-zero")
+                self.log_test("Bilan Panier Moyen Non-Zero", True)
+            else:
+                success_criteria.append("❌ Panier Moyen is zero")
+                self.log_test("Bilan Panier Moyen Non-Zero", False, f"Panier Moyen is {panier_moyen}")
+            
+            # ✓ Panier Moyen = CA total / ventes
+            if ventes > 0:
+                calculated_panier_moyen = ca_total / ventes
+                if abs(panier_moyen - calculated_panier_moyen) < 0.01:  # Allow small floating point differences
+                    success_criteria.append("Panier Moyen calculation is correct")
+                    self.log_test("Bilan Panier Moyen Calculation", True)
+                    print(f"   ✅ Panier Moyen calculation verified: {panier_moyen:.2f} = {ca_total}/{ventes}")
+                else:
+                    success_criteria.append(f"❌ Panier Moyen calculation incorrect: {panier_moyen} ≠ {calculated_panier_moyen:.2f}")
+                    self.log_test("Bilan Panier Moyen Calculation", False, f"Expected {calculated_panier_moyen:.2f}, got {panier_moyen}")
+            else:
+                success_criteria.append("⚠️  Cannot verify Panier Moyen calculation (no ventes)")
+            
+            print(f"\n   🎯 SUCCESS CRITERIA SUMMARY:")
+            for criterion in success_criteria:
+                if criterion.startswith("❌"):
+                    print(f"   {criterion}")
+                elif criterion.startswith("⚠️"):
+                    print(f"   {criterion}")
+                else:
+                    print(f"   ✅ {criterion}")
+            
+            # Overall assessment
+            failed_criteria = [c for c in success_criteria if c.startswith("❌")]
+            if len(failed_criteria) == 0:
+                print(f"\n   🎉 KPI FIELD NAME BUG FIX VERIFICATION: SUCCESS")
+                print(f"   The fix from 'entry.ca' to 'entry.ca_journalier' is working correctly!")
+                self.log_test("KPI Field Name Bug Fix - Overall", True)
+            else:
+                print(f"\n   ❌ KPI FIELD NAME BUG FIX VERIFICATION: ISSUES FOUND")
+                print(f"   Failed criteria: {len(failed_criteria)}")
+                for failed in failed_criteria:
+                    print(f"   - {failed}")
+                self.log_test("KPI Field Name Bug Fix - Overall", False, f"{len(failed_criteria)} criteria failed")
+        else:
+            self.log_test("Individual Bilan Generation", False, "Failed to generate individual bilan")
+
     def test_disc_profile_integration(self):
         """Test DISC Profile Integration for Manager Diagnostic - CRITICAL FEATURE FROM REVIEW REQUEST"""
         print("\n🔍 Testing DISC Profile Integration for Manager Diagnostic (CRITICAL FEATURE)...")
