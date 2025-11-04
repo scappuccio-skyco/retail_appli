@@ -162,6 +162,31 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     localStorage.setItem('seller_section_order', JSON.stringify(sectionOrder));
   }, [sectionOrder]);
 
+  // Update tasks when daily challenge changes
+  useEffect(() => {
+    if (!dailyChallenge) return;
+    
+    setTasks(prevTasks => {
+      // Remove old challenge task if exists
+      let newTasks = prevTasks.filter(t => t.id !== 'daily-challenge');
+      
+      // Add new challenge task if not completed
+      if (!dailyChallenge.completed) {
+        const challengeTask = {
+          id: 'daily-challenge',
+          type: 'challenge',
+          icon: '🎯',
+          title: dailyChallenge.title,
+          description: dailyChallenge.description,
+          priority: 'important'
+        };
+        newTasks = [challengeTask, ...newTasks];
+      }
+      
+      return newTasks;
+    });
+  }, [dailyChallenge]);
+
   const toggleFilter = (filterName) => {
     setDashboardFilters(prev => ({
       ...prev,
