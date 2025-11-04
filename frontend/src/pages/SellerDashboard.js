@@ -179,6 +179,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     }
   };
 
+  // Get section position for CSS ordering
+  const getSectionOrder = (sectionId) => {
+    return sectionOrder.indexOf(sectionId);
+  };
+
   const fetchActiveObjectives = async () => {
     try {
       const token = localStorage.getItem('token');
