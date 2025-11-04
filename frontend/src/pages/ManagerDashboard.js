@@ -745,134 +745,38 @@ export default function ManagerDashboard({ user, onLogout }) {
 
                           {/* Targets with Progress - Improved Clarity */}
                           <div className="space-y-2 mb-2 flex-1">
-                            {objective.ca_target && (() => {
-                              const progressCA = ((objective.progress_ca || 0) / objective.ca_target) * 100;
-                              const reste = objective.ca_target - (objective.progress_ca || 0);
-                              return (
-                                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-2.5 border border-blue-200">
-                                  <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-xs font-semibold text-gray-700">💰 Chiffre d'Affaires</span>
-                                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
-                                      progressCA >= 100 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                                    }`}>
-                                      {progressCA.toFixed(0)}%
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between mb-0.5">
-                                    <span className="text-xs text-indigo-600 font-medium">🎯 Objectif</span>
-                                    <span className="text-sm font-bold text-indigo-700">
-                                      {objective.ca_target.toLocaleString('fr-FR')}€
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between mb-0.5">
-                                    <span className="text-xs text-green-600 font-medium">✅ Réalisé</span>
-                                    <span className="text-sm font-bold text-green-700">
-                                      {(objective.progress_ca || 0).toLocaleString('fr-FR')}€
-                                    </span>
-                                  </div>
-                                  {progressCA < 100 ? (
-                                    <div className="flex items-center justify-between pt-1 border-t border-blue-200">
-                                      <span className="text-xs text-gray-600">📉 Reste</span>
-                                      <span className="text-xs font-semibold text-gray-700">
-                                        {reste.toLocaleString('fr-FR')}€
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <div className="pt-1 border-t border-green-200">
-                                      <span className="text-xs text-green-700 font-semibold">
-                                        🎉 Dépassé de {Math.abs(reste).toLocaleString('fr-FR')}€
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })()}
+                            {objective.ca_target && (
+                              <ProgressIndicator
+                                label="Chiffre d'Affaires"
+                                emoji="💰"
+                                target={objective.ca_target}
+                                progress={objective.progress_ca || 0}
+                                type="currency"
+                                colorScheme="blue"
+                              />
+                            )}
                             
-                            {objective.panier_moyen_target && (() => {
-                              const progressPM = ((objective.progress_panier_moyen || 0) / objective.panier_moyen_target) * 100;
-                              const reste = objective.panier_moyen_target - (objective.progress_panier_moyen || 0);
-                              return (
-                                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-2.5 border border-purple-200">
-                                  <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-xs font-semibold text-gray-700">🛒 Panier Moyen</span>
-                                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
-                                      progressPM >= 100 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                                    }`}>
-                                      {progressPM.toFixed(0)}%
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between mb-0.5">
-                                    <span className="text-xs text-purple-600 font-medium">🎯 Objectif</span>
-                                    <span className="text-sm font-bold text-purple-700">
-                                      {objective.panier_moyen_target.toLocaleString('fr-FR')}€
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between mb-0.5">
-                                    <span className="text-xs text-green-600 font-medium">✅ Réalisé</span>
-                                    <span className="text-sm font-bold text-green-700">
-                                      {(objective.progress_panier_moyen || 0).toFixed(1)}€
-                                    </span>
-                                  </div>
-                                  {progressPM < 100 ? (
-                                    <div className="flex items-center justify-between pt-1 border-t border-purple-200">
-                                      <span className="text-xs text-gray-600">📉 Reste</span>
-                                      <span className="text-xs font-semibold text-gray-700">
-                                        {reste.toFixed(1)}€
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <div className="pt-1 border-t border-green-200">
-                                      <span className="text-xs text-green-700 font-semibold">
-                                        🎉 Dépassé de {Math.abs(reste).toFixed(1)}€
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })()}
+                            {objective.panier_moyen_target && (
+                              <ProgressIndicator
+                                label="Panier Moyen"
+                                emoji="🛒"
+                                target={objective.panier_moyen_target}
+                                progress={objective.progress_panier_moyen || 0}
+                                type="decimal"
+                                colorScheme="purple"
+                              />
+                            )}
                             
-                            {objective.indice_vente_target && (() => {
-                              const progressIndice = ((objective.progress_indice_vente || 0) / objective.indice_vente_target) * 100;
-                              const reste = objective.indice_vente_target - (objective.progress_indice_vente || 0);
-                              return (
-                                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-2.5 border border-yellow-200">
-                                  <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-xs font-semibold text-gray-700">💎 Indice de Vente</span>
-                                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
-                                      progressIndice >= 100 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                                    }`}>
-                                      {progressIndice.toFixed(0)}%
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between mb-0.5">
-                                    <span className="text-xs text-yellow-600 font-medium">🎯 Objectif</span>
-                                    <span className="text-sm font-bold text-yellow-700">
-                                      {objective.indice_vente_target.toFixed(1)}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center justify-between mb-0.5">
-                                    <span className="text-xs text-green-600 font-medium">✅ Réalisé</span>
-                                    <span className="text-sm font-bold text-green-700">
-                                      {(objective.progress_indice_vente || 0).toFixed(1)}
-                                    </span>
-                                  </div>
-                                  {progressIndice < 100 ? (
-                                    <div className="flex items-center justify-between pt-1 border-t border-yellow-200">
-                                      <span className="text-xs text-gray-600">📉 Reste</span>
-                                      <span className="text-xs font-semibold text-gray-700">
-                                        {reste.toFixed(1)}
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <div className="pt-1 border-t border-green-200">
-                                      <span className="text-xs text-green-700 font-semibold">
-                                        🎉 Dépassé de {Math.abs(reste).toFixed(1)}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })()}
+                            {objective.indice_vente_target && (
+                              <ProgressIndicator
+                                label="Indice de Vente"
+                                emoji="💎"
+                                target={objective.indice_vente_target}
+                                progress={objective.progress_indice_vente || 0}
+                                type="decimal"
+                                colorScheme="yellow"
+                              />
+                            )}
                           </div>
 
                           {/* Time remaining */}
