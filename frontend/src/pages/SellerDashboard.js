@@ -871,9 +871,12 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           )}
         </div>
 
+        {/* Grid 2x2 for all cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        
         {/* Profile & Bilan - Visual Cards */}
         {(dashboardFilters.showProfile || dashboardFilters.showBilan) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" style={{ order: getSectionOrder('profile') }}>
+          <>
             {/* Profile Card - Visual */}
             {diagnostic && dashboardFilters.showProfile && (
             <div 
