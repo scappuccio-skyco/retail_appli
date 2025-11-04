@@ -849,7 +849,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         {((activeObjectives.length > 0 && dashboardFilters.showObjectives) || (activeChallenges.length > 0 && dashboardFilters.showChallenges)) && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" style={{ order: getSectionOrder('objectives') }}>
             {/* Active Objectives Section (Left Column) - Carousel */}
-            {activeObjectives.length > 0 && (
+            {activeObjectives.length > 0 && dashboardFilters.showObjectives && (
               <div className="glass-morphism rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
