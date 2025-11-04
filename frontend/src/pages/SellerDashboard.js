@@ -117,6 +117,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [activeObjectives, setActiveObjectives] = useState([]); // Objectifs d'équipe actifs
   const [currentObjectiveIndex, setCurrentObjectiveIndex] = useState(0); // Carousel for objectives
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0); // Carousel for challenges
+  // States for daily challenge feedback
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [challengeFeedbackComment, setChallengeFeedbackComment] = useState('');
+  const [showChallengeHistoryModal, setShowChallengeHistoryModal] = useState(false);
   
   // Dashboard Filters & Preferences
   const [dashboardFilters, setDashboardFilters] = useState(() => {
