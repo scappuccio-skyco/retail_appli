@@ -1,7 +1,7 @@
 import React from 'react';
-import { Sparkles, X, TrendingUp, AlertTriangle, Target } from 'lucide-react';
+import { Sparkles, X, TrendingUp, AlertTriangle, Target, ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function BilanIndividuelModal({ bilan, kpiConfig, onClose }) {
+export default function BilanIndividuelModal({ bilan, kpiConfig, onClose, currentWeekOffset, onWeekChange, onRegenerate, generatingBilan }) {
   if (!bilan) return null;
 
   return (
