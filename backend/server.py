@@ -2102,11 +2102,10 @@ async def get_team_kpi_summary(current_user: dict = Depends(get_current_user)):
         if recent_entries:
             avg_ca = sum(e.get('ca_journalier', 0) for e in recent_entries) / len(recent_entries)
             avg_ventes = sum(e.get('nb_ventes', 0) for e in recent_entries) / len(recent_entries)
-            avg_clients = sum(e.get('nb_clients', 0) for e in recent_entries) / len(recent_entries)
             avg_panier = sum(e.get('panier_moyen', 0) for e in recent_entries) / len(recent_entries)
             avg_taux = sum(e.get('taux_transformation', 0) for e in recent_entries) / len(recent_entries)
         else:
-            avg_ca = avg_ventes = avg_clients = avg_panier = avg_taux = 0
+            avg_ca = avg_ventes = avg_panier = avg_taux = 0
         
         summary.append({
             "seller_id": seller['id'],
