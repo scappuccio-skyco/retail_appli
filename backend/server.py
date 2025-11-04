@@ -3152,6 +3152,154 @@ async def options_kpi_config():
     response.headers["Access-Control-Max-Age"] = "86400"
     return response
 
+# ===== STORE KPI ENDPOINTS =====
+@api_router.post("/manager/store-kpi")
+async def create_or_update_store_kpi(
+    store_kpi_data: StoreKPICreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create or update store KPI (prospects) for a specific date"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can manage store KPIs")
+    
+    # Check if KPI exists for this date
+    existing = await db.store_kpis.find_one({
+        "manager_id": current_user['id'],
+        "date": store_kpi_data.date
+    }, {"_id": 0})
+    
+    if existing:
+        # Update existing
+        await db.store_kpis.update_one(
+            {"manager_id": current_user['id'], "date": store_kpi_data.date},
+            {
+                "$set": {
+                    "nb_prospects": store_kpi_data.nb_prospects,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        kpi = await db.store_kpis.find_one({
+            "manager_id": current_user['id'],
+            "date": store_kpi_data.date
+        }, {"_id": 0})
+    else:
+        # Create new
+        new_kpi = StoreKPI(
+            manager_id=current_user['id'],
+            date=store_kpi_data.date,
+            nb_prospects=store_kpi_data.nb_prospects
+        )
+        await db.store_kpis.insert_one(new_kpi.dict())
+        kpi = new_kpi.dict()
+    
+    return kpi
+
+@api_router.get("/manager/store-kpi")
+async def get_store_kpis(
+    start_date: str = None,
+    end_date: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get store KPIs for a date range"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access store KPIs")
+    
+    query = {"manager_id": current_user['id']}
+    
+    if start_date and end_date:
+        query["date"] = {"$gte": start_date, "$lte": end_date}
+    
+    kpis = await db.store_kpis.find(query, {"_id": 0}).sort("date", -1).to_list(1000)
+    return kpis
+
+@api_router.get("/manager/store-kpi/stats")
+async def get_store_kpi_stats(current_user: dict = Depends(get_current_user)):
+    """Get store KPI stats with transformation rate"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access store KPI stats")
+    
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    # Get week dates
+    today_date = datetime.now()
+    week_start = (today_date - timedelta(days=today_date.weekday())).strftime('%Y-%m-%d')
+    week_end = today_date.strftime('%Y-%m-%d')
+    
+    # Get month dates
+    month_start = today_date.replace(day=1).strftime('%Y-%m-%d')
+    month_end = today_date.strftime('%Y-%m-%d')
+    
+    # Get store KPIs
+    today_kpi = await db.store_kpis.find_one({
+        "manager_id": current_user['id'],
+        "date": today
+    }, {"_id": 0})
+    
+    week_kpis = await db.store_kpis.find({
+        "manager_id": current_user['id'],
+        "date": {"$gte": week_start, "$lte": week_end}
+    }, {"_id": 0}).to_list(1000)
+    
+    month_kpis = await db.store_kpis.find({
+        "manager_id": current_user['id'],
+        "date": {"$gte": month_start, "$lte": month_end}
+    }, {"_id": 0}).to_list(1000)
+    
+    # Get sellers for this manager
+    sellers = await db.users.find({
+        "manager_id": current_user['id'],
+        "role": "seller"
+    }, {"_id": 0, "id": 1}).to_list(1000)
+    seller_ids = [s['id'] for s in sellers]
+    
+    # Get team sales (ventes)
+    today_sales = await db.kpi_entries.find({
+        "seller_id": {"$in": seller_ids},
+        "date": today
+    }, {"_id": 0}).to_list(1000)
+    
+    week_sales = await db.kpi_entries.find({
+        "seller_id": {"$in": seller_ids},
+        "date": {"$gte": week_start, "$lte": week_end}
+    }, {"_id": 0}).to_list(1000)
+    
+    month_sales = await db.kpi_entries.find({
+        "seller_id": {"$in": seller_ids},
+        "date": {"$gte": month_start, "$lte": month_end}
+    }, {"_id": 0}).to_list(1000)
+    
+    # Calculate stats
+    today_prospects = today_kpi['nb_prospects'] if today_kpi else 0
+    today_ventes = sum(s.get('nb_ventes', 0) for s in today_sales)
+    today_rate = round((today_ventes / today_prospects * 100), 2) if today_prospects > 0 else 0
+    
+    week_prospects = sum(k['nb_prospects'] for k in week_kpis)
+    week_ventes = sum(s.get('nb_ventes', 0) for s in week_sales)
+    week_rate = round((week_ventes / week_prospects * 100), 2) if week_prospects > 0 else 0
+    
+    month_prospects = sum(k['nb_prospects'] for k in month_kpis)
+    month_ventes = sum(s.get('nb_ventes', 0) for s in month_sales)
+    month_rate = round((month_ventes / month_prospects * 100), 2) if month_prospects > 0 else 0
+    
+    return {
+        "today": {
+            "prospects": today_prospects,
+            "ventes": today_ventes,
+            "taux_transformation": today_rate
+        },
+        "week": {
+            "prospects": week_prospects,
+            "ventes": week_ventes,
+            "taux_transformation": week_rate
+        },
+        "month": {
+            "prospects": month_prospects,
+            "ventes": month_ventes,
+            "taux_transformation": month_rate
+        }
+    }
+
 # ===== MANAGER OBJECTIVES ENDPOINTS =====
 @api_router.get("/manager/objectives")
 async def get_manager_objectives(current_user: dict = Depends(get_current_user)):
