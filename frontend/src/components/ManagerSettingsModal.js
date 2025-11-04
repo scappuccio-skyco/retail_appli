@@ -344,6 +344,114 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                     </div>
                   </div>
 
+                  {/* KPI Calculés automatiquement */}
+                  <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 border-2 border-purple-200">
+                    <h3 className="text-xl font-bold text-purple-900 mb-4 flex items-center gap-2">
+                      <span>🧮</span> KPI Calculés Automatiquement
+                    </h3>
+                    <p className="text-sm text-purple-700 mb-4">
+                      En fonction de votre sélection, ces KPI seront automatiquement calculés :
+                    </p>
+                    
+                    <div className="space-y-3">
+                      {kpiConfig.track_ca && kpiConfig.track_ventes ? (
+                        <div className="bg-white rounded-lg p-4 border-l-4 border-indigo-500 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                              <span className="text-xl">🧮</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-indigo-900">Panier Moyen</p>
+                              <p className="text-xs text-indigo-600">CA ÷ Nombre de Ventes</p>
+                            </div>
+                            <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                              ✓ Actif
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-gray-300 opacity-60">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                              <span className="text-xl">🧮</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-600">Panier Moyen</p>
+                              <p className="text-xs text-gray-500">Nécessite : CA + Nombre de Ventes</p>
+                            </div>
+                            <div className="px-3 py-1 bg-gray-200 text-gray-600 text-xs font-bold rounded-full">
+                              Inactif
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {kpiConfig.track_ventes && kpiConfig.track_clients ? (
+                        <div className="bg-white rounded-lg p-4 border-l-4 border-pink-500 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+                              <span className="text-xl">📊</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-pink-900">Taux de Transformation</p>
+                              <p className="text-xs text-pink-600">Ventes ÷ Clients × 100</p>
+                            </div>
+                            <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                              ✓ Actif
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-gray-300 opacity-60">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                              <span className="text-xl">📊</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-600">Taux de Transformation</p>
+                              <p className="text-xs text-gray-500">Nécessite : Nombre de Ventes + Nombre de Clients</p>
+                            </div>
+                            <div className="px-3 py-1 bg-gray-200 text-gray-600 text-xs font-bold rounded-full">
+                              Inactif
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {kpiConfig.track_articles && kpiConfig.track_clients ? (
+                        <div className="bg-white rounded-lg p-4 border-l-4 border-teal-500 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                              <span className="text-xl">🎯</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-teal-900">Indice de Vente</p>
+                              <p className="text-xs text-teal-600">Articles ÷ Clients × 100</p>
+                            </div>
+                            <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                              ✓ Actif
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-gray-300 opacity-60">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                              <span className="text-xl">🎯</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-600">Indice de Vente</p>
+                              <p className="text-xs text-gray-500">Nécessite : Nombre d'Articles + Nombre de Clients</p>
+                            </div>
+                            <div className="px-3 py-1 bg-gray-200 text-gray-600 text-xs font-bold rounded-full">
+                              Inactif
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <button
                     type="submit"
                     className="w-full bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all"
