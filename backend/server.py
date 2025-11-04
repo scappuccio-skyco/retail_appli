@@ -390,7 +390,6 @@ class KPIEntryCreate(BaseModel):
 class KPIConfigUpdate(BaseModel):
     track_ca: Optional[bool] = None
     track_ventes: Optional[bool] = None
-    track_clients: Optional[bool] = None
     track_articles: Optional[bool] = None
 
 
