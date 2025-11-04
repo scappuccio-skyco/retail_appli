@@ -24,23 +24,27 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, onClose, curren
               </div>
             </div>
             
-            {/* Week Navigation */}
+            {/* Week Navigation - Enhanced */}
             {onWeekChange && (
-              <div className="flex items-center gap-2 mr-10">
+              <div className="flex items-center gap-3 mr-10 bg-white bg-opacity-50 rounded-xl px-3 py-2">
                 <button
                   onClick={() => onWeekChange(currentWeekOffset - 1)}
-                  className="p-2 bg-white bg-opacity-50 hover:bg-opacity-70 rounded-lg transition-all"
+                  className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-all shadow-md hover:shadow-lg"
                   title="Semaine précédente"
                 >
-                  <ChevronLeft className="w-5 h-5 text-gray-800" />
+                  <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
+                <div className="text-center px-2">
+                  <p className="text-xs font-semibold text-gray-700">Naviguer</p>
+                  <p className="text-xs text-gray-600">← Semaines →</p>
+                </div>
                 <button
                   onClick={() => onWeekChange(currentWeekOffset + 1)}
                   disabled={currentWeekOffset === 0}
-                  className="p-2 bg-white bg-opacity-50 hover:bg-opacity-70 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Semaine suivante"
                 >
-                  <ChevronRight className="w-5 h-5 text-gray-800" />
+                  <ChevronRight className="w-5 h-5 text-white" />
                 </button>
               </div>
             )}
