@@ -3303,6 +3303,314 @@ class RetailCoachAPITester:
         elif active_objectives_count > 0:
             print(f"   ✅ SUCCESS: Active objectives are properly filtered and returned")
 
+    def test_daily_challenge_feedback_system(self):
+        """Test Daily Challenge Feedback System - NEW FEATURE FROM REVIEW REQUEST"""
+        print("\n🔍 Testing Daily Challenge Feedback System (NEW FEATURE)...")
+        
+        # Login as vendeur2@test.com as specified in review request
+        login_data = {
+            "email": "vendeur2@test.com",
+            "password": "password123"
+        }
+        
+        success, response = self.run_test(
+            "Daily Challenge Test - Login as vendeur2@test.com",
+            "POST",
+            "auth/login",
+            200,
+            data=login_data
+        )
+        
+        challenge_seller_token = None
+        if success and 'token' in response:
+            challenge_seller_token = response['token']
+            seller_info = response['user']
+            print(f"   ✅ Logged in as: {seller_info.get('name')} ({seller_info.get('email')})")
+        else:
+            print("   ⚠️  Could not login with vendeur2@test.com - account may not exist")
+            self.log_test("Daily Challenge Feedback System Setup", False, "vendeur2@test.com account not available")
+            return
+        
+        # SCENARIO 1: Complete Challenge with Success Feedback
+        print("\n   🎯 SCENARIO 1: Complete Challenge with Success Feedback")
+        
+        # Step 1: Get today's challenge
+        success, challenge_response = self.run_test(
+            "Scenario 1 - GET /api/seller/daily-challenge",
+            "GET",
+            "seller/daily-challenge",
+            200,
+            token=challenge_seller_token
+        )
+        
+        challenge_id_1 = None
+        if success:
+            challenge_id_1 = challenge_response.get('id')
+            print(f"   ✅ Retrieved today's challenge: {challenge_response.get('title')}")
+            print(f"   ✅ Challenge ID: {challenge_id_1}")
+            print(f"   ✅ Competence: {challenge_response.get('competence')}")
+            print(f"   ✅ Description: {challenge_response.get('description', '')[:80]}...")
+            
+            # Verify required fields
+            required_fields = ['id', 'seller_id', 'date', 'competence', 'title', 'description']
+            missing_fields = []
+            for field in required_fields:
+                if field not in challenge_response:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                self.log_test("Daily Challenge Fields Validation", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("Daily Challenge Fields Validation", True)
+        
+        # Step 2: Complete challenge with success feedback
+        if challenge_id_1:
+            complete_data_success = {
+                "challenge_id": challenge_id_1,
+                "result": "success",
+                "comment": "Super défi ! J'ai réussi à appliquer la technique avec 3 clients aujourd'hui."
+            }
+            
+            success, complete_response = self.run_test(
+                "Scenario 1 - Complete Challenge with Success",
+                "POST",
+                "seller/daily-challenge/complete",
+                200,
+                data=complete_data_success,
+                token=challenge_seller_token
+            )
+            
+            if success:
+                # Verify response includes required fields
+                expected_fields = ['completed', 'challenge_result', 'feedback_comment', 'completed_at']
+                missing_fields = []
+                
+                for field in expected_fields:
+                    if field not in complete_response:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    self.log_test("Challenge Completion Response Validation", False, f"Missing fields: {missing_fields}")
+                else:
+                    self.log_test("Challenge Completion Response Validation", True)
+                    print(f"   ✅ Completed: {complete_response.get('completed')}")
+                    print(f"   ✅ Result: {complete_response.get('challenge_result')}")
+                    print(f"   ✅ Comment: {complete_response.get('feedback_comment')}")
+                    print(f"   ✅ Completed At: {complete_response.get('completed_at')}")
+                
+                # Verify values are correct
+                if (complete_response.get('completed') == True and 
+                    complete_response.get('challenge_result') == 'success' and
+                    complete_response.get('feedback_comment') == complete_data_success['comment']):
+                    print("   ✅ Challenge marked as completed with correct success feedback")
+                else:
+                    self.log_test("Challenge Success Completion Validation", False, "Incorrect completion data")
+        
+        # SCENARIO 2: Complete Challenge with Partial Feedback
+        print("\n   🔄 SCENARIO 2: Complete Challenge with Partial Feedback")
+        
+        # Step 1: Refresh to get new challenge
+        success, refresh_response = self.run_test(
+            "Scenario 2 - Refresh Challenge",
+            "POST",
+            "seller/daily-challenge/refresh",
+            200,
+            token=challenge_seller_token
+        )
+        
+        challenge_id_2 = None
+        if success:
+            challenge_id_2 = refresh_response.get('id')
+            print(f"   ✅ New challenge generated: {refresh_response.get('title')}")
+            print(f"   ✅ New Challenge ID: {challenge_id_2}")
+        
+        # Step 2: Complete with partial feedback
+        if challenge_id_2:
+            complete_data_partial = {
+                "challenge_id": challenge_id_2,
+                "result": "partial",
+                "comment": "C'était difficile mais j'ai essayé. J'ai besoin de plus de pratique."
+            }
+            
+            success, partial_response = self.run_test(
+                "Scenario 2 - Complete Challenge with Partial",
+                "POST",
+                "seller/daily-challenge/complete",
+                200,
+                data=complete_data_partial,
+                token=challenge_seller_token
+            )
+            
+            if success:
+                if partial_response.get('challenge_result') == 'partial':
+                    print("   ✅ Challenge correctly marked as 'partial'")
+                    print(f"   ✅ Partial feedback: {partial_response.get('feedback_comment')}")
+                else:
+                    self.log_test("Challenge Partial Completion", False, f"Expected 'partial', got '{partial_response.get('challenge_result')}'")
+        
+        # SCENARIO 3: Complete Challenge with Failed Feedback (no comment)
+        print("\n   ❌ SCENARIO 3: Complete Challenge with Failed Feedback (no comment)")
+        
+        # Step 1: Refresh to get another challenge
+        success, refresh_response_2 = self.run_test(
+            "Scenario 3 - Refresh Challenge Again",
+            "POST",
+            "seller/daily-challenge/refresh",
+            200,
+            token=challenge_seller_token
+        )
+        
+        challenge_id_3 = None
+        if success:
+            challenge_id_3 = refresh_response_2.get('id')
+            print(f"   ✅ Another new challenge: {refresh_response_2.get('title')}")
+        
+        # Step 2: Complete with failed result (no comment)
+        if challenge_id_3:
+            complete_data_failed = {
+                "challenge_id": challenge_id_3,
+                "result": "failed"
+                # No comment field
+            }
+            
+            success, failed_response = self.run_test(
+                "Scenario 3 - Complete Challenge with Failed (no comment)",
+                "POST",
+                "seller/daily-challenge/complete",
+                200,
+                data=complete_data_failed,
+                token=challenge_seller_token
+            )
+            
+            if success:
+                if failed_response.get('challenge_result') == 'failed':
+                    print("   ✅ Challenge correctly marked as 'failed'")
+                    
+                    # Verify feedback_comment is null or absent
+                    feedback_comment = failed_response.get('feedback_comment')
+                    if feedback_comment is None or feedback_comment == "":
+                        print("   ✅ No comment provided - feedback_comment is null/empty as expected")
+                    else:
+                        self.log_test("Failed Challenge No Comment", False, f"Expected null comment, got: {feedback_comment}")
+                else:
+                    self.log_test("Challenge Failed Completion", False, f"Expected 'failed', got '{failed_response.get('challenge_result')}'")
+        
+        # SCENARIO 4: Get Challenge History
+        print("\n   📚 SCENARIO 4: Get Challenge History")
+        
+        success, history_response = self.run_test(
+            "Scenario 4 - GET /api/seller/daily-challenge/history",
+            "GET",
+            "seller/daily-challenge/history",
+            200,
+            token=challenge_seller_token
+        )
+        
+        if success:
+            if isinstance(history_response, list):
+                print(f"   ✅ Retrieved challenge history: {len(history_response)} challenge(s)")
+                
+                # Verify challenges are sorted by date (most recent first)
+                if len(history_response) > 1:
+                    dates = [challenge.get('date') for challenge in history_response if challenge.get('date')]
+                    if dates == sorted(dates, reverse=True):
+                        print("   ✅ Challenges sorted by date (most recent first)")
+                    else:
+                        self.log_test("Challenge History Sorting", False, "Challenges not sorted by date descending")
+                
+                # Verify each challenge includes required fields
+                if len(history_response) > 0:
+                    sample_challenge = history_response[0]
+                    required_history_fields = [
+                        'id', 'seller_id', 'date', 'competence', 'title', 'description',
+                        'completed', 'challenge_result', 'feedback_comment', 'completed_at'
+                    ]
+                    
+                    missing_history_fields = []
+                    for field in required_history_fields:
+                        if field not in sample_challenge:
+                            missing_history_fields.append(field)
+                    
+                    if missing_history_fields:
+                        self.log_test("Challenge History Fields", False, f"Missing fields in history: {missing_history_fields}")
+                    else:
+                        print("   ✅ All required fields present in challenge history")
+                        print(f"   ✅ Sample challenge: {sample_challenge.get('title')} - {sample_challenge.get('challenge_result')}")
+                
+                # Verify at least the 3 challenges we just completed are in the history
+                completed_challenge_ids = [challenge_id_1, challenge_id_2, challenge_id_3]
+                found_challenges = []
+                
+                for challenge in history_response:
+                    if challenge.get('id') in completed_challenge_ids:
+                        found_challenges.append(challenge.get('id'))
+                
+                if len(found_challenges) >= 3:
+                    print(f"   ✅ Found {len(found_challenges)} of our completed challenges in history")
+                else:
+                    self.log_test("Challenge History Persistence", False, f"Only found {len(found_challenges)} of 3 completed challenges")
+            else:
+                self.log_test("Challenge History Response Format", False, "Response should be an array")
+        
+        # SCENARIO 5: Invalid Result Value
+        print("\n   🚫 SCENARIO 5: Invalid Result Value")
+        
+        # Try to complete a challenge with invalid result
+        if challenge_id_3:  # Reuse the last challenge ID
+            invalid_data = {
+                "challenge_id": challenge_id_3,
+                "result": "invalid_value"
+            }
+            
+            success, error_response = self.run_test(
+                "Scenario 5 - Invalid Result Value",
+                "POST",
+                "seller/daily-challenge/complete",
+                400,  # Bad Request
+                data=invalid_data,
+                token=challenge_seller_token
+            )
+            
+            if success:
+                print("   ✅ Invalid result value correctly rejected with 400 Bad Request")
+        
+        # Test Authentication Requirements
+        print("\n   🔒 Testing Authentication Requirements")
+        
+        # Test GET daily challenge without token
+        success, _ = self.run_test(
+            "Daily Challenge - GET without token",
+            "GET",
+            "seller/daily-challenge",
+            403,  # Forbidden
+        )
+        
+        if success:
+            print("   ✅ GET daily challenge correctly requires authentication (403)")
+        
+        # Test complete challenge without token
+        success, _ = self.run_test(
+            "Daily Challenge - Complete without token",
+            "POST",
+            "seller/daily-challenge/complete",
+            403,  # Forbidden
+            data={"challenge_id": "test", "result": "success"}
+        )
+        
+        if success:
+            print("   ✅ Complete challenge correctly requires authentication (403)")
+        
+        # Test history without token
+        success, _ = self.run_test(
+            "Daily Challenge - History without token",
+            "GET",
+            "seller/daily-challenge/history",
+            403,  # Forbidden
+        )
+        
+        if success:
+            print("   ✅ Challenge history correctly requires authentication (403)")
+
     def run_all_tests(self):
         """Run all tests in sequence"""
         print("🚀 Starting Retail Coach 2.0 API Tests")
