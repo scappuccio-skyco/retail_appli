@@ -2307,8 +2307,7 @@ async def generate_team_bilan_for_period(manager_id: str, start_date: date, end_
             "seller_name": seller['name'],
             "seller_email": seller['email'],
             "ca": seller_ca,
-            "ventes": seller_ventes,
-            "clients": seller_clients
+            "ventes": seller_ventes
         })
     
     # Calculate averages and all KPIs
