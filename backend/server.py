@@ -330,7 +330,6 @@ def calculate_kpis(raw_data: dict) -> dict:
     
     ca = raw_data.get('ca_journalier', 0)
     nb_ventes = raw_data.get('nb_ventes', 0)
-    nb_clients = raw_data.get('nb_clients', 0)
     nb_articles = raw_data.get('nb_articles', 0)
     
     # Panier moyen = CA / nombre de ventes
