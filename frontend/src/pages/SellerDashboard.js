@@ -1325,8 +1325,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         )}
 
         {/* Objectives & Challenges Carousel Section */}
-        {/* Objectifs & Challenges - Visual Card */}
-        {((activeObjectives.length > 0 && dashboardFilters.showObjectives) || (activeChallenges.length > 0 && dashboardFilters.showChallenges)) && (
+        {/* OLD Objectifs & Challenges - REMOVED (now in grid) */}
+        {false && ((activeObjectives.length > 0 && dashboardFilters.showObjectives) || (activeChallenges.length > 0 && dashboardFilters.showChallenges)) && (
           <div 
             onClick={() => setShowObjectivesModal(true)}
             className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 mb-8 border-2 border-transparent hover:border-[#ffd871]"
