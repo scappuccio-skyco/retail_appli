@@ -751,7 +751,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
                 Afficher / Masquer les sections
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
                 <button
                   onClick={() => toggleFilter('showProfile')}
                   className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
@@ -767,16 +767,16 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 </button>
 
                 <button
-                  onClick={() => toggleFilter('showCompetences')}
+                  onClick={() => toggleFilter('showBilan')}
                   className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
-                    dashboardFilters.showCompetences
+                    dashboardFilters.showBilan
                       ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
                       : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">⭐</span>
-                    <span className="text-xs font-semibold">Compétences</span>
+                    <span className="text-xl">📈</span>
+                    <span className="text-xs font-semibold">Bilan</span>
                   </div>
                 </button>
 
@@ -795,16 +795,16 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 </button>
 
                 <button
-                  onClick={() => toggleFilter('showChallenges')}
+                  onClick={() => toggleFilter('showCompetences')}
                   className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
-                    dashboardFilters.showChallenges
+                    dashboardFilters.showCompetences
                       ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
                       : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">🏆</span>
-                    <span className="text-xs font-semibold">Challenges</span>
+                    <span className="text-xl">🔥</span>
+                    <span className="text-xs font-semibold">Challenge IA</span>
                   </div>
                 </button>
 
@@ -833,20 +833,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-xl">📝</span>
                     <span className="text-xs font-semibold">Débriefs</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => toggleFilter('showBilan')}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
-                    dashboardFilters.showBilan
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
-                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">📈</span>
-                    <span className="text-xs font-semibold">Bilan</span>
                   </div>
                 </button>
               </div>
