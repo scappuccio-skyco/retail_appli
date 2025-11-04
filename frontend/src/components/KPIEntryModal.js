@@ -12,7 +12,6 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
   const [date, setDate] = useState(editEntry?.date || new Date().toISOString().split('T')[0]);
   const [caJournalier, setCaJournalier] = useState(editEntry?.ca_journalier?.toString() || '');
   const [nbVentes, setNbVentes] = useState(editEntry?.nb_ventes?.toString() || '');
-  const [nbClients, setNbClients] = useState(editEntry?.nb_clients?.toString() || '');
   const [nbArticles, setNbArticles] = useState(editEntry?.nb_articles?.toString() || '');
   const [comment, setComment] = useState(editEntry?.comment || '');
   const [loading, setLoading] = useState(true);
