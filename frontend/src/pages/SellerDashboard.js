@@ -1990,6 +1990,20 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         />
       )}
 
+      {showDailyChallengeModal && dailyChallenge && (
+        <DailyChallengeModal
+          challenge={dailyChallenge}
+          onClose={() => setShowDailyChallengeModal(false)}
+          onRefresh={(newChallenge) => {
+            setDailyChallenge(newChallenge);
+          }}
+          onComplete={(updatedChallenge) => {
+            setDailyChallenge(updatedChallenge);
+            fetchData(); // Refresh tasks
+          }}
+        />
+      )}
+
       {/* Diagnostic Modal */}
       {showDiagnosticModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
