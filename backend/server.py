@@ -2291,12 +2291,10 @@ async def generate_team_bilan_for_period(manager_id: str, start_date: date, end_
         
         seller_ca = sum(e.get('ca_journalier', 0) for e in kpi_entries)
         seller_ventes = sum(e.get('nb_ventes', 0) for e in kpi_entries)
-        seller_clients = sum(e.get('nb_clients', 0) for e in kpi_entries)
         seller_articles = sum(e.get('nb_articles', 0) for e in kpi_entries)
         
         total_ca += seller_ca
         total_ventes += seller_ventes
-        total_clients += seller_clients
         total_articles += seller_articles
         
         # Get diagnostic for competences
