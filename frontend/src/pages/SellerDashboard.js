@@ -621,9 +621,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 </button>
               </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="max-w-7xl mx-auto">
         {/* Tasks Section */}
