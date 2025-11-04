@@ -341,8 +341,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         const today = new Date().toISOString().split('T')[0];
         const todayKPI = kpiRes.data.find(entry => entry.date === today);
         
+        // Build tasks list
+        let newTasks = [...tasksRes.data];
+        
         // Add daily KPI task if not entered today
-        if (!todayKPI) {
+        if (!todayKPI && !tasksRes.data.find(t => t.id === 'daily-kpi')) {
           const kpiTask = {
             id: 'daily-kpi',
             type: 'kpi',
@@ -351,12 +354,23 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             description: 'Renseigne ton chiffre d\'affaires, nombre de ventes et clients du jour',
             priority: 'normal'
           };
-          
-          // Add to tasks if not already there
-          if (!tasksRes.data.find(t => t.id === 'daily-kpi')) {
-            setTasks([kpiTask, ...tasksRes.data]);
-          }
+          newTasks = [kpiTask, ...newTasks];
         }
+        
+        // Add daily challenge task if not completed
+        if (dailyChallenge && !dailyChallenge.completed && !tasksRes.data.find(t => t.id === 'daily-challenge')) {
+          const challengeTask = {
+            id: 'daily-challenge',
+            type: 'challenge',
+            icon: '🎯',
+            title: dailyChallenge.title,
+            description: dailyChallenge.description,
+            priority: 'important'
+          };
+          newTasks = [challengeTask, ...newTasks];
+        }
+        
+        setTasks(newTasks);
       } catch (err) {
         console.log('KPI entries not available:', err);
         setKpiEntries([]);
