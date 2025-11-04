@@ -173,7 +173,6 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
     const missingFields = [];
     if (kpiConfig?.track_ca && !caJournalier) missingFields.push('CA');
     if (kpiConfig?.track_ventes && !nbVentes) missingFields.push('Ventes');
-    if (kpiConfig?.track_clients && !nbClients) missingFields.push('Clients');
     if (kpiConfig?.track_articles && !nbArticles) missingFields.push('Articles');
     
     if (missingFields.length > 0) {
