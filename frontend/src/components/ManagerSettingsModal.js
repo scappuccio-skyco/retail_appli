@@ -377,39 +377,23 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                         </div>
                       )}
 
-                      {kpiConfig.track_ventes && kpiConfig.track_clients ? (
-                        <div className="bg-white rounded-lg p-4 border-l-4 border-pink-500 shadow-sm">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
-                              <span className="text-xl">📊</span>
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-semibold text-pink-900">Taux de Transformation</p>
-                              <p className="text-xs text-pink-600">Ventes ÷ Clients × 100</p>
-                            </div>
-                            <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
-                              ✓ Actif
-                            </div>
+                      <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border-l-4 border-blue-400">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center">
+                            <span className="text-xl">📊</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-blue-900">Taux de Transformation</p>
+                            <p className="text-xs text-blue-700">Calculé au niveau magasin (Ventes Équipe ÷ Prospects)</p>
+                            <p className="text-xs text-blue-600 mt-1">→ Voir la section "KPI Magasin" pour le saisir</p>
+                          </div>
+                          <div className="px-3 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded-full">
+                            Magasin
                           </div>
                         </div>
-                      ) : (
-                        <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-gray-300 opacity-60">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                              <span className="text-xl">📊</span>
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-semibold text-gray-600">Taux de Transformation</p>
-                              <p className="text-xs text-gray-500">Nécessite : Nombre de Ventes + Nombre de Clients</p>
-                            </div>
-                            <div className="px-3 py-1 bg-gray-200 text-gray-600 text-xs font-bold rounded-full">
-                              Inactif
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                      </div>
 
-                      {kpiConfig.track_articles && kpiConfig.track_clients ? (
+                      {kpiConfig.track_articles && kpiConfig.track_ventes ? (
                         <div className="bg-white rounded-lg p-4 border-l-4 border-teal-500 shadow-sm">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
