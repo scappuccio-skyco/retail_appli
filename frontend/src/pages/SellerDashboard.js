@@ -2039,8 +2039,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
-        {/* Mes derniers Debriefs - Visual Card */}
-        {dashboardFilters.showDebriefs && (
+        {/* OLD Mes derniers Debriefs - REMOVED (now in grid) */}
+        {false && dashboardFilters.showDebriefs && (
           <div 
             onClick={() => setShowDebriefHistoryModal(true)}
             className="glass-morphism rounded-2xl overflow-hidden mt-8 cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
