@@ -875,8 +875,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         
         {/* Profile & Bilan - Visual Cards */}
-        {(dashboardFilters.showProfile || dashboardFilters.showBilan) && (
-          <>
             {/* Profile Card - Visual */}
             {diagnostic && dashboardFilters.showProfile && (
             <div 
