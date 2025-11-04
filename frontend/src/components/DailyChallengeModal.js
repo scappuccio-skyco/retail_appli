@@ -240,20 +240,10 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
         </div>
 
         {/* Footer */}
-        <div className="border-t p-4 bg-gray-50 flex justify-between items-center">
-          {!challenge.completed && (
-            <button
-              onClick={handleRefresh}
-              disabled={loading}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              Nouveau Challenge
-            </button>
-          )}
+        <div className="border-t p-4 bg-gray-50 flex justify-end">
           <button
             onClick={onClose}
-            className="ml-auto px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all"
+            className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-all"
           >
             Fermer
           </button>
