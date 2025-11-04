@@ -16,6 +16,65 @@ import ManagerSettingsModal from '../components/ManagerSettingsModal';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Component for progress indicator
+const ProgressIndicator = ({ label, emoji, target, progress, type = 'currency', colorScheme = 'blue' }) => {
+  const progressPercent = (progress / target) * 100;
+  const reste = target - progress;
+  
+  const colors = {
+    blue: { bg: 'from-blue-50 to-indigo-50', border: 'border-blue-200', text: 'text-indigo-600', textBold: 'text-indigo-700' },
+    purple: { bg: 'from-purple-50 to-pink-50', border: 'border-purple-200', text: 'text-purple-600', textBold: 'text-purple-700' },
+    yellow: { bg: 'from-yellow-50 to-orange-50', border: 'border-yellow-200', text: 'text-yellow-600', textBold: 'text-yellow-700' },
+    green: { bg: 'from-green-50 to-emerald-50', border: 'border-green-200', text: 'text-green-600', textBold: 'text-green-700' }
+  };
+  
+  const scheme = colors[colorScheme];
+  const formatValue = (val) => {
+    if (type === 'currency') return `${val.toLocaleString('fr-FR')}€`;
+    if (type === 'decimal') return val.toFixed(1);
+    return val;
+  };
+  
+  return (
+    <div className={`bg-gradient-to-r ${scheme.bg} rounded-lg p-2.5 border ${scheme.border}`}>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs font-semibold text-gray-700">{emoji} {label}</span>
+        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
+          progressPercent >= 100 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+        }`}>
+          {progressPercent.toFixed(0)}%
+        </span>
+      </div>
+      <div className="flex items-center justify-between mb-0.5">
+        <span className={`text-xs ${scheme.text} font-medium`}>🎯 Objectif</span>
+        <span className={`text-sm font-bold ${scheme.textBold}`}>
+          {formatValue(target)}
+        </span>
+      </div>
+      <div className="flex items-center justify-between mb-0.5">
+        <span className="text-xs text-green-600 font-medium">✅ Réalisé</span>
+        <span className="text-sm font-bold text-green-700">
+          {formatValue(progress)}
+        </span>
+      </div>
+      {progressPercent < 100 ? (
+        <div className={`flex items-center justify-between pt-1 border-t ${scheme.border}`}>
+          <span className="text-xs text-gray-600">📉 Reste</span>
+          <span className="text-xs font-semibold text-gray-700">
+            {formatValue(reste)}
+          </span>
+        </div>
+      ) : (
+        <div className="pt-1 border-t border-green-200">
+          <span className="text-xs text-green-700 font-semibold">
+            🎉 Dépassé de {formatValue(Math.abs(reste))}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function ManagerDashboard({ user, onLogout }) {
   const navigate = useNavigate();
   const [sellers, setSellers] = useState([]);
