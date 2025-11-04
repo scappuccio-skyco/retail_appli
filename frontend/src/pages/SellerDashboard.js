@@ -1525,11 +1525,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-800">📊 Mes derniers KPIs enregistrés</h2>
               <button
-                onClick={() => setShowKPIReporting(true)}
+                onClick={() => setShowKPIHistoryModal(true)}
                 className="btn-primary inline-flex items-center gap-2"
               >
                 <BarChart3 className="w-5 h-5" />
-                Voir tous mes KPIs
+                Voir mes KPI
               </button>
             </div>
           </div>
