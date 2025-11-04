@@ -1989,8 +1989,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
-        {/* Mes KPI - Visual Card */}
-        {dashboardFilters.showKPI && (
+        {/* OLD Mes KPI - REMOVED (now in grid) */}
+        {false && dashboardFilters.showKPI && (
           <div 
             className="glass-morphism rounded-2xl overflow-hidden mt-8 border-2 border-transparent hover:border-[#ffd871] transition-all"
             style={{ order: getSectionOrder('kpi') }}
