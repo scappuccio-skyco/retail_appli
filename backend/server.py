@@ -2578,8 +2578,8 @@ async def generate_seller_bilan_for_period(seller_id: str, start_date: date, end
     
     # Calculate derived KPIs ONLY if base metrics are tracked
     panier_moyen = (total_ca / total_ventes) if (kpi_config.get('track_ca') and kpi_config.get('track_ventes') and total_ventes > 0) else None
-    taux_transfo = ((total_ventes / total_clients * 100) if total_clients > 0 else None) if (kpi_config.get('track_ventes') and kpi_config.get('track_clients')) else None
-    indice_vente = ((total_articles / total_clients) if total_clients > 0 else None) if (kpi_config.get('track_articles') and kpi_config.get('track_clients')) else None
+    taux_transfo = None  # Removed - no longer tracking clients
+    indice_vente = ((total_articles / total_ventes) if total_ventes > 0 else None) if (kpi_config.get('track_articles') and kpi_config.get('track_ventes')) else None
     
     # Get seller diagnostic
     diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0})
