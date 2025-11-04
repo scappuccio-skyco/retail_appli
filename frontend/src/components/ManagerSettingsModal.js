@@ -270,7 +270,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            🏆 Défis & Challenges
+            🏆 Challenges
           </button>
         </div>
 
