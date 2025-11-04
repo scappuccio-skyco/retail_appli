@@ -1528,7 +1528,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
         {/* Charts Section */}
         {dashboardFilters.showCompetences && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8" style={{ order: getSectionOrder('competences') }}>
           {/* Radar Chart */}
           <div className="glass-morphism rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-6">
