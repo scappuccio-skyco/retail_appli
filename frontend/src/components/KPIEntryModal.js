@@ -75,7 +75,6 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
     historicalData.forEach(entry => {
       totals.ca += entry.ca_journalier || 0;
       totals.ventes += entry.nb_ventes || 0;
-      totals.clients += entry.nb_clients || 0;
       totals.articles += entry.nb_articles || 0;
       totals.count += 1;
     });
