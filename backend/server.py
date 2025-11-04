@@ -3120,6 +3120,11 @@ async def update_kpi_config(config_update: KPIConfigUpdate, current_user: dict =
     config = await db.kpi_configs.find_one({"manager_id": current_user['id']}, {"_id": 0})
     return config
 
+@api_router.options("/manager/kpi-config")
+async def options_kpi_config():
+    """Handle OPTIONS preflight requests for KPI configuration endpoint"""
+    return {"message": "OK"}
+
 # ===== MANAGER OBJECTIVES ENDPOINTS =====
 @api_router.get("/manager/objectives")
 async def get_manager_objectives(current_user: dict = Depends(get_current_user)):
