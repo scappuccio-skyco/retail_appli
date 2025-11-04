@@ -1362,16 +1362,14 @@ async def calculate_competence_adjustment_from_kpis(seller_id: str, initial_scor
     # Calculate KPI averages
     total_ca = sum(e.get('ca_journalier', 0) for e in kpi_entries)
     total_ventes = sum(e.get('nb_ventes', 0) for e in kpi_entries)
-    total_clients = sum(e.get('nb_clients', 0) for e in kpi_entries)
     total_articles = sum(e.get('nb_articles', 0) for e in kpi_entries)
     
     days_count = len(kpi_entries)
     
     # Calculate metrics
     panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
-    taux_transfo = (total_ventes / total_clients * 100) if total_clients > 0 else 0
-    indice_vente = total_articles / total_clients if total_clients > 0 else 0
-    clients_per_day = total_clients / days_count if days_count > 0 else 0
+    indice_vente = total_articles / total_ventes if total_ventes > 0 else 0
+    ventes_per_day = total_ventes / days_count if days_count > 0 else 0
     ca_per_day = total_ca / days_count if days_count > 0 else 0
     
     # KPI → Competence scoring (normalize to 1-5 scale)
