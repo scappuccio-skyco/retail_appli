@@ -3423,13 +3423,20 @@ Le challenge doit être :
         chat = LlmChat(
             api_key=api_key,
             session_id=f"challenge_{current_user['id']}_{today}",
-            system_message="Tu es un coach retail expert qui crée des challenges personnalisés."
+            system_message="Tu es un coach retail expert qui crée des challenges personnalisés. Tu réponds UNIQUEMENT en JSON valide."
         ).with_model("openai", "gpt-4o-mini")
         
         response = await chat.send_message(prompt)
         
+        # Parse JSON response
         import json
-        challenge_data = json.loads(response)
+        content = response.strip() if isinstance(response, str) else str(response)
+        # Remove markdown code blocks if present
+        if content.startswith('```'):
+            content = content.split('```')[1]
+            if content.startswith('json'):
+                content = content[4:]
+        challenge_data = json.loads(content.strip())
         
         # Create challenge
         new_challenge = DailyChallenge(
