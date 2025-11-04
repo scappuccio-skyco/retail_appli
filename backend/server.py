@@ -3408,9 +3408,13 @@ async def complete_daily_challenge(
     data: DailyChallengeComplete,
     current_user: dict = Depends(get_current_user)
 ):
-    """Mark daily challenge as completed"""
+    """Mark daily challenge as completed with feedback"""
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can complete challenges")
+    
+    # Validate result
+    if data.result not in ['success', 'partial', 'failed']:
+        raise HTTPException(status_code=400, detail="Invalid result value")
     
     # Update challenge
     result = await db.daily_challenges.update_one(
@@ -3421,6 +3425,8 @@ async def complete_daily_challenge(
         {
             "$set": {
                 "completed": True,
+                "challenge_result": data.result,
+                "feedback_comment": data.comment,
                 "completed_at": datetime.now(timezone.utc).isoformat()
             }
         }
