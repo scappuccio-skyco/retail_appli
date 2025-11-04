@@ -10,6 +10,7 @@ export default function ChallengeHistoryModal({ onClose }) {
   const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
+  const [displayLimit, setDisplayLimit] = useState(20); // Afficher 20 challenges à la fois
 
   useEffect(() => {
     fetchChallengeHistory();
@@ -29,6 +30,11 @@ export default function ChallengeHistoryModal({ onClose }) {
       setLoading(false);
     }
   };
+
+  // Limiter l'affichage des challenges
+  const displayedChallenges = challenges.slice(0, displayLimit);
+  const hasMore = displayLimit < challenges.length;
+  const remainingCount = challenges.length - displayLimit;
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
