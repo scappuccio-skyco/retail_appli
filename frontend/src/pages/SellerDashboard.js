@@ -1921,19 +1921,30 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
-        {/* Mes derniers débriefs */}
+        {/* Mes derniers Debriefs - Visual Card */}
         {dashboardFilters.showDebriefs && (
-          <div className="glass-morphism rounded-2xl p-6 mt-8" style={{ order: getSectionOrder('debriefs') }}>
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-800">📝 Mes derniers Debriefs</h2>
-            <button
-              onClick={() => setShowDebriefHistoryModal(true)}
-              className="btn-primary inline-flex items-center gap-2"
-            >
-              <MessageSquare className="w-5 h-5" />
-              Voir mes débriefs
-            </button>
-          </div>
+          <div 
+            onClick={() => setShowDebriefHistoryModal(true)}
+            className="glass-morphism rounded-2xl overflow-hidden mt-8 cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
+            style={{ order: getSectionOrder('debriefs') }}
+          >
+            <div className="relative h-48 overflow-hidden">
+              <img 
+                src="https://images.unsplash.com/photo-1746021375306-9dec0f637732?w=800&h=400&fit=crop" 
+                alt="Mes derniers Debriefs"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-green-900/70 to-teal-900/70 group-hover:from-green-900/60 group-hover:to-teal-900/60 transition-all"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center text-white">
+                  <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                    <MessageSquare className="w-8 h-8" />
+                  </div>
+                  <h2 className="text-2xl font-bold">📝 Mes derniers Debriefs</h2>
+                  <p className="text-sm mt-2 opacity-90">Voir tous mes débriefs →</p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
