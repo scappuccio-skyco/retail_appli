@@ -1881,48 +1881,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
           </div>
         )}
-
-        {/* Mes challenges réalisés */}
-        <div className="glass-morphism rounded-2xl p-6 mt-8">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-800">🎯 Mes challenges réalisés</h2>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowChallengeHistoryModal(true)}
-                className="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold rounded-lg transition-all flex items-center gap-2"
-              >
-                <MessageSquare className="w-5 h-5" />
-                Historique
-              </button>
-              <button
-                onClick={async () => {
-                  setLoadingChallenge(true);
-                  try {
-                    const token = localStorage.getItem('token');
-                    const res = await axios.post(
-                      `${API}/seller/daily-challenge/refresh`,
-                      {},
-                      { headers: { Authorization: `Bearer ${token}` } }
-                    );
-                    setDailyChallenge(res.data);
-                    toast.success('✨ Nouveau challenge généré !');
-                    setShowDailyChallengeModal(true);
-                  } catch (err) {
-                    console.error('Error refreshing challenge:', err);
-                    toast.error('Erreur lors du rafraîchissement');
-                  } finally {
-                    setLoadingChallenge(false);
-                  }
-                }}
-                disabled={loadingChallenge}
-                className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:shadow-lg text-white font-semibold rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
-              >
-                <RefreshCw className={`w-5 h-5 ${loadingChallenge ? 'animate-spin' : ''}`} />
-                Relancer un défi
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
 
       {showEvalModal && (
