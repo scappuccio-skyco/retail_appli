@@ -1123,9 +1123,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         {((activeObjectives.length > 0 && dashboardFilters.showObjectives) || (activeChallenges.length > 0 && dashboardFilters.showChallenges)) && (
           <div className="glass-morphism rounded-2xl p-6 mb-8" style={{ order: getSectionOrder('objectives') }}>
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-800">🎯 Objectifs & Challenges</h2>
+              <h2 className="text-2xl font-bold text-gray-800">🎯 Objectifs et Challenges</h2>
               <button
-                onClick={() => toast.info('Fonctionnalité bientôt disponible')}
+                onClick={() => setShowObjectivesModal(true)}
                 className="px-4 py-2 bg-[#ffd871] hover:bg-[#ffc940] text-gray-800 font-semibold rounded-lg transition-all flex items-center gap-2"
               >
                 <MessageSquare className="w-4 h-4" />
