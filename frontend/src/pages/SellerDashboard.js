@@ -1418,6 +1418,17 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         />
       )}
 
+      {showDebriefHistoryModal && (
+        <DebriefHistoryModal
+          debriefs={debriefs}
+          onClose={() => setShowDebriefHistoryModal(false)}
+          onNewDebrief={() => {
+            setShowDebriefHistoryModal(false);
+            setShowDebriefModal(true);
+          }}
+        />
+      )}
+
       {showKPIModal && (
         <KPIEntryModal
           onClose={() => {
