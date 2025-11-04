@@ -3308,6 +3308,9 @@ class RetailCoachAPITester:
         print("🚀 Starting Retail Coach 2.0 API Tests")
         print("=" * 50)
 
+        # CRITICAL: Test KPI Configuration Endpoints (REVIEW REQUEST)
+        self.test_kpi_configuration_endpoints()
+
         # CRITICAL: Test the ACTIVE OBJECTIVES DISPLAY review request FIRST
         self.test_active_objectives_display()
 
