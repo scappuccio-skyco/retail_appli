@@ -731,7 +731,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                       return (
                         <div 
                           key={objective.id} 
-                          className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-300 hover:shadow-lg transition-all h-[280px] flex flex-col"
+                          className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-300 hover:shadow-lg transition-all min-h-[280px] flex flex-col"
                         >
                           <div className="flex items-start justify-between mb-2">
                             <h4 className="font-bold text-gray-800 text-lg line-clamp-1">{objective.title}</h4>
