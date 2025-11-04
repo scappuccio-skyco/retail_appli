@@ -819,9 +819,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       )}
 
       <div className="max-w-7xl mx-auto flex flex-col">
-        {/* Tasks Section - Always visible */}
-        <div className="glass-morphism rounded-2xl p-6 mb-8 border-2 border-[#ffd871]">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Mes tâches à faire</h2>
+        {/* Tasks Section - Always visible - Compact */}
+        <div className="glass-morphism rounded-2xl p-4 mb-6 border-2 border-[#ffd871]">
+          <h2 className="text-xl font-bold text-gray-800 mb-3">Mes tâches à faire</h2>
           
           {tasks.length > 0 ? (
             <div className="space-y-3">
