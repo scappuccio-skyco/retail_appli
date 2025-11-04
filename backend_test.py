@@ -3668,6 +3668,9 @@ class RetailCoachAPITester:
         self.test_seller_individual_bilan_flow()
         self.test_seller_bilan_authorization()
 
+        # CRITICAL: Daily Challenge Feedback System tests (NEW FEATURE FROM REVIEW REQUEST)
+        self.test_daily_challenge_feedback_system()
+
         # Sales operations
         sale_id = self.test_sales_operations()
 
