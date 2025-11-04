@@ -6,6 +6,7 @@ import { LogOut, Plus, TrendingUp, Award, MessageSquare, Sparkles, BarChart3, Re
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import EvaluationModal from '../components/EvaluationModal';
 import DebriefModal from '../components/DebriefModal';
+import DebriefHistoryModal from '../components/DebriefHistoryModal';
 import KPIEntryModal from '../components/KPIEntryModal';
 import KPIReporting from './KPIReporting';
 import SellerProfileModal from '../components/SellerProfileModal';
