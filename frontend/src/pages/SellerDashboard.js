@@ -755,18 +755,30 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" style={{ order: getSectionOrder('profile') }}>
             {/* Profile Card */}
             {diagnostic && dashboardFilters.showProfile && (
-            <div 
-              className="glass-morphism rounded-2xl p-6 cursor-pointer hover:shadow-xl transition-all border-2 border-transparent hover:border-[#ffd871]"
-              onClick={() => setShowProfileModal(true)}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-[#ffd871] to-yellow-300 rounded-xl flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-gray-800" />
+            <div className="glass-morphism rounded-2xl p-6 border-2 border-transparent hover:border-[#ffd871] transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <div 
+                  className="flex items-center gap-3 cursor-pointer"
+                  onClick={() => setShowProfileModal(true)}
+                >
+                  <div className="w-12 h-12 bg-gradient-to-r from-[#ffd871] to-yellow-300 rounded-xl flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-gray-800" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-800">Mon Profil de Vente</h3>
+                    <p className="text-sm text-gray-600">Cliquer pour voir le profil complet →</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-800">Mon Profil de Vente</h3>
-                  <p className="text-sm text-gray-600">Cliquer pour voir le profil complet →</p>
-                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDiagnosticModal(true);
+                  }}
+                  className="px-3 py-1.5 bg-gradient-to-r from-[#ffd871] to-yellow-300 hover:shadow-md text-gray-800 font-semibold rounded-lg transition-all flex items-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Relancer
+                </button>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-purple-50 rounded-lg p-2 text-center">
