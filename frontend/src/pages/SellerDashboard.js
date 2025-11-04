@@ -1243,13 +1243,16 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Radar Chart */}
           <div className="glass-morphism rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Compétences</h2>
+            <div className="flex items-center gap-2 mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Mes compétences</h2>
               <button
                 onClick={() => setShowCompetencesModal(true)}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                className="text-blue-500 hover:text-blue-700 transition-colors"
+                title="Comprendre mes scores"
               >
-                <span>ℹ️</span> Comprendre mes scores
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
               </button>
             </div>
             {avgRadarScores.length > 0 ? (
