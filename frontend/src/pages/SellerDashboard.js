@@ -125,6 +125,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [challengeFeedbackComment, setChallengeFeedbackComment] = useState('');
   const [showChallengeHistoryModal, setShowChallengeHistoryModal] = useState(false);
   const [showDailyChallengeModal, setShowDailyChallengeModal] = useState(false);
+  const [showObjectivesModal, setShowObjectivesModal] = useState(false);
   
   // Dashboard Filters & Preferences
   const [dashboardFilters, setDashboardFilters] = useState(() => {
