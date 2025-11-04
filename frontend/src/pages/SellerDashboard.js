@@ -754,99 +754,99 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
                 <button
                   onClick={() => toggleFilter('showProfile')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
                     dashboardFilters.showProfile
-                      ? 'bg-green-50 border-green-500 text-green-700'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    {dashboardFilters.showProfile ? '✅' : '⬜'}
-                    <span className="text-xs">👤 Profil</span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">👤</span>
+                    <span className="text-xs font-semibold">Profil</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showCompetences')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
                     dashboardFilters.showCompetences
-                      ? 'bg-green-50 border-green-500 text-green-700'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    {dashboardFilters.showCompetences ? '✅' : '⬜'}
-                    <span className="text-xs">⭐ Compétences</span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">⭐</span>
+                    <span className="text-xs font-semibold">Compétences</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showObjectives')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
                     dashboardFilters.showObjectives
-                      ? 'bg-green-50 border-green-500 text-green-700'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    {dashboardFilters.showObjectives ? '✅' : '⬜'}
-                    <span className="text-xs">🎯 Objectifs</span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">🎯</span>
+                    <span className="text-xs font-semibold">Objectifs</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showChallenges')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
                     dashboardFilters.showChallenges
-                      ? 'bg-green-50 border-green-500 text-green-700'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    {dashboardFilters.showChallenges ? '✅' : '⬜'}
-                    <span className="text-xs">🏆 Challenges</span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">🏆</span>
+                    <span className="text-xs font-semibold">Challenges</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showKPI')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
                     dashboardFilters.showKPI
-                      ? 'bg-green-50 border-green-500 text-green-700'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    {dashboardFilters.showKPI ? '✅' : '⬜'}
-                    <span className="text-xs">📊 KPI</span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">📊</span>
+                    <span className="text-xs font-semibold">KPI</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showDebriefs')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
                     dashboardFilters.showDebriefs
-                      ? 'bg-green-50 border-green-500 text-green-700'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    {dashboardFilters.showDebriefs ? '✅' : '⬜'}
-                    <span className="text-xs">📝 Débriefs</span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">📝</span>
+                    <span className="text-xs font-semibold">Débriefs</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showBilan')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
                     dashboardFilters.showBilan
-                      ? 'bg-green-50 border-green-500 text-green-700'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    {dashboardFilters.showBilan ? '✅' : '⬜'}
-                    <span className="text-xs">📈 Bilan</span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">📈</span>
+                    <span className="text-xs font-semibold">Bilan</span>
                   </div>
                 </button>
               </div>
