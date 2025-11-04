@@ -426,6 +426,7 @@ class Challenge(BaseModel):
     description: Optional[str] = None
     type: str  # "individual" or "collective"
     seller_id: Optional[str] = None  # Only for individual challenges
+    visible: bool = True  # Visible by sellers
     # Objectives
     ca_target: Optional[float] = None
     ventes_target: Optional[int] = None
