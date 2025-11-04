@@ -1274,9 +1274,10 @@ export default function ManagerDashboard({ user, onLogout }) {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Sellers List */}
-          <div className="glass-morphism rounded-2xl p-6">
+        {dashboardFilters.showTeam && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" style={{ order: getSectionOrder('team') }}>
+            {/* Sellers List */}
+            <div className="glass-morphism rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-800">Équipe de Vente</h2>
               <button
