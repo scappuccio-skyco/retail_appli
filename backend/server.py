@@ -294,11 +294,15 @@ class DailyChallenge(BaseModel):
     pedagogical_tip: str  # Le rappel/exemple
     reason: str  # Pourquoi ce défi pour ce vendeur
     completed: bool = False
+    challenge_result: Optional[str] = None  # 'success', 'partial', 'failed'
+    feedback_comment: Optional[str] = None  # Commentaire optionnel du vendeur
     completed_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class DailyChallengeComplete(BaseModel):
     challenge_id: str
+    result: str  # 'success', 'partial', 'failed'
+    comment: Optional[str] = None
 
 # ===== KPI MODELS =====
 # KPI that sellers enter (raw data)
