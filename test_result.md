@@ -938,6 +938,22 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+backend_kpi_bug_fix:
+  - task: "KPI Field Name Bug Fix - Bilan Individuel CA and Panier Moyen Calculation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "BUG REPORTED: Frontend calculateWeeklyKPI function was using 'entry.ca' but backend KPIEntry model uses 'ca_journalier', causing CA and Panier Moyen to display as 0 in Bilan Individuel. FIX APPLIED: Changed line 476 in SellerDashboard.js from 'entry.ca' to 'entry.ca_journalier'."
+      - working: true
+        agent: "testing"
+        comment: "🎉 KPI FIELD NAME BUG FIX VERIFICATION COMPLETED SUCCESSFULLY: ✅ SCENARIO 1 PASSED: Login as vendeur2@test.com successful, GET /api/seller/kpi-entries returns 367 entries with 'ca_journalier' field populated with non-zero values (sample: 2210.34, 910.1, 1747.17). ✅ SCENARIO 2 PASSED: Manual calculation verification - 3 sample entries show ca_journalier totaling 4867.61 with 31 ventes, expected Panier Moyen 157.02. Field names working correctly. ✅ SCENARIO 3 PASSED: Individual bilan generation using correct data - POST /api/seller/bilan-individuel?start_date=2025-10-30&end_date=2025-10-30 returns CA Total: 2210.34, Ventes: 15, Panier Moyen: 147.36 (correctly calculated as 2210.34/15). ✅ SUCCESS CRITERIA MET: CA total non-zero ✓, Panier Moyen non-zero ✓, Panier Moyen calculation correct ✓. ✅ ADDITIONAL FIX APPLIED: Fixed KPI configuration lookup in bilan generation - was incorrectly looking for manager.kpiConfig in user document, now correctly queries kpi_configs collection. The fix from 'entry.ca' to 'entry.ca_journalier' is working correctly and resolves the reported issue."
+
 agent_communication:
   - agent: "main"
     message: "SELLER INDIVIDUAL BILAN FEATURE FULLY IMPLEMENTED: ✅ Backend APIs created (POST /api/seller/bilan-individuel, GET /api/seller/bilan-individuel/all) with AI analysis using emergentintegrations and Emergent LLM key. ✅ Frontend SellerDashboard updated: removed 'Mon Dernier Débrief IA' card, added 'Mon Bilan Individuel' section with weekly navigation, KPI display respecting manager config, and 'Relancer' button. ✅ BilanIndividuelModal component created for detailed view. ✅ Analysis is STRICTLY individual (no team comparisons), uses tutoiement (tu/ton/ta), and includes personalized recommendations. ✅ Week calculation done dynamically on frontend (Monday-Sunday with year). Ready for backend and frontend testing."
