@@ -2603,8 +2603,6 @@ Profil de vente :
         kpi_lines.append(f"- CA Total : {total_ca:.2f}€")
     if kpi_config.get('track_ventes'):
         kpi_lines.append(f"- Nombre de ventes : {total_ventes}")
-    if kpi_config.get('track_clients'):
-        kpi_lines.append(f"- Nombre de clients : {total_clients}")
     if kpi_config.get('track_articles'):
         kpi_lines.append(f"- Nombre d'articles : {total_articles}")
     if panier_moyen is not None:
