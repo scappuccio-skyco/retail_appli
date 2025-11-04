@@ -382,18 +382,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           newTasks = [kpiTask, ...newTasks];
         }
         
-        // Add daily challenge task if not completed
-        if (dailyChallenge && !dailyChallenge.completed && !tasksRes.data.find(t => t.id === 'daily-challenge')) {
-          const challengeTask = {
-            id: 'daily-challenge',
-            type: 'challenge',
-            icon: '🎯',
-            title: dailyChallenge.title,
-            description: dailyChallenge.description,
-            priority: 'important'
-          };
-          newTasks = [challengeTask, ...newTasks];
-        }
+        // Note: Daily challenge task is added via useEffect when dailyChallenge changes
         
         setTasks(newTasks);
       } catch (err) {
