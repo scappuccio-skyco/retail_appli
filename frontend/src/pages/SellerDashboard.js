@@ -1672,7 +1672,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
         {/* Challenge du Jour IA */}
         {dashboardFilters.showCompetences && dailyChallenge && (
-          <div className="glass-morphism rounded-2xl p-6 mb-8" style={{ order: getSectionOrder('competences') }}>
+          <div className="glass-morphism rounded-2xl p-6 mb-8" data-section="challenge" style={{ order: getSectionOrder('competences') }}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-500 rounded-xl flex items-center justify-center">
