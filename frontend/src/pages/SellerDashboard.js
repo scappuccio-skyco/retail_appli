@@ -1562,79 +1562,84 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
-
-        {/* Charts Section */}
-        {dashboardFilters.showCompetences && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8" style={{ order: getSectionOrder('competences') }}>
-          {/* Radar Chart */}
-          <div className="glass-morphism rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Mes compétences</h2>
-              <button
-                onClick={() => setShowCompetencesModal(true)}
-                className="text-blue-500 hover:text-blue-700 transition-colors"
-                title="💡 Bon à savoir : Tes scores évoluent avec le temps ! Pendant les 2 premières semaines, ils sont basés à 100% sur ton questionnaire initial. Ensuite, ils intègrent progressivement tes KPIs réels pour refléter ta performance actuelle (70% KPIs après 1 mois)."
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-            {avgRadarScores.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <RadarChart data={avgRadarScores}>
-                  <PolarGrid stroke="#cbd5e1" />
-                  <PolarAngleAxis dataKey="skill" tick={{ fill: '#475569', fontSize: 12 }} />
-                  <Radar name="Score" dataKey="value" stroke="#ffd871" fill="#ffd871" fillOpacity={0.6} />
-                </RadarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center py-12 text-gray-500">Aucune donnée disponible</div>
-            )}
-          </div>
-
-          {/* Evolution Chart - Score Global sur 25 */}
-          <div className="glass-morphism rounded-2xl p-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Évolution de ton score global</h2>
-              {evolutionData.length > 0 && (
-                <p className="text-sm text-gray-600 mt-1">
-                  Score actuel : <span className="font-bold text-[#ffd871]">{evolutionData[evolutionData.length - 1]['Score Global']}/25</span>
-                  {evolutionData.length > 1 && (
-                    <span className="ml-2">
-                      ({evolutionData[evolutionData.length - 1]['Score Global'] - evolutionData[0]['Score Global'] >= 0 ? '+' : ''}
-                      {(evolutionData[evolutionData.length - 1]['Score Global'] - evolutionData[0]['Score Global']).toFixed(1)} points depuis le début)
-                    </span>
-                  )}
-                </p>
+        {/* Challenge du Jour IA */}
+        {dashboardFilters.showCompetences && dailyChallenge && (
+          <div className="glass-morphism rounded-2xl p-6 mb-8" style={{ order: getSectionOrder('competences') }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-500 rounded-xl flex items-center justify-center">
+                  <Award className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">🎯 Challenge du Jour IA</h2>
+                  <p className="text-sm text-gray-600">
+                    {dailyChallenge.completed ? '✅ Challenge relevé !' : 'Ton défi personnalisé'}
+                  </p>
+                </div>
+              </div>
+              {!dailyChallenge.completed && (
+                <button
+                  onClick={refreshDailyChallenge}
+                  className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all flex items-center gap-2"
+                  disabled={loadingChallenge}
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingChallenge ? 'animate-spin' : ''}`} />
+                  Nouveau
+                </button>
               )}
             </div>
-            {evolutionData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={evolutionData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="fullDate" tick={{ fill: '#475569', fontSize: 12 }} />
-                  <YAxis domain={[0, 25]} tick={{ fill: '#475569' }} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#fff', border: '2px solid #ffd871', borderRadius: '8px' }}
-                    labelStyle={{ color: '#1f2937', fontWeight: 'bold' }}
-                  />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="Score Global" 
-                    stroke="#ffd871" 
-                    strokeWidth={3} 
-                    dot={{ r: 5, fill: '#ffd871', strokeWidth: 2, stroke: '#fff' }}
-                    activeDot={{ r: 7 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-center py-12 text-gray-500">Complète ton diagnostic pour voir ton évolution</div>
-            )}
+
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-5 border-2 border-orange-200">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full">
+                  {dailyChallenge.competence.toUpperCase()}
+                </span>
+                <h3 className="text-lg font-bold text-gray-900">{dailyChallenge.title}</h3>
+              </div>
+
+              {/* Le Défi */}
+              <div className="bg-white rounded-lg p-4 mb-3">
+                <p className="text-xs font-semibold text-orange-900 mb-2 flex items-center gap-2">
+                  <span className="text-lg">💪</span> Ton Défi :
+                </p>
+                <p className="text-sm text-gray-800">{dailyChallenge.description}</p>
+              </div>
+
+              {/* Rappel Pédagogique */}
+              <div className="bg-white rounded-lg p-4 mb-3">
+                <p className="text-xs font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                  <span className="text-lg">🎓</span> Rappel :
+                </p>
+                <p className="text-sm text-gray-800 italic">{dailyChallenge.pedagogical_tip}</p>
+              </div>
+
+              {/* Pourquoi ce défi */}
+              <div className="bg-white rounded-lg p-4 mb-4">
+                <p className="text-xs font-semibold text-purple-900 mb-2 flex items-center gap-2">
+                  <span className="text-lg">📊</span> Pourquoi ce défi ?
+                </p>
+                <p className="text-sm text-gray-800">{dailyChallenge.reason}</p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                {!dailyChallenge.completed ? (
+                  <button
+                    onClick={completeDailyChallenge}
+                    disabled={loadingChallenge}
+                    className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg text-white font-bold py-3 px-6 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    ✅ J'ai relevé le défi !
+                  </button>
+                ) : (
+                  <div className="flex-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2">
+                    <span className="text-2xl">🎉</span>
+                    <span>Bravo ! Challenge complété</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
         )}
 
         {/* Mes derniers KPIs enregistrés */}
