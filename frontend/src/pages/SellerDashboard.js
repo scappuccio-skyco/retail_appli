@@ -14,6 +14,7 @@ import SellerProfileModal from '../components/SellerProfileModal';
 import BilanIndividuelModal from '../components/BilanIndividuelModal';
 import DiagnosticFormModal from '../components/DiagnosticFormModal';
 import CompetencesExplicationModal from '../components/CompetencesExplicationModal';
+import ChallengeHistoryModal from '../components/ChallengeHistoryModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
