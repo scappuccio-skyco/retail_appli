@@ -346,15 +346,13 @@ def calculate_kpis(raw_data: dict) -> dict:
     else:
         calculated['panier_moyen'] = 0
     
-    # Taux de transformation = (ventes / clients) * 100
-    if nb_clients > 0:
-        calculated['taux_transformation'] = round((nb_ventes / nb_clients) * 100, 2)
-    else:
-        calculated['taux_transformation'] = 0
+    # Taux de transformation = (ventes / prospects) * 100
+    # NOTE: Ne peut être calculé au niveau individuel, seulement au niveau magasin
+    calculated['taux_transformation'] = None  # Pas de sens au niveau vendeur
     
-    # Indice de vente = CA / nombre d'articles
-    if nb_articles > 0:
-        calculated['indice_vente'] = round(ca / nb_articles, 2)
+    # Indice de vente (UPT - Units Per Transaction) = Articles / Ventes
+    if nb_ventes > 0:
+        calculated['indice_vente'] = round(nb_articles / nb_ventes, 2)
     else:
         calculated['indice_vente'] = 0
     
