@@ -3420,14 +3420,16 @@ Le challenge doit être :
 - Motivant et positif
 - Adapté au profil du vendeur et à ses retours précédents"""
 
-        response = await client.chat.completions.acreate(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
-        )
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"challenge_{current_user['id']}_{today}",
+            system_message="Tu es un coach retail expert qui crée des challenges personnalisés."
+        ).with_model("openai", "gpt-4o-mini")
+        
+        response = await chat.send_message(prompt)
         
         import json
-        challenge_data = json.loads(response.choices[0].message.content)
+        challenge_data = json.loads(response)
         
         # Create challenge
         new_challenge = DailyChallenge(
