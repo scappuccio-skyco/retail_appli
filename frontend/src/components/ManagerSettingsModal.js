@@ -37,6 +37,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
   // New objective form
   const [newObjective, setNewObjective] = useState({
     title: '',
+    type: 'collective',
+    seller_id: '',
+    visible: true,
     ca_target: '',
     indice_vente_target: '',
     panier_moyen_target: '',
