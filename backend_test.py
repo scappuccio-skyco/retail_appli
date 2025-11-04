@@ -3825,6 +3825,9 @@ class RetailCoachAPITester:
         print("🚀 Starting Retail Coach 2.0 API Tests")
         print("=" * 50)
 
+        # CRITICAL: Test KPI Field Name Bug Fix (REVIEW REQUEST - HIGHEST PRIORITY)
+        self.test_kpi_field_name_bug_fix()
+
         # CRITICAL: Test KPI Configuration Endpoints (REVIEW REQUEST)
         self.test_kpi_configuration_endpoints()
 
