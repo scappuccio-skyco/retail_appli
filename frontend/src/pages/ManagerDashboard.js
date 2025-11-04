@@ -489,7 +489,153 @@ export default function ManagerDashboard({ user, onLogout }) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto">
+      {/* Dashboard Filters Bar */}
+      {showFilters && (
+        <div className="max-w-7xl mx-auto mb-6">
+          <div className="glass-morphism rounded-2xl p-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-bold text-gray-800">🎛️ Personnalisation du Dashboard</h3>
+              </div>
+              
+              {/* Quick stats */}
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                <span>
+                  {Object.values(dashboardFilters).filter(v => v === true).length} sections affichées
+                </span>
+              </div>
+            </div>
+
+            {/* Filter Toggles */}
+            <div>
+              <p className="text-sm font-semibold text-gray-700 mb-3">Afficher/Masquer les sections :</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+                <button
+                  onClick={() => toggleFilter('showTeam')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                    dashboardFilters.showTeam
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {dashboardFilters.showTeam ? '✅' : '⬜'}
+                    <span className="text-xs">👥 Équipe</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showObjectives')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                    dashboardFilters.showObjectives
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {dashboardFilters.showObjectives ? '✅' : '⬜'}
+                    <span className="text-xs">🎯 Objectifs</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showChallenges')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                    dashboardFilters.showChallenges
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {dashboardFilters.showChallenges ? '✅' : '⬜'}
+                    <span className="text-xs">🏆 Challenges</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showKPI')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                    dashboardFilters.showKPI
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {dashboardFilters.showKPI ? '✅' : '⬜'}
+                    <span className="text-xs">📊 Performances</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showBilan')}
+                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                    dashboardFilters.showBilan
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {dashboardFilters.showBilan ? '✅' : '⬜'}
+                    <span className="text-xs">📈 Bilan Équipe</span>
+                  </div>
+                </button>
+              </div>
+
+              {/* Section Reordering */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <p className="text-sm font-semibold text-gray-700 mb-3">Réorganiser les sections :</p>
+                <div className="space-y-2">
+                  {sectionOrder.map((sectionId, index) => {
+                    const sectionNames = {
+                      team: '👥 Équipe de Vente',
+                      objectives: '🎯 Objectifs & Challenges',
+                      kpi: '📊 Performances',
+                      bilan: '📈 Bilan d\'Équipe'
+                    };
+                    return (
+                      <div key={sectionId} className="flex items-center justify-between bg-white rounded-lg p-3 border-2 border-gray-200">
+                        <span className="font-medium text-gray-800">{sectionNames[sectionId]}</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => moveSectionUp(sectionId)}
+                            disabled={index === 0}
+                            className={`p-2 rounded-lg transition-all ${
+                              index === 0
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                            }`}
+                            title="Monter"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => moveSectionDown(sectionId)}
+                            disabled={index === sectionOrder.length - 1}
+                            className={`p-2 rounded-lg transition-all ${
+                              index === sectionOrder.length - 1
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+                            }`}
+                            title="Descendre"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto flex flex-col">
         {/* Compact Cards - Profile & Bilan side by side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Manager Profile Compact Card */}
