@@ -90,6 +90,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showDebriefModal, setShowDebriefModal] = useState(false);
   const [showDebriefHistoryModal, setShowDebriefHistoryModal] = useState(false);
   const [showKPIModal, setShowKPIModal] = useState(false);
+  const [showKPIHistoryModal, setShowKPIHistoryModal] = useState(false);
   const [editingKPI, setEditingKPI] = useState(null);
   const [showKPIReporting, setShowKPIReporting] = useState(false);
   const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
