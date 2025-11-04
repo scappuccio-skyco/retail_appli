@@ -517,6 +517,68 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           />
                         </div>
 
+                        {/* Type d'objectif */}
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Type d'objectif *</label>
+                          <select
+                            value={editingObjective ? editingObjective.type : newObjective.type}
+                            onChange={(e) => {
+                              const newType = e.target.value;
+                              if (editingObjective) {
+                                setEditingObjective({ ...editingObjective, type: newType, seller_id: newType === 'collective' ? '' : editingObjective.seller_id });
+                              } else {
+                                setNewObjective({ ...newObjective, type: newType, seller_id: newType === 'collective' ? '' : newObjective.seller_id });
+                              }
+                            }}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                          >
+                            <option value="collective">👥 Objectif d'Équipe</option>
+                            <option value="individual">👤 Objectif Individuel</option>
+                          </select>
+                        </div>
+
+                        {/* Seller selection for individual objectives */}
+                        {(editingObjective ? editingObjective.type : newObjective.type) === 'individual' && (
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Vendeur *</label>
+                            <select
+                              required
+                              value={editingObjective ? editingObjective.seller_id : newObjective.seller_id}
+                              onChange={(e) => editingObjective
+                                ? setEditingObjective({ ...editingObjective, seller_id: e.target.value })
+                                : setNewObjective({ ...newObjective, seller_id: e.target.value })
+                              }
+                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                            >
+                              <option value="">Sélectionner un vendeur</option>
+                              {sellers.map((seller) => (
+                                <option key={seller.id} value={seller.id}>
+                                  {seller.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {/* Visibilité */}
+                        <div className="md:col-span-2">
+                          <label className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-200 cursor-pointer hover:bg-blue-100 transition-all">
+                            <input
+                              type="checkbox"
+                              checked={editingObjective ? editingObjective.visible !== false : newObjective.visible !== false}
+                              onChange={(e) => editingObjective
+                                ? setEditingObjective({ ...editingObjective, visible: e.target.checked })
+                                : setNewObjective({ ...newObjective, visible: e.target.checked })
+                              }
+                              className="w-5 h-5 text-blue-600"
+                            />
+                            <div>
+                              <p className="font-semibold text-gray-800">👁️ Visible par les vendeurs</p>
+                              <p className="text-xs text-gray-600">Si coché, les vendeurs pourront voir cet objectif dans leur dashboard</p>
+                            </div>
+                          </label>
+                        </div>
+
                         <div>
                           <div className="flex items-center gap-2 mb-2">
                             <label className="block text-sm font-semibold text-gray-700">Période de début *</label>
