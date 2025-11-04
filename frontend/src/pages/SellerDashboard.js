@@ -1654,16 +1654,25 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   </p>
                 </div>
               </div>
-              {!dailyChallenge.completed && (
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={refreshDailyChallenge}
-                  className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all flex items-center gap-2"
-                  disabled={loadingChallenge}
+                  onClick={() => setShowChallengeHistoryModal(true)}
+                  className="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-semibold rounded-lg transition-all flex items-center gap-2"
                 >
-                  <RefreshCw className={`w-4 h-4 ${loadingChallenge ? 'animate-spin' : ''}`} />
-                  Nouveau
+                  <MessageSquare className="w-4 h-4" />
+                  Historique
                 </button>
-              )}
+                {!dailyChallenge.completed && (
+                  <button
+                    onClick={refreshDailyChallenge}
+                    className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all flex items-center gap-2"
+                    disabled={loadingChallenge}
+                  >
+                    <RefreshCw className={`w-4 h-4 ${loadingChallenge ? 'animate-spin' : ''}`} />
+                    Nouveau
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-5 border-2 border-orange-200">
