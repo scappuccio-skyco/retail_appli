@@ -222,7 +222,6 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
         date,
         ca_journalier: kpiConfig?.track_ca ? parseFloat(caJournalier) : 0,
         nb_ventes: kpiConfig?.track_ventes ? parseInt(nbVentes) : 0,
-        nb_clients: kpiConfig?.track_clients ? parseInt(nbClients) : 0,
         nb_articles: kpiConfig?.track_articles ? parseInt(nbArticles) : 0,
         comment: comment || null
       }, {
