@@ -692,9 +692,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
         {/* Active Challenges Section */}
         {/* Compact Cards: Profile + Bilan Individuel (side by side like manager dashboard) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Profile Card */}
-          {diagnostic && (
+        {(dashboardFilters.showProfile || dashboardFilters.showBilan) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Profile Card */}
+            {diagnostic && dashboardFilters.showProfile && (
             <div 
               className="glass-morphism rounded-2xl p-6 cursor-pointer hover:shadow-xl transition-all border-2 border-transparent hover:border-[#ffd871]"
               onClick={() => setShowProfileModal(true)}
