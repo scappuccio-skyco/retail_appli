@@ -499,9 +499,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     }
   };
 
-  const fetchBilanIndividuel = async () => {
+  const fetchBilanIndividuel = async (offset = 0) => {
     try {
-      const weekDates = getWeekDates(0); // Semaine actuelle
+      const weekDates = getWeekDates(offset);
       await fetchBilanForWeek(weekDates.startISO, weekDates.endISO, weekDates.periode);
     } catch (err) {
       console.error('Error fetching individual bilan:', err);
