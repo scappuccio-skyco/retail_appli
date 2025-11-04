@@ -12,6 +12,7 @@ import ManagerProfileModal from '../components/ManagerProfileModal';
 import TeamBilanModal from '../components/TeamBilanModal';
 import SellerDetailView from '../components/SellerDetailView';
 import ManagerSettingsModal from '../components/ManagerSettingsModal';
+import StoreKPIModal from '../components/StoreKPIModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
