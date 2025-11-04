@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Award, RefreshCw } from 'lucide-react';
+import { X, Award, RefreshCw, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 
