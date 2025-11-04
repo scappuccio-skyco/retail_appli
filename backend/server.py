@@ -2426,10 +2426,8 @@ Consignes :
         "kpi_resume": {
             "ca_total": round(total_ca, 2),
             "ventes": total_ventes,
-            "clients": total_clients,
             "articles": total_articles,
             "panier_moyen": round(panier_moyen_equipe, 2),
-            "taux_transformation": round(taux_transfo_equipe, 2),
             "indice_vente": round(indice_vente_equipe, 2)
         },
         "competences_moyenne": competences_moyenne,
