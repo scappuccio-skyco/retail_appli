@@ -1803,56 +1803,70 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
-        {/* Challenge du Jour IA */}
+        {/* Challenge du Jour IA - Visual Card */}
         {dashboardFilters.showCompetences && dailyChallenge && (
-          <div className="glass-morphism rounded-2xl p-6 mb-8" data-section="challenge" style={{ order: getSectionOrder('competences') }}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-500 rounded-xl flex items-center justify-center">
-                  <Award className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800">🎯 Challenge du Jour IA</h2>
-                  <p className="text-sm text-gray-600">
+          <div 
+            className="glass-morphism rounded-2xl overflow-hidden mb-8 border-2 border-transparent hover:border-[#ffd871] transition-all"
+            data-section="challenge" 
+            style={{ order: getSectionOrder('competences') }}
+          >
+            <div className="relative h-48 overflow-hidden group cursor-pointer" onClick={() => setShowDailyChallengeModal(true)}>
+              <img 
+                src="https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?w=800&h=400&fit=crop" 
+                alt="Challenge du Jour IA"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-900/70 to-red-900/70 group-hover:from-orange-900/60 group-hover:to-red-900/60 transition-all"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center text-white">
+                  <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                    <Award className="w-8 h-8" />
+                  </div>
+                  <h2 className="text-2xl font-bold">🎯 Challenge du Jour IA</h2>
+                  <p className="text-sm mt-2 opacity-90">
                     {dailyChallenge.completed ? '✅ Challenge relevé !' : 'Ton défi personnalisé'}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowChallengeHistoryModal(true)}
-                  className="px-4 py-2 bg-[#ffd871] hover:bg-[#ffc940] text-gray-800 font-semibold rounded-lg transition-all flex items-center gap-2"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  Historique
-                </button>
-                <button
-                  onClick={async () => {
-                    setLoadingChallenge(true);
-                    try {
-                      const token = localStorage.getItem('token');
-                      const res = await axios.post(
-                        `${API}/seller/daily-challenge/refresh`,
-                        {},
-                        { headers: { Authorization: `Bearer ${token}` } }
-                      );
-                      setDailyChallenge(res.data);
-                      toast.success('✨ Nouveau challenge généré !');
-                      setShowDailyChallengeModal(true);
-                    } catch (err) {
-                      console.error('Error refreshing challenge:', err);
-                      toast.error('Erreur lors du rafraîchissement');
-                    } finally {
-                      setLoadingChallenge(false);
-                    }
-                  }}
-                  disabled={loadingChallenge}
-                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:shadow-lg text-white font-semibold rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
-                >
-                  <RefreshCw className={`w-4 h-4 ${loadingChallenge ? 'animate-spin' : ''}`} />
-                  Relancer un défi
-                </button>
-              </div>
+            </div>
+            <div className="p-4 bg-white flex justify-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowChallengeHistoryModal(true);
+                }}
+                className="px-4 py-2 bg-[#ffd871] hover:bg-[#ffc940] text-gray-800 font-semibold rounded-lg transition-all flex items-center gap-2"
+              >
+                <MessageSquare className="w-4 h-4" />
+                Historique
+              </button>
+              <button
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  setLoadingChallenge(true);
+                  try {
+                    const token = localStorage.getItem('token');
+                    const res = await axios.post(
+                      `${API}/seller/daily-challenge/refresh`,
+                      {},
+                      { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    setDailyChallenge(res.data);
+                    toast.success('✨ Nouveau challenge généré !');
+                    setShowDailyChallengeModal(true);
+                  } catch (err) {
+                    console.error('Error refreshing challenge:', err);
+                    toast.error('Erreur lors du rafraîchissement');
+                  } finally {
+                    setLoadingChallenge(false);
+                  }
+                }}
+                disabled={loadingChallenge}
+                className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:shadow-lg text-white font-semibold rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${loadingChallenge ? 'animate-spin' : ''}`} />
+                Relancer un défi
+              </button>
             </div>
           </div>
         )}
