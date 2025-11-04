@@ -840,13 +840,14 @@ export default function ManagerDashboard({ user, onLogout }) {
             </div>
           )}
         </div>
+        )}
 
         {/* Team Bilan IA */}
         {/* <TeamBilanIA /> */}
 
         {/* Objectives & Challenges Side-by-Side Layout with Carousel */}
-        {(activeObjectives.length > 0 || activeChallenges.length > 0) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {((activeObjectives.length > 0 && dashboardFilters.showObjectives) || (activeChallenges.length > 0 && dashboardFilters.showChallenges)) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" style={{ order: getSectionOrder('objectives') }}>
             {/* Active Objectives Section (Left Column) - Carousel */}
             {activeObjectives.length > 0 && (
               <div className="glass-morphism rounded-2xl p-6">
