@@ -415,8 +415,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                               <span className="text-xl">🎯</span>
                             </div>
                             <div className="flex-1">
-                              <p className="font-semibold text-gray-600">Indice de Vente</p>
-                              <p className="text-xs text-gray-500">Nécessite : Nombre d'Articles + Nombre de Clients</p>
+                              <p className="font-semibold text-gray-600">Indice de Vente (UPT)</p>
+                              <p className="text-xs text-gray-500">Nécessite : Nombre d'Articles + Nombre de Ventes</p>
                             </div>
                             <div className="px-3 py-1 bg-gray-200 text-gray-600 text-xs font-bold rounded-full">
                               Inactif
