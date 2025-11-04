@@ -3385,6 +3385,21 @@ async def get_daily_challenge(current_user: dict = Depends(get_current_user)):
             'fidelisation': 'Fidélisation'
         }
         
+        # Build context from feedback comments
+        feedback_text = ""
+        if feedback_context:
+            feedback_text = "\n\nRetours sur challenges précédents :"
+            for fb in feedback_context[:3]:  # Last 3 feedbacks
+                result_emoji = "✅" if fb['result'] == 'success' else "⚠️" if fb['result'] == 'partial' else "❌"
+                feedback_text += f"\n- {result_emoji} {competence_names[fb['competence']]} : {fb['comment']}"
+        
+        # Difficulty adaptation instructions
+        difficulty_instruction = ""
+        if difficulty_level == "plus_difficile":
+            difficulty_instruction = "\n⚠️ IMPORTANT : Le vendeur a réussi ses 3 derniers challenges. Augmente légèrement la difficulté (plus ambitieux, plus de répétitions, situations plus complexes)."
+        elif difficulty_level == "plus_facile":
+            difficulty_instruction = "\n⚠️ IMPORTANT : Le vendeur a échoué ses 2 derniers challenges. Simplifie le challenge (objectif plus accessible, moins de pression, conseils plus détaillés)."
+        
         prompt = f"""Tu es un coach retail expert. Génère un challenge quotidien personnalisé pour un vendeur.
 
 Compétence à travailler : {competence_names[selected_competence]}
@@ -3392,21 +3407,21 @@ Compétence à travailler : {competence_names[selected_competence]}
 Profil du vendeur :
 - Style : {diagnostic.get('style', 'Non défini') if diagnostic else 'Non défini'}
 - Niveau : {diagnostic.get('level', 'Intermédiaire') if diagnostic else 'Intermédiaire'}
-- Profil DISC : {diagnostic.get('disc_dominant', 'Non défini') if diagnostic else 'Non défini'}
+- Profil DISC : {diagnostic.get('disc_dominant', 'Non défini') if diagnostic else 'Non défini'}{difficulty_instruction}{feedback_text}
 
 Format de réponse (JSON strict) :
 {{
-  "title": "Nom court du challenge (max 40 caractères)",
-  "description": "Description concrète du défi à réaliser aujourd'hui (2-3 phrases, tutoiement)",
-  "pedagogical_tip": "Rappel ou exemple concret de technique (1-2 phrases)",
-  "reason": "Pourquoi ce défi pour ce vendeur (1-2 phrases, lien avec son profil)"
+  "title": "Nom court du challenge (max 35 caractères)",
+  "description": "Description concrète du défi à réaliser aujourd'hui (2 phrases maximum, tutoiement)",
+  "pedagogical_tip": "Rappel ou exemple concret de technique (1 phrase courte)",
+  "reason": "Pourquoi ce défi pour ce vendeur (1 phrase courte, lien avec son profil)"
 }}
 
 Le challenge doit être :
 - Concret et réalisable en une journée
 - Mesurable (nombre de fois à faire)
 - Motivant et positif
-- Adapté au profil du vendeur"""
+- Adapté au profil du vendeur et à ses retours précédents"""
 
         response = await client.chat.completions.acreate(
             model="gpt-4o-mini",
