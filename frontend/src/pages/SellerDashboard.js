@@ -846,11 +846,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 <div className="space-y-2">
                   {sectionOrder.map((sectionId, index) => {
                     const sectionNames = {
-                      profile: '👤 Profil & Bilan',
+                      profile: '👤 Profil de Vente',
                       objectives: '🎯 Objectifs & Challenges',
-                      competences: '⭐ Compétences',
-                      kpi: '📊 KPI',
-                      debriefs: '📝 Débriefs'
+                      competences: '🔥 Challenge du Jour IA',
+                      kpi: '📊 Mes KPI',
+                      debriefs: '📝 Mes Débriefs'
                     };
                     return (
                       <div key={sectionId} className="flex items-center justify-between bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 transition-all shadow-sm">
