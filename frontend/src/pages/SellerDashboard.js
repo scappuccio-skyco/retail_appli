@@ -553,7 +553,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             {/* Filter Toggles */}
             <div>
               <p className="text-sm font-semibold text-gray-700 mb-3">Afficher/Masquer les sections :</p>
-            <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
                 <button
                   onClick={() => toggleFilter('showProfile')}
