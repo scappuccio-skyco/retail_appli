@@ -449,13 +449,17 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   };
 
   const calculateWeeklyKPI = (startDate, endDate, allKpiEntries) => {
+    // Convertir les dates string en objets Date pour comparaison
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
     // Filtrer les KPI de la semaine
     const weekKPIs = allKpiEntries.filter(entry => {
       const entryDate = new Date(entry.date);
-      return entryDate >= startDate && entryDate <= endDate;
+      return entryDate >= start && entryDate <= end;
     });
 
-    console.log('Calculating KPI for week:', { startDate, endDate, weekKPIs });
+    console.log('Calculating KPI for week:', { startDate, endDate, weekKPIsCount: weekKPIs.length });
 
     // Calculer les totaux et moyennes
     const kpi_resume = {
