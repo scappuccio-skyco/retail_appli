@@ -142,27 +142,6 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
       }
     }
     
-    // Check Clients
-    if (kpiConfig?.track_clients && nbClients) {
-      const value = parseInt(nbClients);
-      if (averages.avgClients > 0) {
-        if (value > averages.avgClients * THRESHOLD_HIGH) {
-          detectedWarnings.push({
-            kpi: 'Nombre de clients',
-            value: value,
-            average: Math.round(averages.avgClients),
-            percentage: ((value / averages.avgClients - 1) * 100).toFixed(0)
-          });
-        } else if (value < averages.avgClients * THRESHOLD_LOW && value > 0) {
-          detectedWarnings.push({
-            kpi: 'Nombre de clients',
-            value: value,
-            average: Math.round(averages.avgClients),
-            percentage: ((value / averages.avgClients - 1) * 100).toFixed(0)
-          });
-        }
-      }
-    }
     
     // Check Articles
     if (kpiConfig?.track_articles && nbArticles) {
