@@ -858,6 +858,106 @@ export default function ManagerDashboard({ user, onLogout }) {
         </div>
         )}
 
+        {/* Store KPI Section */}
+        <div className="glass-morphism rounded-2xl p-6 mb-8" style={{ order: getSectionOrder('kpi') }}>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">📊 KPI Magasin</h2>
+            <button
+              onClick={() => setShowStoreKPIModal(true)}
+              className="btn-primary flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Saisir Prospects
+            </button>
+          </div>
+
+          {storeKPIStats ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Today */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
+                <p className="text-sm font-semibold text-blue-700 mb-2">📅 Aujourd'hui</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-blue-600">Prospects :</span>
+                    <span className="text-lg font-bold text-blue-900">{storeKPIStats.today.prospects}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-blue-600">Ventes :</span>
+                    <span className="text-lg font-bold text-blue-900">{storeKPIStats.today.ventes}</span>
+                  </div>
+                  <div className="pt-2 border-t border-blue-300">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-semibold text-blue-700">Taux transfo :</span>
+                      <span className="text-2xl font-bold text-blue-900">{storeKPIStats.today.taux_transformation}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Week */}
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-200">
+                <p className="text-sm font-semibold text-green-700 mb-2">📅 Cette Semaine</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-green-600">Prospects :</span>
+                    <span className="text-lg font-bold text-green-900">{storeKPIStats.week.prospects}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-green-600">Ventes :</span>
+                    <span className="text-lg font-bold text-green-900">{storeKPIStats.week.ventes}</span>
+                  </div>
+                  <div className="pt-2 border-t border-green-300">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-semibold text-green-700">Taux transfo :</span>
+                      <span className="text-2xl font-bold text-green-900">{storeKPIStats.week.taux_transformation}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Month */}
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border-2 border-purple-200">
+                <p className="text-sm font-semibold text-purple-700 mb-2">📅 Ce Mois</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-purple-600">Prospects :</span>
+                    <span className="text-lg font-bold text-purple-900">{storeKPIStats.month.prospects}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-purple-600">Ventes :</span>
+                    <span className="text-lg font-bold text-purple-900">{storeKPIStats.month.ventes}</span>
+                  </div>
+                  <div className="pt-2 border-t border-purple-300">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-semibold text-purple-700">Taux transfo :</span>
+                      <span className="text-2xl font-bold text-purple-900">{storeKPIStats.month.taux_transformation}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-6xl mb-4">📊</div>
+              <p className="text-gray-500 font-medium mb-4">Aucune donnée KPI magasin</p>
+              <p className="text-gray-400 text-sm mb-4">
+                Commencez par saisir le nombre de prospects pour calculer le taux de transformation !
+              </p>
+              <button
+                onClick={() => setShowStoreKPIModal(true)}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Saisir mes premiers prospects
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Team Bilan IA */}
         {/* <TeamBilanIA /> */}
 
