@@ -1027,7 +1027,7 @@ export default function ManagerDashboard({ user, onLogout }) {
             )}
 
             {/* Active Challenges Section (Right Column) - Carousel */}
-            {activeChallenges.length > 0 && (
+            {activeChallenges.length > 0 && dashboardFilters.showChallenges && (
               <div className="glass-morphism rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
