@@ -91,13 +91,7 @@ export default function KPIHistoryModal({ kpiEntries, kpiConfig, onClose, onNewK
                               <p className="text-sm font-bold text-indigo-900">{entry.panier_moyen?.toFixed(2)}€</p>
                             </div>
                           )}
-                          {kpiConfig?.track_ventes && kpiConfig?.track_clients && (
-                            <div className="bg-pink-50 rounded-lg p-2">
-                              <p className="text-xs text-pink-600 mb-0.5">📊 Taux Transfo</p>
-                              <p className="text-sm font-bold text-pink-900">{entry.taux_transformation?.toFixed(2)}%</p>
-                            </div>
-                          )}
-                          {kpiConfig?.track_articles && kpiConfig?.track_clients && (
+                          {kpiConfig?.track_articles && kpiConfig?.track_ventes && (
                             <div className="bg-teal-50 rounded-lg p-2">
                               <p className="text-xs text-teal-600 mb-0.5">🎯 Indice Vente</p>
                               <p className="text-sm font-bold text-teal-900">{entry.indice_vente?.toFixed(2)}</p>
