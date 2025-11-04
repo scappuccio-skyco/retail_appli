@@ -1170,7 +1170,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             )}
 
             {/* Challenges Section (Right) - Carousel */}
-            {activeChallenges.length > 0 && (
+            {activeChallenges.length > 0 && dashboardFilters.showChallenges && (
               <div className="glass-morphism rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-6">
                   <Award className="w-6 h-6 text-[#ffd871]" />
