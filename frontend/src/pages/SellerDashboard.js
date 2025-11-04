@@ -113,6 +113,22 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [activeObjectives, setActiveObjectives] = useState([]); // Objectifs d'équipe actifs
   const [currentObjectiveIndex, setCurrentObjectiveIndex] = useState(0); // Carousel for objectives
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0); // Carousel for challenges
+  
+  // Dashboard Filters & Preferences
+  const [dashboardFilters, setDashboardFilters] = useState(() => {
+    const saved = localStorage.getItem('seller_dashboard_filters');
+    return saved ? JSON.parse(saved) : {
+      showProfile: true,
+      showCompetences: true,
+      showObjectives: true,
+      showChallenges: true,
+      showKPI: true,
+      showDebriefs: true,
+      showBilan: true,
+      periodFilter: 'all' // 'today', 'week', 'month', 'all', 'custom'
+    };
+  });
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchData();
