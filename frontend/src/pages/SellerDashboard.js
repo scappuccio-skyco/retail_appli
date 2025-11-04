@@ -1871,33 +1871,53 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
-        {/* Mes derniers KPIs enregistrés */}
+        {/* Mes KPI - Visual Card */}
         {dashboardFilters.showKPI && (
-          <div className="glass-morphism rounded-2xl p-6 mt-8" style={{ order: getSectionOrder('kpi') }}>
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-800">📊 Mes KPI</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowKPIModal(true)}
-                  className="btn-secondary inline-flex items-center gap-2"
-                >
-                  <Plus className="w-5 h-5" />
-                  Saisir KPI
-                </button>
-                <button
-                  onClick={() => setShowKPIHistoryModal(true)}
-                  className="btn-primary inline-flex items-center gap-2"
-                >
-                  <BarChart3 className="w-5 h-5" />
-                  Historique
-                </button>
+          <div 
+            className="glass-morphism rounded-2xl overflow-hidden mt-8 border-2 border-transparent hover:border-[#ffd871] transition-all"
+            style={{ order: getSectionOrder('kpi') }}
+          >
+            <div className="relative h-48 overflow-hidden group cursor-pointer" onClick={() => setShowKPIHistoryModal(true)}>
+              <img 
+                src="https://images.unsplash.com/photo-1608222351212-18fe0ec7b13b?w=800&h=400&fit=crop" 
+                alt="Mes KPI"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-indigo-900/70 group-hover:from-blue-900/60 group-hover:to-indigo-900/60 transition-all"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center text-white">
+                  <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                    <BarChart3 className="w-8 h-8" />
+                  </div>
+                  <h2 className="text-2xl font-bold">📊 Mes KPI</h2>
+                  <p className="text-sm mt-2 opacity-90">
+                    {kpiEntries.length} KPI enregistré{kpiEntries.length > 1 ? 's' : ''}
+                  </p>
+                </div>
               </div>
             </div>
-            {kpiEntries.length > 0 && (
-              <p className="text-sm text-gray-600 mt-2">
-                {kpiEntries.length} KPI enregistré{kpiEntries.length > 1 ? 's' : ''}
-              </p>
-            )}
+            <div className="p-4 bg-white flex justify-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowKPIModal(true);
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-lg text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Saisir KPI
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowKPIHistoryModal(true);
+                }}
+                className="px-4 py-2 bg-[#ffd871] hover:bg-[#ffc940] text-gray-800 font-semibold rounded-lg transition-all flex items-center gap-2"
+              >
+                <BarChart3 className="w-4 h-4" />
+                Historique
+              </button>
+            </div>
           </div>
         )}
 
