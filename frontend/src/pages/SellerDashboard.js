@@ -223,18 +223,37 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     }
   };
 
-  const completeDailyChallenge = async () => {
+  const completeDailyChallenge = async (result) => {
     if (!dailyChallenge) return;
+    
+    // If no result provided, just show the feedback form
+    if (!result) {
+      setShowFeedbackForm(true);
+      return;
+    }
+    
     setLoadingChallenge(true);
     try {
       const token = localStorage.getItem('token');
       const res = await axios.post(
         `${API}/seller/daily-challenge/complete`,
-        { challenge_id: dailyChallenge.id },
+        { 
+          challenge_id: dailyChallenge.id,
+          result: result,
+          comment: challengeFeedbackComment || null
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setDailyChallenge(res.data);
-      toast.success('🎉 Bravo ! Challenge complété !');
+      setShowFeedbackForm(false);
+      setChallengeFeedbackComment('');
+      
+      const messages = {
+        success: '🎉 Excellent ! Challenge réussi !',
+        partial: '💪 Bon effort ! Continue comme ça !',
+        failed: '🤔 Pas grave ! On réessaie demain !'
+      };
+      toast.success(messages[result] || '✅ Feedback enregistré !');
     } catch (err) {
       console.error('Error completing challenge:', err);
       toast.error('Erreur lors de la validation');
