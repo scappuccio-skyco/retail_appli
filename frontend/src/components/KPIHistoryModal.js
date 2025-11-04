@@ -122,6 +122,21 @@ export default function KPIHistoryModal({ kpiEntries, kpiConfig, onClose, onNewK
                   </div>
                 ))}
               </div>
+
+              {/* Bouton Charger plus */}
+              {hasMore && (
+                <div className="mt-6 text-center">
+                  <button
+                    onClick={() => setDisplayLimit(prev => prev + 20)}
+                    className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all inline-flex items-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                    Charger plus ({remainingCount} KPI restant{remainingCount > 1 ? 's' : ''})
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <div className="text-center py-12">
