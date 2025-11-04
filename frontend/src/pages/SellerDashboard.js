@@ -1079,7 +1079,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         </div>
         {/* End of Grid 2x2 */}
 
-          {/* OLD DETAILED CARDS - TO BE REMOVED */}
+      </div>
+      {/* End of max-w-7xl container */}
+
+      {/* MODALS */}
           {false && diagnostic && dashboardFilters.showProfile && (
             <div className="glass-morphism rounded-2xl p-6 border-2 border-transparent hover:border-[#ffd871] transition-all">
               <div className="flex items-center justify-between mb-4">
