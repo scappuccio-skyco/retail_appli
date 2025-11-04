@@ -369,7 +369,6 @@ class KPIEntry(BaseModel):
     # Raw data entered by seller
     ca_journalier: float = 0
     nb_ventes: int = 0
-    nb_clients: int = 0
     nb_articles: int = 0  # NEW: Number of articles sold
     # Calculated KPIs
     panier_moyen: float = 0
