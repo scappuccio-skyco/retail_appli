@@ -966,7 +966,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             </div>
           )}
 
-          </>
         )}
 
         {/* Objectives and Challenges Card */}
