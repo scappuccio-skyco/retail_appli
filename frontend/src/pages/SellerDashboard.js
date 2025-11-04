@@ -801,10 +801,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       )}
 
       <div className="max-w-7xl mx-auto flex flex-col">
-        {/* Tasks Section */}
-        {tasks.length > 0 && (
-          <div className="glass-morphism rounded-2xl p-6 mb-8 border-2 border-[#ffd871]">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Mes tâches à faire</h2>
+        {/* Tasks Section - Always visible */}
+        <div className="glass-morphism rounded-2xl p-6 mb-8 border-2 border-[#ffd871]">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Mes tâches à faire</h2>
+          
+          {tasks.length > 0 ? (
             <div className="space-y-3">
               {tasks.map((task) => (
                 <div
@@ -815,6 +816,12 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                       setShowDiagnosticModal(true);
                     } else if (task.type === 'kpi') {
                       setShowKPIModal(true);
+                    } else if (task.type === 'challenge') {
+                      // Scroll to challenge section
+                      const challengeSection = document.querySelector('[data-section="challenge"]');
+                      if (challengeSection) {
+                        challengeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
                     } else {
                       setSelectedTask(task);
                       setShowTaskModal(true);
@@ -830,16 +837,25 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                       </div>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      task.priority === 'high' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                      task.priority === 'high' ? 'bg-red-100 text-red-700' : 
+                      task.priority === 'important' ? 'bg-orange-100 text-orange-700' :
+                      'bg-yellow-100 text-yellow-700'
                     }`}>
-                      {task.priority === 'high' ? 'Urgent' : 'Important'}
+                      {task.priority === 'high' ? 'Urgent' : task.priority === 'important' ? 'Important' : 'Normal'}
                     </span>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-8 text-center border-2 border-green-200">
+              <div className="text-6xl mb-4">🎉</div>
+              <h3 className="text-2xl font-bold text-green-800 mb-2">Bravo !</h3>
+              <p className="text-green-700 text-lg">Tu as rempli toutes tes tâches du jour !</p>
+              <p className="text-green-600 text-sm mt-2">Continue comme ça, tu es au top ! 💪</p>
+            </div>
+          )}
+        </div>
 
         {/* Active Challenges Section */}
         {/* Compact Cards: Profile + Bilan Individuel (side by side like manager dashboard) */}
