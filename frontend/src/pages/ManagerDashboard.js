@@ -1996,6 +1996,15 @@ export default function ManagerDashboard({ user, onLogout }) {
         />
       )}
 
+      {showStoreKPIModal && (
+        <StoreKPIModal
+          onClose={() => setShowStoreKPIModal(false)}
+          onSuccess={() => {
+            fetchStoreKPIStats();
+          }}
+        />
+      )}
+
       {/* Seller Detail Modal */}
       {showDetailView && selectedSeller && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center p-4 overflow-y-auto">
