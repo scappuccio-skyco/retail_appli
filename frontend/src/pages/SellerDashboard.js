@@ -833,11 +833,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                     } else if (task.type === 'kpi') {
                       setShowKPIModal(true);
                     } else if (task.type === 'challenge') {
-                      // Scroll to challenge section
-                      const challengeSection = document.querySelector('[data-section="challenge"]');
-                      if (challengeSection) {
-                        challengeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                      }
+                      // Open daily challenge modal
+                      setShowDailyChallengeModal(true);
                     } else {
                       setSelectedTask(task);
                       setShowTaskModal(true);
