@@ -637,7 +637,8 @@ export default function ManagerDashboard({ user, onLogout }) {
 
       <div className="max-w-7xl mx-auto flex flex-col">
         {/* Compact Cards - Profile & Bilan side by side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {dashboardFilters.showBilan && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" style={{ order: getSectionOrder('bilan') }}>
           {/* Manager Profile Compact Card */}
           {managerDiagnostic && (
             <div 
