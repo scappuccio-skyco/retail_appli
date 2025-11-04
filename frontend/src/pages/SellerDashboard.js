@@ -210,6 +210,57 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     }
   };
 
+  const fetchDailyChallenge = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/seller/daily-challenge`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setDailyChallenge(res.data);
+    } catch (err) {
+      console.error('Error fetching daily challenge:', err);
+    }
+  };
+
+  const completeDailyChallenge = async () => {
+    if (!dailyChallenge) return;
+    setLoadingChallenge(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(
+        `${API}/seller/daily-challenge/complete`,
+        { challenge_id: dailyChallenge.id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setDailyChallenge(res.data);
+      toast.success('🎉 Bravo ! Challenge complété !');
+    } catch (err) {
+      console.error('Error completing challenge:', err);
+      toast.error('Erreur lors de la validation');
+    } finally {
+      setLoadingChallenge(false);
+    }
+  };
+
+  const refreshDailyChallenge = async () => {
+    setLoadingChallenge(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(
+        `${API}/seller/daily-challenge/refresh`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setDailyChallenge(res.data);
+      toast.success('✨ Nouveau challenge généré !');
+    } catch (err) {
+      console.error('Error refreshing challenge:', err);
+      toast.error('Erreur lors de la génération');
+    } finally {
+      setLoadingChallenge(false);
+    }
+  };
+
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
