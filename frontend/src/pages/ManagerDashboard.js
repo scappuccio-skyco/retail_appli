@@ -272,6 +272,18 @@ export default function ManagerDashboard({ user, onLogout }) {
     }
   };
 
+  const fetchStoreKPIStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/manager/store-kpi/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setStoreKPIStats(res.data);
+    } catch (err) {
+      console.error('Error fetching store KPI stats:', err);
+    }
+  };
+
   // Save filter preferences
   useEffect(() => {
     localStorage.setItem('manager_dashboard_filters', JSON.stringify(dashboardFilters));
