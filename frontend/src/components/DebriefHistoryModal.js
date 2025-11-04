@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { X, MessageSquare } from 'lucide-react';
 
 export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief }) {
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
+  const [displayLimit, setDisplayLimit] = useState(20); // Afficher 20 débriefs à la fois
 
   const toggleDebrief = (debriefId) => {
     setExpandedDebriefs(prev => ({
@@ -11,6 +12,15 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief })
     }));
   };
 
+  // Trier les débriefs par date (plus récents en premier) et limiter l'affichage
+  const sortedAndLimitedDebriefs = useMemo(() => {
+    const sorted = [...debriefs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return sorted.slice(0, displayLimit);
+  }, [debriefs, displayLimit]);
+
+  const hasMore = displayLimit < debriefs.length;
+  const remainingCount = debriefs.length - displayLimit;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl">
@@ -18,7 +28,15 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief })
         <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-blue-600 p-6 flex justify-between items-center border-b border-gray-200 rounded-t-2xl">
           <div className="flex items-center gap-3">
             <MessageSquare className="w-8 h-8 text-white" />
-            <h2 className="text-3xl font-bold text-white">📝 Historique de mes Débriefs</h2>
+            <div>
+              <h2 className="text-3xl font-bold text-white">📝 Historique de mes Débriefs</h2>
+              <p className="text-sm text-white opacity-90 mt-1">
+                {displayLimit >= debriefs.length 
+                  ? `${debriefs.length} débrief${debriefs.length > 1 ? 's' : ''} affiché${debriefs.length > 1 ? 's' : ''}`
+                  : `Affichage de ${displayLimit} sur ${debriefs.length} débriefs`
+                }
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -45,7 +63,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief })
 
               {/* Liste des débriefs */}
               <div className="space-y-4">
-                {debriefs.map((debrief) => (
+                {sortedAndLimitedDebriefs.map((debrief) => (
                   <div
                     key={debrief.id}
                     className="bg-gradient-to-r from-white to-blue-50 rounded-2xl border-2 border-blue-100 hover:shadow-lg transition-all overflow-hidden"
