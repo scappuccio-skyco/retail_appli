@@ -2332,10 +2332,8 @@ async def generate_team_bilan_for_period(manager_id: str, start_date: date, end_
     kpi_context = f"""KPIs de l'équipe pour la période {periode} :
 - CA Total : {total_ca:.2f}€
 - Nombre de ventes : {total_ventes}
-- Nombre de clients : {total_clients}
 - Nombre d'articles : {total_articles}
 - Panier moyen : {panier_moyen_equipe:.2f}€
-- Taux de transformation : {taux_transfo_equipe:.2f}%
 - Indice de vente : {indice_vente_equipe:.2f}
 """
     
