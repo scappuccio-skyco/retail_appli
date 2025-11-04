@@ -259,11 +259,54 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const fetchKpiConfig = async () => {
     try {
-      const res = await axios.get(`${API}/manager/kpi-config`);
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/manager/kpi-config`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setKpiConfig(res.data);
     } catch (err) {
       console.error('Error fetching KPI config:', err);
     }
+  };
+
+  // Save filter preferences
+  useEffect(() => {
+    localStorage.setItem('manager_dashboard_filters', JSON.stringify(dashboardFilters));
+  }, [dashboardFilters]);
+
+  // Save section order
+  useEffect(() => {
+    localStorage.setItem('manager_section_order', JSON.stringify(sectionOrder));
+  }, [sectionOrder]);
+
+  const toggleFilter = (filterName) => {
+    setDashboardFilters(prev => ({
+      ...prev,
+      [filterName]: !prev[filterName]
+    }));
+  };
+
+  const moveSectionUp = (sectionId) => {
+    const index = sectionOrder.indexOf(sectionId);
+    if (index > 0) {
+      const newOrder = [...sectionOrder];
+      [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+      setSectionOrder(newOrder);
+    }
+  };
+
+  const moveSectionDown = (sectionId) => {
+    const index = sectionOrder.indexOf(sectionId);
+    if (index < sectionOrder.length - 1) {
+      const newOrder = [...sectionOrder];
+      [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+      setSectionOrder(newOrder);
+    }
+  };
+
+  // Get section position for CSS ordering
+  const getSectionOrder = (sectionId) => {
+    return sectionOrder.indexOf(sectionId);
   };
 
   const fetchData = async () => {
