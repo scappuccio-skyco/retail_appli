@@ -25,6 +25,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
     description: '',
     type: 'collective',
     seller_id: '',
+    visible: true,
     ca_target: '',
     ventes_target: '',
     indice_vente_target: '',
