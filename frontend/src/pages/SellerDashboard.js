@@ -1541,7 +1541,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         )}
 
         {/* Mes derniers KPIs enregistrés */}
-        {kpiEntries.length > 0 && (
+        {kpiEntries.length > 0 && dashboardFilters.showKPI && (
           <div className="glass-morphism rounded-2xl p-6 mt-8">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-800">📊 Mes derniers KPIs enregistrés</h2>
