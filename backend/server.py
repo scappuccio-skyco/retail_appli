@@ -298,13 +298,6 @@ SELLER_INPUT_KPIS = {
         "type": "number",
         "icon": "🛍️",
         "description": "Nombre de transactions réalisées"
-    },
-    "nb_clients": {
-        "name": "Nombre de clients accueillis",
-        "unit": "clients",
-        "type": "number",
-        "icon": "👥",
-        "description": "Nombre total de clients venus"
     }
 }
 
