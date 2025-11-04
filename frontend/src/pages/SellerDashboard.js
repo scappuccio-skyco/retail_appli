@@ -872,12 +872,100 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           )}
         </div>
 
-        {/* Active Challenges Section */}
-        {/* Compact Cards: Profile + Bilan Individuel (side by side like manager dashboard) */}
+        {/* Profile & Bilan - Visual Cards */}
         {(dashboardFilters.showProfile || dashboardFilters.showBilan) && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" style={{ order: getSectionOrder('profile') }}>
-            {/* Profile Card */}
+            {/* Profile Card - Visual */}
             {diagnostic && dashboardFilters.showProfile && (
+            <div 
+              onClick={() => setShowProfileModal(true)}
+              className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
+            >
+              <div className="relative h-48 bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black opacity-20 group-hover:opacity-10 transition-opacity"></div>
+                <div className="relative z-10 text-center text-white">
+                  <div className="w-20 h-20 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                    <Sparkles className="w-10 h-10" />
+                  </div>
+                  <h3 className="text-2xl font-bold">Mon Profil de Vente</h3>
+                  <p className="text-sm mt-2 opacity-90">Cliquer pour voir les détails →</p>
+                </div>
+              </div>
+              <div className="p-4 bg-white">
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="text-center">
+                    <p className="text-xs text-purple-600 mb-1">Style</p>
+                    <p className="text-sm font-bold text-purple-900">{diagnostic.style}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-green-600 mb-1">Niveau</p>
+                    <p className="text-sm font-bold text-green-900">{diagnostic.level}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-orange-600 mb-1">DISC</p>
+                    <p className="text-sm font-bold text-orange-900">{diagnostic.disc_dominant}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDiagnosticModal(true);
+                  }}
+                  className="w-full mt-3 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:shadow-lg text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Relancer le diagnostic
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Bilan Individuel Card - Visual */}
+          {bilanIndividuel && dashboardFilters.showBilan && (
+            <div 
+              onClick={() => setShowBilanModal(true)}
+              className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
+            >
+              <div className="relative h-48 bg-gradient-to-br from-blue-400 via-cyan-400 to-teal-400 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black opacity-20 group-hover:opacity-10 transition-opacity"></div>
+                <div className="relative z-10 text-center text-white">
+                  <div className="w-20 h-20 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                    <TrendingUp className="w-10 h-10" />
+                  </div>
+                  <h3 className="text-2xl font-bold">🤖 Mon Bilan Individuel</h3>
+                  <p className="text-sm mt-2 opacity-90">Cliquer pour voir les détails →</p>
+                </div>
+              </div>
+              <div className="p-4 bg-white">
+                {bilanIndividuel.competences_cles && bilanIndividuel.competences_cles.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs font-semibold text-gray-600 mb-2">Top 3 compétences :</p>
+                    <div className="flex flex-wrap gap-1">
+                      {bilanIndividuel.competences_cles.slice(0, 3).map((comp, idx) => (
+                        <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                          {comp}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    regenerateBilan();
+                  }}
+                  disabled={generatingBilan}
+                  className="w-full px-3 py-2 bg-gradient-to-r from-blue-500 to-teal-500 hover:shadow-lg text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${generatingBilan ? 'animate-spin' : ''}`} />
+                  {generatingBilan ? 'Génération...' : 'Regénérer le bilan'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* OLD DETAILED CARDS - TO BE REMOVED */}
+          {false && diagnostic && dashboardFilters.showProfile && (
             <div className="glass-morphism rounded-2xl p-6 border-2 border-transparent hover:border-[#ffd871] transition-all">
               <div className="flex items-center justify-between mb-4">
                 <div 
