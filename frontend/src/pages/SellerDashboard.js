@@ -131,6 +131,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     };
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [sectionOrder, setSectionOrder] = useState(() => {
+    const saved = localStorage.getItem('seller_section_order');
+    return saved ? JSON.parse(saved) : ['profile', 'objectives', 'competences', 'kpi', 'debriefs'];
+  });
 
   useEffect(() => {
     fetchData();
