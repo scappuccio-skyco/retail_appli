@@ -50,7 +50,6 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
       } else {
         setCaJournalier('');
         setNbVentes('');
-        setNbClients('');
         setNbArticles('');
         setComment('');
       }
