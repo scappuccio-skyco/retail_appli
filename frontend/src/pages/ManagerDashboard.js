@@ -1818,7 +1818,8 @@ export default function ManagerDashboard({ user, onLogout }) {
               </div>
             )}
           </div>
-        </div>
+          </div>
+        )}
       </div>
 
       {showInviteModal && (
