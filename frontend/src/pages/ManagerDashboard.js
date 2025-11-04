@@ -111,6 +111,23 @@ export default function ManagerDashboard({ user, onLogout }) {
   }); // New state for dashboard chart visibility
   const [currentObjectiveIndex, setCurrentObjectiveIndex] = useState(0); // Carousel for objectives
   const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0); // Carousel for challenges
+  
+  // Dashboard Filters & Preferences
+  const [dashboardFilters, setDashboardFilters] = useState(() => {
+    const saved = localStorage.getItem('manager_dashboard_filters');
+    return saved ? JSON.parse(saved) : {
+      showTeam: true,
+      showObjectives: true,
+      showChallenges: true,
+      showKPI: true,
+      showBilan: true
+    };
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  const [sectionOrder, setSectionOrder] = useState(() => {
+    const saved = localStorage.getItem('manager_section_order');
+    return saved ? JSON.parse(saved) : ['team', 'objectives', 'kpi', 'bilan'];
+  });
 
   // Determine which charts should be available based on manager's KPI configuration
   const availableDashboardCharts = useMemo(() => {
