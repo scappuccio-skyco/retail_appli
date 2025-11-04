@@ -1921,8 +1921,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
-        {/* Challenge du Jour IA - Visual Card */}
-        {dashboardFilters.showCompetences && dailyChallenge && (
+        {/* OLD Challenge du Jour IA - REMOVED (now in grid) */}
+        {false && dashboardFilters.showCompetences && dailyChallenge && (
           <div 
             className="glass-morphism rounded-2xl overflow-hidden mb-8 border-2 border-transparent hover:border-[#ffd871] transition-all"
             data-section="challenge" 
