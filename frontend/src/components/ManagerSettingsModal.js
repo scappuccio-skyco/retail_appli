@@ -893,6 +893,25 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           </div>
                         )}
 
+                        {/* Visibilité */}
+                        <div className="md:col-span-2">
+                          <label className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-200 cursor-pointer hover:bg-blue-100 transition-all">
+                            <input
+                              type="checkbox"
+                              checked={editingChallenge ? editingChallenge.visible !== false : newChallenge.visible !== false}
+                              onChange={(e) => editingChallenge
+                                ? setEditingChallenge({ ...editingChallenge, visible: e.target.checked })
+                                : setNewChallenge({ ...newChallenge, visible: e.target.checked })
+                              }
+                              className="w-5 h-5 text-blue-600"
+                            />
+                            <div>
+                              <p className="font-semibold text-gray-800">👁️ Visible par les vendeurs</p>
+                              <p className="text-xs text-gray-600">Si coché, les vendeurs pourront voir ce challenge dans leur dashboard</p>
+                            </div>
+                          </label>
+                        </div>
+
                         <div>
                           <div className="flex items-center gap-2 mb-2">
                             <label className="block text-sm font-semibold text-gray-700">Date de début *</label>
