@@ -77,24 +77,50 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-400 to-red-500 text-white p-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-              <Award className="w-7 h-7" />
+        <div className="bg-gradient-to-r from-orange-400 to-red-500 text-white p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                <Award className="w-7 h-7" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">🎯 Challenge du Jour IA</h2>
+                <p className="text-sm text-orange-100">
+                  {challenge.completed ? '✅ Challenge relevé !' : 'Ton défi personnalisé'}
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold">🎯 Challenge du Jour IA</h2>
-              <p className="text-sm text-orange-100">
-                {challenge.completed ? '✅ Challenge relevé !' : 'Ton défi personnalisé'}
-              </p>
-            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          
+          {/* Action buttons in header */}
+          <div className="flex gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                // TODO: Open history modal
+              }}
+              className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Historique
+            </button>
+            {!challenge.completed && (
+              <button
+                onClick={handleRefresh}
+                disabled={loading}
+                className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                Relancer
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Content */}
