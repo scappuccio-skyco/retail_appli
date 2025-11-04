@@ -1569,7 +1569,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               Voir mes débriefs
             </button>
           </div>
-        </div>
+          </div>
         )}
       </div>
 
