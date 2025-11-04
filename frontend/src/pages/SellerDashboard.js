@@ -191,6 +191,14 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     });
   }, [dailyChallenge]);
 
+  // Recalculate weekly KPI when kpiEntries change (automatic daily update)
+  useEffect(() => {
+    if (kpiEntries.length > 0 && currentWeekOffset === 0) {
+      // Only auto-update for current week
+      fetchBilanIndividuel(0);
+    }
+  }, [kpiEntries]);
+
   const toggleFilter = (filterName) => {
     setDashboardFilters(prev => ({
       ...prev,
