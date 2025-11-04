@@ -2554,16 +2554,21 @@ async def generate_seller_bilan_for_period(seller_id: str, start_date: date, end
             "track_articles": True
         }
     else:
-        manager = await db.users.find_one({"id": seller_user['manager_id']}, {"_id": 0})
-        kpi_config = manager.get('kpiConfig', {
-            "track_ca": True,
-            "track_ventes": True,
-            "track_articles": True
-        }) if manager else {
-            "track_ca": True,
-            "track_ventes": True,
-            "track_articles": True
-        }
+        # Get KPI configuration from kpi_configs collection
+        manager_kpi_config = await db.kpi_configs.find_one({"manager_id": seller_user['manager_id']}, {"_id": 0})
+        if manager_kpi_config:
+            kpi_config = {
+                "track_ca": manager_kpi_config.get('track_ca', True),
+                "track_ventes": manager_kpi_config.get('track_ventes', True),
+                "track_articles": manager_kpi_config.get('track_articles', True)
+            }
+        else:
+            # Fallback: all KPIs enabled
+            kpi_config = {
+                "track_ca": True,
+                "track_ventes": True,
+                "track_articles": True
+            }
     
     # Get KPIs for this period
     kpi_entries = await db.kpi_entries.find({
