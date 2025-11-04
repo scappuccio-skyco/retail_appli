@@ -3618,9 +3618,7 @@ async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
             )
             challenge['status'] = new_status
 
-# Include router
-app.include_router(api_router)
-
+# Add CORS middleware BEFORE including router (critical for proper OPTIONS handling)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -3629,6 +3627,9 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["*"],
 )
+
+# Include router
+app.include_router(api_router)
 
 logging.basicConfig(
     level=logging.INFO,
