@@ -3123,7 +3123,12 @@ async def update_kpi_config(config_update: KPIConfigUpdate, current_user: dict =
 @api_router.options("/manager/kpi-config")
 async def options_kpi_config():
     """Handle OPTIONS preflight requests for KPI configuration endpoint"""
-    return {"message": "OK"}
+    from fastapi import Response
+    response = Response()
+    response.headers["Access-Control-Allow-Methods"] = "GET, PUT, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Max-Age"] = "86400"
+    return response
 
 # ===== MANAGER OBJECTIVES ENDPOINTS =====
 @api_router.get("/manager/objectives")
