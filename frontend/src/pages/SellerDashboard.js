@@ -144,6 +144,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     fetchBilanIndividuel();
     fetchActiveChallenges();
     fetchActiveObjectives();
+    fetchDailyChallenge();
   }, []);
 
   // Save filter preferences
