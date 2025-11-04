@@ -81,8 +81,7 @@ export default function KPIHistoryModal({ kpiEntries, kpiConfig, onClose, onNewK
 
                     {/* KPI Calculés */}
                     {((kpiConfig?.track_ca && kpiConfig?.track_ventes) || 
-                      (kpiConfig?.track_ventes && kpiConfig?.track_clients) || 
-                      (kpiConfig?.track_articles && kpiConfig?.track_clients)) && (
+                      (kpiConfig?.track_articles && kpiConfig?.track_ventes)) && (
                       <div className="mt-3 pt-3 border-t border-gray-200">
                         <p className="text-xs text-gray-500 mb-2 font-semibold">KPI Calculés :</p>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
