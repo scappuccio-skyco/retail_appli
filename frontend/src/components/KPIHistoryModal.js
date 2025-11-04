@@ -1,7 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { X, BarChart3, Plus } from 'lucide-react';
 
 export default function KPIHistoryModal({ kpiEntries, kpiConfig, onClose, onNewKPI, onEditKPI }) {
+  const [displayLimit, setDisplayLimit] = useState(20); // Afficher 20 KPI à la fois
+  
+  // Trier les KPI par date (plus récents en premier) et limiter l'affichage
+  const sortedAndLimitedKPIs = useMemo(() => {
+    const sorted = [...kpiEntries].sort((a, b) => new Date(b.date) - new Date(a.date));
+    return sorted.slice(0, displayLimit);
+  }, [kpiEntries, displayLimit]);
+
+  const hasMore = displayLimit < kpiEntries.length;
+  const remainingCount = kpiEntries.length - displayLimit;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl">
@@ -9,7 +20,15 @@ export default function KPIHistoryModal({ kpiEntries, kpiConfig, onClose, onNewK
         <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-blue-600 p-6 flex justify-between items-center border-b border-gray-200 rounded-t-2xl">
           <div className="flex items-center gap-3">
             <BarChart3 className="w-8 h-8 text-white" />
-            <h2 className="text-3xl font-bold text-white">📊 Historique de mes KPI</h2>
+            <div>
+              <h2 className="text-3xl font-bold text-white">📊 Historique de mes KPI</h2>
+              <p className="text-sm text-white opacity-90 mt-1">
+                {displayLimit >= kpiEntries.length 
+                  ? `${kpiEntries.length} entrée${kpiEntries.length > 1 ? 's' : ''} affichée${kpiEntries.length > 1 ? 's' : ''}`
+                  : `Affichage de ${displayLimit} sur ${kpiEntries.length} entrées`
+                }
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -36,7 +55,7 @@ export default function KPIHistoryModal({ kpiEntries, kpiConfig, onClose, onNewK
 
               {/* Liste des KPI */}
               <div className="space-y-4">
-                {kpiEntries.map((entry) => (
+                {sortedAndLimitedKPIs.map((entry) => (
                   <div
                     key={entry.id}
                     className="bg-white rounded-xl p-4 border-2 border-gray-200 hover:shadow-md transition-all"
