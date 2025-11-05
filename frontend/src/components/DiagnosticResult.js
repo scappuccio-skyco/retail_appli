@@ -25,7 +25,7 @@ export default function DiagnosticResult({ diagnostic, onContinue }) {
         <div className="glass-morphism rounded-3xl shadow-2xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <img src="/logo.jpg" alt="Logo" className="w-20 h-20 mx-auto mb-4 rounded-xl shadow-md object-cover" />
+            <img src="/logo-icon.png" alt="Retail Performer" className="w-20 h-20 mx-auto mb-4 rounded-xl shadow-md object-contain bg-white p-2" />
             <div className="text-6xl mb-4">🎉</div>
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Ton profil vendeur est prêt !</h1>
             <p className="text-gray-600">Découvre ton style unique et tes forces</p>
