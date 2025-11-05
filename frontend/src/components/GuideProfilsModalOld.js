@@ -1126,7 +1126,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
         {/* Footer */}
         <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-center items-center">
           <p className="text-xs text-gray-500">
-            Retail Coach 2.0 - Guide des Profils
+            Retail Performer - Guide des Profils
           </p>
         </div>
       </div>
