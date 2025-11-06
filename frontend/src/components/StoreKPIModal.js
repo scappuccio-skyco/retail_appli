@@ -268,23 +268,42 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
         <div className="p-6">
           {activeTab === 'overview' && (
             <div className="max-w-5xl mx-auto">
-              {/* Date selector */}
-              <div className="mb-4 flex items-center gap-3">
-                <label className="text-sm font-semibold text-gray-700">📅 Date :</label>
-                <input
-                  type="date"
-                  value={overviewDate}
-                  onChange={(e) => {
-                    setOverviewDate(e.target.value);
-                    fetchOverviewData();
-                  }}
-                  className="px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-                />
+              {/* Date selector and AI Analysis button */}
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-semibold text-gray-700">📅 Date :</label>
+                  <input
+                    type="date"
+                    value={overviewDate}
+                    onChange={(e) => {
+                      setOverviewDate(e.target.value);
+                      fetchOverviewData();
+                    }}
+                    className="px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                  />
+                  <button
+                    onClick={fetchOverviewData}
+                    className="px-3 py-1.5 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                  >
+                    🔄 Actualiser
+                  </button>
+                </div>
+                
                 <button
-                  onClick={fetchOverviewData}
-                  className="px-3 py-1.5 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                  onClick={handleAIAnalysis}
+                  disabled={loadingAnalysis || !overviewData}
+                  className="px-4 py-1.5 text-sm bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  🔄 Actualiser
+                  {loadingAnalysis ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                      Analyse...
+                    </>
+                  ) : (
+                    <>
+                      <span>🤖</span> Lancer l'Analyse IA
+                    </>
+                  )}
                 </button>
               </div>
 
