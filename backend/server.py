@@ -397,10 +397,19 @@ class KPIConfiguration(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     manager_id: str
-    # KPIs that sellers can fill
+    # Legacy fields (kept for backward compatibility)
     track_ca: bool = True
     track_ventes: bool = True
     track_articles: bool = True
+    # New fields for mutual exclusivity between seller and manager tracking
+    seller_track_ca: Optional[bool] = True
+    manager_track_ca: Optional[bool] = False
+    seller_track_ventes: Optional[bool] = True
+    manager_track_ventes: Optional[bool] = False
+    seller_track_clients: Optional[bool] = True
+    manager_track_clients: Optional[bool] = False
+    seller_track_articles: Optional[bool] = True
+    manager_track_articles: Optional[bool] = False
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
