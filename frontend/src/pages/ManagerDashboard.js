@@ -461,8 +461,8 @@ export default function ManagerDashboard({ user, onLogout }) {
       team: dashboardFilters.showTeam && (
         <div
           key="team"
-          onClick={() => {/* Open team overview modal if needed */}}
-          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-blue-400"
+          onClick={() => setShowTeamModal(true)}
+          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-cyan-400"
           style={{ order: getSectionOrder('team') }}
         >
           <div className="relative h-56 overflow-hidden">
