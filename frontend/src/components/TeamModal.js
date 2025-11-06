@@ -309,7 +309,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
               {/* AI Analysis Result */}
               {showAIAnalysis && (
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-4 border-2 border-indigo-200">
+                <div key={`analysis-${analysisKey}`} className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-4 border-2 border-indigo-200">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-bold text-indigo-900 flex items-center gap-2">
                       <span>🤖</span> Analyse IA de l'Équipe
