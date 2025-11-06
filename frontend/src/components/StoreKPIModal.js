@@ -232,6 +232,191 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
 
         {/* Content */}
         <div className="p-6">
+          {activeTab === 'overview' && (
+            <div className="max-w-5xl mx-auto">
+              {/* Date selector */}
+              <div className="mb-6 flex items-center gap-4">
+                <label className="font-semibold text-gray-700">📅 Date :</label>
+                <input
+                  type="date"
+                  value={overviewDate}
+                  onChange={(e) => {
+                    setOverviewDate(e.target.value);
+                    fetchOverviewData();
+                  }}
+                  className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                />
+                <button
+                  onClick={fetchOverviewData}
+                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                >
+                  🔄 Actualiser
+                </button>
+              </div>
+
+              {overviewData ? (
+                <div className="space-y-6">
+                  {/* Summary cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
+                      <div className="text-sm text-blue-700 font-semibold mb-1">👥 Vendeurs</div>
+                      <div className="text-3xl font-bold text-blue-900">
+                        {overviewData.sellers_reported} / {overviewData.total_sellers}
+                      </div>
+                      <div className="text-xs text-blue-600 mt-1">ont saisi leurs KPIs</div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-200">
+                      <div className="text-sm text-green-700 font-semibold mb-1">💰 CA Total</div>
+                      <div className="text-3xl font-bold text-green-900">
+                        {((overviewData.manager_data?.ca_journalier || 0) + overviewData.sellers_data.ca_journalier).toFixed(2)} €
+                      </div>
+                      <div className="text-xs text-green-600 mt-1">Manager + Vendeurs</div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border-2 border-purple-200">
+                      <div className="text-sm text-purple-700 font-semibold mb-1">🛍️ Ventes Totales</div>
+                      <div className="text-3xl font-bold text-purple-900">
+                        {(overviewData.manager_data?.nb_ventes || 0) + overviewData.sellers_data.nb_ventes}
+                      </div>
+                      <div className="text-xs text-purple-600 mt-1">Manager + Vendeurs</div>
+                    </div>
+                  </div>
+
+                  {/* Detailed comparison */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Manager data */}
+                    <div className="bg-white rounded-xl p-5 border-2 border-gray-200">
+                      <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <span>👨‍💼</span> Données Manager
+                      </h3>
+                      {Object.keys(overviewData.manager_data).length > 0 ? (
+                        <div className="space-y-3">
+                          {overviewData.manager_data.ca_journalier > 0 && (
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-gray-600">💰 CA Journalier</span>
+                              <span className="font-bold text-gray-800">{overviewData.manager_data.ca_journalier} €</span>
+                            </div>
+                          )}
+                          {overviewData.manager_data.nb_ventes > 0 && (
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-gray-600">🛍️ Ventes</span>
+                              <span className="font-bold text-gray-800">{overviewData.manager_data.nb_ventes}</span>
+                            </div>
+                          )}
+                          {overviewData.manager_data.nb_clients > 0 && (
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-gray-600">👥 Clients</span>
+                              <span className="font-bold text-gray-800">{overviewData.manager_data.nb_clients}</span>
+                            </div>
+                          )}
+                          {overviewData.manager_data.nb_articles > 0 && (
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-gray-600">📦 Articles</span>
+                              <span className="font-bold text-gray-800">{overviewData.manager_data.nb_articles}</span>
+                            </div>
+                          )}
+                          {overviewData.manager_data.nb_prospects > 0 && (
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-gray-600">🚶 Prospects</span>
+                              <span className="font-bold text-gray-800">{overviewData.manager_data.nb_prospects}</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-sm italic">Aucune donnée saisie pour cette date</p>
+                      )}
+                    </div>
+
+                    {/* Sellers aggregated data */}
+                    <div className="bg-white rounded-xl p-5 border-2 border-gray-200">
+                      <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <span>🧑‍💼</span> Données Vendeurs (Agrégées)
+                      </h3>
+                      {overviewData.sellers_reported > 0 ? (
+                        <div className="space-y-3">
+                          {overviewData.sellers_data.ca_journalier > 0 && (
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-gray-600">💰 CA Journalier</span>
+                              <span className="font-bold text-gray-800">{overviewData.sellers_data.ca_journalier.toFixed(2)} €</span>
+                            </div>
+                          )}
+                          {overviewData.sellers_data.nb_ventes > 0 && (
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-gray-600">🛍️ Ventes</span>
+                              <span className="font-bold text-gray-800">{overviewData.sellers_data.nb_ventes}</span>
+                            </div>
+                          )}
+                          {overviewData.sellers_data.nb_clients > 0 && (
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-gray-600">👥 Clients</span>
+                              <span className="font-bold text-gray-800">{overviewData.sellers_data.nb_clients}</span>
+                            </div>
+                          )}
+                          {overviewData.sellers_data.nb_articles > 0 && (
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-gray-600">📦 Articles</span>
+                              <span className="font-bold text-gray-800">{overviewData.sellers_data.nb_articles}</span>
+                            </div>
+                          )}
+                          {overviewData.sellers_data.nb_prospects > 0 && (
+                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                              <span className="text-gray-600">🚶 Prospects</span>
+                              <span className="font-bold text-gray-800">{overviewData.sellers_data.nb_prospects}</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-sm italic">Aucun vendeur n'a saisi ses KPIs pour cette date</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Individual seller entries */}
+                  {overviewData.seller_entries.length > 0 && (
+                    <div className="bg-white rounded-xl p-5 border-2 border-gray-200">
+                      <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Détail par vendeur</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-2 text-left font-semibold text-gray-700">Vendeur</th>
+                              <th className="px-4 py-2 text-right font-semibold text-gray-700">💰 CA</th>
+                              <th className="px-4 py-2 text-right font-semibold text-gray-700">🛍️ Ventes</th>
+                              <th className="px-4 py-2 text-right font-semibold text-gray-700">👥 Clients</th>
+                              <th className="px-4 py-2 text-right font-semibold text-gray-700">📦 Articles</th>
+                              <th className="px-4 py-2 text-right font-semibold text-gray-700">🚶 Prospects</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {overviewData.seller_entries.map((entry, idx) => (
+                              <tr key={idx} className="border-t border-gray-100">
+                                <td className="px-4 py-2 text-gray-800">
+                                  {/* TODO: Add seller name lookup */}
+                                  Vendeur {idx + 1}
+                                </td>
+                                <td className="px-4 py-2 text-right text-gray-700">{entry.ca_journalier?.toFixed(2) || 0} €</td>
+                                <td className="px-4 py-2 text-right text-gray-700">{entry.nb_ventes || 0}</td>
+                                <td className="px-4 py-2 text-right text-gray-700">{entry.nb_clients || 0}</td>
+                                <td className="px-4 py-2 text-right text-gray-700">{entry.nb_articles || 0}</td>
+                                <td className="px-4 py-2 text-right text-gray-700">{entry.nb_prospects || 0}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
+                  <p className="text-gray-600">Chargement des données...</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'config' && (
             <div className="space-y-4">
               <div className="bg-blue-50 rounded-xl p-3 border-2 border-blue-200">
