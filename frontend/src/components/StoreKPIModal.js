@@ -389,11 +389,13 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                           <span className="ml-3 text-indigo-700">Génération de l'analyse...</span>
                         </div>
                       ) : aiAnalysis ? (
-                        <div className="prose prose-sm max-w-none">
-                          <div 
-                            className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap"
-                            dangerouslySetInnerHTML={{ __html: aiAnalysis.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }}
-                          />
+                        <div className="max-h-96 overflow-y-auto pr-2">
+                          <div className="prose prose-sm max-w-none">
+                            <div 
+                              className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap"
+                              dangerouslySetInnerHTML={{ __html: aiAnalysis.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }}
+                            />
+                          </div>
                         </div>
                       ) : (
                         <p className="text-gray-600 text-sm italic">Aucune analyse disponible</p>
