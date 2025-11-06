@@ -849,9 +849,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                       profile: '👤 Profil de Vente',
                       bilan: '📈 Bilan Individuel',
                       objectives: '🎯 Objectifs & Challenges',
-                      competences: '🔥 Challenge du Jour IA',
+                      competences: '🤖 Mon Coach IA',
                       kpi: '📊 Mes KPI',
-                      debriefs: '📝 Mes Débriefs'
+                      debriefs: '📝 Analyse de Vente'
                     };
                     return (
                       <div key={sectionId} className="flex items-center justify-between bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 transition-all shadow-sm">
