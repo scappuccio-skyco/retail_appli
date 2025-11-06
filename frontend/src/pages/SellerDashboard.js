@@ -1310,6 +1310,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         <BilanIndividuelModal
           bilan={bilanIndividuel}
           kpiConfig={kpiConfig}
+          kpiEntries={kpiEntries}
           currentWeekOffset={currentWeekOffset}
           onWeekChange={(offset) => {
             setCurrentWeekOffset(offset);
