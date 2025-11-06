@@ -310,6 +310,14 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
           )}
         </div>
       </div>
+      
+      {/* AI Analysis Modal */}
+      {showAIAnalysisModal && (
+        <TeamAIAnalysisModal
+          teamData={teamData}
+          onClose={() => setShowAIAnalysisModal(false)}
+        />
+      )}
     </div>
   );
 }
