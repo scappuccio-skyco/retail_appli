@@ -103,6 +103,12 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
       });
 
       const sellersData = await Promise.all(sellersDataPromises);
+      
+      console.log(`[TeamModal] ✅ ALL DATA PROCESSED, setting state with ${sellersData.length} sellers:`);
+      sellersData.forEach(s => {
+        console.log(`[TeamModal]    - ${s.name}: CA=${s.monthlyCA.toFixed(2)} €`);
+      });
+      
       setTeamData(sellersData);
     } catch (err) {
       console.error('Error fetching team data:', err);
