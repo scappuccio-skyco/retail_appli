@@ -58,7 +58,7 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.success('✨ Nouveau challenge généré !');
+      toast.success('✨ Nouveau défi généré !');
       
       if (onRefresh) {
         onRefresh(res.data);
