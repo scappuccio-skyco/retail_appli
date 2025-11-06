@@ -340,7 +340,12 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         }
                         return null;
                       })}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 text-sm">
+                        Aucune analyse disponible
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
