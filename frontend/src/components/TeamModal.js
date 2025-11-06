@@ -167,6 +167,33 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Period Filter */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-gray-700">📅 Période :</span>
+                  <div className="flex gap-2">
+                    {[
+                      { value: '7', label: '7 jours' },
+                      { value: '30', label: '30 jours' },
+                      { value: '90', label: '3 mois' },
+                      { value: 'all', label: 'Année' }
+                    ].map(option => (
+                      <button
+                        key={option.value}
+                        onClick={() => setPeriodFilter(option.value)}
+                        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                          periodFilter === option.value
+                            ? 'bg-cyan-600 text-white shadow-md'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {/* Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-4 border border-blue-200">
