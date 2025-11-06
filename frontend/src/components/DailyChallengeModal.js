@@ -224,8 +224,8 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
                      challenge.challenge_result === 'partial' ? '💪' : '🤔'}
                   </span>
                   <span className="font-bold text-sm">
-                    {challenge.challenge_result === 'success' ? 'Challenge réussi !' : 
-                     challenge.challenge_result === 'partial' ? 'Challenge difficile' : 'Challenge non réussi'}
+                    {challenge.challenge_result === 'success' ? 'Défi réussi !' : 
+                     challenge.challenge_result === 'partial' ? 'Défi difficile' : 'Défi non réussi'}
                   </span>
                 </div>
                 {challenge.feedback_comment && (
