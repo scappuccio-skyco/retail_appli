@@ -140,7 +140,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   : 'text-gray-600 hover:text-purple-600'
               }`}
             >
-              📊 Saisie Prospects
+              {(kpiConfig.manager_track_ca || kpiConfig.manager_track_ventes || kpiConfig.manager_track_clients || kpiConfig.manager_track_articles) 
+                ? '👨‍💼 Saisie KPI Manager' 
+                : '📊 Saisie Prospects'
+              }
             </button>
           </div>
         </div>
