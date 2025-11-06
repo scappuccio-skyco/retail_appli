@@ -360,7 +360,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
 
           {activeTab === 'prospects' && (
             <div className="max-w-2xl mx-auto">
-              {/* Affichage conditionnel : si manager a activé des KPIs, afficher formulaire KPI Manager, sinon formulaire Prospects */}
+              {/* Affichage conditionnel : si manager a activé des KPIs, afficher formulaire KPI Manager, sinon message d'instruction */}
               {(kpiConfig.manager_track_ca || kpiConfig.manager_track_ventes || kpiConfig.manager_track_clients || kpiConfig.manager_track_articles || kpiConfig.manager_track_prospects) ? (
                 // Formulaire KPI Manager
                 <>
