@@ -238,8 +238,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
           {activeTab === 'overview' && (
             <div className="max-w-5xl mx-auto">
               {/* Date selector */}
-              <div className="mb-6 flex items-center gap-4">
-                <label className="font-semibold text-gray-700">📅 Date :</label>
+              <div className="mb-4 flex items-center gap-3">
+                <label className="text-sm font-semibold text-gray-700">📅 Date :</label>
                 <input
                   type="date"
                   value={overviewDate}
@@ -247,42 +247,42 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                     setOverviewDate(e.target.value);
                     fetchOverviewData();
                   }}
-                  className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                  className="px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
                 />
                 <button
                   onClick={fetchOverviewData}
-                  className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                  className="px-3 py-1.5 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
                 >
                   🔄 Actualiser
                 </button>
               </div>
 
               {overviewData ? (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {/* Summary cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
-                      <div className="text-sm text-blue-700 font-semibold mb-1">👥 Vendeurs</div>
-                      <div className="text-3xl font-bold text-blue-900">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
+                      <div className="text-xs text-blue-700 font-semibold mb-0.5">👥 Vendeurs</div>
+                      <div className="text-2xl font-bold text-blue-900">
                         {overviewData.sellers_reported} / {overviewData.total_sellers}
                       </div>
-                      <div className="text-xs text-blue-600 mt-1">ont saisi leurs KPIs</div>
+                      <div className="text-xs text-blue-600 mt-0.5">ont saisi leurs KPIs</div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-200">
-                      <div className="text-sm text-green-700 font-semibold mb-1">💰 CA Total</div>
-                      <div className="text-3xl font-bold text-green-900">
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
+                      <div className="text-xs text-green-700 font-semibold mb-0.5">💰 CA Total</div>
+                      <div className="text-2xl font-bold text-green-900">
                         {((overviewData.manager_data?.ca_journalier || 0) + overviewData.sellers_data.ca_journalier).toFixed(2)} €
                       </div>
-                      <div className="text-xs text-green-600 mt-1">Manager + Vendeurs</div>
+                      <div className="text-xs text-green-600 mt-0.5">Manager + Vendeurs</div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border-2 border-purple-200">
-                      <div className="text-sm text-purple-700 font-semibold mb-1">🛍️ Ventes Totales</div>
-                      <div className="text-3xl font-bold text-purple-900">
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
+                      <div className="text-xs text-purple-700 font-semibold mb-0.5">🛍️ Ventes Totales</div>
+                      <div className="text-2xl font-bold text-purple-900">
                         {(overviewData.manager_data?.nb_ventes || 0) + overviewData.sellers_data.nb_ventes}
                       </div>
-                      <div className="text-xs text-purple-600 mt-1">Manager + Vendeurs</div>
+                      <div className="text-xs text-purple-600 mt-0.5">Manager + Vendeurs</div>
                     </div>
                   </div>
 
