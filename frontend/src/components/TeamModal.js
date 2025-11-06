@@ -20,8 +20,12 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
   const fetchTeamData = async () => {
     setLoading(true);
+    setTeamData([]); // Clear existing data to force refresh
+    
     try {
       const token = localStorage.getItem('token');
+      
+      console.log(`[TeamModal] Fetching data for period: ${periodFilter} days`);
       
       // Fetch data for each seller
       const sellersDataPromises = sellers.map(async (seller) => {
