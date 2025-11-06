@@ -455,75 +455,50 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       </h3>
                       {overviewData.sellers_reported > 0 ? (
                         <div className="space-y-1.5">
-                          {overviewData.kpi_config?.seller_track_ca ? (
-                            overviewData.sellers_data.ca_journalier > 0 && (
-                              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                                <span className="text-xs text-gray-600">💰 CA Journalier</span>
-                                <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.ca_journalier.toFixed(2)} €</span>
-                              </div>
-                            )
-                          ) : (
-                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                              <span className="text-xs text-gray-600">💰 CA Journalier</span>
+                          <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                            <span className="text-xs text-gray-600">💰 CA Journalier</span>
+                            {overviewData.kpi_config?.seller_track_ca ? (
+                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.ca_journalier.toFixed(2)} €</span>
+                            ) : (
                               <span className="text-sm text-gray-400 italic">N/A</span>
-                            </div>
-                          )}
+                            )}
+                          </div>
                           
-                          {overviewData.kpi_config?.seller_track_ventes ? (
-                            overviewData.sellers_data.nb_ventes > 0 && (
-                              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                                <span className="text-xs text-gray-600">🛍️ Ventes</span>
-                                <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_ventes}</span>
-                              </div>
-                            )
-                          ) : (
-                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                              <span className="text-xs text-gray-600">🛍️ Ventes</span>
+                          <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                            <span className="text-xs text-gray-600">🛍️ Ventes</span>
+                            {overviewData.kpi_config?.seller_track_ventes ? (
+                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_ventes}</span>
+                            ) : (
                               <span className="text-sm text-gray-400 italic">N/A</span>
-                            </div>
-                          )}
+                            )}
+                          </div>
                           
-                          {overviewData.kpi_config?.seller_track_clients ? (
-                            overviewData.sellers_data.nb_clients > 0 && (
-                              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                                <span className="text-xs text-gray-600">👥 Clients</span>
-                                <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_clients}</span>
-                              </div>
-                            )
-                          ) : (
-                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                              <span className="text-xs text-gray-600">👥 Clients</span>
+                          <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                            <span className="text-xs text-gray-600">👥 Clients</span>
+                            {overviewData.kpi_config?.seller_track_clients ? (
+                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_clients}</span>
+                            ) : (
                               <span className="text-sm text-gray-400 italic">N/A</span>
-                            </div>
-                          )}
+                            )}
+                          </div>
                           
-                          {overviewData.kpi_config?.seller_track_articles ? (
-                            overviewData.sellers_data.nb_articles > 0 && (
-                              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                                <span className="text-xs text-gray-600">📦 Articles</span>
-                                <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_articles}</span>
-                              </div>
-                            )
-                          ) : (
-                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                              <span className="text-xs text-gray-600">📦 Articles</span>
+                          <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                            <span className="text-xs text-gray-600">📦 Articles</span>
+                            {overviewData.kpi_config?.seller_track_articles ? (
+                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_articles}</span>
+                            ) : (
                               <span className="text-sm text-gray-400 italic">N/A</span>
-                            </div>
-                          )}
+                            )}
+                          </div>
                           
-                          {overviewData.kpi_config?.seller_track_prospects ? (
-                            overviewData.sellers_data.nb_prospects > 0 && (
-                              <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                                <span className="text-xs text-gray-600">🚶 Prospects</span>
-                                <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_prospects}</span>
-                              </div>
-                            )
-                          ) : (
-                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                              <span className="text-xs text-gray-600">🚶 Prospects</span>
+                          <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                            <span className="text-xs text-gray-600">🚶 Prospects</span>
+                            {overviewData.kpi_config?.seller_track_prospects ? (
+                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_prospects}</span>
+                            ) : (
                               <span className="text-sm text-gray-400 italic">N/A</span>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       ) : (
                         <p className="text-gray-500 text-xs italic">Aucun vendeur n'a saisi ses KPIs pour cette date</p>
