@@ -1207,6 +1207,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         <DailyChallengeModal
           challenge={dailyChallenge}
           onClose={() => setShowDailyChallengeModal(false)}
+          onOpenHistory={() => {
+            setShowDailyChallengeModal(false);
+            setShowChallengeHistoryModal(true);
+          }}
           onRefresh={(newChallenge) => {
             setDailyChallenge(newChallenge);
           }}
