@@ -512,11 +512,36 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                                 <td className="px-2 py-1.5 text-gray-800 font-medium">
                                   {entry.seller_name || `Vendeur ${idx + 1}`}
                                 </td>
-                                <td className="px-2 py-1.5 text-right text-gray-700">{entry.ca_journalier?.toFixed(2) || 0} €</td>
-                                <td className="px-2 py-1.5 text-right text-gray-700">{entry.nb_ventes || 0}</td>
-                                <td className="px-2 py-1.5 text-right text-gray-700">{entry.nb_clients || 0}</td>
-                                <td className="px-2 py-1.5 text-right text-gray-700">{entry.nb_articles || 0}</td>
-                                <td className="px-2 py-1.5 text-right text-gray-700">{entry.nb_prospects || 0}</td>
+                                <td className="px-2 py-1.5 text-right text-gray-700">
+                                  {overviewData.kpi_config?.seller_track_ca 
+                                    ? `${entry.ca_journalier?.toFixed(2) || 0} €`
+                                    : <span className="text-gray-400 italic">N/A</span>
+                                  }
+                                </td>
+                                <td className="px-2 py-1.5 text-right text-gray-700">
+                                  {overviewData.kpi_config?.seller_track_ventes 
+                                    ? (entry.nb_ventes || 0)
+                                    : <span className="text-gray-400 italic">N/A</span>
+                                  }
+                                </td>
+                                <td className="px-2 py-1.5 text-right text-gray-700">
+                                  {overviewData.kpi_config?.seller_track_clients 
+                                    ? (entry.nb_clients || 0)
+                                    : <span className="text-gray-400 italic">N/A</span>
+                                  }
+                                </td>
+                                <td className="px-2 py-1.5 text-right text-gray-700">
+                                  {overviewData.kpi_config?.seller_track_articles 
+                                    ? (entry.nb_articles || 0)
+                                    : <span className="text-gray-400 italic">N/A</span>
+                                  }
+                                </td>
+                                <td className="px-2 py-1.5 text-right text-gray-700">
+                                  {overviewData.kpi_config?.seller_track_prospects 
+                                    ? (entry.nb_prospects || 0)
+                                    : <span className="text-gray-400 italic">N/A</span>
+                                  }
+                                </td>
                               </tr>
                             ))}
                           </tbody>
