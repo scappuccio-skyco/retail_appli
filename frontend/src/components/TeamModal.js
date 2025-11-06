@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
 import axios from 'axios';
 import { X, Users, TrendingUp, Target, Award, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
