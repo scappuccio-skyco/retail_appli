@@ -46,7 +46,7 @@ async def fill_kpi_data():
     result = await db.kpi_entries.delete_many({"seller_id": {"$in": seller_ids}})
     print(f"\nDeleted {result.deleted_count} existing KPI entries")
     
-    # Generate KPI data for last 90 days
+    # Generate KPI data for last 365 days
     today = datetime.now(timezone.utc)
     entries_to_insert = []
     
@@ -57,7 +57,7 @@ async def fill_kpi_data():
         base_ca = random.uniform(800, 1500)  # Base daily CA
         base_ventes = random.randint(8, 15)  # Base daily sales
         
-        for day_offset in range(90):
+        for day_offset in range(365):
             date = (today - timedelta(days=day_offset)).strftime('%Y-%m-%d')
             
             # Add some randomness and trends
