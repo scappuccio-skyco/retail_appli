@@ -16,7 +16,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
   useEffect(() => {
     fetchTeamData();
-  }, [sellers]);
+  }, [sellers, periodFilter]);
 
   const fetchTeamData = async () => {
     setLoading(true);
