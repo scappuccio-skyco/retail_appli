@@ -16,41 +16,59 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
     
     setExportingPDF(true);
     try {
-      // Create an invisible clone for capture to avoid visual flash
-      const originalElement = contentRef.current;
-      const clone = originalElement.cloneNode(true);
+      // Create an invisible wrapper for full content capture
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'fixed';
+      wrapper.style.left = '-99999px';
+      wrapper.style.top = '0';
+      wrapper.style.width = '1200px';
+      wrapper.style.zIndex = '-9999';
+      wrapper.style.backgroundColor = '#ffffff';
       
-      // Style the clone to be invisible but rendered
-      clone.style.position = 'fixed';
-      clone.style.left = '-9999px';
-      clone.style.top = '0';
+      // Clone the content
+      const clone = contentRef.current.cloneNode(true);
+      
+      // Force all content to be visible
       clone.style.overflow = 'visible';
       clone.style.maxHeight = 'none';
-      clone.style.width = `${originalElement.offsetWidth}px`;
-      clone.style.zIndex = '-1';
+      clone.style.height = 'auto';
+      clone.style.display = 'block';
       
-      // Add clone to body
-      document.body.appendChild(clone);
+      // Remove any scroll containers inside
+      const scrollContainers = clone.querySelectorAll('[style*="overflow"]');
+      scrollContainers.forEach(el => {
+        el.style.overflow = 'visible';
+        el.style.maxHeight = 'none';
+      });
       
-      // Wait for layout and any images to load
-      await new Promise(resolve => setTimeout(resolve, 300));
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
       
-      // Capture the clone as canvas with higher quality
+      // Wait for full render - longer delay for complex content
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Get actual rendered height
+      const actualHeight = clone.scrollHeight;
+      console.log('Content height to capture:', actualHeight);
+      
+      // Capture with full height
       const canvas = await html2canvas(clone, {
-        scale: 2.5,
+        scale: 2,
         useCORS: true,
-        logging: false,
+        logging: true,
         backgroundColor: '#ffffff',
         scrollY: 0,
         scrollX: 0,
-        windowWidth: clone.scrollWidth,
-        windowHeight: clone.scrollHeight,
-        height: clone.scrollHeight,
-        width: clone.scrollWidth
+        width: 1200,
+        height: actualHeight,
+        windowWidth: 1200,
+        windowHeight: actualHeight
       });
       
-      // Remove the clone
-      document.body.removeChild(clone);
+      console.log('Canvas captured:', canvas.width, 'x', canvas.height);
+      
+      // Remove wrapper
+      document.body.removeChild(wrapper);
       
       const imgData = canvas.toDataURL('image/png', 1.0);
       const pdf = new jsPDF('p', 'mm', 'a4');
