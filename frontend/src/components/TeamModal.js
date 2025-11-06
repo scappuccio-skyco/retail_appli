@@ -305,8 +305,16 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
               {/* Sellers Table */}
               <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
                   <h3 className="text-sm font-bold text-gray-800">Détail par Vendeur</h3>
+                  <span className="text-xs text-gray-600">
+                    Performance sur {
+                      periodFilter === '7' ? '7 jours' :
+                      periodFilter === '30' ? '30 jours' :
+                      periodFilter === '90' ? '3 mois' :
+                      'l\'année'
+                    }
+                  </span>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
