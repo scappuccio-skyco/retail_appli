@@ -3531,17 +3531,30 @@ async def complete_daily_challenge(
 
 @api_router.post("/seller/daily-challenge/refresh")
 async def refresh_daily_challenge(current_user: dict = Depends(get_current_user)):
-    """Generate a new challenge for today (replace existing)"""
+    """Generate a new challenge for today"""
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can refresh challenges")
     
     today = datetime.now().strftime('%Y-%m-%d')
     
-    # Delete existing challenge for today
-    await db.daily_challenges.delete_many({
+    # Check if there's a completed challenge today
+    existing_completed = await db.daily_challenges.find_one({
         "seller_id": current_user['id'],
-        "date": today
+        "date": today,
+        "completed": True
     })
+    
+    if existing_completed:
+        # Keep the completed one, just generate a new challenge
+        # The get_daily_challenge will create a new one
+        pass
+    else:
+        # Delete uncompleted challenge for today (if any)
+        await db.daily_challenges.delete_many({
+            "seller_id": current_user['id'],
+            "date": today,
+            "completed": False
+        })
     
     # Generate new one
     return await get_daily_challenge(current_user)
