@@ -109,6 +109,47 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
     }
   };
 
+  const handleManagerKPISubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      const payload = {
+        date: managerKPIData.date
+      };
+      
+      // Ajouter seulement les KPIs activés côté manager
+      if (kpiConfig.manager_track_ca && managerKPIData.ca_journalier) {
+        payload.ca_journalier = parseFloat(managerKPIData.ca_journalier);
+      }
+      if (kpiConfig.manager_track_ventes && managerKPIData.nb_ventes) {
+        payload.nb_ventes = parseInt(managerKPIData.nb_ventes);
+      }
+      if (kpiConfig.manager_track_clients && managerKPIData.nb_clients) {
+        payload.nb_clients = parseInt(managerKPIData.nb_clients);
+      }
+      if (kpiConfig.manager_track_articles && managerKPIData.nb_articles) {
+        payload.nb_articles = parseInt(managerKPIData.nb_articles);
+      }
+
+      await axios.post(
+        `${API}/api/manager/manager-kpi`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success('KPI Manager enregistrés avec succès !');
+      onSuccess();
+      onClose();
+    } catch (err) {
+      console.error('Error saving manager KPI:', err);
+      toast.error('Erreur lors de l\'enregistrement');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl">
