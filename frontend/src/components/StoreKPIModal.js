@@ -569,9 +569,13 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h4 className="font-bold text-gray-800 text-xs">Chiffre d'Affaires</h4>
-                        {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) && (
-                          <span className="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-semibold">🛒 Panier Moyen</span>
-                        )}
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold transition-all ${
+                          ((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes))
+                            ? 'bg-green-100 text-green-700 opacity-100'
+                            : 'bg-transparent text-transparent opacity-0'
+                        }`}>
+                          🛒 Panier Moyen
+                        </span>
                       </div>
                       <p className="text-[9px] text-gray-600">CA quotidien en euros</p>
                     </div>
