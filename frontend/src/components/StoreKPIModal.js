@@ -499,9 +499,133 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
             <div className="space-y-6">
               <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200">
                 <p className="text-sm text-blue-800">
-                  💡 <strong>Configuration des KPI :</strong> Activez les KPI que les vendeurs devront remplir quotidiennement. 
-                  Ces données seront utilisées pour calculer les statistiques du magasin.
+                  💡 <strong>Configuration des KPI :</strong> Activez les KPI à suivre. Par défaut, les vendeurs remplissent leurs KPI quotidiennement. 
+                  Vous pouvez changer qui remplit les KPI ci-dessous.
                 </p>
+              </div>
+
+              {/* Who fills KPI - New option */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200">
+                <h3 className="text-base font-bold text-purple-900 mb-3 flex items-center gap-2">
+                  👤 Qui remplit les KPI ?
+                </h3>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleKPIConfigUpdate('filled_by', 'seller')}
+                    className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                      (kpiConfig.filled_by || 'seller') === 'seller'
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-md'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-1">🧑‍💼</div>
+                      <div className="font-bold">Les Vendeurs</div>
+                      <div className="text-xs opacity-90">Chaque vendeur remplit ses KPI</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleKPIConfigUpdate('filled_by', 'manager')}
+                    className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                      kpiConfig.filled_by === 'manager'
+                        ? 'bg-purple-600 text-white border-purple-600 shadow-md'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-1">👨‍💼</div>
+                      <div className="font-bold">Le Manager</div>
+                      <div className="text-xs opacity-90">Vous remplissez pour tous</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Calculated KPIs Section - MOVED TO TOP */}
+              <div className="bg-purple-50 rounded-xl p-4 border-2 border-purple-200">
+                <h3 className="text-sm font-bold text-purple-900 mb-2 flex items-center gap-2">
+                  🧮 KPI Calculés Automatiquement
+                </h3>
+                <p className="text-xs text-purple-700 mb-3">
+                  Ces indicateurs seront calculés à partir des KPI activés :
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {/* Panier Moyen */}
+                  {kpiConfig.track_ca && kpiConfig.track_ventes ? (
+                    <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-green-300">
+                      <span className="text-lg">✅</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-gray-800">🛒 Panier Moyen</p>
+                        <p className="text-[10px] text-gray-600">CA ÷ Ventes</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
+                      <span className="text-lg">⬜</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-gray-600">🛒 Panier Moyen</p>
+                        <p className="text-[10px] text-gray-500">Nécessite: CA + Ventes</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Taux de Transformation */}
+                  {kpiConfig.track_ventes && kpiConfig.track_clients ? (
+                    <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-green-300">
+                      <span className="text-lg">✅</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-gray-800">📈 Taux Transfo</p>
+                        <p className="text-[10px] text-gray-600">(Ventes ÷ Clients) × 100</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
+                      <span className="text-lg">⬜</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-gray-600">📈 Taux Transfo</p>
+                        <p className="text-[10px] text-gray-500">Nécessite: Ventes + Clients</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Indice de Vente */}
+                  {kpiConfig.track_ca && kpiConfig.track_ventes && kpiConfig.track_articles ? (
+                    <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-green-300">
+                      <span className="text-lg">✅</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-gray-800">🎯 Indice Vente</p>
+                        <p className="text-[10px] text-gray-600">Formule complexe</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
+                      <span className="text-lg">⬜</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-gray-600">🎯 Indice Vente</p>
+                        <p className="text-[10px] text-gray-500">Nécessite: CA + Ventes + Articles</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Articles par Vente */}
+                  {kpiConfig.track_articles && kpiConfig.track_ventes ? (
+                    <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-green-300">
+                      <span className="text-lg">✅</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-gray-800">📦 Articles/Vente</p>
+                        <p className="text-[10px] text-gray-600">Articles ÷ Ventes</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
+                      <span className="text-lg">⬜</span>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-gray-600">📦 Articles/Vente</p>
+                        <p className="text-[10px] text-gray-500">Nécessite: Articles + Ventes</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-4">
