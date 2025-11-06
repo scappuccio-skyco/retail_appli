@@ -261,6 +261,12 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         headers: { Authorization: `Bearer ${token}` }
       });
       setDailyChallenge(res.data);
+      
+      // Fetch challenge stats
+      const statsRes = await axios.get(`${API}/seller/daily-challenge/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setChallengeStats(statsRes.data);
     } catch (err) {
       console.error('Error fetching daily challenge:', err);
     }
