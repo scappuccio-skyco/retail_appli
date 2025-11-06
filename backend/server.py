@@ -440,6 +440,15 @@ class KPIConfigUpdate(BaseModel):
     track_ca: Optional[bool] = None
     track_ventes: Optional[bool] = None
     track_articles: Optional[bool] = None
+    # New fields for mutual exclusivity
+    seller_track_ca: Optional[bool] = None
+    manager_track_ca: Optional[bool] = None
+    seller_track_ventes: Optional[bool] = None
+    manager_track_ventes: Optional[bool] = None
+    seller_track_clients: Optional[bool] = None
+    manager_track_clients: Optional[bool] = None
+    seller_track_articles: Optional[bool] = None
+    manager_track_articles: Optional[bool] = None
 
 
 # ===== MANAGER OBJECTIVES MODELS =====
