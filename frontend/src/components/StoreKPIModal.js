@@ -51,6 +51,34 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
     }
   };
 
+  const handleAIAnalysis = async () => {
+    if (!overviewData) {
+      toast.error('Aucune donnée à analyser');
+      return;
+    }
+
+    setLoadingAnalysis(true);
+    setShowAnalysis(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(
+        `${API}/api/manager/analyze-store-kpis`,
+        { kpi_data: overviewData },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setAiAnalysis(res.data.analysis);
+      toast.success('Analyse IA générée avec succès !');
+    } catch (err) {
+      console.error('Error generating AI analysis:', err);
+      toast.error('Erreur lors de la génération de l\'analyse IA');
+      setShowAnalysis(false);
+    } finally {
+      setLoadingAnalysis(false);
+    }
+  };
+
   useEffect(() => {
     fetchKPIConfig();
   }, []);
