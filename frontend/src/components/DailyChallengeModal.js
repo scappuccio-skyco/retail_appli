@@ -88,6 +88,11 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
       // Show success message
       toast.success(messages[result] || '✅ Feedback enregistré !');
       
+      // Trigger confetti ONLY for successful completion
+      if (result === 'success') {
+        triggerConfetti();
+      }
+      
       // Update challenge state to show completion
       if (onComplete) {
         onComplete(res.data);
