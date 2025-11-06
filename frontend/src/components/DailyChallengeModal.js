@@ -35,12 +35,19 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
         partial: '💪 Bon effort ! Continue comme ça !',
         failed: '🤔 Pas grave ! On réessaie demain !'
       };
+      
+      // Show success message
       toast.success(messages[result] || '✅ Feedback enregistré !');
       
+      // Update challenge state to show completion
       if (onComplete) {
         onComplete(res.data);
       }
-      onClose();
+      
+      // Close after a short delay to let user see the success message
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } catch (err) {
       console.error('Error completing challenge:', err);
       toast.error('Erreur lors de la validation');
