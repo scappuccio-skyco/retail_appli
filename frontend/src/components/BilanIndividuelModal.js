@@ -16,32 +16,41 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
     
     setExportingPDF(true);
     try {
-      // Temporarily expand content to full height for capture
-      const originalOverflow = contentRef.current.style.overflow;
-      const originalMaxHeight = contentRef.current.style.maxHeight;
-      contentRef.current.style.overflow = 'visible';
-      contentRef.current.style.maxHeight = 'none';
+      // Create an invisible clone for capture to avoid visual flash
+      const originalElement = contentRef.current;
+      const clone = originalElement.cloneNode(true);
       
-      // Wait for layout to settle
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Style the clone to be invisible but rendered
+      clone.style.position = 'fixed';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.overflow = 'visible';
+      clone.style.maxHeight = 'none';
+      clone.style.width = `${originalElement.offsetWidth}px`;
+      clone.style.zIndex = '-1';
       
-      // Capture the content as canvas with higher quality
-      const canvas = await html2canvas(contentRef.current, {
-        scale: 2.5, // Good balance between quality and file size
+      // Add clone to body
+      document.body.appendChild(clone);
+      
+      // Wait for layout and any images to load
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Capture the clone as canvas with higher quality
+      const canvas = await html2canvas(clone, {
+        scale: 2.5,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        scrollY: -window.scrollY,
-        scrollX: -window.scrollX,
-        windowWidth: contentRef.current.scrollWidth,
-        windowHeight: contentRef.current.scrollHeight,
-        height: contentRef.current.scrollHeight,
-        width: contentRef.current.scrollWidth
+        scrollY: 0,
+        scrollX: 0,
+        windowWidth: clone.scrollWidth,
+        windowHeight: clone.scrollHeight,
+        height: clone.scrollHeight,
+        width: clone.scrollWidth
       });
       
-      // Restore original styles
-      contentRef.current.style.overflow = originalOverflow;
-      contentRef.current.style.maxHeight = originalMaxHeight;
+      // Remove the clone
+      document.body.removeChild(clone);
       
       const imgData = canvas.toDataURL('image/png', 1.0);
       const pdf = new jsPDF('p', 'mm', 'a4');
