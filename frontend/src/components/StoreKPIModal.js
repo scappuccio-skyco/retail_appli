@@ -261,28 +261,52 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                 <div className="space-y-4">
                   {/* Summary cards */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
-                      <div className="text-xs text-blue-700 font-semibold mb-0.5">👥 Vendeurs</div>
-                      <div className="text-2xl font-bold text-blue-900">
-                        {overviewData.sellers_reported} / {overviewData.total_sellers}
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
+                      <div className="text-xs text-green-700 font-semibold mb-0.5">💰 Panier Moyen</div>
+                      <div className="text-2xl font-bold text-green-900">
+                        {overviewData.calculated_kpis?.panier_moyen !== null 
+                          ? `${overviewData.calculated_kpis.panier_moyen} €`
+                          : 'N/A'
+                        }
                       </div>
-                      <div className="text-xs text-blue-600 mt-0.5">ont saisi leurs KPIs</div>
+                      <div className="text-xs text-green-600 mt-0.5">
+                        {overviewData.calculated_kpis?.panier_moyen !== null 
+                          ? 'CA / Ventes'
+                          : 'Données manquantes'
+                        }
+                      </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
-                      <div className="text-xs text-green-700 font-semibold mb-0.5">💰 CA Total</div>
-                      <div className="text-2xl font-bold text-green-900">
-                        {((overviewData.manager_data?.ca_journalier || 0) + overviewData.sellers_data.ca_journalier).toFixed(2)} €
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
+                      <div className="text-xs text-blue-700 font-semibold mb-0.5">📈 Taux de Transformation</div>
+                      <div className="text-2xl font-bold text-blue-900">
+                        {overviewData.calculated_kpis?.taux_transformation !== null 
+                          ? `${overviewData.calculated_kpis.taux_transformation} %`
+                          : 'N/A'
+                        }
                       </div>
-                      <div className="text-xs text-green-600 mt-0.5">Manager + Vendeurs</div>
+                      <div className="text-xs text-blue-600 mt-0.5">
+                        {overviewData.calculated_kpis?.taux_transformation !== null 
+                          ? 'Ventes / Prospects'
+                          : 'Données manquantes'
+                        }
+                      </div>
                     </div>
 
                     <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
-                      <div className="text-xs text-purple-700 font-semibold mb-0.5">🛍️ Ventes Totales</div>
+                      <div className="text-xs text-purple-700 font-semibold mb-0.5">📦 Indice de Vente (UPT)</div>
                       <div className="text-2xl font-bold text-purple-900">
-                        {(overviewData.manager_data?.nb_ventes || 0) + overviewData.sellers_data.nb_ventes}
+                        {overviewData.calculated_kpis?.indice_vente !== null 
+                          ? overviewData.calculated_kpis.indice_vente
+                          : 'N/A'
+                        }
                       </div>
-                      <div className="text-xs text-purple-600 mt-0.5">Manager + Vendeurs</div>
+                      <div className="text-xs text-purple-600 mt-0.5">
+                        {overviewData.calculated_kpis?.indice_vente !== null 
+                          ? 'Articles / Ventes'
+                          : 'Données manquantes'
+                        }
+                      </div>
                     </div>
                   </div>
 
