@@ -349,6 +349,59 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                     </div>
                   </div>
 
+                  {/* AI Analysis Button */}
+                  <div className="flex justify-center">
+                    <button
+                      onClick={handleAIAnalysis}
+                      disabled={loadingAnalysis || !overviewData}
+                      className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {loadingAnalysis ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Analyse en cours...
+                        </>
+                      ) : (
+                        <>
+                          <span>🤖</span> Lancer l'Analyse IA
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* AI Analysis Result Section */}
+                  {showAnalysis && (
+                    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-4 border-2 border-indigo-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-bold text-indigo-900 flex items-center gap-2">
+                          <span>🤖</span> Analyse IA des Performances
+                        </h3>
+                        <button
+                          onClick={() => setShowAnalysis(false)}
+                          className="text-gray-500 hover:text-gray-700 text-xl"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      {loadingAnalysis ? (
+                        <div className="flex items-center justify-center py-8">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                          <span className="ml-3 text-indigo-700">Génération de l'analyse...</span>
+                        </div>
+                      ) : aiAnalysis ? (
+                        <div className="prose prose-sm max-w-none">
+                          <div 
+                            className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap"
+                            dangerouslySetInnerHTML={{ __html: aiAnalysis.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }}
+                          />
+                        </div>
+                      ) : (
+                        <p className="text-gray-600 text-sm italic">Aucune analyse disponible</p>
+                      )}
+                    </div>
+                  )}
+
                   {/* Detailed comparison */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Manager data */}
