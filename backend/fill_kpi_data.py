@@ -93,7 +93,7 @@ async def fill_kpi_data():
             
             entries_to_insert.append(entry)
         
-        print(f"  Generated {90} entries for {seller['name']}")
+        print(f"  Generated {365} entries for {seller['name']}")
     
     # Insert all entries
     if entries_to_insert:
