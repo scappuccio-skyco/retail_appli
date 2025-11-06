@@ -12,8 +12,17 @@ load_dotenv()
 MONGO_URL = os.environ.get('MONGO_URL')
 
 async def fill_kpi_data():
+    print(f"Connecting to MongoDB: {MONGO_URL}")
     client = AsyncIOMotorClient(MONGO_URL)
     db = client['retail_coach']
+    
+    # Test connection
+    try:
+        await client.admin.command('ping')
+        print("✅ MongoDB connection successful")
+    except Exception as e:
+        print(f"❌ MongoDB connection failed: {e}")
+        return
     
     # Get manager
     manager = await db.users.find_one({"email": "manager@demo.com"}, {"_id": 0})
