@@ -321,9 +321,11 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
                         <th className="px-4 py-3 text-left font-semibold text-gray-700">Vendeur</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">CA Mois</th>
+                        <th className="px-4 py-3 text-right font-semibold text-gray-700">
+                          CA {periodFilter === '7' ? '7j' : periodFilter === '30' ? '30j' : periodFilter === '90' ? '3m' : 'An'}
+                        </th>
                         <th className="px-4 py-3 text-right font-semibold text-gray-700">Ventes</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">Panier Moyen</th>
+                        <th className="px-4 py-3 text-right font-semibold text-gray-700">Panier Moy.</th>
                         <th className="px-4 py-3 text-center font-semibold text-gray-700">Compétences</th>
                         <th className="px-4 py-3 text-left font-semibold text-gray-700">Point Fort</th>
                         <th className="px-4 py-3 text-left font-semibold text-gray-700">À Améliorer</th>
