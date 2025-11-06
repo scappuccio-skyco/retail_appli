@@ -323,6 +323,33 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                     </div>
                   </div>
                 </div>
+
+                <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-gray-800">🚶 Nombre de Prospects</h4>
+                      <p className="text-sm text-gray-600">Entrées magasin</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleKPIUpdate('seller_track_prospects', !kpiConfig.seller_track_prospects)}
+                        className={`w-12 h-8 rounded font-bold text-xs ${
+                          kpiConfig.seller_track_prospects ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        🧑‍💼
+                      </button>
+                      <button
+                        onClick={() => handleKPIUpdate('manager_track_prospects', !kpiConfig.manager_track_prospects)}
+                        className={`w-12 h-8 rounded font-bold text-xs ${
+                          kpiConfig.manager_track_prospects ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        👨‍💼
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="bg-green-50 rounded-xl p-3 border-2 border-green-200">
