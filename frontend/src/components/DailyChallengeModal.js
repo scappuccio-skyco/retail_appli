@@ -161,6 +161,13 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
           
           {/* Action buttons in header */}
           <div className="flex gap-2">
+            <button
+              onClick={onOpenHistory}
+              className="flex-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2"
+            >
+              <MessageSquare className="w-4 h-4" />
+              📜 Historique
+            </button>
             {challenge.completed ? (
               <button
                 onClick={handleRefresh}
@@ -174,7 +181,7 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
               <button
                 onClick={handleRefresh}
                 disabled={loading}
-                className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
+                className="flex-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-semibold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 Relancer
