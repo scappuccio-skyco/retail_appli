@@ -37,6 +37,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
     setShowAIAnalysis(false);
     setAiAnalysis(null);
     setLoadingAI(false);
+    setAnalysisKey(prev => prev + 1); // Force remount on next analysis
     
     try {
       const token = localStorage.getItem('token');
