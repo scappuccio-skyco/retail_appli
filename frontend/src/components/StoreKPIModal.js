@@ -50,7 +50,23 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
       
       // Fetch KPI config first
       const configRes = await axios.get(`${API}/api/manager/kpi-config`, { headers });
-      setKpiConfig(configRes.data || {});
+      let kpiConfigData = configRes.data || {};
+      
+      // Initialiser les KPI vendeurs par défaut s'ils ne sont pas définis
+      if (!kpiConfigData.seller_track_ca && !kpiConfigData.manager_track_ca) {
+        kpiConfigData.seller_track_ca = true;
+      }
+      if (!kpiConfigData.seller_track_ventes && !kpiConfigData.manager_track_ventes) {
+        kpiConfigData.seller_track_ventes = true;
+      }
+      if (!kpiConfigData.seller_track_clients && !kpiConfigData.manager_track_clients) {
+        kpiConfigData.seller_track_clients = true;
+      }
+      if (!kpiConfigData.seller_track_articles && !kpiConfigData.manager_track_articles) {
+        kpiConfigData.seller_track_articles = true;
+      }
+      
+      setKpiConfig(kpiConfigData);
       
       // Fetch store stats
       const statsRes = await axios.get(`${API}/api/manager/store-kpi/stats?start_date=${startDate}&end_date=${endDate}`, { headers });
