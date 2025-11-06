@@ -1040,7 +1040,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         {dashboardFilters.showCompetences && dailyChallenge && (
           <div 
             onClick={() => setShowDailyChallengeModal(true)}
-            className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
+            className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 ${
+              dailyChallenge.completed 
+                ? 'border-green-400 ring-4 ring-green-200 animate-pulse' 
+                : 'border-transparent hover:border-[#ffd871]'
+            }`}
           >
             <div className="relative h-48 overflow-hidden">
               <img 
@@ -1048,15 +1052,27 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 alt="Mon Coach IA"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-900/70 to-red-900/70 group-hover:from-orange-900/60 group-hover:to-red-900/60 transition-all"></div>
+              <div className={`absolute inset-0 transition-all ${
+                dailyChallenge.completed
+                  ? 'bg-gradient-to-r from-green-900/70 to-emerald-900/70 group-hover:from-green-900/60 group-hover:to-emerald-900/60'
+                  : 'bg-gradient-to-r from-orange-900/70 to-red-900/70 group-hover:from-orange-900/60 group-hover:to-red-900/60'
+              }`}></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center text-white">
-                  <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
-                    <Award className="w-8 h-8" />
+                <div className="text-center text-white px-4">
+                  <div className={`w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm ${
+                    dailyChallenge.completed ? 'animate-bounce' : ''
+                  }`}>
+                    {dailyChallenge.completed ? (
+                      <span className="text-4xl">✅</span>
+                    ) : (
+                      <Award className="w-8 h-8" />
+                    )}
                   </div>
-                  <h2 className="text-2xl font-bold">🤖 Mon Coach IA</h2>
+                  <h2 className="text-2xl font-bold">
+                    {dailyChallenge.completed ? '🎉 Défi Complété !' : '🤖 Mon Coach IA'}
+                  </h2>
                   <p className="text-sm mt-2 opacity-90">
-                    {dailyChallenge.completed ? '✅ Challenge relevé !' : 'Prêt à relever une mission ?'}
+                    {dailyChallenge.completed ? 'Bravo ! Reviens demain pour un nouveau défi' : 'Prêt à relever une mission ?'}
                   </p>
                 </div>
               </div>
