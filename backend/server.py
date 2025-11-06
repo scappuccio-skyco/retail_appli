@@ -4000,11 +4000,13 @@ async def get_seller_kpi_config(current_user: dict = Depends(get_current_user)):
     # Get seller's manager_id
     user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
     if not user or not user.get('manager_id'):
-        # No manager, return default config (all enabled)
+        # No manager, return default config (all enabled for seller)
         return {
             "track_ca": True,
             "track_ventes": True,
-            "track_articles": True
+            "track_clients": True,
+            "track_articles": True,
+            "track_prospects": True
         }
     
     manager_id = user['manager_id']
