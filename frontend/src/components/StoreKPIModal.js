@@ -643,89 +643,89 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="bg-white rounded-xl p-6 border-2 border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-gray-800 text-lg">💰 Chiffre d'Affaires</h4>
-                      <p className="text-sm text-gray-600">Les vendeurs saisissent leur CA quotidien</p>
-                    </div>
-                    <button
-                      onClick={() => handleKPIConfigUpdate('track_ca', !kpiConfig.track_ca)}
-                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                        kpiConfig.track_ca ? 'bg-green-500' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                          kpiConfig.track_ca ? 'translate-x-7' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-white rounded-lg p-3 border-2 border-gray-200 hover:border-green-300 transition-all">
+                  <div className="text-center mb-2">
+                    <div className="text-2xl mb-1">💰</div>
+                    <h4 className="font-bold text-gray-800 text-sm">Chiffre d'Affaires</h4>
+                    <p className="text-[10px] text-gray-600 mt-1">Les vendeurs saisissent leur CA quotidien</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleKPIConfigUpdate('track_ca', !kpiConfig.track_ca)}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors mx-auto block ${
+                      kpiConfig.track_ca ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        kpiConfig.track_ca ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
                 </div>
 
-                <div className="bg-white rounded-xl p-6 border-2 border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-gray-800 text-lg">🛍️ Nombre de Ventes</h4>
-                      <p className="text-sm text-gray-600">Les vendeurs saisissent leur nombre de ventes</p>
-                    </div>
-                    <button
-                      onClick={() => handleKPIConfigUpdate('track_ventes', !kpiConfig.track_ventes)}
-                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                        kpiConfig.track_ventes ? 'bg-green-500' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                          kpiConfig.track_ventes ? 'translate-x-7' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
+                <div className="bg-white rounded-lg p-3 border-2 border-gray-200 hover:border-green-300 transition-all">
+                  <div className="text-center mb-2">
+                    <div className="text-2xl mb-1">🛍️</div>
+                    <h4 className="font-bold text-gray-800 text-sm">Nombre de Ventes</h4>
+                    <p className="text-[10px] text-gray-600 mt-1">Les vendeurs saisissent leur nombre de ventes</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleKPIConfigUpdate('track_ventes', !kpiConfig.track_ventes)}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors mx-auto block ${
+                      kpiConfig.track_ventes ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        kpiConfig.track_ventes ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
                 </div>
 
-                <div className="bg-white rounded-xl p-6 border-2 border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-gray-800 text-lg">👥 Nombre de Clients</h4>
-                      <p className="text-sm text-gray-600">Les vendeurs saisissent leur nombre de clients servis</p>
-                    </div>
-                    <button
-                      onClick={() => handleKPIConfigUpdate('track_clients', !kpiConfig.track_clients)}
-                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                        kpiConfig.track_clients ? 'bg-green-500' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                          kpiConfig.track_clients ? 'translate-x-7' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
+                <div className="bg-white rounded-lg p-3 border-2 border-gray-200 hover:border-purple-300 transition-all">
+                  <div className="text-center mb-2">
+                    <div className="text-2xl mb-1">👥</div>
+                    <h4 className="font-bold text-gray-800 text-sm">Nombre de Clients</h4>
+                    <p className="text-[10px] text-gray-600 mt-1">Les vendeurs saisissent leur nombre de clients servis</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleKPIConfigUpdate('track_clients', !kpiConfig.track_clients)}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors mx-auto block ${
+                      kpiConfig.track_clients ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        kpiConfig.track_clients ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
                 </div>
 
-                <div className="bg-white rounded-xl p-6 border-2 border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-gray-800 text-lg">📦 Nombre d'Articles</h4>
-                      <p className="text-sm text-gray-600">Les vendeurs saisissent leur nombre d'articles vendus</p>
-                    </div>
-                    <button
-                      onClick={() => handleKPIConfigUpdate('track_articles', !kpiConfig.track_articles)}
-                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                        kpiConfig.track_articles ? 'bg-green-500' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                          kpiConfig.track_articles ? 'translate-x-7' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
+                <div className="bg-white rounded-lg p-3 border-2 border-gray-200 hover:border-orange-300 transition-all">
+                  <div className="text-center mb-2">
+                    <div className="text-2xl mb-1">📦</div>
+                    <h4 className="font-bold text-gray-800 text-sm">Nombre d'Articles</h4>
+                    <p className="text-[10px] text-gray-600 mt-1">Les vendeurs saisissent leur nombre d'articles vendus</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleKPIConfigUpdate('track_articles', !kpiConfig.track_articles)}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors mx-auto block ${
+                      kpiConfig.track_articles ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        kpiConfig.track_articles ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
                 </div>
               </div>
 
