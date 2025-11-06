@@ -106,11 +106,16 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
       const ratio = contentWidth / imgWidth;
       const contentHeight = imgHeight * ratio;
       
+      console.log('PDF dimensions:', { contentWidth, contentHeight, pdfHeight });
+      
       // Calculate how many pages we need
-      const headerHeight = 35;
-      const footerHeight = 10;
+      const headerHeight = 30;
+      const footerHeight = 8;
       const firstPageAvailable = pdfHeight - headerHeight - footerHeight;
       const otherPagesAvailable = pdfHeight - (2 * margin) - footerHeight;
+      
+      const estimatedPages = Math.ceil((contentHeight - firstPageAvailable) / otherPagesAvailable) + 1;
+      console.log('Estimated pages needed:', estimatedPages);
       
       if (contentHeight <= firstPageAvailable) {
         // Single page - all content fits
