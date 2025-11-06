@@ -50,6 +50,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
         if (!config.seller_track_ventes && !config.manager_track_ventes) config.seller_track_ventes = true;
         if (!config.seller_track_clients && !config.manager_track_clients) config.seller_track_clients = true;
         if (!config.seller_track_articles && !config.manager_track_articles) config.seller_track_articles = true;
+        if (!config.seller_track_prospects && !config.manager_track_prospects) config.seller_track_prospects = true;
         setKpiConfig(config);
       }
     } catch (err) {
