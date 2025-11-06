@@ -6,7 +6,9 @@ import { toast } from 'sonner';
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }) {
-  const [activeTab, setActiveTab] = useState('config');
+  const [activeTab, setActiveTab] = useState('overview');
+  const [overviewData, setOverviewData] = useState(null);
+  const [overviewDate, setOverviewDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
   const [formData, setFormData] = useState({
     date: initialDate || new Date().toISOString().split('T')[0],
     nb_prospects: ''
