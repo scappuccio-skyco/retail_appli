@@ -3425,6 +3425,120 @@ async def get_manager_kpis(
     kpis = await db.manager_kpis.find(query, {"_id": 0}).sort("date", -1).to_list(1000)
     return kpis
 
+@api_router.post("/manager/analyze-store-kpis")
+async def analyze_store_kpis(
+    request_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Analyze store KPIs using AI"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access this endpoint")
+    
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from dotenv import load_dotenv
+        load_dotenv()
+        
+        # Get KPI data from request
+        kpi_data = request_data.get("kpi_data", {})
+        date = kpi_data.get("date", "")
+        
+        # Prepare context for AI analysis
+        context = f"""
+Tu es un expert en analyse retail. Voici les KPIs du magasin pour le {date} :
+
+**Vendeurs ayant saisi leurs données :** {kpi_data.get('sellers_reported', 0)} sur {kpi_data.get('total_sellers', 0)}
+
+**KPIs Calculés :**
+- Panier Moyen : {kpi_data.get('calculated_kpis', {}).get('panier_moyen', 'N/A')} €
+- Taux de Transformation : {kpi_data.get('calculated_kpis', {}).get('taux_transformation', 'N/A')} %
+- Indice de Vente (UPT) : {kpi_data.get('calculated_kpis', {}).get('indice_vente', 'N/A')}
+
+**Totaux Magasin :**
+- CA Total : {kpi_data.get('totals', {}).get('ca', 0)} €
+- Ventes : {kpi_data.get('totals', {}).get('ventes', 0)}
+- Clients : {kpi_data.get('totals', {}).get('clients', 0)}
+- Articles : {kpi_data.get('totals', {}).get('articles', 0)}
+- Prospects : {kpi_data.get('totals', {}).get('prospects', 0)}
+
+**Données Manager :**
+{format_kpi_data(kpi_data.get('manager_data', {}))}
+
+**Données Vendeurs (agrégées) :**
+{format_seller_data(kpi_data.get('sellers_data', {}))}
+
+Fournis une analyse structurée en 2 parties :
+
+1. **ANALYSE GÉNÉRALE** (3-4 points) :
+   - Points forts observés
+   - Points faibles ou zones d'attention
+   - Tendances remarquables
+
+2. **RECOMMANDATIONS D'ACTIONS** (3-4 actions concrètes) :
+   - Actions immédiates à prendre
+   - Axes d'amélioration prioritaires
+   - Conseils pour optimiser les performances
+
+Format ta réponse en Markdown pour une bonne lisibilité.
+"""
+        
+        # Initialize AI chat
+        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"kpi-analysis-{current_user['id']}-{date}",
+            system_message="Tu es un expert en analyse de performance retail avec 15 ans d'expérience."
+        ).with_model("openai", "gpt-4o")
+        
+        # Send message and get analysis
+        user_message = UserMessage(text=context)
+        response = await chat.send_message(user_message)
+        
+        return {
+            "analysis": response,
+            "date": date,
+            "generated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        print(f"Error in AI analysis: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'analyse IA: {str(e)}")
+
+def format_kpi_data(data):
+    """Format manager KPI data for AI context"""
+    if not data or len(data) == 0:
+        return "Aucune donnée saisie"
+    
+    lines = []
+    if data.get('ca_journalier'):
+        lines.append(f"- CA : {data['ca_journalier']} €")
+    if data.get('nb_ventes'):
+        lines.append(f"- Ventes : {data['nb_ventes']}")
+    if data.get('nb_clients'):
+        lines.append(f"- Clients : {data['nb_clients']}")
+    if data.get('nb_articles'):
+        lines.append(f"- Articles : {data['nb_articles']}")
+    if data.get('nb_prospects'):
+        lines.append(f"- Prospects : {data['nb_prospects']}")
+    
+    return "\n".join(lines) if lines else "Aucune donnée"
+
+def format_seller_data(data):
+    """Format seller aggregated data for AI context"""
+    if not data or data.get('nb_sellers_reported', 0) == 0:
+        return "Aucun vendeur n'a saisi ses données"
+    
+    lines = [
+        f"- CA : {data.get('ca_journalier', 0)} €",
+        f"- Ventes : {data.get('nb_ventes', 0)}",
+        f"- Clients : {data.get('nb_clients', 0)}",
+        f"- Articles : {data.get('nb_articles', 0)}",
+        f"- Prospects : {data.get('nb_prospects', 0)}",
+        f"- Vendeurs ayant saisi : {data.get('nb_sellers_reported', 0)}"
+    ]
+    
+    return "\n".join(lines)
+
 @api_router.get("/manager/store-kpi-overview")
 async def get_store_kpi_overview(
     date: str = None,
