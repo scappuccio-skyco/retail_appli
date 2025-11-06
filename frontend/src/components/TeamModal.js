@@ -13,6 +13,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
   const [periodFilter, setPeriodFilter] = useState('30'); // '7', '30', '90', 'all'
+  const [analysisKey, setAnalysisKey] = useState(0); // Force remount of analysis component
 
   useEffect(() => {
     console.log(`[TeamModal] 🔄 useEffect TRIGGERED - periodFilter changed to: ${periodFilter}`);
