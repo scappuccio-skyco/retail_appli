@@ -2047,7 +2047,9 @@ async def create_kpi_entry(entry_data: KPIEntryCreate, current_user: dict = Depe
     raw_data = {
         "ca_journalier": entry_data.ca_journalier,
         "nb_ventes": entry_data.nb_ventes,
-        "nb_articles": entry_data.nb_articles
+        "nb_clients": entry_data.nb_clients,
+        "nb_articles": entry_data.nb_articles,
+        "nb_prospects": entry_data.nb_prospects
     }
     calculated = calculate_kpis(raw_data)
     
