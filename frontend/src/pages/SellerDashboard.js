@@ -831,8 +831,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   }`}
                 >
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">📝</span>
-                    <span className="text-xs font-semibold">Débriefs</span>
+                    <span className="text-xl">📊</span>
+                    <span className="text-xs font-semibold">Analyse de vente</span>
                   </div>
                 </button>
               </div>
