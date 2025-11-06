@@ -3620,6 +3620,9 @@ async def get_store_kpi_overview(
         "indice_vente": round(total_articles / total_ventes, 2) if total_ventes > 0 else None
     }
     
+    # Get KPI configuration to know what sellers can track
+    kpi_config = await db.kpi_configs.find_one({"manager_id": current_user['id']}, {"_id": 0})
+    
     return {
         "date": date,
         "manager_data": manager_kpi or {},
@@ -3635,6 +3638,13 @@ async def get_store_kpi_overview(
             "clients": total_clients,
             "articles": total_articles,
             "prospects": total_prospects
+        },
+        "kpi_config": {
+            "seller_track_ca": kpi_config.get("seller_track_ca", True) if kpi_config else True,
+            "seller_track_ventes": kpi_config.get("seller_track_ventes", True) if kpi_config else True,
+            "seller_track_clients": kpi_config.get("seller_track_clients", True) if kpi_config else True,
+            "seller_track_articles": kpi_config.get("seller_track_articles", True) if kpi_config else True,
+            "seller_track_prospects": kpi_config.get("seller_track_prospects", True) if kpi_config else True
         }
     }
 
