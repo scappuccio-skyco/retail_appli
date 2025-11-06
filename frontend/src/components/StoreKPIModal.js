@@ -27,7 +27,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
     seller_track_clients: true,
     manager_track_clients: false,
     seller_track_articles: true,
-    manager_track_articles: false
+    manager_track_articles: false,
+    seller_track_prospects: true,
+    manager_track_prospects: false
   });
 
   useEffect(() => {
