@@ -479,57 +479,39 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   </form>
                 </>
               ) : (
-                // Formulaire Prospects (par défaut)
-                <>
-                  <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200 mb-6">
-                    <p className="text-sm text-blue-800">
-                      💡 <strong>Saisie des Prospects :</strong> Nombre de personnes entrées dans le magasin.
-                    </p>
+                // Message d'instruction quand aucun KPI manager n'est activé
+                <div className="flex flex-col items-center justify-center py-12 px-6">
+                  <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-8 border-2 border-yellow-200 max-w-lg">
+                    <div className="text-center mb-6">
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-yellow-100 rounded-full mb-4">
+                        <span className="text-5xl">📋</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">Aucun KPI à saisir</h3>
+                      <p className="text-gray-700 leading-relaxed">
+                        Vous n'avez activé aucun KPI pour la saisie Manager.
+                      </p>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg p-4 border-2 border-yellow-300 mb-4">
+                      <p className="text-sm text-gray-700 mb-3">
+                        💡 <strong>Pour commencer la saisie :</strong>
+                      </p>
+                      <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
+                        <li>Rendez-vous dans l'onglet <strong className="text-purple-700">⚙️ Configuration KPI</strong></li>
+                        <li>Activez les KPIs que vous souhaitez remplir en tant que Manager (bouton violet 👨‍💼)</li>
+                        <li>Revenez dans cet onglet pour saisir vos données</li>
+                      </ol>
+                    </div>
+                    
+                    <button
+                      onClick={() => setActiveTab('config')}
+                      className="w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                    >
+                      <span>⚙️</span>
+                      Aller à la Configuration KPI
+                    </button>
                   </div>
-
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">📅 Date</label>
-                      <input
-                        type="date"
-                        required
-                        value={formData.date}
-                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                        className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">👥 Nombre de Prospects</label>
-                      <input
-                        type="number"
-                        required
-                        min="0"
-                        value={formData.nb_prospects}
-                        onChange={(e) => setFormData({ ...formData, nb_prospects: e.target.value })}
-                        className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-                        placeholder="Ex: 150"
-                      />
-                    </div>
-
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={onClose}
-                        className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
-                      >
-                        Annuler
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
-                      >
-                        {loading ? 'Enregistrement...' : '💾 Enregistrer'}
-                      </button>
-                    </div>
-                  </form>
-                </>
+                </div>
               )}
             </div>
           )}
