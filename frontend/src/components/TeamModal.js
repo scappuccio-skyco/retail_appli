@@ -136,8 +136,11 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
   const handleAIAnalysis = async () => {
     console.log('[TeamModal] 🤖 Starting AI analysis...');
+    
+    // Force remount by incrementing key
+    setAnalysisKey(prev => prev + 1);
     setLoadingAI(true);
-    setShowAIAnalysis(true); // Show container immediately like StoreKPIModal
+    setShowAIAnalysis(true);
 
     try {
       const token = localStorage.getItem('token');
