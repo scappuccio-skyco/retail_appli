@@ -155,7 +155,6 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
       console.log('[TeamModal] 📊 Analysis length:', res.data.analysis?.length || 0);
       
       setAiAnalysis(res.data.analysis);
-      setShowAIAnalysis(true); // Show modal after receiving results
       toast.success('Analyse IA générée !');
     } catch (err) {
       console.error('[TeamModal] ❌ Error generating AI analysis:', err);
