@@ -3462,7 +3462,7 @@ Les 3 exemples doivent être :
             title=challenge_data['title'],
             description=challenge_data['description'],
             pedagogical_tip=challenge_data['pedagogical_tip'],
-            example=challenge_data.get('example', None),
+            examples=challenge_data.get('examples', []),
             reason=challenge_data['reason']
         )
         
