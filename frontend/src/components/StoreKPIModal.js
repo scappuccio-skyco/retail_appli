@@ -198,6 +198,16 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
         <div className="border-b border-gray-200 bg-gray-50">
           <div className="flex gap-1 px-6">
             <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-6 py-3 font-semibold transition-all ${
+                activeTab === 'overview'
+                  ? 'border-b-3 border-purple-600 text-purple-700 bg-white'
+                  : 'text-gray-600 hover:text-purple-600'
+              }`}
+            >
+              📊 Vue d'ensemble
+            </button>
+            <button
               onClick={() => setActiveTab('config')}
               className={`px-6 py-3 font-semibold transition-all ${
                 activeTab === 'config'
