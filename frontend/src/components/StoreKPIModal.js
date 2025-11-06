@@ -446,6 +446,21 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                           />
                         </div>
                       )}
+
+                      {kpiConfig.manager_track_prospects && (
+                        <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">🚶 Nombre de Prospects</label>
+                          <input
+                            type="number"
+                            min="0"
+                            required
+                            value={managerKPIData.nb_prospects}
+                            onChange={(e) => setManagerKPIData({ ...managerKPIData, nb_prospects: e.target.value })}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                            placeholder="Ex: 150"
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex gap-3">
