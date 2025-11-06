@@ -31,12 +31,6 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
     setLoading(true);
     setTeamData([]); // Clear existing data to force refresh
     
-    // Reset AI analysis state when fetching new data
-    setShowAIAnalysis(false);
-    setAiAnalysis(null);
-    setLoadingAI(false);
-    setAnalysisKey(prev => prev + 1); // Force remount on next analysis
-    
     try {
       const token = localStorage.getItem('token');
       
