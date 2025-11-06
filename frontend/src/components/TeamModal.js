@@ -26,9 +26,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
       // Fetch data for each seller
       const sellersDataPromises = sellers.map(async (seller) => {
         try {
+          const daysParam = periodFilter === 'all' ? '365' : periodFilter;
           const [statsRes, kpiRes] = await Promise.all([
             axios.get(`${API}/manager/seller/${seller.id}/stats`, { headers: { Authorization: `Bearer ${token}` } }),
-            axios.get(`${API}/manager/kpi-entries/${seller.id}?days=30`, { headers: { Authorization: `Bearer ${token}` } })
+            axios.get(`${API}/manager/kpi-entries/${seller.id}?days=${daysParam}`, { headers: { Authorization: `Bearer ${token}` } })
           ]);
 
           const stats = statsRes.data;
