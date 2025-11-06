@@ -120,6 +120,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   };
 
   const handleAIAnalysis = async () => {
+    console.log('[TeamModal] 🤖 Starting AI analysis...');
     setLoadingAI(true);
     setShowAIAnalysis(true);
 
@@ -142,16 +143,22 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
         }))
       };
 
+      console.log('[TeamModal] 📤 Sending team context to API:', teamContext);
+
       const res = await axios.post(
         `${API}/manager/analyze-team`,
         { team_data: teamContext },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      console.log('[TeamModal] 📥 API Response:', res.data);
+      console.log('[TeamModal] 📊 Analysis length:', res.data.analysis?.length || 0);
+      
       setAiAnalysis(res.data.analysis);
       toast.success('Analyse IA générée !');
     } catch (err) {
-      console.error('Error generating AI analysis:', err);
+      console.error('[TeamModal] ❌ Error generating AI analysis:', err);
+      console.error('[TeamModal] ❌ Error details:', err.response?.data || err.message);
       toast.error('Erreur lors de l\'analyse IA');
       setShowAIAnalysis(false);
     } finally {
