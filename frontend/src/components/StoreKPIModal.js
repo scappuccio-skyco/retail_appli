@@ -825,64 +825,209 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
             </div>
           )}
 
-          {/* Prospects Tab */}
+          {/* Prospects/Manager KPI Tab */}
           {activeTab === 'prospects' && (
-            <div className="max-w-2xl mx-auto">
-              <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200 mb-6">
-                <p className="text-sm text-blue-800">
-                  💡 <strong>Saisie des Prospects :</strong> Le nombre de prospects permet de calculer le{' '}
-                  <strong>taux de transformation de l'équipe</strong> : (Ventes ÷ Prospects) × 100
-                </p>
-              </div>
+            <div className="max-w-3xl mx-auto">
+              {/* If manager has activated KPIs, show manager KPI form, otherwise show prospects form */}
+              {(kpiConfig?.manager_track_ca || kpiConfig?.manager_track_ventes || kpiConfig?.manager_track_clients || kpiConfig?.manager_track_articles) ? (
+                <>
+                  <div className="bg-purple-50 rounded-xl p-4 border-2 border-purple-200 mb-6">
+                    <p className="text-sm text-purple-800">
+                      👨‍💼 <strong>Saisie KPI Manager :</strong> Remplissez les KPI pour chaque vendeur. Les KPI activés en mode "Manager" apparaissent ci-dessous.
+                    </p>
+                  </div>
 
-              <form onSubmit={handleProspectSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    📅 Date
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={prospectFormData.date}
-                    onChange={(e) => setProspectFormData({ ...prospectFormData, date: e.target.value })}
-                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-teal-400 focus:outline-none"
-                  />
-                </div>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    // Handle manager KPI submission
+                    toast.info('Fonctionnalité en cours de développement');
+                  }} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          📅 Date
+                        </label>
+                        <input
+                          type="date"
+                          required
+                          value={managerKPIFormData.date}
+                          onChange={(e) => setManagerKPIFormData({ ...managerKPIFormData, date: e.target.value })}
+                          className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                        />
+                      </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    👥 Nombre de Prospects
-                  </label>
-                  <p className="text-xs text-gray-500 mb-2">
-                    Personnes entrées dans le magasin (compteur, estimation, etc.)
-                  </p>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    value={prospectFormData.nb_prospects}
-                    onChange={(e) => setProspectFormData({ ...prospectFormData, nb_prospects: e.target.value })}
-                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-teal-400 focus:outline-none"
-                    placeholder="Ex: 150"
-                  />
-                </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          👤 Vendeur
+                        </label>
+                        <select
+                          required
+                          value={managerKPIFormData.seller_id}
+                          onChange={(e) => setManagerKPIFormData({ ...managerKPIFormData, seller_id: e.target.value })}
+                          className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                        >
+                          <option value="">Sélectionnez un vendeur</option>
+                          {sellersKPI.map(seller => (
+                            <option key={seller.id} value={seller.id}>{seller.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
 
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setProspectFormData({ date: new Date().toISOString().split('T')[0], nb_prospects: '' })}
-                    className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
-                  >
-                    💾 Enregistrer
-                  </button>
-                </div>
-              </form>
+                    <div className="grid grid-cols-2 gap-4">
+                      {kpiConfig.manager_track_ca && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            💰 Chiffre d'Affaires (€)
+                          </label>
+                          <input
+                            type="number"
+                            required
+                            min="0"
+                            step="0.01"
+                            value={managerKPIFormData.ca}
+                            onChange={(e) => setManagerKPIFormData({ ...managerKPIFormData, ca: e.target.value })}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                            placeholder="Ex: 1500.50"
+                          />
+                        </div>
+                      )}
+
+                      {kpiConfig.manager_track_ventes && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            🛍️ Nombre de Ventes
+                          </label>
+                          <input
+                            type="number"
+                            required
+                            min="0"
+                            value={managerKPIFormData.ventes}
+                            onChange={(e) => setManagerKPIFormData({ ...managerKPIFormData, ventes: e.target.value })}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                            placeholder="Ex: 25"
+                          />
+                        </div>
+                      )}
+
+                      {kpiConfig.manager_track_clients && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            👥 Nombre de Clients
+                          </label>
+                          <input
+                            type="number"
+                            required
+                            min="0"
+                            value={managerKPIFormData.clients}
+                            onChange={(e) => setManagerKPIFormData({ ...managerKPIFormData, clients: e.target.value })}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                            placeholder="Ex: 30"
+                          />
+                        </div>
+                      )}
+
+                      {kpiConfig.manager_track_articles && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            📦 Nombre d'Articles
+                          </label>
+                          <input
+                            type="number"
+                            required
+                            min="0"
+                            value={managerKPIFormData.articles}
+                            onChange={(e) => setManagerKPIFormData({ ...managerKPIFormData, articles: e.target.value })}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                            placeholder="Ex: 45"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setManagerKPIFormData({ 
+                          date: new Date().toISOString().split('T')[0], 
+                          seller_id: '', 
+                          ca: '', 
+                          ventes: '', 
+                          clients: '', 
+                          articles: '' 
+                        })}
+                        className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
+                      >
+                        💾 Enregistrer KPI
+                      </button>
+                    </div>
+                  </form>
+                </>
+              ) : (
+                <>
+                  <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200 mb-6">
+                    <p className="text-sm text-blue-800">
+                      💡 <strong>Saisie des Prospects :</strong> Le nombre de prospects permet de calculer le{' '}
+                      <strong>taux de transformation de l'équipe</strong> : (Ventes ÷ Prospects) × 100
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleProspectSubmit} className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        📅 Date
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        value={prospectFormData.date}
+                        onChange={(e) => setProspectFormData({ ...prospectFormData, date: e.target.value })}
+                        className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-teal-400 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        👥 Nombre de Prospects
+                      </label>
+                      <p className="text-xs text-gray-500 mb-2">
+                        Personnes entrées dans le magasin (compteur, estimation, etc.)
+                      </p>
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        value={prospectFormData.nb_prospects}
+                        onChange={(e) => setProspectFormData({ ...prospectFormData, nb_prospects: e.target.value })}
+                        className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-teal-400 focus:outline-none"
+                        placeholder="Ex: 150"
+                      />
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setProspectFormData({ date: new Date().toISOString().split('T')[0], nb_prospects: '' })}
+                        className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
+                      >
+                        💾 Enregistrer
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
             </div>
           )}
         </div>
