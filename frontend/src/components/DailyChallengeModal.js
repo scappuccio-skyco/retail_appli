@@ -81,26 +81,14 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
   };
 
   const triggerFailAnimation = () => {
-    // Animation d'encouragement pour "Échoué"
-    const duration = 1500;
-    const end = Date.now() + duration;
-
-    (function frame() {
-      confetti({
-        particleCount: 1,
-        angle: 90,
-        spread: 30,
-        origin: { x: 0.5, y: 0.7 },
-        colors: ['#a3a3a3', '#d4d4d4'],
-        shapes: ['circle'],
-        gravity: 1.5,
-        scalar: 0.8
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    }());
+    // Animation shake pour "Échoué"
+    const modalElement = document.querySelector('.challenge-modal-content');
+    if (modalElement) {
+      modalElement.classList.add('shake-animation');
+      setTimeout(() => {
+        modalElement.classList.remove('shake-animation');
+      }, 600);
+    }
   };
 
   const handleComplete = async (result) => {
