@@ -619,23 +619,28 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                   </div>
 
                   {/* Articles par Vente */}
-                  {((kpiConfig.seller_track_articles || kpiConfig.manager_track_articles) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) ? (
-                    <div className="flex items-center gap-1 bg-white rounded-lg p-2 border border-green-300">
-                      <span className="text-sm">✅</span>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-gray-800">📦 Articles/Vente</p>
-                        <p className="text-[9px] text-gray-600">Articles ÷ Ventes</p>
-                      </div>
+                  <div key="kpi-calc-articles-vente" className={`flex items-center gap-1 rounded-lg p-2 border ${
+                    ((kpiConfig.seller_track_articles || kpiConfig.manager_track_articles) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes))
+                      ? 'bg-white border-green-300'
+                      : 'bg-gray-50 border-gray-300 opacity-60'
+                  }`}>
+                    <span className="text-sm">
+                      {((kpiConfig.seller_track_articles || kpiConfig.manager_track_articles) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) ? '✅' : '⬜'}
+                    </span>
+                    <div className="flex-1">
+                      <p className={`text-[10px] font-bold ${
+                        ((kpiConfig.seller_track_articles || kpiConfig.manager_track_articles) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes))
+                          ? 'text-gray-800'
+                          : 'text-gray-600'
+                      }`}>📦 Articles/Vente</p>
+                      <p className="text-[9px] text-gray-600">
+                        {((kpiConfig.seller_track_articles || kpiConfig.manager_track_articles) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes))
+                          ? 'Articles ÷ Ventes'
+                          : 'Articles + Ventes'
+                        }
+                      </p>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
-                      <span className="text-sm">⬜</span>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-gray-600">📦 Articles/Vente</p>
-                        <p className="text-[9px] text-gray-500">Articles + Ventes</p>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
               </div>
 
