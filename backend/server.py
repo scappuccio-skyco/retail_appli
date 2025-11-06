@@ -3457,6 +3457,12 @@ async def get_store_kpi_overview(
         "date": date
     }, {"_id": 0}).to_list(100)
     
+    # Enrich entries with seller names
+    for entry in seller_entries:
+        seller = next((s for s in sellers if s['id'] == entry['seller_id']), None)
+        if seller:
+            entry['seller_name'] = seller['name']
+    
     # Aggregate seller data
     sellers_total = {
         "ca_journalier": 0,
