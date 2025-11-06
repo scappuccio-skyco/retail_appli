@@ -84,7 +84,7 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
                 <Award className="w-7 h-7" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold">🎯 Challenge du Jour IA</h2>
+                <h2 className="text-2xl font-bold">🤖 Mon Coach IA</h2>
                 <p className="text-sm text-orange-100">
                   {challenge.completed ? '✅ Challenge relevé !' : 'Ton défi personnalisé'}
                 </p>
