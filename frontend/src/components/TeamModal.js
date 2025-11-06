@@ -15,6 +15,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   const [periodFilter, setPeriodFilter] = useState('30'); // '7', '30', '90', 'all'
 
   useEffect(() => {
+    console.log(`[TeamModal] 🔄 useEffect TRIGGERED - periodFilter changed to: ${periodFilter}`);
     fetchTeamData();
   }, [sellers, periodFilter]);
 
