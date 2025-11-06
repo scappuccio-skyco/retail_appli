@@ -211,7 +211,14 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                     <span className="text-sm font-semibold text-gray-700">Performance Globale</span>
                   </div>
                   <div className="text-2xl font-bold text-green-900">{teamTotalCA.toFixed(0)} €</div>
-                  <div className="text-xs text-green-600 mt-1">{teamTotalVentes} ventes ce mois</div>
+                  <div className="text-xs text-green-600 mt-1">
+                    {teamTotalVentes} ventes sur {
+                      periodFilter === '7' ? '7 jours' :
+                      periodFilter === '30' ? '30 jours' :
+                      periodFilter === '90' ? '3 mois' :
+                      'l\'année'
+                    }
+                  </div>
                 </div>
 
                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-4 border border-orange-200">
