@@ -547,23 +547,28 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                 </p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {/* Panier Moyen */}
-                  {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) ? (
-                    <div className="flex items-center gap-1 bg-white rounded-lg p-2 border border-green-300">
-                      <span className="text-sm">✅</span>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-gray-800">🛒 Panier Moyen</p>
-                        <p className="text-[9px] text-gray-600">CA ÷ Ventes</p>
-                      </div>
+                  <div key="kpi-calc-panier-moyen" className={`flex items-center gap-1 rounded-lg p-2 border ${
+                    ((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes))
+                      ? 'bg-white border-green-300'
+                      : 'bg-gray-50 border-gray-300 opacity-60'
+                  }`}>
+                    <span className="text-sm">
+                      {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) ? '✅' : '⬜'}
+                    </span>
+                    <div className="flex-1">
+                      <p className={`text-[10px] font-bold ${
+                        ((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes))
+                          ? 'text-gray-800'
+                          : 'text-gray-600'
+                      }`}>🛒 Panier Moyen</p>
+                      <p className="text-[9px] text-gray-600">
+                        {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes))
+                          ? 'CA ÷ Ventes'
+                          : 'CA + Ventes'
+                        }
+                      </p>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
-                      <span className="text-sm">⬜</span>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-gray-600">🛒 Panier Moyen</p>
-                        <p className="text-[9px] text-gray-500">CA + Ventes</p>
-                      </div>
-                    </div>
-                  )}
+                  </div>
 
                   {/* Taux de Transformation */}
                   {((kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_clients || kpiConfig.manager_track_clients)) ? (
