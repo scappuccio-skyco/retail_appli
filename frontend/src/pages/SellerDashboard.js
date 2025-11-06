@@ -1092,7 +1092,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
-        {/* Mes derniers Debriefs Card */}
+        {/* Analyse de vente Card */}
         {dashboardFilters.showDebriefs && (
           <div 
             onClick={() => setShowDebriefHistoryModal(true)}
@@ -1101,7 +1101,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             <div className="relative h-48 overflow-hidden">
               <img 
                 src="https://images.unsplash.com/photo-1746021375306-9dec0f637732?w=800&h=400&fit=crop" 
-                alt="Mes derniers Debriefs"
+                alt="Analyse de vente"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-green-900/70 to-teal-900/70 group-hover:from-green-900/60 group-hover:to-teal-900/60 transition-all"></div>
@@ -1110,8 +1110,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
                     <MessageSquare className="w-8 h-8" />
                   </div>
-                  <h2 className="text-2xl font-bold">📝 Mes derniers Debriefs</h2>
-                  <p className="text-sm mt-2 opacity-90">Voir tous mes débriefs →</p>
+                  <h2 className="text-2xl font-bold">📊 Analyse de vente</h2>
+                  <p className="text-sm mt-2 opacity-90">Reçois un coaching immédiat pour progresser →</p>
                 </div>
               </div>
             </div>
