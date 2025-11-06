@@ -3402,7 +3402,7 @@ async def get_daily_challenge(current_user: dict = Depends(get_current_user)):
         elif difficulty_level == "plus_facile":
             difficulty_instruction = "\n⚠️ IMPORTANT : Le vendeur a échoué ses 2 derniers challenges. Simplifie le challenge (objectif plus accessible, moins de pression, conseils plus détaillés)."
         
-        prompt = f"""Tu es un coach retail expert. Génère un challenge quotidien personnalisé pour un vendeur.
+        prompt = f"""Tu es un coach retail expert. Génère un défi quotidien personnalisé pour un vendeur.
 
 Compétence à travailler : {competence_names[selected_competence]}
 
@@ -3413,17 +3413,20 @@ Profil du vendeur :
 
 Format de réponse (JSON strict) :
 {{
-  "title": "Nom court du challenge (max 35 caractères)",
+  "title": "Nom court du défi (max 35 caractères)",
   "description": "Description concrète du défi à réaliser aujourd'hui (2 phrases maximum, tutoiement)",
-  "pedagogical_tip": "Rappel ou exemple concret de technique (1 phrase courte)",
+  "pedagogical_tip": "Rappel ou technique concrète (1 phrase courte)",
+  "example": "Exemple concret et pratique pour réussir ce défi (1-2 phrases courtes avec dialogue ou situation réelle)",
   "reason": "Pourquoi ce défi pour ce vendeur (1 phrase courte, lien avec son profil)"
 }}
 
-Le challenge doit être :
+Le défi doit être :
 - Concret et réalisable en une journée
 - Mesurable (nombre de fois à faire)
 - Motivant et positif
-- Adapté au profil du vendeur et à ses retours précédents"""
+- Adapté au profil du vendeur et à ses retours précédents
+
+L'exemple doit être un cas pratique ou un dialogue réel que le vendeur peut utiliser directement."""
 
         chat = LlmChat(
             api_key=api_key,
