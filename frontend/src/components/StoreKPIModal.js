@@ -553,7 +553,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                   )}
 
                   {/* Taux de Transformation */}
-                  {kpiConfig.track_ventes && kpiConfig.track_clients ? (
+                  {((kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_clients || kpiConfig.manager_track_clients)) ? (
                     <div className="flex items-center gap-1 bg-white rounded-lg p-2 border border-green-300">
                       <span className="text-sm">✅</span>
                       <div className="flex-1">
