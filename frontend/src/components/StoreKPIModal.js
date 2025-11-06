@@ -787,7 +787,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                 </div>
 
                 {/* Articles */}
-                <div className="bg-white rounded-lg p-2 border-2 border-gray-200">
+                <div key="kpi-config-articles" className="bg-white rounded-lg p-2 border-2 border-gray-200">
                   <div className="flex items-center gap-2">
                     <div className="text-xl">📦</div>
                     <div className="flex-1">
