@@ -1,8 +1,55 @@
-import React from 'react';
-import { Sparkles, X, TrendingUp, AlertTriangle, Target, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Sparkles, X, TrendingUp, AlertTriangle, Target, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-export default function BilanIndividuelModal({ bilan, kpiConfig, onClose, currentWeekOffset, onWeekChange, onRegenerate, generatingBilan }) {
+export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onClose, currentWeekOffset, onWeekChange, onRegenerate, generatingBilan }) {
   if (!bilan) return null;
+
+  // Prepare chart data from KPI entries for current week
+  const chartData = useMemo(() => {
+    if (!kpiEntries || kpiEntries.length === 0) return [];
+    
+    // Get current week dates
+    const now = new Date();
+    const offsetDays = currentWeekOffset * 7;
+    const monday = new Date(now);
+    monday.setDate(monday.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) + offsetDays);
+    monday.setHours(0, 0, 0, 0);
+    
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    
+    // Filter entries for current week
+    const weekEntries = kpiEntries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= monday && entryDate <= sunday;
+    });
+    
+    // Sort by date
+    const sortedEntries = weekEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    // Transform for charts
+    return sortedEntries.map(entry => ({
+      date: new Date(entry.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
+      CA: entry.ca_journalier || 0,
+      Ventes: entry.nb_ventes || 0,
+      Articles: entry.nb_articles || 0,
+      'Panier Moyen': entry.ca_journalier && entry.nb_ventes ? (entry.ca_journalier / entry.nb_ventes).toFixed(2) : 0
+    }));
+  }, [kpiEntries, currentWeekOffset]);
+
+  // Calculate week-over-week comparison
+  const comparisonData = useMemo(() => {
+    if (!bilan || !bilan.kpi_resume) return null;
+    
+    const current = bilan.kpi_resume;
+    // This would need previous week data - for now showing trend indicators
+    return {
+      ca_trend: current.ca_total > 0 ? 'up' : 'stable',
+      ventes_trend: current.ventes > 0 ? 'up' : 'stable'
+    };
+  }, [bilan]);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
