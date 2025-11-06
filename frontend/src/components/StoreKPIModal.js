@@ -171,7 +171,23 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
   const handleKPIConfigUpdate = async (kpiField, value) => {
     try {
       const token = localStorage.getItem('token');
-      const updatedConfig = { ...kpiConfig, [kpiField]: value };
+      let updatedConfig = { ...kpiConfig, [kpiField]: value };
+      
+      // Logique d'exclusivité mutuelle
+      if (value === true) {
+        // Si on active un KPI vendeur, désactiver le KPI manager correspondant
+        if (kpiField === 'seller_track_ca') updatedConfig.manager_track_ca = false;
+        if (kpiField === 'seller_track_ventes') updatedConfig.manager_track_ventes = false;
+        if (kpiField === 'seller_track_clients') updatedConfig.manager_track_clients = false;
+        if (kpiField === 'seller_track_articles') updatedConfig.manager_track_articles = false;
+        
+        // Si on active un KPI manager, désactiver le KPI vendeur correspondant
+        if (kpiField === 'manager_track_ca') updatedConfig.seller_track_ca = false;
+        if (kpiField === 'manager_track_ventes') updatedConfig.seller_track_ventes = false;
+        if (kpiField === 'manager_track_clients') updatedConfig.seller_track_clients = false;
+        if (kpiField === 'manager_track_articles') updatedConfig.seller_track_articles = false;
+      }
+      
       await axios.put(
         `${API}/api/manager/kpi-config`,
         updatedConfig,
