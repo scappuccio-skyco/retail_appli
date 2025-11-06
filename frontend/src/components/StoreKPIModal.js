@@ -611,96 +611,192 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div className="bg-white rounded-lg p-2 border-2 border-gray-200 hover:border-green-300 transition-all">
+              <div className="space-y-2">
+                {/* CA */}
+                <div className="bg-white rounded-lg p-2 border-2 border-gray-200">
                   <div className="flex items-center gap-2">
                     <div className="text-xl">💰</div>
                     <div className="flex-1">
                       <h4 className="font-bold text-gray-800 text-xs">Chiffre d'Affaires</h4>
-                      <p className="text-[9px] text-gray-600">Les vendeurs saisissent leur CA quotidien</p>
+                      <p className="text-[9px] text-gray-600">CA quotidien en euros</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleKPIConfigUpdate('track_ca', !kpiConfig.track_ca)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
-                        kpiConfig.track_ca ? 'bg-green-500' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          kpiConfig.track_ca ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <div className="text-center">
+                        <p className="text-[9px] text-gray-600 mb-0.5">🧑‍💼 Vendeurs</p>
+                        <button
+                          type="button"
+                          onClick={() => handleKPIConfigUpdate('seller_track_ca', !(kpiConfig.seller_track_ca || false))}
+                          disabled={kpiConfig.manager_track_ca}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                            kpiConfig.seller_track_ca ? 'bg-green-500' : kpiConfig.manager_track_ca ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              kpiConfig.seller_track_ca ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[9px] text-gray-600 mb-0.5">👨‍💼 Manager</p>
+                        <button
+                          type="button"
+                          onClick={() => handleKPIConfigUpdate('manager_track_ca', !(kpiConfig.manager_track_ca || false))}
+                          disabled={kpiConfig.seller_track_ca}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                            kpiConfig.manager_track_ca ? 'bg-purple-500' : kpiConfig.seller_track_ca ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              kpiConfig.manager_track_ca ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg p-2 border-2 border-gray-200 hover:border-green-300 transition-all">
+                {/* Ventes */}
+                <div className="bg-white rounded-lg p-2 border-2 border-gray-200">
                   <div className="flex items-center gap-2">
                     <div className="text-xl">🛍️</div>
                     <div className="flex-1">
                       <h4 className="font-bold text-gray-800 text-xs">Nombre de Ventes</h4>
-                      <p className="text-[9px] text-gray-600">Les vendeurs saisissent leur nombre de ventes</p>
+                      <p className="text-[9px] text-gray-600">Nombre de transactions</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleKPIConfigUpdate('track_ventes', !kpiConfig.track_ventes)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
-                        kpiConfig.track_ventes ? 'bg-green-500' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          kpiConfig.track_ventes ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <div className="text-center">
+                        <p className="text-[9px] text-gray-600 mb-0.5">🧑‍💼 Vendeurs</p>
+                        <button
+                          type="button"
+                          onClick={() => handleKPIConfigUpdate('seller_track_ventes', !(kpiConfig.seller_track_ventes || false))}
+                          disabled={kpiConfig.manager_track_ventes}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                            kpiConfig.seller_track_ventes ? 'bg-green-500' : kpiConfig.manager_track_ventes ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              kpiConfig.seller_track_ventes ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[9px] text-gray-600 mb-0.5">👨‍💼 Manager</p>
+                        <button
+                          type="button"
+                          onClick={() => handleKPIConfigUpdate('manager_track_ventes', !(kpiConfig.manager_track_ventes || false))}
+                          disabled={kpiConfig.seller_track_ventes}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                            kpiConfig.manager_track_ventes ? 'bg-purple-500' : kpiConfig.seller_track_ventes ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              kpiConfig.manager_track_ventes ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg p-2 border-2 border-gray-200 hover:border-purple-300 transition-all">
+                {/* Clients */}
+                <div className="bg-white rounded-lg p-2 border-2 border-gray-200">
                   <div className="flex items-center gap-2">
                     <div className="text-xl">👥</div>
                     <div className="flex-1">
                       <h4 className="font-bold text-gray-800 text-xs">Nombre de Clients</h4>
-                      <p className="text-[9px] text-gray-600">Les vendeurs saisissent leur nombre de clients servis</p>
+                      <p className="text-[9px] text-gray-600">Clients servis</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleKPIConfigUpdate('track_clients', !kpiConfig.track_clients)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
-                        kpiConfig.track_clients ? 'bg-green-500' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          kpiConfig.track_clients ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <div className="text-center">
+                        <p className="text-[9px] text-gray-600 mb-0.5">🧑‍💼 Vendeurs</p>
+                        <button
+                          type="button"
+                          onClick={() => handleKPIConfigUpdate('seller_track_clients', !(kpiConfig.seller_track_clients || false))}
+                          disabled={kpiConfig.manager_track_clients}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                            kpiConfig.seller_track_clients ? 'bg-green-500' : kpiConfig.manager_track_clients ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              kpiConfig.seller_track_clients ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[9px] text-gray-600 mb-0.5">👨‍💼 Manager</p>
+                        <button
+                          type="button"
+                          onClick={() => handleKPIConfigUpdate('manager_track_clients', !(kpiConfig.manager_track_clients || false))}
+                          disabled={kpiConfig.seller_track_clients}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                            kpiConfig.manager_track_clients ? 'bg-purple-500' : kpiConfig.seller_track_clients ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              kpiConfig.manager_track_clients ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg p-2 border-2 border-gray-200 hover:border-orange-300 transition-all">
+                {/* Articles */}
+                <div className="bg-white rounded-lg p-2 border-2 border-gray-200">
                   <div className="flex items-center gap-2">
                     <div className="text-xl">📦</div>
                     <div className="flex-1">
                       <h4 className="font-bold text-gray-800 text-xs">Nombre d'Articles</h4>
-                      <p className="text-[9px] text-gray-600">Les vendeurs saisissent leur nombre d'articles vendus</p>
+                      <p className="text-[9px] text-gray-600">Articles vendus</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleKPIConfigUpdate('track_articles', !kpiConfig.track_articles)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
-                        kpiConfig.track_articles ? 'bg-green-500' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          kpiConfig.track_articles ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <div className="text-center">
+                        <p className="text-[9px] text-gray-600 mb-0.5">🧑‍💼 Vendeurs</p>
+                        <button
+                          type="button"
+                          onClick={() => handleKPIConfigUpdate('seller_track_articles', !(kpiConfig.seller_track_articles || false))}
+                          disabled={kpiConfig.manager_track_articles}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                            kpiConfig.seller_track_articles ? 'bg-green-500' : kpiConfig.manager_track_articles ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              kpiConfig.seller_track_articles ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[9px] text-gray-600 mb-0.5">👨‍💼 Manager</p>
+                        <button
+                          type="button"
+                          onClick={() => handleKPIConfigUpdate('manager_track_articles', !(kpiConfig.manager_track_articles || false))}
+                          disabled={kpiConfig.seller_track_articles}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                            kpiConfig.manager_track_articles ? 'bg-purple-500' : kpiConfig.seller_track_articles ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              kpiConfig.manager_track_articles ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
