@@ -3473,6 +3473,7 @@ L'exemple doit être un cas pratique ou un dialogue réel que le vendeur peut ut
             title="Sourire et Contact Visuel",
             description="Aujourd'hui, établis un contact visuel et souris sincèrement à chaque client que tu accueilles. Compte combien de fois tu le fais !",
             pedagogical_tip="Un sourire authentique crée instantanément une connexion positive. Pense à sourire avec les yeux aussi !",
+            example="Exemple : Quand un client entre, regarde-le dans les yeux, souris naturellement et dis 'Bonjour ! Bienvenue chez nous'. Observe sa réaction positive.",
             reason="L'accueil est la première impression que tu donnes. Un excellent accueil augmente significativement tes chances de vente."
         )
         await db.daily_challenges.insert_one(fallback.dict())
