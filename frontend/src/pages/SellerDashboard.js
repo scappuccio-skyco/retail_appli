@@ -90,6 +90,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [kpiEntries, setKpiEntries] = useState([]);
   const [diagnostic, setDiagnostic] = useState(initialDiagnostic);
   const [dailyChallenge, setDailyChallenge] = useState(null);
+  const [challengeStats, setChallengeStats] = useState(null);
   const [loadingChallenge, setLoadingChallenge] = useState(false);
   const [showEvalModal, setShowEvalModal] = useState(false);
   const [showDebriefModal, setShowDebriefModal] = useState(false);
