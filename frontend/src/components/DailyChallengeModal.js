@@ -184,6 +184,30 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
           </div>
         </div>
 
+        {/* Statistics Section */}
+        {stats && (
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 border-b-2 border-purple-100">
+            <p className="text-xs text-gray-600 font-semibold mb-3">📊 Tes Statistiques</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-white rounded-xl p-3 text-center shadow-sm">
+                <div className="text-2xl mb-1">🏆</div>
+                <p className="text-xl font-bold text-gray-800">{stats.completed_count}</p>
+                <p className="text-xs text-gray-600">Défi{stats.completed_count > 1 ? 's' : ''} relevé{stats.completed_count > 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-white rounded-xl p-3 text-center shadow-sm">
+                <div className="text-2xl mb-1">✅</div>
+                <p className="text-xl font-bold text-green-600">{stats.success_count}</p>
+                <p className="text-xs text-gray-600">Réussi{stats.success_count > 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-white rounded-xl p-3 text-center shadow-sm">
+                <div className="text-2xl mb-1">💪</div>
+                <p className="text-xl font-bold text-orange-600">{stats.completed_count - stats.success_count}</p>
+                <p className="text-xs text-gray-600">Difficile{(stats.completed_count - stats.success_count) > 1 ? 's' : ''}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-4 border-2 border-orange-200">
