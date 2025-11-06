@@ -3535,6 +3535,51 @@ async def refresh_daily_challenge(current_user: dict = Depends(get_current_user)
     # Generate new one
     return await get_daily_challenge(current_user)
 
+@api_router.get("/seller/daily-challenge/stats")
+async def get_daily_challenge_stats(current_user: dict = Depends(get_current_user)):
+    """Get challenge statistics for seller"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access challenge stats")
+    
+    try:
+        # Count completed challenges
+        completed_count = await db.daily_challenges.count_documents({
+            "seller_id": current_user['id'],
+            "completed": True
+        })
+        
+        # Count successful challenges
+        success_count = await db.daily_challenges.count_documents({
+            "seller_id": current_user['id'],
+            "challenge_result": "success"
+        })
+        
+        # Get current streak (consecutive days with completed challenges)
+        all_challenges = await db.daily_challenges.find(
+            {"seller_id": current_user['id'], "completed": True},
+            {"_id": 0, "date": 1}
+        ).sort("date", -1).to_list(None)
+        
+        current_streak = 0
+        if all_challenges:
+            from datetime import datetime, timedelta
+            dates = [datetime.strptime(ch['date'], '%Y-%m-%d') for ch in all_challenges]
+            current_streak = 1
+            for i in range(len(dates) - 1):
+                if (dates[i] - dates[i+1]).days == 1:
+                    current_streak += 1
+                else:
+                    break
+        
+        return {
+            "completed_count": completed_count,
+            "success_count": success_count,
+            "current_streak": current_streak
+        }
+    except Exception as e:
+        logging.error(f"Error getting challenge stats: {str(e)}")
+        return {"completed_count": 0, "success_count": 0, "current_streak": 0}
+
 @api_router.get("/seller/daily-challenge/history")
 async def get_daily_challenge_history(current_user: dict = Depends(get_current_user)):
     """Get all past daily challenges for the seller"""
