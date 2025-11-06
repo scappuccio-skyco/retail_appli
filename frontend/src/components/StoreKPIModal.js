@@ -16,7 +16,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
     ca_journalier: '',
     nb_ventes: '',
     nb_clients: '',
-    nb_articles: ''
+    nb_articles: '',
+    nb_prospects: ''
   });
   const [loading, setLoading] = useState(false);
   const [kpiConfig, setKpiConfig] = useState({
