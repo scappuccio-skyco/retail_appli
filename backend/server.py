@@ -3425,6 +3425,71 @@ async def get_manager_kpis(
     kpis = await db.manager_kpis.find(query, {"_id": 0}).sort("date", -1).to_list(1000)
     return kpis
 
+@api_router.get("/manager/store-kpi-overview")
+async def get_store_kpi_overview(
+    date: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get consolidated store KPI overview combining manager and sellers data"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access store overview")
+    
+    if not date:
+        date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    # Get manager KPIs for the date
+    manager_kpi = await db.manager_kpis.find_one({
+        "manager_id": current_user['id'],
+        "date": date
+    }, {"_id": 0})
+    
+    # Get all sellers under this manager
+    sellers = await db.users.find({
+        "manager_id": current_user['id'],
+        "role": "seller"
+    }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+    
+    seller_ids = [s['id'] for s in sellers]
+    
+    # Get all seller KPI entries for the date
+    seller_entries = await db.kpi_entries.find({
+        "seller_id": {"$in": seller_ids},
+        "date": date
+    }, {"_id": 0}).to_list(100)
+    
+    # Aggregate seller data
+    sellers_total = {
+        "ca_journalier": 0,
+        "nb_ventes": 0,
+        "nb_clients": 0,
+        "nb_articles": 0,
+        "nb_prospects": 0,
+        "nb_sellers_reported": len(seller_entries)
+    }
+    
+    for entry in seller_entries:
+        sellers_total["ca_journalier"] += entry.get("ca_journalier", 0)
+        sellers_total["nb_ventes"] += entry.get("nb_ventes", 0)
+        sellers_total["nb_clients"] += entry.get("nb_clients", 0)
+        sellers_total["nb_articles"] += entry.get("nb_articles", 0)
+        sellers_total["nb_prospects"] += entry.get("nb_prospects", 0)
+    
+    # Get store prospects (separate collection)
+    store_kpi = await db.store_kpis.find_one({
+        "manager_id": current_user['id'],
+        "date": date
+    }, {"_id": 0})
+    
+    return {
+        "date": date,
+        "manager_data": manager_kpi or {},
+        "sellers_data": sellers_total,
+        "store_prospects": store_kpi.get("nb_prospects", 0) if store_kpi else 0,
+        "seller_entries": seller_entries,
+        "total_sellers": len(sellers),
+        "sellers_reported": len(seller_entries)
+    }
+
 # ===== DAILY CHALLENGE ENDPOINTS =====
 @api_router.get("/seller/daily-challenge")
 async def get_daily_challenge(current_user: dict = Depends(get_current_user)):
