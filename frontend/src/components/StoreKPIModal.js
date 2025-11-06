@@ -35,13 +35,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
     manager_track_prospects: false
   });
 
-  useEffect(() => {
-    fetchKPIConfig();
-    if (activeTab === 'overview') {
-      fetchOverviewData();
-    }
-  }, [activeTab]);
-
   const fetchOverviewData = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -54,6 +47,16 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
       toast.error('Erreur lors du chargement de la synthèse');
     }
   };
+
+  useEffect(() => {
+    fetchKPIConfig();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'overview') {
+      fetchOverviewData();
+    }
+  }, [activeTab, overviewDate]);
 
   const fetchKPIConfig = async () => {
     try {
