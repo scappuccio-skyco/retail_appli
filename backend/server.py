@@ -292,6 +292,7 @@ class DailyChallenge(BaseModel):
     title: str  # Ex: "Technique de Closing"
     description: str  # Le défi concret
     pedagogical_tip: str  # Le rappel/exemple
+    example: Optional[str] = None  # Exemple concret pour réussir le défi
     reason: str  # Pourquoi ce défi pour ce vendeur
     completed: bool = False
     challenge_result: Optional[str] = None  # 'success', 'partial', 'failed'
