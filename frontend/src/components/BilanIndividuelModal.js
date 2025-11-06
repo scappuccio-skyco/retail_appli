@@ -165,7 +165,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
         </div>
 
         {/* Content */}
-        <div className="p-6 max-h-[70vh] overflow-y-auto">
+        <div ref={contentRef} className="p-6 max-h-[70vh] overflow-y-auto">
           {/* KPI Summary */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             {kpiConfig?.track_ca && bilan.kpi_resume.ca_total !== undefined && (
