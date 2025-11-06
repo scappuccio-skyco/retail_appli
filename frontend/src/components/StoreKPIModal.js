@@ -506,11 +506,12 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
 
               {/* Who fills KPI - New option */}
               <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200">
-                <h3 className="text-base font-bold text-purple-900 mb-3 flex items-center gap-2">
+                <h3 className="text-base font-bold text-purple-900 mb-3">
                   👤 Qui remplit les KPI ?
                 </h3>
                 <div className="flex gap-3">
                   <button
+                    type="button"
                     onClick={() => handleKPIConfigUpdate('filled_by', 'seller')}
                     className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all border-2 ${
                       (kpiConfig.filled_by || 'seller') === 'seller'
@@ -525,6 +526,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                     </div>
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleKPIConfigUpdate('filled_by', 'manager')}
                     className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all border-2 ${
                       kpiConfig.filled_by === 'manager'
