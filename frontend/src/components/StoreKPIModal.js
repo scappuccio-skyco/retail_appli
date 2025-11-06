@@ -11,6 +11,13 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
     date: initialDate || new Date().toISOString().split('T')[0],
     nb_prospects: ''
   });
+  const [managerKPIData, setManagerKPIData] = useState({
+    date: initialDate || new Date().toISOString().split('T')[0],
+    ca_journalier: '',
+    nb_ventes: '',
+    nb_clients: '',
+    nb_articles: ''
+  });
   const [loading, setLoading] = useState(false);
   const [kpiConfig, setKpiConfig] = useState({
     seller_track_ca: true,
