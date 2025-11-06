@@ -3311,6 +3311,77 @@ async def get_store_kpi_stats(current_user: dict = Depends(get_current_user)):
         }
     }
 
+# ===== MANAGER KPI ENDPOINTS =====
+@api_router.post("/manager/manager-kpi")
+async def create_or_update_manager_kpi(
+    manager_kpi_data: ManagerKPICreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create or update manager KPI data for a specific date"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can manage their KPIs")
+    
+    # Check if KPI exists for this date
+    existing = await db.manager_kpis.find_one({
+        "manager_id": current_user['id'],
+        "date": manager_kpi_data.date
+    }, {"_id": 0})
+    
+    if existing:
+        # Update existing
+        update_data = {
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        if manager_kpi_data.ca_journalier is not None:
+            update_data["ca_journalier"] = manager_kpi_data.ca_journalier
+        if manager_kpi_data.nb_ventes is not None:
+            update_data["nb_ventes"] = manager_kpi_data.nb_ventes
+        if manager_kpi_data.nb_clients is not None:
+            update_data["nb_clients"] = manager_kpi_data.nb_clients
+        if manager_kpi_data.nb_articles is not None:
+            update_data["nb_articles"] = manager_kpi_data.nb_articles
+        
+        await db.manager_kpis.update_one(
+            {"manager_id": current_user['id'], "date": manager_kpi_data.date},
+            {"$set": update_data}
+        )
+        kpi = await db.manager_kpis.find_one({
+            "manager_id": current_user['id'],
+            "date": manager_kpi_data.date
+        }, {"_id": 0})
+    else:
+        # Create new
+        new_kpi = ManagerKPI(
+            manager_id=current_user['id'],
+            date=manager_kpi_data.date,
+            ca_journalier=manager_kpi_data.ca_journalier,
+            nb_ventes=manager_kpi_data.nb_ventes,
+            nb_clients=manager_kpi_data.nb_clients,
+            nb_articles=manager_kpi_data.nb_articles
+        )
+        await db.manager_kpis.insert_one(new_kpi.dict())
+        kpi = new_kpi.dict()
+    
+    return kpi
+
+@api_router.get("/manager/manager-kpi")
+async def get_manager_kpis(
+    start_date: str = None,
+    end_date: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get manager KPIs for a date range"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access their KPIs")
+    
+    query = {"manager_id": current_user['id']}
+    
+    if start_date and end_date:
+        query["date"] = {"$gte": start_date, "$lte": end_date}
+    
+    kpis = await db.manager_kpis.find(query, {"_id": 0}).sort("date", -1).to_list(1000)
+    return kpis
+
 # ===== DAILY CHALLENGE ENDPOINTS =====
 @api_router.get("/seller/daily-challenge")
 async def get_daily_challenge(current_user: dict = Depends(get_current_user)):
