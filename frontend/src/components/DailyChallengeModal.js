@@ -194,11 +194,18 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
               </div>
             </div>
 
-            {/* Exemple Concret */}
-            {challenge.example && (
+            {/* Exemples Concrets (3) */}
+            {challenge.examples && challenge.examples.length > 0 && (
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 mb-3 border-2 border-green-200">
-                <p className="text-xs font-semibold text-green-900 mb-1">✨ Exemple Concret</p>
-                <p className="text-xs text-green-800 italic">{challenge.example}</p>
+                <p className="text-xs font-semibold text-green-900 mb-2">✨ 3 Exemples pour Réussir</p>
+                <div className="space-y-2">
+                  {challenge.examples.map((example, index) => (
+                    <div key={index} className="flex gap-2">
+                      <span className="text-green-700 font-bold text-xs flex-shrink-0">{index + 1}.</span>
+                      <p className="text-xs text-green-800 italic">{example}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
