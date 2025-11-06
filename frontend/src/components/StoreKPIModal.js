@@ -531,11 +531,16 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {/* CA */}
-                <div key="kpi-config-ca" className="bg-white rounded-lg p-2 border-2 border-gray-200">
+                <div key="kpi-config-ca" className="bg-white rounded-lg p-2 border-2 border-gray-200 relative">
                   <div className="flex items-center gap-2">
                     <div className="text-xl">💰</div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-gray-800 text-xs">Chiffre d'Affaires</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-gray-800 text-xs">Chiffre d'Affaires</h4>
+                        {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) && (
+                          <span className="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-semibold">🛒 Panier Moyen</span>
+                        )}
+                      </div>
                       <p className="text-[9px] text-gray-600">CA quotidien en euros</p>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -578,11 +583,16 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                 </div>
 
                 {/* Ventes */}
-                <div key="kpi-config-ventes" className="bg-white rounded-lg p-2 border-2 border-gray-200">
+                <div key="kpi-config-ventes" className="bg-white rounded-lg p-2 border-2 border-gray-200 relative">
                   <div className="flex items-center gap-2">
                     <div className="text-xl">🛍️</div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-gray-800 text-xs">Nombre de Ventes</h4>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-bold text-gray-800 text-xs">Nombre de Ventes</h4>
+                        {((kpiConfig.seller_track_articles || kpiConfig.manager_track_articles) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) && (
+                          <span className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-semibold">📦 Art/Vente</span>
+                        )}
+                      </div>
                       <p className="text-[9px] text-gray-600">Nombre de transactions</p>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -625,11 +635,16 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                 </div>
 
                 {/* Clients */}
-                <div key="kpi-config-clients" className="bg-white rounded-lg p-2 border-2 border-gray-200">
+                <div key="kpi-config-clients" className="bg-white rounded-lg p-2 border-2 border-gray-200 relative">
                   <div className="flex items-center gap-2">
                     <div className="text-xl">👥</div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-gray-800 text-xs">Nombre de Clients</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-gray-800 text-xs">Nombre de Clients</h4>
+                        {((kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_clients || kpiConfig.manager_track_clients)) && (
+                          <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-semibold">📈 Taux Transfo</span>
+                        )}
+                      </div>
                       <p className="text-[9px] text-gray-600">Clients servis</p>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -672,11 +687,16 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                 </div>
 
                 {/* Articles */}
-                <div key="kpi-config-articles" className="bg-white rounded-lg p-2 border-2 border-gray-200">
+                <div key="kpi-config-articles" className="bg-white rounded-lg p-2 border-2 border-gray-200 relative">
                   <div className="flex items-center gap-2">
                     <div className="text-xl">📦</div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-gray-800 text-xs">Nombre d'Articles</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-gray-800 text-xs">Nombre d'Articles</h4>
+                        {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_articles || kpiConfig.manager_track_articles)) && (
+                          <span className="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-semibold">🎯 Indice Vente</span>
+                        )}
+                      </div>
                       <p className="text-[9px] text-gray-600">Articles vendus</p>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
