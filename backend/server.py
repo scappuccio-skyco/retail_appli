@@ -282,6 +282,26 @@ class StoreKPICreate(BaseModel):
     date: str
     nb_prospects: int
 
+# ===== MANAGER KPI MODELS =====
+class ManagerKPI(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    manager_id: str
+    date: str  # Format: YYYY-MM-DD
+    ca_journalier: Optional[float] = None
+    nb_ventes: Optional[int] = None
+    nb_clients: Optional[int] = None
+    nb_articles: Optional[int] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ManagerKPICreate(BaseModel):
+    date: str
+    ca_journalier: Optional[float] = None
+    nb_ventes: Optional[int] = None
+    nb_clients: Optional[int] = None
+    nb_articles: Optional[int] = None
+
 # ===== DAILY CHALLENGE MODELS =====
 class DailyChallenge(BaseModel):
     model_config = ConfigDict(extra="ignore")
