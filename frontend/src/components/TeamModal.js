@@ -18,15 +18,6 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
     fetchTeamData();
   }, [sellers, periodFilter]);
 
-  // Cleanup AI analysis state when modal closes
-  useEffect(() => {
-    return () => {
-      setShowAIAnalysis(false);
-      setAiAnalysis(null);
-      setLoadingAI(false);
-    };
-  }, []);
-
   const fetchTeamData = async () => {
     setLoading(true);
     setTeamData([]); // Clear existing data to force refresh
