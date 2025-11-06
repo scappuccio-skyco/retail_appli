@@ -71,40 +71,50 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
       const ratio = contentWidth / imgWidth;
       const contentHeight = imgHeight * ratio;
       
-      // Check if content fits on one page
-      const availableHeight = pdfHeight - 40; // Account for header and margins
+      // Calculate how many pages we need
+      const headerHeight = 35;
+      const footerHeight = 10;
+      const firstPageAvailable = pdfHeight - headerHeight - footerHeight;
+      const otherPagesAvailable = pdfHeight - (2 * margin) - footerHeight;
       
-      if (contentHeight <= availableHeight) {
-        // Single page
-        pdf.addImage(imgData, 'PNG', margin, 35, contentWidth, contentHeight);
+      if (contentHeight <= firstPageAvailable) {
+        // Single page - all content fits
+        pdf.addImage(imgData, 'PNG', margin, headerHeight, contentWidth, contentHeight, undefined, 'FAST');
       } else {
-        // Multiple pages
-        let position = 0;
-        let page = 0;
+        // Multiple pages needed
+        let remainingHeight = contentHeight;
+        let currentY = 0;
+        let pageNum = 0;
         
-        while (position < contentHeight) {
-          if (page > 0) {
+        while (remainingHeight > 0) {
+          if (pageNum > 0) {
             pdf.addPage();
           }
           
-          const remainingHeight = contentHeight - position;
-          const pageContentHeight = Math.min(availableHeight, remainingHeight);
+          const availableSpace = pageNum === 0 ? firstPageAvailable : otherPagesAvailable;
+          const startY = pageNum === 0 ? headerHeight : margin;
+          const sliceHeight = Math.min(availableSpace, remainingHeight);
           
-          pdf.addImage(
-            imgData, 
-            'PNG', 
-            margin, 
-            page === 0 ? 35 : margin, 
-            contentWidth, 
-            contentHeight,
-            undefined,
-            'FAST',
-            0,
-            -position
-          );
+          // Calculate source rectangle in the canvas
+          const sy = (currentY / contentHeight) * imgHeight;
+          const sh = (sliceHeight / contentHeight) * imgHeight;
           
-          position += availableHeight;
-          page++;
+          // Create a temporary canvas for this slice
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = imgWidth;
+          tempCanvas.height = sh;
+          const tempCtx = tempCanvas.getContext('2d');
+          
+          // Draw the slice
+          tempCtx.drawImage(canvas, 0, sy, imgWidth, sh, 0, 0, imgWidth, sh);
+          
+          // Add to PDF
+          const sliceImgData = tempCanvas.toDataURL('image/png', 1.0);
+          pdf.addImage(sliceImgData, 'PNG', margin, startY, contentWidth, sliceHeight, undefined, 'FAST');
+          
+          currentY += sliceHeight;
+          remainingHeight -= sliceHeight;
+          pageNum++;
         }
       }
       
