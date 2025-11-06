@@ -302,6 +302,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                   </div>
                   <div className="max-h-48 overflow-y-auto pr-2">
                     <div className="space-y-3 text-sm text-gray-800">
+                      {console.log('[TeamModal] 📝 Rendering analysis, length:', aiAnalysis?.length)}
                       {aiAnalysis.split('\n').map((line, idx) => {
                         if (line.startsWith('## ')) {
                           return (
