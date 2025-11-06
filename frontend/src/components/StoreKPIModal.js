@@ -517,43 +517,11 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                 </p>
               </div>
 
-              {/* Who fills KPI - New option */}
+              {/* Info message */}
               <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 border-2 border-purple-200">
-                <h3 className="text-sm font-bold text-purple-900 mb-2">
-                  👤 Qui remplit les KPI ?
-                </h3>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleKPIConfigUpdate('filled_by', 'seller')}
-                    className={`flex-1 px-3 py-2 rounded-lg font-medium transition-all border-2 ${
-                      (kpiConfig.filled_by || 'seller') === 'seller'
-                        ? 'bg-purple-600 text-white border-purple-600 shadow-md'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400'
-                    }`}
-                  >
-                    <div className="text-center">
-                      <div className="text-xl mb-0.5">🧑‍💼</div>
-                      <div className="font-bold text-sm">Les Vendeurs</div>
-                      <div className="text-[10px] opacity-90">Chaque vendeur remplit ses KPI</div>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleKPIConfigUpdate('filled_by', 'manager')}
-                    className={`flex-1 px-3 py-2 rounded-lg font-medium transition-all border-2 ${
-                      kpiConfig.filled_by === 'manager'
-                        ? 'bg-purple-600 text-white border-purple-600 shadow-md'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400'
-                    }`}
-                  >
-                    <div className="text-center">
-                      <div className="text-xl mb-0.5">👨‍💼</div>
-                      <div className="font-bold text-sm">Le Manager</div>
-                      <div className="text-[10px] opacity-90">Vous remplissez pour tous</div>
-                    </div>
-                  </button>
-                </div>
+                <p className="text-xs text-purple-900">
+                  💡 <strong>Pour chaque KPI</strong>, choisissez qui doit le remplir : soit les <strong>Vendeurs</strong> (toggle à gauche), soit le <strong>Manager</strong> (toggle à droite). Les deux ne peuvent pas être actifs en même temps.
+                </p>
               </div>
 
               {/* Calculated KPIs Section - MOVED TO TOP */}
