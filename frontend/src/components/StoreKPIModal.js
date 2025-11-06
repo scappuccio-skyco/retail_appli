@@ -595,23 +595,28 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                   </div>
 
                   {/* Indice de Vente */}
-                  {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_articles || kpiConfig.manager_track_articles)) ? (
-                    <div className="flex items-center gap-1 bg-white rounded-lg p-2 border border-green-300">
-                      <span className="text-sm">✅</span>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-gray-800">🎯 Indice Vente</p>
-                        <p className="text-[9px] text-gray-600">Formule complexe</p>
-                      </div>
+                  <div key="kpi-calc-indice-vente" className={`flex items-center gap-1 rounded-lg p-2 border ${
+                    ((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_articles || kpiConfig.manager_track_articles))
+                      ? 'bg-white border-green-300'
+                      : 'bg-gray-50 border-gray-300 opacity-60'
+                  }`}>
+                    <span className="text-sm">
+                      {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_articles || kpiConfig.manager_track_articles)) ? '✅' : '⬜'}
+                    </span>
+                    <div className="flex-1">
+                      <p className={`text-[10px] font-bold ${
+                        ((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_articles || kpiConfig.manager_track_articles))
+                          ? 'text-gray-800'
+                          : 'text-gray-600'
+                      }`}>🎯 Indice Vente</p>
+                      <p className="text-[9px] text-gray-600">
+                        {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_articles || kpiConfig.manager_track_articles))
+                          ? 'Formule complexe'
+                          : 'CA + Ventes + Articles'
+                        }
+                      </p>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
-                      <span className="text-sm">⬜</span>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-gray-600">🎯 Indice Vente</p>
-                        <p className="text-[9px] text-gray-500">CA + Ventes + Articles</p>
-                      </div>
-                    </div>
-                  )}
+                  </div>
 
                   {/* Articles par Vente */}
                   {((kpiConfig.seller_track_articles || kpiConfig.manager_track_articles) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) ? (
