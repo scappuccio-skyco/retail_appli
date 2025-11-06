@@ -287,7 +287,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
               </div>
 
               {/* AI Analysis Result */}
-              {showAIAnalysis && (loadingAI || aiAnalysis) && (
+              {showAIAnalysis && (
                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-4 border-2 border-indigo-200">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-bold text-indigo-900 flex items-center gap-2">
@@ -301,9 +301,15 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                     </button>
                   </div>
                   <div className="max-h-48 overflow-y-auto pr-2">
-                    <div className="space-y-3 text-sm text-gray-800">
-                      {console.log('[TeamModal] 📝 Rendering analysis, length:', aiAnalysis?.length)}
-                      {aiAnalysis.split('\n').map((line, idx) => {
+                    {loadingAI ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                        <span className="ml-3 text-sm text-gray-600">Analyse en cours...</span>
+                      </div>
+                    ) : aiAnalysis ? (
+                      <div className="space-y-3 text-sm text-gray-800">
+                        {console.log('[TeamModal] 📝 Rendering analysis, length:', aiAnalysis?.length)}
+                        {aiAnalysis.split('\n').map((line, idx) => {
                         if (line.startsWith('## ')) {
                           return (
                             <h4 key={idx} className="text-sm font-bold text-indigo-900 mt-3 mb-2 flex items-center gap-2">
