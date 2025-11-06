@@ -25,30 +25,41 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
     try {
       const token = localStorage.getItem('token');
       
-      console.log(`[TeamModal] Fetching data for period: ${periodFilter} days`);
+      console.log(`[TeamModal] ========== FETCHING DATA FOR PERIOD: ${periodFilter} days ==========`);
       
       // Fetch data for each seller
       const sellersDataPromises = sellers.map(async (seller) => {
         try {
           const daysParam = periodFilter === 'all' ? '365' : periodFilter;
-          console.log(`[TeamModal] Fetching ${seller.name} with days=${daysParam}`);
+          console.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with days=${daysParam}`);
           
           const [statsRes, kpiRes] = await Promise.all([
-            axios.get(`${API}/manager/seller/${seller.id}/stats`, { headers: { Authorization: `Bearer ${token}` } }),
-            axios.get(`${API}/manager/kpi-entries/${seller.id}?days=${daysParam}`, { headers: { Authorization: `Bearer ${token}` } })
+            axios.get(`${API}/manager/seller/${seller.id}/stats`, { 
+              headers: { Authorization: `Bearer ${token}` },
+              params: { _t: Date.now() } // Cache buster
+            }),
+            axios.get(`${API}/manager/kpi-entries/${seller.id}?days=${daysParam}`, { 
+              headers: { Authorization: `Bearer ${token}` },
+              params: { _t: Date.now() } // Cache buster
+            })
           ]);
 
           const stats = statsRes.data;
           const kpiEntries = kpiRes.data;
 
-          console.log(`[TeamModal] ${seller.name}: ${kpiEntries.length} entries`);
+          console.log(`[TeamModal] 📊 ${seller.name}: ${kpiEntries.length} entries returned from API`);
+          
+          // Debug: show first and last entry dates
+          if (kpiEntries.length > 0) {
+            console.log(`[TeamModal] 📅 ${seller.name} date range: ${kpiEntries[kpiEntries.length - 1]?.date} to ${kpiEntries[0]?.date}`);
+          }
 
           // Calculate period totals
           const monthlyCA = kpiEntries.reduce((sum, entry) => sum + (entry.ca_journalier || 0), 0);
           const monthlyVentes = kpiEntries.reduce((sum, entry) => sum + (entry.nb_ventes || 0), 0);
           const panierMoyen = monthlyVentes > 0 ? monthlyCA / monthlyVentes : 0;
           
-          console.log(`[TeamModal] ${seller.name} CA: ${monthlyCA.toFixed(2)}, Ventes: ${monthlyVentes}`);
+          console.log(`[TeamModal] 💰 ${seller.name} CALCULATED => CA: ${monthlyCA.toFixed(2)} €, Ventes: ${monthlyVentes}`);
 
           // Get competences scores
           const competences = stats.avg_radar_scores || {};
