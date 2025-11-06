@@ -287,90 +287,90 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   </div>
 
                   {/* Detailed comparison */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Manager data */}
-                    <div className="bg-white rounded-xl p-5 border-2 border-gray-200">
-                      <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="bg-white rounded-lg p-3 border border-gray-200">
+                      <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1.5">
                         <span>👨‍💼</span> Données Manager
                       </h3>
                       {Object.keys(overviewData.manager_data).length > 0 ? (
-                        <div className="space-y-3">
+                        <div className="space-y-1.5">
                           {overviewData.manager_data.ca_journalier > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-gray-600">💰 CA Journalier</span>
-                              <span className="font-bold text-gray-800">{overviewData.manager_data.ca_journalier} €</span>
+                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                              <span className="text-xs text-gray-600">💰 CA Journalier</span>
+                              <span className="text-sm font-bold text-gray-800">{overviewData.manager_data.ca_journalier} €</span>
                             </div>
                           )}
                           {overviewData.manager_data.nb_ventes > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-gray-600">🛍️ Ventes</span>
-                              <span className="font-bold text-gray-800">{overviewData.manager_data.nb_ventes}</span>
+                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                              <span className="text-xs text-gray-600">🛍️ Ventes</span>
+                              <span className="text-sm font-bold text-gray-800">{overviewData.manager_data.nb_ventes}</span>
                             </div>
                           )}
                           {overviewData.manager_data.nb_clients > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-gray-600">👥 Clients</span>
-                              <span className="font-bold text-gray-800">{overviewData.manager_data.nb_clients}</span>
+                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                              <span className="text-xs text-gray-600">👥 Clients</span>
+                              <span className="text-sm font-bold text-gray-800">{overviewData.manager_data.nb_clients}</span>
                             </div>
                           )}
                           {overviewData.manager_data.nb_articles > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-gray-600">📦 Articles</span>
-                              <span className="font-bold text-gray-800">{overviewData.manager_data.nb_articles}</span>
+                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                              <span className="text-xs text-gray-600">📦 Articles</span>
+                              <span className="text-sm font-bold text-gray-800">{overviewData.manager_data.nb_articles}</span>
                             </div>
                           )}
                           {overviewData.manager_data.nb_prospects > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-gray-600">🚶 Prospects</span>
-                              <span className="font-bold text-gray-800">{overviewData.manager_data.nb_prospects}</span>
+                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                              <span className="text-xs text-gray-600">🚶 Prospects</span>
+                              <span className="text-sm font-bold text-gray-800">{overviewData.manager_data.nb_prospects}</span>
                             </div>
                           )}
                         </div>
                       ) : (
-                        <p className="text-gray-500 text-sm italic">Aucune donnée saisie pour cette date</p>
+                        <p className="text-gray-500 text-xs italic">Aucune donnée saisie pour cette date</p>
                       )}
                     </div>
 
                     {/* Sellers aggregated data */}
-                    <div className="bg-white rounded-xl p-5 border-2 border-gray-200">
-                      <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="bg-white rounded-lg p-3 border border-gray-200">
+                      <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1.5">
                         <span>🧑‍💼</span> Données Vendeurs (Agrégées)
                       </h3>
                       {overviewData.sellers_reported > 0 ? (
-                        <div className="space-y-3">
+                        <div className="space-y-1.5">
                           {overviewData.sellers_data.ca_journalier > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-gray-600">💰 CA Journalier</span>
-                              <span className="font-bold text-gray-800">{overviewData.sellers_data.ca_journalier.toFixed(2)} €</span>
+                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                              <span className="text-xs text-gray-600">💰 CA Journalier</span>
+                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.ca_journalier.toFixed(2)} €</span>
                             </div>
                           )}
                           {overviewData.sellers_data.nb_ventes > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-gray-600">🛍️ Ventes</span>
-                              <span className="font-bold text-gray-800">{overviewData.sellers_data.nb_ventes}</span>
+                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                              <span className="text-xs text-gray-600">🛍️ Ventes</span>
+                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_ventes}</span>
                             </div>
                           )}
                           {overviewData.sellers_data.nb_clients > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-gray-600">👥 Clients</span>
-                              <span className="font-bold text-gray-800">{overviewData.sellers_data.nb_clients}</span>
+                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                              <span className="text-xs text-gray-600">👥 Clients</span>
+                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_clients}</span>
                             </div>
                           )}
                           {overviewData.sellers_data.nb_articles > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-gray-600">📦 Articles</span>
-                              <span className="font-bold text-gray-800">{overviewData.sellers_data.nb_articles}</span>
+                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                              <span className="text-xs text-gray-600">📦 Articles</span>
+                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_articles}</span>
                             </div>
                           )}
                           {overviewData.sellers_data.nb_prospects > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                              <span className="text-gray-600">🚶 Prospects</span>
-                              <span className="font-bold text-gray-800">{overviewData.sellers_data.nb_prospects}</span>
+                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
+                              <span className="text-xs text-gray-600">🚶 Prospects</span>
+                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_prospects}</span>
                             </div>
                           )}
                         </div>
                       ) : (
-                        <p className="text-gray-500 text-sm italic">Aucun vendeur n'a saisi ses KPIs pour cette date</p>
+                        <p className="text-gray-500 text-xs italic">Aucun vendeur n'a saisi ses KPIs pour cette date</p>
                       )}
                     </div>
                   </div>
