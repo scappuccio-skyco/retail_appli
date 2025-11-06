@@ -221,20 +221,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
               {/* AI Analysis Button */}
               <div className="flex justify-center">
                 <button
-                  onClick={handleAIAnalysis}
-                  disabled={loadingAI}
-                  className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center gap-2"
+                  onClick={() => setShowAIAnalysisModal(true)}
+                  className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
                 >
-                  {loadingAI ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Analyse en cours...
-                    </>
-                  ) : (
-                    <>
-                      🤖 Analyse IA de l'équipe
-                    </>
-                  )}
+                  🤖 Analyse IA de l'équipe
                 </button>
               </div>
 
