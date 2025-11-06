@@ -7,6 +7,47 @@ import html2canvas from 'html2canvas';
 export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onClose, currentWeekOffset, onWeekChange, onRegenerate, generatingBilan }) {
   if (!bilan) return null;
 
+  const contentRef = useRef(null);
+  const [exportingPDF, setExportingPDF] = React.useState(false);
+
+  // Export to PDF function
+  const exportToPDF = async () => {
+    if (!contentRef.current) return;
+    
+    setExportingPDF(true);
+    try {
+      // Capture the content as canvas
+      const canvas = await html2canvas(contentRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 10;
+      
+      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      
+      // Generate filename with date
+      const fileName = `bilan_${bilan.periode || 'actuel'}.pdf`.replace(/\s+/g, '_');
+      pdf.save(fileName);
+    } catch (error) {
+      console.error('Erreur lors de l\'export PDF:', error);
+      alert('Erreur lors de l\'export PDF. Veuillez réessayer.');
+    } finally {
+      setExportingPDF(false);
+    }
+  };
+
   // Prepare chart data from KPI entries for current week
   const chartData = useMemo(() => {
     if (!kpiEntries || kpiEntries.length === 0) return [];
