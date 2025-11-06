@@ -2066,7 +2066,9 @@ async def create_kpi_entry(entry_data: KPIEntryCreate, current_user: dict = Depe
             {"$set": {
                 "ca_journalier": entry_data.ca_journalier,
                 "nb_ventes": entry_data.nb_ventes,
+                "nb_clients": entry_data.nb_clients,
                 "nb_articles": entry_data.nb_articles,
+                "nb_prospects": entry_data.nb_prospects,
                 "panier_moyen": calculated['panier_moyen'],
                 "taux_transformation": calculated['taux_transformation'],
                 "indice_vente": calculated['indice_vente'],
@@ -2077,7 +2079,9 @@ async def create_kpi_entry(entry_data: KPIEntryCreate, current_user: dict = Depe
         existing.update({
             "ca_journalier": entry_data.ca_journalier,
             "nb_ventes": entry_data.nb_ventes,
+            "nb_clients": entry_data.nb_clients,
             "nb_articles": entry_data.nb_articles,
+            "nb_prospects": entry_data.nb_prospects,
             "panier_moyen": calculated['panier_moyen'],
             "taux_transformation": calculated['taux_transformation'],
             "indice_vente": calculated['indice_vente'],
