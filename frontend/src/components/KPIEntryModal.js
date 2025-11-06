@@ -179,7 +179,9 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
     const missingFields = [];
     if (kpiConfig?.track_ca && !caJournalier) missingFields.push('CA');
     if (kpiConfig?.track_ventes && !nbVentes) missingFields.push('Ventes');
+    if (kpiConfig?.track_clients && !nbClients) missingFields.push('Clients');
     if (kpiConfig?.track_articles && !nbArticles) missingFields.push('Articles');
+    if (kpiConfig?.track_prospects && !nbProspects) missingFields.push('Prospects');
     
     if (missingFields.length > 0) {
       toast.error(`Veuillez remplir : ${missingFields.join(', ')}`);
