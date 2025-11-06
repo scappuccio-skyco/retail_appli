@@ -3,11 +3,18 @@ import { X, Award, Calendar, TrendingUp } from 'lucide-react';
 
 export default function ObjectivesAndChallengesModal({ objectives, challenges, onClose }) {
   const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('fr-FR', { 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
-    });
+    if (!dateStr) return 'Date non définie';
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return 'Date invalide';
+      return date.toLocaleDateString('fr-FR', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+      });
+    } catch (error) {
+      return 'Date invalide';
+    }
   };
 
   const calculateProgress = (objective) => {
