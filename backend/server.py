@@ -3487,11 +3487,17 @@ async def get_store_kpi_overview(
     }, {"_id": 0})
     
     # Calculate store-level KPIs
-    total_ca = (manager_kpi.get("ca_journalier", 0) if manager_kpi else 0) + sellers_total["ca_journalier"]
-    total_ventes = (manager_kpi.get("nb_ventes", 0) if manager_kpi else 0) + sellers_total["nb_ventes"]
-    total_clients = (manager_kpi.get("nb_clients", 0) if manager_kpi else 0) + sellers_total["nb_clients"]
-    total_articles = (manager_kpi.get("nb_articles", 0) if manager_kpi else 0) + sellers_total["nb_articles"]
-    total_prospects = (manager_kpi.get("nb_prospects", 0) if manager_kpi else 0) + sellers_total["nb_prospects"]
+    manager_ca = manager_kpi.get("ca_journalier") if manager_kpi else None
+    manager_ventes = manager_kpi.get("nb_ventes") if manager_kpi else None
+    manager_clients = manager_kpi.get("nb_clients") if manager_kpi else None
+    manager_articles = manager_kpi.get("nb_articles") if manager_kpi else None
+    manager_prospects = manager_kpi.get("nb_prospects") if manager_kpi else None
+    
+    total_ca = (manager_ca or 0) + sellers_total["ca_journalier"]
+    total_ventes = (manager_ventes or 0) + sellers_total["nb_ventes"]
+    total_clients = (manager_clients or 0) + sellers_total["nb_clients"]
+    total_articles = (manager_articles or 0) + sellers_total["nb_articles"]
+    total_prospects = (manager_prospects or 0) + sellers_total["nb_prospects"]
     
     # Calculate derived KPIs
     calculated_kpis = {
