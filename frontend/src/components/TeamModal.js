@@ -12,6 +12,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   const [showAIAnalysis, setShowAIAnalysis] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [periodFilter, setPeriodFilter] = useState('30'); // '7', '30', '90', 'all'
 
   useEffect(() => {
     fetchTeamData();
