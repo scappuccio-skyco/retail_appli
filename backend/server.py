@@ -3597,6 +3597,8 @@ async def get_daily_challenge_stats(current_user: dict = Depends(get_current_use
         return {
             "completed_count": completed_count,
             "success_count": success_count,
+            "partial_count": partial_count,
+            "failed_count": failed_count,
             "current_streak": current_streak
         }
     except Exception as e:
