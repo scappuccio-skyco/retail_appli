@@ -265,7 +265,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 max-h-[600px] overflow-y-auto">
           {activeTab === 'overview' && (
             <div className="max-w-5xl mx-auto">
               {/* Date selector and AI Analysis button */}
