@@ -343,6 +343,29 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
               </div>
             )}
 
+            {kpiConfig?.track_clients && (
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">👥</span>
+                  <label className="font-medium text-gray-800">
+                    Nombre de clients
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={nbClients}
+                    onChange={(e) => setNbClients(e.target.value)}
+                    placeholder="0"
+                    step="1"
+                    min="0"
+                    className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                  />
+                  <span className="text-gray-600 font-medium min-w-[40px]">clients</span>
+                </div>
+              </div>
+            )}
+
             {kpiConfig?.track_articles && (
               <div className="bg-gray-50 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -362,6 +385,29 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                     className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
                   />
                   <span className="text-gray-600 font-medium min-w-[40px]">articles</span>
+                </div>
+              </div>
+            )}
+
+            {kpiConfig?.track_prospects && (
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">🚶</span>
+                  <label className="font-medium text-gray-800">
+                    Nombre de prospects
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={nbProspects}
+                    onChange={(e) => setNbProspects(e.target.value)}
+                    placeholder="0"
+                    step="1"
+                    min="0"
+                    className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                  />
+                  <span className="text-gray-600 font-medium min-w-[40px]">prospects</span>
                 </div>
               </div>
             )}
