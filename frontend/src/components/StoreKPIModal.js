@@ -377,31 +377,31 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
 
                   {/* Individual seller entries */}
                   {overviewData.seller_entries.length > 0 && (
-                    <div className="bg-white rounded-xl p-5 border-2 border-gray-200">
-                      <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Détail par vendeur</h3>
+                    <div className="bg-white rounded-lg p-3 border border-gray-200">
+                      <h3 className="text-sm font-bold text-gray-800 mb-2">📋 Détail par vendeur</h3>
                       <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        <table className="w-full text-xs">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th className="px-4 py-2 text-left font-semibold text-gray-700">Vendeur</th>
-                              <th className="px-4 py-2 text-right font-semibold text-gray-700">💰 CA</th>
-                              <th className="px-4 py-2 text-right font-semibold text-gray-700">🛍️ Ventes</th>
-                              <th className="px-4 py-2 text-right font-semibold text-gray-700">👥 Clients</th>
-                              <th className="px-4 py-2 text-right font-semibold text-gray-700">📦 Articles</th>
-                              <th className="px-4 py-2 text-right font-semibold text-gray-700">🚶 Prospects</th>
+                              <th className="px-2 py-1.5 text-left font-semibold text-gray-700">Vendeur</th>
+                              <th className="px-2 py-1.5 text-right font-semibold text-gray-700">💰 CA</th>
+                              <th className="px-2 py-1.5 text-right font-semibold text-gray-700">🛍️ Ventes</th>
+                              <th className="px-2 py-1.5 text-right font-semibold text-gray-700">👥 Clients</th>
+                              <th className="px-2 py-1.5 text-right font-semibold text-gray-700">📦 Articles</th>
+                              <th className="px-2 py-1.5 text-right font-semibold text-gray-700">🚶 Prospects</th>
                             </tr>
                           </thead>
                           <tbody>
                             {overviewData.seller_entries.map((entry, idx) => (
                               <tr key={idx} className="border-t border-gray-100">
-                                <td className="px-4 py-2 text-gray-800 font-medium">
+                                <td className="px-2 py-1.5 text-gray-800 font-medium">
                                   {entry.seller_name || `Vendeur ${idx + 1}`}
                                 </td>
-                                <td className="px-4 py-2 text-right text-gray-700">{entry.ca_journalier?.toFixed(2) || 0} €</td>
-                                <td className="px-4 py-2 text-right text-gray-700">{entry.nb_ventes || 0}</td>
-                                <td className="px-4 py-2 text-right text-gray-700">{entry.nb_clients || 0}</td>
-                                <td className="px-4 py-2 text-right text-gray-700">{entry.nb_articles || 0}</td>
-                                <td className="px-4 py-2 text-right text-gray-700">{entry.nb_prospects || 0}</td>
+                                <td className="px-2 py-1.5 text-right text-gray-700">{entry.ca_journalier?.toFixed(2) || 0} €</td>
+                                <td className="px-2 py-1.5 text-right text-gray-700">{entry.nb_ventes || 0}</td>
+                                <td className="px-2 py-1.5 text-right text-gray-700">{entry.nb_clients || 0}</td>
+                                <td className="px-2 py-1.5 text-right text-gray-700">{entry.nb_articles || 0}</td>
+                                <td className="px-2 py-1.5 text-right text-gray-700">{entry.nb_prospects || 0}</td>
                               </tr>
                             ))}
                           </tbody>
