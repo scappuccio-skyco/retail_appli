@@ -1036,7 +1036,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
-        {/* Challenge du Jour IA Card */}
+        {/* Mon Coach IA Card */}
         {dashboardFilters.showCompetences && dailyChallenge && (
           <div 
             onClick={() => setShowDailyChallengeModal(true)}
@@ -1045,7 +1045,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             <div className="relative h-48 overflow-hidden">
               <img 
                 src="https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?w=800&h=400&fit=crop" 
-                alt="Challenge du Jour IA"
+                alt="Mon Coach IA"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-orange-900/70 to-red-900/70 group-hover:from-orange-900/60 group-hover:to-red-900/60 transition-all"></div>
@@ -1054,9 +1054,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
                     <Award className="w-8 h-8" />
                   </div>
-                  <h2 className="text-2xl font-bold">🎯 Challenge du Jour IA</h2>
+                  <h2 className="text-2xl font-bold">🤖 Mon Coach IA</h2>
                   <p className="text-sm mt-2 opacity-90">
-                    {dailyChallenge.completed ? '✅ Challenge relevé !' : 'Ton défi personnalisé'}
+                    {dailyChallenge.completed ? '✅ Challenge relevé !' : 'Prêt à relever une mission ?'}
                   </p>
                 </div>
               </div>
