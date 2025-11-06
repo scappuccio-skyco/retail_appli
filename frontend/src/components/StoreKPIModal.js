@@ -718,11 +718,10 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
 
               <div className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
                 <p className="text-sm text-green-800">
-                  {(kpiConfig.filled_by || 'seller') === 'seller' ? (
-                    <>✅ Les KPI activés apparaîtront dans le formulaire de saisie quotidien des <strong>vendeurs</strong>.</>
-                  ) : (
-                    <>✅ Vous (manager) devrez remplir ces KPI pour chaque vendeur.</>
-                  )}
+                  {(kpiConfig.filled_by || 'seller') === 'seller' 
+                    ? '✅ Les KPI activés apparaîtront dans le formulaire de saisie quotidien des vendeurs.'
+                    : '✅ Vous (manager) devrez remplir ces KPI pour chaque vendeur.'
+                  }
                 </p>
               </div>
             </div>
