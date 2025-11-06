@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, TrendingUp } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -6,11 +6,75 @@ import { toast } from 'sonner';
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }) {
+  const [activeTab, setActiveTab] = useState('config');
   const [formData, setFormData] = useState({
     date: initialDate || new Date().toISOString().split('T')[0],
     nb_prospects: ''
   });
   const [loading, setLoading] = useState(false);
+  const [kpiConfig, setKpiConfig] = useState({
+    seller_track_ca: true,
+    manager_track_ca: false,
+    seller_track_ventes: true,
+    manager_track_ventes: false,
+    seller_track_clients: true,
+    manager_track_clients: false,
+    seller_track_articles: true,
+    manager_track_articles: false
+  });
+
+  useEffect(() => {
+    fetchKPIConfig();
+  }, []);
+
+  const fetchKPIConfig = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/api/manager/kpi-config`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data) {
+        let config = res.data;
+        // Set defaults if empty
+        if (!config.seller_track_ca && !config.manager_track_ca) config.seller_track_ca = true;
+        if (!config.seller_track_ventes && !config.manager_track_ventes) config.seller_track_ventes = true;
+        if (!config.seller_track_clients && !config.manager_track_clients) config.seller_track_clients = true;
+        if (!config.seller_track_articles && !config.manager_track_articles) config.seller_track_articles = true;
+        setKpiConfig(config);
+      }
+    } catch (err) {
+      console.error('Error fetching KPI config:', err);
+    }
+  };
+
+  const handleKPIUpdate = async (field, value) => {
+    try {
+      const token = localStorage.getItem('token');
+      let updatedConfig = { ...kpiConfig, [field]: value };
+      
+      // Exclusivité mutuelle
+      if (value === true) {
+        if (field === 'seller_track_ca') updatedConfig.manager_track_ca = false;
+        if (field === 'manager_track_ca') updatedConfig.seller_track_ca = false;
+        if (field === 'seller_track_ventes') updatedConfig.manager_track_ventes = false;
+        if (field === 'manager_track_ventes') updatedConfig.seller_track_ventes = false;
+        if (field === 'seller_track_clients') updatedConfig.manager_track_clients = false;
+        if (field === 'manager_track_clients') updatedConfig.seller_track_clients = false;
+        if (field === 'seller_track_articles') updatedConfig.manager_track_articles = false;
+        if (field === 'manager_track_articles') updatedConfig.seller_track_articles = false;
+      }
+      
+      await axios.put(`${API}/api/manager/kpi-config`, updatedConfig, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setKpiConfig(updatedConfig);
+      toast.success('Configuration mise à jour !');
+    } catch (err) {
+      console.error('Error updating KPI config:', err);
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,7 +91,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success('KPI Magasin enregistré avec succès !');
+      toast.success('Prospects enregistrés avec succès !');
       onSuccess();
       onClose();
     } catch (err) {
