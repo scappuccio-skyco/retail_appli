@@ -3300,14 +3300,18 @@ async def get_daily_challenge(current_user: dict = Depends(get_current_user)):
     
     today = datetime.now().strftime('%Y-%m-%d')
     
-    # Check if challenge exists for today
-    existing_challenge = await db.daily_challenges.find_one({
+    # Check if there's an UNCOMPLETED challenge for today
+    existing_uncompleted = await db.daily_challenges.find_one({
         "seller_id": current_user['id'],
-        "date": today
+        "date": today,
+        "completed": False
     }, {"_id": 0})
     
-    if existing_challenge:
-        return existing_challenge
+    if existing_uncompleted:
+        return existing_uncompleted
+    
+    # If all challenges today are completed, we can generate a new one
+    # This allows multiple challenges per day if user completes them
     
     # Generate new challenge with AI
     try:
