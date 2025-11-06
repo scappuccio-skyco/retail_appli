@@ -104,12 +104,12 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
+      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 flex justify-between items-center rounded-t-2xl">
           <div className="flex items-center gap-3">
             <TrendingUp className="w-7 h-7 text-white" />
-            <h2 className="text-2xl font-bold text-white">📊 KPI Magasin</h2>
+            <h2 className="text-2xl font-bold text-white">📊 Vue d'ensemble KPI Magasin</h2>
           </div>
           <button
             onClick={onClose}
@@ -119,66 +119,214 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
           </button>
         </div>
 
+        {/* Tabs */}
+        <div className="border-b border-gray-200 bg-gray-50">
+          <div className="flex gap-1 px-6">
+            <button
+              onClick={() => setActiveTab('config')}
+              className={`px-6 py-3 font-semibold transition-all ${
+                activeTab === 'config'
+                  ? 'border-b-3 border-purple-600 text-purple-700 bg-white'
+                  : 'text-gray-600 hover:text-purple-600'
+              }`}
+            >
+              ⚙️ Configuration KPI
+            </button>
+            <button
+              onClick={() => setActiveTab('prospects')}
+              className={`px-6 py-3 font-semibold transition-all ${
+                activeTab === 'prospects'
+                  ? 'border-b-3 border-purple-600 text-purple-700 bg-white'
+                  : 'text-gray-600 hover:text-purple-600'
+              }`}
+            >
+              📊 Saisie Prospects
+            </button>
+          </div>
+        </div>
+
         {/* Content */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200">
-            <p className="text-sm text-blue-800">
-              💡 <strong>Bon à savoir :</strong> Le nombre de prospects permet de calculer le{' '}
-              <strong>taux de transformation de l'équipe</strong> : (Ventes ÷ Prospects) × 100
-            </p>
-          </div>
+        <div className="p-6">
+          {activeTab === 'config' && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 rounded-xl p-3 border-2 border-blue-200">
+                <p className="text-sm text-blue-800">
+                  💡 <strong>Configuration des KPI :</strong> Choisissez qui remplit chaque KPI. Vendeurs (vert) ou Manager (violet) - exclusif.
+                </p>
+              </div>
 
-          {/* Date */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              📅 Date
-            </label>
-            <input
-              type="date"
-              required
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-            />
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-gray-800">💰 Chiffre d'Affaires</h4>
+                      <p className="text-sm text-gray-600">CA quotidien</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleKPIUpdate('seller_track_ca', !kpiConfig.seller_track_ca)}
+                        className={`w-12 h-8 rounded font-bold text-xs ${
+                          kpiConfig.seller_track_ca ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        🧑‍💼
+                      </button>
+                      <button
+                        onClick={() => handleKPIUpdate('manager_track_ca', !kpiConfig.manager_track_ca)}
+                        className={`w-12 h-8 rounded font-bold text-xs ${
+                          kpiConfig.manager_track_ca ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        👨‍💼
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-          {/* Nombre de prospects */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              👥 Nombre de Prospects
-            </label>
-            <p className="text-xs text-gray-500 mb-2">
-              Personnes entrées dans le magasin (compteur, estimation, etc.)
-            </p>
-            <input
-              type="number"
-              required
-              min="0"
-              value={formData.nb_prospects}
-              onChange={(e) => setFormData({ ...formData, nb_prospects: e.target.value })}
-              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-              placeholder="Ex: 150"
-            />
-          </div>
+                <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-gray-800">🛍️ Nombre de Ventes</h4>
+                      <p className="text-sm text-gray-600">Transactions</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleKPIUpdate('seller_track_ventes', !kpiConfig.seller_track_ventes)}
+                        className={`w-12 h-8 rounded font-bold text-xs ${
+                          kpiConfig.seller_track_ventes ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        🧑‍💼
+                      </button>
+                      <button
+                        onClick={() => handleKPIUpdate('manager_track_ventes', !kpiConfig.manager_track_ventes)}
+                        className={`w-12 h-8 rounded font-bold text-xs ${
+                          kpiConfig.manager_track_ventes ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        👨‍💼
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-          {/* Actions */}
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-lg text-white font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Enregistrement...' : '💾 Enregistrer'}
-            </button>
-          </div>
-        </form>
+                <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-gray-800">👥 Nombre de Clients</h4>
+                      <p className="text-sm text-gray-600">Clients servis</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleKPIUpdate('seller_track_clients', !kpiConfig.seller_track_clients)}
+                        className={`w-12 h-8 rounded font-bold text-xs ${
+                          kpiConfig.seller_track_clients ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        🧑‍💼
+                      </button>
+                      <button
+                        onClick={() => handleKPIUpdate('manager_track_clients', !kpiConfig.manager_track_clients)}
+                        className={`w-12 h-8 rounded font-bold text-xs ${
+                          kpiConfig.manager_track_clients ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        👨‍💼
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-gray-800">📦 Nombre d'Articles</h4>
+                      <p className="text-sm text-gray-600">Articles vendus</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleKPIUpdate('seller_track_articles', !kpiConfig.seller_track_articles)}
+                        className={`w-12 h-8 rounded font-bold text-xs ${
+                          kpiConfig.seller_track_articles ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        🧑‍💼
+                      </button>
+                      <button
+                        onClick={() => handleKPIUpdate('manager_track_articles', !kpiConfig.manager_track_articles)}
+                        className={`w-12 h-8 rounded font-bold text-xs ${
+                          kpiConfig.manager_track_articles ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        👨‍💼
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-green-50 rounded-xl p-3 border-2 border-green-200">
+                <p className="text-sm text-green-800">
+                  ✅ KPI activés côté <strong>Vendeurs</strong> (vert) : formulaire vendeur. 
+                  KPI activés côté <strong>Manager</strong> (violet) : vous remplissez.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'prospects' && (
+            <div className="max-w-md mx-auto">
+              <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200 mb-6">
+                <p className="text-sm text-blue-800">
+                  💡 <strong>Saisie des Prospects :</strong> Nombre de personnes entrées dans le magasin.
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">📅 Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">👥 Nombre de Prospects</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={formData.nb_prospects}
+                    onChange={(e) => setFormData({ ...formData, nb_prospects: e.target.value })}
+                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                    placeholder="Ex: 150"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
+                  >
+                    {loading ? 'Enregistrement...' : '💾 Enregistrer'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
