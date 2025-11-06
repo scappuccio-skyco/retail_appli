@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { LogOut, Users, TrendingUp, Award, UserPlus, Clock, CheckCircle, XCircle, Sparkles, Settings, RefreshCw, Edit2, Trash2, Target } from 'lucide-react';
+import { LogOut, Users, TrendingUp, Award, UserPlus, Clock, CheckCircle, XCircle, Sparkles, Settings, RefreshCw, Edit2, Trash2, Target, BarChart3, Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
 import InviteModal from '../components/InviteModal';
 import KPIConfigModal from '../components/KPIConfigModal';
@@ -83,7 +83,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [sellerStats, setSellerStats] = useState(null);
   const [sellerDiagnostic, setSellerDiagnostic] = useState(null);
   const [sellerKPIs, setSellerKPIs] = useState([]);
-  const [activeTab, setActiveTab] = useState('competences'); // 'competences', 'kpi', 'evaluations'
+  const [activeTab, setActiveTab] = useState('competences');
   const [invitations, setInvitations] = useState([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showKPIConfigModal, setShowKPIConfigModal] = useState(false);
@@ -91,15 +91,15 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [managerDiagnostic, setManagerDiagnostic] = useState(null);
   const [showManagerProfileModal, setShowManagerProfileModal] = useState(false);
   const [teamBilan, setTeamBilan] = useState(null);
-  const [currentWeekOffset, setCurrentWeekOffset] = useState(0); // 0 = semaine actuelle, -1 = semaine précédente, etc.
+  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
   const [showTeamBilanModal, setShowTeamBilanModal] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
   const [loading, setLoading] = useState(true);
   const [generatingTeamBilan, setGeneratingTeamBilan] = useState(false);
-  const [kpiConfig, setKpiConfig] = useState(null); // Configuration KPI du manager
-  const [activeChallenges, setActiveChallenges] = useState([]); // Challenges collectifs actifs
-  const [activeObjectives, setActiveObjectives] = useState([]); // Objectifs actifs
-  const [showSettingsModal, setShowSettingsModal] = useState(false); // Modal for settings
+  const [kpiConfig, setKpiConfig] = useState(null);
+  const [activeChallenges, setActiveChallenges] = useState([]);
+  const [activeObjectives, setActiveObjectives] = useState([]);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showStoreKPIModal, setShowStoreKPIModal] = useState(false);
   const [storeKPIStats, setStoreKPIStats] = useState(null);
   const [visibleDashboardCharts, setVisibleDashboardCharts] = useState({
@@ -111,25 +111,26 @@ export default function ManagerDashboard({ user, onLogout }) {
     panierMoyen: true,
     tauxTransfo: true,
     indiceVente: true
-  }); // New state for dashboard chart visibility
-  const [currentObjectiveIndex, setCurrentObjectiveIndex] = useState(0); // Carousel for objectives
-  const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0); // Carousel for challenges
+  });
+  const [currentObjectiveIndex, setCurrentObjectiveIndex] = useState(0);
+  const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
   
   // Dashboard Filters & Preferences
   const [dashboardFilters, setDashboardFilters] = useState(() => {
     const saved = localStorage.getItem('manager_dashboard_filters');
     return saved ? JSON.parse(saved) : {
-      showTeam: true,
-      showObjectives: true,
-      showChallenges: true,
       showKPI: true,
-      showBilan: true
+      showTeam: true,
+      showSellers: true,
+      showBilan: true,
+      showSettings: true,
+      showNotifications: true
     };
   });
   const [showFilters, setShowFilters] = useState(false);
   const [sectionOrder, setSectionOrder] = useState(() => {
     const saved = localStorage.getItem('manager_section_order');
-    return saved ? JSON.parse(saved) : ['team', 'objectives', 'kpi', 'bilan'];
+    return saved ? JSON.parse(saved) : ['kpi', 'team', 'sellers', 'bilan', 'settings', 'notifications'];
   });
 
   // Determine which charts should be available based on manager's KPI configuration
@@ -171,37 +172,32 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const fetchActiveObjectives = async () => {
     try {
-      console.log('🎯 Fetching active objectives...');
       const token = localStorage.getItem('token');
       const res = await axios.get(`${API}/manager/objectives/active`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('🎯 Active objectives received:', res.data);
       setActiveObjectives(res.data);
     } catch (err) {
-      console.error('❌ Error fetching active objectives:', err);
+      console.error('Error fetching active objectives:', err);
     }
   };
 
   const fetchActiveChallenges = async () => {
     try {
-      console.log('🎯 Fetching active challenges...');
       const token = localStorage.getItem('token');
       const res = await axios.get(`${API}/manager/challenges/active`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('🎯 Active challenges received:', res.data);
       setActiveChallenges(res.data);
     } catch (err) {
-      console.error('❌ Error fetching active challenges:', err);
+      console.error('Error fetching active challenges:', err);
     }
   };
 
-  // Calculer les dates de la semaine basée sur currentWeekOffset
   const getWeekDates = (offset) => {
     const today = new Date();
-    const dayOfWeek = today.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Offset pour atteindre le lundi
+    const dayOfWeek = today.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
     
     const currentMonday = new Date(today);
     currentMonday.setDate(today.getDate() + mondayOffset + (offset * 7));
@@ -230,22 +226,18 @@ export default function ManagerDashboard({ user, onLogout }) {
   const handleWeekNavigation = (direction) => {
     const newOffset = direction === 'prev' ? currentWeekOffset - 1 : currentWeekOffset + 1;
     setCurrentWeekOffset(newOffset);
-    
-    // Charger le bilan pour cette semaine
     const weekDates = getWeekDates(newOffset);
     fetchBilanForWeek(weekDates.startISO, weekDates.endISO, weekDates.periode);
   };
 
   const fetchBilanForWeek = async (startDate, endDate, periode) => {
     try {
-      // Chercher si un bilan existe pour cette semaine
       const res = await axios.get(`${API}/manager/team-bilans/all`);
       if (res.data.status === 'success' && res.data.bilans) {
         const bilan = res.data.bilans.find(b => b.periode === periode);
         if (bilan) {
           setTeamBilan(bilan);
         } else {
-          // Créer un bilan vide avec la période correcte
           setTeamBilan({
             periode,
             synthese: '',
@@ -285,12 +277,10 @@ export default function ManagerDashboard({ user, onLogout }) {
     }
   };
 
-  // Save filter preferences
   useEffect(() => {
     localStorage.setItem('manager_dashboard_filters', JSON.stringify(dashboardFilters));
   }, [dashboardFilters]);
 
-  // Save section order
   useEffect(() => {
     localStorage.setItem('manager_section_order', JSON.stringify(sectionOrder));
   }, [sectionOrder]);
@@ -320,7 +310,6 @@ export default function ManagerDashboard({ user, onLogout }) {
     }
   };
 
-  // Get section position for CSS ordering
   const getSectionOrder = (sectionId) => {
     return sectionOrder.indexOf(sectionId);
   };
@@ -353,7 +342,7 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const fetchTeamBilan = async () => {
     try {
-      const weekDates = getWeekDates(0); // Semaine actuelle
+      const weekDates = getWeekDates(0);
       await fetchBilanForWeek(weekDates.startISO, weekDates.endISO, weekDates.periode);
     } catch (err) {
       console.error('Error fetching team bilan:', err);
@@ -364,10 +353,7 @@ export default function ManagerDashboard({ user, onLogout }) {
     setGeneratingTeamBilan(true);
     try {
       const weekDates = getWeekDates(currentWeekOffset);
-      
-      // Regenerate the bilan for this week
       const res = await axios.post(`${API}/manager/team-bilan?start_date=${weekDates.startISO}&end_date=${weekDates.endISO}`);
-      
       if (res.data) {
         setTeamBilan(res.data);
         toast.success('Bilan régénéré avec succès !');
@@ -397,7 +383,7 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const handleSellerClick = async (seller) => {
     setSelectedSeller(seller);
-    setShowDetailView(false); // Ne pas ouvrir la vue complète immédiatement
+    setShowDetailView(false);
     await fetchSellerStats(seller.id);
   };
   
@@ -408,16 +394,6 @@ export default function ManagerDashboard({ user, onLogout }) {
   const handleInviteSuccess = () => {
     fetchData();
   };
-
-  const radarData = sellerStats?.avg_radar_scores
-    ? [
-        { skill: 'Accueil', value: sellerStats.avg_radar_scores.accueil },
-        { skill: 'Découverte', value: sellerStats.avg_radar_scores.decouverte },
-        { skill: 'Argumentation', value: sellerStats.avg_radar_scores.argumentation },
-        { skill: 'Closing', value: sellerStats.avg_radar_scores.closing },
-        { skill: 'Fidélisation', value: sellerStats.avg_radar_scores.fidelisation }
-      ]
-    : [];
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -453,6 +429,172 @@ export default function ManagerDashboard({ user, onLogout }) {
     );
   }
 
+  // Helper function to render sections based on order
+  const renderSection = (sectionId) => {
+    const sections = {
+      kpi: dashboardFilters.showKPI && (
+        <div
+          key="kpi"
+          onClick={() => setShowStoreKPIModal(true)}
+          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-teal-400"
+          style={{ order: getSectionOrder('kpi') }}
+        >
+          <div className="relative h-56 overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop" 
+              alt="Vue d'ensemble KPI Magasin"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-teal-900/80 via-emerald-900/80 to-cyan-900/80 group-hover:from-teal-900/70 group-hover:via-emerald-900/70 group-hover:to-cyan-900/70 transition-all"></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
+                <BarChart3 className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-white text-center mb-2">Vue d'ensemble KPI Magasin</h3>
+              <p className="text-sm text-white opacity-90 text-center">Performances globales du point de vente</p>
+              <p className="text-xs text-white opacity-80 mt-3">Cliquer pour voir les détails →</p>
+            </div>
+          </div>
+        </div>
+      ),
+      team: dashboardFilters.showTeam && (
+        <div
+          key="team"
+          onClick={() => {/* Open team overview modal if needed */}}
+          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-blue-400"
+          style={{ order: getSectionOrder('team') }}
+        >
+          <div className="relative h-56 overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?w=800&h=400&fit=crop" 
+              alt="Mon Équipe"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-cyan-900/80 to-blue-900/80 group-hover:from-blue-900/70 group-hover:via-cyan-900/70 group-hover:to-blue-900/70 transition-all"></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
+                <Users className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-white text-center mb-2">Mon Équipe</h3>
+              <p className="text-sm text-white opacity-90 text-center">
+                {sellers.length} vendeur{sellers.length > 1 ? 's' : ''} actif{sellers.length > 1 ? 's' : ''}
+              </p>
+              <p className="text-xs text-white opacity-80 mt-3">Vue d'ensemble de l'équipe →</p>
+            </div>
+          </div>
+        </div>
+      ),
+      sellers: dashboardFilters.showSellers && (
+        <div
+          key="sellers"
+          className="glass-morphism rounded-2xl overflow-hidden group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-purple-400"
+          style={{ order: getSectionOrder('sellers') }}
+        >
+          <div className="relative h-56 overflow-hidden cursor-pointer" onClick={() => {/* Scroll to sellers list */}}>
+            <img 
+              src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=400&fit=crop" 
+              alt="Détails Vendeurs"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-900/80 via-violet-900/80 to-purple-900/80 group-hover:from-purple-900/70 group-hover:via-violet-900/70 group-hover:to-purple-900/70 transition-all"></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
+                <Award className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-white text-center mb-2">Détails Vendeurs</h3>
+              <p className="text-sm text-white opacity-90 text-center">Analyse individuelle des performances</p>
+              <p className="text-xs text-white opacity-80 mt-3">Accès aux profils détaillés →</p>
+            </div>
+          </div>
+        </div>
+      ),
+      bilan: dashboardFilters.showBilan && teamBilan && (
+        <div
+          key="bilan"
+          onClick={() => setShowTeamBilanModal(true)}
+          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-indigo-400"
+          style={{ order: getSectionOrder('bilan') }}
+        >
+          <div className="relative h-56 overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?w=800&h=400&fit=crop" 
+              alt="Bilan d'Équipe IA"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-blue-900/80 to-indigo-900/80 group-hover:from-indigo-900/70 group-hover:via-blue-900/70 group-hover:to-indigo-900/70 transition-all"></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
+                <Sparkles className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-white text-center mb-2">Bilan d'Équipe IA</h3>
+              <p className="text-sm text-white opacity-90 text-center">{teamBilan.periode}</p>
+              <p className="text-xs text-white opacity-80 mt-3">Cliquer pour voir le bilan complet →</p>
+            </div>
+          </div>
+        </div>
+      ),
+      settings: dashboardFilters.showSettings && (
+        <div
+          key="settings"
+          onClick={() => setShowSettingsModal(true)}
+          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
+          style={{ order: getSectionOrder('settings') }}
+        >
+          <div className="relative h-56 overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=400&fit=crop" 
+              alt="Paramètres & Configuration"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-900/80 via-amber-900/80 to-orange-900/80 group-hover:from-orange-900/70 group-hover:via-amber-900/70 group-hover:to-orange-900/70 transition-all"></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
+                <Settings className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-white text-center mb-2">Paramètres & Configuration</h3>
+              <p className="text-sm text-white opacity-90 text-center">KPI, Objectifs & Challenges</p>
+              <p className="text-xs text-white opacity-80 mt-3">Gérer les configurations →</p>
+            </div>
+          </div>
+        </div>
+      ),
+      notifications: dashboardFilters.showNotifications && (
+        <div
+          key="notifications"
+          onClick={() => toast.info('Fonctionnalité notifications à venir')}
+          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-rose-400"
+          style={{ order: getSectionOrder('notifications') }}
+        >
+          <div className="relative h-56 overflow-hidden">
+            <img 
+              src="https://images.pexels.com/photos/7821343/pexels-photo-7821343.jpeg?w=800&h=400&fit=crop" 
+              alt="Notifications & Alertes"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-rose-900/80 via-red-900/80 to-rose-900/80 group-hover:from-rose-900/70 group-hover:via-red-900/70 group-hover:to-rose-900/70 transition-all"></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm relative">
+                <Bell className="w-10 h-10 text-white" />
+                {invitations.filter(inv => inv.status === 'pending').length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-yellow-400 text-gray-900 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                    {invitations.filter(inv => inv.status === 'pending').length}
+                  </span>
+                )}
+              </div>
+              <h3 className="text-2xl font-bold text-white text-center mb-2">Notifications & Alertes</h3>
+              <p className="text-sm text-white opacity-90 text-center">
+                {invitations.filter(inv => inv.status === 'pending').length} invitation{invitations.filter(inv => inv.status === 'pending').length > 1 ? 's' : ''} en attente
+              </p>
+              <p className="text-xs text-white opacity-80 mt-3">Centre de notifications →</p>
+            </div>
+          </div>
+        </div>
+      )
+    };
+    
+    return sections[sectionId];
+  };
+
   return (
     <div data-testid="manager-dashboard" className="min-h-screen p-4 md:p-8">
       {/* Header */}
@@ -461,28 +603,37 @@ export default function ManagerDashboard({ user, onLogout }) {
           <div className="flex items-center gap-4">
             <img src="/logo-icon.png" alt="Retail Performer" className="w-16 h-16 rounded-xl shadow-md object-contain bg-white p-2" />
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-                Tableau de Bord Manager
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-1">
+                Retail Performer
               </h1>
-              <p className="text-gray-600">Bienvenue, {user.name}</p>
+              <p className="text-gray-600">Manager Dashboard - Bienvenue, {user.name}</p>
             </div>
           </div>
           <div className="flex gap-3 flex-wrap">
+            {managerDiagnostic && (
+              <button
+                onClick={() => setShowManagerProfileModal(true)}
+                className="btn-secondary flex items-center gap-2 bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 hover:shadow-lg"
+              >
+                <Sparkles className="w-5 h-5" />
+                Mon profil
+              </button>
+            )}
             {!managerDiagnostic && (
               <button
                 onClick={() => setShowManagerDiagnostic(true)}
                 className="btn-secondary flex items-center gap-2 bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 hover:shadow-lg"
               >
                 <Sparkles className="w-5 h-5" />
-                Mon profil manager
+                Créer mon profil
               </button>
             )}
             <button
-              onClick={() => setShowSettingsModal(true)}
-              className="btn-secondary flex items-center gap-2"
+              onClick={() => setShowInviteModal(true)}
+              className="btn-secondary flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg"
             >
-              <Settings className="w-5 h-5" />
-              KPI & Challenges
+              <UserPlus className="w-5 h-5" />
+              Inviter
             </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -505,1439 +656,242 @@ export default function ManagerDashboard({ user, onLogout }) {
         </div>
       </div>
 
-      {/* Dashboard Filters Bar */}
+      {/* Dashboard Filters Panel */}
       {showFilters && (
         <div className="max-w-7xl mx-auto mb-6">
-          <div className="glass-morphism rounded-2xl p-4">
-            <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-gray-800">🎛️ Personnalisation du Dashboard</h3>
-              </div>
-              
-              {/* Quick stats */}
-              <div className="flex items-center gap-4 text-sm text-gray-600">
-                <span>
-                  {Object.values(dashboardFilters).filter(v => v === true).length} sections affichées
-                </span>
-              </div>
+          <div className="glass-morphism rounded-2xl p-6 border-2 border-purple-200">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                Personnalisation du Dashboard
+              </h3>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
             {/* Filter Toggles */}
-            <div>
-              <p className="text-sm font-semibold text-gray-700 mb-3">Afficher/Masquer les sections :</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-                <button
-                  onClick={() => toggleFilter('showTeam')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
-                    dashboardFilters.showTeam
-                      ? 'bg-green-50 border-green-500 text-green-700'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    {dashboardFilters.showTeam ? '✅' : '⬜'}
-                    <span className="text-xs">👥 Équipe</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => toggleFilter('showObjectives')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
-                    dashboardFilters.showObjectives
-                      ? 'bg-green-50 border-green-500 text-green-700'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    {dashboardFilters.showObjectives ? '✅' : '⬜'}
-                    <span className="text-xs">🎯 Objectifs</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => toggleFilter('showChallenges')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
-                    dashboardFilters.showChallenges
-                      ? 'bg-green-50 border-green-500 text-green-700'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    {dashboardFilters.showChallenges ? '✅' : '⬜'}
-                    <span className="text-xs">🏆 Challenges</span>
-                  </div>
-                </button>
-
+            <div className="mb-8">
+              <p className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
+                Afficher/Masquer les cartes
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 <button
                   onClick={() => toggleFilter('showKPI')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
                     dashboardFilters.showKPI
                       ? 'bg-green-50 border-green-500 text-green-700'
                       : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    {dashboardFilters.showKPI ? '✅' : '⬜'}
-                    <span className="text-xs">📊 Performances</span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">📊</span>
+                    <span className="text-xs font-semibold">KPI Magasin</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showTeam')}
+                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
+                    dashboardFilters.showTeam
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">👥</span>
+                    <span className="text-xs font-semibold">Mon Équipe</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showSellers')}
+                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
+                    dashboardFilters.showSellers
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">👤</span>
+                    <span className="text-xs font-semibold">Vendeurs</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showBilan')}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
                     dashboardFilters.showBilan
                       ? 'bg-green-50 border-green-500 text-green-700'
                       : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    {dashboardFilters.showBilan ? '✅' : '⬜'}
-                    <span className="text-xs">📈 Bilan Équipe</span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">🤖</span>
+                    <span className="text-xs font-semibold">Bilan IA</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showSettings')}
+                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
+                    dashboardFilters.showSettings
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">⚙️</span>
+                    <span className="text-xs font-semibold">Paramètres</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => toggleFilter('showNotifications')}
+                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
+                    dashboardFilters.showNotifications
+                      ? 'bg-green-50 border-green-500 text-green-700'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xl">🔔</span>
+                    <span className="text-xs font-semibold">Notifications</span>
                   </div>
                 </button>
               </div>
+            </div>
 
-              {/* Section Reordering */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <p className="text-sm font-semibold text-gray-700 mb-3">Réorganiser les sections :</p>
-                <div className="space-y-2">
-                  {sectionOrder.map((sectionId, index) => {
-                    const sectionNames = {
-                      team: '👥 Équipe de Vente',
-                      objectives: '🎯 Objectifs & Challenges',
-                      kpi: '📊 Performances',
-                      bilan: '📈 Bilan d\'Équipe'
-                    };
-                    return (
-                      <div key={sectionId} className="flex items-center justify-between bg-white rounded-lg p-3 border-2 border-gray-200">
-                        <span className="font-medium text-gray-800">{sectionNames[sectionId]}</span>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => moveSectionUp(sectionId)}
-                            disabled={index === 0}
-                            className={`p-2 rounded-lg transition-all ${
-                              index === 0
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-                            }`}
-                            title="Monter"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => moveSectionDown(sectionId)}
-                            disabled={index === sectionOrder.length - 1}
-                            className={`p-2 rounded-lg transition-all ${
-                              index === sectionOrder.length - 1
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-                            }`}
-                            title="Descendre"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-                        </div>
+            {/* Section Reordering */}
+            <div className="pt-6 border-t-2 border-purple-100">
+              <p className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
+                Réorganiser l'ordre des sections
+              </p>
+              <div className="space-y-2">
+                {sectionOrder.map((sectionId, index) => {
+                  const sectionNames = {
+                    kpi: '📊 KPI Magasin',
+                    team: '👥 Mon Équipe',
+                    sellers: '👤 Détails Vendeurs',
+                    bilan: '🤖 Bilan d\'Équipe IA',
+                    settings: '⚙️ Paramètres',
+                    notifications: '🔔 Notifications'
+                  };
+                  return (
+                    <div key={sectionId} className="flex items-center justify-between bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 transition-all shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-bold text-gray-400">#{index + 1}</span>
+                        <span className="font-semibold text-gray-800">{sectionNames[sectionId]}</span>
                       </div>
-                    );
-                  })}
-                </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => moveSectionUp(sectionId)}
+                          disabled={index === 0}
+                          className={`p-2 rounded-lg transition-all ${
+                            index === 0
+                              ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                              : 'bg-purple-100 text-purple-600 hover:bg-purple-200 hover:shadow-md'
+                          }`}
+                          title="Monter"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => moveSectionDown(sectionId)}
+                          disabled={index === sectionOrder.length - 1}
+                          className={`p-2 rounded-lg transition-all ${
+                            index === sectionOrder.length - 1
+                              ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                              : 'bg-purple-100 text-purple-600 hover:bg-purple-200 hover:shadow-md'
+                          }`}
+                          title="Descendre"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto flex flex-col">
-        {/* Compact Cards - Profile & Bilan side by side */}
-        {dashboardFilters.showBilan && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" style={{ order: getSectionOrder('bilan') }}>
-          {/* Manager Profile Compact Card */}
-          {managerDiagnostic && (
-            <div 
-              onClick={() => setShowManagerProfileModal(true)}
-              className="glass-morphism rounded-2xl p-6 cursor-pointer hover:shadow-xl transition-all border-2 border-transparent hover:border-[#ffd871]"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6 text-[#ffd871]" />
-                <h3 className="text-xl font-bold text-gray-800">🎯 Ton Profil Manager</h3>
-              </div>
-              
-              <div className="bg-gradient-to-r from-[#ffd871] to-yellow-200 rounded-xl p-4">
-                <h4 className="text-lg font-bold text-gray-800 mb-2">
-                  🧭 {managerDiagnostic.profil_nom}
-                </h4>
-                <p className="text-gray-700 text-sm line-clamp-2 mb-3">{managerDiagnostic.profil_description}</p>
-                
-                {/* DISC Profile Display */}
-                {managerDiagnostic.disc_dominant && (
-                  <div className="bg-white bg-opacity-70 rounded-lg p-3 mb-3">
-                    <p className="text-xs font-semibold text-gray-700 mb-1">
-                      🎨 Profil DISC : {managerDiagnostic.disc_dominant}
-                    </p>
-                    <div className="flex gap-1 mt-2">
-                      {managerDiagnostic.disc_percentages && Object.entries(managerDiagnostic.disc_percentages).map(([letter, percent]) => (
-                        <div key={letter} className="flex-1">
-                          <div className="text-xs text-center font-semibold mb-1">
-                            {letter === 'D' && '🔴'}
-                            {letter === 'I' && '🟡'}
-                            {letter === 'S' && '🟢'}
-                            {letter === 'C' && '🔵'}
-                            {' '}{letter}
-                          </div>
-                          <div className="bg-gray-200 h-2 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full ${
-                                letter === 'D' ? 'bg-red-500' :
-                                letter === 'I' ? 'bg-yellow-500' :
-                                letter === 'S' ? 'bg-green-500' :
-                                'bg-blue-500'
-                              }`}
-                              style={{ width: `${percent}%` }}
-                            />
-                          </div>
-                          <div className="text-xs text-center text-gray-600 mt-1">{percent}%</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                  <p className="text-xs font-semibold text-gray-700 mb-1">💪 Forces clés</p>
-                  <p className="text-xs text-gray-600 line-clamp-2">
-                    {managerDiagnostic.force_1} • {managerDiagnostic.force_2}
-                  </p>
-                </div>
-              </div>
-              
-              <p className="text-sm text-gray-500 text-center mt-4">
-                Cliquer pour voir le profil complet →
-              </p>
-            </div>
-          )}
-
-          {/* Team Bilan Compact Card or Generate Button */}
-          {teamBilan ? (
-            <div className="glass-morphism rounded-2xl p-6 border-2 border-transparent hover:border-[#ffd871] transition-all">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <Sparkles className="w-6 h-6 text-[#ffd871]" />
-                  <h3 className="text-xl font-bold text-gray-800">🤖 Bilan IA d'équipe</h3>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    regenerateTeamBilan();
-                  }}
-                  disabled={generatingTeamBilan}
-                  className="flex items-center gap-2 px-3 py-2 bg-[#ffd871] hover:bg-yellow-400 text-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                >
-                  <RefreshCw className={`w-4 h-4 ${generatingTeamBilan ? 'animate-spin' : ''}`} />
-                  {generatingTeamBilan ? 'Génération...' : 'Relancer'}
-                </button>
-              </div>
-
-              {/* Week Navigation with Arrows */}
-              {teamBilan && (
-                <div className="mb-3 flex items-center justify-between bg-white rounded-lg px-3 py-2 border-2 border-gray-200">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleWeekNavigation('prev');
-                    }}
-                    className="text-gray-600 hover:text-gray-800 transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  
-                  <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    📅 {currentWeekOffset === 0 ? 'Semaine actuelle' : teamBilan.periode}
-                  </span>
-                  
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleWeekNavigation('next');
-                    }}
-                    disabled={currentWeekOffset >= 0}
-                    className="text-gray-600 hover:text-gray-800 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-              
-              <div 
-                onClick={() => setShowTeamBilanModal(true)}
-                className="cursor-pointer space-y-3"
-              >
-                <div className="bg-gradient-to-r from-[#ffd871] to-yellow-200 rounded-xl p-3">
-                  <p className="text-xs text-gray-700 mb-1">{teamBilan.periode}</p>
-                  <p className="text-sm text-gray-800 font-medium line-clamp-2">{teamBilan.synthese}</p>
-                </div>
-                
-                {/* All KPIs Grid */}
-                <div className="grid grid-cols-3 gap-2">
-                  {kpiConfig?.track_ca && teamBilan.kpi_resume.ca_total !== undefined && (
-                    <div className="bg-blue-50 rounded-lg p-2 text-center">
-                      <p className="text-xs text-blue-600">💰 CA</p>
-                      <p className="text-sm font-bold text-blue-900">{(teamBilan.kpi_resume.ca_total / 1000).toFixed(0)}k€</p>
-                    </div>
-                  )}
-                  {kpiConfig?.track_ventes && teamBilan.kpi_resume.ventes !== undefined && (
-                    <div className="bg-green-50 rounded-lg p-2 text-center">
-                      <p className="text-xs text-green-600">🛒 Ventes</p>
-                      <p className="text-sm font-bold text-green-900">{teamBilan.kpi_resume.ventes}</p>
-                    </div>
-                  )}
-                  {kpiConfig?.track_clients && teamBilan.kpi_resume.clients !== undefined && (
-                    <div className="bg-purple-50 rounded-lg p-2 text-center">
-                      <p className="text-xs text-purple-600">👥 Clients</p>
-                      <p className="text-sm font-bold text-purple-900">{teamBilan.kpi_resume.clients}</p>
-                    </div>
-                  )}
-                  {kpiConfig?.track_articles && teamBilan.kpi_resume.articles !== undefined && (
-                    <div className="bg-orange-50 rounded-lg p-2 text-center">
-                      <p className="text-xs text-orange-600">📦 Articles</p>
-                      <p className="text-sm font-bold text-orange-900">{teamBilan.kpi_resume.articles}</p>
-                    </div>
-                  )}
-                  {kpiConfig?.track_ca && kpiConfig?.track_ventes && teamBilan.kpi_resume.panier_moyen !== undefined && (
-                    <div className="bg-indigo-50 rounded-lg p-2 text-center">
-                      <p className="text-xs text-indigo-600">💳 Panier M.</p>
-                      <p className="text-sm font-bold text-indigo-900">{teamBilan.kpi_resume.panier_moyen.toFixed(0)}€</p>
-                    </div>
-                  )}
-                  {kpiConfig?.track_ventes && kpiConfig?.track_clients && teamBilan.kpi_resume.taux_transformation !== undefined && (
-                    <div className="bg-pink-50 rounded-lg p-2 text-center">
-                      <p className="text-xs text-pink-600">📈 Taux Transfo</p>
-                      <p className="text-sm font-bold text-pink-900">{teamBilan.kpi_resume.taux_transformation.toFixed(0)}%</p>
-                    </div>
-                  )}
-                  {kpiConfig?.track_articles && kpiConfig?.track_clients && teamBilan.kpi_resume.indice_vente !== undefined && (
-                    <div className="bg-teal-50 rounded-lg p-2 text-center">
-                      <p className="text-xs text-teal-600">🎯 Indice</p>
-                      <p className="text-sm font-bold text-teal-900">{teamBilan.kpi_resume.indice_vente.toFixed(1)}</p>
-                    </div>
-                  )}
-                </div>
-                
-                <p className="text-sm text-gray-500 text-center mt-4">
-                  Cliquer pour voir le bilan complet →
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="glass-morphism rounded-2xl p-6 border-2 border-dashed border-gray-300">
-              <div className="flex items-center gap-3 mb-4">
-                <Sparkles className="w-6 h-6 text-[#ffd871]" />
-                <h3 className="text-xl font-bold text-gray-800">🤖 Bilan IA d'équipe</h3>
-              </div>
-              
-              <div className="text-center py-8">
-                <p className="text-gray-600 mb-4">Aucun bilan d'équipe généré pour le moment</p>
-                <button
-                  onClick={regenerateTeamBilan}
-                  disabled={generatingTeamBilan}
-                  className="flex items-center gap-2 px-4 py-3 bg-[#ffd871] hover:bg-yellow-400 text-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium mx-auto"
-                >
-                  <Sparkles className={`w-5 h-5 ${generatingTeamBilan ? 'animate-spin' : ''}`} />
-                  {generatingTeamBilan ? 'Génération en cours...' : 'Générer le bilan'}
-                </button>
-              </div>
-            </div>
-          )}
+      {/* Main Dashboard Cards Grid */}
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8" style={{ display: 'flex', flexWrap: 'wrap' }}>
+          {sectionOrder.map(renderSection)}
         </div>
-        )}
+      </div>
 
-        {/* Store KPI Section */}
-        <div className="glass-morphism rounded-2xl p-6 mb-8" style={{ order: getSectionOrder('kpi') }}>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">📊 KPI Magasin</h2>
-            <button
-              onClick={() => setShowStoreKPIModal(true)}
-              className="btn-primary flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Saisir Prospects
-            </button>
-          </div>
-
-          {storeKPIStats ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Today */}
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
-                <p className="text-sm font-semibold text-blue-700 mb-2">📅 Aujourd'hui</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-blue-600">Prospects :</span>
-                    <span className="text-lg font-bold text-blue-900">{storeKPIStats.today.prospects}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-blue-600">Ventes :</span>
-                    <span className="text-lg font-bold text-blue-900">{storeKPIStats.today.ventes}</span>
-                  </div>
-                  <div className="pt-2 border-t border-blue-300">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-semibold text-blue-700">Taux transfo :</span>
-                      <span className="text-2xl font-bold text-blue-900">{storeKPIStats.today.taux_transformation}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Week */}
-              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-200">
-                <p className="text-sm font-semibold text-green-700 mb-2">📅 Cette Semaine</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-green-600">Prospects :</span>
-                    <span className="text-lg font-bold text-green-900">{storeKPIStats.week.prospects}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-green-600">Ventes :</span>
-                    <span className="text-lg font-bold text-green-900">{storeKPIStats.week.ventes}</span>
-                  </div>
-                  <div className="pt-2 border-t border-green-300">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-semibold text-green-700">Taux transfo :</span>
-                      <span className="text-2xl font-bold text-green-900">{storeKPIStats.week.taux_transformation}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Month */}
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border-2 border-purple-200">
-                <p className="text-sm font-semibold text-purple-700 mb-2">📅 Ce Mois</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-purple-600">Prospects :</span>
-                    <span className="text-lg font-bold text-purple-900">{storeKPIStats.month.prospects}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-purple-600">Ventes :</span>
-                    <span className="text-lg font-bold text-purple-900">{storeKPIStats.month.ventes}</span>
-                  </div>
-                  <div className="pt-2 border-t border-purple-300">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-semibold text-purple-700">Taux transfo :</span>
-                      <span className="text-2xl font-bold text-purple-900">{storeKPIStats.month.taux_transformation}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="text-6xl mb-4">📊</div>
-              <p className="text-gray-500 font-medium mb-4">Aucune donnée KPI magasin</p>
-              <p className="text-gray-400 text-sm mb-4">
-                Commencez par saisir le nombre de prospects pour calculer le taux de transformation !
-              </p>
-              <button
-                onClick={() => setShowStoreKPIModal(true)}
-                className="btn-primary inline-flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Saisir mes premiers prospects
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Team Bilan IA */}
-        {/* <TeamBilanIA /> */}
-
-        {/* Objectives & Challenges Side-by-Side Layout with Carousel */}
-        {((activeObjectives.length > 0 && dashboardFilters.showObjectives) || (activeChallenges.length > 0 && dashboardFilters.showChallenges)) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" style={{ order: getSectionOrder('objectives') }}>
-            {/* Active Objectives Section (Left Column) - Carousel */}
-            {activeObjectives.length > 0 && dashboardFilters.showObjectives && (
-              <div className="glass-morphism rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <Target className="w-6 h-6 text-purple-500" />
-                    <h3 className="text-xl font-bold text-gray-800">🎯 Objectifs Actifs</h3>
-                  </div>
-                  <button
-                    onClick={() => setShowSettingsModal(true)}
-                    className="btn-secondary text-sm flex items-center gap-2"
-                  >
-                    <Settings className="w-4 h-4" />
-                    Gérer
-                  </button>
-                </div>
-
-                {/* Carousel Navigation & Card */}
-                <div className="relative">
-                  {/* Navigation Buttons */}
-                  {activeObjectives.length > 1 && (
-                    <>
-                      <button
-                        onClick={() => setCurrentObjectiveIndex((prev) => (prev > 0 ? prev - 1 : activeObjectives.length - 1))}
-                        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
-                      >
-                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setCurrentObjectiveIndex((prev) => (prev < activeObjectives.length - 1 ? prev + 1 : 0))}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
-                      >
-                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                    </>
-                  )}
-
-                  {/* Objective Card */}
-                  <div className="px-8">
-                    {(() => {
-                      const objective = activeObjectives[currentObjectiveIndex];
-                      const daysRemaining = Math.ceil((new Date(objective.period_end) - new Date()) / (1000 * 60 * 60 * 24));
-
-                      // Calculate progress percentage
-                      const progressPercentage = (() => {
-                        if (objective.ca_target && objective.progress_ca !== undefined) {
-                          return (objective.progress_ca / objective.ca_target) * 100;
-                        }
-                        if (objective.panier_moyen_target && objective.progress_panier_moyen !== undefined) {
-                          return (objective.progress_panier_moyen / objective.panier_moyen_target) * 100;
-                        }
-                        if (objective.indice_vente_target && objective.progress_indice_vente !== undefined) {
-                          return (objective.progress_indice_vente / objective.indice_vente_target) * 100;
-                        }
-                        return 0;
-                      })();
-
-                      const status = objective.status || 'in_progress';
-
-                      return (
-                        <div 
-                          key={objective.id} 
-                          className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-300 hover:shadow-lg transition-all min-h-[280px] flex flex-col"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-bold text-gray-800 text-lg line-clamp-1">{objective.title}</h4>
-                            <div className="flex flex-col gap-1 items-end">
-                              {status === 'achieved' && (
-                                <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
-                                  🎉 Atteint !
-                                </span>
-                              )}
-                              {status === 'failed' && (
-                                <span className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
-                                  ⚠️ Non atteint
-                                </span>
-                              )}
-                              {status === 'in_progress' && (
-                                <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
-                                  ⏳ En cours
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Période */}
-                          <div className="text-xs text-gray-600 mb-2">
-                            📅 {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
-                          </div>
-
-                          {/* Progress Bar */}
-                          <div className="mb-2">
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-xs text-gray-600">Progression</span>
-                              <span className="text-xs font-bold text-gray-800">{Math.min(100, progressPercentage.toFixed(0))}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
-                                className={`h-2 rounded-full transition-all ${
-                                  status === 'achieved' ? 'bg-gradient-to-r from-green-400 to-green-500' :
-                                  status === 'failed' ? 'bg-gradient-to-r from-red-400 to-red-500' :
-                                  'bg-gradient-to-r from-purple-400 to-pink-400'
-                                }`}
-                                style={{ width: `${Math.min(100, progressPercentage)}%` }}
-                              ></div>
-                            </div>
-                          </div>
-
-                          {/* Targets with Progress - Improved Clarity */}
-                          <div className="space-y-2 mb-2 flex-1">
-                            {objective.ca_target && (
-                              <ProgressIndicator
-                                label="Chiffre d'Affaires"
-                                emoji="💰"
-                                target={objective.ca_target}
-                                progress={objective.progress_ca || 0}
-                                type="currency"
-                                colorScheme="blue"
-                              />
-                            )}
-                            
-                            {objective.panier_moyen_target && (
-                              <ProgressIndicator
-                                label="Panier Moyen"
-                                emoji="🛒"
-                                target={objective.panier_moyen_target}
-                                progress={objective.progress_panier_moyen || 0}
-                                type="decimal"
-                                colorScheme="purple"
-                              />
-                            )}
-                            
-                            {objective.indice_vente_target && (
-                              <ProgressIndicator
-                                label="Indice de Vente"
-                                emoji="💎"
-                                target={objective.indice_vente_target}
-                                progress={objective.progress_indice_vente || 0}
-                                type="decimal"
-                                colorScheme="yellow"
-                              />
-                            )}
-                          </div>
-
-                          {/* Time remaining */}
-                          <div className="flex items-center gap-2 text-xs text-gray-600 mt-auto pt-2 border-t border-purple-200">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>
-                              {daysRemaining > 0 ? `${daysRemaining}j restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine'}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Pagination Dots */}
-                  {activeObjectives.length > 1 && (
-                    <div className="flex justify-center gap-2 mt-4">
-                      {activeObjectives.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentObjectiveIndex(index)}
-                          className={`w-2 h-2 rounded-full transition-all ${
-                            index === currentObjectiveIndex ? 'bg-purple-500 w-4' : 'bg-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Active Challenges Section (Right Column) - Carousel */}
-            {activeChallenges.length > 0 && dashboardFilters.showChallenges && (
-              <div className="glass-morphism rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <Award className="w-6 h-6 text-[#ffd871]" />
-                    <h3 className="text-xl font-bold text-gray-800">🏆 Challenges Actifs</h3>
-                  </div>
-                  <button
-                    onClick={() => setShowSettingsModal(true)}
-                    className="btn-secondary text-sm flex items-center gap-2"
-                  >
-                    <Settings className="w-4 h-4" />
-                    Gérer
-                  </button>
-                </div>
-
-                {/* Carousel Navigation & Card */}
-                <div className="relative">
-                  {/* Navigation Buttons */}
-                  {activeChallenges.length > 1 && (
-                    <>
-                      <button
-                        onClick={() => setCurrentChallengeIndex((prev) => (prev > 0 ? prev - 1 : activeChallenges.length - 1))}
-                        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
-                      >
-                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setCurrentChallengeIndex((prev) => (prev < activeChallenges.length - 1 ? prev + 1 : 0))}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-all"
-                      >
-                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                    </>
-                  )}
-
-                  {/* Challenge Card */}
-                  <div className="px-8">
-                    {(() => {
-                      const challenge = activeChallenges[currentChallengeIndex];
-                      const progressPercentage = (() => {
-                        if (challenge.ca_target) return (challenge.progress_ca / challenge.ca_target) * 100;
-                        if (challenge.ventes_target) return (challenge.progress_ventes / challenge.ventes_target) * 100;
-                        if (challenge.indice_vente_target) return (challenge.progress_indice_vente / challenge.indice_vente_target) * 100;
-                        if (challenge.panier_moyen_target) return (challenge.progress_panier_moyen / challenge.panier_moyen_target) * 100;
-                        return 0;
-                      })();
-
-                      const daysRemaining = Math.ceil((new Date(challenge.end_date) - new Date()) / (1000 * 60 * 60 * 24));
-                      const daysUntilStart = Math.ceil((new Date(challenge.start_date) - new Date()) / (1000 * 60 * 60 * 24));
-                      const hasStarted = daysUntilStart <= 0;
-                      const status = challenge.status || 'active';
-
-                      return (
-                        <div 
-                          key={challenge.id} 
-                          className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-4 border-2 border-[#ffd871] hover:shadow-lg transition-all min-h-[280px] flex flex-col"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-bold text-gray-800 text-lg line-clamp-1">{challenge.title}</h4>
-                            <div className="flex flex-col gap-1 items-end">
-                              {status === 'completed' && (
-                                <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
-                                  🎉 Réussi !
-                                </span>
-                              )}
-                              {status === 'failed' && (
-                                <span className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
-                                  ⚠️ Échoué
-                                </span>
-                              )}
-                              {status === 'active' && (
-                                <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
-                                  {challenge.type === 'collective' ? '🏆 Collectif' : '👤 Individuel'}
-                                </span>
-                              )}
-                              {!hasStarted && status === 'active' && (
-                                <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
-                                  ⏳ Dans {daysUntilStart}j
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {challenge.description && (
-                            <p className="text-gray-600 text-xs mb-2 line-clamp-1">{challenge.description}</p>
-                          )}
-
-                          {/* Progress Bar */}
-                          <div className="mb-2">
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-xs text-gray-600">Progression</span>
-                              <span className="text-xs font-bold text-gray-800">{Math.min(100, progressPercentage.toFixed(0))}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
-                                className={`h-2 rounded-full transition-all ${
-                                  status === 'completed' ? 'bg-gradient-to-r from-green-400 to-green-500' :
-                                  status === 'failed' ? 'bg-gradient-to-r from-red-400 to-red-500' :
-                                  'bg-gradient-to-r from-[#ffd871] to-yellow-300'
-                                }`}
-                                style={{ width: `${Math.min(100, progressPercentage)}%` }}
-                              ></div>
-                            </div>
-                          </div>
-
-                          {/* Targets with improved clarity */}
-                          <div className="space-y-2 mb-2 flex-1">
-                            {challenge.ca_target && (
-                              <ProgressIndicator
-                                label="Chiffre d'Affaires"
-                                emoji="💰"
-                                target={challenge.ca_target}
-                                progress={challenge.progress_ca}
-                                type="currency"
-                                colorScheme="blue"
-                              />
-                            )}
-                            
-                            {challenge.ventes_target && (
-                              <ProgressIndicator
-                                label="Nombre de Ventes"
-                                emoji="🛍️"
-                                target={challenge.ventes_target}
-                                progress={challenge.progress_ventes}
-                                type="number"
-                                colorScheme="green"
-                              />
-                            )}
-                            
-                            {challenge.panier_moyen_target && (
-                              <ProgressIndicator
-                                label="Panier Moyen"
-                                emoji="🛒"
-                                target={challenge.panier_moyen_target}
-                                progress={challenge.progress_panier_moyen}
-                                type="decimal"
-                                colorScheme="purple"
-                              />
-                            )}
-                            
-                            {challenge.indice_vente_target && (
-                              <ProgressIndicator
-                                label="Indice de Vente"
-                                emoji="💎"
-                                target={challenge.indice_vente_target}
-                                progress={challenge.progress_indice_vente}
-                                type="decimal"
-                                colorScheme="yellow"
-                              />
-                            )}
-                          </div>
-
-                          {/* Time remaining */}
-                          <div className="flex items-center justify-between gap-2 text-xs text-gray-600 mt-auto pt-2 border-t border-gray-200">
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-3.5 h-3.5" />
-                              <span>
-                                {daysRemaining > 0 ? `${daysRemaining}j restant${daysRemaining > 1 ? 's' : ''}` : 'Se termine'}
-                              </span>
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => setShowSettingsModal(true)}
-                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-1 rounded transition-all"
-                                title="Modifier"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={async () => {
-                                  if (window.confirm(`Êtes-vous sûr de vouloir supprimer le challenge "${challenge.title}" ?`)) {
-                                    try {
-                                      const token = localStorage.getItem('token');
-                                      await axios.delete(`${API}/manager/challenges/${challenge.id}`, {
-                                        headers: { Authorization: `Bearer ${token}` }
-                                      });
-                                      toast.success('Challenge supprimé avec succès');
-                                      fetchActiveChallenges();
-                                      setCurrentChallengeIndex(0); // Reset to first card
-                                    } catch (err) {
-                                      console.error('Error deleting challenge:', err);
-                                      toast.error('Erreur lors de la suppression du challenge');
-                                    }
-                                  }
-                                }}
-                                className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1 rounded transition-all"
-                                title="Supprimer"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Pagination Dots */}
-                  {activeChallenges.length > 1 && (
-                    <div className="flex justify-center gap-2 mt-4">
-                      {activeChallenges.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentChallengeIndex(index)}
-                          className={`w-2 h-2 rounded-full transition-all ${
-                            index === currentChallengeIndex ? 'bg-[#ffd871] w-4' : 'bg-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Invitations Section */}
-        {invitations.length > 0 && (
-          <div className="glass-morphism rounded-2xl p-6 mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Invitations</h2>
+      {/* Sellers List Section - Below cards */}
+      {dashboardFilters.showSellers && (
+        <div className="max-w-7xl mx-auto mb-8">
+          <div className="glass-morphism rounded-2xl p-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+              <Users className="w-7 h-7 text-purple-600" />
+              Liste des Vendeurs
+            </h2>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {invitations.map((invite) => (
+              {sellers.map((seller) => (
                 <div
-                  key={invite.id}
-                  data-testid={`invitation-${invite.id}`}
-                  className="bg-white rounded-xl p-4 border border-gray-200"
+                  key={seller.id}
+                  onClick={() => {
+                    handleSellerClick(seller);
+                    setShowDetailView(true);
+                  }}
+                  className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200 hover:border-purple-400 cursor-pointer hover:shadow-lg transition-all"
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <p className="font-medium text-gray-800">{invite.email}</p>
-                    {getStatusIcon(invite.status)}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center">
+                        <span className="text-xl font-bold text-purple-700">
+                          {seller.name.charAt(0)}
+                        </span>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-800">{seller.name}</h3>
+                        <p className="text-xs text-gray-600">{seller.email}</p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-500">{getStatusText(invite.status)}</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(invite.created_at).toLocaleDateString('fr-FR')}
-                  </p>
+                  <div className="text-xs text-gray-700 bg-white bg-opacity-50 rounded-lg p-2">
+                    Cliquer pour voir les détails →
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
 
-        {dashboardFilters.showTeam && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" style={{ order: getSectionOrder('team') }}>
-            {/* Sellers List */}
-            <div className="glass-morphism rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Équipe de Vente</h2>
-              <button
-                data-testid="invite-seller-button"
-                onClick={() => setShowInviteModal(true)}
-                className="btn-primary flex items-center gap-2 text-sm"
-              >
-                <UserPlus className="w-4 h-4" />
-                Inviter un Vendeur
-              </button>
-            </div>
-            {sellers.length > 0 ? (
-              <div className="space-y-3">
-                {sellers.map((seller) => (
-                  <div
-                    key={seller.id}
-                    data-testid={`seller-${seller.id}`}
-                    onClick={() => handleSellerClick(seller)}
-                    className={`bg-white rounded-xl p-5 border-2 cursor-pointer transition-all hover:shadow-lg ${
-                      selectedSeller?.id === seller.id
-                        ? 'border-[#ffd871] shadow-md'
-                        : 'border-gray-200'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-semibold text-lg text-gray-800">{seller.name}</h3>
-                        <p className="text-sm text-gray-500">{seller.email}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-gray-800">{seller.avg_score}/5</div>
-                        <p className="text-xs text-gray-500">{seller.total_evaluations} évals</p>
-                      </div>
-                    </div>
-                    {seller.last_feedback_date && (
-                      <p className="text-xs text-gray-500">
-                        Dernière éval: {new Date(seller.last_feedback_date).toLocaleDateString('fr-FR')}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                Aucun vendeur dans votre équipe. Cliquez sur "Inviter un Vendeur" pour commencer.
-              </div>
-            )}
-          </div>
-
-          {/* Seller Details */}
-          <div className="glass-morphism rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Détails Vendeur</h2>
-              {selectedSeller && (
+            {sellers.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500 mb-4">Aucun vendeur dans votre équipe</p>
                 <button
-                  onClick={handleViewFullDetails}
-                  className="btn-primary flex items-center gap-2 text-sm"
+                  onClick={() => setShowInviteModal(true)}
+                  className="btn-primary"
                 >
-                  <Award className="w-4 h-4" />
-                  Voir tous les détails
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  Inviter un vendeur
                 </button>
-              )}
-            </div>
-            {sellerStats ? (
-              <div>
-                {/* Diagnostic Profile */}
-                {sellerDiagnostic && (
-                  <div className="mb-6 bg-[#ffd871] bg-opacity-10 rounded-2xl p-5 border-l-4 border-[#ffd871]">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-[#ffd871]" />
-                      Profil Vendeur
-                    </h3>
-                    <div className="grid grid-cols-3 gap-4 mb-3">
-                      <div>
-                        <p className="text-xs text-gray-600">Style</p>
-                        <p className="text-sm font-bold text-gray-800">{sellerDiagnostic.style}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600">Niveau</p>
-                        <p className="text-sm font-bold text-gray-800">{sellerDiagnostic.level}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600">Motivation</p>
-                        <p className="text-sm font-bold text-gray-800">{sellerDiagnostic.motivation}</p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-700 leading-relaxed line-clamp-2">
-                      {sellerDiagnostic.ai_profile_summary}
-                    </p>
-                  </div>
-                )}
-
-                {/* Navigation Tabs */}
-                <div className="flex gap-2 mb-6 border-b border-gray-200">
-                  <button
-                    onClick={() => setActiveTab('competences')}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${
-                      activeTab === 'competences'
-                        ? 'text-[#ffd871] border-b-2 border-[#ffd871]'
-                        : 'text-gray-600 hover:text-gray-800'
-                    }`}
-                  >
-                    📊 Compétences
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('kpi')}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${
-                      activeTab === 'kpi'
-                        ? 'text-[#ffd871] border-b-2 border-[#ffd871]'
-                        : 'text-gray-600 hover:text-gray-800'
-                    }`}
-                  >
-                    💰 KPI (7j)
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('evaluations')}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${
-                      activeTab === 'evaluations'
-                        ? 'text-[#ffd871] border-b-2 border-[#ffd871]'
-                        : 'text-gray-600 hover:text-gray-800'
-                    }`}
-                  >
-                    📝 Évaluations
-                  </button>
-                </div>
-
-                {/* Tab Content */}
-                {activeTab === 'competences' && (
-                  <div className="animate-fadeIn">
-                    <ResponsiveContainer width="100%" height={350}>
-                      <RadarChart data={radarData}>
-                        <PolarGrid stroke="#cbd5e1" />
-                        <PolarAngleAxis dataKey="skill" tick={{ fill: '#475569', fontSize: 12 }} />
-                        <Radar name="Score" dataKey="value" stroke="#ffd871" fill="#ffd871" fillOpacity={0.6} />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-
-                {activeTab === 'kpi' && sellerKPIs.length > 0 && (
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto animate-fadeIn">
-                    {/* Chart visibility toggles - Only show buttons for available charts */}
-                    {Object.values(availableDashboardCharts).some(v => v) && (
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200 sticky top-0 z-10">
-                      <p className="text-xs font-semibold text-gray-700 mb-2">📊 Graphiques affichés :</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {availableDashboardCharts.ca && (
-                        <button
-                          onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, ca: !prev.ca }))}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                            visibleDashboardCharts.ca
-                              ? 'bg-yellow-100 text-yellow-700 border-2 border-yellow-400'
-                              : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
-                          }`}
-                        >
-                          💰 CA
-                        </button>
-                        )}
-                        {availableDashboardCharts.ventesVsClients && (
-                        <button
-                          onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, ventesVsClients: !prev.ventesVsClients }))}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                            visibleDashboardCharts.ventesVsClients
-                              ? 'bg-blue-100 text-blue-700 border-2 border-blue-400'
-                              : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
-                          }`}
-                        >
-                          📊 Ventes vs Clients
-                        </button>
-                        )}
-                        {availableDashboardCharts.ventes && (
-                        <button
-                          onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, ventes: !prev.ventes }))}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                            visibleDashboardCharts.ventes
-                              ? 'bg-green-100 text-green-700 border-2 border-green-400'
-                              : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
-                          }`}
-                        >
-                          🛍️ Ventes
-                        </button>
-                        )}
-                        {availableDashboardCharts.clients && (
-                        <button
-                          onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, clients: !prev.clients }))}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                            visibleDashboardCharts.clients
-                              ? 'bg-purple-100 text-purple-700 border-2 border-purple-400'
-                              : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
-                          }`}
-                        >
-                          👥 Clients
-                        </button>
-                        )}
-                        {availableDashboardCharts.articles && (
-                        <button
-                          onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, articles: !prev.articles }))}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                            visibleDashboardCharts.articles
-                              ? 'bg-amber-100 text-amber-700 border-2 border-amber-400'
-                              : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
-                          }`}
-                        >
-                          📦 Articles
-                        </button>
-                        )}
-                        {availableDashboardCharts.panierMoyen && (
-                        <button
-                          onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, panierMoyen: !prev.panierMoyen }))}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                            visibleDashboardCharts.panierMoyen
-                              ? 'bg-teal-100 text-teal-700 border-2 border-teal-400'
-                              : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
-                          }`}
-                        >
-                          🛒 Panier Moyen
-                        </button>
-                        )}
-                        {availableDashboardCharts.tauxTransfo && (
-                        <button
-                          onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, tauxTransfo: !prev.tauxTransfo }))}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                            visibleDashboardCharts.tauxTransfo
-                              ? 'bg-pink-100 text-pink-700 border-2 border-pink-400'
-                              : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
-                          }`}
-                        >
-                          📈 Taux Transfo
-                        </button>
-                        )}
-                        {availableDashboardCharts.indiceVente && (
-                        <button
-                          onClick={() => setVisibleDashboardCharts(prev => ({ ...prev, indiceVente: !prev.indiceVente }))}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                            visibleDashboardCharts.indiceVente
-                              ? 'bg-orange-100 text-orange-700 border-2 border-orange-400'
-                              : 'bg-gray-100 text-gray-500 border-2 border-transparent hover:bg-gray-200'
-                          }`}
-                        >
-                          💎 Indice Vente
-                        </button>
-                        )}
-                      </div>
-                    </div>
-                    )}
-
-                    {/* Évolution du CA */}
-                    {availableDashboardCharts.ca && visibleDashboardCharts.ca && (
-                      <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">💰 Évolution du CA</h4>
-                        <ResponsiveContainer width="100%" height={150}>
-                          <LineChart data={sellerKPIs.slice().reverse()}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fill: '#6b7280', fontSize: 10 }}
-                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                            <Tooltip 
-                              formatter={(value) => `${value.toFixed(2)}€`}
-                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="ca_journalier" 
-                              stroke="#fbbf24" 
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-
-                    {/* Ventes vs Clients */}
-                    {availableDashboardCharts.ventesVsClients && visibleDashboardCharts.ventesVsClients && (
-                      <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">📊 Ventes vs Clients</h4>
-                        <ResponsiveContainer width="100%" height={150}>
-                          <BarChart data={sellerKPIs.slice().reverse()}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fill: '#6b7280', fontSize: 10 }}
-                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                            <Tooltip 
-                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
-                            />
-                            <Legend />
-                            <Bar dataKey="nb_ventes" fill="#3b82f6" name="Ventes" />
-                            <Bar dataKey="nb_clients" fill="#fbbf24" name="Clients" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-
-                    {/* Ventes seules */}
-                    {availableDashboardCharts.ventes && visibleDashboardCharts.ventes && (
-                      <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">🛍️ Évolution des ventes</h4>
-                        <ResponsiveContainer width="100%" height={150}>
-                          <LineChart data={sellerKPIs.slice().reverse()}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fill: '#6b7280', fontSize: 10 }}
-                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                            <Tooltip 
-                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="nb_ventes" 
-                              stroke="#10b981" 
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-
-                    {/* Clients seuls */}
-                    {availableDashboardCharts.clients && visibleDashboardCharts.clients && (
-                      <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">👥 Évolution des clients</h4>
-                        <ResponsiveContainer width="100%" height={150}>
-                          <LineChart data={sellerKPIs.slice().reverse()}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fill: '#6b7280', fontSize: 10 }}
-                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                            <Tooltip 
-                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="nb_clients" 
-                              stroke="#9333ea" 
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-
-                    {/* Articles */}
-                    {availableDashboardCharts.articles && visibleDashboardCharts.articles && (
-                      <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">📦 Évolution des articles</h4>
-                        <ResponsiveContainer width="100%" height={150}>
-                          <LineChart data={sellerKPIs.slice().reverse()}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fill: '#6b7280', fontSize: 10 }}
-                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                            <Tooltip 
-                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="nb_articles" 
-                              stroke="#f59e0b" 
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-
-                    {/* Panier Moyen */}
-                    {availableDashboardCharts.panierMoyen && visibleDashboardCharts.panierMoyen && (
-                      <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">🛒 Panier Moyen</h4>
-                        <ResponsiveContainer width="100%" height={150}>
-                          <LineChart data={sellerKPIs.slice().reverse()}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fill: '#6b7280', fontSize: 10 }}
-                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                            <Tooltip 
-                              formatter={(value) => `${value.toFixed(2)}€`}
-                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="panier_moyen" 
-                              stroke="#10b981" 
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-
-                    {/* Taux de Transformation */}
-                    {availableDashboardCharts.tauxTransfo && visibleDashboardCharts.tauxTransfo && (
-                      <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">📈 Taux de Transformation</h4>
-                        <ResponsiveContainer width="100%" height={150}>
-                          <LineChart data={sellerKPIs.slice().reverse()}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fill: '#6b7280', fontSize: 10 }}
-                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                            <Tooltip 
-                              formatter={(value) => `${value.toFixed(2)}%`}
-                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="taux_transformation" 
-                              stroke="#8b5cf6" 
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-
-                    {/* Indice de Vente */}
-                    {availableDashboardCharts.indiceVente && visibleDashboardCharts.indiceVente && (
-                      <div className="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">💎 Indice de Vente</h4>
-                        <ResponsiveContainer width="100%" height={150}>
-                          <LineChart data={sellerKPIs.slice().reverse()}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fill: '#6b7280', fontSize: 10 }}
-                              tickFormatter={(date) => new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
-                            />
-                            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} />
-                            <Tooltip 
-                              formatter={(value) => `${value.toFixed(2)}€`}
-                              labelFormatter={(date) => new Date(date).toLocaleDateString('fr-FR')}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="indice_vente" 
-                              stroke="#f97316" 
-                              strokeWidth={2}
-                              dot={{ r: 3 }}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'evaluations' && (
-                  <div className="animate-fadeIn">
-                    {sellerStats.evaluations.length > 0 ? (
-                      <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                        {sellerStats.evaluations.slice(0, 5).map((evaluation) => (
-                          <div
-                            key={evaluation.id}
-                            className="bg-white rounded-xl p-5 border border-gray-200 hover:shadow-md transition-shadow"
-                          >
-                            <p className="text-xs text-gray-500 mb-3 font-medium">
-                              📅 {new Date(evaluation.created_at).toLocaleDateString('fr-FR', { 
-                                weekday: 'long', 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric' 
-                              })}
-                            </p>
-                            
-                            {/* Compétences avec badges colorés */}
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
-                              <div className="bg-blue-50 rounded-lg p-2 text-center">
-                                <p className="text-xs text-blue-600 font-semibold mb-1">Accueil</p>
-                                <p className="text-lg font-bold text-blue-700">{evaluation.accueil}/5</p>
-                              </div>
-                              <div className="bg-green-50 rounded-lg p-2 text-center">
-                                <p className="text-xs text-green-600 font-semibold mb-1">Découverte</p>
-                                <p className="text-lg font-bold text-green-700">{evaluation.decouverte}/5</p>
-                              </div>
-                              <div className="bg-purple-50 rounded-lg p-2 text-center">
-                                <p className="text-xs text-purple-600 font-semibold mb-1">Argumentation</p>
-                                <p className="text-lg font-bold text-purple-700">{evaluation.argumentation}/5</p>
-                              </div>
-                              <div className="bg-orange-50 rounded-lg p-2 text-center">
-                                <p className="text-xs text-orange-600 font-semibold mb-1">Closing</p>
-                                <p className="text-lg font-bold text-orange-700">{evaluation.closing}/5</p>
-                              </div>
-                              <div className="bg-pink-50 rounded-lg p-2 text-center">
-                                <p className="text-xs text-pink-600 font-semibold mb-1">Fidélisation</p>
-                                <p className="text-lg font-bold text-pink-700">{evaluation.fidelisation}/5</p>
-                              </div>
-                            </div>
-                            
-                            {evaluation.ai_feedback && (
-                              <div className="bg-gradient-to-r from-[#ffd871] to-yellow-100 bg-opacity-20 p-3 rounded-lg border-l-4 border-[#ffd871]">
-                                <p className="text-xs font-semibold text-gray-700 mb-1 flex items-center gap-1">
-                                  <Sparkles className="w-3 h-3" />
-                                  Coach IA
-                                </p>
-                                <p className="text-xs text-gray-700 leading-relaxed">
-                                  {evaluation.ai_feedback}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-500">Aucune évaluation disponible</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                Sélectionnez un vendeur pour voir ses détails
               </div>
             )}
           </div>
         </div>
-        )}
-      </div>
+      )}
 
+      {/* Modals */}
       {showInviteModal && (
         <InviteModal
           onClose={() => setShowInviteModal(false)}
