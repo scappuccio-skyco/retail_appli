@@ -3565,6 +3565,18 @@ async def get_daily_challenge_stats(current_user: dict = Depends(get_current_use
             "challenge_result": "success"
         })
         
+        # Count partial challenges (difficult)
+        partial_count = await db.daily_challenges.count_documents({
+            "seller_id": current_user['id'],
+            "challenge_result": "partial"
+        })
+        
+        # Count failed challenges
+        failed_count = await db.daily_challenges.count_documents({
+            "seller_id": current_user['id'],
+            "challenge_result": "failed"
+        })
+        
         # Get current streak (consecutive days with completed challenges)
         all_challenges = await db.daily_challenges.find(
             {"seller_id": current_user['id'], "completed": True},
