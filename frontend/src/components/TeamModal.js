@@ -308,38 +308,42 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                     </div>
                   ) : aiAnalysis ? (
                     <div className="max-h-48 overflow-y-auto pr-2">
-                      <div className="space-y-3">
+                      <div className="space-y-3 text-sm text-gray-800">
                         {aiAnalysis.split('\n').map((line, idx) => {
-                        if (line.startsWith('## ')) {
-                          return (
-                            <h4 key={idx} className="text-sm font-bold text-indigo-900 mt-3 mb-2 flex items-center gap-2">
-                              <span className="w-1 h-4 bg-indigo-600 rounded"></span>
-                              {line.replace('## ', '')}
-                            </h4>
-                          );
-                        }
-                        if (line.startsWith('- ')) {
-                          const content = line.replace('- ', '');
-                          const parts = content.split(/(\*\*.*?\*\*)/g);
-                          return (
-                            <div key={idx} className="flex gap-2 text-xs text-gray-700 leading-relaxed ml-2">
-                              <span className="text-indigo-600 mt-1">•</span>
-                              <span>
-                                {parts.map((part, i) => {
-                                  if (part.startsWith('**') && part.endsWith('**')) {
-                                    return <strong key={i} className="text-gray-900 font-semibold">{part.slice(2, -2)}</strong>;
-                                  }
-                                  return <span key={i}>{part}</span>;
-                                })}
-                              </span>
-                            </div>
-                          );
-                        }
-                        if (line.trim() === '') {
-                          return <div key={idx} className="h-1"></div>;
-                        }
-                        return null;
-                      })}
+                          // Section titles (##)
+                          if (line.startsWith('## ')) {
+                            return (
+                              <h4 key={`h4-${idx}`} className="text-sm font-bold text-indigo-900 mt-3 mb-2 flex items-center gap-2">
+                                <span className="w-1 h-4 bg-indigo-600 rounded"></span>
+                                {line.replace('## ', '')}
+                              </h4>
+                            );
+                          }
+                          // List items (-)
+                          if (line.startsWith('- ')) {
+                            const content = line.replace('- ', '');
+                            const parts = content.split(/(\*\*.*?\*\*)/g);
+                            return (
+                              <div key={`li-${idx}`} className="flex gap-2 text-xs text-gray-700 leading-relaxed ml-2">
+                                <span className="text-indigo-600 mt-1">•</span>
+                                <span>
+                                  {parts.map((part, i) => {
+                                    if (part.startsWith('**') && part.endsWith('**')) {
+                                      return <strong key={`b-${i}`} className="text-gray-900 font-semibold">{part.slice(2, -2)}</strong>;
+                                    }
+                                    return <span key={`s-${i}`}>{part}</span>;
+                                  })}
+                                </span>
+                              </div>
+                            );
+                          }
+                          // Empty lines
+                          if (line.trim() === '') {
+                            return <div key={`br-${idx}`} className="h-1"></div>;
+                          }
+                          // Regular text
+                          return null;
+                        })}
                       </div>
                     </div>
                   ) : null}
