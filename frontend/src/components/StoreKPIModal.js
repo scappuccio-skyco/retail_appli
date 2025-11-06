@@ -591,7 +591,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                   )}
 
                   {/* Articles par Vente */}
-                  {kpiConfig.track_articles && kpiConfig.track_ventes ? (
+                  {((kpiConfig.seller_track_articles || kpiConfig.manager_track_articles) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) ? (
                     <div className="flex items-center gap-1 bg-white rounded-lg p-2 border border-green-300">
                       <span className="text-sm">✅</span>
                       <div className="flex-1">
