@@ -171,7 +171,17 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="challenge-modal-content bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <style>{`
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+          }
+          .shake-animation {
+            animation: shake 0.6s ease-in-out;
+          }
+        `}</style>
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-400 to-red-500 text-white p-6">
           <div className="flex items-center justify-between mb-4">
