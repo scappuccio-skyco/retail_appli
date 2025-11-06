@@ -534,7 +534,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                 </p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {/* Panier Moyen */}
-                  {kpiConfig.track_ca && kpiConfig.track_ventes ? (
+                  {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) ? (
                     <div className="flex items-center gap-1 bg-white rounded-lg p-2 border border-green-300">
                       <span className="text-sm">✅</span>
                       <div className="flex-1">
