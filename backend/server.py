@@ -2148,10 +2148,17 @@ async def get_seller_kpi_entries(seller_id: str, days: int = 30, current_user: d
     if not seller or seller.get('manager_id') != current_user['id']:
         raise HTTPException(status_code=404, detail="Seller not in your team")
     
+    # Calculate date threshold
+    from datetime import timedelta
+    date_threshold = (datetime.now(timezone.utc) - timedelta(days=days)).strftime('%Y-%m-%d')
+    
     entries = await db.kpi_entries.find(
-        {"seller_id": seller_id},
+        {
+            "seller_id": seller_id,
+            "date": {"$gte": date_threshold}
+        },
         {"_id": 0}
-    ).sort("date", -1).limit(days).to_list(days)
+    ).sort("date", -1).to_list(1000)
     
     return entries
 
