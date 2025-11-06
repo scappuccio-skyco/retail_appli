@@ -38,28 +38,37 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
       // Get date range based on filter
       const { startDate, endDate } = getDateRange();
       
+      // Fetch KPI config first
+      const configRes = await axios.get(`${API}/api/manager/kpi-config`, { headers });
+      setKpiConfig(configRes.data || {});
+      
       // Fetch store stats
       const statsRes = await axios.get(`${API}/api/manager/store-kpi/stats?start_date=${startDate}&end_date=${endDate}`, { headers });
-      setStoreStats(statsRes.data);
+      setStoreStats(statsRes.data || {});
       
       // Fetch sellers KPI
       const sellersRes = await axios.get(`${API}/api/manager/sellers`, { headers });
       const sellersWithKPI = await Promise.all(
         sellersRes.data.map(async (seller) => {
-          const kpiRes = await axios.get(`${API}/api/manager/kpi-entries/${seller.id}?start_date=${startDate}&end_date=${endDate}`, { headers });
-          const statsRes = await axios.get(`${API}/api/manager/seller/${seller.id}/stats`, { headers });
-          return {
-            ...seller,
-            kpi_entries: kpiRes.data,
-            stats: statsRes.data
-          };
+          try {
+            const kpiRes = await axios.get(`${API}/api/manager/kpi-entries/${seller.id}?start_date=${startDate}&end_date=${endDate}`, { headers });
+            const statsRes = await axios.get(`${API}/api/manager/seller/${seller.id}/stats`, { headers });
+            return {
+              ...seller,
+              kpi_entries: kpiRes.data || [],
+              stats: statsRes.data || {}
+            };
+          } catch (err) {
+            console.error(`Error fetching data for seller ${seller.id}:`, err);
+            return {
+              ...seller,
+              kpi_entries: [],
+              stats: {}
+            };
+          }
         })
       );
       setSellersKPI(sellersWithKPI);
-      
-      // Fetch KPI config
-      const configRes = await axios.get(`${API}/api/manager/kpi-config`, { headers });
-      setKpiConfig(configRes.data);
       
       // Calculate alerts
       calculateAlerts(sellersWithKPI, statsRes.data);
@@ -67,6 +76,10 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
     } catch (err) {
       console.error('Error fetching store KPI data:', err);
       toast.error('Erreur de chargement des données');
+      // Set default values to prevent rendering errors
+      setKpiConfig({});
+      setStoreStats({});
+      setSellersKPI([]);
     } finally {
       setLoading(false);
     }
