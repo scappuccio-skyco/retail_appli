@@ -70,26 +70,34 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
       // Remove wrapper
       document.body.removeChild(wrapper);
       
-      const imgData = canvas.toDataURL('image/png', 1.0);
+      const imgData = canvas.toDataURL('image/png', 0.95);
       const pdf = new jsPDF('p', 'mm', 'a4');
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
+      const margin = 8;
       
-      // Add header
+      // Add professional header
       pdf.setFillColor(255, 216, 113); // Yellow color
-      pdf.rect(0, 0, pdfWidth, 30, 'F');
-      pdf.setFontSize(20);
+      pdf.rect(0, 0, pdfWidth, 25, 'F');
+      
+      // Title
+      pdf.setFontSize(18);
       pdf.setTextColor(51, 51, 51);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('Retail Performer', margin, 12);
-      pdf.setFontSize(14);
+      pdf.text('Retail Performer', margin, 10);
+      
+      // Subtitle
+      pdf.setFontSize(12);
       pdf.setFont('helvetica', 'normal');
-      pdf.text('Bilan Individuel', margin, 22);
-      pdf.setFontSize(10);
-      pdf.setTextColor(102, 102, 102);
-      pdf.text(bilan.periode || 'Semaine actuelle', pdfWidth - margin - 50, 22);
+      pdf.text('Bilan Individuel de Performance', margin, 17);
+      
+      // Period on the right
+      pdf.setFontSize(9);
+      pdf.setTextColor(80, 80, 80);
+      const periodText = bilan.periode || 'Semaine actuelle';
+      const periodWidth = pdf.getTextWidth(periodText);
+      pdf.text(periodText, pdfWidth - margin - periodWidth, 17);
       
       // Calculate image dimensions
       const imgWidth = canvas.width;
