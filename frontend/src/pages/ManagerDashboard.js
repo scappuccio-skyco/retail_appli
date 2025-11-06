@@ -961,6 +961,18 @@ export default function ManagerDashboard({ user, onLogout }) {
         />
       )}
 
+      {showTeamModal && (
+        <TeamModal
+          sellers={sellers}
+          onClose={() => setShowTeamModal(false)}
+          onViewSellerDetail={(seller) => {
+            setSelectedSeller(seller);
+            setShowDetailView(true);
+            setShowTeamModal(false);
+          }}
+        />
+      )}
+
       {/* Seller Detail Modal */}
       {showDetailView && selectedSeller && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center p-4 overflow-y-auto">
