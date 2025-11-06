@@ -3603,7 +3603,7 @@ async def get_daily_challenge_stats(current_user: dict = Depends(get_current_use
         }
     except Exception as e:
         logging.error(f"Error getting challenge stats: {str(e)}")
-        return {"completed_count": 0, "success_count": 0, "current_streak": 0}
+        return {"completed_count": 0, "success_count": 0, "partial_count": 0, "failed_count": 0, "current_streak": 0}
 
 @api_router.get("/seller/daily-challenge/history")
 async def get_daily_challenge_history(current_user: dict = Depends(get_current_user)):
