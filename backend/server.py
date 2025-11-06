@@ -292,6 +292,7 @@ class ManagerKPI(BaseModel):
     nb_ventes: Optional[int] = None
     nb_clients: Optional[int] = None
     nb_articles: Optional[int] = None
+    nb_prospects: Optional[int] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -301,6 +302,7 @@ class ManagerKPICreate(BaseModel):
     nb_ventes: Optional[int] = None
     nb_clients: Optional[int] = None
     nb_articles: Optional[int] = None
+    nb_prospects: Optional[int] = None
 
 # ===== DAILY CHALLENGE MODELS =====
 class DailyChallenge(BaseModel):
