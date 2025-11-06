@@ -831,7 +831,7 @@ export default function ManagerDashboard({ user, onLogout }) {
 
       {/* Main Dashboard Cards Grid */}
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8" style={{ display: 'flex', flexWrap: 'wrap' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
           {sectionOrder.map(renderSection)}
         </div>
       </div>
