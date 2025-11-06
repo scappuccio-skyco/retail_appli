@@ -118,59 +118,6 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
     }
   };
 
-  const handleAIAnalysis = async () => {
-    console.log('[TeamModal] 🤖 Starting AI analysis...');
-    
-    // Force remount by incrementing key
-    setAnalysisKey(prev => prev + 1);
-    setLoadingAI(true);
-    setShowAIAnalysis(true);
-
-    try {
-      const token = localStorage.getItem('token');
-      // Prepare team context for AI
-      const teamContext = {
-        total_sellers: teamData.length,
-        sellers_with_kpi: teamData.filter(s => s.hasKpiToday).length,
-        team_total_ca: teamData.reduce((sum, s) => sum + s.monthlyCA, 0),
-        team_total_ventes: teamData.reduce((sum, s) => sum + s.monthlyVentes, 0),
-        sellers_details: teamData.map(s => ({
-          name: s.name,
-          ca: s.monthlyCA,
-          ventes: s.monthlyVentes,
-          panier_moyen: s.panierMoyen,
-          avg_competence: s.avgCompetence,
-          best_skill: s.bestCompetence.name,
-          worst_skill: s.worstCompetence.name
-        }))
-      };
-
-      console.log('[TeamModal] 📤 Sending team context to API:', teamContext);
-
-      const res = await axios.post(
-        `${API}/manager/analyze-team`,
-        { team_data: teamContext },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      console.log('[TeamModal] 📥 API Response:', res.data);
-      console.log('[TeamModal] 📊 Analysis length:', res.data.analysis?.length || 0);
-      
-      // Use startTransition to avoid DOM reconciliation issues
-      startTransition(() => {
-        setAiAnalysis(res.data.analysis);
-      });
-      toast.success('Analyse IA générée !');
-    } catch (err) {
-      console.error('[TeamModal] ❌ Error generating AI analysis:', err);
-      console.error('[TeamModal] ❌ Error details:', err.response?.data || err.message);
-      toast.error('Erreur lors de l\'analyse IA');
-      setShowAIAnalysis(false);
-    } finally {
-      setLoadingAI(false);
-    }
-  };
-
   // Calculate team totals
   const teamTotalCA = teamData.reduce((sum, s) => sum + s.monthlyCA, 0);
   const teamTotalVentes = teamData.reduce((sum, s) => sum + s.monthlyVentes, 0);
