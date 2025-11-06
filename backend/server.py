@@ -3425,6 +3425,78 @@ async def get_manager_kpis(
     kpis = await db.manager_kpis.find(query, {"_id": 0}).sort("date", -1).to_list(1000)
     return kpis
 
+@api_router.post("/manager/analyze-team")
+async def analyze_team(
+    request_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Analyze team performance using AI"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access this endpoint")
+    
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from dotenv import load_dotenv
+        load_dotenv()
+        
+        team_data = request_data.get("team_data", {})
+        
+        # Build context with team data
+        sellers_summary = []
+        for seller in team_data.get('sellers_details', []):
+            sellers_summary.append(
+                f"- {seller['name']}: CA {seller['ca']:.0f}€, {seller['ventes']} ventes, "
+                f"PM {seller['panier_moyen']:.2f}€, Compétences {seller['avg_competence']:.1f}/10 "
+                f"(Fort: {seller['best_skill']}, Faible: {seller['worst_skill']})"
+            )
+        
+        context = f"""
+Tu es un expert en management retail. Analyse cette équipe et fournis des recommandations managériales.
+
+ÉQUIPE :
+- Taille : {team_data.get('total_sellers', 0)} vendeurs
+- Saisies KPI : {team_data.get('sellers_with_kpi', 0)}/{team_data.get('total_sellers', 0)}
+- CA Total : {team_data.get('team_total_ca', 0):.0f} €
+- Ventes Totales : {team_data.get('team_total_ventes', 0)}
+
+VENDEURS :
+{chr(10).join(sellers_summary)}
+
+CONSIGNES :
+- Analyse les forces et faiblesses de l'équipe
+- Identifie les actions prioritaires pour chaque vendeur
+- Sois concis (2 sections max, 2-3 points par section)
+
+Format :
+
+1. **ANALYSE D'ÉQUIPE** (2-3 points) :
+   - Forces collectives
+   - Points d'attention
+
+2. **ACTIONS PAR VENDEUR** (2-3 actions) :
+   - Recommandations personnalisées
+   - Priorités managériales
+"""
+        
+        api_key = os.environ.get('EMERGENT_LLM_KEY')
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"team-analysis-{current_user['id']}",
+            system_message="Tu es un expert en management d'équipe retail avec 15 ans d'expérience."
+        ).with_model("openai", "gpt-4o")
+        
+        user_message = UserMessage(text=context)
+        response = await chat.send_message(user_message)
+        
+        return {
+            "analysis": response,
+            "generated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        print(f"Error in team AI analysis: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'analyse IA: {str(e)}")
+
 @api_router.post("/manager/analyze-store-kpis")
 async def analyze_store_kpis(
     request_data: dict,
