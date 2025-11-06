@@ -557,86 +557,86 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
               </div>
 
               {/* Calculated KPIs Section - MOVED TO TOP */}
-              <div className="bg-purple-50 rounded-xl p-4 border-2 border-purple-200">
-                <h3 className="text-sm font-bold text-purple-900 mb-2 flex items-center gap-2">
+              <div className="bg-purple-50 rounded-xl p-3 border-2 border-purple-200">
+                <h3 className="text-xs font-bold text-purple-900 mb-2">
                   🧮 KPI Calculés Automatiquement
                 </h3>
-                <p className="text-xs text-purple-700 mb-3">
+                <p className="text-[10px] text-purple-700 mb-2">
                   Ces indicateurs seront calculés à partir des KPI activés :
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {/* Panier Moyen */}
                   {kpiConfig.track_ca && kpiConfig.track_ventes ? (
-                    <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-green-300">
-                      <span className="text-lg">✅</span>
+                    <div className="flex items-center gap-1 bg-white rounded-lg p-2 border border-green-300">
+                      <span className="text-sm">✅</span>
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-gray-800">🛒 Panier Moyen</p>
-                        <p className="text-[10px] text-gray-600">CA ÷ Ventes</p>
+                        <p className="text-[10px] font-bold text-gray-800">🛒 Panier Moyen</p>
+                        <p className="text-[9px] text-gray-600">CA ÷ Ventes</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
-                      <span className="text-lg">⬜</span>
+                    <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
+                      <span className="text-sm">⬜</span>
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-gray-600">🛒 Panier Moyen</p>
-                        <p className="text-[10px] text-gray-500">Nécessite: CA + Ventes</p>
+                        <p className="text-[10px] font-bold text-gray-600">🛒 Panier Moyen</p>
+                        <p className="text-[9px] text-gray-500">CA + Ventes</p>
                       </div>
                     </div>
                   )}
 
                   {/* Taux de Transformation */}
                   {kpiConfig.track_ventes && kpiConfig.track_clients ? (
-                    <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-green-300">
-                      <span className="text-lg">✅</span>
+                    <div className="flex items-center gap-1 bg-white rounded-lg p-2 border border-green-300">
+                      <span className="text-sm">✅</span>
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-gray-800">📈 Taux Transfo</p>
-                        <p className="text-[10px] text-gray-600">(Ventes ÷ Clients) × 100</p>
+                        <p className="text-[10px] font-bold text-gray-800">📈 Taux Transfo</p>
+                        <p className="text-[9px] text-gray-600">Ventes ÷ Clients</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
-                      <span className="text-lg">⬜</span>
+                    <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
+                      <span className="text-sm">⬜</span>
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-gray-600">📈 Taux Transfo</p>
-                        <p className="text-[10px] text-gray-500">Nécessite: Ventes + Clients</p>
+                        <p className="text-[10px] font-bold text-gray-600">📈 Taux Transfo</p>
+                        <p className="text-[9px] text-gray-500">Ventes + Clients</p>
                       </div>
                     </div>
                   )}
 
                   {/* Indice de Vente */}
                   {kpiConfig.track_ca && kpiConfig.track_ventes && kpiConfig.track_articles ? (
-                    <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-green-300">
-                      <span className="text-lg">✅</span>
+                    <div className="flex items-center gap-1 bg-white rounded-lg p-2 border border-green-300">
+                      <span className="text-sm">✅</span>
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-gray-800">🎯 Indice Vente</p>
-                        <p className="text-[10px] text-gray-600">Formule complexe</p>
+                        <p className="text-[10px] font-bold text-gray-800">🎯 Indice Vente</p>
+                        <p className="text-[9px] text-gray-600">Formule complexe</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
-                      <span className="text-lg">⬜</span>
+                    <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
+                      <span className="text-sm">⬜</span>
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-gray-600">🎯 Indice Vente</p>
-                        <p className="text-[10px] text-gray-500">Nécessite: CA + Ventes + Articles</p>
+                        <p className="text-[10px] font-bold text-gray-600">🎯 Indice Vente</p>
+                        <p className="text-[9px] text-gray-500">CA + Ventes + Articles</p>
                       </div>
                     </div>
                   )}
 
                   {/* Articles par Vente */}
                   {kpiConfig.track_articles && kpiConfig.track_ventes ? (
-                    <div className="flex items-center gap-2 bg-white rounded-lg p-2 border border-green-300">
-                      <span className="text-lg">✅</span>
+                    <div className="flex items-center gap-1 bg-white rounded-lg p-2 border border-green-300">
+                      <span className="text-sm">✅</span>
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-gray-800">📦 Articles/Vente</p>
-                        <p className="text-[10px] text-gray-600">Articles ÷ Ventes</p>
+                        <p className="text-[10px] font-bold text-gray-800">📦 Articles/Vente</p>
+                        <p className="text-[9px] text-gray-600">Articles ÷ Ventes</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
-                      <span className="text-lg">⬜</span>
+                    <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
+                      <span className="text-sm">⬜</span>
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-gray-600">📦 Articles/Vente</p>
-                        <p className="text-[10px] text-gray-500">Nécessite: Articles + Ventes</p>
+                        <p className="text-[10px] font-bold text-gray-600">📦 Articles/Vente</p>
+                        <p className="text-[9px] text-gray-500">Articles + Ventes</p>
                       </div>
                     </div>
                   )}
