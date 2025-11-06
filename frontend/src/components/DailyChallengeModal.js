@@ -31,7 +31,7 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
       );
 
       const messages = {
-        success: '🎉 Excellent ! Challenge réussi !',
+        success: '🎉 Excellent ! Défi réussi !',
         partial: '💪 Bon effort ! Continue comme ça !',
         failed: '🤔 Pas grave ! On réessaie demain !'
       };
