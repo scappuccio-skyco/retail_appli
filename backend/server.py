@@ -451,6 +451,8 @@ class KPIConfigUpdate(BaseModel):
     manager_track_clients: Optional[bool] = None
     seller_track_articles: Optional[bool] = None
     manager_track_articles: Optional[bool] = None
+    seller_track_prospects: Optional[bool] = None
+    manager_track_prospects: Optional[bool] = None
 
 
 # ===== MANAGER OBJECTIVES MODELS =====
