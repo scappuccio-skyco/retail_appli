@@ -99,7 +99,7 @@ async def fill_kpi_data():
     if entries_to_insert:
         await db.kpi_entries.insert_many(entries_to_insert)
         print(f"\n✅ Successfully inserted {len(entries_to_insert)} KPI entries")
-        print(f"   Total: {len(entries_to_insert)} entries for {len(sellers)} sellers over 90 days")
+        print(f"   Total: {len(entries_to_insert)} entries for {len(sellers)} sellers over 365 days")
     
     # Verify data
     print("\n📊 Verification:")
