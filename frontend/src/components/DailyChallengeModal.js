@@ -131,9 +131,13 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
       // Show success message
       toast.success(messages[result] || '✅ Feedback enregistré !');
       
-      // Trigger confetti ONLY for successful completion
+      // Trigger appropriate animation based on result
       if (result === 'success') {
-        triggerConfetti();
+        triggerConfetti(); // Confettis complets pour succès
+      } else if (result === 'partial') {
+        triggerPartialConfetti(); // Confettis modérés pour difficile
+      } else if (result === 'failed') {
+        triggerFailAnimation(); // Animation d'encouragement pour échec
       }
       
       // Update challenge state to show completion
