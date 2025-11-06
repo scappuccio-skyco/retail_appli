@@ -3364,6 +3364,8 @@ async def create_or_update_manager_kpi(
             update_data["nb_clients"] = manager_kpi_data.nb_clients
         if manager_kpi_data.nb_articles is not None:
             update_data["nb_articles"] = manager_kpi_data.nb_articles
+        if manager_kpi_data.nb_prospects is not None:
+            update_data["nb_prospects"] = manager_kpi_data.nb_prospects
         
         await db.manager_kpis.update_one(
             {"manager_id": current_user['id'], "date": manager_kpi_data.date},
