@@ -3383,7 +3383,8 @@ async def create_or_update_manager_kpi(
             ca_journalier=manager_kpi_data.ca_journalier,
             nb_ventes=manager_kpi_data.nb_ventes,
             nb_clients=manager_kpi_data.nb_clients,
-            nb_articles=manager_kpi_data.nb_articles
+            nb_articles=manager_kpi_data.nb_articles,
+            nb_prospects=manager_kpi_data.nb_prospects
         )
         await db.manager_kpis.insert_one(new_kpi.dict())
         kpi = new_kpi.dict()
