@@ -16,26 +16,103 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
     
     setExportingPDF(true);
     try {
-      // Capture the content as canvas
+      // Capture the content as canvas with higher quality
       const canvas = await html2canvas(contentRef.current, {
-        scale: 2,
+        scale: 3, // Higher quality
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        windowWidth: 1200,
+        windowHeight: contentRef.current.scrollHeight
       });
       
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png', 1.0);
       const pdf = new jsPDF('p', 'mm', 'a4');
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      
+      // Add header
+      pdf.setFillColor(255, 216, 113); // Yellow color
+      pdf.rect(0, 0, pdfWidth, 30, 'F');
+      pdf.setFontSize(20);
+      pdf.setTextColor(51, 51, 51);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Retail Performer', margin, 12);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Bilan Individuel', margin, 22);
+      pdf.setFontSize(10);
+      pdf.setTextColor(102, 102, 102);
+      pdf.text(bilan.periode || 'Semaine actuelle', pdfWidth - margin - 50, 22);
+      
+      // Calculate image dimensions
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 10;
+      const contentWidth = pdfWidth - (2 * margin);
+      const ratio = contentWidth / imgWidth;
+      const contentHeight = imgHeight * ratio;
       
-      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      // Check if content fits on one page
+      const availableHeight = pdfHeight - 40; // Account for header and margins
+      
+      if (contentHeight <= availableHeight) {
+        // Single page
+        pdf.addImage(imgData, 'PNG', margin, 35, contentWidth, contentHeight);
+      } else {
+        // Multiple pages
+        let position = 0;
+        let page = 0;
+        
+        while (position < contentHeight) {
+          if (page > 0) {
+            pdf.addPage();
+          }
+          
+          const remainingHeight = contentHeight - position;
+          const pageContentHeight = Math.min(availableHeight, remainingHeight);
+          
+          pdf.addImage(
+            imgData, 
+            'PNG', 
+            margin, 
+            page === 0 ? 35 : margin, 
+            contentWidth, 
+            contentHeight,
+            undefined,
+            'FAST',
+            0,
+            -position
+          );
+          
+          position += availableHeight;
+          page++;
+        }
+      }
+      
+      // Add footer with page numbers
+      const pageCount = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(128, 128, 128);
+        pdf.text(
+          `Page ${i} / ${pageCount} - Généré le ${new Date().toLocaleDateString('fr-FR')}`, 
+          pdfWidth / 2, 
+          pdfHeight - 5, 
+          { align: 'center' }
+        );
+      }
+      
+      // Add metadata
+      pdf.setProperties({
+        title: `Bilan Individuel - ${bilan.periode || 'Actuel'}`,
+        subject: 'Rapport de performance hebdomadaire',
+        author: 'Retail Performer',
+        keywords: 'bilan, KPI, performance, ventes',
+        creator: 'Retail Performer App'
+      });
       
       // Generate filename with date
       const fileName = `bilan_${bilan.periode || 'actuel'}.pdf`.replace(/\s+/g, '_');
