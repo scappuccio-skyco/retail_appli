@@ -571,23 +571,28 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                   </div>
 
                   {/* Taux de Transformation */}
-                  {((kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_clients || kpiConfig.manager_track_clients)) ? (
-                    <div className="flex items-center gap-1 bg-white rounded-lg p-2 border border-green-300">
-                      <span className="text-sm">✅</span>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-gray-800">📈 Taux Transfo</p>
-                        <p className="text-[9px] text-gray-600">Ventes ÷ Clients</p>
-                      </div>
+                  <div key="kpi-calc-taux-transfo" className={`flex items-center gap-1 rounded-lg p-2 border ${
+                    ((kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_clients || kpiConfig.manager_track_clients))
+                      ? 'bg-white border-green-300'
+                      : 'bg-gray-50 border-gray-300 opacity-60'
+                  }`}>
+                    <span className="text-sm">
+                      {((kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_clients || kpiConfig.manager_track_clients)) ? '✅' : '⬜'}
+                    </span>
+                    <div className="flex-1">
+                      <p className={`text-[10px] font-bold ${
+                        ((kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_clients || kpiConfig.manager_track_clients))
+                          ? 'text-gray-800'
+                          : 'text-gray-600'
+                      }`}>📈 Taux Transfo</p>
+                      <p className="text-[9px] text-gray-600">
+                        {((kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_clients || kpiConfig.manager_track_clients))
+                          ? 'Ventes ÷ Clients'
+                          : 'Ventes + Clients'
+                        }
+                      </p>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-2 border border-gray-300 opacity-60">
-                      <span className="text-sm">⬜</span>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-gray-600">📈 Taux Transfo</p>
-                        <p className="text-[9px] text-gray-500">Ventes + Clients</p>
-                      </div>
-                    </div>
-                  )}
+                  </div>
 
                   {/* Indice de Vente */}
                   {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_articles || kpiConfig.manager_track_articles)) ? (
