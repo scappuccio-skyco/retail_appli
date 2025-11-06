@@ -3443,43 +3443,58 @@ async def analyze_store_kpis(
         kpi_data = request_data.get("kpi_data", {})
         date = kpi_data.get("date", "")
         
-        # Prepare context for AI analysis
+        # Prepare context for AI analysis - only include available data
+        kpis = kpi_data.get('calculated_kpis', {})
+        totals = kpi_data.get('totals', {})
+        
+        # Build context with only available data
+        available_kpis = []
+        if kpis.get('panier_moyen'):
+            available_kpis.append(f"Panier Moyen : {kpis['panier_moyen']} €")
+        if kpis.get('taux_transformation'):
+            available_kpis.append(f"Taux de Transformation : {kpis['taux_transformation']} %")
+        if kpis.get('indice_vente'):
+            available_kpis.append(f"Indice de Vente (UPT) : {kpis['indice_vente']}")
+        
+        available_totals = []
+        if totals.get('ca', 0) > 0:
+            available_totals.append(f"CA Total : {totals['ca']} €")
+        if totals.get('ventes', 0) > 0:
+            available_totals.append(f"Ventes : {totals['ventes']}")
+        if totals.get('clients', 0) > 0:
+            available_totals.append(f"Clients : {totals['clients']}")
+        if totals.get('articles', 0) > 0:
+            available_totals.append(f"Articles : {totals['articles']}")
+        if totals.get('prospects', 0) > 0:
+            available_totals.append(f"Prospects : {totals['prospects']}")
+        
         context = f"""
-Tu es un expert en analyse retail. Voici les KPIs du magasin pour le {date} :
+Tu es un expert en analyse retail. Analyse UNIQUEMENT les données disponibles ci-dessous pour le {date}. Ne mentionne PAS les données manquantes.
 
-**Vendeurs ayant saisi leurs données :** {kpi_data.get('sellers_reported', 0)} sur {kpi_data.get('total_sellers', 0)}
+Vendeurs : {kpi_data.get('sellers_reported', 0)}/{kpi_data.get('total_sellers', 0)} ont saisi leurs données
 
-**KPIs Calculés :**
-- Panier Moyen : {kpi_data.get('calculated_kpis', {}).get('panier_moyen', 'N/A')} €
-- Taux de Transformation : {kpi_data.get('calculated_kpis', {}).get('taux_transformation', 'N/A')} %
-- Indice de Vente (UPT) : {kpi_data.get('calculated_kpis', {}).get('indice_vente', 'N/A')}
+KPIs Disponibles :
+{chr(10).join(['- ' + kpi for kpi in available_kpis]) if available_kpis else '(Aucun KPI calculé)'}
 
-**Totaux Magasin :**
-- CA Total : {kpi_data.get('totals', {}).get('ca', 0)} €
-- Ventes : {kpi_data.get('totals', {}).get('ventes', 0)}
-- Clients : {kpi_data.get('totals', {}).get('clients', 0)}
-- Articles : {kpi_data.get('totals', {}).get('articles', 0)}
-- Prospects : {kpi_data.get('totals', {}).get('prospects', 0)}
+Totaux :
+{chr(10).join(['- ' + total for total in available_totals]) if available_totals else '(Aucune donnée)'}
 
-**Données Manager :**
-{format_kpi_data(kpi_data.get('manager_data', {}))}
+CONSIGNES STRICTES :
+- Analyse UNIQUEMENT les données présentes
+- Ne mentionne JAMAIS les données manquantes ou absentes
+- Sois concis et direct (2 points max par section)
+- Fournis des insights actionnables
 
-**Données Vendeurs (agrégées) :**
-{format_seller_data(kpi_data.get('sellers_data', {}))}
+Fournis une analyse en 2 parties courtes :
 
-Fournis une analyse structurée en 2 parties :
+1. **ANALYSE** (2 points max) :
+   - Observation clé sur les performances
+   - Point d'attention s'il y en a
 
-1. **ANALYSE GÉNÉRALE** (3-4 points) :
-   - Points forts observés
-   - Points faibles ou zones d'attention
-   - Tendances remarquables
+2. **RECOMMANDATIONS** (2 actions max) :
+   - Actions concrètes et prioritaires
 
-2. **RECOMMANDATIONS D'ACTIONS** (3-4 actions concrètes) :
-   - Actions immédiates à prendre
-   - Axes d'amélioration prioritaires
-   - Conseils pour optimiser les performances
-
-Format ta réponse en Markdown pour une bonne lisibilité.
+Format : Markdown simple et concis.
 """
         
         # Initialize AI chat
