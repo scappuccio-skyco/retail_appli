@@ -12,6 +12,41 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
   const [feedbackComment, setFeedbackComment] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Trigger confetti when challenge is completed
+  useEffect(() => {
+    if (challenge && challenge.completed && challenge.challenge_result === 'success') {
+      triggerConfetti();
+    }
+  }, [challenge]);
+
+  const triggerConfetti = () => {
+    const duration = 3000;
+    const end = Date.now() + duration;
+
+    const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
+
+    (function frame() {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: colors
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: colors
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    }());
+  };
+
   const handleComplete = async (result) => {
     if (!result) {
       setShowFeedbackForm(true);
