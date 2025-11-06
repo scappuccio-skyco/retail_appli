@@ -37,7 +37,23 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
 
   useEffect(() => {
     fetchKPIConfig();
-  }, []);
+    if (activeTab === 'overview') {
+      fetchOverviewData();
+    }
+  }, [activeTab]);
+
+  const fetchOverviewData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/api/manager/store-kpi-overview?date=${overviewDate}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setOverviewData(res.data);
+    } catch (err) {
+      console.error('Error fetching overview:', err);
+      toast.error('Erreur lors du chargement de la synthèse');
+    }
+  };
 
   const fetchKPIConfig = async () => {
     try {
