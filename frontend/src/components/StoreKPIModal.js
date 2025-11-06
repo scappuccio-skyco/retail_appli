@@ -368,26 +368,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                     </div>
                   </div>
 
-                  {/* AI Analysis Button */}
-                  <div className="flex justify-center">
-                    <button
-                      onClick={handleAIAnalysis}
-                      disabled={loadingAnalysis || !overviewData}
-                      className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      {loadingAnalysis ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Analyse en cours...
-                        </>
-                      ) : (
-                        <>
-                          <span>🤖</span> Lancer l'Analyse IA
-                        </>
-                      )}
-                    </button>
-                  </div>
-
                   {/* AI Analysis Result Section */}
                   {showAnalysis && (
                     <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-4 border-2 border-indigo-200">
