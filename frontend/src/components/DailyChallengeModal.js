@@ -194,21 +194,26 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
         {stats && (
           <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 border-b-2 border-purple-100">
             <p className="text-xs text-gray-600 font-semibold mb-3">📊 Tes Statistiques</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-white rounded-xl p-3 text-center shadow-sm">
+            <div className="grid grid-cols-4 gap-2">
+              <div className="bg-white rounded-xl p-2 text-center shadow-sm">
                 <div className="text-2xl mb-1">🏆</div>
-                <p className="text-xl font-bold text-gray-800">{stats.completed_count}</p>
-                <p className="text-xs text-gray-600">Défi{stats.completed_count > 1 ? 's' : ''} relevé{stats.completed_count > 1 ? 's' : ''}</p>
+                <p className="text-lg font-bold text-gray-800">{stats.completed_count}</p>
+                <p className="text-xs text-gray-600">Relevé{stats.completed_count > 1 ? 's' : ''}</p>
               </div>
-              <div className="bg-white rounded-xl p-3 text-center shadow-sm">
+              <div className="bg-white rounded-xl p-2 text-center shadow-sm">
                 <div className="text-2xl mb-1">✅</div>
-                <p className="text-xl font-bold text-green-600">{stats.success_count}</p>
+                <p className="text-lg font-bold text-green-600">{stats.success_count}</p>
                 <p className="text-xs text-gray-600">Réussi{stats.success_count > 1 ? 's' : ''}</p>
               </div>
-              <div className="bg-white rounded-xl p-3 text-center shadow-sm">
+              <div className="bg-white rounded-xl p-2 text-center shadow-sm">
                 <div className="text-2xl mb-1">💪</div>
-                <p className="text-xl font-bold text-orange-600">{stats.completed_count - stats.success_count}</p>
-                <p className="text-xs text-gray-600">Difficile{(stats.completed_count - stats.success_count) > 1 ? 's' : ''}</p>
+                <p className="text-lg font-bold text-orange-600">{stats.partial_count}</p>
+                <p className="text-xs text-gray-600">Difficile{stats.partial_count > 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-white rounded-xl p-2 text-center shadow-sm">
+                <div className="text-2xl mb-1">❌</div>
+                <p className="text-lg font-bold text-red-600">{stats.failed_count}</p>
+                <p className="text-xs text-gray-600">Échoué{stats.failed_count > 1 ? 's' : ''}</p>
               </div>
             </div>
           </div>
