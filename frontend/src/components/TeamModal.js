@@ -340,8 +340,9 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         }
                         return null;
                       })}
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
                 </div>
               )}
 
