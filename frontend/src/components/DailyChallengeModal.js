@@ -35,7 +35,6 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
   const triggerConfetti = () => {
     const duration = 3000;
     const end = Date.now() + duration;
-
     const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
 
     (function frame() {
@@ -52,6 +51,50 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
         spread: 55,
         origin: { x: 1 },
         colors: colors
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    }());
+  };
+
+  const triggerPartialConfetti = () => {
+    // Animation plus modérée pour "Difficile"
+    const duration = 2000;
+    const end = Date.now() + duration;
+    const colors = ['#fb923c', '#fdba74', '#fcd34d']; // Orange/Yellow
+
+    (function frame() {
+      confetti({
+        particleCount: 2,
+        angle: 90,
+        spread: 45,
+        origin: { x: 0.5, y: 0.5 },
+        colors: colors
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    }());
+  };
+
+  const triggerFailAnimation = () => {
+    // Animation d'encouragement pour "Échoué"
+    const duration = 1500;
+    const end = Date.now() + duration;
+
+    (function frame() {
+      confetti({
+        particleCount: 1,
+        angle: 90,
+        spread: 30,
+        origin: { x: 0.5, y: 0.7 },
+        colors: ['#a3a3a3', '#d4d4d4'],
+        shapes: ['circle'],
+        gravity: 1.5,
+        scalar: 0.8
       });
 
       if (Date.now() < end) {
