@@ -25,6 +25,16 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
     nb_prospects: ''
   });
 
+  // Manager KPI form state
+  const [managerKPIFormData, setManagerKPIFormData] = useState({
+    date: new Date().toISOString().split('T')[0],
+    seller_id: '',
+    ca: '',
+    ventes: '',
+    clients: '',
+    articles: ''
+  });
+
   useEffect(() => {
     fetchData();
   }, [timeFilter, currentOffset]);
