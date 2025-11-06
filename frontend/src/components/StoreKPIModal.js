@@ -801,12 +801,12 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                 </div>
               </div>
 
-              <div className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
-                <p className="text-sm text-green-800">
-                  {(kpiConfig.filled_by || 'seller') === 'seller' 
-                    ? '✅ Les KPI activés apparaîtront dans le formulaire de saisie quotidien des vendeurs.'
-                    : '✅ Vous (manager) devrez remplir ces KPI pour chaque vendeur.'
-                  }
+              <div className="bg-green-50 rounded-xl p-3 border-2 border-green-200">
+                <p className="text-xs text-green-800">
+                  ✅ Les KPI activés côté <strong>Vendeurs</strong> (vert) apparaîtront dans leur formulaire de saisie quotidien.
+                  {(kpiConfig.manager_track_ca || kpiConfig.manager_track_ventes || kpiConfig.manager_track_clients || kpiConfig.manager_track_articles) && (
+                    <> Les KPI activés côté <strong>Manager</strong> (violet) apparaîtront dans l'onglet "Saisie KPI Manager".</>
+                  )}
                 </p>
               </div>
             </div>
