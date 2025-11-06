@@ -31,6 +31,8 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
       const sellersDataPromises = sellers.map(async (seller) => {
         try {
           const daysParam = periodFilter === 'all' ? '365' : periodFilter;
+          console.log(`[TeamModal] Fetching ${seller.name} with days=${daysParam}`);
+          
           const [statsRes, kpiRes] = await Promise.all([
             axios.get(`${API}/manager/seller/${seller.id}/stats`, { headers: { Authorization: `Bearer ${token}` } }),
             axios.get(`${API}/manager/kpi-entries/${seller.id}?days=${daysParam}`, { headers: { Authorization: `Bearer ${token}` } })
@@ -39,10 +41,14 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
           const stats = statsRes.data;
           const kpiEntries = kpiRes.data;
 
-          // Calculate monthly totals
+          console.log(`[TeamModal] ${seller.name}: ${kpiEntries.length} entries`);
+
+          // Calculate period totals
           const monthlyCA = kpiEntries.reduce((sum, entry) => sum + (entry.ca_journalier || 0), 0);
           const monthlyVentes = kpiEntries.reduce((sum, entry) => sum + (entry.nb_ventes || 0), 0);
           const panierMoyen = monthlyVentes > 0 ? monthlyCA / monthlyVentes : 0;
+          
+          console.log(`[TeamModal] ${seller.name} CA: ${monthlyCA.toFixed(2)}, Ventes: ${monthlyVentes}`);
 
           // Get competences scores
           const competences = stats.avg_radar_scores || {};
