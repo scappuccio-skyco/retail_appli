@@ -1039,14 +1039,16 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         {/* Mon Coach IA Card */}
         {dashboardFilters.showCompetences && dailyChallenge && (
           <div 
-            onClick={() => setShowDailyChallengeModal(true)}
             className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 ${
               dailyChallenge.completed 
-                ? 'border-green-400 ring-4 ring-green-200 animate-pulse' 
+                ? 'border-green-400' 
                 : 'border-transparent hover:border-[#ffd871]'
             }`}
           >
-            <div className="relative h-48 overflow-hidden">
+            <div 
+              onClick={() => setShowDailyChallengeModal(true)}
+              className="relative h-48 overflow-hidden"
+            >
               <img 
                 src="https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?w=800&h=400&fit=crop" 
                 alt="Mon Coach IA"
@@ -1057,11 +1059,17 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   ? 'bg-gradient-to-r from-green-900/70 to-emerald-900/70 group-hover:from-green-900/60 group-hover:to-emerald-900/60'
                   : 'bg-gradient-to-r from-orange-900/70 to-red-900/70 group-hover:from-orange-900/60 group-hover:to-red-900/60'
               }`}></div>
+              
+              {/* Compteur de défis relevés */}
+              {challengeStats && challengeStats.completed_count > 0 && (
+                <div className="absolute top-3 right-3 bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                  {challengeStats.completed_count} défi{challengeStats.completed_count > 1 ? 's' : ''} relevé{challengeStats.completed_count > 1 ? 's' : ''}
+                </div>
+              )}
+              
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center text-white px-4">
-                  <div className={`w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm ${
-                    dailyChallenge.completed ? 'animate-bounce' : ''
-                  }`}>
+                  <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
                     {dailyChallenge.completed ? (
                       <span className="text-4xl">✅</span>
                     ) : (
@@ -1072,11 +1080,44 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                     {dailyChallenge.completed ? '🎉 Défi Complété !' : '🤖 Mon Coach IA'}
                   </h2>
                   <p className="text-sm mt-2 opacity-90">
-                    {dailyChallenge.completed ? 'Bravo ! Reviens demain pour un nouveau défi' : 'Prêt à relever une mission ?'}
+                    {dailyChallenge.completed ? 'Bravo !' : 'Prêt à relever une mission ?'}
                   </p>
                 </div>
               </div>
             </div>
+            
+            {/* Bouton Nouveau Défi (si complété) */}
+            {dailyChallenge.completed && (
+              <div className="p-3 bg-white flex gap-2">
+                <button
+                  onClick={() => setShowDailyChallengeModal(true)}
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-all text-sm"
+                >
+                  📊 Voir le défi
+                </button>
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    try {
+                      const token = localStorage.getItem('token');
+                      const res = await axios.post(
+                        `${API}/seller/daily-challenge/refresh`,
+                        {},
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      );
+                      setDailyChallenge(res.data);
+                      toast.success('✨ Nouveau défi généré !');
+                    } catch (err) {
+                      console.error('Error refreshing challenge:', err);
+                      toast.error('Erreur lors de la génération');
+                    }
+                  }}
+                  className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:shadow-lg text-white font-semibold py-2 px-4 rounded-lg transition-all text-sm"
+                >
+                  🔄 Nouveau défi
+                </button>
+              </div>
+            )}
           </div>
         )}
 
