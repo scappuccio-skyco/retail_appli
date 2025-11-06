@@ -47,12 +47,16 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
       if (existingEntry) {
         setCaJournalier(existingEntry.ca_journalier || '');
         setNbVentes(existingEntry.nb_ventes || '');
+        setNbClients(existingEntry.nb_clients || '');
         setNbArticles(existingEntry.nb_articles || '');
+        setNbProspects(existingEntry.nb_prospects || '');
         setComment(existingEntry.comment || '');
       } else {
         setCaJournalier('');
         setNbVentes('');
+        setNbClients('');
         setNbArticles('');
+        setNbProspects('');
         setComment('');
       }
     } catch (err) {
