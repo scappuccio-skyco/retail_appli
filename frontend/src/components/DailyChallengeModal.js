@@ -30,12 +30,7 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
     }
   };
 
-  // Trigger confetti when challenge is completed
-  useEffect(() => {
-    if (challenge && challenge.completed && challenge.challenge_result === 'success') {
-      triggerConfetti();
-    }
-  }, [challenge]);
+  // Note: Confetti is now triggered directly in handleComplete, not on mount
 
   const triggerConfetti = () => {
     const duration = 3000;
