@@ -390,11 +390,43 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                         </div>
                       ) : aiAnalysis ? (
                         <div className="max-h-48 overflow-y-auto pr-2">
-                          <div className="prose prose-sm max-w-none">
-                            <div 
-                              className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap"
-                              dangerouslySetInnerHTML={{ __html: aiAnalysis.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }}
-                            />
+                          <div className="space-y-3">
+                            {aiAnalysis.split('\n').map((line, idx) => {
+                              // Section titles (##)
+                              if (line.startsWith('## ')) {
+                                return (
+                                  <h4 key={idx} className="text-sm font-bold text-indigo-900 mt-3 mb-2 flex items-center gap-2">
+                                    <span className="w-1 h-4 bg-indigo-600 rounded"></span>
+                                    {line.replace('## ', '')}
+                                  </h4>
+                                );
+                              }
+                              // List items (-)
+                              if (line.startsWith('- ')) {
+                                const content = line.replace('- ', '');
+                                // Handle bold text **text**
+                                const parts = content.split(/(\*\*.*?\*\*)/g);
+                                return (
+                                  <div key={idx} className="flex gap-2 text-xs text-gray-700 leading-relaxed ml-2">
+                                    <span className="text-indigo-600 mt-1">•</span>
+                                    <span>
+                                      {parts.map((part, i) => {
+                                        if (part.startsWith('**') && part.endsWith('**')) {
+                                          return <strong key={i} className="text-gray-900 font-semibold">{part.slice(2, -2)}</strong>;
+                                        }
+                                        return <span key={i}>{part}</span>;
+                                      })}
+                                    </span>
+                                  </div>
+                                );
+                              }
+                              // Empty lines
+                              if (line.trim() === '') {
+                                return <div key={idx} className="h-1"></div>;
+                              }
+                              // Regular text
+                              return null;
+                            })}
                           </div>
                         </div>
                       ) : (
