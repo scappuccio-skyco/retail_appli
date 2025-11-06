@@ -3486,6 +3486,20 @@ async def get_store_kpi_overview(
         "date": date
     }, {"_id": 0})
     
+    # Calculate store-level KPIs
+    total_ca = (manager_kpi.get("ca_journalier", 0) if manager_kpi else 0) + sellers_total["ca_journalier"]
+    total_ventes = (manager_kpi.get("nb_ventes", 0) if manager_kpi else 0) + sellers_total["nb_ventes"]
+    total_clients = (manager_kpi.get("nb_clients", 0) if manager_kpi else 0) + sellers_total["nb_clients"]
+    total_articles = (manager_kpi.get("nb_articles", 0) if manager_kpi else 0) + sellers_total["nb_articles"]
+    total_prospects = (manager_kpi.get("nb_prospects", 0) if manager_kpi else 0) + sellers_total["nb_prospects"]
+    
+    # Calculate derived KPIs
+    calculated_kpis = {
+        "panier_moyen": round(total_ca / total_ventes, 2) if total_ventes > 0 else None,
+        "taux_transformation": round((total_ventes / total_prospects) * 100, 2) if total_prospects > 0 else None,
+        "indice_vente": round(total_articles / total_ventes, 2) if total_ventes > 0 else None
+    }
+    
     return {
         "date": date,
         "manager_data": manager_kpi or {},
@@ -3493,7 +3507,15 @@ async def get_store_kpi_overview(
         "store_prospects": store_kpi.get("nb_prospects", 0) if store_kpi else 0,
         "seller_entries": seller_entries,
         "total_sellers": len(sellers),
-        "sellers_reported": len(seller_entries)
+        "sellers_reported": len(seller_entries),
+        "calculated_kpis": calculated_kpis,
+        "totals": {
+            "ca": total_ca,
+            "ventes": total_ventes,
+            "clients": total_clients,
+            "articles": total_articles,
+            "prospects": total_prospects
+        }
     }
 
 # ===== DAILY CHALLENGE ENDPOINTS =====
