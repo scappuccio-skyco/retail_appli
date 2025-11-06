@@ -72,6 +72,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
         if (field === 'manager_track_clients') updatedConfig.seller_track_clients = false;
         if (field === 'seller_track_articles') updatedConfig.manager_track_articles = false;
         if (field === 'manager_track_articles') updatedConfig.seller_track_articles = false;
+        if (field === 'seller_track_prospects') updatedConfig.manager_track_prospects = false;
+        if (field === 'manager_track_prospects') updatedConfig.seller_track_prospects = false;
       }
       
       await axios.put(`${API}/api/manager/kpi-config`, updatedConfig, {
