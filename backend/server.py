@@ -3417,7 +3417,11 @@ Format de réponse (JSON strict) :
   "title": "Nom court du défi (max 35 caractères)",
   "description": "Description concrète du défi à réaliser aujourd'hui (2 phrases maximum, tutoiement)",
   "pedagogical_tip": "Rappel ou technique concrète (1 phrase courte)",
-  "example": "Exemple concret et pratique pour réussir ce défi (1-2 phrases courtes avec dialogue ou situation réelle)",
+  "examples": [
+    "Premier exemple concret avec dialogue ou situation réelle (1-2 phrases)",
+    "Deuxième exemple différent et complémentaire (1-2 phrases)",
+    "Troisième exemple pour varier les approches (1-2 phrases)"
+  ],
   "reason": "Pourquoi ce défi pour ce vendeur (1 phrase courte, lien avec son profil)"
 }}
 
@@ -3427,7 +3431,10 @@ Le défi doit être :
 - Motivant et positif
 - Adapté au profil du vendeur et à ses retours précédents
 
-L'exemple doit être un cas pratique ou un dialogue réel que le vendeur peut utiliser directement."""
+Les 3 exemples doivent être :
+- Des cas pratiques variés avec dialogues ou situations réelles
+- Utilisables directement par le vendeur
+- Couvrir différentes approches ou contextes"""
 
         chat = LlmChat(
             api_key=api_key,
