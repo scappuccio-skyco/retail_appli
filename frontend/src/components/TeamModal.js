@@ -154,7 +154,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
       console.log('[TeamModal] 📥 API Response:', res.data);
       console.log('[TeamModal] 📊 Analysis length:', res.data.analysis?.length || 0);
       
-      setAiAnalysis(res.data.analysis);
+      // Use startTransition to avoid DOM reconciliation issues
+      startTransition(() => {
+        setAiAnalysis(res.data.analysis);
+      });
       toast.success('Analyse IA générée !');
     } catch (err) {
       console.error('[TeamModal] ❌ Error generating AI analysis:', err);
