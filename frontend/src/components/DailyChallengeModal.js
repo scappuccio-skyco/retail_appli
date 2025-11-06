@@ -7,7 +7,7 @@ import confetti from 'canvas-confetti';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export default function DailyChallengeModal({ challenge, onClose, onRefresh, onComplete }) {
+export default function DailyChallengeModal({ challenge, onClose, onRefresh, onComplete, onOpenHistory }) {
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackComment, setFeedbackComment] = useState('');
   const [loading, setLoading] = useState(false);
