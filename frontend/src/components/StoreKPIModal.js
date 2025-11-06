@@ -389,7 +389,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                           <span className="ml-3 text-indigo-700">Génération de l'analyse...</span>
                         </div>
                       ) : aiAnalysis ? (
-                        <div className="max-h-96 overflow-y-auto pr-2">
+                        <div className="max-h-48 overflow-y-auto pr-2">
                           <div className="prose prose-sm max-w-none">
                             <div 
                               className="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap"
