@@ -138,6 +138,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
       if (kpiConfig.manager_track_articles && managerKPIData.nb_articles) {
         payload.nb_articles = parseInt(managerKPIData.nb_articles);
       }
+      if (kpiConfig.manager_track_prospects && managerKPIData.nb_prospects) {
+        payload.nb_prospects = parseInt(managerKPIData.nb_prospects);
+      }
 
       await axios.post(
         `${API}/api/manager/manager-kpi`,
