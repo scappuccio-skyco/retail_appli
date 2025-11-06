@@ -716,103 +716,12 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
 
               <div className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
                 <p className="text-sm text-green-800">
-                  ✅ Les KPI activés apparaîtront dans le formulaire de saisie quotidien des vendeurs.
+                  {(kpiConfig.filled_by || 'seller') === 'seller' ? (
+                    <>✅ Les KPI activés apparaîtront dans le formulaire de saisie quotidien des <strong>vendeurs</strong>.</>
+                  ) : (
+                    <>✅ Vous (manager) devrez remplir ces KPI pour chaque vendeur.</>
+                  )}
                 </p>
-              </div>
-
-              {/* Calculated KPIs Section */}
-              <div className="bg-purple-50 rounded-xl p-6 border-2 border-purple-200">
-                <h3 className="text-lg font-bold text-purple-900 mb-4 flex items-center gap-2">
-                  🧮 KPI Calculés Automatiquement
-                </h3>
-                <p className="text-sm text-purple-700 mb-4">
-                  Ces indicateurs seront calculés automatiquement à partir des KPI que vous avez activés :
-                </p>
-                <div className="space-y-3">
-                  {/* Panier Moyen */}
-                  {kpiConfig.track_ca && kpiConfig.track_ventes ? (
-                    <div className="flex items-center gap-3 bg-white rounded-lg p-4 border-2 border-green-300">
-                      <span className="text-2xl">✅</span>
-                      <div className="flex-1">
-                        <p className="font-bold text-gray-800">🛒 Panier Moyen</p>
-                        <p className="text-xs text-gray-600">Calculé : CA Total ÷ Nombre de Ventes</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-4 border-2 border-gray-300 opacity-60">
-                      <span className="text-2xl">⬜</span>
-                      <div className="flex-1">
-                        <p className="font-bold text-gray-600">🛒 Panier Moyen</p>
-                        <p className="text-xs text-gray-500">
-                          Nécessite : <strong>CA</strong> + <strong>Ventes</strong>
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Taux de Transformation */}
-                  {kpiConfig.track_ventes && kpiConfig.track_clients ? (
-                    <div className="flex items-center gap-3 bg-white rounded-lg p-4 border-2 border-green-300">
-                      <span className="text-2xl">✅</span>
-                      <div className="flex-1">
-                        <p className="font-bold text-gray-800">📈 Taux de Transformation</p>
-                        <p className="text-xs text-gray-600">Calculé : (Ventes ÷ Clients) × 100</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-4 border-2 border-gray-300 opacity-60">
-                      <span className="text-2xl">⬜</span>
-                      <div className="flex-1">
-                        <p className="font-bold text-gray-600">📈 Taux de Transformation</p>
-                        <p className="text-xs text-gray-500">
-                          Nécessite : <strong>Ventes</strong> + <strong>Clients</strong>
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Indice de Vente */}
-                  {kpiConfig.track_ca && kpiConfig.track_ventes && kpiConfig.track_articles ? (
-                    <div className="flex items-center gap-3 bg-white rounded-lg p-4 border-2 border-green-300">
-                      <span className="text-2xl">✅</span>
-                      <div className="flex-1">
-                        <p className="font-bold text-gray-800">🎯 Indice de Vente</p>
-                        <p className="text-xs text-gray-600">Calculé : (CA ÷ Articles) × (Articles ÷ Ventes)</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-4 border-2 border-gray-300 opacity-60">
-                      <span className="text-2xl">⬜</span>
-                      <div className="flex-1">
-                        <p className="font-bold text-gray-600">🎯 Indice de Vente</p>
-                        <p className="text-xs text-gray-500">
-                          Nécessite : <strong>CA</strong> + <strong>Ventes</strong> + <strong>Articles</strong>
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Articles par Vente */}
-                  {kpiConfig.track_articles && kpiConfig.track_ventes ? (
-                    <div className="flex items-center gap-3 bg-white rounded-lg p-4 border-2 border-green-300">
-                      <span className="text-2xl">✅</span>
-                      <div className="flex-1">
-                        <p className="font-bold text-gray-800">📦 Articles par Vente</p>
-                        <p className="text-xs text-gray-600">Calculé : Articles ÷ Ventes</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-4 border-2 border-gray-300 opacity-60">
-                      <span className="text-2xl">⬜</span>
-                      <div className="flex-1">
-                        <p className="font-bold text-gray-600">📦 Articles par Vente</p>
-                        <p className="text-xs text-gray-500">
-                          Nécessite : <strong>Articles</strong> + <strong>Ventes</strong>
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           )}
