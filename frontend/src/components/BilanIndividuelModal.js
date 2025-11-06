@@ -16,15 +16,32 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
     
     setExportingPDF(true);
     try {
+      // Temporarily expand content to full height for capture
+      const originalOverflow = contentRef.current.style.overflow;
+      const originalMaxHeight = contentRef.current.style.maxHeight;
+      contentRef.current.style.overflow = 'visible';
+      contentRef.current.style.maxHeight = 'none';
+      
+      // Wait for layout to settle
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Capture the content as canvas with higher quality
       const canvas = await html2canvas(contentRef.current, {
-        scale: 3, // Higher quality
+        scale: 2.5, // Good balance between quality and file size
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        windowWidth: 1200,
-        windowHeight: contentRef.current.scrollHeight
+        scrollY: -window.scrollY,
+        scrollX: -window.scrollX,
+        windowWidth: contentRef.current.scrollWidth,
+        windowHeight: contentRef.current.scrollHeight,
+        height: contentRef.current.scrollHeight,
+        width: contentRef.current.scrollWidth
       });
+      
+      // Restore original styles
+      contentRef.current.style.overflow = originalOverflow;
+      contentRef.current.style.maxHeight = originalMaxHeight;
       
       const imgData = canvas.toDataURL('image/png', 1.0);
       const pdf = new jsPDF('p', 'mm', 'a4');
