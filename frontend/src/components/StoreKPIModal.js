@@ -394,9 +394,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                           <tbody>
                             {overviewData.seller_entries.map((entry, idx) => (
                               <tr key={idx} className="border-t border-gray-100">
-                                <td className="px-4 py-2 text-gray-800">
-                                  {/* TODO: Add seller name lookup */}
-                                  Vendeur {idx + 1}
+                                <td className="px-4 py-2 text-gray-800 font-medium">
+                                  {entry.seller_name || `Vendeur ${idx + 1}`}
                                 </td>
                                 <td className="px-4 py-2 text-right text-gray-700">{entry.ca_journalier?.toFixed(2) || 0} €</td>
                                 <td className="px-4 py-2 text-right text-gray-700">{entry.nb_ventes || 0}</td>
