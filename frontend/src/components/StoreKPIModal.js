@@ -9,6 +9,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
   const [activeTab, setActiveTab] = useState('overview');
   const [overviewData, setOverviewData] = useState(null);
   const [overviewDate, setOverviewDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
   const [formData, setFormData] = useState({
     date: initialDate || new Date().toISOString().split('T')[0],
     nb_prospects: ''
