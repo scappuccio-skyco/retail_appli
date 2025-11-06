@@ -4013,17 +4013,21 @@ async def get_seller_kpi_config(current_user: dict = Depends(get_current_user)):
     config = await db.kpi_configs.find_one({"manager_id": manager_id}, {"_id": 0})
     
     if not config:
-        # No config found, return default (all enabled)
+        # No config found, return default (all enabled for seller)
         return {
             "track_ca": True,
             "track_ventes": True,
-            "track_articles": True
+            "track_clients": True,
+            "track_articles": True,
+            "track_prospects": True
         }
     
     return {
-        "track_ca": config.get('track_ca', True),
-        "track_ventes": config.get('track_ventes', True),
-        "track_articles": config.get('track_articles', True)
+        "track_ca": config.get('seller_track_ca', config.get('track_ca', True)),
+        "track_ventes": config.get('seller_track_ventes', config.get('track_ventes', True)),
+        "track_clients": config.get('seller_track_clients', True),
+        "track_articles": config.get('seller_track_articles', config.get('track_articles', True)),
+        "track_prospects": config.get('seller_track_prospects', True)
     }
 
     manager_id = user['manager_id']
