@@ -25,7 +25,7 @@ async def fill_kpi_data():
         return
     
     # Get manager
-    manager = await db.users.find_one({"email": "manager@demo.com"}, {"_id": 0})
+    manager = await db.users.find_one({"role": "manager"}, {"_id": 0})
     if not manager:
         print("Manager not found!")
         return
