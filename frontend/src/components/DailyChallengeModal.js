@@ -11,6 +11,24 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [feedbackComment, setFeedbackComment] = useState('');
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState(null);
+
+  // Fetch challenge stats
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/seller/daily-challenge/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setStats(res.data);
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+    }
+  };
 
   // Trigger confetti when challenge is completed
   useEffect(() => {
