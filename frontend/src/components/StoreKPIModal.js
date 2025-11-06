@@ -1,31 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { X, TrendingUp, Users, Settings, BarChart3, ChevronLeft, ChevronRight, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { X, TrendingUp, Users, Settings, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function StoreKPIModal({ onClose, onSuccess }) {
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'sellers', 'config', 'prospects'
-  const [timeFilter, setTimeFilter] = useState('today'); // 'today', 'week', 'month', 'custom'
-  const [currentOffset, setCurrentOffset] = useState(0); // Pour navigation semaine/mois
+  const [activeTab, setActiveTab] = useState('overview');
+  const [timeFilter, setTimeFilter] = useState('today');
+  const [currentOffset, setCurrentOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   
   // Data states
-  const [storeStats, setStoreStats] = useState(null);
+  const [storeStats, setStoreStats] = useState({});
   const [sellersKPI, setSellersKPI] = useState([]);
-  const [kpiConfig, setKpiConfig] = useState(null);
-  const [evolutionData, setEvolutionData] = useState([]);
-  const [alerts, setAlerts] = useState([]);
+  const [kpiConfig, setKpiConfig] = useState({
+    seller_track_ca: true,
+    manager_track_ca: false,
+    seller_track_ventes: true,
+    manager_track_ventes: false,
+    seller_track_clients: true,
+    manager_track_clients: false,
+    seller_track_articles: true,
+    manager_track_articles: false
+  });
   
-  // Prospect form state
+  // Form states
   const [prospectFormData, setProspectFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     nb_prospects: ''
   });
 
-  // Manager KPI form state
   const [managerKPIFormData, setManagerKPIFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     seller_id: '',
@@ -45,67 +50,55 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
       
-      // Get date range based on filter
+      // Get date range
       const { startDate, endDate } = getDateRange();
       
-      // Fetch KPI config first
-      const configRes = await axios.get(`${API}/api/manager/kpi-config`, { headers });
-      let kpiConfigData = configRes.data || {};
-      
-      // Initialiser les KPI vendeurs par défaut s'ils ne sont pas définis
-      if (!kpiConfigData.seller_track_ca && !kpiConfigData.manager_track_ca) {
-        kpiConfigData.seller_track_ca = true;
+      // Fetch KPI config
+      try {
+        const configRes = await axios.get(`${API}/api/manager/kpi-config`, { headers });
+        let configData = configRes.data || {};
+        
+        // Set defaults if empty
+        if (!configData.seller_track_ca && !configData.manager_track_ca) configData.seller_track_ca = true;
+        if (!configData.seller_track_ventes && !configData.manager_track_ventes) configData.seller_track_ventes = true;
+        if (!configData.seller_track_clients && !configData.manager_track_clients) configData.seller_track_clients = true;
+        if (!configData.seller_track_articles && !configData.manager_track_articles) configData.seller_track_articles = true;
+        
+        setKpiConfig(configData);
+      } catch (err) {
+        console.error('Error fetching KPI config:', err);
       }
-      if (!kpiConfigData.seller_track_ventes && !kpiConfigData.manager_track_ventes) {
-        kpiConfigData.seller_track_ventes = true;
-      }
-      if (!kpiConfigData.seller_track_clients && !kpiConfigData.manager_track_clients) {
-        kpiConfigData.seller_track_clients = true;
-      }
-      if (!kpiConfigData.seller_track_articles && !kpiConfigData.manager_track_articles) {
-        kpiConfigData.seller_track_articles = true;
-      }
-      
-      setKpiConfig(kpiConfigData);
       
       // Fetch store stats
-      const statsRes = await axios.get(`${API}/api/manager/store-kpi/stats?start_date=${startDate}&end_date=${endDate}`, { headers });
-      setStoreStats(statsRes.data || {});
+      try {
+        const statsRes = await axios.get(`${API}/api/manager/store-kpi/stats?start_date=${startDate}&end_date=${endDate}`, { headers });
+        setStoreStats(statsRes.data || {});
+      } catch (err) {
+        console.error('Error fetching store stats:', err);
+      }
       
-      // Fetch sellers KPI
-      const sellersRes = await axios.get(`${API}/api/manager/sellers`, { headers });
-      const sellersWithKPI = await Promise.all(
-        sellersRes.data.map(async (seller) => {
-          try {
-            const kpiRes = await axios.get(`${API}/api/manager/kpi-entries/${seller.id}?start_date=${startDate}&end_date=${endDate}`, { headers });
-            const statsRes = await axios.get(`${API}/api/manager/seller/${seller.id}/stats`, { headers });
-            return {
-              ...seller,
-              kpi_entries: kpiRes.data || [],
-              stats: statsRes.data || {}
-            };
-          } catch (err) {
-            console.error(`Error fetching data for seller ${seller.id}:`, err);
-            return {
-              ...seller,
-              kpi_entries: [],
-              stats: {}
-            };
-          }
-        })
-      );
-      setSellersKPI(sellersWithKPI);
-      
-      // Calculate alerts
-      calculateAlerts(sellersWithKPI, statsRes.data);
+      // Fetch sellers
+      try {
+        const sellersRes = await axios.get(`${API}/api/manager/sellers`, { headers });
+        const sellersWithKPI = await Promise.all(
+          sellersRes.data.map(async (seller) => {
+            try {
+              const statsRes = await axios.get(`${API}/api/manager/seller/${seller.id}/stats`, { headers });
+              return { ...seller, stats: statsRes.data || {} };
+            } catch (err) {
+              return { ...seller, stats: {} };
+            }
+          })
+        );
+        setSellersKPI(sellersWithKPI);
+      } catch (err) {
+        console.error('Error fetching sellers:', err);
+        setSellersKPI([]);
+      }
       
     } catch (err) {
-      console.error('Error fetching store KPI data:', err);
+      console.error('Error in fetchData:', err);
       toast.error('Erreur de chargement des données');
-      // Set default values to prevent rendering errors
-      setKpiConfig({});
-      setStoreStats({});
-      setSellersKPI([]);
     } finally {
       setLoading(false);
     }
@@ -136,54 +129,6 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
     return { startDate, endDate };
   };
 
-  const calculateAlerts = (sellers, storeData) => {
-    const newAlerts = [];
-    
-    // Check store-level alerts
-    if (storeData?.taux_transformation < 30) {
-      newAlerts.push({
-        level: 'danger',
-        message: `Taux de transformation magasin faible: ${storeData.taux_transformation?.toFixed(1)}%`
-      });
-    }
-    
-    // Check seller-level alerts
-    const avgCA = sellers.reduce((sum, s) => sum + (s.stats?.ca_total || 0), 0) / sellers.length;
-    sellers.forEach(seller => {
-      const sellerCA = seller.stats?.ca_total || 0;
-      if (sellerCA < avgCA * 0.5) {
-        newAlerts.push({
-          level: 'warning',
-          seller: seller.name,
-          message: `${seller.name} : Performance en dessous de la moyenne équipe`
-        });
-      }
-    });
-    
-    setAlerts(newAlerts);
-  };
-
-  const handleProspectSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${API}/api/manager/store-kpi`,
-        {
-          date: prospectFormData.date,
-          nb_prospects: parseInt(prospectFormData.nb_prospects)
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success('Prospects enregistrés avec succès !');
-      setProspectFormData({ date: new Date().toISOString().split('T')[0], nb_prospects: '' });
-      fetchData();
-    } catch (err) {
-      console.error('Error saving prospects:', err);
-      toast.error('Erreur lors de l\'enregistrement');
-    }
-  };
-
   const handleKPIConfigUpdate = async (kpiField, value) => {
     try {
       const token = localStorage.getItem('token');
@@ -191,29 +136,44 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
       
       // Logique d'exclusivité mutuelle
       if (value === true) {
-        // Si on active un KPI vendeur, désactiver le KPI manager correspondant
         if (kpiField === 'seller_track_ca') updatedConfig.manager_track_ca = false;
         if (kpiField === 'seller_track_ventes') updatedConfig.manager_track_ventes = false;
         if (kpiField === 'seller_track_clients') updatedConfig.manager_track_clients = false;
         if (kpiField === 'seller_track_articles') updatedConfig.manager_track_articles = false;
         
-        // Si on active un KPI manager, désactiver le KPI vendeur correspondant
         if (kpiField === 'manager_track_ca') updatedConfig.seller_track_ca = false;
         if (kpiField === 'manager_track_ventes') updatedConfig.seller_track_ventes = false;
         if (kpiField === 'manager_track_clients') updatedConfig.seller_track_clients = false;
         if (kpiField === 'manager_track_articles') updatedConfig.seller_track_articles = false;
       }
       
-      await axios.put(
-        `${API}/api/manager/kpi-config`,
-        updatedConfig,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.put(`${API}/api/manager/kpi-config`, updatedConfig, { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      
       setKpiConfig(updatedConfig);
       toast.success('Configuration KPI mise à jour !');
     } catch (err) {
       console.error('Error updating KPI config:', err);
       toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
+  const handleProspectSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API}/api/manager/store-kpi`, {
+        date: prospectFormData.date,
+        nb_prospects: parseInt(prospectFormData.nb_prospects)
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      
+      toast.success('Prospects enregistrés avec succès !');
+      setProspectFormData({ date: new Date().toISOString().split('T')[0], nb_prospects: '' });
+      fetchData();
+    } catch (err) {
+      console.error('Error saving prospects:', err);
+      toast.error('Erreur lors de l\'enregistrement');
     }
   };
 
@@ -234,12 +194,6 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
       const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
       return `${months[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
     }
-  };
-
-  const getAlertIcon = (level) => {
-    if (level === 'danger') return <AlertCircle className="w-5 h-5 text-red-500" />;
-    if (level === 'warning') return <AlertTriangle className="w-5 h-5 text-orange-500" />;
-    return <CheckCircle className="w-5 h-5 text-green-500" />;
   };
 
   if (loading) {
@@ -281,9 +235,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
             <button
               onClick={() => { setTimeFilter('today'); setCurrentOffset(0); }}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                timeFilter === 'today'
-                  ? 'bg-white text-teal-700 shadow-md'
-                  : 'bg-teal-500 text-white hover:bg-teal-400'
+                timeFilter === 'today' ? 'bg-white text-teal-700 shadow-md' : 'bg-teal-500 text-white hover:bg-teal-400'
               }`}
             >
               Aujourd'hui
@@ -291,9 +243,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
             <button
               onClick={() => { setTimeFilter('week'); setCurrentOffset(0); }}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                timeFilter === 'week'
-                  ? 'bg-white text-teal-700 shadow-md'
-                  : 'bg-teal-500 text-white hover:bg-teal-400'
+                timeFilter === 'week' ? 'bg-white text-teal-700 shadow-md' : 'bg-teal-500 text-white hover:bg-teal-400'
               }`}
             >
               Cette semaine
@@ -301,15 +251,12 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
             <button
               onClick={() => { setTimeFilter('month'); setCurrentOffset(0); }}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                timeFilter === 'month'
-                  ? 'bg-white text-teal-700 shadow-md'
-                  : 'bg-teal-500 text-white hover:bg-teal-400'
+                timeFilter === 'month' ? 'bg-white text-teal-700 shadow-md' : 'bg-teal-500 text-white hover:bg-teal-400'
               }`}
             >
               Ce mois
             </button>
 
-            {/* Navigation arrows for week/month */}
             {(timeFilter === 'week' || timeFilter === 'month') && (
               <div className="flex items-center gap-2 ml-auto">
                 <button
@@ -376,7 +323,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                   : 'text-gray-600 hover:text-teal-600'
               }`}
             >
-              {(kpiConfig?.manager_track_ca || kpiConfig?.manager_track_ventes || kpiConfig?.manager_track_clients || kpiConfig?.manager_track_articles) 
+              {(kpiConfig.manager_track_ca || kpiConfig.manager_track_ventes || kpiConfig.manager_track_clients || kpiConfig.manager_track_articles) 
                 ? '👨‍💼 Saisie KPI Manager' 
                 : '📊 Saisie Prospects'
               }
@@ -386,91 +333,52 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
 
         {/* Content */}
         <div className="p-6 max-h-[600px] overflow-y-auto">
-          {/* Alerts Section - Always visible */}
-          {alerts.length > 0 && (
-            <div className="mb-6 space-y-2">
-              {alerts.map((alert, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center gap-3 p-4 rounded-lg border-2 ${
-                    alert.level === 'danger'
-                      ? 'bg-red-50 border-red-200'
-                      : alert.level === 'warning'
-                      ? 'bg-orange-50 border-orange-200'
-                      : 'bg-green-50 border-green-200'
-                  }`}
-                >
-                  {getAlertIcon(alert.level)}
-                  <p className={`font-medium ${
-                    alert.level === 'danger'
-                      ? 'text-red-800'
-                      : alert.level === 'warning'
-                      ? 'text-orange-800'
-                      : 'text-green-800'
-                  }`}>
-                    {alert.message}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200">
                   <p className="text-sm font-semibold text-blue-600 mb-1">💰 CA Total</p>
-                  <p className="text-3xl font-bold text-blue-900">
-                    {storeStats?.ca_total?.toLocaleString('fr-FR') || 0}€
-                  </p>
+                  <p className="text-3xl font-bold text-blue-900">{(storeStats.ca_total || 0).toLocaleString('fr-FR')}€</p>
                 </div>
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
                   <p className="text-sm font-semibold text-green-600 mb-1">🛍️ Ventes</p>
-                  <p className="text-3xl font-bold text-green-900">
-                    {storeStats?.nb_ventes || 0}
-                  </p>
+                  <p className="text-3xl font-bold text-green-900">{storeStats.nb_ventes || 0}</p>
                 </div>
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200">
                   <p className="text-sm font-semibold text-purple-600 mb-1">🛒 Panier Moyen</p>
-                  <p className="text-3xl font-bold text-purple-900">
-                    {storeStats?.panier_moyen?.toFixed(2) || 0}€
-                  </p>
+                  <p className="text-3xl font-bold text-purple-900">{(storeStats.panier_moyen || 0).toFixed(2)}€</p>
                 </div>
                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-4 border-2 border-orange-200">
                   <p className="text-sm font-semibold text-orange-600 mb-1">📈 Taux Transfo</p>
-                  <p className="text-3xl font-bold text-orange-900">
-                    {storeStats?.taux_transformation?.toFixed(1) || 0}%
-                  </p>
+                  <p className="text-3xl font-bold text-orange-900">{(storeStats.taux_transformation || 0).toFixed(1)}%</p>
                 </div>
               </div>
 
-              {/* Top Performers */}
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 border-2 border-yellow-200">
-                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  🏆 Top Performers
-                </h3>
-                <div className="space-y-3">
-                  {sellersKPI
-                    .sort((a, b) => (b.stats?.ca_total || 0) - (a.stats?.ca_total || 0))
-                    .slice(0, 3)
-                    .map((seller, index) => (
-                      <div key={seller.id} className="flex items-center justify-between bg-white rounded-lg p-4">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}</span>
-                          <div>
-                            <p className="font-bold text-gray-800">{seller.name}</p>
-                            <p className="text-sm text-gray-600">{seller.stats?.nb_ventes || 0} ventes</p>
+              {sellersKPI.length > 0 && (
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 border-2 border-yellow-200">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4">🏆 Top Performers</h3>
+                  <div className="space-y-3">
+                    {sellersKPI
+                      .sort((a, b) => (b.stats?.ca_total || 0) - (a.stats?.ca_total || 0))
+                      .slice(0, 3)
+                      .map((seller, index) => (
+                        <div key={seller.id} className="flex items-center justify-between bg-white rounded-lg p-4">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}</span>
+                            <div>
+                              <p className="font-bold text-gray-800">{seller.name}</p>
+                              <p className="text-sm text-gray-600">{seller.stats?.nb_ventes || 0} ventes</p>
+                            </div>
                           </div>
+                          <p className="text-xl font-bold text-green-700">
+                            {(seller.stats?.ca_total || 0).toLocaleString('fr-FR')}€
+                          </p>
                         </div>
-                        <p className="text-xl font-bold text-green-700">
-                          {seller.stats?.ca_total?.toLocaleString('fr-FR') || 0}€
-                        </p>
-                      </div>
-                    ))}
+                      ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -482,20 +390,16 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                   <thead>
                     <tr className="bg-gray-100">
                       <th className="px-4 py-3 text-left font-semibold text-gray-700">Vendeur</th>
-                      {kpiConfig?.track_ca && <th className="px-4 py-3 text-right font-semibold text-gray-700">CA</th>}
-                      {kpiConfig?.track_ventes && <th className="px-4 py-3 text-right font-semibold text-gray-700">Ventes</th>}
-                      {kpiConfig?.track_clients && <th className="px-4 py-3 text-right font-semibold text-gray-700">Clients</th>}
-                      {kpiConfig?.track_articles && <th className="px-4 py-3 text-right font-semibold text-gray-700">Articles</th>}
-                      {kpiConfig?.track_ca && kpiConfig?.track_ventes && (
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">Panier Moyen</th>
-                      )}
-                      <th className="px-4 py-3 text-center font-semibold text-gray-700">Statut</th>
+                      <th className="px-4 py-3 text-right font-semibold text-gray-700">CA</th>
+                      <th className="px-4 py-3 text-right font-semibold text-gray-700">Ventes</th>
+                      <th className="px-4 py-3 text-right font-semibold text-gray-700">Panier Moyen</th>
+                      <th className="px-4 py-3 text-center font-semibold text-gray-700">Performance</th>
                     </tr>
                   </thead>
                   <tbody>
                     {sellersKPI.map((seller) => {
                       const avgCA = sellersKPI.reduce((sum, s) => sum + (s.stats?.ca_total || 0), 0) / sellersKPI.length;
-                      const performance = ((seller.stats?.ca_total || 0) / avgCA) * 100;
+                      const performance = avgCA > 0 ? ((seller.stats?.ca_total || 0) / avgCA) * 100 : 0;
                       
                       return (
                         <tr key={seller.id} className="border-b border-gray-200 hover:bg-gray-50">
@@ -507,38 +411,15 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                               <span className="font-medium text-gray-800">{seller.name}</span>
                             </div>
                           </td>
-                          {kpiConfig?.track_ca && (
-                            <td className="px-4 py-3 text-right font-semibold text-gray-800">
-                              {seller.stats?.ca_total?.toLocaleString('fr-FR') || 0}€
-                            </td>
-                          )}
-                          {kpiConfig?.track_ventes && (
-                            <td className="px-4 py-3 text-right text-gray-700">
-                              {seller.stats?.nb_ventes || 0}
-                            </td>
-                          )}
-                          {kpiConfig?.track_clients && (
-                            <td className="px-4 py-3 text-right text-gray-700">
-                              {seller.stats?.nb_clients || 0}
-                            </td>
-                          )}
-                          {kpiConfig?.track_articles && (
-                            <td className="px-4 py-3 text-right text-gray-700">
-                              {seller.stats?.nb_articles || 0}
-                            </td>
-                          )}
-                          {kpiConfig?.track_ca && kpiConfig?.track_ventes && (
-                            <td className="px-4 py-3 text-right text-gray-700">
-                              {seller.stats?.panier_moyen?.toFixed(2) || 0}€
-                            </td>
-                          )}
+                          <td className="px-4 py-3 text-right font-semibold text-gray-800">
+                            {(seller.stats?.ca_total || 0).toLocaleString('fr-FR')}€
+                          </td>
+                          <td className="px-4 py-3 text-right text-gray-700">{seller.stats?.nb_ventes || 0}</td>
+                          <td className="px-4 py-3 text-right text-gray-700">{(seller.stats?.panier_moyen || 0).toFixed(2)}€</td>
                           <td className="px-4 py-3 text-center">
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              performance >= 100
-                                ? 'bg-green-100 text-green-700'
-                                : performance >= 80
-                                ? 'bg-yellow-100 text-yellow-700'
-                                : 'bg-red-100 text-red-700'
+                              performance >= 100 ? 'bg-green-100 text-green-700' :
+                              performance >= 80 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
                             }`}>
                               {performance >= 100 ? '🟢 Excellent' : performance >= 80 ? '🟡 Bon' : '🔴 À améliorer'}
                             </span>
@@ -553,7 +434,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
           )}
 
           {/* Config Tab */}
-          {activeTab === 'config' && kpiConfig && (
+          {activeTab === 'config' && (
             <div className="space-y-4">
               <div className="bg-blue-50 rounded-xl p-3 border-2 border-blue-200">
                 <p className="text-sm text-blue-800">
@@ -561,227 +442,139 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* CA */}
-                <div key="kpi-config-ca" className="bg-white rounded-lg p-2 border-2 border-gray-200 relative">
-                  <div className="flex items-center gap-2">
-                    <div className="text-xl">💰</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-gray-800 text-xs">Chiffre d'Affaires</h4>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold transition-all ${
-                          ((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes))
-                            ? 'bg-green-100 text-green-700 opacity-100'
-                            : 'bg-transparent text-transparent opacity-0'
-                        }`}>
-                          🛒 Panier Moyen
+                <div className="bg-white rounded-lg p-3 border-2 border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">💰</div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-800 text-sm">Chiffre d'Affaires</h4>
+                      <p className="text-xs text-gray-600">CA quotidien en euros</p>
+                      {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) && (
+                        <span className="inline-block mt-1 text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
+                          🛒 Génère: Panier Moyen
                         </span>
-                      </div>
-                      <p className="text-[9px] text-gray-600">CA quotidien en euros</p>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <div className="text-center">
-                        <p className="text-[9px] text-gray-600 mb-0.5">🧑‍💼</p>
-                        <button
-                          type="button"
-                          onClick={() => handleKPIConfigUpdate('seller_track_ca', !(kpiConfig.seller_track_ca || false))}
-                          disabled={kpiConfig.manager_track_ca}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            kpiConfig.seller_track_ca ? 'bg-green-500' : kpiConfig.manager_track_ca ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              kpiConfig.seller_track_ca ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[9px] text-gray-600 mb-0.5">👨‍💼</p>
-                        <button
-                          type="button"
-                          onClick={() => handleKPIConfigUpdate('manager_track_ca', !(kpiConfig.manager_track_ca || false))}
-                          disabled={kpiConfig.seller_track_ca}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            kpiConfig.manager_track_ca ? 'bg-purple-500' : kpiConfig.seller_track_ca ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              kpiConfig.manager_track_ca ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleKPIConfigUpdate('seller_track_ca', !kpiConfig.seller_track_ca)}
+                        className={`w-12 h-12 rounded-lg font-bold text-sm transition-all ${
+                          kpiConfig.seller_track_ca ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        🧑‍💼
+                      </button>
+                      <button
+                        onClick={() => handleKPIConfigUpdate('manager_track_ca', !kpiConfig.manager_track_ca)}
+                        className={`w-12 h-12 rounded-lg font-bold text-sm transition-all ${
+                          kpiConfig.manager_track_ca ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        👨‍💼
+                      </button>
                     </div>
                   </div>
                 </div>
 
                 {/* Ventes */}
-                <div key="kpi-config-ventes" className="bg-white rounded-lg p-2 border-2 border-gray-200 relative">
-                  <div className="flex items-center gap-2">
-                    <div className="text-xl">🛍️</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-bold text-gray-800 text-xs">Nombre de Ventes</h4>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold transition-all ${
-                          ((kpiConfig.seller_track_articles || kpiConfig.manager_track_articles) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes))
-                            ? 'bg-orange-100 text-orange-700 opacity-100'
-                            : 'bg-transparent text-transparent opacity-0'
-                        }`}>
-                          📦 Art/Vente
+                <div className="bg-white rounded-lg p-3 border-2 border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">🛍️</div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-800 text-sm">Nombre de Ventes</h4>
+                      <p className="text-xs text-gray-600">Transactions quotidiennes</p>
+                      {((kpiConfig.seller_track_articles || kpiConfig.manager_track_articles) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) && (
+                        <span className="inline-block mt-1 text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold">
+                          📦 Génère: Articles/Vente
                         </span>
-                      </div>
-                      <p className="text-[9px] text-gray-600">Nombre de transactions</p>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <div className="text-center">
-                        <p className="text-[9px] text-gray-600 mb-0.5">🧑‍💼</p>
-                        <button
-                          type="button"
-                          onClick={() => handleKPIConfigUpdate('seller_track_ventes', !(kpiConfig.seller_track_ventes || false))}
-                          disabled={kpiConfig.manager_track_ventes}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            kpiConfig.seller_track_ventes ? 'bg-green-500' : kpiConfig.manager_track_ventes ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              kpiConfig.seller_track_ventes ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[9px] text-gray-600 mb-0.5">👨‍💼</p>
-                        <button
-                          type="button"
-                          onClick={() => handleKPIConfigUpdate('manager_track_ventes', !(kpiConfig.manager_track_ventes || false))}
-                          disabled={kpiConfig.seller_track_ventes}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            kpiConfig.manager_track_ventes ? 'bg-purple-500' : kpiConfig.seller_track_ventes ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              kpiConfig.manager_track_ventes ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleKPIConfigUpdate('seller_track_ventes', !kpiConfig.seller_track_ventes)}
+                        className={`w-12 h-12 rounded-lg font-bold text-sm transition-all ${
+                          kpiConfig.seller_track_ventes ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        🧑‍💼
+                      </button>
+                      <button
+                        onClick={() => handleKPIConfigUpdate('manager_track_ventes', !kpiConfig.manager_track_ventes)}
+                        className={`w-12 h-12 rounded-lg font-bold text-sm transition-all ${
+                          kpiConfig.manager_track_ventes ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        👨‍💼
+                      </button>
                     </div>
                   </div>
                 </div>
 
                 {/* Clients */}
-                <div key="kpi-config-clients" className="bg-white rounded-lg p-2 border-2 border-gray-200 relative">
-                  <div className="flex items-center gap-2">
-                    <div className="text-xl">👥</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-gray-800 text-xs">Nombre de Clients</h4>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold transition-all ${
-                          ((kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_clients || kpiConfig.manager_track_clients))
-                            ? 'bg-blue-100 text-blue-700 opacity-100'
-                            : 'bg-transparent text-transparent opacity-0'
-                        }`}>
-                          📈 Taux Transfo
+                <div className="bg-white rounded-lg p-3 border-2 border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">👥</div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-800 text-sm">Nombre de Clients</h4>
+                      <p className="text-xs text-gray-600">Clients servis</p>
+                      {((kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_clients || kpiConfig.manager_track_clients)) && (
+                        <span className="inline-block mt-1 text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">
+                          📈 Génère: Taux Transfo
                         </span>
-                      </div>
-                      <p className="text-[9px] text-gray-600">Clients servis</p>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <div className="text-center">
-                        <p className="text-[9px] text-gray-600 mb-0.5">🧑‍💼</p>
-                        <button
-                          type="button"
-                          onClick={() => handleKPIConfigUpdate('seller_track_clients', !(kpiConfig.seller_track_clients || false))}
-                          disabled={kpiConfig.manager_track_clients}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            kpiConfig.seller_track_clients ? 'bg-green-500' : kpiConfig.manager_track_clients ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              kpiConfig.seller_track_clients ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[9px] text-gray-600 mb-0.5">👨‍💼</p>
-                        <button
-                          type="button"
-                          onClick={() => handleKPIConfigUpdate('manager_track_clients', !(kpiConfig.manager_track_clients || false))}
-                          disabled={kpiConfig.seller_track_clients}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            kpiConfig.manager_track_clients ? 'bg-purple-500' : kpiConfig.seller_track_clients ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              kpiConfig.manager_track_clients ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleKPIConfigUpdate('seller_track_clients', !kpiConfig.seller_track_clients)}
+                        className={`w-12 h-12 rounded-lg font-bold text-sm transition-all ${
+                          kpiConfig.seller_track_clients ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        🧑‍💼
+                      </button>
+                      <button
+                        onClick={() => handleKPIConfigUpdate('manager_track_clients', !kpiConfig.manager_track_clients)}
+                        className={`w-12 h-12 rounded-lg font-bold text-sm transition-all ${
+                          kpiConfig.manager_track_clients ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        👨‍💼
+                      </button>
                     </div>
                   </div>
                 </div>
 
                 {/* Articles */}
-                <div key="kpi-config-articles" className="bg-white rounded-lg p-2 border-2 border-gray-200 relative">
-                  <div className="flex items-center gap-2">
-                    <div className="text-xl">📦</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-gray-800 text-xs">Nombre d'Articles</h4>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold transition-all ${
-                          ((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_articles || kpiConfig.manager_track_articles))
-                            ? 'bg-purple-100 text-purple-700 opacity-100'
-                            : 'bg-transparent text-transparent opacity-0'
-                        }`}>
-                          🎯 Indice Vente
+                <div className="bg-white rounded-lg p-3 border-2 border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">📦</div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-800 text-sm">Nombre d'Articles</h4>
+                      <p className="text-xs text-gray-600">Articles vendus</p>
+                      {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && (kpiConfig.seller_track_articles || kpiConfig.manager_track_articles)) && (
+                        <span className="inline-block mt-1 text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
+                          🎯 Génère: Indice Vente
                         </span>
-                      </div>
-                      <p className="text-[9px] text-gray-600">Articles vendus</p>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <div className="text-center">
-                        <p className="text-[9px] text-gray-600 mb-0.5">🧑‍💼</p>
-                        <button
-                          type="button"
-                          onClick={() => handleKPIConfigUpdate('seller_track_articles', !(kpiConfig.seller_track_articles || false))}
-                          disabled={kpiConfig.manager_track_articles}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            kpiConfig.seller_track_articles ? 'bg-green-500' : kpiConfig.manager_track_articles ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              kpiConfig.seller_track_articles ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[9px] text-gray-600 mb-0.5">👨‍💼</p>
-                        <button
-                          type="button"
-                          onClick={() => handleKPIConfigUpdate('manager_track_articles', !(kpiConfig.manager_track_articles || false))}
-                          disabled={kpiConfig.seller_track_articles}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            kpiConfig.manager_track_articles ? 'bg-purple-500' : kpiConfig.seller_track_articles ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              kpiConfig.manager_track_articles ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleKPIConfigUpdate('seller_track_articles', !kpiConfig.seller_track_articles)}
+                        className={`w-12 h-12 rounded-lg font-bold text-sm transition-all ${
+                          kpiConfig.seller_track_articles ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        🧑‍💼
+                      </button>
+                      <button
+                        onClick={() => handleKPIConfigUpdate('manager_track_articles', !kpiConfig.manager_track_articles)}
+                        className={`w-12 h-12 rounded-lg font-bold text-sm transition-all ${
+                          kpiConfig.manager_track_articles ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-500'
+                        }`}
+                      >
+                        👨‍💼
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -801,8 +594,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
           {/* Prospects/Manager KPI Tab */}
           {activeTab === 'prospects' && (
             <div className="max-w-3xl mx-auto">
-              {/* If manager has activated KPIs, show manager KPI form, otherwise show prospects form */}
-              {(kpiConfig?.manager_track_ca || kpiConfig?.manager_track_ventes || kpiConfig?.manager_track_clients || kpiConfig?.manager_track_articles) ? (
+              {(kpiConfig.manager_track_ca || kpiConfig.manager_track_ventes || kpiConfig.manager_track_clients || kpiConfig.manager_track_articles) ? (
                 <>
                   <div className="bg-purple-50 rounded-xl p-4 border-2 border-purple-200 mb-6">
                     <p className="text-sm text-purple-800">
@@ -810,16 +602,10 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                     </p>
                   </div>
 
-                  <form onSubmit={(e) => {
-                    e.preventDefault();
-                    // Handle manager KPI submission
-                    toast.info('Fonctionnalité en cours de développement');
-                  }} className="space-y-4">
+                  <form onSubmit={(e) => { e.preventDefault(); toast.info('Fonctionnalité en cours de développement'); }} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          📅 Date
-                        </label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">📅 Date</label>
                         <input
                           type="date"
                           required
@@ -828,11 +614,8 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                           className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
                         />
                       </div>
-
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          👤 Vendeur
-                        </label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Vendeur</label>
                         <select
                           required
                           value={managerKPIFormData.seller_id}
@@ -850,9 +633,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                     <div className="grid grid-cols-2 gap-4">
                       {kpiConfig.manager_track_ca && (
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            💰 Chiffre d'Affaires (€)
-                          </label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">💰 Chiffre d'Affaires (€)</label>
                           <input
                             type="number"
                             required
@@ -865,12 +646,9 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                           />
                         </div>
                       )}
-
                       {kpiConfig.manager_track_ventes && (
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            🛍️ Nombre de Ventes
-                          </label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">🛍️ Nombre de Ventes</label>
                           <input
                             type="number"
                             required
@@ -882,12 +660,9 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                           />
                         </div>
                       )}
-
                       {kpiConfig.manager_track_clients && (
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            👥 Nombre de Clients
-                          </label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">👥 Nombre de Clients</label>
                           <input
                             type="number"
                             required
@@ -899,12 +674,9 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                           />
                         </div>
                       )}
-
                       {kpiConfig.manager_track_articles && (
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            📦 Nombre d'Articles
-                          </label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">📦 Nombre d'Articles</label>
                           <input
                             type="number"
                             required
@@ -923,11 +695,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                         type="button"
                         onClick={() => setManagerKPIFormData({ 
                           date: new Date().toISOString().split('T')[0], 
-                          seller_id: '', 
-                          ca: '', 
-                          ventes: '', 
-                          clients: '', 
-                          articles: '' 
+                          seller_id: '', ca: '', ventes: '', clients: '', articles: '' 
                         })}
                         className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-colors"
                       >
@@ -953,9 +721,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
 
                   <form onSubmit={handleProspectSubmit} className="space-y-6">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        📅 Date
-                      </label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">📅 Date</label>
                       <input
                         type="date"
                         required
@@ -966,9 +732,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        👥 Nombre de Prospects
-                      </label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">👥 Nombre de Prospects</label>
                       <p className="text-xs text-gray-500 mb-2">
                         Personnes entrées dans le magasin (compteur, estimation, etc.)
                       </p>
