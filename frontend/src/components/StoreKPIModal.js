@@ -119,19 +119,19 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
       const historicalArray = Object.values(dateMap)
         .map(day => ({
           ...day,
-          total_ca: day.manager_ca + day.seller_ca,
-          total_ventes: day.manager_ventes + day.seller_ventes,
-          total_clients: day.manager_clients + day.seller_clients,
-          total_articles: day.manager_articles + day.seller_articles,
-          total_prospects: day.manager_prospects + day.seller_prospects,
-          panier_moyen: (day.manager_ventes + day.seller_ventes) > 0 
-            ? (day.manager_ca + day.seller_ca) / (day.manager_ventes + day.seller_ventes) 
+          total_ca: day.seller_ca,
+          total_ventes: day.seller_ventes,
+          total_clients: day.seller_clients,
+          total_articles: day.seller_articles,
+          total_prospects: day.seller_prospects,
+          panier_moyen: day.seller_ventes > 0 
+            ? day.seller_ca / day.seller_ventes 
             : 0,
-          taux_transformation: (day.manager_prospects + day.seller_prospects) > 0
-            ? ((day.manager_ventes + day.seller_ventes) / (day.manager_prospects + day.seller_prospects)) * 100
+          taux_transformation: day.seller_prospects > 0
+            ? (day.seller_ventes / day.seller_prospects) * 100
             : 0,
-          indice_vente: (day.manager_clients + day.seller_clients) > 0
-            ? (day.manager_articles + day.seller_articles) / (day.manager_clients + day.seller_clients)
+          indice_vente: day.seller_clients > 0
+            ? day.seller_articles / day.seller_clients
             : 0
         }))
         .sort((a, b) => new Date(a.date) - new Date(b.date));
