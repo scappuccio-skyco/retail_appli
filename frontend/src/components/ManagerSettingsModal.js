@@ -187,9 +187,16 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
       // Build cleaned data with selected KPI targets
       const cleanedData = {
         title: newObjective.title,
+        type: newObjective.type,
+        visible: newObjective.visible,
         period_start: newObjective.period_start,
         period_end: newObjective.period_end
       };
+      
+      // Add seller_id if individual type
+      if (newObjective.type === 'individual' && newObjective.seller_id) {
+        cleanedData.seller_id = newObjective.seller_id;
+      }
       
       // Add selected KPI targets
       Object.keys(selectedKPIs).forEach(kpiKey => {
