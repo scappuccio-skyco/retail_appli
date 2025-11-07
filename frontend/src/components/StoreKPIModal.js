@@ -11,9 +11,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
   const [activeTab, setActiveTab] = useState('daily');
   const [overviewData, setOverviewData] = useState(null);
   const [overviewDate, setOverviewDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
-  const [aiAnalysis, setAiAnalysis] = useState(null);
-  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
-  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showDailyAIModal, setShowDailyAIModal] = useState(false);
+  const [showOverviewAIModal, setShowOverviewAIModal] = useState(false);
   
   // New states for global overview with charts
   const [viewMode, setViewMode] = useState('multi'); // 'week', 'month', 'multi'
