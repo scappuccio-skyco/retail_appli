@@ -546,10 +546,25 @@ backend_new:
         agent: "testing"
         comment: "🎯 FRONTEND DISC PROFILE DISPLAY COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY: ✅ ALL REVIEW REQUEST SCENARIOS VERIFIED PERFECTLY. ✅ LOGIN & DASHBOARD: Successfully logged in as manager1@test.com and accessed manager dashboard. ✅ COMPACT PROFILE CARD VERIFICATION: Found manager profile card showing management style 'Le Coach' with complete DISC profile display including '🎨 Profil DISC : Influent' label and all 4 percentages (D=12%, I=75%, S=12%, C=0%) with proper color coding (🔴 D, 🟡 I, 🟢 S, 🔵 C). ✅ MODAL FUNCTIONALITY: Successfully clicked 'Cliquer pour voir le profil complet →' link and opened full profile modal. ✅ FULL MODAL DISC SECTION: Verified complete DISC section in modal with purple gradient background, title '🎭 Profil DISC :', dominant type display 'Type dominant : Influent', and all 4 DISC cards showing correct percentages (Dominant 12%, Influent 75%, Stable 12%, Consciencieux 0%). ✅ VISUAL DESIGN: Purple gradient DISC section with white sub-cards displaying percentages correctly, matching design specifications. ✅ DATA ACCURACY: Dominant type 'Influent' correctly matches highest percentage (75%), confirming proper calculation and display logic. ✅ USER EXPERIENCE: Smooth navigation from compact card to full modal, clear visual hierarchy, and intuitive DISC profile presentation. ✅ SCREENSHOTS CAPTURED: Documented both compact profile card and full modal with DISC section visible for verification. ALL EXPECTED RESULTS ACHIEVED - DISC PROFILE DISPLAY FEATURE IS FULLY FUNCTIONAL AND PRODUCTION-READY."
 
+  - task: "Objective Visibility Filtering for Sellers"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented filtering logic for collective objectives based on visible_to_sellers field. Endpoint /seller/objectives/active filters objectives: 1) visible=True only, 2) Individual objectives: only if seller_id matches, 3) Collective objectives: if visible_to_sellers is empty OR seller is in the list."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY - ALL REVIEW REQUEST SCENARIOS PASSED: ✅ TEST SETUP: Logged in as manager@test.com, found 3 sellers (Sophie, Thomas, Marie) all under same manager. ✅ OBJECTIVE CREATION: Created test objective 'Objectif Sophie & Thomas uniquement' with type=collective, visible=True, visible_to_sellers=[sophie_id, thomas_id]. ✅ TEST 1 - SOPHIE: Successfully logged in as sophie@test.com, retrieved 9 active objectives, FOUND the restricted objective in her list - SUCCESS: Sophie can see the objective as expected. ✅ TEST 2 - THOMAS: Successfully logged in as thomas@test.com, retrieved 9 active objectives, FOUND the restricted objective in his list - SUCCESS: Thomas can see the objective as expected. ✅ TEST 3 - MARIE: Successfully logged in as marie@test.com, retrieved 7 active objectives, DID NOT FIND the restricted objective in her list - SUCCESS: Marie cannot see the objective as expected (she's not in visible_to_sellers list). ✅ FILTERING LOGIC VERIFIED: Backend correctly filters collective objectives based on visible_to_sellers array - empty array shows to all, populated array shows only to specified sellers. ✅ ALL SUCCESS CRITERIA MET: Sophie sees objective ✓, Thomas sees objective ✓, Marie does NOT see objective ✓. The objective visibility filtering feature is working perfectly as designed."
+
 metadata:
   created_by: "main_agent"
-  version: "1.7"
-  test_sequence: 7
+  version: "1.8"
+  test_sequence: 8
   run_ui: false
 
 test_plan:
@@ -557,6 +572,10 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
+agent_communication:
+  - agent: "testing"
+    message: "OBJECTIVE VISIBILITY FILTERING TESTING COMPLETED SUCCESSFULLY: ✅ Tested the new visible_to_sellers filtering feature for collective objectives. ✅ Created test objective visible only to Sophie and Thomas (not Marie). ✅ All 3 test scenarios passed perfectly: Sophie can see it, Thomas can see it, Marie cannot see it. ✅ Backend filtering logic at /seller/objectives/active endpoint working correctly. ✅ Feature is production-ready and working as designed. No issues found."
 
 old_old_agent_communication:
   - agent: "main"
