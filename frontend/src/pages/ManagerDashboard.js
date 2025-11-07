@@ -601,60 +601,46 @@ export default function ManagerDashboard({ user, onLogout }) {
                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
                 Afficher/Masquer les cartes
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
                 <button
                   onClick={() => toggleFilter('showKPI')}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
+                  className={`px-6 py-4 rounded-xl font-medium transition-all border-2 ${
                     dashboardFilters.showKPI
-                      ? 'bg-green-50 border-green-500 text-green-700'
+                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
                       : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">📊</span>
-                    <span className="text-xs font-semibold">KPI Magasin</span>
+                  <div className="flex flex-col items-center gap-2">
+                    <span className="text-2xl">📊</span>
+                    <span className="text-sm font-semibold">KPI Magasin</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showTeam')}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
+                  className={`px-6 py-4 rounded-xl font-medium transition-all border-2 ${
                     dashboardFilters.showTeam
-                      ? 'bg-green-50 border-green-500 text-green-700'
+                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
                       : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">👥</span>
-                    <span className="text-xs font-semibold">Mon Équipe</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => toggleFilter('showBilan')}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
-                    dashboardFilters.showBilan
-                      ? 'bg-green-50 border-green-500 text-green-700'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">🤖</span>
-                    <span className="text-xs font-semibold">Bilan IA</span>
+                  <div className="flex flex-col items-center gap-2">
+                    <span className="text-2xl">👥</span>
+                    <span className="text-sm font-semibold">Mon Équipe</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showSettings')}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
+                  className={`px-6 py-4 rounded-xl font-medium transition-all border-2 ${
                     dashboardFilters.showSettings
-                      ? 'bg-green-50 border-green-500 text-green-700'
+                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
                       : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">🎯</span>
-                    <span className="text-xs font-semibold">Objectifs</span>
+                  <div className="flex flex-col items-center gap-2">
+                    <span className="text-2xl">🎯</span>
+                    <span className="text-sm font-semibold">Objectifs & Challenges</span>
                   </div>
                 </button>
 
