@@ -20,6 +20,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
     ventes: true,
     panierMoyen: true
   });
+  const [visibleSellers, setVisibleSellers] = useState({});
 
   useEffect(() => {
     console.log(`[TeamModal] 🔄 useEffect TRIGGERED - periodFilter changed to: ${periodFilter}`);
