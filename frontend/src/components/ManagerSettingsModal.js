@@ -612,81 +612,81 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           />
                         </div>
 
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <label className="block text-sm font-semibold text-gray-700">💰 Objectif CA (€)</label>
-                            <div className="group relative">
-                              <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-green-600 transition-all">
-                                ?
-                              </div>
-                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-green-600 text-white text-sm rounded-lg shadow-2xl border-2 border-green-400">
-                                <div className="font-semibold mb-1">💰 Chiffre d'Affaires :</div>
-                                Objectif de CA global pour la période. Au moins un KPI doit être rempli.
-                              </div>
-                            </div>
-                          </div>
-                          <input
-                            type="number"
-                            value={editingObjective ? editingObjective.ca_target : newObjective.ca_target}
-                            onChange={(e) => editingObjective
-                              ? setEditingObjective({ ...editingObjective, ca_target: e.target.value })
-                              : setNewObjective({ ...newObjective, ca_target: e.target.value })
-                            }
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-                            placeholder="Ex: 50000"
-                          />
-                        </div>
-
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <label className="block text-sm font-semibold text-gray-700">🛒 Objectif Panier Moyen (€)</label>
-                            <div className="group relative">
-                              <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-green-600 transition-all">
-                                ?
-                              </div>
-                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-green-600 text-white text-sm rounded-lg shadow-2xl border-2 border-green-400">
-                                <div className="font-semibold mb-1">🛒 Panier Moyen :</div>
-                                Valeur moyenne souhaitée par transaction sur la période
-                              </div>
-                            </div>
-                          </div>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={editingObjective ? editingObjective.panier_moyen_target : newObjective.panier_moyen_target}
-                            onChange={(e) => editingObjective
-                              ? setEditingObjective({ ...editingObjective, panier_moyen_target: e.target.value })
-                              : setNewObjective({ ...newObjective, panier_moyen_target: e.target.value })
-                            }
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-                            placeholder="Ex: 150"
-                          />
-                        </div>
-
+                        {/* Dynamic KPI Selection */}
                         <div className="md:col-span-2">
-                          <div className="flex items-center gap-2 mb-2">
-                            <label className="block text-sm font-semibold text-gray-700">💎 Objectif Indice Vente</label>
-                            <div className="group relative">
-                              <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-green-600 transition-all">
-                                ?
-                              </div>
-                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-green-600 text-white text-sm rounded-lg shadow-2xl border-2 border-green-400">
-                                <div className="font-semibold mb-1">💎 Indice de Vente :</div>
-                                Moyenne d'articles par vente visée (Nb Articles ÷ Nb Ventes)
-                              </div>
-                            </div>
+                          <div className="mb-4">
+                            <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                              <span className="text-lg">📊</span>
+                              Sélectionner les KPI à cibler
+                            </h4>
+                            <p className="text-xs text-gray-600 mb-4">Cochez les KPI que vous souhaitez inclure dans cet objectif, puis définissez leurs valeurs cibles.</p>
                           </div>
-                          <input
-                            type="number"
-                            step="0.1"
-                            value={editingObjective ? editingObjective.indice_vente_target : newObjective.indice_vente_target}
-                            onChange={(e) => editingObjective
-                              ? setEditingObjective({ ...editingObjective, indice_vente_target: e.target.value })
-                              : setNewObjective({ ...newObjective, indice_vente_target: e.target.value })
-                            }
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-                            placeholder="Ex: 2.5"
-                          />
+                          
+                          <div className="space-y-4">
+                            {getAvailableKPIs().map((kpi) => (
+                              <div key={kpi.key} className="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-all">
+                                {/* KPI Checkbox */}
+                                <label className="flex items-center gap-3 cursor-pointer mb-3">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedKPIs[kpi.key] || false}
+                                    onChange={(e) => {
+                                      setSelectedKPIs({ ...selectedKPIs, [kpi.key]: e.target.checked });
+                                      if (!e.target.checked) {
+                                        // Clear value if unchecked
+                                        const newTargets = { ...newObjective.kpi_targets };
+                                        delete newTargets[kpi.key];
+                                        setNewObjective({ ...newObjective, kpi_targets: newTargets });
+                                      }
+                                    }}
+                                    className="w-5 h-5 text-purple-600"
+                                  />
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-lg">{kpi.icon}</span>
+                                      <span className="font-semibold text-gray-800">{kpi.label}</span>
+                                      {kpi.calculated && (
+                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Calculé</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </label>
+                                
+                                {/* Value Input (shown only if selected) */}
+                                {selectedKPIs[kpi.key] && (
+                                  <div className="ml-8 animate-fadeIn">
+                                    <label className="block text-sm text-gray-600 mb-1">
+                                      Valeur cible ({kpi.unit})
+                                    </label>
+                                    <input
+                                      type="number"
+                                      step={kpi.key.includes('taux') ? '0.1' : kpi.key.includes('moyen') || kpi.key.includes('indice') ? '0.01' : '1'}
+                                      value={newObjective.kpi_targets[kpi.key] || ''}
+                                      onChange={(e) => {
+                                        setNewObjective({
+                                          ...newObjective,
+                                          kpi_targets: {
+                                            ...newObjective.kpi_targets,
+                                            [kpi.key]: e.target.value
+                                          }
+                                        });
+                                      }}
+                                      className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                                      placeholder={`Ex: ${kpi.key === 'ca' ? '50000' : kpi.key === 'ventes' ? '200' : kpi.key === 'panier_moyen' ? '150' : '2.5'}`}
+                                      required
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {getAvailableKPIs().length === 0 && (
+                            <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 text-center">
+                              <p className="text-orange-700 font-semibold">⚠️ Aucun KPI configuré</p>
+                              <p className="text-sm text-orange-600 mt-1">Veuillez d'abord configurer vos KPI dans "KPI Magasin"</p>
+                            </div>
+                          )}
                         </div>
                       </div>
 
