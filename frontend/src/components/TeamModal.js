@@ -609,21 +609,37 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         ];
                         const colorSet = colors[idx % 5] || { bg: 'bg-gray-500', text: 'text-white' };
                         
+                        const selectedCount = Object.values(visibleSellers).filter(v => v).length;
+                        const canSelect = visibleSellers[seller.id] || selectedCount < 5;
+                        
                         return (
                           <button
                             key={seller.id}
-                            onClick={() => setVisibleSellers(prev => ({ ...prev, [seller.id]: !prev[seller.id] }))}
+                            onClick={() => {
+                              if (canSelect) {
+                                startTransition(() => {
+                                  setVisibleSellers(prev => ({ ...prev, [seller.id]: !prev[seller.id] }));
+                                });
+                              }
+                            }}
+                            disabled={!canSelect}
                             className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                               visibleSellers[seller.id]
                                 ? `${colorSet.bg} ${colorSet.text}`
-                                : 'bg-gray-200 text-gray-600'
+                                : canSelect 
+                                  ? 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                             }`}
+                            title={!canSelect ? 'Maximum 5 vendeurs sélectionnés' : ''}
                           >
                             {visibleSellers[seller.id] ? '✓' : ''} {seller.name.split(' ')[0]}
                           </button>
                         );
                       })}
                     </div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1 ml-20">
+                    {Object.values(visibleSellers).filter(v => v).length} / 5 vendeurs sélectionnés
                   </div>
                 </div>
 
