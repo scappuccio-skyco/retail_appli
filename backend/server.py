@@ -3547,10 +3547,14 @@ async def analyze_store_kpis(
         if totals.get('prospects', 0) > 0:
             available_totals.append(f"Prospects : {totals['prospects']}")
         
+        # Déterminer si c'est une période ou une date
+        period_text = f"la période : {date}" if any(keyword in date.lower() for keyword in ['mois', 'semaine', 'dernier']) else f"le {date}"
+        
         context = f"""
-Tu es un expert en analyse retail. Analyse UNIQUEMENT les données disponibles ci-dessous pour le {date}. Ne mentionne PAS les données manquantes.
+Tu es un expert en analyse retail. Analyse UNIQUEMENT les données disponibles ci-dessous pour {period_text}. Ne mentionne PAS les données manquantes.
 
-Vendeurs : {kpi_data.get('sellers_reported', 0)}/{kpi_data.get('total_sellers', 0)} ont saisi leurs données
+Période analysée : {date}
+Points de données : {kpi_data.get('sellers_reported', 0)} entrées
 
 KPIs Disponibles :
 {chr(10).join(['- ' + kpi for kpi in available_kpis]) if available_kpis else '(Aucun KPI calculé)'}
@@ -3561,17 +3565,20 @@ Totaux :
 CONSIGNES STRICTES :
 - Analyse UNIQUEMENT les données présentes
 - Ne mentionne JAMAIS les données manquantes ou absentes
-- Sois concis et direct (2 points max par section)
+- Sois concis et direct (2-3 points max par section)
 - Fournis des insights actionnables
+- Si c'est une période longue, identifie les tendances
 
 Fournis une analyse en 2 parties courtes :
 
-1. **ANALYSE** (2 points max) :
-   - Observation clé sur les performances
-   - Point d'attention s'il y en a
+## ANALYSE
+- Observation clé sur les performances globales
+- Point d'attention ou tendance notable
+- Comparaison ou contexte si pertinent
 
-2. **RECOMMANDATIONS** (2 actions max) :
-   - Actions concrètes et prioritaires
+## RECOMMANDATIONS
+- Actions concrètes et prioritaires (2-3 max)
+- Focus sur l'amélioration des KPIs faibles
 
 Format : Markdown simple et concis.
 """
