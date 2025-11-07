@@ -505,9 +505,9 @@ export default function ManagerDashboard({ user, onLogout }) {
               <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
                 <Settings className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-white text-center mb-2">Paramètres & Configuration</h3>
-              <p className="text-sm text-white opacity-90 text-center">KPI, Objectifs & Challenges</p>
-              <p className="text-xs text-white opacity-80 mt-3">Gérer les configurations →</p>
+              <h3 className="text-2xl font-bold text-white text-center mb-2">Objectifs & Challenges</h3>
+              <p className="text-sm text-white opacity-90 text-center">Définir et suivre les objectifs de l'équipe</p>
+              <p className="text-xs text-white opacity-80 mt-3">Gérer les objectifs →</p>
             </div>
           </div>
         </div>
