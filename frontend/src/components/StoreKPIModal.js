@@ -1024,6 +1024,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               {historicalData.length > 0 ? (
                 <div className="space-y-6">
                   {/* CA Chart */}
+                  {visibleCharts.ca && (
                   <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
                     <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                       💰 Chiffre d'Affaires
