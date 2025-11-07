@@ -24,6 +24,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   useEffect(() => {
     console.log(`[TeamModal] 🔄 useEffect TRIGGERED - periodFilter changed to: ${periodFilter}`);
     fetchTeamData();
+    prepareChartData();
   }, [sellers, periodFilter]);
 
   const fetchTeamData = async () => {
