@@ -90,10 +90,8 @@ function AppContent() {
     }
     
     // Navigate to dashboard after successful login
-    // Use setTimeout to ensure state updates are processed
-    setTimeout(() => {
-      navigate('/');
-    }, 100);
+    // Using window.location for reliable redirect
+    window.location.href = '/';
   };
 
   const handleLogout = () => {
