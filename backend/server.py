@@ -1448,13 +1448,16 @@ async def calculate_competence_adjustment_from_kpis(seller_id: str, initial_scor
     ca_per_day = total_ca / days_count if days_count > 0 else 0
     
     # KPI → Competence scoring (normalize to 1-5 scale)
+    # Seuils ajustés pour refléter la réalité retail
     kpi_scores = {}
     
     # Accueil: Based on number of sales per day (proxy for client interaction)
-    # Good: >10 ventes/day, Average: 5-10, Low: <5
-    if ventes_per_day >= 10:
+    # Excellent: >15 ventes/day, Très bon: 12-15, Bon: 8-12, Moyen: 5-8, Faible: <5
+    if ventes_per_day >= 15:
         kpi_scores['score_accueil'] = 5.0
-    elif ventes_per_day >= 7:
+    elif ventes_per_day >= 12:
+        kpi_scores['score_accueil'] = 4.5
+    elif ventes_per_day >= 8:
         kpi_scores['score_accueil'] = 4.0
     elif ventes_per_day >= 5:
         kpi_scores['score_accueil'] = 3.5
@@ -1463,16 +1466,19 @@ async def calculate_competence_adjustment_from_kpis(seller_id: str, initial_scor
     else:
         kpi_scores['score_accueil'] = 2.5
     
-    # Découverte: Harder to measure, use indirect indicator (articles per transaction)
+    # Découverte: Use indirect indicator (articles per transaction)
     # Good discovery = more articles per sale
+    # Excellent: ≥2.5, Très bon: 2-2.5, Bon: 1.8-2, Moyen: 1.5-1.8, Faible: <1.5
     articles_per_vente = total_articles / total_ventes if total_ventes > 0 else 0
-    if articles_per_vente >= 3:
+    if articles_per_vente >= 2.5:
         kpi_scores['score_decouverte'] = 5.0
-    elif articles_per_vente >= 2.5:
+    elif articles_per_vente >= 2.0:
+        kpi_scores['score_decouverte'] = 4.5
+    elif articles_per_vente >= 1.8:
         kpi_scores['score_decouverte'] = 4.0
-    elif articles_per_vente >= 2:
-        kpi_scores['score_decouverte'] = 3.5
     elif articles_per_vente >= 1.5:
+        kpi_scores['score_decouverte'] = 3.5
+    elif articles_per_vente >= 1.2:
         kpi_scores['score_decouverte'] = 3.0
     else:
         kpi_scores['score_decouverte'] = 2.5
