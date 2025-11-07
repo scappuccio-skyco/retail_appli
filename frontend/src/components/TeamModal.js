@@ -618,12 +618,15 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                             key={seller.id}
                             onClick={() => {
                               if (canSelect) {
-                                startTransition(() => {
+                                // Démontage temporaire des graphiques pour éviter les erreurs React
+                                setIsUpdatingCharts(true);
+                                setTimeout(() => {
                                   setVisibleSellers(prev => ({ ...prev, [seller.id]: !prev[seller.id] }));
-                                });
+                                  setTimeout(() => setIsUpdatingCharts(false), 50);
+                                }, 50);
                               }
                             }}
-                            disabled={!canSelect}
+                            disabled={!canSelect || isUpdatingCharts}
                             className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                               visibleSellers[seller.id]
                                 ? `${colorSet.bg} ${colorSet.text}`
