@@ -57,6 +57,123 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
     }
   };
 
+  const fetchHistoricalData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      let days = 90; // default 3 months
+      
+      if (periodType === 'week') days = 7;
+      else if (periodType === 'month') days = 30;
+      else if (periodType === '3months') days = 90;
+      else if (periodType === '6months') days = 180;
+      else if (periodType === '12months') days = 365;
+
+      // Fetch manager KPI entries
+      const managerRes = await axios.get(`${API}/api/manager/kpi-entry?days=${days}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Fetch all sellers data
+      const usersRes = await axios.get(`${API}/api/manager/sellers`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const sellers = usersRes.data;
+      
+      // Fetch KPI entries for all sellers
+      const sellersDataPromises = sellers.map(seller =>
+        axios.get(`${API}/api/manager/kpi-entries/${seller.id}?days=${days}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      );
+
+      const sellersDataResponses = await Promise.all(sellersDataPromises);
+      
+      // Aggregate data by date
+      const dateMap = {};
+      
+      // Add manager data
+      if (managerRes.data && Array.isArray(managerRes.data)) {
+        managerRes.data.forEach(entry => {
+          if (!dateMap[entry.date]) {
+            dateMap[entry.date] = {
+              date: entry.date,
+              manager_ca: 0,
+              manager_ventes: 0,
+              manager_clients: 0,
+              manager_articles: 0,
+              manager_prospects: 0,
+              seller_ca: 0,
+              seller_ventes: 0,
+              seller_clients: 0,
+              seller_articles: 0,
+              seller_prospects: 0
+            };
+          }
+          dateMap[entry.date].manager_ca += entry.ca_journalier || 0;
+          dateMap[entry.date].manager_ventes += entry.nb_ventes || 0;
+          dateMap[entry.date].manager_clients += entry.nb_clients || 0;
+          dateMap[entry.date].manager_articles += entry.nb_articles || 0;
+          dateMap[entry.date].manager_prospects += entry.nb_prospects || 0;
+        });
+      }
+
+      // Add sellers data
+      sellersDataResponses.forEach(response => {
+        if (response.data && Array.isArray(response.data)) {
+          response.data.forEach(entry => {
+            if (!dateMap[entry.date]) {
+              dateMap[entry.date] = {
+                date: entry.date,
+                manager_ca: 0,
+                manager_ventes: 0,
+                manager_clients: 0,
+                manager_articles: 0,
+                manager_prospects: 0,
+                seller_ca: 0,
+                seller_ventes: 0,
+                seller_clients: 0,
+                seller_articles: 0,
+                seller_prospects: 0
+              };
+            }
+            dateMap[entry.date].seller_ca += entry.ca_journalier || 0;
+            dateMap[entry.date].seller_ventes += entry.nb_ventes || 0;
+            dateMap[entry.date].seller_clients += entry.nb_clients || 0;
+            dateMap[entry.date].seller_articles += entry.nb_articles || 0;
+            dateMap[entry.date].seller_prospects += entry.nb_prospects || 0;
+          });
+        }
+      });
+
+      // Convert to array and calculate derived metrics
+      const historicalArray = Object.values(dateMap)
+        .map(day => ({
+          ...day,
+          total_ca: day.manager_ca + day.seller_ca,
+          total_ventes: day.manager_ventes + day.seller_ventes,
+          total_clients: day.manager_clients + day.seller_clients,
+          total_articles: day.manager_articles + day.seller_articles,
+          total_prospects: day.manager_prospects + day.seller_prospects,
+          panier_moyen: (day.manager_ventes + day.seller_ventes) > 0 
+            ? (day.manager_ca + day.seller_ca) / (day.manager_ventes + day.seller_ventes) 
+            : 0,
+          taux_transformation: (day.manager_prospects + day.seller_prospects) > 0
+            ? ((day.manager_ventes + day.seller_ventes) / (day.manager_prospects + day.seller_prospects)) * 100
+            : 0,
+          indice_vente: (day.manager_clients + day.seller_clients) > 0
+            ? (day.manager_articles + day.seller_articles) / (day.manager_clients + day.seller_clients)
+            : 0
+        }))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      setHistoricalData(historicalArray);
+    } catch (err) {
+      console.error('Error fetching historical data:', err);
+      toast.error('Erreur lors du chargement des données historiques');
+    }
+  };
+
   const handleAIAnalysis = async () => {
     if (!overviewData) {
       toast.error('Aucune donnée à analyser');
