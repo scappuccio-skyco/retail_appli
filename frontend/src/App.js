@@ -88,6 +88,9 @@ function AppContent() {
         setDiagnostic(null);
       }
     }
+    
+    // Navigate to dashboard after successful login
+    navigate('/');
   };
 
   const handleLogout = () => {
