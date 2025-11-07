@@ -77,8 +77,21 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
           ];
 
           const avgCompetence = competencesList.reduce((sum, c) => sum + c.value, 0) / 5;
-          const bestCompetence = competencesList.reduce((max, c) => c.value > max.value ? c : max);
-          const worstCompetence = competencesList.reduce((min, c) => c.value < min.value ? c : min);
+          
+          // Check if all competences have the same value
+          const allSameValue = competencesList.every(c => c.value === competencesList[0].value);
+          
+          let bestCompetence, worstCompetence;
+          
+          if (allSameValue) {
+            // If all competences are equal, indicate balanced profile
+            bestCompetence = { name: 'Profil équilibré', value: competencesList[0].value };
+            worstCompetence = { name: 'Profil équilibré', value: competencesList[0].value };
+          } else {
+            // Find actual best and worst
+            bestCompetence = competencesList.reduce((max, c) => c.value > max.value ? c : max);
+            worstCompetence = competencesList.reduce((min, c) => c.value < min.value ? c : min);
+          }
 
           // Calculate diagnostic age for transparency
           let diagnosticAge = null;
