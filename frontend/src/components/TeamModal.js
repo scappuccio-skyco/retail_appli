@@ -45,6 +45,8 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   });
   const [visibleSellers, setVisibleSellers] = useState({});
   const [isUpdatingCharts, setIsUpdatingCharts] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [displayedSellerCount, setDisplayedSellerCount] = useState(5);
 
   // Initialize visible sellers only once when sellers change
   useEffect(() => {
