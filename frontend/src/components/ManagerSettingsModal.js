@@ -612,69 +612,66 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           />
                         </div>
 
-                        {/* Dynamic KPI Selection */}
+                        {/* Dynamic KPI Selection - Compact Grid Layout */}
                         <div className="md:col-span-2">
-                          <div className="mb-4">
-                            <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                          <div className="mb-3">
+                            <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
                               <span className="text-lg">📊</span>
                               Sélectionner les KPI à cibler
                             </h4>
-                            <p className="text-xs text-gray-600 mb-4">Cochez les KPI que vous souhaitez inclure dans cet objectif, puis définissez leurs valeurs cibles.</p>
+                            <p className="text-xs text-gray-600 mb-3">Cochez les KPI et indiquez la valeur cible</p>
                           </div>
                           
-                          <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {getAvailableKPIs().map((kpi) => (
-                              <div key={kpi.key} className="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-all">
-                                {/* KPI Checkbox */}
-                                <label className="flex items-center gap-3 cursor-pointer mb-3">
+                              <div key={kpi.key} className="border-2 border-gray-200 rounded-lg p-3 hover:border-purple-300 transition-all">
+                                {/* Checkbox + Label */}
+                                <label className="flex items-center gap-2 cursor-pointer mb-2">
                                   <input
                                     type="checkbox"
                                     checked={selectedKPIs[kpi.key] || false}
                                     onChange={(e) => {
                                       setSelectedKPIs({ ...selectedKPIs, [kpi.key]: e.target.checked });
                                       if (!e.target.checked) {
-                                        // Clear value if unchecked
                                         const newTargets = { ...newObjective.kpi_targets };
                                         delete newTargets[kpi.key];
                                         setNewObjective({ ...newObjective, kpi_targets: newTargets });
                                       }
                                     }}
-                                    className="w-5 h-5 text-purple-600"
+                                    className="w-4 h-4 text-purple-600"
                                   />
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-lg">{kpi.icon}</span>
-                                      <span className="font-semibold text-gray-800">{kpi.label}</span>
-                                      {kpi.calculated && (
-                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Calculé</span>
-                                      )}
-                                    </div>
+                                  <div className="flex items-center gap-1.5 flex-1">
+                                    <span className="text-base">{kpi.icon}</span>
+                                    <span className="font-semibold text-sm text-gray-800">{kpi.label}</span>
+                                    {kpi.calculated && (
+                                      <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Auto</span>
+                                    )}
                                   </div>
                                 </label>
                                 
-                                {/* Value Input (shown only if selected) */}
+                                {/* Value Input (inline when selected) */}
                                 {selectedKPIs[kpi.key] && (
-                                  <div className="ml-8 animate-fadeIn">
-                                    <label className="block text-sm text-gray-600 mb-1">
-                                      Valeur cible ({kpi.unit})
-                                    </label>
-                                    <input
-                                      type="number"
-                                      step={kpi.key.includes('taux') ? '0.1' : kpi.key.includes('moyen') || kpi.key.includes('indice') ? '0.01' : '1'}
-                                      value={newObjective.kpi_targets[kpi.key] || ''}
-                                      onChange={(e) => {
-                                        setNewObjective({
-                                          ...newObjective,
-                                          kpi_targets: {
-                                            ...newObjective.kpi_targets,
-                                            [kpi.key]: e.target.value
-                                          }
-                                        });
-                                      }}
-                                      className="w-full p-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-                                      placeholder={`Ex: ${kpi.key === 'ca' ? '50000' : kpi.key === 'ventes' ? '200' : kpi.key === 'panier_moyen' ? '150' : '2.5'}`}
-                                      required
-                                    />
+                                  <div className="animate-fadeIn">
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="number"
+                                        step={kpi.key.includes('taux') ? '0.1' : kpi.key.includes('moyen') || kpi.key.includes('indice') ? '0.01' : '1'}
+                                        value={newObjective.kpi_targets[kpi.key] || ''}
+                                        onChange={(e) => {
+                                          setNewObjective({
+                                            ...newObjective,
+                                            kpi_targets: {
+                                              ...newObjective.kpi_targets,
+                                              [kpi.key]: e.target.value
+                                            }
+                                          });
+                                        }}
+                                        className="flex-1 p-2 text-sm border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                                        placeholder={`Ex: ${kpi.key === 'ca' ? '50000' : kpi.key === 'ventes' ? '200' : kpi.key === 'panier_moyen' ? '150' : '2.5'}`}
+                                        required
+                                      />
+                                      <span className="text-xs text-gray-500 whitespace-nowrap">{kpi.unit}</span>
+                                    </div>
                                   </div>
                                 )}
                               </div>
