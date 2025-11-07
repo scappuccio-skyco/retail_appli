@@ -1283,7 +1283,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
+                                <div className="flex items-center gap-2 mb-2 flex-wrap">
                                   <h4 className="font-bold text-gray-800">{challenge.title}</h4>
                                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
                                     challenge.type === 'collective'
@@ -1301,7 +1301,28 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                                   }`}>
                                     {challenge.status === 'active' ? '✅ Actif' : challenge.status === 'completed' ? '✔️ Terminé' : '❌ Échoué'}
                                   </span>
+                                  {/* Visibility badge */}
+                                  <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                                    challenge.visible === false
+                                      ? 'bg-gray-100 text-gray-600' 
+                                      : 'bg-green-100 text-green-700'
+                                  }`}>
+                                    {challenge.visible === false ? '🔒 Non visible' : 
+                                      challenge.visible_to_sellers && challenge.visible_to_sellers.length > 0
+                                        ? `👁️ ${challenge.visible_to_sellers.length} vendeur${challenge.visible_to_sellers.length > 1 ? 's' : ''}`
+                                        : '👁️ Tous les vendeurs'
+                                    }
+                                  </span>
                                 </div>
+                                {/* Show specific sellers if any */}
+                                {challenge.visible && challenge.visible_to_sellers && challenge.visible_to_sellers.length > 0 && (
+                                  <div className="text-xs text-gray-600 mb-2">
+                                    👤 Visible pour : {challenge.visible_to_sellers.map(sellerId => {
+                                      const seller = sellers.find(s => s.id === sellerId);
+                                      return seller ? seller.name : 'Inconnu';
+                                    }).join(', ')}
+                                  </div>
+                                )}
                                 {challenge.description && (
                                   <p className="text-sm text-gray-600 mb-2">{challenge.description}</p>
                                 )}
