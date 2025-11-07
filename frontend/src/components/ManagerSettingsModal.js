@@ -203,12 +203,14 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
       toast.success('Objectif créé avec succès');
       setNewObjective({
         title: '',
-        ca_target: '',
-        indice_vente_target: '',
-        panier_moyen_target: '',
+        type: 'collective',
+        seller_id: '',
+        visible: true,
         period_start: '',
-        period_end: ''
+        period_end: '',
+        kpi_targets: {}
       });
+      setSelectedKPIs({});
       fetchData();
       if (onUpdate) onUpdate();
     } catch (err) {
