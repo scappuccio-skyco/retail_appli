@@ -701,7 +701,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                             }}
                           />
                           <YAxis tick={{ fontSize: 10 }} />
-                          <RechartsTooltip />
+                          <RechartsTooltip content={<CustomTooltip />} />
                           {sellers.filter(seller => visibleSellers[seller.id]).map((seller, idx) => (
                             <Line 
                               key={seller.id}
@@ -743,7 +743,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                             }}
                           />
                           <YAxis tick={{ fontSize: 10 }} />
-                          <RechartsTooltip />
+                          <RechartsTooltip content={<CustomTooltip />} />
                           {sellers.filter(seller => visibleSellers[seller.id]).map((seller, idx) => (
                             <Line 
                               key={seller.id}
@@ -785,7 +785,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                             }}
                           />
                           <YAxis tick={{ fontSize: 10 }} />
-                          <RechartsTooltip />
+                          <RechartsTooltip content={<CustomTooltip />} />
                           {sellers.filter(seller => visibleSellers[seller.id]).map((seller, idx) => (
                             <Line 
                               key={seller.id}
