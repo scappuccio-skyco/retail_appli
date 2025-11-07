@@ -1294,13 +1294,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   </div>
                 </div>
               </div>
-
-              <div className="bg-green-50 rounded-xl p-3 border-2 border-green-200">
-                <p className="text-sm text-green-800">
-                  ✅ KPI activés côté <strong>Vendeurs</strong> (vert) : formulaire vendeur. 
-                  KPI activés côté <strong>Manager</strong> (violet) : vous remplissez.
-                </p>
-              </div>
             </div>
           )}
 
