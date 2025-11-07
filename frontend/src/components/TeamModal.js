@@ -482,16 +482,42 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
               {/* Sellers Table */}
               <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-gray-800">Détail par Vendeur</h3>
-                  <span className="text-xs text-gray-600">
-                    Performance sur {
-                      periodFilter === '7' ? '7 jours' :
-                      periodFilter === '30' ? '30 jours' :
-                      periodFilter === '90' ? '3 mois' :
-                      'l\'année'
-                    }
-                  </span>
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-bold text-gray-800">Détail par Vendeur</h3>
+                    <span className="text-xs text-gray-600">
+                      Performance sur {
+                        periodFilter === '7' ? '7 jours' :
+                        periodFilter === '30' ? '30 jours' :
+                        periodFilter === '90' ? '3 mois' :
+                        'l\'année'
+                      }
+                    </span>
+                  </div>
+                  {/* Search Input */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="🔍 Rechercher un vendeur..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setDisplayedSellerCount(5); // Reset to 5 when searching
+                      }}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => {
+                          setSearchQuery('');
+                          setDisplayedSellerCount(5);
+                        }}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
