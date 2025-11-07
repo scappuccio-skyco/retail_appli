@@ -310,7 +310,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                               {seller.scoreSource === 'diagnostic' && (
                                 <span 
                                   className="text-[9px] text-blue-500 cursor-help"
-                                  title="Score basé sur le questionnaire initial et les debriefs managériaux (compétences comportementales)"
+                                  title="Score basé sur le questionnaire initial et les auto-évaluations (debriefs) du vendeur"
                                 >
                                   📋 Évaluation comportementale
                                 </span>
