@@ -1420,6 +1420,351 @@ class RetailCoachAPITester:
                 print("   ❌ Configuration changes not persisted")
                 self.log_test("KPI Config Persistence", False, "PUT changes not persisted")
 
+    def test_objective_visibility_filtering(self):
+        """Test Objective Visibility Filtering for Sellers - CRITICAL FEATURE FROM REVIEW REQUEST"""
+        print("\n🔍 Testing Objective Visibility Filtering for Sellers (CRITICAL FEATURE)...")
+        print("   FEATURE: Managers can select specific sellers who can see collective objectives via visible_to_sellers field")
+        
+        # Login as manager to create test objective
+        manager_login_data = {
+            "email": "manager@demo.com",
+            "password": "demo123"
+        }
+        
+        success, response = self.run_test(
+            "Objective Visibility - Manager Login",
+            "POST",
+            "auth/login",
+            200,
+            data=manager_login_data
+        )
+        
+        manager_token = None
+        manager_id = None
+        if success and 'token' in response:
+            manager_token = response['token']
+            manager_info = response['user']
+            manager_id = manager_info.get('id')
+            print(f"   ✅ Logged in as manager: {manager_info.get('name')} ({manager_info.get('email')})")
+        else:
+            print("   ⚠️  Could not login with manager@demo.com - trying alternative")
+            manager_login_data = {"email": "manager1@test.com", "password": "password123"}
+            success, response = self.run_test(
+                "Objective Visibility - Manager Login (alt)",
+                "POST",
+                "auth/login",
+                200,
+                data=manager_login_data
+            )
+            if success and 'token' in response:
+                manager_token = response['token']
+                manager_info = response['user']
+                manager_id = manager_info.get('id')
+                print(f"   ✅ Logged in as manager: {manager_info.get('name')} ({manager_info.get('email')})")
+            else:
+                self.log_test("Objective Visibility Setup", False, "No manager account available")
+                return
+        
+        # Get sellers under this manager
+        success, sellers_response = self.run_test(
+            "Objective Visibility - Get Sellers",
+            "GET",
+            "manager/sellers",
+            200,
+            token=manager_token
+        )
+        
+        sophie_id = None
+        thomas_id = None
+        marie_id = None
+        
+        if success and isinstance(sellers_response, list):
+            print(f"   ✅ Manager has {len(sellers_response)} seller(s)")
+            
+            # Find Sophie, Thomas, and Marie by email
+            for seller in sellers_response:
+                email = seller.get('email', '').lower()
+                if 'sophie' in email:
+                    sophie_id = seller.get('id')
+                    print(f"   ✅ Found Sophie: {seller.get('name')} ({seller.get('email')}) - ID: {sophie_id}")
+                elif 'thomas' in email:
+                    thomas_id = seller.get('id')
+                    print(f"   ✅ Found Thomas: {seller.get('name')} ({seller.get('email')}) - ID: {thomas_id}")
+                elif 'marie' in email:
+                    marie_id = seller.get('id')
+                    print(f"   ✅ Found Marie: {seller.get('name')} ({seller.get('email')}) - ID: {marie_id}")
+        
+        if not sophie_id or not thomas_id or not marie_id:
+            print("   ⚠️  Could not find all required sellers (Sophie, Thomas, Marie)")
+            print(f"   Sophie ID: {sophie_id}, Thomas ID: {thomas_id}, Marie ID: {marie_id}")
+            self.log_test("Objective Visibility Setup", False, "Required sellers not found")
+            return
+        
+        # Create test objective visible only to Sophie and Thomas
+        from datetime import datetime, timedelta
+        today = datetime.now()
+        start_date = today.strftime('%Y-%m-%d')
+        end_date = (today + timedelta(days=30)).strftime('%Y-%m-%d')
+        
+        objective_data = {
+            "title": "Objectif Sophie & Thomas uniquement",
+            "type": "collective",
+            "visible": True,
+            "visible_to_sellers": [sophie_id, thomas_id],  # Only Sophie and Thomas
+            "ca_target": 50000.0,
+            "period_start": start_date,
+            "period_end": end_date
+        }
+        
+        print(f"\n   📋 Creating test objective visible only to Sophie and Thomas...")
+        success, objective_response = self.run_test(
+            "Objective Visibility - Create Restricted Objective",
+            "POST",
+            "manager/objectives",
+            200,
+            data=objective_data,
+            token=manager_token
+        )
+        
+        created_objective_id = None
+        if success:
+            created_objective_id = objective_response.get('id')
+            print(f"   ✅ Created objective: {objective_response.get('title')}")
+            print(f"   ✅ Objective ID: {created_objective_id}")
+            print(f"   ✅ Type: {objective_response.get('type')}")
+            print(f"   ✅ Visible: {objective_response.get('visible')}")
+            print(f"   ✅ Visible to sellers: {objective_response.get('visible_to_sellers')}")
+        else:
+            self.log_test("Objective Visibility - Create Objective", False, "Failed to create test objective")
+            return
+        
+        # TEST 1: Login as Sophie and verify she can see the objective
+        print(f"\n   👤 TEST 1: Sophie should SEE the objective")
+        sophie_login_data = {"email": "sophie@test.com", "password": "demo123"}
+        
+        success, response = self.run_test(
+            "Objective Visibility - Sophie Login",
+            "POST",
+            "auth/login",
+            200,
+            data=sophie_login_data
+        )
+        
+        sophie_token = None
+        if success and 'token' in response:
+            sophie_token = response['token']
+            print(f"   ✅ Logged in as Sophie: {response['user'].get('name')}")
+        else:
+            print("   ⚠️  Could not login as Sophie - trying alternative password")
+            sophie_login_data["password"] = "password123"
+            success, response = self.run_test(
+                "Objective Visibility - Sophie Login (alt)",
+                "POST",
+                "auth/login",
+                200,
+                data=sophie_login_data
+            )
+            if success and 'token' in response:
+                sophie_token = response['token']
+                print(f"   ✅ Logged in as Sophie: {response['user'].get('name')}")
+            else:
+                self.log_test("Objective Visibility - Sophie Login", False, "Could not login as Sophie")
+                return
+        
+        # Get Sophie's active objectives
+        success, sophie_objectives = self.run_test(
+            "Objective Visibility - Sophie Get Active Objectives",
+            "GET",
+            "seller/objectives/active",
+            200,
+            token=sophie_token
+        )
+        
+        if success and isinstance(sophie_objectives, list):
+            print(f"   ✅ Sophie retrieved {len(sophie_objectives)} active objective(s)")
+            
+            # Check if the restricted objective is in Sophie's list
+            found_objective = False
+            for obj in sophie_objectives:
+                if obj.get('id') == created_objective_id:
+                    found_objective = True
+                    print(f"   ✅ SUCCESS: Sophie can see 'Objectif Sophie & Thomas uniquement'")
+                    self.log_test("Objective Visibility - Sophie Can See Objective", True)
+                    break
+            
+            if not found_objective:
+                print(f"   ❌ FAILURE: Sophie CANNOT see 'Objectif Sophie & Thomas uniquement'")
+                self.log_test("Objective Visibility - Sophie Can See Objective", False, "Objective not in Sophie's list")
+        else:
+            self.log_test("Objective Visibility - Sophie Get Objectives", False, "Failed to get Sophie's objectives")
+        
+        # TEST 2: Login as Thomas and verify he can see the objective
+        print(f"\n   👤 TEST 2: Thomas should SEE the objective")
+        thomas_login_data = {"email": "thomas@test.com", "password": "demo123"}
+        
+        success, response = self.run_test(
+            "Objective Visibility - Thomas Login",
+            "POST",
+            "auth/login",
+            200,
+            data=thomas_login_data
+        )
+        
+        thomas_token = None
+        if success and 'token' in response:
+            thomas_token = response['token']
+            print(f"   ✅ Logged in as Thomas: {response['user'].get('name')}")
+        else:
+            print("   ⚠️  Could not login as Thomas - trying alternative password")
+            thomas_login_data["password"] = "password123"
+            success, response = self.run_test(
+                "Objective Visibility - Thomas Login (alt)",
+                "POST",
+                "auth/login",
+                200,
+                data=thomas_login_data
+            )
+            if success and 'token' in response:
+                thomas_token = response['token']
+                print(f"   ✅ Logged in as Thomas: {response['user'].get('name')}")
+            else:
+                self.log_test("Objective Visibility - Thomas Login", False, "Could not login as Thomas")
+                return
+        
+        # Get Thomas's active objectives
+        success, thomas_objectives = self.run_test(
+            "Objective Visibility - Thomas Get Active Objectives",
+            "GET",
+            "seller/objectives/active",
+            200,
+            token=thomas_token
+        )
+        
+        if success and isinstance(thomas_objectives, list):
+            print(f"   ✅ Thomas retrieved {len(thomas_objectives)} active objective(s)")
+            
+            # Check if the restricted objective is in Thomas's list
+            found_objective = False
+            for obj in thomas_objectives:
+                if obj.get('id') == created_objective_id:
+                    found_objective = True
+                    print(f"   ✅ SUCCESS: Thomas can see 'Objectif Sophie & Thomas uniquement'")
+                    self.log_test("Objective Visibility - Thomas Can See Objective", True)
+                    break
+            
+            if not found_objective:
+                print(f"   ❌ FAILURE: Thomas CANNOT see 'Objectif Sophie & Thomas uniquement'")
+                self.log_test("Objective Visibility - Thomas Can See Objective", False, "Objective not in Thomas's list")
+        else:
+            self.log_test("Objective Visibility - Thomas Get Objectives", False, "Failed to get Thomas's objectives")
+        
+        # TEST 3: Login as Marie and verify she CANNOT see the objective
+        print(f"\n   👤 TEST 3: Marie should NOT SEE the objective")
+        marie_login_data = {"email": "marie@test.com", "password": "demo123"}
+        
+        success, response = self.run_test(
+            "Objective Visibility - Marie Login",
+            "POST",
+            "auth/login",
+            200,
+            data=marie_login_data
+        )
+        
+        marie_token = None
+        if success and 'token' in response:
+            marie_token = response['token']
+            print(f"   ✅ Logged in as Marie: {response['user'].get('name')}")
+        else:
+            print("   ⚠️  Could not login as Marie - trying alternative password")
+            marie_login_data["password"] = "password123"
+            success, response = self.run_test(
+                "Objective Visibility - Marie Login (alt)",
+                "POST",
+                "auth/login",
+                200,
+                data=marie_login_data
+            )
+            if success and 'token' in response:
+                marie_token = response['token']
+                print(f"   ✅ Logged in as Marie: {response['user'].get('name')}")
+            else:
+                self.log_test("Objective Visibility - Marie Login", False, "Could not login as Marie")
+                return
+        
+        # Get Marie's active objectives
+        success, marie_objectives = self.run_test(
+            "Objective Visibility - Marie Get Active Objectives",
+            "GET",
+            "seller/objectives/active",
+            200,
+            token=marie_token
+        )
+        
+        if success and isinstance(marie_objectives, list):
+            print(f"   ✅ Marie retrieved {len(marie_objectives)} active objective(s)")
+            
+            # Check if the restricted objective is in Marie's list (it should NOT be)
+            found_objective = False
+            for obj in marie_objectives:
+                if obj.get('id') == created_objective_id:
+                    found_objective = True
+                    break
+            
+            if not found_objective:
+                print(f"   ✅ SUCCESS: Marie CANNOT see 'Objectif Sophie & Thomas uniquement' (as expected)")
+                self.log_test("Objective Visibility - Marie Cannot See Objective", True)
+            else:
+                print(f"   ❌ FAILURE: Marie CAN see 'Objectif Sophie & Thomas uniquement' (should be hidden)")
+                self.log_test("Objective Visibility - Marie Cannot See Objective", False, "Objective visible to Marie when it shouldn't be")
+        else:
+            self.log_test("Objective Visibility - Marie Get Objectives", False, "Failed to get Marie's objectives")
+        
+        # TEST 4: Verify other objectives (without restrictions) are visible to all
+        print(f"\n   🌐 TEST 4: Verify unrestricted objectives are visible to all sellers")
+        
+        # Create an unrestricted objective (empty visible_to_sellers list)
+        unrestricted_objective_data = {
+            "title": "Objectif pour tous les vendeurs",
+            "type": "collective",
+            "visible": True,
+            "visible_to_sellers": [],  # Empty list = visible to all
+            "ca_target": 30000.0,
+            "period_start": start_date,
+            "period_end": end_date
+        }
+        
+        success, unrestricted_obj_response = self.run_test(
+            "Objective Visibility - Create Unrestricted Objective",
+            "POST",
+            "manager/objectives",
+            200,
+            data=unrestricted_objective_data,
+            token=manager_token
+        )
+        
+        unrestricted_obj_id = None
+        if success:
+            unrestricted_obj_id = unrestricted_obj_response.get('id')
+            print(f"   ✅ Created unrestricted objective: {unrestricted_obj_response.get('title')}")
+            
+            # Verify all three sellers can see this objective
+            for seller_name, seller_token in [("Sophie", sophie_token), ("Thomas", thomas_token), ("Marie", marie_token)]:
+                success, objectives = self.run_test(
+                    f"Objective Visibility - {seller_name} Get Unrestricted Objective",
+                    "GET",
+                    "seller/objectives/active",
+                    200,
+                    token=seller_token
+                )
+                
+                if success and isinstance(objectives, list):
+                    found = any(obj.get('id') == unrestricted_obj_id for obj in objectives)
+                    if found:
+                        print(f"   ✅ {seller_name} can see unrestricted objective (correct)")
+                    else:
+                        print(f"   ❌ {seller_name} CANNOT see unrestricted objective (incorrect)")
+                        self.log_test(f"Objective Visibility - {seller_name} Unrestricted Access", False, "Unrestricted objective not visible")
+
     def test_kpi_field_name_bug_fix(self):
         """Test KPI Field Name Bug Fix - CRITICAL BUG FIX FROM REVIEW REQUEST"""
         print("\n🔍 Testing KPI Field Name Bug Fix (CRITICAL BUG FIX)...")
