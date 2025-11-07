@@ -115,28 +115,128 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
         }
       });
 
-      // Convert to array and calculate derived metrics
-      const historicalArray = Object.values(dateMap)
-        .map(day => ({
-          ...day,
-          total_ca: day.seller_ca,
-          total_ventes: day.seller_ventes,
-          total_clients: day.seller_clients,
-          total_articles: day.seller_articles,
-          total_prospects: day.seller_prospects,
-          panier_moyen: day.seller_ventes > 0 
-            ? day.seller_ca / day.seller_ventes 
-            : 0,
-          taux_transformation: day.seller_prospects > 0
-            ? (day.seller_ventes / day.seller_prospects) * 100
-            : 0,
-          indice_vente: day.seller_clients > 0
-            ? day.seller_articles / day.seller_clients
-            : 0
-        }))
+      // Convert to array and sort by date
+      let historicalArray = Object.values(dateMap)
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-      setHistoricalData(historicalArray);
+      // Aggregate data based on period
+      let aggregatedData = [];
+      
+      if (viewMode === 'multi') {
+        if (multiPeriod === '3months') {
+          // Group by week
+          const weekMap = {};
+          historicalArray.forEach(day => {
+            const date = new Date(day.date);
+            const year = date.getFullYear();
+            const weekNum = Math.ceil((date.getDate() + new Date(year, date.getMonth(), 1).getDay()) / 7);
+            const weekKey = `${year}-S${String(weekNum).padStart(2, '0')}`;
+            
+            if (!weekMap[weekKey]) {
+              weekMap[weekKey] = {
+                date: weekKey,
+                seller_ca: 0,
+                seller_ventes: 0,
+                seller_clients: 0,
+                seller_articles: 0,
+                seller_prospects: 0,
+                count: 0
+              };
+            }
+            
+            weekMap[weekKey].seller_ca += day.seller_ca;
+            weekMap[weekKey].seller_ventes += day.seller_ventes;
+            weekMap[weekKey].seller_clients += day.seller_clients;
+            weekMap[weekKey].seller_articles += day.seller_articles;
+            weekMap[weekKey].seller_prospects += day.seller_prospects;
+            weekMap[weekKey].count++;
+          });
+          
+          aggregatedData = Object.values(weekMap);
+        } else if (multiPeriod === '6months') {
+          // Group by 2 weeks (bi-weekly)
+          const biWeekMap = {};
+          historicalArray.forEach(day => {
+            const date = new Date(day.date);
+            const year = date.getFullYear();
+            const weekNum = Math.ceil((date.getDate() + new Date(year, date.getMonth(), 1).getDay()) / 7);
+            const biWeekNum = Math.ceil(weekNum / 2);
+            const biWeekKey = `${year}-${String(date.getMonth() + 1).padStart(2, '0')}-B${biWeekNum}`;
+            
+            if (!biWeekMap[biWeekKey]) {
+              biWeekMap[biWeekKey] = {
+                date: biWeekKey,
+                seller_ca: 0,
+                seller_ventes: 0,
+                seller_clients: 0,
+                seller_articles: 0,
+                seller_prospects: 0,
+                count: 0
+              };
+            }
+            
+            biWeekMap[biWeekKey].seller_ca += day.seller_ca;
+            biWeekMap[biWeekKey].seller_ventes += day.seller_ventes;
+            biWeekMap[biWeekKey].seller_clients += day.seller_clients;
+            biWeekMap[biWeekKey].seller_articles += day.seller_articles;
+            biWeekMap[biWeekKey].seller_prospects += day.seller_prospects;
+            biWeekMap[biWeekKey].count++;
+          });
+          
+          aggregatedData = Object.values(biWeekMap);
+        } else if (multiPeriod === '12months') {
+          // Group by month
+          const monthMap = {};
+          historicalArray.forEach(day => {
+            const monthKey = day.date.substring(0, 7); // YYYY-MM
+            
+            if (!monthMap[monthKey]) {
+              monthMap[monthKey] = {
+                date: monthKey,
+                seller_ca: 0,
+                seller_ventes: 0,
+                seller_clients: 0,
+                seller_articles: 0,
+                seller_prospects: 0,
+                count: 0
+              };
+            }
+            
+            monthMap[monthKey].seller_ca += day.seller_ca;
+            monthMap[monthKey].seller_ventes += day.seller_ventes;
+            monthMap[monthKey].seller_clients += day.seller_clients;
+            monthMap[monthKey].seller_articles += day.seller_articles;
+            monthMap[monthKey].seller_prospects += day.seller_prospects;
+            monthMap[monthKey].count++;
+          });
+          
+          aggregatedData = Object.values(monthMap);
+        }
+      } else {
+        // For week and month views, keep daily data
+        aggregatedData = historicalArray;
+      }
+
+      // Calculate derived metrics
+      const finalData = aggregatedData.map(period => ({
+        ...period,
+        total_ca: period.seller_ca,
+        total_ventes: period.seller_ventes,
+        total_clients: period.seller_clients,
+        total_articles: period.seller_articles,
+        total_prospects: period.seller_prospects,
+        panier_moyen: period.seller_ventes > 0 
+          ? period.seller_ca / period.seller_ventes 
+          : 0,
+        taux_transformation: period.seller_prospects > 0
+          ? (period.seller_ventes / period.seller_prospects) * 100
+          : 0,
+        indice_vente: period.seller_clients > 0
+          ? period.seller_articles / period.seller_clients
+          : 0
+      }));
+
+      setHistoricalData(finalData);
     } catch (err) {
       console.error('Error fetching historical data:', err);
       toast.error('Erreur lors du chargement des données historiques');
