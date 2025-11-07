@@ -410,10 +410,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   <input
                     type="date"
                     value={overviewDate}
-                    onChange={(e) => {
-                      setOverviewDate(e.target.value);
-                      fetchOverviewData();
-                    }}
+                    onChange={(e) => setOverviewDate(e.target.value)}
                     className="px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
                   />
                 </div>
