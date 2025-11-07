@@ -90,10 +90,12 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'overview') {
+    if (activeTab === 'daily') {
       fetchOverviewData();
+    } else if (activeTab === 'overview') {
+      fetchHistoricalData();
     }
-  }, [activeTab, overviewDate]);
+  }, [activeTab, overviewDate, periodType, selectedWeek, selectedMonth]);
 
   const fetchKPIConfig = async () => {
     try {
