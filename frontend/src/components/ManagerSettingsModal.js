@@ -41,6 +41,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
     type: 'collective',
     seller_id: '',
     visible: true,
+    visible_to_sellers: [],
     period_start: '',
     period_end: '',
     kpi_targets: {} // Dynamic KPI targets
@@ -48,6 +49,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
   
   // Selected KPIs for the objective
   const [selectedKPIs, setSelectedKPIs] = useState({});
+  
+  // Selected sellers for visibility
+  const [selectedVisibleSellers, setSelectedVisibleSellers] = useState([]);
 
   useEffect(() => {
     if (isOpen) {
