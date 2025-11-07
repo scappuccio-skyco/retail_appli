@@ -296,38 +296,11 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                           <td className="px-4 py-3 text-right text-gray-700 font-medium">{seller.monthlyCA.toFixed(0)} €</td>
                           <td className="px-4 py-3 text-right text-gray-700">{seller.monthlyVentes}</td>
                           <td className="px-4 py-3 text-right text-gray-700">{seller.panierMoyen.toFixed(2)} €</td>
-                          <td className="px-4 py-3 text-center">
-                            <div className="flex flex-col items-center gap-1">
-                              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold ${
-                                seller.avgCompetence >= 4 ? 'bg-green-100 text-green-800' :
-                                seller.avgCompetence >= 3 ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
-                              }`}>
-                                <Award className="w-3 h-3" />
-                                {seller.avgCompetence.toFixed(1)}/5
-                              </span>
-                              {seller.scoreSource === 'diagnostic' && (
-                                <span 
-                                  className="text-[9px] text-blue-500 cursor-help"
-                                  title="Score basé sur le questionnaire initial et les auto-évaluations (debriefs) du vendeur"
-                                >
-                                  📋 Évaluation comportementale
-                                </span>
-                              )}
-                              {seller.scoreSource === 'none' && (
-                                <span className="text-[9px] text-orange-500" title="Aucune évaluation comportementale réalisée">
-                                  ⚠️ Non évalué
-                                </span>
-                              )}
-                            </div>
-                          </td>
                           <td className="px-4 py-3">
                             <span className="text-green-700 font-medium">{seller.bestCompetence.name}</span>
-                            <span className="text-xs text-gray-500 ml-1">({seller.bestCompetence.value.toFixed(1)})</span>
                           </td>
                           <td className="px-4 py-3">
                             <span className="text-orange-700 font-medium">{seller.worstCompetence.name}</span>
-                            <span className="text-xs text-gray-500 ml-1">({seller.worstCompetence.value.toFixed(1)})</span>
                           </td>
                           <td className="px-4 py-3 text-center">
                             <button
