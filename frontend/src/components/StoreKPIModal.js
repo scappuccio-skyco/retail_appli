@@ -323,8 +323,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
       console.error('Error generating overview AI analysis:', err);
       toast.error('Erreur lors de l\'analyse IA');
       setShowOverviewAIAnalysis(false);
-    } finally {
-      setLoadingOverviewAI(false);
     }
   };
   const handleAIAnalysis = async () => {
