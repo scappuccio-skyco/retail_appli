@@ -595,21 +595,35 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                   </div>
 
                   {/* Seller Filters */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600 font-medium">Vendeurs :</span>
-                    {sellers.map((seller, idx) => (
-                      <button
-                        key={seller.id}
-                        onClick={() => setVisibleSellers(prev => ({ ...prev, [seller.id]: !prev[seller.id] }))}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                          visibleSellers[seller.id]
-                            ? idx === 0 ? 'bg-blue-500 text-white' : idx === 1 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white'
-                            : 'bg-gray-200 text-gray-600'
-                        }`}
-                      >
-                        {visibleSellers[seller.id] ? '✓' : ''} {seller.name.split(' ')[0]}
-                      </button>
-                    ))}
+                  <div className="flex items-start gap-2">
+                    <span className="text-sm text-gray-600 font-medium mt-1.5">Vendeurs :</span>
+                    <div className="flex flex-wrap gap-2">
+                      {sellers.map((seller, idx) => {
+                        // Define colors for first 5 sellers
+                        const colors = [
+                          { bg: 'bg-blue-500', text: 'text-white' },
+                          { bg: 'bg-green-500', text: 'text-white' },
+                          { bg: 'bg-orange-500', text: 'text-white' },
+                          { bg: 'bg-purple-500', text: 'text-white' },
+                          { bg: 'bg-pink-500', text: 'text-white' }
+                        ];
+                        const colorSet = colors[idx % 5] || { bg: 'bg-gray-500', text: 'text-white' };
+                        
+                        return (
+                          <button
+                            key={seller.id}
+                            onClick={() => setVisibleSellers(prev => ({ ...prev, [seller.id]: !prev[seller.id] }))}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
+                              visibleSellers[seller.id]
+                                ? `${colorSet.bg} ${colorSet.text}`
+                                : 'bg-gray-200 text-gray-600'
+                            }`}
+                          >
+                            {visibleSellers[seller.id] ? '✓' : ''} {seller.name.split(' ')[0]}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
