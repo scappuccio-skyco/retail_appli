@@ -559,7 +559,13 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {teamData.map((seller, idx) => (
+                      {teamData
+                        .filter(seller => 
+                          seller.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          seller.email.toLowerCase().includes(searchQuery.toLowerCase())
+                        )
+                        .slice(0, displayedSellerCount)
+                        .map((seller, idx) => (
                         <tr key={`${seller.id}-${periodFilter}`} className={`border-b border-gray-100 hover:bg-gray-50 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
