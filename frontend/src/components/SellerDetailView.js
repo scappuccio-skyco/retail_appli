@@ -199,20 +199,44 @@ export default function SellerDetailView({ seller, onBack }) {
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Profil de vente</h2>
           
           <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 rounded-xl p-4 shadow-lg">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
               <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                <p className="text-xs text-gray-600 mb-1">🎨 Style</p>
-                <p className="text-lg font-bold text-gray-800">{diagnostic.style}</p>
+                <p className="text-xs text-gray-600 mb-1">📊 Score Diagnostic</p>
+                <p className="text-lg font-bold text-gray-800">{diagnostic.score ? `${diagnostic.score.toFixed(2)} / 5` : 'N/A'}</p>
               </div>
               <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                <p className="text-xs text-gray-600 mb-1">🎯 Niveau</p>
-                <p className="text-lg font-bold text-gray-800">{diagnostic.level}</p>
-              </div>
-              <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                <p className="text-xs text-gray-600 mb-1">⚡ Motivation</p>
-                <p className="text-lg font-bold text-gray-800">{diagnostic.motivation}</p>
+                <p className="text-xs text-gray-600 mb-1">🎯 Profil</p>
+                <p className="text-lg font-bold text-gray-800">
+                  {diagnostic.profile === 'communicant_naturel' ? 'Communicant Naturel' :
+                   diagnostic.profile === 'excellence_commerciale' ? 'Excellence Commerciale' :
+                   diagnostic.profile === 'potentiel_developper' ? 'Potentiel à Développer' :
+                   diagnostic.profile === 'equilibre' ? 'Profil Équilibré' :
+                   diagnostic.profile || 'Non défini'}
+                </p>
               </div>
             </div>
+            
+            {/* Legacy fields for older diagnostics */}
+            {diagnostic.style && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                <div className="bg-white bg-opacity-70 rounded-lg p-3">
+                  <p className="text-xs text-gray-600 mb-1">🎨 Style</p>
+                  <p className="text-lg font-bold text-gray-800">{diagnostic.style}</p>
+                </div>
+                {diagnostic.level && (
+                  <div className="bg-white bg-opacity-70 rounded-lg p-3">
+                    <p className="text-xs text-gray-600 mb-1">🎯 Niveau</p>
+                    <p className="text-lg font-bold text-gray-800">{diagnostic.level}</p>
+                  </div>
+                )}
+                {diagnostic.motivation && (
+                  <div className="bg-white bg-opacity-70 rounded-lg p-3">
+                    <p className="text-xs text-gray-600 mb-1">⚡ Motivation</p>
+                    <p className="text-lg font-bold text-gray-800">{diagnostic.motivation}</p>
+                  </div>
+                )}
+              </div>
+            )}
             
             {diagnostic.ai_profile_summary && (
               <div className="bg-white bg-opacity-70 rounded-lg p-4">
