@@ -31,10 +31,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   useEffect(() => {
     console.log(`[TeamModal] 🔄 useEffect TRIGGERED - periodFilter changed to: ${periodFilter}`);
     
-    // Initialize visible sellers
+    // Initialize visible sellers - only first 5 selected by default
     const initialVisibleSellers = {};
-    sellers.forEach(seller => {
-      initialVisibleSellers[seller.id] = true;
+    sellers.forEach((seller, index) => {
+      initialVisibleSellers[seller.id] = index < 5; // Only first 5 are visible
     });
     setVisibleSellers(initialVisibleSellers);
     
