@@ -575,20 +575,11 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                 </div>
                 
                 <button
-                  onClick={handleAIAnalysis}
-                  disabled={loadingAnalysis || !overviewData}
+                  onClick={() => setShowDailyAIModal(true)}
+                  disabled={!overviewData}
                   className="px-4 py-1.5 text-sm bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  {loadingAnalysis ? (
-                    <>
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                      Analyse...
-                    </>
-                  ) : (
-                    <>
-                      <span>🤖</span> Lancer l'Analyse IA
-                    </>
-                  )}
+                  <span>🤖</span> Lancer l'Analyse IA
                 </button>
               </div>
 
