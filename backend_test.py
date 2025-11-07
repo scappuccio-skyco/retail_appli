@@ -4173,6 +4173,9 @@ class RetailCoachAPITester:
         print("🚀 Starting Retail Coach 2.0 API Tests")
         print("=" * 50)
 
+        # CRITICAL: Test Objective Visibility Filtering (REVIEW REQUEST - HIGHEST PRIORITY)
+        self.test_objective_visibility_filtering()
+
         # CRITICAL: Test KPI Field Name Bug Fix (REVIEW REQUEST - HIGHEST PRIORITY)
         self.test_kpi_field_name_bug_fix()
 
