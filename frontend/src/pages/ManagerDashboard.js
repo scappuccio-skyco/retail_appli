@@ -512,38 +512,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           </div>
         </div>
       ),
-      notifications: dashboardFilters.showNotifications && (
-        <div
-          key="notifications"
-          onClick={() => toast.info('Fonctionnalité notifications à venir')}
-          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-rose-400"
-          style={{ order: getSectionOrder('notifications') }}
-        >
-          <div className="relative h-56 overflow-hidden">
-            <img 
-              src="https://images.pexels.com/photos/7821343/pexels-photo-7821343.jpeg?w=800&h=400&fit=crop" 
-              alt="Notifications & Alertes"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-rose-900/80 via-red-900/80 to-rose-900/80 group-hover:from-rose-900/70 group-hover:via-red-900/70 group-hover:to-rose-900/70 transition-all"></div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm relative">
-                <Bell className="w-10 h-10 text-white" />
-                {invitations.filter(inv => inv.status === 'pending').length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-yellow-400 text-gray-900 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                    {invitations.filter(inv => inv.status === 'pending').length}
-                  </span>
-                )}
-              </div>
-              <h3 className="text-2xl font-bold text-white text-center mb-2">Notifications & Alertes</h3>
-              <p className="text-sm text-white opacity-90 text-center">
-                {invitations.filter(inv => inv.status === 'pending').length} invitation{invitations.filter(inv => inv.status === 'pending').length > 1 ? 's' : ''} en attente
-              </p>
-              <p className="text-xs text-white opacity-80 mt-3">Centre de notifications →</p>
-            </div>
-          </div>
-        </div>
-      )
+      // Carte Notifications supprimée
     };
     
     return sections[sectionId];
