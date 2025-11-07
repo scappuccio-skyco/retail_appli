@@ -4362,22 +4362,42 @@ async def get_active_seller_objectives(current_user: dict = Depends(get_current_
         return []
     
     manager_id = user['manager_id']
+    seller_id = current_user['id']
     today = datetime.now(timezone.utc).date().isoformat()
     
     # Get active objectives from the seller's manager
     objectives = await db.manager_objectives.find(
         {
             "manager_id": manager_id,
-            "period_end": {"$gt": today}  # Only objectives that haven't ended yet (strict >)
+            "period_end": {"$gt": today},  # Only objectives that haven't ended yet (strict >)
+            "visible": True  # Only visible objectives
         },
         {"_id": 0}
     ).sort("period_start", 1).to_list(10)
     
-    # Calculate progress for each objective
+    # Filter objectives based on visibility rules
+    filtered_objectives = []
     for objective in objectives:
+        # Check if objective is for this seller
+        obj_type = objective.get('type', 'collective')
+        
+        # Individual objectives: only show if it's for this seller
+        if obj_type == 'individual':
+            if objective.get('seller_id') == seller_id:
+                filtered_objectives.append(objective)
+        # Collective objectives: check visible_to_sellers list
+        else:
+            visible_to = objective.get('visible_to_sellers', [])
+            # If no specific sellers listed, show to all
+            # If specific sellers listed, only show if this seller is in the list
+            if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
+                filtered_objectives.append(objective)
+    
+    # Calculate progress for each objective
+    for objective in filtered_objectives:
         await calculate_objective_progress(objective, manager_id)
     
-    return objectives
+    return filtered_objectives
 
 # Endpoint for seller to get their manager's KPI config
 @api_router.get("/seller/kpi-config")
