@@ -15,7 +15,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
   const [showAnalysis, setShowAnalysis] = useState(false);
   
   // New states for global overview with charts
-  const [periodType, setPeriodType] = useState('3months'); // 'week', 'month', '3months', '6months', '12months'
+  const [viewMode, setViewMode] = useState('multi'); // 'week', 'month', 'multi'
+  const [multiPeriod, setMultiPeriod] = useState('3months'); // '3months', '6months', '12months'
   const [selectedWeek, setSelectedWeek] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
   const [historicalData, setHistoricalData] = useState([]);
