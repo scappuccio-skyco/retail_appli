@@ -214,7 +214,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
     } else if (activeTab === 'overview') {
       fetchHistoricalData();
     }
-  }, [activeTab, overviewDate, periodType, selectedWeek, selectedMonth]);
+  }, [activeTab, overviewDate, viewMode, multiPeriod, selectedWeek, selectedMonth]);
 
   const fetchKPIConfig = async () => {
     try {
