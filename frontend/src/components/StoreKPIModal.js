@@ -968,7 +968,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
                     />
                     <button
-                      onClick={handleOverviewAIAnalysis}
+                      onClick={() => setShowOverviewAIModal(true)}
                       disabled={!historicalData.length || !selectedMonth}
                       className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
                     >
