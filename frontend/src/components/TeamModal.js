@@ -274,7 +274,6 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         </th>
                         <th className="px-4 py-3 text-right font-semibold text-gray-700">Ventes</th>
                         <th className="px-4 py-3 text-right font-semibold text-gray-700">Panier Moy.</th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-700">Compétences</th>
                         <th className="px-4 py-3 text-left font-semibold text-gray-700">Point Fort</th>
                         <th className="px-4 py-3 text-left font-semibold text-gray-700">À Améliorer</th>
                         <th className="px-4 py-3 text-center font-semibold text-gray-700">Action</th>
