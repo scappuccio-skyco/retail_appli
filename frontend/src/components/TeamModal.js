@@ -672,56 +672,30 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                   </div>
                 </div>
 
-                {/* Seller Filters - Duplicate for convenience */}
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200">
-                  <div className="flex items-start gap-2">
-                    <span className="text-sm text-gray-600 font-medium mt-1.5">🎯 Vendeurs :</span>
-                    <div className="flex flex-wrap gap-2">
-                      {sellers.map((seller, idx) => {
-                        // Define colors for first 5 sellers
-                        const colors = [
-                          { bg: 'bg-blue-500', text: 'text-white' },
-                          { bg: 'bg-green-500', text: 'text-white' },
-                          { bg: 'bg-orange-500', text: 'text-white' },
-                          { bg: 'bg-purple-500', text: 'text-white' },
-                          { bg: 'bg-pink-500', text: 'text-white' }
-                        ];
-                        const colorSet = colors[idx % 5] || { bg: 'bg-gray-500', text: 'text-white' };
-                        
-                        const selectedCount = Object.values(visibleSellers).filter(v => v).length;
-                        const canSelect = visibleSellers[seller.id] || selectedCount < 5;
-                        
-                        return (
-                          <button
-                            key={seller.id}
-                            onClick={() => {
-                              if (canSelect) {
-                                // Démontage temporaire des graphiques pour éviter les erreurs React
-                                setIsUpdatingCharts(true);
-                                setTimeout(() => {
-                                  setVisibleSellers(prev => ({ ...prev, [seller.id]: !prev[seller.id] }));
-                                  setTimeout(() => setIsUpdatingCharts(false), 50);
-                                }, 50);
-                              }
-                            }}
-                            disabled={!canSelect || isUpdatingCharts}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                              visibleSellers[seller.id]
-                                ? `${colorSet.bg} ${colorSet.text}`
-                                : canSelect 
-                                  ? 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            }`}
-                            title={!canSelect ? 'Maximum 5 vendeurs sélectionnés' : ''}
-                          >
-                            {visibleSellers[seller.id] ? '✓' : ''} {seller.name.split(' ')[0]}
-                          </button>
-                        );
-                      })}
+                {/* Period Filter - Duplicate for convenience */}
+                <div className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg p-3 border border-cyan-200">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-700 font-medium">📅 Période :</span>
+                    <div className="flex gap-2">
+                      {[
+                        { value: '7', label: '7 jours' },
+                        { value: '30', label: '30 jours' },
+                        { value: '90', label: '3 mois' },
+                        { value: 'all', label: 'Année' }
+                      ].map(period => (
+                        <button
+                          key={period.value}
+                          onClick={() => setPeriodFilter(period.value)}
+                          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                            periodFilter === period.value
+                              ? 'bg-cyan-600 text-white shadow-md'
+                              : 'bg-white text-gray-700 hover:bg-cyan-100'
+                          }`}
+                        >
+                          {period.label}
+                        </button>
+                      ))}
                     </div>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1 ml-20">
-                    {Object.values(visibleSellers).filter(v => v).length} / 5 vendeurs sélectionnés
                   </div>
                 </div>
 
