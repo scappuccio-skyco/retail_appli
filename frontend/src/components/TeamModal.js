@@ -556,7 +556,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                     {/* Metric Filters */}
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setVisibleMetrics(prev => ({ ...prev, ca: !prev.ca }))}
+                        onClick={() => startTransition(() => setVisibleMetrics(prev => ({ ...prev, ca: !prev.ca })))}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                           visibleMetrics.ca 
                             ? 'bg-blue-500 text-white' 
@@ -566,7 +566,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         {visibleMetrics.ca ? '✓' : ''} CA
                       </button>
                       <button
-                        onClick={() => setVisibleMetrics(prev => ({ ...prev, ventes: !prev.ventes }))}
+                        onClick={() => startTransition(() => setVisibleMetrics(prev => ({ ...prev, ventes: !prev.ventes })))}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                           visibleMetrics.ventes 
                             ? 'bg-green-500 text-white' 
@@ -576,7 +576,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         {visibleMetrics.ventes ? '✓' : ''} Ventes
                       </button>
                       <button
-                        onClick={() => setVisibleMetrics(prev => ({ ...prev, panierMoyen: !prev.panierMoyen }))}
+                        onClick={() => startTransition(() => setVisibleMetrics(prev => ({ ...prev, panierMoyen: !prev.panierMoyen })))}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                           visibleMetrics.panierMoyen 
                             ? 'bg-purple-500 text-white' 
