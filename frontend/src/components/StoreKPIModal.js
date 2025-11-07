@@ -416,12 +416,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                     }}
                     className="px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
                   />
-                  <button
-                    onClick={fetchOverviewData}
-                    className="px-3 py-1.5 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-                  >
-                    🔄 Actualiser
-                  </button>
                 </div>
                 
                 <button
