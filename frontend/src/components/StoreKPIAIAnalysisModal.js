@@ -24,10 +24,10 @@ export default function StoreKPIAIAnalysisModal({
       let payload = {};
 
       if (analysisType === 'daily') {
-        endpoint = `${API}/manager/kpi-analysis`;
+        endpoint = `${API}/manager/analyze-store-kpis`;
         payload = { kpi_data: kpiData };
       } else if (analysisType === 'overview') {
-        endpoint = `${API}/manager/kpi-analysis`;
+        endpoint = `${API}/manager/analyze-store-kpis`;
         
         // Calculate aggregated metrics
         const { historicalData, viewMode, period } = viewContext;
