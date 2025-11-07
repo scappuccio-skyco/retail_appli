@@ -733,9 +733,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                   const sectionNames = {
                     kpi: '📊 KPI Magasin',
                     team: '👥 Mon Équipe',
-                    sellers: '👤 Détails Vendeurs',
-                    bilan: '🤖 Bilan d\'Équipe IA',
-                    settings: '⚙️ Paramètres',
+                    settings: '🎯 Objectifs & Challenges',
                     notifications: '🔔 Notifications'
                   };
                   return (
