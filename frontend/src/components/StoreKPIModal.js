@@ -775,8 +775,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                     />
                     <button
                       onClick={() => setShowOverviewAIModal(true)}
-                      disabled={!historicalData.length || !selectedWeek}
+                      disabled={!historicalData.length || !selectedWeek || historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0)}
                       className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+                      title={!selectedWeek ? "Sélectionnez une semaine" : historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0) ? "Aucune donnée disponible pour cette période" : ""}
                     >
                       🤖 Analyse IA
                     </button>
