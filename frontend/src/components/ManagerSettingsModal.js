@@ -724,9 +724,27 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <h4 className="font-bold text-gray-800 text-lg mb-2">
-                                  🎯 {objective.title}
-                                </h4>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className="font-bold text-gray-800 text-lg">
+                                    🎯 {objective.title}
+                                  </h4>
+                                  {/* Type badge */}
+                                  <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                                    objective.type === 'collective' 
+                                      ? 'bg-blue-100 text-blue-700' 
+                                      : 'bg-orange-100 text-orange-700'
+                                  }`}>
+                                    {objective.type === 'collective' ? '👥 Collectif' : '👤 Individuel'}
+                                  </span>
+                                  {/* Visibility badge */}
+                                  <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                                    objective.visible === false
+                                      ? 'bg-gray-100 text-gray-600' 
+                                      : 'bg-green-100 text-green-700'
+                                  }`}>
+                                    {objective.visible === false ? '🔒 Non visible' : '👁️ Visible vendeurs'}
+                                  </span>
+                                </div>
                                 <div className="text-sm text-gray-600 mb-2">
                                   📅 Période: {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
                                 </div>
