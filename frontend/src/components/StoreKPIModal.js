@@ -990,7 +990,25 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               {/* Multi Period View */}
               {viewMode === 'multi' && (
                 <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 border-2 border-purple-200">
-                  <h3 className="text-lg font-bold text-purple-900 mb-3">📊 Sélectionner une période</h3>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                    <h3 className="text-lg font-bold text-purple-900">📊 Sélectionner une période</h3>
+                    <button
+                      onClick={handleOverviewAIAnalysis}
+                      disabled={loadingOverviewAI || !historicalData.length}
+                      className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                    >
+                      {loadingOverviewAI ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Analyse...
+                        </>
+                      ) : (
+                        <>
+                          🤖 Analyse IA
+                        </>
+                      )}
+                    </button>
+                  </div>
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => setMultiPeriod('3months')}
