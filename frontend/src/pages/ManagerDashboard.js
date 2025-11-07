@@ -701,8 +701,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                   }`}
                 >
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">⚙️</span>
-                    <span className="text-xs font-semibold">Paramètres</span>
+                    <span className="text-xl">🎯</span>
+                    <span className="text-xs font-semibold">Objectifs</span>
                   </div>
                 </button>
 
