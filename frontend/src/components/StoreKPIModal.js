@@ -92,30 +92,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
       const dateMap = {};
       
       // Note: We don't have a manager KPI entries endpoint, so we'll work with seller data only
-      // If needed, manager data could be added from store-kpi-overview for specific dates
-          if (!dateMap[entry.date]) {
-            dateMap[entry.date] = {
-              date: entry.date,
-              manager_ca: 0,
-              manager_ventes: 0,
-              manager_clients: 0,
-              manager_articles: 0,
-              manager_prospects: 0,
-              seller_ca: 0,
-              seller_ventes: 0,
-              seller_clients: 0,
-              seller_articles: 0,
-              seller_prospects: 0
-            };
-          }
-          dateMap[entry.date].manager_ca += entry.ca_journalier || 0;
-          dateMap[entry.date].manager_ventes += entry.nb_ventes || 0;
-          dateMap[entry.date].manager_clients += entry.nb_clients || 0;
-          dateMap[entry.date].manager_articles += entry.nb_articles || 0;
-          dateMap[entry.date].manager_prospects += entry.nb_prospects || 0;
-        });
-      }
-
       // Add sellers data
       sellersDataResponses.forEach(response => {
         if (response.data && Array.isArray(response.data)) {
@@ -123,11 +99,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
             if (!dateMap[entry.date]) {
               dateMap[entry.date] = {
                 date: entry.date,
-                manager_ca: 0,
-                manager_ventes: 0,
-                manager_clients: 0,
-                manager_articles: 0,
-                manager_prospects: 0,
                 seller_ca: 0,
                 seller_ventes: 0,
                 seller_clients: 0,
