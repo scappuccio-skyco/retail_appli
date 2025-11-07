@@ -731,7 +731,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       value={selectedMonth}
                       onChange={(e) => {
                         setSelectedMonth(e.target.value);
-                        setPeriodType('month');
+                        setViewMode('month');
                       }}
                       className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
                     />
