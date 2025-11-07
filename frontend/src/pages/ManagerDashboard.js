@@ -497,7 +497,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           <div className="relative h-56 overflow-hidden">
             <img 
               src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=400&fit=crop" 
-              alt="Paramètres & Configuration"
+              alt="Objectifs & Challenges"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-orange-900/80 via-amber-900/80 to-orange-900/80 group-hover:from-orange-900/70 group-hover:via-amber-900/70 group-hover:to-orange-900/70 transition-all"></div>
