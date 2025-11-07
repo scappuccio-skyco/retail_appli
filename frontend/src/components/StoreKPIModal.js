@@ -810,7 +810,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                         <Tooltip />
                         <Legend />
                         <Line type="monotone" dataKey="total_ventes" name="Ventes Totales" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="manager_ventes" name="Ventes Manager" stroke="#f97316" strokeWidth={2} dot={{ r: 3 }} />
                         <Line type="monotone" dataKey="seller_ventes" name="Ventes Vendeurs" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
                       </LineChart>
                     </ResponsiveContainer>
