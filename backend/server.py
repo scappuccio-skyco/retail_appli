@@ -1518,28 +1518,32 @@ async def calculate_competence_adjustment_from_kpis(seller_id: str, initial_scor
     
     # Closing: Based on sales consistency (ventes per day)
     # Higher sales per day indicates better closing ability
-    if ventes_per_day >= 10:
+    # Excellent: >15 ventes/j, Très bon: 12-15, Bon: 8-12, Moyen: 5-8, Faible: <5
+    if ventes_per_day >= 15:
         kpi_scores['score_closing'] = 5.0
-    elif ventes_per_day >= 8:
+    elif ventes_per_day >= 12:
         kpi_scores['score_closing'] = 4.5
-    elif ventes_per_day >= 6:
+    elif ventes_per_day >= 8:
         kpi_scores['score_closing'] = 4.0
-    elif ventes_per_day >= 4:
+    elif ventes_per_day >= 5:
         kpi_scores['score_closing'] = 3.5
-    elif ventes_per_day >= 2:
+    elif ventes_per_day >= 3:
         kpi_scores['score_closing'] = 3.0
     else:
         kpi_scores['score_closing'] = 2.5
     
     # Fidélisation: Based on CA consistency and regularity
     # If CA per day is stable and good = good fidelization
-    if ca_per_day >= 1000:
+    # Excellent: ≥1500€, Très bon: 1200-1500€, Bon: 900-1200€, Moyen: 600-900€, Faible: <600€
+    if ca_per_day >= 1500:
         kpi_scores['score_fidelisation'] = 5.0
-    elif ca_per_day >= 700:
+    elif ca_per_day >= 1200:
+        kpi_scores['score_fidelisation'] = 4.5
+    elif ca_per_day >= 900:
         kpi_scores['score_fidelisation'] = 4.0
-    elif ca_per_day >= 500:
+    elif ca_per_day >= 600:
         kpi_scores['score_fidelisation'] = 3.5
-    elif ca_per_day >= 300:
+    elif ca_per_day >= 400:
         kpi_scores['score_fidelisation'] = 3.0
     else:
         kpi_scores['score_fidelisation'] = 2.5
