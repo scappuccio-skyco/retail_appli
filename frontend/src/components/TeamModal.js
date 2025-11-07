@@ -412,10 +412,9 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                   </table>
                 </div>
               </div>
-            </div>
 
-            {/* Charts Section */}
-            {!loading && teamData.length > 0 && (
+              {/* Charts Section */}
+              <div className="mt-8 space-y-6">
               <div className="mt-8 space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold text-gray-800">📊 Comparaison des Performances</h3>
