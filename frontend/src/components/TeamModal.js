@@ -316,18 +316,16 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                           <td className="px-4 py-3 text-right text-gray-700">{seller.panierMoyen.toFixed(2)} €</td>
                           <td className="px-4 py-3 text-center">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
-                              seller.niveau === 'Ambassadeur' ? 'bg-yellow-100 text-yellow-800' :
-                              seller.niveau === 'Expert' ? 'bg-purple-100 text-purple-800' :
-                              seller.niveau === 'Confirmé' ? 'bg-orange-100 text-orange-800' :
-                              seller.niveau === 'Challenger' ? 'bg-blue-100 text-blue-800' :
-                              seller.niveau === 'Apprenti' ? 'bg-green-100 text-green-800' :
+                              seller.niveau === 'Maître du Jeu' ? 'bg-red-100 text-red-800' :
+                              seller.niveau === 'Ambassadeur' ? 'bg-orange-100 text-orange-800' :
+                              seller.niveau === 'Challenger' ? 'bg-yellow-100 text-yellow-800' :
+                              seller.niveau === 'Explorateur' ? 'bg-green-100 text-green-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
-                              {seller.niveau === 'Ambassadeur' && '👑 '}
-                              {seller.niveau === 'Expert' && '🏆 '}
-                              {seller.niveau === 'Confirmé' && '⭐ '}
-                              {seller.niveau === 'Challenger' && '🎯 '}
-                              {seller.niveau === 'Apprenti' && '🌱 '}
+                              {seller.niveau === 'Maître du Jeu' && '🔴 '}
+                              {seller.niveau === 'Ambassadeur' && '🟠 '}
+                              {seller.niveau === 'Challenger' && '🟡 '}
+                              {seller.niveau === 'Explorateur' && '🟢 '}
                               {seller.niveau}
                             </span>
                           </td>
