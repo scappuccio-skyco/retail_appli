@@ -947,65 +947,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                 </div>
               </div>
 
-              {/* AI Analysis Result */}
-              {showOverviewAIAnalysis && (
-                <div key={`ai-${viewMode}-${selectedWeek}-${selectedMonth}-${multiPeriod}`} className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-5 border-2 border-indigo-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-indigo-900 flex items-center gap-2">
-                      <span>🤖</span> Analyse IA - {viewMode === 'week' ? 'Vue Hebdomadaire' : viewMode === 'month' ? 'Vue Mensuelle' : 'Vue Multi-périodes'}
-                    </h3>
-                    <button
-                      onClick={() => setShowOverviewAIAnalysis(false)}
-                      className="text-gray-500 hover:text-gray-700 transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  {overviewAIAnalysis ? (
-                    <div className="max-h-96 overflow-y-auto pr-2">
-                      <div className="space-y-3 text-sm text-gray-800">
-                        {overviewAIAnalysis.split('\n').map((line, idx) => {
-                          const key = `${viewMode}-line-${idx}`;
-                          
-                          if (line.startsWith('## ')) {
-                            return (
-                              <h4 key={key} className="text-base font-bold text-indigo-900 mt-4 mb-2 flex items-center gap-2">
-                                <span className="w-1 h-5 bg-indigo-600 rounded"></span>
-                                {line.replace('## ', '')}
-                              </h4>
-                            );
-                          }
-                          if (line.startsWith('- ')) {
-                            const content = line.replace('- ', '');
-                            const parts = content.split(/(\*\*.*?\*\*)/g);
-                            return (
-                              <div key={key} className="flex gap-2 text-sm text-gray-700 leading-relaxed ml-2">
-                                <span className="text-indigo-600 mt-1">•</span>
-                                <span>
-                                  {parts.map((part, i) => {
-                                    if (part.startsWith('**') && part.endsWith('**')) {
-                                      return <strong key={`b-${i}`} className="text-gray-900 font-semibold">{part.slice(2, -2)}</strong>;
-                                    }
-                                    return <span key={`s-${i}`}>{part}</span>;
-                                  })}
-                                </span>
-                              </div>
-                            );
-                          }
-                          if (line.trim() === '') {
-                            return <div key={key} className="h-2"></div>;
-                          }
-                          if (line.trim()) {
-                            return <p key={key} className="text-sm text-gray-700">{line}</p>;
-                          }
-                          return null;
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              )}
 
               {/* Charts */}
               {historicalData.length > 0 ? (
