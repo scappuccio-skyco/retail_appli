@@ -943,7 +943,14 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       <ResponsiveContainer width="100%" height={250}>
                         <LineChart data={historicalData}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fontSize: 9 }}
+                            interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : multiPeriod === '3months' ? 5 : multiPeriod === '6months' ? 10 : 20}
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                          />
                           <YAxis tick={{ fontSize: 10 }} />
                           <Tooltip />
                           <Legend />
@@ -959,7 +966,14 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       <ResponsiveContainer width="100%" height={250}>
                         <LineChart data={historicalData}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fontSize: 9 }}
+                            interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : multiPeriod === '3months' ? 5 : multiPeriod === '6months' ? 10 : 20}
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                          />
                           <YAxis tick={{ fontSize: 10 }} />
                           <Tooltip />
                           <Legend />
