@@ -1139,7 +1139,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
 
               {/* AI Analysis Result */}
               {showOverviewAIAnalysis && (
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-5 border-2 border-indigo-200">
+                <div key={`ai-${viewMode}-${selectedWeek}-${selectedMonth}-${multiPeriod}`} className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-5 border-2 border-indigo-200">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-indigo-900 flex items-center gap-2">
                       <span>🤖</span> Analyse IA - {viewMode === 'week' ? 'Vue Hebdomadaire' : viewMode === 'month' ? 'Vue Mensuelle' : 'Vue Multi-périodes'}
