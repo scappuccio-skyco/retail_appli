@@ -704,86 +704,110 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
 
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              {/* Period Selector */}
-              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 border-2 border-purple-200">
-                <h3 className="text-lg font-bold text-purple-900 mb-3">📊 Sélectionner la période</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Week selector */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">📅 Semaine</label>
-                    <input
-                      type="week"
-                      value={selectedWeek}
-                      onChange={(e) => {
-                        setSelectedWeek(e.target.value);
-                        setViewMode('week');
-                      }}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-                    />
-                  </div>
+              {/* View Mode Selector - Tabs */}
+              <div className="flex gap-2 border-b-2 border-gray-200">
+                <button
+                  onClick={() => {
+                    setViewMode('week');
+                    setSelectedWeek(new Date().toISOString().split('T')[0].slice(0,8) + 'W' + Math.ceil(new Date().getDate() / 7).toString().padStart(2, '0'));
+                  }}
+                  className={`px-6 py-3 font-semibold transition-all ${
+                    viewMode === 'week'
+                      ? 'border-b-3 border-purple-600 text-purple-700 bg-purple-50'
+                      : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
+                  }`}
+                >
+                  📅 Vue Hebdomadaire
+                </button>
+                <button
+                  onClick={() => {
+                    setViewMode('month');
+                    setSelectedMonth(new Date().toISOString().slice(0,7));
+                  }}
+                  className={`px-6 py-3 font-semibold transition-all ${
+                    viewMode === 'month'
+                      ? 'border-b-3 border-purple-600 text-purple-700 bg-purple-50'
+                      : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
+                  }`}
+                >
+                  📆 Vue Mensuelle
+                </button>
+                <button
+                  onClick={() => setViewMode('multi')}
+                  className={`px-6 py-3 font-semibold transition-all ${
+                    viewMode === 'multi'
+                      ? 'border-b-3 border-purple-600 text-purple-700 bg-purple-50'
+                      : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
+                  }`}
+                >
+                  📊 Vue Multi-périodes
+                </button>
+              </div>
 
-                  {/* Month selector */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">📆 Mois</label>
-                    <input
-                      type="month"
-                      value={selectedMonth}
-                      onChange={(e) => {
-                        setSelectedMonth(e.target.value);
-                        setViewMode('month');
-                      }}
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-                    />
-                  </div>
+              {/* Week View */}
+              {viewMode === 'week' && (
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 border-2 border-purple-200">
+                  <h3 className="text-lg font-bold text-purple-900 mb-3">📅 Sélectionner une semaine</h3>
+                  <input
+                    type="week"
+                    value={selectedWeek}
+                    onChange={(e) => setSelectedWeek(e.target.value)}
+                    className="w-full max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                  />
                 </div>
+              )}
 
-                {/* Quick period buttons */}
-                <div className="mt-4">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">⏱️ Périodes rapides</label>
-                  <div className="flex flex-wrap gap-2">
+              {/* Month View */}
+              {viewMode === 'month' && (
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 border-2 border-purple-200">
+                  <h3 className="text-lg font-bold text-purple-900 mb-3">📆 Sélectionner un mois</h3>
+                  <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="w-full max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                  />
+                </div>
+              )}
+
+              {/* Multi Period View */}
+              {viewMode === 'multi' && (
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 border-2 border-purple-200">
+                  <h3 className="text-lg font-bold text-purple-900 mb-3">📊 Sélectionner une période</h3>
+                  <div className="flex flex-wrap gap-3">
                     <button
-                      onClick={() => {
-                        setViewMode('multi');
-                        setMultiPeriod('3months');
-                      }}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        viewMode === 'multi' && multiPeriod === '3months'
-                          ? 'bg-purple-600 text-white shadow-lg'
-                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400'
+                      onClick={() => setMultiPeriod('3months')}
+                      className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                        multiPeriod === '3months'
+                          ? 'bg-purple-600 text-white shadow-lg scale-105'
+                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400 hover:scale-105'
                       }`}
                     >
                       3 derniers mois
                     </button>
                     <button
-                      onClick={() => {
-                        setViewMode('multi');
-                        setMultiPeriod('6months');
-                      }}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        viewMode === 'multi' && multiPeriod === '6months'
-                          ? 'bg-purple-600 text-white shadow-lg'
-                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400'
+                      onClick={() => setMultiPeriod('6months')}
+                      className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                        multiPeriod === '6months'
+                          ? 'bg-purple-600 text-white shadow-lg scale-105'
+                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400 hover:scale-105'
                       }`}
                     >
                       6 derniers mois
                     </button>
                     <button
-                      onClick={() => {
-                        setViewMode('multi');
-                        setMultiPeriod('12months');
-                      }}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        viewMode === 'multi' && multiPeriod === '12months'
-                          ? 'bg-purple-600 text-white shadow-lg'
-                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400'
+                      onClick={() => setMultiPeriod('12months')}
+                      className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                        multiPeriod === '12months'
+                          ? 'bg-purple-600 text-white shadow-lg scale-105'
+                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400 hover:scale-105'
                       }`}
                     >
                       12 derniers mois
                     </button>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Charts */}
               {historicalData.length > 0 ? (
