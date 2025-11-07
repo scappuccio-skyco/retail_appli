@@ -529,48 +529,48 @@ export default function ManagerDashboard({ user, onLogout }) {
               <p className="text-gray-600">Manager Dashboard - Bienvenue, {user.name}</p>
             </div>
           </div>
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
             {managerDiagnostic && (
               <button
                 onClick={() => setShowManagerProfileModal(true)}
-                className="btn-secondary flex items-center gap-2 bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 hover:shadow-lg"
+                className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 font-medium rounded-lg hover:shadow-lg transition-all text-sm"
               >
-                <Sparkles className="w-5 h-5" />
-                Mon profil
+                <Sparkles className="w-4 h-4" />
+                Profil
               </button>
             )}
             {!managerDiagnostic && (
               <button
                 onClick={() => setShowManagerDiagnostic(true)}
-                className="btn-secondary flex items-center gap-2 bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 hover:shadow-lg"
+                className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 font-medium rounded-lg hover:shadow-lg transition-all text-sm"
               >
-                <Sparkles className="w-5 h-5" />
-                Créer mon profil
+                <Sparkles className="w-4 h-4" />
+                Profil
               </button>
             )}
             <button
               onClick={() => setShowInviteModal(true)}
-              className="btn-secondary flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg"
+              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
             >
-              <UserPlus className="w-5 h-5" />
+              <UserPlus className="w-4 h-4" />
               Inviter
             </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
+              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
               </svg>
-              Personnaliser
+              Config
             </button>
             <button
               data-testid="logout-button"
               onClick={onLogout}
-              className="btn-secondary flex items-center gap-2"
+              className="px-3 py-2 flex items-center gap-1.5 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 hover:shadow-lg transition-all text-sm"
             >
-              <LogOut className="w-5 h-5" />
-              Déconnexion
+              <LogOut className="w-4 h-4" />
+              Sortir
             </button>
           </div>
         </div>
