@@ -100,13 +100,21 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
   const handleCreateChallenge = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/manager/challenges`, newChallenge, { headers });
+      // Add visible_to_sellers if specific sellers selected
+      const challengeData = { ...newChallenge };
+      if (newChallenge.visible && selectedVisibleSellersChallenge.length > 0) {
+        challengeData.visible_to_sellers = selectedVisibleSellersChallenge;
+      }
+      
+      await axios.post(`${API}/manager/challenges`, challengeData, { headers });
       toast.success('Challenge créé avec succès');
       setNewChallenge({
         title: '',
         description: '',
         type: 'collective',
         seller_id: '',
+        visible: true,
+        visible_to_sellers: [],
         ca_target: '',
         ventes_target: '',
         indice_vente_target: '',
@@ -115,6 +123,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
         end_date: '',
         status: 'active'
       });
+      setSelectedVisibleSellersChallenge([]);
       fetchData();
       if (onUpdate) onUpdate();
     } catch (err) {
