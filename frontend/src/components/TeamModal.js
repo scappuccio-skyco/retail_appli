@@ -782,6 +782,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                     </div>
                   )}
                 </div>
+                </>
                 )}
               </div>
             </div>
