@@ -275,6 +275,24 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         </th>
                         <th className="px-4 py-3 text-right font-semibold text-gray-700">Ventes</th>
                         <th className="px-4 py-3 text-right font-semibold text-gray-700">Panier Moy.</th>
+                        <th className="px-4 py-3 text-center font-semibold text-gray-700">
+                          <div className="flex items-center justify-center gap-1">
+                            <span>Niveau</span>
+                            <div className="relative group">
+                              <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl">
+                                <div className="space-y-2">
+                                  <div><span className="font-bold text-green-300">🌱 Apprenti:</span> Débutant en vente</div>
+                                  <div><span className="font-bold text-blue-300">🎯 Challenger:</span> Identifie les opportunités</div>
+                                  <div><span className="font-bold text-orange-300">⭐ Confirmé:</span> Maîtrise les techniques</div>
+                                  <div><span className="font-bold text-purple-300">🏆 Expert:</span> Référence de l'équipe</div>
+                                  <div><span className="font-bold text-yellow-300">👑 Ambassadeur:</span> Leader et mentor</div>
+                                </div>
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </th>
                         <th className="px-4 py-3 text-left font-semibold text-gray-700">Point Fort</th>
                         <th className="px-4 py-3 text-left font-semibold text-gray-700">À Améliorer</th>
                         <th className="px-4 py-3 text-center font-semibold text-gray-700">Action</th>
