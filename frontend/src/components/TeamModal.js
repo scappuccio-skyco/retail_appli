@@ -12,6 +12,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   const [loading, setLoading] = useState(true);
   const [showAIAnalysisModal, setShowAIAnalysisModal] = useState(false);
   const [periodFilter, setPeriodFilter] = useState('30'); // '7', '30', '90', 'all'
+  const [showNiveauTooltip, setShowNiveauTooltip] = useState(false);
 
   useEffect(() => {
     console.log(`[TeamModal] 🔄 useEffect TRIGGERED - periodFilter changed to: ${periodFilter}`);
