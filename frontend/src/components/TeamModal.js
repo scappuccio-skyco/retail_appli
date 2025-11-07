@@ -292,14 +292,37 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                           <td className="px-4 py-3 text-right text-gray-700">{seller.monthlyVentes}</td>
                           <td className="px-4 py-3 text-right text-gray-700">{seller.panierMoyen.toFixed(2)} €</td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold ${
-                              seller.avgCompetence >= 8 ? 'bg-green-100 text-green-800' :
-                              seller.avgCompetence >= 6 ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                              <Award className="w-3 h-3" />
-                              {seller.avgCompetence.toFixed(1)}/10
-                            </span>
+                            <div className="flex flex-col items-center gap-1">
+                              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold ${
+                                seller.avgCompetence >= 8 ? 'bg-green-100 text-green-800' :
+                                seller.avgCompetence >= 6 ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                <Award className="w-3 h-3" />
+                                {seller.avgCompetence.toFixed(1)}/10
+                              </span>
+                              {seller.hasDiagnostic && seller.diagnosticAge !== null && (
+                                <span 
+                                  className="text-[9px] text-gray-500 cursor-help"
+                                  title={
+                                    seller.scoreComposition === 'questionnaire' 
+                                      ? `Score basé à 100% sur le questionnaire (diagnostic de ${seller.diagnosticAge}j). Les KPIs seront intégrés après 15 jours.`
+                                      : seller.scoreComposition === 'mixed'
+                                      ? `Score mixte: 70% questionnaire + 30% KPIs (diagnostic de ${seller.diagnosticAge}j)`
+                                      : `Score basé à 70% sur les KPIs réels (diagnostic de ${seller.diagnosticAge}j)`
+                                  }
+                                >
+                                  {seller.scoreComposition === 'questionnaire' && '📋 Questionnaire'}
+                                  {seller.scoreComposition === 'mixed' && '📊 Mixte (70/30)'}
+                                  {seller.scoreComposition === 'kpi-heavy' && '📈 KPIs (70%)'}
+                                </span>
+                              )}
+                              {!seller.hasDiagnostic && (
+                                <span className="text-[9px] text-orange-500" title="Aucun diagnostic réalisé">
+                                  ⚠️ Pas de diagnostic
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-4 py-3">
                             <span className="text-green-700 font-medium">{seller.bestCompetence.name}</span>
