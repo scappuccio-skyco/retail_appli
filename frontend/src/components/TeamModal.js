@@ -563,6 +563,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                   </div>
                 )}
                 {!isUpdatingCharts && (
+                <>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-bold text-gray-800">📊 Comparaison des Performances</h3>
