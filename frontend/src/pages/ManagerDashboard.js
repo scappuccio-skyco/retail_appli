@@ -788,61 +788,6 @@ export default function ManagerDashboard({ user, onLogout }) {
         </div>
       </div>
 
-      {/* Sellers List Section - Below cards */}
-      {dashboardFilters.showSellers && (
-        <div className="max-w-7xl mx-auto mb-8">
-          <div className="glass-morphism rounded-2xl p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <Users className="w-7 h-7 text-purple-600" />
-              Liste des Vendeurs
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sellers.map((seller) => (
-                <div
-                  key={seller.id}
-                  onClick={() => {
-                    handleSellerClick(seller);
-                    setShowDetailView(true);
-                  }}
-                  className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200 hover:border-purple-400 cursor-pointer hover:shadow-lg transition-all"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center">
-                        <span className="text-xl font-bold text-purple-700">
-                          {seller.name.charAt(0)}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-800">{seller.name}</h3>
-                        <p className="text-xs text-gray-600">{seller.email}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-700 bg-white bg-opacity-50 rounded-lg p-2">
-                    Cliquer pour voir les détails →
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {sellers.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">Aucun vendeur dans votre équipe</p>
-                <button
-                  onClick={() => setShowInviteModal(true)}
-                  className="btn-primary"
-                >
-                  <UserPlus className="w-5 h-5 mr-2" />
-                  Inviter un vendeur
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Modals */}
       {showInviteModal && (
         <InviteModal
