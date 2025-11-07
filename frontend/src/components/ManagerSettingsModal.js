@@ -291,7 +291,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
         <div className="sticky top-0 bg-gradient-to-r from-[#ffd871] to-yellow-300 p-6 flex justify-between items-center border-b border-gray-200">
           <div className="flex items-center gap-3">
             <Settings className="w-8 h-8 text-gray-800" />
-            <h2 className="text-3xl font-bold text-gray-800">📊 KPI & Challenges</h2>
+            <h2 className="text-3xl font-bold text-gray-800">🎯 Objectifs & Challenges</h2>
           </div>
           <button
             onClick={onClose}
