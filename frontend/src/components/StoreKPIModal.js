@@ -927,6 +927,99 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                 </div>
               )}
 
+              {/* Chart Filters */}
+              <div className="bg-white rounded-xl p-4 border-2 border-gray-200 shadow-sm">
+                <h3 className="text-md font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  🔍 Filtrer les graphiques
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={visibleCharts.ca}
+                      onChange={() => toggleChart('ca')}
+                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">💰 CA</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={visibleCharts.ventes}
+                      onChange={() => toggleChart('ventes')}
+                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">🛒 Ventes</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={visibleCharts.panierMoyen}
+                      onChange={() => toggleChart('panierMoyen')}
+                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">🛍️ Panier Moyen</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={visibleCharts.tauxTransformation}
+                      onChange={() => toggleChart('tauxTransformation')}
+                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">📈 Taux Transfo</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={visibleCharts.indiceVente}
+                      onChange={() => toggleChart('indiceVente')}
+                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">📊 Indice Vente</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={visibleCharts.articles}
+                      onChange={() => toggleChart('articles')}
+                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">📦 Articles</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={visibleCharts.clients}
+                      onChange={() => toggleChart('clients')}
+                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">👥 Clients</span>
+                  </label>
+
+                  <button
+                    onClick={() => setVisibleCharts({
+                      ca: true,
+                      ventes: true,
+                      panierMoyen: true,
+                      tauxTransformation: true,
+                      indiceVente: true,
+                      articles: true,
+                      clients: true
+                    })}
+                    className="col-span-2 md:col-span-1 px-3 py-2 bg-purple-100 text-purple-700 text-sm font-medium rounded-lg hover:bg-purple-200 transition-colors"
+                  >
+                    ✓ Tout afficher
+                  </button>
+                </div>
+              </div>
+
               {/* Charts */}
               {historicalData.length > 0 ? (
                 <div className="space-y-6">
