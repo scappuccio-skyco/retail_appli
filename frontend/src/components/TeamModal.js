@@ -80,6 +80,24 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
           const bestCompetence = competencesList.reduce((max, c) => c.value > max.value ? c : max);
           const worstCompetence = competencesList.reduce((min, c) => c.value < min.value ? c : min);
 
+          // Calculate diagnostic age for transparency
+          let diagnosticAge = null;
+          let scoreComposition = 'questionnaire'; // 'questionnaire', 'mixed', 'kpi-heavy'
+          if (diagnostic && diagnostic.created_at) {
+            const createdAt = new Date(diagnostic.created_at);
+            const now = new Date();
+            diagnosticAge = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
+            
+            // Determine composition based on days
+            if (diagnosticAge <= 14) {
+              scoreComposition = 'questionnaire'; // 100% questionnaire
+            } else if (diagnosticAge <= 28) {
+              scoreComposition = 'mixed'; // 70% questionnaire, 30% KPI
+            } else {
+              scoreComposition = 'kpi-heavy'; // 30% questionnaire, 70% KPI
+            }
+          }
+
           return {
             ...seller,
             monthlyCA,
@@ -89,7 +107,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
             bestCompetence,
             worstCompetence,
             lastKpiDate: kpiEntries.length > 0 ? kpiEntries[0].date : null,
-            hasKpiToday: kpiEntries.some(e => e.date === new Date().toISOString().split('T')[0])
+            hasKpiToday: kpiEntries.some(e => e.date === new Date().toISOString().split('T')[0]),
+            diagnosticAge,
+            scoreComposition,
+            hasDiagnostic: !!diagnostic
           };
         } catch (err) {
           console.error(`Error fetching data for seller ${seller.id}:`, err);
