@@ -315,6 +315,23 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                           <td className="px-4 py-3 text-right text-gray-700 font-medium">{seller.monthlyCA.toFixed(0)} €</td>
                           <td className="px-4 py-3 text-right text-gray-700">{seller.monthlyVentes}</td>
                           <td className="px-4 py-3 text-right text-gray-700">{seller.panierMoyen.toFixed(2)} €</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                              seller.niveau === 'Ambassadeur' ? 'bg-yellow-100 text-yellow-800' :
+                              seller.niveau === 'Expert' ? 'bg-purple-100 text-purple-800' :
+                              seller.niveau === 'Confirmé' ? 'bg-orange-100 text-orange-800' :
+                              seller.niveau === 'Challenger' ? 'bg-blue-100 text-blue-800' :
+                              seller.niveau === 'Apprenti' ? 'bg-green-100 text-green-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {seller.niveau === 'Ambassadeur' && '👑 '}
+                              {seller.niveau === 'Expert' && '🏆 '}
+                              {seller.niveau === 'Confirmé' && '⭐ '}
+                              {seller.niveau === 'Challenger' && '🎯 '}
+                              {seller.niveau === 'Apprenti' && '🌱 '}
+                              {seller.niveau}
+                            </span>
+                          </td>
                           <td className="px-4 py-3">
                             <span className="text-green-700 font-medium">{seller.bestCompetence.name}</span>
                           </td>
