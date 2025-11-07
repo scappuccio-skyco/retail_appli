@@ -80,11 +80,16 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
           
           // Check if all competences have the same value
           const allSameValue = competencesList.every(c => c.value === competencesList[0].value);
+          const allZero = competencesList.every(c => c.value === 0);
           
           let bestCompetence, worstCompetence;
           
-          if (allSameValue) {
-            // If all competences are equal, indicate balanced profile
+          if (allZero) {
+            // If all scores are 0 (no diagnostic), indicate this
+            bestCompetence = { name: 'Non évalué', value: 0 };
+            worstCompetence = { name: 'Non évalué', value: 0 };
+          } else if (allSameValue) {
+            // If all competences are equal (initial questionnaire), indicate balanced profile
             bestCompetence = { name: 'Profil équilibré', value: competencesList[0].value };
             worstCompetence = { name: 'Profil équilibré', value: competencesList[0].value };
           } else {
