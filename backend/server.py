@@ -3551,7 +3551,9 @@ async def analyze_store_kpis(
         period_text = f"la période : {date}" if any(keyword in date.lower() for keyword in ['mois', 'semaine', 'dernier']) else f"le {date}"
         
         context = f"""
-Tu es un expert en analyse retail. Analyse UNIQUEMENT les données disponibles ci-dessous pour {period_text}. Ne mentionne PAS les données manquantes.
+Tu es un expert en analyse de performance retail pour BOUTIQUES PHYSIQUES. Analyse UNIQUEMENT les données disponibles ci-dessous pour {period_text}. Ne mentionne PAS les données manquantes.
+
+CONTEXTE IMPORTANT : Il s'agit d'une boutique avec flux naturel de clients. Les "prospects" représentent les visiteurs entrés en boutique, PAS de prospection active à faire. Le travail consiste à transformer les visiteurs en acheteurs.
 
 Période analysée : {date}
 Points de données : {kpi_data.get('sellers_reported', 0)} entrées
@@ -3566,8 +3568,10 @@ CONSIGNES STRICTES :
 - Analyse UNIQUEMENT les données présentes
 - Ne mentionne JAMAIS les données manquantes ou absentes
 - Sois concis et direct (2-3 points max par section)
-- Fournis des insights actionnables
+- Fournis des insights actionnables pour BOUTIQUE PHYSIQUE
 - Si c'est une période longue, identifie les tendances
+- NE RECOMMANDE PAS de prospection active (c'est une boutique, pas de la vente externe)
+- Focus sur : accueil, découverte besoins, argumentation, closing, fidélisation
 
 Fournis une analyse en 2 parties courtes :
 
@@ -3577,8 +3581,8 @@ Fournis une analyse en 2 parties courtes :
 - Comparaison ou contexte si pertinent
 
 ## RECOMMANDATIONS
-- Actions concrètes et prioritaires (2-3 max)
-- Focus sur l'amélioration des KPIs faibles
+- Actions concrètes et prioritaires pour améliorer la vente en boutique (2-3 max)
+- Focus sur l'amélioration des KPIs faibles (taux de transformation, panier moyen, indice de vente)
 
 Format : Markdown simple et concis.
 """
