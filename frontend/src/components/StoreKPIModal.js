@@ -929,17 +929,17 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               {viewMode === 'week' && (
                 <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 border-2 border-purple-200">
                   <h3 className="text-lg font-bold text-purple-900 mb-3">📅 Sélectionner une semaine</h3>
-                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                  <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                     <input
                       type="week"
                       value={selectedWeek}
                       onChange={(e) => setSelectedWeek(e.target.value)}
-                      className="w-full sm:w-auto flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                      className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
                     />
                     <button
                       onClick={handleOverviewAIAnalysis}
-                      disabled={loadingOverviewAI || !historicalData.length}
-                      className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                      disabled={loadingOverviewAI || !historicalData.length || !selectedWeek}
+                      className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
                     >
                       {loadingOverviewAI ? (
                         <>
