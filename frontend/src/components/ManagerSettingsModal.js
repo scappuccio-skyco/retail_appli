@@ -27,17 +27,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
     seller_id: '',
     visible: true,
     visible_to_sellers: [],
-    ca_target: '',
-    ventes_target: '',
-    indice_vente_target: '',
-    panier_moyen_target: '',
     start_date: '',
     end_date: '',
+    kpi_targets: {}, // Dynamic KPI targets like objectives
     status: 'active' // Default status
   });
   
   // Selected sellers for challenge visibility
   const [selectedVisibleSellersChallenge, setSelectedVisibleSellersChallenge] = useState([]);
+  
+  // Selected KPIs for challenges
+  const [selectedKPIsChallenge, setSelectedKPIsChallenge] = useState({});
 
   // New objective form
   const [newObjective, setNewObjective] = useState({
