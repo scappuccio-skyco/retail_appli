@@ -33,7 +33,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
           const daysParam = periodFilter === 'all' ? '365' : periodFilter;
           console.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with days=${daysParam}`);
           
-          const [statsRes, kpiRes] = await Promise.all([
+          const [statsRes, kpiRes, diagRes] = await Promise.all([
             axios.get(`${API}/manager/seller/${seller.id}/stats`, { 
               headers: { Authorization: `Bearer ${token}` },
               params: { _t: Date.now() } // Cache buster
@@ -41,11 +41,16 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
             axios.get(`${API}/manager/kpi-entries/${seller.id}?days=${daysParam}`, { 
               headers: { Authorization: `Bearer ${token}` },
               params: { _t: Date.now() } // Cache buster
-            })
+            }),
+            axios.get(`${API}/manager/seller/${seller.id}/diagnostic`, { 
+              headers: { Authorization: `Bearer ${token}` },
+              params: { _t: Date.now() } // Cache buster
+            }).catch(() => ({ data: null })) // If no diagnostic, return null
           ]);
 
           const stats = statsRes.data;
           const kpiEntries = kpiRes.data;
+          const diagnostic = diagRes.data;
 
           console.log(`[TeamModal] 📊 ${seller.name}: ${kpiEntries.length} entries returned from API`);
           
