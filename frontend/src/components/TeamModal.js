@@ -300,12 +300,12 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                           <td className="px-4 py-3 text-center">
                             <div className="flex flex-col items-center gap-1">
                               <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold ${
-                                seller.avgCompetence >= 8 ? 'bg-green-100 text-green-800' :
-                                seller.avgCompetence >= 6 ? 'bg-yellow-100 text-yellow-800' :
+                                seller.avgCompetence >= 4 ? 'bg-green-100 text-green-800' :
+                                seller.avgCompetence >= 3 ? 'bg-yellow-100 text-yellow-800' :
                                 'bg-red-100 text-red-800'
                               }`}>
                                 <Award className="w-3 h-3" />
-                                {seller.avgCompetence.toFixed(1)}/10
+                                {seller.avgCompetence.toFixed(1)}/5
                               </span>
                               {seller.scoreSource === 'diagnostic' && (
                                 <span 
