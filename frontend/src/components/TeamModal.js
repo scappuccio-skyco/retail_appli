@@ -116,7 +116,8 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
             lastKpiDate: kpiEntries.length > 0 ? kpiEntries[0].date : null,
             hasKpiToday: kpiEntries.some(e => e.date === new Date().toISOString().split('T')[0]),
             scoreSource,
-            hasDiagnostic: !!diagnostic
+            hasDiagnostic: !!diagnostic,
+            niveau: diagnostic?.level || seller.niveau || 'Non défini'
           };
         } catch (err) {
           console.error(`Error fetching data for seller ${seller.id}:`, err);
