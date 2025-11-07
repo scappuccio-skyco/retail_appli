@@ -3458,11 +3458,12 @@ async def analyze_team(
             )
         
         context = f"""
-Tu es un expert en management retail. Analyse cette équipe et fournis des recommandations managériales.
+Tu es un expert en management retail et coaching d'équipe. Analyse cette équipe de boutique physique et fournis des recommandations managériales pour MOTIVER et DÉVELOPPER l'équipe.
+
+CONTEXTE : Boutique physique avec flux naturel de clients. Focus sur performance commerciale ET dynamique d'équipe.
 
 ÉQUIPE :
 - Taille : {team_data.get('total_sellers', 0)} vendeurs
-- Saisies KPI : {team_data.get('sellers_with_kpi', 0)}/{team_data.get('total_sellers', 0)}
 - CA Total : {team_data.get('team_total_ca', 0):.0f} €
 - Ventes Totales : {team_data.get('team_total_ventes', 0)}
 
@@ -3470,19 +3471,30 @@ VENDEURS :
 {chr(10).join(sellers_summary)}
 
 CONSIGNES :
-- Analyse les forces et faiblesses de l'équipe
-- Identifie les actions prioritaires pour chaque vendeur
-- Sois concis (2 sections max, 2-3 points par section)
+- NE MENTIONNE PAS la complétion KPI (saisie des données) - c'est un sujet administratif, pas commercial
+- Concentre-toi sur les PERFORMANCES COMMERCIALES et la DYNAMIQUE D'ÉQUIPE
+- Fournis des recommandations MOTIVANTES et CONSTRUCTIVES
+- Identifie les leviers de motivation individuels et collectifs
+- Sois concis et actionnable (3 sections, 2-3 points par section)
 
-Format :
+Fournis l'analyse en 3 parties :
 
-1. **ANALYSE D'ÉQUIPE** (2-3 points) :
-   - Forces collectives
-   - Points d'attention
+## ANALYSE D'ÉQUIPE
+- Forces collectives et dynamique positive
+- Points d'amélioration ou déséquilibres à corriger
+- Opportunités de développement
 
-2. **ACTIONS PAR VENDEUR** (2-3 actions) :
-   - Recommandations personnalisées
-   - Priorités managériales
+## ACTIONS PAR VENDEUR
+- Recommandations personnalisées pour chaque vendeur
+- Focus sur développement des compétences et motivation
+- Actions concrètes et bienveillantes
+
+## RECOMMANDATIONS MANAGÉRIALES
+- Actions pour renforcer la cohésion d'équipe
+- Techniques de motivation adaptées à chaque profil
+- Rituels ou animations pour dynamiser les ventes
+
+Format : Markdown simple et structuré.
 """
         
         api_key = os.environ.get('EMERGENT_LLM_KEY')
