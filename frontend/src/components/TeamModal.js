@@ -279,17 +279,24 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         <th className="px-4 py-3 text-center font-semibold text-gray-700">
                           <div className="flex items-center justify-center gap-1">
                             <span>Niveau</span>
-                            <div className="relative group">
-                              <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl">
-                                <div className="space-y-2">
-                                  <div><span className="font-bold text-green-300">🟢 Explorateur:</span> Découvre le terrain, teste, apprend les bases</div>
-                                  <div><span className="font-bold text-yellow-300">🟡 Challenger:</span> A pris ses repères, cherche à performer</div>
-                                  <div><span className="font-bold text-orange-300">🟠 Ambassadeur:</span> Inspire confiance, maîtrise les étapes de vente</div>
-                                  <div><span className="font-bold text-red-300">🔴 Maître du Jeu:</span> Expert relation client, adapte son style</div>
+                            <div className="relative">
+                              <Info 
+                                className="w-3.5 h-3.5 text-blue-500 cursor-help" 
+                                onMouseEnter={() => setShowNiveauTooltip(true)}
+                                onMouseLeave={() => setShowNiveauTooltip(false)}
+                              />
+                              {showNiveauTooltip && (
+                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-50 w-72 p-4 bg-gray-900 text-white text-xs rounded-lg shadow-2xl">
+                                  <div className="space-y-2">
+                                    <div className="font-semibold text-sm mb-3 text-center border-b border-gray-700 pb-2">Les 4 Niveaux</div>
+                                    <div><span className="font-bold text-green-300">🟢 Explorateur:</span> Découvre le terrain, teste, apprend les bases</div>
+                                    <div><span className="font-bold text-yellow-300">🟡 Challenger:</span> A pris ses repères, cherche à performer</div>
+                                    <div><span className="font-bold text-orange-300">🟠 Ambassadeur:</span> Inspire confiance, maîtrise les étapes de vente</div>
+                                    <div><span className="font-bold text-red-300">🔴 Maître du Jeu:</span> Expert relation client, adapte son style</div>
+                                  </div>
+                                  <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-8 border-transparent border-t-gray-900"></div>
                                 </div>
-                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
-                              </div>
+                              )}
                             </div>
                           </div>
                         </th>
