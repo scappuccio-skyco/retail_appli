@@ -4330,27 +4330,43 @@ async def get_active_seller_challenges(current_user: dict = Depends(get_current_
         return []
     
     manager_id = user['manager_id']
+    seller_id = current_user['id']
     today = datetime.now(timezone.utc).date().isoformat()
     
-    # Get active collective challenges + active individual challenges assigned to this seller
+    # Get active challenges from the seller's manager
     challenges = await db.challenges.find(
         {
             "manager_id": manager_id,
             "status": "active",
             "end_date": {"$gt": today},  # Only challenges that haven't ended yet (strict >)
-            "$or": [
-                {"type": "collective"},
-                {"type": "individual", "seller_id": current_user['id']}
-            ]
+            "visible": True  # Only visible challenges
         },
         {"_id": 0}
     ).sort("start_date", 1).to_list(10)  # Sort by start_date to show upcoming first
     
-    # Calculate progress for each challenge
+    # Filter challenges based on visibility rules
+    filtered_challenges = []
     for challenge in challenges:
+        # Check if challenge is for this seller
+        chall_type = challenge.get('type', 'collective')
+        
+        # Individual challenges: only show if it's for this seller
+        if chall_type == 'individual':
+            if challenge.get('seller_id') == seller_id:
+                filtered_challenges.append(challenge)
+        # Collective challenges: check visible_to_sellers list
+        else:
+            visible_to = challenge.get('visible_to_sellers', [])
+            # If no specific sellers listed, show to all
+            # If specific sellers listed, only show if this seller is in the list
+            if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
+                filtered_challenges.append(challenge)
+    
+    # Calculate progress for each challenge
+    for challenge in filtered_challenges:
         await calculate_challenge_progress(challenge)
     
-    return challenges
+    return filtered_challenges
 
 @api_router.get("/seller/objectives/active")
 async def get_active_seller_objectives(current_user: dict = Depends(get_current_user)):
