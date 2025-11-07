@@ -949,16 +949,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       disabled={!historicalData.length || !selectedWeek}
                       className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
                     >
-                      {loadingOverviewAI ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Analyse...
-                        </>
-                      ) : (
-                        <>
-                          🤖 Analyse IA
-                        </>
-                      )}
+                      🤖 Analyse IA
                     </button>
                   </div>
                 </div>
@@ -980,16 +971,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       disabled={loadingOverviewAI || !historicalData.length || !selectedMonth}
                       className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
                     >
-                      {loadingOverviewAI ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Analyse...
-                        </>
-                      ) : (
-                        <>
-                          🤖 Analyse IA
-                        </>
-                      )}
+                      🤖 Analyse IA
                     </button>
                   </div>
                 </div>
