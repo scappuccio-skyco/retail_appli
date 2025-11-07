@@ -907,7 +907,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
               {activeTab === 'challenges' && (
                 <div className="space-y-6">
                   {/* Create/Edit Challenge Form */}
-                  <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-6 border-2 border-[#ffd871]">
+                  <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl p-6 border-2 border-cyan-300">
                     <h3 className="text-xl font-bold text-gray-800 mb-4">
                       {editingChallenge ? '✏️ Modifier le Challenge' : '➕ Créer un Challenge'}
                     </h3>
