@@ -474,6 +474,7 @@ class ManagerObjectives(BaseModel):
     type: str = "collective"  # "individual" or "collective"
     seller_id: Optional[str] = None  # Only for individual objectives
     visible: bool = True  # Visible by sellers
+    visible_to_sellers: Optional[List[str]] = None  # Specific seller IDs (empty = all sellers)
     ca_target: Optional[float] = None
     indice_vente_target: Optional[float] = None
     panier_moyen_target: Optional[float] = None
@@ -487,6 +488,7 @@ class ManagerObjectivesCreate(BaseModel):
     type: str = "collective"  # "individual" or "collective"
     seller_id: Optional[str] = None  # Only for individual objectives
     visible: bool = True  # Visible by sellers
+    visible_to_sellers: Optional[List[str]] = None  # Specific seller IDs (empty = all sellers)
     ca_target: Optional[float] = None
     indice_vente_target: Optional[float] = None
     panier_moyen_target: Optional[float] = None
