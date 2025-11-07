@@ -6,12 +6,18 @@ import { toast } from 'sonner';
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }) {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('daily');
   const [overviewData, setOverviewData] = useState(null);
   const [overviewDate, setOverviewDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  
+  // New states for global overview with charts
+  const [periodType, setPeriodType] = useState('3months'); // 'week', 'month', '3months', '6months', '12months'
+  const [selectedWeek, setSelectedWeek] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [historicalData, setHistoricalData] = useState([]);
   const [formData, setFormData] = useState({
     date: initialDate || new Date().toISOString().split('T')[0],
     nb_prospects: ''
