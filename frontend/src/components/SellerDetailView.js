@@ -294,6 +294,7 @@ export default function SellerDetailView({ seller, onBack }) {
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#cbd5e1" />
                 <PolarAngleAxis dataKey="skill" tick={{ fill: '#475569', fontSize: 12 }} />
+                <PolarRadiusAxis angle={90} domain={[0, 5]} tick={{ fill: '#64748b', fontSize: 10 }} />
                 <Radar name="Score" dataKey="value" stroke="#ffd871" fill="#ffd871" fillOpacity={0.6} />
               </RadarChart>
             </ResponsiveContainer>
