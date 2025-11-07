@@ -159,6 +159,53 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
     }
   };
 
+  // Prepare chart data
+  const prepareChartData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const daysParam = periodFilter === 'all' ? 365 : periodFilter;
+      
+      // Fetch historical KPI data for each seller
+      const chartDataPromises = sellers.map(async (seller) => {
+        try {
+          const res = await axios.get(`${API}/manager/kpi-entries/${seller.id}?days=${daysParam}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          return { sellerId: seller.id, sellerName: seller.name, data: res.data };
+        } catch (err) {
+          return { sellerId: seller.id, sellerName: seller.name, data: [] };
+        }
+      });
+
+      const sellersKpiData = await Promise.all(chartDataPromises);
+      
+      // Group data by date
+      const dateMap = new Map();
+      
+      sellersKpiData.forEach(({ sellerId, sellerName, data }) => {
+        data.forEach(entry => {
+          const date = entry.date;
+          if (!dateMap.has(date)) {
+            dateMap.set(date, { date });
+          }
+          const dayData = dateMap.get(date);
+          dayData[`ca_${sellerId}`] = entry.ca_journalier || 0;
+          dayData[`ventes_${sellerId}`] = entry.nb_ventes || 0;
+          dayData[`panier_${sellerId}`] = entry.nb_ventes > 0 ? (entry.ca_journalier / entry.nb_ventes) : 0;
+          dayData[`name_${sellerId}`] = sellerName;
+        });
+      });
+
+      // Sort by date and convert to array
+      const chartArray = Array.from(dateMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+      
+      setChartData(chartArray);
+    } catch (err) {
+      console.error('Error preparing chart data:', err);
+    }
+  };
+
+
   // Calculate team totals
   const teamTotalCA = teamData.reduce((sum, s) => sum + s.monthlyCA, 0);
   const teamTotalVentes = teamData.reduce((sum, s) => sum + s.monthlyVentes, 0);
