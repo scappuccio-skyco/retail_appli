@@ -510,7 +510,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
 
                   <button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all"
+                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all"
                   >
                     💾 Enregistrer la Configuration
                   </button>
