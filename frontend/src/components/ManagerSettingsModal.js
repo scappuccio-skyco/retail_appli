@@ -329,7 +329,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
           </div>
           <button
             onClick={onClose}
-            className="text-gray-800 hover:text-gray-600 transition-colors"
+            className="text-white hover:text-gray-100 transition-colors"
           >
             <X className="w-8 h-8" />
           </button>
