@@ -1485,24 +1485,31 @@ async def calculate_competence_adjustment_from_kpis(seller_id: str, initial_scor
     
     # Argumentation: Based on panier moyen and indice de vente
     # Higher basket = better argumentation
-    if panier_moyen >= 80:
+    # Excellent: ≥120€, Très bon: 100-120€, Bon: 80-100€, Moyen: 60-80€, Faible: <60€
+    if panier_moyen >= 120:
         arg_score_1 = 5.0
-    elif panier_moyen >= 60:
+    elif panier_moyen >= 100:
+        arg_score_1 = 4.5
+    elif panier_moyen >= 80:
         arg_score_1 = 4.0
-    elif panier_moyen >= 40:
+    elif panier_moyen >= 60:
         arg_score_1 = 3.5
-    elif panier_moyen >= 20:
+    elif panier_moyen >= 40:
         arg_score_1 = 3.0
     else:
         arg_score_1 = 2.5
     
-    if indice_vente >= 3:
+    # Indice de vente (articles/vente)
+    # Excellent: ≥2.5, Très bon: 2-2.5, Bon: 1.8-2, Moyen: 1.5-1.8, Faible: <1.5
+    if indice_vente >= 2.5:
         arg_score_2 = 5.0
-    elif indice_vente >= 2.5:
+    elif indice_vente >= 2.0:
+        arg_score_2 = 4.5
+    elif indice_vente >= 1.8:
         arg_score_2 = 4.0
-    elif indice_vente >= 2:
-        arg_score_2 = 3.5
     elif indice_vente >= 1.5:
+        arg_score_2 = 3.5
+    elif indice_vente >= 1.2:
         arg_score_2 = 3.0
     else:
         arg_score_2 = 2.5
