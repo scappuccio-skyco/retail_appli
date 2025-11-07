@@ -267,6 +267,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
   };
 
   const handleOverviewAIAnalysis = async () => {
+    // Ensure mutual exclusion with daily AI analysis
+    setShowAnalysis(false);
+    setAiAnalysis(null);
+    
     setLoadingOverviewAI(true);
     setShowOverviewAIAnalysis(true);
 
