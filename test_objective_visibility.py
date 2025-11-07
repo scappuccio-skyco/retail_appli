@@ -65,9 +65,9 @@ def main():
     # Step 1: Login as manager
     print("📋 Step 1: Login as manager...")
     manager_credentials = [
+        ("manager@test.com", "demo123"),
         ("manager@demo.com", "demo123"),
-        ("manager1@test.com", "password123"),
-        ("manager1@test.com", "demo123")
+        ("manager1@test.com", "password123")
     ]
     
     manager_token = None
