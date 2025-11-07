@@ -1086,113 +1086,79 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           />
                         </div>
 
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <label className="block text-sm font-semibold text-gray-700">💰 Objectif CA (€)</label>
-                            <div className="group relative">
-                              <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-green-600 transition-all">
-                                ?
-                              </div>
-                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-green-600 text-white text-sm rounded-lg shadow-2xl border-2 border-green-400">
-                                <div className="font-semibold mb-1">💰 Chiffre d'Affaires :</div>
-                                Montant total des ventes cible pour la période. Au moins un objectif KPI est requis.
-                              </div>
-                            </div>
+                        {/* Dynamic KPI Selection - Compact Grid Layout */}
+                        <div className="md:col-span-2">
+                          <div className="mb-3">
+                            <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                              <span className="text-lg">📊</span>
+                              Sélectionner les KPI à cibler
+                            </h4>
+                            <p className="text-xs text-gray-600 mb-3">Cochez les KPI et indiquez la valeur cible</p>
                           </div>
-                          <input
-                            type="number"
-                            value={editingChallenge ? editingChallenge.ca_target : newChallenge.ca_target}
-                            onChange={(e) => editingChallenge
-                              ? setEditingChallenge({ ...editingChallenge, ca_target: e.target.value })
-                              : setNewChallenge({ ...newChallenge, ca_target: e.target.value })
-                            }
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#ffd871] focus:outline-none"
-                            placeholder="Ex: 10000"
-                          />
-                        </div>
-
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <label className="block text-sm font-semibold text-gray-700">🛍️ Objectif Ventes</label>
-                            <div className="group relative">
-                              <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-green-600 transition-all">
-                                ?
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {getAvailableKPIs().map((kpi) => (
+                              <div key={kpi.key} className="border-2 border-gray-200 rounded-lg p-3 hover:border-yellow-300 transition-all">
+                                {/* Checkbox + Label */}
+                                <label className="flex items-center gap-2 cursor-pointer mb-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedKPIsChallenge[kpi.key] || false}
+                                    onChange={(e) => {
+                                      setSelectedKPIsChallenge({ ...selectedKPIsChallenge, [kpi.key]: e.target.checked });
+                                      if (!e.target.checked) {
+                                        const newTargets = { ...newChallenge.kpi_targets };
+                                        delete newTargets[kpi.key];
+                                        setNewChallenge({ ...newChallenge, kpi_targets: newTargets });
+                                      }
+                                    }}
+                                    className="w-4 h-4 text-yellow-600"
+                                  />
+                                  <div className="flex items-center gap-1.5 flex-1">
+                                    <span className="text-base">{kpi.icon}</span>
+                                    <span className="font-semibold text-sm text-gray-800">{kpi.label}</span>
+                                    {kpi.calculated && (
+                                      <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Auto</span>
+                                    )}
+                                  </div>
+                                </label>
+                                
+                                {/* Value Input (inline when selected) */}
+                                {selectedKPIsChallenge[kpi.key] && (
+                                  <div className="animate-fadeIn">
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="number"
+                                        step={kpi.key.includes('taux') ? '0.1' : kpi.key.includes('moyen') || kpi.key.includes('indice') ? '0.01' : '1'}
+                                        value={newChallenge.kpi_targets[kpi.key] || ''}
+                                        onChange={(e) => {
+                                          setNewChallenge({
+                                            ...newChallenge,
+                                            kpi_targets: {
+                                              ...newChallenge.kpi_targets,
+                                              [kpi.key]: e.target.value
+                                            }
+                                          });
+                                        }}
+                                        className="flex-1 p-2 text-sm border-2 border-gray-300 rounded-lg focus:border-yellow-400 focus:outline-none"
+                                        placeholder={`Ex: ${kpi.key === 'ca' ? '50000' : kpi.key === 'ventes' ? '200' : kpi.key === 'panier_moyen' ? '150' : '2.5'}`}
+                                        required
+                                      />
+                                      <span className="text-xs text-gray-500 whitespace-nowrap">{kpi.unit}</span>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-green-600 text-white text-sm rounded-lg shadow-2xl border-2 border-green-400">
-                                <div className="font-semibold mb-1">🛍️ Nombre de Ventes :</div>
-                                Nombre de transactions à réaliser. Laissez vide si vous ne souhaitez pas suivre ce KPI.
-                              </div>
-                            </div>
+                            ))}
                           </div>
-                          <input
-                            type="number"
-                            value={editingChallenge ? editingChallenge.ventes_target : newChallenge.ventes_target}
-                            onChange={(e) => editingChallenge
-                              ? setEditingChallenge({ ...editingChallenge, ventes_target: e.target.value })
-                              : setNewChallenge({ ...newChallenge, ventes_target: e.target.value })
-                            }
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#ffd871] focus:outline-none"
-                            placeholder="Ex: 50"
-                          />
-                        </div>
-
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <label className="block text-sm font-semibold text-gray-700">🛒 Objectif Panier Moyen (€)</label>
-                            <div className="group relative">
-                              <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-green-600 transition-all">
-                                ?
-                              </div>
-                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-green-600 text-white text-sm rounded-lg shadow-2xl border-2 border-green-400">
-                                <div className="font-semibold mb-1">🛒 Panier Moyen :</div>
-                                Valeur moyenne par transaction (CA ÷ Nb de ventes). Mesure l'efficacité commerciale.
-                              </div>
+                          
+                          {getAvailableKPIs().length === 0 && (
+                            <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 text-center">
+                              <p className="text-orange-700 font-semibold">⚠️ Aucun KPI configuré</p>
+                              <p className="text-sm text-orange-600 mt-1">Veuillez d'abord configurer vos KPI dans "KPI Magasin"</p>
                             </div>
-                          </div>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={editingChallenge ? editingChallenge.panier_moyen_target : newChallenge.panier_moyen_target}
-                            onChange={(e) => editingChallenge
-                              ? setEditingChallenge({ ...editingChallenge, panier_moyen_target: e.target.value })
-                              : setNewChallenge({ ...newChallenge, panier_moyen_target: e.target.value })
-                            }
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#ffd871] focus:outline-none"
-                            placeholder="Ex: 150"
-                          />
+                          )}
                         </div>
-
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <label className="block text-sm font-semibold text-gray-700">💎 Objectif Indice Vente</label>
-                            <div className="group relative">
-                              <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-green-600 transition-all">
-                                ?
-                              </div>
-                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-green-600 text-white text-sm rounded-lg shadow-2xl border-2 border-green-400">
-                                <div className="font-semibold mb-1">💎 Indice de Vente :</div>
-                                Moyenne d'articles par vente (Nb Articles ÷ Nb Ventes). Mesure la capacité à vendre plusieurs articles.
-                              </div>
-                            </div>
-                          </div>
-                          <input
-                            type="number"
-                            step="0.1"
-                            value={editingChallenge ? editingChallenge.indice_vente_target : newChallenge.indice_vente_target}
-                            onChange={(e) => editingChallenge
-                              ? setEditingChallenge({ ...editingChallenge, indice_vente_target: e.target.value })
-                              : setNewChallenge({ ...newChallenge, indice_vente_target: e.target.value })
-                            }
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#ffd871] focus:outline-none"
-                            placeholder="Ex: 2.5"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                        <p className="text-xs text-blue-800">
-                          💡 <strong>Astuce :</strong> Remplissez au moins un objectif KPI. Vous pouvez combiner plusieurs KPIs pour un challenge complet.
-                        </p>
                       </div>
 
                       {/* Visibilité section - same as Objectives */}
