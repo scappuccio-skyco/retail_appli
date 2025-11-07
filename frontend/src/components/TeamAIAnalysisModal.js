@@ -128,6 +128,9 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
                       return <div key={`space-${idx}`} className="h-2"></div>;
                     }
                     // Regular text
+                    if (line.trim()) {
+                      return <p key={`para-${idx}`} className="text-sm text-gray-700 leading-relaxed">{line}</p>;
+                    }
                     return null;
                   })}
                 </div>
