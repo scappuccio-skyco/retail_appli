@@ -516,7 +516,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                           </td>
                           <td className="px-4 py-3 text-right text-gray-700 font-medium">{formatNumber(seller.monthlyCA)} €</td>
                           <td className="px-4 py-3 text-right text-gray-700">{formatNumber(seller.monthlyVentes)}</td>
-                          <td className="px-4 py-3 text-right text-gray-700">{seller.panierMoyen.toFixed(2)} €</td>
+                          <td className="px-4 py-3 text-right text-gray-700">{formatNumber(seller.panierMoyen)} €</td>
                           <td className="px-4 py-3 text-center">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
                               (seller.niveau === 'Maître du Jeu' || seller.niveau === 'Expert') ? 'bg-red-100 text-red-800' :
