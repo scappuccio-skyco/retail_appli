@@ -1264,6 +1264,26 @@ async def get_seller_stats(seller_id: str, current_user: dict = Depends(get_curr
         "avg_radar_scores": avg_radar
     }
 
+@api_router.get("/manager/seller/{seller_id}/diagnostic")
+async def get_seller_diagnostic(seller_id: str, current_user: dict = Depends(get_current_user)):
+    """Get diagnostic info for a seller (for manager use - minimal data)"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access this")
+    
+    # Verify seller belongs to manager
+    seller = await db.users.find_one({"id": seller_id, "manager_id": current_user['id']}, {"_id": 0})
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not found")
+    
+    # Get diagnostic (only minimal info for transparency)
+    diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0, "seller_id": 1, "created_at": 1})
+    
+    if not diagnostic:
+        return None
+    
+    return diagnostic
+
+
 # ===== DIAGNOSTIC ROUTES =====
 async def analyze_diagnostic_with_ai(responses: dict) -> dict:
     """Analyze diagnostic responses with AI"""
