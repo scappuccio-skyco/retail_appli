@@ -38,6 +38,11 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
       [chartKey]: !prev[chartKey]
     }));
   };
+
+  // AI Analysis for overview charts
+  const [overviewAIAnalysis, setOverviewAIAnalysis] = useState(null);
+  const [loadingOverviewAI, setLoadingOverviewAI] = useState(false);
+  const [showOverviewAIAnalysis, setShowOverviewAIAnalysis] = useState(false);
   const [formData, setFormData] = useState({
     date: initialDate || new Date().toISOString().split('T')[0],
     nb_prospects: ''
