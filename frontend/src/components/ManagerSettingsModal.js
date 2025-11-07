@@ -26,6 +26,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
     type: 'collective',
     seller_id: '',
     visible: true,
+    visible_to_sellers: [],
     ca_target: '',
     ventes_target: '',
     indice_vente_target: '',
@@ -34,6 +35,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
     end_date: '',
     status: 'active' // Default status
   });
+  
+  // Selected sellers for challenge visibility
+  const [selectedVisibleSellersChallenge, setSelectedVisibleSellersChallenge] = useState([]);
 
   // New objective form
   const [newObjective, setNewObjective] = useState({
