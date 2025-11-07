@@ -819,6 +819,7 @@ export default function ManagerDashboard({ user, onLogout }) {
               onBack={() => {
                 setShowDetailView(false);
                 setSelectedSeller(null);
+                setShowTeamModal(true); // Reopen TeamModal when going back
               }}
             />
           </div>
