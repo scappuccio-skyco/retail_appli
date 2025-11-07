@@ -618,7 +618,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                   {visibleMetrics.ca && (
                     <div key="chart-ca" className="bg-white rounded-lg p-4 border-2 border-blue-200">
                       <h4 className="font-semibold text-gray-800 mb-3 text-sm">💰 Chiffre d'Affaires (€)</h4>
-                      <ResponsiveContainer width="100%" height={200}>
+                      <ResponsiveContainer width="100%" height={280}>
                         <LineChart data={chartData}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                           <XAxis 
@@ -640,14 +640,13 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                           />
                           <YAxis tick={{ fontSize: 10 }} />
                           <RechartsTooltip />
-                          <Legend wrapperStyle={{ fontSize: '11px' }} />
                           {sellers.filter(seller => visibleSellers[seller.id]).map((seller, idx) => (
                             <Line 
                               key={seller.id}
                               type="monotone" 
                               dataKey={`ca_${seller.id}`}
                               name={chartData[0]?.[`name_${seller.id}`] || seller.name}
-                              stroke={idx === 0 ? '#3b82f6' : idx === 1 ? '#10b981' : '#f59e0b'}
+                              stroke={idx === 0 ? '#3b82f6' : idx === 1 ? '#10b981' : idx === 2 ? '#f59e0b' : idx === 3 ? '#8b5cf6' : '#ec4899'}
                               strokeWidth={2}
                               dot={{ r: 2 }}
                             />
