@@ -341,7 +341,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
             onClick={() => setActiveTab('objectives')}
             className={`px-6 py-4 font-semibold transition-all ${
               activeTab === 'objectives'
-                ? 'border-b-4 border-[#ffd871] text-gray-800'
+                ? 'border-b-4 border-cyan-400 text-gray-800'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
