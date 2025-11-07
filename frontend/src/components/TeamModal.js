@@ -556,6 +556,13 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
               {/* Charts Section */}
               <div className="mt-8 space-y-6">
+                {isUpdatingCharts && (
+                  <div className="text-center py-8">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600"></div>
+                    <p className="text-gray-600 mt-2 text-sm">Mise à jour des graphiques...</p>
+                  </div>
+                )}
+                {!isUpdatingCharts && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-bold text-gray-800">📊 Comparaison des Performances</h3>
