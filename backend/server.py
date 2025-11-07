@@ -1272,8 +1272,8 @@ async def get_seller_diagnostic(seller_id: str, current_user: dict = Depends(get
     if not seller:
         raise HTTPException(status_code=404, detail="Seller not found")
     
-    # Get diagnostic (only minimal info for transparency)
-    diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0, "seller_id": 1, "created_at": 1})
+    # Get diagnostic (include level and style for team table display)
+    diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0, "seller_id": 1, "level": 1, "style": 1, "created_at": 1})
     
     if not diagnostic:
         return None
