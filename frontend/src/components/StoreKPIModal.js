@@ -271,7 +271,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
     setShowAnalysis(false);
     setAiAnalysis(null);
     
-    setLoadingOverviewAI(true);
     setShowOverviewAIAnalysis(true);
 
     try {
