@@ -549,41 +549,61 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
               {/* Charts Section */}
               <div className="mt-8 space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-gray-800">📊 Comparaison des Performances</h3>
-                  
-                  {/* Metric Filters */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setVisibleMetrics(prev => ({ ...prev, ca: !prev.ca }))}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        visibleMetrics.ca 
-                          ? 'bg-blue-500 text-white' 
-                          : 'bg-gray-200 text-gray-600'
-                      }`}
-                    >
-                      {visibleMetrics.ca ? '✓' : ''} CA
-                    </button>
-                    <button
-                      onClick={() => setVisibleMetrics(prev => ({ ...prev, ventes: !prev.ventes }))}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        visibleMetrics.ventes 
-                          ? 'bg-green-500 text-white' 
-                          : 'bg-gray-200 text-gray-600'
-                      }`}
-                    >
-                      {visibleMetrics.ventes ? '✓' : ''} Ventes
-                    </button>
-                    <button
-                      onClick={() => setVisibleMetrics(prev => ({ ...prev, panierMoyen: !prev.panierMoyen }))}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        visibleMetrics.panierMoyen 
-                          ? 'bg-purple-500 text-white' 
-                          : 'bg-gray-200 text-gray-600'
-                      }`}
-                    >
-                      {visibleMetrics.panierMoyen ? '✓' : ''} Panier Moy.
-                    </button>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-gray-800">📊 Comparaison des Performances</h3>
+                    
+                    {/* Metric Filters */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setVisibleMetrics(prev => ({ ...prev, ca: !prev.ca }))}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                          visibleMetrics.ca 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {visibleMetrics.ca ? '✓' : ''} CA
+                      </button>
+                      <button
+                        onClick={() => setVisibleMetrics(prev => ({ ...prev, ventes: !prev.ventes }))}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                          visibleMetrics.ventes 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {visibleMetrics.ventes ? '✓' : ''} Ventes
+                      </button>
+                      <button
+                        onClick={() => setVisibleMetrics(prev => ({ ...prev, panierMoyen: !prev.panierMoyen }))}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                          visibleMetrics.panierMoyen 
+                            ? 'bg-purple-500 text-white' 
+                            : 'bg-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {visibleMetrics.panierMoyen ? '✓' : ''} Panier Moy.
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Seller Filters */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 font-medium">Vendeurs :</span>
+                    {sellers.map((seller, idx) => (
+                      <button
+                        key={seller.id}
+                        onClick={() => setVisibleSellers(prev => ({ ...prev, [seller.id]: !prev[seller.id] }))}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                          visibleSellers[seller.id]
+                            ? idx === 0 ? 'bg-blue-500 text-white' : idx === 1 ? 'bg-green-500 text-white' : 'bg-orange-500 text-white'
+                            : 'bg-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {visibleSellers[seller.id] ? '✓' : ''} {seller.name.split(' ')[0]}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
