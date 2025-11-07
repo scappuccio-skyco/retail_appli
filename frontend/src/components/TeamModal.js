@@ -514,8 +514,8 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-right text-gray-700 font-medium">{seller.monthlyCA.toFixed(0)} €</td>
-                          <td className="px-4 py-3 text-right text-gray-700">{seller.monthlyVentes}</td>
+                          <td className="px-4 py-3 text-right text-gray-700 font-medium">{formatNumber(seller.monthlyCA)} €</td>
+                          <td className="px-4 py-3 text-right text-gray-700">{formatNumber(seller.monthlyVentes)}</td>
                           <td className="px-4 py-3 text-right text-gray-700">{seller.panierMoyen.toFixed(2)} €</td>
                           <td className="px-4 py-3 text-center">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
