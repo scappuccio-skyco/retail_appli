@@ -815,12 +815,25 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                                       ? 'bg-gray-100 text-gray-600' 
                                       : 'bg-green-100 text-green-700'
                                   }`}>
-                                    {objective.visible === false ? '🔒 Non visible' : '👁️ Visible vendeurs'}
+                                    {objective.visible === false ? '🔒 Non visible' : 
+                                      objective.visible_to_sellers && objective.visible_to_sellers.length > 0
+                                        ? `👁️ ${objective.visible_to_sellers.length} vendeur${objective.visible_to_sellers.length > 1 ? 's' : ''}`
+                                        : '👁️ Tous les vendeurs'
+                                    }
                                   </span>
                                 </div>
                                 <div className="text-sm text-gray-600 mb-2">
                                   📅 Période: {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
                                 </div>
+                                {/* Show specific sellers if any */}
+                                {objective.visible && objective.visible_to_sellers && objective.visible_to_sellers.length > 0 && (
+                                  <div className="text-xs text-gray-600 mb-2">
+                                    👤 Visible pour : {objective.visible_to_sellers.map(sellerId => {
+                                      const seller = sellers.find(s => s.id === sellerId);
+                                      return seller ? seller.name : 'Inconnu';
+                                    }).join(', ')}
+                                  </div>
+                                )}
                                 <div className="flex flex-wrap gap-3 text-sm text-gray-600">
                                   {objective.ca_target && <span>💰 CA: {objective.ca_target.toLocaleString('fr-FR')}€</span>}
                                   {objective.ventes_target && <span>📈 Ventes: {objective.ventes_target}</span>}
