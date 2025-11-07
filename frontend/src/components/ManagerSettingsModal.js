@@ -1238,7 +1238,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                       <div className="flex gap-3">
                         <button
                           type="submit"
-                          className="flex-1 bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all"
+                          className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all"
                         >
                           {editingChallenge ? '💾 Enregistrer les modifications' : '➕ Créer le Challenge'}
                         </button>
