@@ -426,9 +426,9 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                     <TrendingUp className="w-5 h-5 text-green-600" />
                     <span className="text-sm font-semibold text-gray-700">Performance Globale</span>
                   </div>
-                  <div className="text-2xl font-bold text-green-900">{teamTotalCA.toFixed(0)} €</div>
+                  <div className="text-2xl font-bold text-green-900">{formatNumber(teamTotalCA)} €</div>
                   <div className="text-xs text-green-600 mt-1">
-                    {teamTotalVentes} ventes sur {
+                    {formatNumber(teamTotalVentes)} ventes sur {
                       periodFilter === '7' ? '7 jours' :
                       periodFilter === '30' ? '30 jours' :
                       periodFilter === '90' ? '3 mois' :
