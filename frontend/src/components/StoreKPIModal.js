@@ -743,9 +743,12 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   <label className="block text-sm font-semibold text-gray-700 mb-2">⏱️ Périodes rapides</label>
                   <div className="flex flex-wrap gap-2">
                     <button
-                      onClick={() => setPeriodType('3months')}
+                      onClick={() => {
+                        setViewMode('multi');
+                        setMultiPeriod('3months');
+                      }}
                       className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        periodType === '3months'
+                        viewMode === 'multi' && multiPeriod === '3months'
                           ? 'bg-purple-600 text-white shadow-lg'
                           : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400'
                       }`}
@@ -753,9 +756,12 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       3 derniers mois
                     </button>
                     <button
-                      onClick={() => setPeriodType('6months')}
+                      onClick={() => {
+                        setViewMode('multi');
+                        setMultiPeriod('6months');
+                      }}
                       className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        periodType === '6months'
+                        viewMode === 'multi' && multiPeriod === '6months'
                           ? 'bg-purple-600 text-white shadow-lg'
                           : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400'
                       }`}
@@ -763,9 +769,12 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       6 derniers mois
                     </button>
                     <button
-                      onClick={() => setPeriodType('12months')}
+                      onClick={() => {
+                        setViewMode('multi');
+                        setMultiPeriod('12months');
+                      }}
                       className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        periodType === '12months'
+                        viewMode === 'multi' && multiPeriod === '12months'
                           ? 'bg-purple-600 text-white shadow-lg'
                           : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400'
                       }`}
