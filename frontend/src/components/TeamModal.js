@@ -24,6 +24,14 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
   useEffect(() => {
     console.log(`[TeamModal] 🔄 useEffect TRIGGERED - periodFilter changed to: ${periodFilter}`);
+    
+    // Initialize visible sellers
+    const initialVisibleSellers = {};
+    sellers.forEach(seller => {
+      initialVisibleSellers[seller.id] = true;
+    });
+    setVisibleSellers(initialVisibleSellers);
+    
     fetchTeamData();
     prepareChartData();
   }, [sellers, periodFilter]);
