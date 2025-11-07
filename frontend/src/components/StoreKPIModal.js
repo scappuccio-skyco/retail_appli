@@ -734,6 +734,215 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
             </div>
           )}
 
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              {/* Period Selector */}
+              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 border-2 border-purple-200">
+                <h3 className="text-lg font-bold text-purple-900 mb-3">📊 Sélectionner la période</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Week selector */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">📅 Semaine</label>
+                    <input
+                      type="week"
+                      value={selectedWeek}
+                      onChange={(e) => {
+                        setSelectedWeek(e.target.value);
+                        setPeriodType('week');
+                      }}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Month selector */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">📆 Mois</label>
+                    <input
+                      type="month"
+                      value={selectedMonth}
+                      onChange={(e) => {
+                        setSelectedMonth(e.target.value);
+                        setPeriodType('month');
+                      }}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Quick period buttons */}
+                <div className="mt-4">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">⏱️ Périodes rapides</label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setPeriodType('3months')}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        periodType === '3months'
+                          ? 'bg-purple-600 text-white shadow-lg'
+                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400'
+                      }`}
+                    >
+                      3 derniers mois
+                    </button>
+                    <button
+                      onClick={() => setPeriodType('6months')}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        periodType === '6months'
+                          ? 'bg-purple-600 text-white shadow-lg'
+                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400'
+                      }`}
+                    >
+                      6 derniers mois
+                    </button>
+                    <button
+                      onClick={() => setPeriodType('12months')}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        periodType === '12months'
+                          ? 'bg-purple-600 text-white shadow-lg'
+                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400'
+                      }`}
+                    >
+                      12 derniers mois
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Charts */}
+              {historicalData.length > 0 ? (
+                <div className="space-y-6">
+                  {/* CA Chart */}
+                  <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+                    <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      💰 Chiffre d'Affaires
+                    </h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={historicalData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="total_ca" name="CA Total" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="manager_ca" name="CA Manager" stroke="#f97316" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="seller_ca" name="CA Vendeurs" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Ventes Chart */}
+                  <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+                    <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      🛒 Nombre de Ventes
+                    </h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={historicalData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="total_ventes" name="Ventes Totales" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="manager_ventes" name="Ventes Manager" stroke="#f97316" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="seller_ventes" name="Ventes Vendeurs" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Panier Moyen Chart */}
+                  <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+                    <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      🛍️ Panier Moyen
+                    </h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={historicalData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="panier_moyen" name="Panier Moyen (€)" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Taux Transformation Chart */}
+                  <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+                    <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      📈 Taux de Transformation (%)
+                    </h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={historicalData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="taux_transformation" name="Taux (%)" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Indice Vente Chart */}
+                  <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+                    <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      📊 Indice de Vente
+                    </h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={historicalData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="indice_vente" name="Indice" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Articles & Clients Charts */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+                      <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        📦 Articles Vendus
+                      </h4>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <LineChart data={historicalData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                          <YAxis tick={{ fontSize: 10 }} />
+                          <Tooltip />
+                          <Legend />
+                          <Line type="monotone" dataKey="total_articles" name="Articles" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 2 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
+                      <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        👥 Clients Servis
+                      </h4>
+                      <ResponsiveContainer width="100%" height={250}>
+                        <LineChart data={historicalData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                          <YAxis tick={{ fontSize: 10 }} />
+                          <Tooltip />
+                          <Legend />
+                          <Line type="monotone" dataKey="total_clients" name="Clients" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 2 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">Chargement des données...</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'config' && (
             <div className="space-y-4">
               <div className="bg-blue-50 rounded-xl p-3 border-2 border-blue-200">
