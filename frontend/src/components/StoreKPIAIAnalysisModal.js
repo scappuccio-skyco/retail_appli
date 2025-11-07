@@ -47,16 +47,16 @@ export default function StoreKPIAIAnalysisModal({
             sellers_reported: historicalData.length,
             total_sellers: historicalData.length,
             calculated_kpis: {
-              panier_moyen: avgPanierMoyen.toFixed(2),
-              taux_transformation: avgTauxTransformation.toFixed(2),
-              indice_vente: avgIndiceVente.toFixed(2)
+              panier_moyen: parseFloat(avgPanierMoyen.toFixed(2)),
+              taux_transformation: parseFloat(avgTauxTransformation.toFixed(2)),
+              indice_vente: parseFloat(avgIndiceVente.toFixed(2))
             },
             totals: {
-              ca: totalCA.toFixed(2),
-              ventes: totalVentes,
-              clients: totalClients,
-              articles: totalArticles,
-              prospects: totalProspects
+              ca: parseFloat(totalCA.toFixed(2)),
+              ventes: Math.round(totalVentes),
+              clients: Math.round(totalClients),
+              articles: Math.round(totalArticles),
+              prospects: Math.round(totalProspects)
             },
             trend_data: historicalData.slice(-5).map(d => ({
               date: d.date,
