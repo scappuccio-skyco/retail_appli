@@ -1153,8 +1153,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
+                  )}
 
                   {/* Articles & Clients Charts */}
+                  {(visibleCharts.articles || visibleCharts.clients) && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
                       <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
