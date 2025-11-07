@@ -569,10 +569,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                             <input
                               type="checkbox"
                               checked={editingObjective ? editingObjective.visible !== false : newObjective.visible !== false}
-                              onChange={(e) => editingObjective
-                                ? setEditingObjective({ ...editingObjective, visible: e.target.checked })
-                                : setNewObjective({ ...newObjective, visible: e.target.checked })
-                              }
+                              onChange={(e) => {
+                                const isChecked = e.target.checked;
+                                if (editingObjective) {
+                                  setEditingObjective({ ...editingObjective, visible: isChecked });
+                                } else {
+                                  setNewObjective({ ...newObjective, visible: isChecked });
+                                  if (!isChecked) {
+                                    setSelectedVisibleSellers([]);
+                                  }
+                                }
+                              }}
                               className="w-5 h-5 text-blue-600"
                             />
                             <div>
@@ -580,6 +587,54 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                               <p className="text-xs text-gray-600">Si coché, les vendeurs pourront voir cet objectif dans leur dashboard</p>
                             </div>
                           </label>
+                          
+                          {/* Seller selection for visibility - only for collective objectives */}
+                          {(editingObjective ? editingObjective.visible !== false : newObjective.visible !== false) && 
+                           (editingObjective ? editingObjective.type : newObjective.type) === 'collective' && (
+                            <div className="mt-3 p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                              <div className="flex items-center justify-between mb-3">
+                                <p className="text-sm font-semibold text-gray-800">👥 Sélectionner les vendeurs (optionnel)</p>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (selectedVisibleSellers.length === sellers.length) {
+                                      setSelectedVisibleSellers([]);
+                                    } else {
+                                      setSelectedVisibleSellers(sellers.map(s => s.id));
+                                    }
+                                  }}
+                                  className="text-xs px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
+                                >
+                                  {selectedVisibleSellers.length === sellers.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+                                </button>
+                              </div>
+                              <p className="text-xs text-gray-600 mb-3">
+                                Si aucun vendeur n'est sélectionné, tous les vendeurs verront cet objectif
+                              </p>
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                {sellers.map((seller) => (
+                                  <label
+                                    key={seller.id}
+                                    className="flex items-center gap-2 p-2 bg-white rounded border-2 border-gray-200 hover:border-green-400 cursor-pointer transition-all"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedVisibleSellers.includes(seller.id)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          setSelectedVisibleSellers([...selectedVisibleSellers, seller.id]);
+                                        } else {
+                                          setSelectedVisibleSellers(selectedVisibleSellers.filter(id => id !== seller.id));
+                                        }
+                                      }}
+                                      className="w-4 h-4 text-green-600"
+                                    />
+                                    <span className="text-sm text-gray-700">{seller.name}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         <div>
