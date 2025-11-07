@@ -1721,6 +1721,30 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
           )}
         </div>
       </div>
+      
+      {/* AI Analysis Modals */}
+      {showDailyAIModal && overviewData && (
+        <StoreKPIAIAnalysisModal
+          kpiData={overviewData}
+          analysisType="daily"
+          onClose={() => setShowDailyAIModal(false)}
+        />
+      )}
+      
+      {showOverviewAIModal && historicalData.length > 0 && (
+        <StoreKPIAIAnalysisModal
+          analysisType="overview"
+          viewContext={{
+            viewMode,
+            period: viewMode === 'week' ? `Semaine ${selectedWeek}` : 
+                    viewMode === 'month' ? `Mois ${selectedMonth}` :
+                    multiPeriod === '3months' ? '3 derniers mois' :
+                    multiPeriod === '6months' ? '6 derniers mois' : '12 derniers mois',
+            historicalData
+          }}
+          onClose={() => setShowOverviewAIModal(false)}
+        />
+      )}
     </div>
   );
 }
