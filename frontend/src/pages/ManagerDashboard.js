@@ -651,16 +651,19 @@ export default function ManagerDashboard({ user, onLogout }) {
             <div className="pt-6 border-t-2 border-purple-100">
               <p className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
-                Réorganiser l'ordre des sections
+                Réorganiser l'ordre des cartes
               </p>
-              <div className="space-y-2">
+              <div className="space-y-3 max-w-2xl mx-auto">
                 {sectionOrder.map((sectionId, index) => {
                   const sectionNames = {
                     kpi: '📊 KPI Magasin',
                     team: '👥 Mon Équipe',
-                    settings: '🎯 Objectifs & Challenges',
-                    notifications: '🔔 Notifications'
+                    settings: '🎯 Objectifs & Challenges'
                   };
+                  
+                  // Skip if section doesn't exist in current cards
+                  if (!sectionNames[sectionId]) return null;
+                  
                   return (
                     <div key={sectionId} className="flex items-center justify-between bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 transition-all shadow-sm">
                       <div className="flex items-center gap-3">
