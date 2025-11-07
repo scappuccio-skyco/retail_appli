@@ -646,7 +646,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* CA Chart */}
                   {visibleMetrics.ca && (
-                    <div key="chart-ca" className="bg-white rounded-lg p-4 border-2 border-blue-200">
+                    <div key={`chart-ca-${Object.keys(visibleSellers).filter(id => visibleSellers[id]).join('-')}`} className="bg-white rounded-lg p-4 border-2 border-blue-200">
                       <h4 className="font-semibold text-gray-800 mb-3 text-sm">💰 Chiffre d'Affaires (€)</h4>
                       <ResponsiveContainer width="100%" height={280}>
                         <LineChart data={chartData}>
