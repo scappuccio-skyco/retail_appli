@@ -169,7 +169,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
     }
   };
 
-  // Prepare chart data
+  // Prepare chart data with aggregation
   const prepareChartData = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -206,13 +206,138 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
         });
       });
 
-      // Sort by date and convert to array
-      const chartArray = Array.from(dateMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+      // Sort by date
+      let chartArray = Array.from(dateMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+      
+      // Aggregate data based on period for better readability
+      if (periodFilter === '30') {
+        // Weekly aggregation for 30 days
+        chartArray = aggregateByWeek(chartArray, sellers);
+      } else if (periodFilter === '90') {
+        // Bi-weekly aggregation for 3 months
+        chartArray = aggregateByBiWeek(chartArray, sellers);
+      } else if (periodFilter === 'all') {
+        // Monthly aggregation for year
+        chartArray = aggregateByMonth(chartArray, sellers);
+      }
       
       setChartData(chartArray);
     } catch (err) {
       console.error('Error preparing chart data:', err);
     }
+  };
+
+  // Aggregation functions
+  const aggregateByWeek = (data, sellers) => {
+    const weeks = new Map();
+    data.forEach(day => {
+      const date = new Date(day.date);
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
+      const weekKey = weekStart.toISOString().split('T')[0];
+      
+      if (!weeks.has(weekKey)) {
+        weeks.set(weekKey, { date: weekKey, count: 0 });
+        sellers.forEach(seller => {
+          weeks.get(weekKey)[`ca_${seller.id}`] = 0;
+          weeks.get(weekKey)[`ventes_${seller.id}`] = 0;
+          weeks.get(weekKey)[`panier_${seller.id}`] = 0;
+          weeks.get(weekKey)[`name_${seller.id}`] = seller.name;
+        });
+      }
+      
+      const week = weeks.get(weekKey);
+      sellers.forEach(seller => {
+        week[`ca_${seller.id}`] += day[`ca_${seller.id}`] || 0;
+        week[`ventes_${seller.id}`] += day[`ventes_${seller.id}`] || 0;
+      });
+      week.count++;
+    });
+    
+    // Calculate average panier moyen
+    weeks.forEach(week => {
+      sellers.forEach(seller => {
+        if (week[`ventes_${seller.id}`] > 0) {
+          week[`panier_${seller.id}`] = week[`ca_${seller.id}`] / week[`ventes_${seller.id}`];
+        }
+      });
+    });
+    
+    return Array.from(weeks.values()).sort((a, b) => a.date.localeCompare(b.date));
+  };
+
+  const aggregateByBiWeek = (data, sellers) => {
+    const biWeeks = new Map();
+    data.forEach(day => {
+      const date = new Date(day.date);
+      const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+      const biWeekNum = Math.floor(dayOfYear / 14);
+      const biWeekKey = `${date.getFullYear()}-BW${biWeekNum}`;
+      
+      if (!biWeeks.has(biWeekKey)) {
+        biWeeks.set(biWeekKey, { date: day.date, count: 0 });
+        sellers.forEach(seller => {
+          biWeeks.get(biWeekKey)[`ca_${seller.id}`] = 0;
+          biWeeks.get(biWeekKey)[`ventes_${seller.id}`] = 0;
+          biWeeks.get(biWeekKey)[`panier_${seller.id}`] = 0;
+          biWeeks.get(biWeekKey)[`name_${seller.id}`] = seller.name;
+        });
+      }
+      
+      const biWeek = biWeeks.get(biWeekKey);
+      sellers.forEach(seller => {
+        biWeek[`ca_${seller.id}`] += day[`ca_${seller.id}`] || 0;
+        biWeek[`ventes_${seller.id}`] += day[`ventes_${seller.id}`] || 0;
+      });
+      biWeek.count++;
+    });
+    
+    // Calculate average panier moyen
+    biWeeks.forEach(biWeek => {
+      sellers.forEach(seller => {
+        if (biWeek[`ventes_${seller.id}`] > 0) {
+          biWeek[`panier_${seller.id}`] = biWeek[`ca_${seller.id}`] / biWeek[`ventes_${seller.id}`];
+        }
+      });
+    });
+    
+    return Array.from(biWeeks.values()).sort((a, b) => a.date.localeCompare(b.date));
+  };
+
+  const aggregateByMonth = (data, sellers) => {
+    const months = new Map();
+    data.forEach(day => {
+      const date = new Date(day.date);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!months.has(monthKey)) {
+        months.set(monthKey, { date: `${monthKey}-01`, count: 0 });
+        sellers.forEach(seller => {
+          months.get(monthKey)[`ca_${seller.id}`] = 0;
+          months.get(monthKey)[`ventes_${seller.id}`] = 0;
+          months.get(monthKey)[`panier_${seller.id}`] = 0;
+          months.get(monthKey)[`name_${seller.id}`] = seller.name;
+        });
+      }
+      
+      const month = months.get(monthKey);
+      sellers.forEach(seller => {
+        month[`ca_${seller.id}`] += day[`ca_${seller.id}`] || 0;
+        month[`ventes_${seller.id}`] += day[`ventes_${seller.id}`] || 0;
+      });
+      month.count++;
+    });
+    
+    // Calculate average panier moyen
+    months.forEach(month => {
+      sellers.forEach(seller => {
+        if (month[`ventes_${seller.id}`] > 0) {
+          month[`panier_${seller.id}`] = month[`ca_${seller.id}`] / month[`ventes_${seller.id}`];
+        }
+      });
+    });
+    
+    return Array.from(months.values()).sort((a, b) => a.date.localeCompare(b.date));
   };
 
 
