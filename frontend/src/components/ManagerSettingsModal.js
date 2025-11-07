@@ -202,6 +202,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
         cleanedData.seller_id = newObjective.seller_id;
       }
       
+      // Add visible_to_sellers if specific sellers selected
+      if (newObjective.visible && selectedVisibleSellers.length > 0) {
+        cleanedData.visible_to_sellers = selectedVisibleSellers;
+      }
+      
       // Add selected KPI targets
       Object.keys(selectedKPIs).forEach(kpiKey => {
         if (selectedKPIs[kpiKey] && newObjective.kpi_targets[kpiKey]) {
@@ -217,11 +222,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
         type: 'collective',
         seller_id: '',
         visible: true,
+        visible_to_sellers: [],
         period_start: '',
         period_end: '',
         kpi_targets: {}
       });
       setSelectedKPIs({});
+      setSelectedVisibleSellers([]);
       fetchData();
       if (onUpdate) onUpdate();
     } catch (err) {
