@@ -365,12 +365,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
   }, []);
 
   useEffect(() => {
-    // Reset ALL AI analysis states when switching tabs or views
-    setShowAnalysis(false);
-    setAiAnalysis(null);
-    setShowOverviewAIAnalysis(false);
-    setOverviewAIAnalysis(null);
-    
     if (activeTab === 'daily') {
       fetchOverviewData();
     } else if (activeTab === 'overview') {
