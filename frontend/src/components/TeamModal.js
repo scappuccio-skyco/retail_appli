@@ -14,6 +14,26 @@ const formatNumber = (num) => {
   return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 };
 
+// Custom compact tooltip
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white/95 backdrop-blur-sm border border-gray-300 rounded-lg shadow-lg p-2 text-xs">
+        <p className="font-semibold text-gray-800 mb-1">{label}</p>
+        {payload.slice(0, 3).map((entry, index) => (
+          <p key={index} style={{ color: entry.color }} className="font-medium">
+            {entry.name}: {formatNumber(entry.value)}
+          </p>
+        ))}
+        {payload.length > 3 && (
+          <p className="text-gray-500 text-[10px] mt-0.5">+{payload.length - 3} autre{payload.length - 3 > 1 ? 's' : ''}</p>
+        )}
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   const [teamData, setTeamData] = useState([]);
   const [loading, setLoading] = useState(true);
