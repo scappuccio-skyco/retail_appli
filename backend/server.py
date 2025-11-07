@@ -1213,50 +1213,43 @@ async def get_seller_stats(seller_id: str, current_user: dict = Depends(get_curr
         if isinstance(evaluation.get('created_at'), str):
             evaluation['created_at'] = datetime.fromisoformat(evaluation['created_at'])
     
-    # Try to get LIVE scores (adjusted with KPIs) instead of static diagnostic scores
+    # Calculate competence scores based ONLY on questionnaire and debriefs
+    # NO KPI adjustment - competences are behavioral, not commercial
     avg_radar = {"accueil": 0, "decouverte": 0, "argumentation": 0, "closing": 0, "fidelisation": 0}
     
-    if diagnostic:
-        # Calculate days since diagnostic
-        created_at = diagnostic.get('created_at')
-        if isinstance(created_at, str):
-            created_at = datetime.fromisoformat(created_at)
-        days_since = (datetime.now(timezone.utc) - created_at).days
-        
-        # Get initial scores from diagnostic
-        initial_scores = {
-            'score_accueil': diagnostic.get('score_accueil', 3.0),
-            'score_decouverte': diagnostic.get('score_decouverte', 3.0),
-            'score_argumentation': diagnostic.get('score_argumentation', 3.0),
-            'score_closing': diagnostic.get('score_closing', 3.0),
-            'score_fidelisation': diagnostic.get('score_fidelisation', 3.0)
+    if diagnostic or debriefs:
+        # Collect all behavioral evaluations (diagnostic + debriefs)
+        all_scores = {
+            'accueil': [],
+            'decouverte': [],
+            'argumentation': [],
+            'closing': [],
+            'fidelisation': []
         }
         
-        # Calculate adjusted scores with KPIs
-        try:
-            adjusted_scores = await calculate_competence_adjustment_from_kpis(
-                seller_id=seller_id,
-                initial_scores=initial_scores,
-                days_since_diagnostic=days_since
-            )
-            
-            # Use live scores
-            avg_radar = {
-                "accueil": adjusted_scores.get('score_accueil', 3.0),
-                "decouverte": adjusted_scores.get('score_decouverte', 3.0),
-                "argumentation": adjusted_scores.get('score_argumentation', 3.0),
-                "closing": adjusted_scores.get('score_closing', 3.0),
-                "fidelisation": adjusted_scores.get('score_fidelisation', 3.0)
-            }
-        except:
-            # Fallback to initial scores if KPI adjustment fails
-            avg_radar = {
-                "accueil": initial_scores['score_accueil'],
-                "decouverte": initial_scores['score_decouverte'],
-                "argumentation": initial_scores['score_argumentation'],
-                "closing": initial_scores['score_closing'],
-                "fidelisation": initial_scores['score_fidelisation']
-            }
+        # Add diagnostic scores (if exists)
+        if diagnostic:
+            all_scores['accueil'].append(diagnostic.get('score_accueil', 0))
+            all_scores['decouverte'].append(diagnostic.get('score_decouverte', 0))
+            all_scores['argumentation'].append(diagnostic.get('score_argumentation', 0))
+            all_scores['closing'].append(diagnostic.get('score_closing', 0))
+            all_scores['fidelisation'].append(diagnostic.get('score_fidelisation', 0))
+        
+        # Add debrief scores (most recent ones have more weight)
+        for debrief in debriefs[:5]:  # Consider only last 5 debriefs
+            all_scores['accueil'].append(debrief.get('score_accueil', 0))
+            all_scores['decouverte'].append(debrief.get('score_decouverte', 0))
+            all_scores['argumentation'].append(debrief.get('score_argumentation', 0))
+            all_scores['closing'].append(debrief.get('score_closing', 0))
+            all_scores['fidelisation'].append(debrief.get('score_fidelisation', 0))
+        
+        # Calculate average for each competence
+        for competence in ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']:
+            scores = [s for s in all_scores[competence] if s > 0]  # Filter out zeros
+            if scores:
+                avg_radar[competence] = round(sum(scores) / len(scores), 1)
+            else:
+                avg_radar[competence] = 0
     
     return {
         "seller": seller,
