@@ -1206,7 +1206,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
+                    )}
                   </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-12">
