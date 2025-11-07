@@ -21,6 +21,7 @@ export default function Login({ onLogin }) {
   });
   const [loading, setLoading] = useState(false);
   const [inviteInfo, setInviteInfo] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (inviteToken) {
