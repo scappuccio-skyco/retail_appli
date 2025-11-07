@@ -3,6 +3,7 @@ import { X, TrendingUp } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import StoreKPIAIAnalysisModal from './StoreKPIAIAnalysisModal';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
