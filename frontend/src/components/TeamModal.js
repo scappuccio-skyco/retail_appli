@@ -688,7 +688,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
                   {/* Ventes Chart */}
                   {visibleMetrics.ventes && (
-                    <div key="chart-ventes" className="bg-white rounded-lg p-4 border-2 border-green-200">
+                    <div key={`chart-ventes-${Object.keys(visibleSellers).filter(id => visibleSellers[id]).join('-')}`} className="bg-white rounded-lg p-4 border-2 border-green-200">
                       <h4 className="font-semibold text-gray-800 mb-3 text-sm">🛍️ Nombre de Ventes</h4>
                       <ResponsiveContainer width="100%" height={280}>
                         <LineChart data={chartData}>
