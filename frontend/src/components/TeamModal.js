@@ -208,14 +208,6 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-4 border border-orange-200">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Target className="w-5 h-5 text-orange-600" />
-                    <span className="text-sm font-semibold text-gray-700">Complétion KPI</span>
-                  </div>
-                  <div className="text-2xl font-bold text-orange-900">{sellersWithKPI} / {teamData.length}</div>
-                  <div className="text-xs text-orange-600 mt-1">ont saisi aujourd'hui</div>
-                </div>
               </div>
 
               {/* AI Analysis Button */}
