@@ -64,16 +64,13 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
       const token = localStorage.getItem('token');
       let days = 90; // default 3 months
       
-      if (periodType === 'week') days = 7;
-      else if (periodType === 'month') days = 30;
-      else if (periodType === '3months') days = 90;
-      else if (periodType === '6months') days = 180;
-      else if (periodType === '12months') days = 365;
-
-      // Fetch manager KPI entries
-      const managerRes = await axios.get(`${API}/api/manager/kpi-entry?days=${days}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      if (viewMode === 'week') days = 7;
+      else if (viewMode === 'month') days = 30;
+      else if (viewMode === 'multi') {
+        if (multiPeriod === '3months') days = 90;
+        else if (multiPeriod === '6months') days = 180;
+        else if (multiPeriod === '12months') days = 365;
+      }
 
       // Fetch all sellers data
       const usersRes = await axios.get(`${API}/api/manager/sellers`, {
