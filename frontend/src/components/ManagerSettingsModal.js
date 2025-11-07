@@ -184,22 +184,20 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
   const handleCreateObjective = async (e) => {
     e.preventDefault();
     try {
-      // Clean data - remove empty strings and convert to numbers
+      // Build cleaned data with selected KPI targets
       const cleanedData = {
         title: newObjective.title,
         period_start: newObjective.period_start,
         period_end: newObjective.period_end
       };
       
-      if (newObjective.ca_target && newObjective.ca_target !== '') {
-        cleanedData.ca_target = parseFloat(newObjective.ca_target);
-      }
-      if (newObjective.indice_vente_target && newObjective.indice_vente_target !== '') {
-        cleanedData.indice_vente_target = parseFloat(newObjective.indice_vente_target);
-      }
-      if (newObjective.panier_moyen_target && newObjective.panier_moyen_target !== '') {
-        cleanedData.panier_moyen_target = parseFloat(newObjective.panier_moyen_target);
-      }
+      // Add selected KPI targets
+      Object.keys(selectedKPIs).forEach(kpiKey => {
+        if (selectedKPIs[kpiKey] && newObjective.kpi_targets[kpiKey]) {
+          const targetKey = `${kpiKey}_target`;
+          cleanedData[targetKey] = parseFloat(newObjective.kpi_targets[kpiKey]);
+        }
+      });
       
       await axios.post(`${API}/manager/objectives`, cleanedData, { headers });
       toast.success('Objectif créé avec succès');
