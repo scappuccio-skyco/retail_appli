@@ -8,6 +8,12 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Utility function to format numbers with spaces for thousands
+const formatNumber = (num) => {
+  if (!num && num !== 0) return '0';
+  return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+};
+
 export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   const [teamData, setTeamData] = useState([]);
   const [loading, setLoading] = useState(true);
