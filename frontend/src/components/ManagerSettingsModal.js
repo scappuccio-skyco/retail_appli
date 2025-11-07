@@ -41,12 +41,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
     type: 'collective',
     seller_id: '',
     visible: true,
-    ca_target: '',
-    indice_vente_target: '',
-    panier_moyen_target: '',
     period_start: '',
-    period_end: ''
+    period_end: '',
+    kpi_targets: {} // Dynamic KPI targets
   });
+  
+  // Selected KPIs for the objective
+  const [selectedKPIs, setSelectedKPIs] = useState({});
 
   useEffect(() => {
     if (isOpen) {
