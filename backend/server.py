@@ -505,6 +505,7 @@ class Challenge(BaseModel):
     type: str  # "individual" or "collective"
     seller_id: Optional[str] = None  # Only for individual challenges
     visible: bool = True  # Visible by sellers
+    visible_to_sellers: Optional[List[str]] = None  # Specific seller IDs (empty = all sellers)
     # Objectives
     ca_target: Optional[float] = None
     ventes_target: Optional[int] = None
@@ -530,6 +531,7 @@ class ChallengeCreate(BaseModel):
     type: str  # "individual" or "collective"
     seller_id: Optional[str] = None
     visible: bool = True  # Visible by sellers
+    visible_to_sellers: Optional[List[str]] = None  # Specific seller IDs (empty = all sellers)
     ca_target: Optional[float] = None
     ventes_target: Optional[int] = None
     indice_vente_target: Optional[float] = None
