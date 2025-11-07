@@ -1048,8 +1048,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
+                  )}
 
                   {/* Ventes Chart */}
+                  {visibleCharts.ventes && (
                   <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
                     <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                       🛒 Nombre de Ventes
