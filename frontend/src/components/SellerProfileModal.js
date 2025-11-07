@@ -63,10 +63,9 @@ export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnost
             {/* DISC Profile Section */}
             {diagnostic.disc_dominant && (
               <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border-2 border-purple-200 mb-4">
-                <p className="text-sm font-semibold text-purple-900 mb-4">🎭 Ton Profil DISC :</p>
                 <div className="mb-4">
                   <p className="text-lg font-bold text-purple-800 mb-2">
-                    Type dominant : <span className="text-2xl text-indigo-700">{diagnostic.disc_dominant}</span>
+                    🎭 Ton Profil DISC : <span className="text-2xl text-indigo-700">{diagnostic.disc_dominant}</span>
                   </p>
                 </div>
                 
