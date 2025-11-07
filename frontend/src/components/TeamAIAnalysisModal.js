@@ -93,14 +93,14 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
 
           {aiAnalysis && !loading && (
             <div className="space-y-4">
-              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-6 border-2 border-indigo-200">
-                <div className="space-y-3">
+              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border-2 border-indigo-200">
+                <div className="space-y-4">
                   {aiAnalysis.split('\n').map((line, idx) => {
                     // Section titles (##)
                     if (line.startsWith('## ')) {
                       return (
-                        <h4 key={`title-${idx}`} className="text-base font-bold text-indigo-900 mt-4 mb-2 flex items-center gap-2">
-                          <span className="w-1 h-5 bg-indigo-600 rounded"></span>
+                        <h4 key={`title-${idx}`} className="text-lg font-bold text-indigo-900 mt-5 mb-3 flex items-center gap-2 first:mt-0">
+                          <span className="w-1.5 h-6 bg-indigo-600 rounded"></span>
                           {line.replace('## ', '')}
                         </h4>
                       );
@@ -110,12 +110,12 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
                       const content = line.replace('- ', '');
                       const parts = content.split(/(\*\*.*?\*\*)/g);
                       return (
-                        <div key={`item-${idx}`} className="flex gap-2 text-sm text-gray-700 leading-relaxed ml-2">
-                          <span className="text-indigo-600 mt-1">•</span>
-                          <span>
+                        <div key={`item-${idx}`} className="flex gap-3 text-sm text-gray-700 leading-relaxed ml-3 py-1">
+                          <span className="text-indigo-600 mt-1.5 text-base">•</span>
+                          <span className="flex-1">
                             {parts.map((part, i) => {
                               if (part.startsWith('**') && part.endsWith('**')) {
-                                return <strong key={`bold-${i}`} className="text-gray-900 font-semibold">{part.slice(2, -2)}</strong>;
+                                return <strong key={`bold-${i}`} className="text-gray-900 font-bold">{part.slice(2, -2)}</strong>;
                               }
                               return <span key={`text-${i}`}>{part}</span>;
                             })}
@@ -125,11 +125,11 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
                     }
                     // Empty lines
                     if (line.trim() === '') {
-                      return <div key={`space-${idx}`} className="h-2"></div>;
+                      return <div key={`space-${idx}`} className="h-3"></div>;
                     }
                     // Regular text
                     if (line.trim()) {
-                      return <p key={`para-${idx}`} className="text-sm text-gray-700 leading-relaxed">{line}</p>;
+                      return <p key={`para-${idx}`} className="text-sm text-gray-700 leading-relaxed ml-3">{line}</p>;
                     }
                     return null;
                   })}
