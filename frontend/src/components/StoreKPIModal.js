@@ -43,6 +43,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  
+  // AI Analysis for overview
+  const [overviewAIAnalysis, setOverviewAIAnalysis] = useState(null);
+  const [showOverviewAIAnalysis, setShowOverviewAIAnalysis] = useState(false);
   const [formData, setFormData] = useState({
     date: initialDate || new Date().toISOString().split('T')[0],
     nb_prospects: ''
