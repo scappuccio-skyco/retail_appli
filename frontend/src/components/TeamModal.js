@@ -46,19 +46,29 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   const [visibleSellers, setVisibleSellers] = useState({});
   const [isUpdatingCharts, setIsUpdatingCharts] = useState(false);
 
+  // Initialize visible sellers only once when sellers change
   useEffect(() => {
-    console.log(`[TeamModal] 🔄 useEffect TRIGGERED - periodFilter changed to: ${periodFilter}`);
-    
-    // Initialize visible sellers - only first 5 selected by default
+    console.log(`[TeamModal] 🔄 Initializing visible sellers`);
     const initialVisibleSellers = {};
     sellers.forEach((seller, index) => {
       initialVisibleSellers[seller.id] = index < 5; // Only first 5 are visible
     });
     setVisibleSellers(initialVisibleSellers);
-    
+  }, [sellers]);
+
+  // Fetch team data only when sellers change (not period)
+  useEffect(() => {
+    console.log(`[TeamModal] 🔄 Fetching team data`);
     fetchTeamData();
-    prepareChartData();
-  }, [sellers, periodFilter]);
+  }, [sellers]);
+
+  // Prepare chart data when period changes
+  useEffect(() => {
+    console.log(`[TeamModal] 🔄 Period changed to: ${periodFilter}, preparing chart data`);
+    if (Object.keys(visibleSellers).length > 0) {
+      prepareChartData();
+    }
+  }, [periodFilter, visibleSellers]);
 
   const fetchTeamData = async () => {
     setLoading(true);
