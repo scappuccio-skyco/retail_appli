@@ -247,16 +247,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
         {/* Tabs */}
         <div className="flex border-b border-gray-200 bg-gray-50 px-6">
           <button
-            onClick={() => setActiveTab('kpi')}
-            className={`px-6 py-4 font-semibold transition-all ${
-              activeTab === 'kpi'
-                ? 'border-b-4 border-[#ffd871] text-gray-800'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            📊 Configuration KPI
-          </button>
-          <button
             onClick={() => setActiveTab('objectives')}
             className={`px-6 py-4 font-semibold transition-all ${
               activeTab === 'objectives'
