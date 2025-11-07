@@ -696,7 +696,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
                   {/* Panier Moyen Chart */}
                   {visibleMetrics.panierMoyen && (
-                    <div className="bg-white rounded-lg p-4 border-2 border-purple-200">
+                    <div key="chart-panier" className="bg-white rounded-lg p-4 border-2 border-purple-200">
                       <h4 className="font-semibold text-gray-800 mb-3 text-sm">💳 Panier Moyen (€)</h4>
                       <ResponsiveContainer width="100%" height={200}>
                         <LineChart data={chartData}>
