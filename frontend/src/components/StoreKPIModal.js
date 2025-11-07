@@ -1162,11 +1162,13 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                     </div>
                   ) : overviewAIAnalysis ? (
                     <div className="max-h-96 overflow-y-auto pr-2">
-                      <div className="space-y-3">
+                      <div className="space-y-3 text-sm text-gray-800">
                         {overviewAIAnalysis.split('\n').map((line, idx) => {
+                          const key = `${viewMode}-line-${idx}`;
+                          
                           if (line.startsWith('## ')) {
                             return (
-                              <h4 key={`h-${idx}`} className="text-base font-bold text-indigo-900 mt-4 mb-2 flex items-center gap-2">
+                              <h4 key={key} className="text-base font-bold text-indigo-900 mt-4 mb-2 flex items-center gap-2">
                                 <span className="w-1 h-5 bg-indigo-600 rounded"></span>
                                 {line.replace('## ', '')}
                               </h4>
@@ -1176,7 +1178,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                             const content = line.replace('- ', '');
                             const parts = content.split(/(\*\*.*?\*\*)/g);
                             return (
-                              <div key={`l-${idx}`} className="flex gap-2 text-sm text-gray-700 leading-relaxed ml-2">
+                              <div key={key} className="flex gap-2 text-sm text-gray-700 leading-relaxed ml-2">
                                 <span className="text-indigo-600 mt-1">•</span>
                                 <span>
                                   {parts.map((part, i) => {
@@ -1190,7 +1192,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                             );
                           }
                           if (line.trim() === '') {
-                            return <div key={`sp-${idx}`} className="h-2"></div>;
+                            return <div key={key} className="h-2"></div>;
+                          }
+                          if (line.trim()) {
+                            return <p key={key} className="text-sm text-gray-700">{line}</p>;
                           }
                           return null;
                         })}
