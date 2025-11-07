@@ -357,12 +357,15 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
   }, []);
 
   useEffect(() => {
+    // Reset ALL AI analysis states when switching tabs or views
+    setShowAnalysis(false);
+    setAiAnalysis(null);
+    setShowOverviewAIAnalysis(false);
+    setOverviewAIAnalysis(null);
+    
     if (activeTab === 'daily') {
       fetchOverviewData();
     } else if (activeTab === 'overview') {
-      // Reset AI analysis when changing view or period
-      setShowOverviewAIAnalysis(false);
-      setOverviewAIAnalysis(null);
       fetchHistoricalData();
     }
   }, [activeTab, overviewDate, viewMode, multiPeriod, selectedWeek, selectedMonth]);
