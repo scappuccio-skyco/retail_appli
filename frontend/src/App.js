@@ -90,7 +90,10 @@ function AppContent() {
     }
     
     // Navigate to dashboard after successful login
-    navigate('/');
+    // Use setTimeout to ensure state updates are processed
+    setTimeout(() => {
+      navigate('/');
+    }, 100);
   };
 
   const handleLogout = () => {
