@@ -659,14 +659,26 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         <LineChart data={chartData}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                           <XAxis 
-                            dataKey="date" 
-                            tick={{ fontSize: 10 }} 
-                            tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                            dataKey="date"
+                            tick={{ fontSize: 10 }}
+                            interval={periodFilter === 'all' ? 0 : periodFilter === '90' ? 1 : 'preserveStartEnd'}
+                            angle={periodFilter === 'all' || periodFilter === '90' ? -45 : 0}
+                            textAnchor={periodFilter === 'all' || periodFilter === '90' ? 'end' : 'middle'}
+                            height={periodFilter === 'all' || periodFilter === '90' ? 60 : 30}
+                            tickFormatter={(value) => {
+                              const date = new Date(value);
+                              if (periodFilter === 'all') {
+                                return date.toLocaleDateString('fr-FR', { month: 'short' });
+                              } else if (periodFilter === '90') {
+                                return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+                              }
+                              return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                            }}
                           />
                           <YAxis tick={{ fontSize: 10 }} />
                           <RechartsTooltip />
                           <Legend wrapperStyle={{ fontSize: '11px' }} />
-                          {sellers.map((seller, idx) => (
+                          {sellers.filter(seller => visibleSellers[seller.id]).map((seller, idx) => (
                             <Line 
                               key={seller.id}
                               type="monotone" 
