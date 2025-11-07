@@ -731,9 +731,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                                   📅 Période: {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
                                 </div>
                                 <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-                                  {objective.ca_target && <span>💰 CA: {objective.ca_target}€</span>}
-                                  {objective.panier_moyen_target && <span>🛒 Panier Moyen: {objective.panier_moyen_target}€</span>}
-                                  {objective.indice_vente_target && <span>💎 Indice Vente: {objective.indice_vente_target}</span>}
+                                  {objective.ca_target && <span>💰 CA: {objective.ca_target.toLocaleString('fr-FR')}€</span>}
+                                  {objective.ventes_target && <span>📈 Ventes: {objective.ventes_target}</span>}
+                                  {objective.clients_target && <span>👥 Clients: {objective.clients_target}</span>}
+                                  {objective.articles_target && <span>📦 Articles: {objective.articles_target}</span>}
+                                  {objective.panier_moyen_target && <span>🛒 Panier Moyen: {objective.panier_moyen_target.toLocaleString('fr-FR')}€</span>}
+                                  {objective.indice_vente_target && <span>💎 Indice: {objective.indice_vente_target}</span>}
+                                  {objective.taux_transformation_target && <span>📊 Taux: {objective.taux_transformation_target}%</span>}
                                 </div>
                               </div>
                               <div className="flex gap-2 ml-4">
