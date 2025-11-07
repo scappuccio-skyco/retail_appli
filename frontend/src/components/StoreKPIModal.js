@@ -91,9 +91,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
       // Aggregate data by date
       const dateMap = {};
       
-      // Add manager data
-      if (managerRes.data && Array.isArray(managerRes.data)) {
-        managerRes.data.forEach(entry => {
+      // Note: We don't have a manager KPI entries endpoint, so we'll work with seller data only
+      // If needed, manager data could be added from store-kpi-overview for specific dates
           if (!dateMap[entry.date]) {
             dateMap[entry.date] = {
               date: entry.date,
