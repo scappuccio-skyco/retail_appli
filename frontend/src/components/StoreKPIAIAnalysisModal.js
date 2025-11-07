@@ -33,20 +33,31 @@ export default function StoreKPIAIAnalysisModal({
         const { historicalData, viewMode, period } = viewContext;
         const totalCA = historicalData.reduce((sum, d) => sum + d.total_ca, 0);
         const totalVentes = historicalData.reduce((sum, d) => sum + d.total_ventes, 0);
-        const avgPanierMoyen = historicalData.reduce((sum, d) => sum + d.panier_moyen, 0) / historicalData.length;
-        const avgTauxTransformation = historicalData.reduce((sum, d) => sum + d.taux_transformation, 0) / historicalData.length;
-        const avgIndiceVente = historicalData.reduce((sum, d) => sum + d.indice_vente, 0) / historicalData.length;
+        const totalClients = historicalData.reduce((sum, d) => sum + d.total_clients, 0);
+        const totalArticles = historicalData.reduce((sum, d) => sum + d.total_articles, 0);
+        const totalProspects = historicalData.reduce((sum, d) => sum + d.total_prospects, 0);
+        const avgPanierMoyen = totalVentes > 0 ? totalCA / totalVentes : 0;
+        const avgTauxTransformation = totalProspects > 0 ? (totalVentes / totalProspects) * 100 : 0;
+        const avgIndiceVente = totalClients > 0 ? totalArticles / totalClients : 0;
 
+        // Format compatible avec l'endpoint backend
         payload = {
           kpi_data: {
-            period: period,
-            view_mode: viewMode,
-            data_points: historicalData.length,
-            total_ca: totalCA.toFixed(2),
-            total_ventes: totalVentes,
-            avg_panier_moyen: avgPanierMoyen.toFixed(2),
-            avg_taux_transformation: avgTauxTransformation.toFixed(2),
-            avg_indice_vente: avgIndiceVente.toFixed(2),
+            date: period,
+            sellers_reported: historicalData.length,
+            total_sellers: historicalData.length,
+            calculated_kpis: {
+              panier_moyen: avgPanierMoyen.toFixed(2),
+              taux_transformation: avgTauxTransformation.toFixed(2),
+              indice_vente: avgIndiceVente.toFixed(2)
+            },
+            totals: {
+              ca: totalCA.toFixed(2),
+              ventes: totalVentes,
+              clients: totalClients,
+              articles: totalArticles,
+              prospects: totalProspects
+            },
             trend_data: historicalData.slice(-5).map(d => ({
               date: d.date,
               ca: d.total_ca,
