@@ -38,11 +38,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
       [chartKey]: !prev[chartKey]
     }));
   };
-
-  // AI Analysis for daily view
-  const [aiAnalysis, setAiAnalysis] = useState(null);
-  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
-  const [showAnalysis, setShowAnalysis] = useState(false);
   
   // AI Analysis for overview
   const [overviewAIAnalysis, setOverviewAIAnalysis] = useState(null);
