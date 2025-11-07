@@ -1133,12 +1133,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                     </button>
                   </div>
 
-                  {loadingOverviewAI ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                      <span className="ml-3 text-indigo-700 font-medium">Génération de l'analyse...</span>
-                    </div>
-                  ) : overviewAIAnalysis ? (
+                  {overviewAIAnalysis ? (
                     <div className="max-h-96 overflow-y-auto pr-2">
                       <div className="space-y-3 text-sm text-gray-800">
                         {overviewAIAnalysis.split('\n').map((line, idx) => {
