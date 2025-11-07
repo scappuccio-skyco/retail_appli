@@ -307,25 +307,17 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                                 <Award className="w-3 h-3" />
                                 {seller.avgCompetence.toFixed(1)}/10
                               </span>
-                              {seller.hasDiagnostic && seller.diagnosticAge !== null && (
+                              {seller.scoreSource === 'diagnostic' && (
                                 <span 
-                                  className="text-[9px] text-gray-500 cursor-help"
-                                  title={
-                                    seller.scoreComposition === 'questionnaire' 
-                                      ? `Score basé à 100% sur le questionnaire (diagnostic de ${seller.diagnosticAge}j). Les KPIs seront intégrés après 15 jours.`
-                                      : seller.scoreComposition === 'mixed'
-                                      ? `Score mixte: 70% questionnaire + 30% KPIs (diagnostic de ${seller.diagnosticAge}j)`
-                                      : `Score basé à 70% sur les KPIs réels (diagnostic de ${seller.diagnosticAge}j)`
-                                  }
+                                  className="text-[9px] text-blue-500 cursor-help"
+                                  title="Score basé sur le questionnaire initial et les debriefs managériaux (compétences comportementales)"
                                 >
-                                  {seller.scoreComposition === 'questionnaire' && '📋 Questionnaire'}
-                                  {seller.scoreComposition === 'mixed' && '📊 Mixte (70/30)'}
-                                  {seller.scoreComposition === 'kpi-heavy' && '📈 KPIs (70%)'}
+                                  📋 Évaluation comportementale
                                 </span>
                               )}
-                              {!seller.hasDiagnostic && (
-                                <span className="text-[9px] text-orange-500" title="Aucun diagnostic réalisé">
-                                  ⚠️ Pas de diagnostic
+                              {seller.scoreSource === 'none' && (
+                                <span className="text-[9px] text-orange-500" title="Aucune évaluation comportementale réalisée">
+                                  ⚠️ Non évalué
                                 </span>
                               )}
                             </div>
