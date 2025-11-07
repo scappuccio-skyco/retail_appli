@@ -486,55 +486,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           </div>
         </div>
       ),
-      sellers: dashboardFilters.showSellers && (
-        <div
-          key="sellers"
-          className="glass-morphism rounded-2xl overflow-hidden group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-purple-400"
-          style={{ order: getSectionOrder('sellers') }}
-        >
-          <div className="relative h-56 overflow-hidden cursor-pointer" onClick={() => {/* Scroll to sellers list */}}>
-            <img 
-              src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=400&fit=crop" 
-              alt="Détails Vendeurs"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-900/80 via-violet-900/80 to-purple-900/80 group-hover:from-purple-900/70 group-hover:via-violet-900/70 group-hover:to-purple-900/70 transition-all"></div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
-                <Award className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white text-center mb-2">Détails Vendeurs</h3>
-              <p className="text-sm text-white opacity-90 text-center">Analyse individuelle des performances</p>
-              <p className="text-xs text-white opacity-80 mt-3">Accès aux profils détaillés →</p>
-            </div>
-          </div>
-        </div>
-      ),
-      bilan: dashboardFilters.showBilan && teamBilan && (
-        <div
-          key="bilan"
-          onClick={() => setShowTeamBilanModal(true)}
-          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-indigo-400"
-          style={{ order: getSectionOrder('bilan') }}
-        >
-          <div className="relative h-56 overflow-hidden">
-            <img 
-              src="https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?w=800&h=400&fit=crop" 
-              alt="Bilan d'Équipe IA"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-blue-900/80 to-indigo-900/80 group-hover:from-indigo-900/70 group-hover:via-blue-900/70 group-hover:to-indigo-900/70 transition-all"></div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
-                <Sparkles className="w-10 h-10 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white text-center mb-2">Bilan d'Équipe IA</h3>
-              <p className="text-sm text-white opacity-90 text-center">{teamBilan.periode}</p>
-              <p className="text-xs text-white opacity-80 mt-3">Cliquer pour voir le bilan complet →</p>
-            </div>
-          </div>
-        </div>
-      ),
+      
       settings: dashboardFilters.showSettings && (
         <div
           key="settings"
