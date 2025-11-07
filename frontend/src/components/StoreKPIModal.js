@@ -923,7 +923,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                         <XAxis 
                           dataKey="date" 
                           tick={{ fontSize: 10 }}
-                          interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : multiPeriod === '3months' ? 5 : multiPeriod === '6months' ? 10 : 20}
+                          interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : 0}
                           angle={-45}
                           textAnchor="end"
                           height={70}
@@ -948,7 +948,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                         <XAxis 
                           dataKey="date" 
                           tick={{ fontSize: 10 }}
-                          interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : multiPeriod === '3months' ? 5 : multiPeriod === '6months' ? 10 : 20}
+                          interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : 0}
                           angle={-45}
                           textAnchor="end"
                           height={70}
@@ -973,7 +973,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                         <XAxis 
                           dataKey="date" 
                           tick={{ fontSize: 10 }}
-                          interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : multiPeriod === '3months' ? 5 : multiPeriod === '6months' ? 10 : 20}
+                          interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : 0}
                           angle={-45}
                           textAnchor="end"
                           height={70}
@@ -997,7 +997,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                         <XAxis 
                           dataKey="date" 
                           tick={{ fontSize: 10 }}
-                          interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : multiPeriod === '3months' ? 5 : multiPeriod === '6months' ? 10 : 20}
+                          interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : 0}
                           angle={-45}
                           textAnchor="end"
                           height={70}
@@ -1021,7 +1021,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                         <XAxis 
                           dataKey="date" 
                           tick={{ fontSize: 10 }}
-                          interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : multiPeriod === '3months' ? 5 : multiPeriod === '6months' ? 10 : 20}
+                          interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : 0}
                           angle={-45}
                           textAnchor="end"
                           height={70}
@@ -1046,7 +1046,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                           <XAxis 
                             dataKey="date" 
                             tick={{ fontSize: 9 }}
-                            interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : multiPeriod === '3months' ? 5 : multiPeriod === '6months' ? 10 : 20}
+                            interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : 0}
                             angle={-45}
                             textAnchor="end"
                             height={60}
@@ -1069,7 +1069,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                           <XAxis 
                             dataKey="date" 
                             tick={{ fontSize: 9 }}
-                            interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : multiPeriod === '3months' ? 5 : multiPeriod === '6months' ? 10 : 20}
+                            interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : 0}
                             angle={-45}
                             textAnchor="end"
                             height={60}
