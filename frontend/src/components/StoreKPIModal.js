@@ -20,6 +20,24 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
   const [selectedWeek, setSelectedWeek] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
   const [historicalData, setHistoricalData] = useState([]);
+  
+  // Chart visibility filters
+  const [visibleCharts, setVisibleCharts] = useState({
+    ca: true,
+    ventes: true,
+    panierMoyen: true,
+    tauxTransformation: true,
+    indiceVente: true,
+    articles: true,
+    clients: true
+  });
+
+  const toggleChart = (chartKey) => {
+    setVisibleCharts(prev => ({
+      ...prev,
+      [chartKey]: !prev[chartKey]
+    }));
+  };
   const [formData, setFormData] = useState({
     date: initialDate || new Date().toISOString().split('T')[0],
     nb_prospects: ''
