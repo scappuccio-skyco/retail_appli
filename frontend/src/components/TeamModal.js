@@ -413,6 +413,144 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                 </div>
               </div>
             </div>
+
+            {/* Charts Section */}
+            {!loading && teamData.length > 0 && (
+              <div className="mt-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-gray-800">📊 Comparaison des Performances</h3>
+                  
+                  {/* Metric Filters */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setVisibleMetrics(prev => ({ ...prev, ca: !prev.ca }))}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        visibleMetrics.ca 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-200 text-gray-600'
+                      }`}
+                    >
+                      {visibleMetrics.ca ? '✓' : ''} CA
+                    </button>
+                    <button
+                      onClick={() => setVisibleMetrics(prev => ({ ...prev, ventes: !prev.ventes }))}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        visibleMetrics.ventes 
+                          ? 'bg-green-500 text-white' 
+                          : 'bg-gray-200 text-gray-600'
+                      }`}
+                    >
+                      {visibleMetrics.ventes ? '✓' : ''} Ventes
+                    </button>
+                    <button
+                      onClick={() => setVisibleMetrics(prev => ({ ...prev, panierMoyen: !prev.panierMoyen }))}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        visibleMetrics.panierMoyen 
+                          ? 'bg-purple-500 text-white' 
+                          : 'bg-gray-200 text-gray-600'
+                      }`}
+                    >
+                      {visibleMetrics.panierMoyen ? '✓' : ''} Panier Moy.
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* CA Chart */}
+                  {visibleMetrics.ca && (
+                    <div className="bg-white rounded-lg p-4 border-2 border-blue-200">
+                      <h4 className="font-semibold text-gray-800 mb-3 text-sm">💰 Chiffre d'Affaires (€)</h4>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fontSize: 10 }} 
+                            tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                          />
+                          <YAxis tick={{ fontSize: 10 }} />
+                          <RechartsTooltip />
+                          <Legend wrapperStyle={{ fontSize: '11px' }} />
+                          {sellers.map((seller, idx) => (
+                            <Line 
+                              key={seller.id}
+                              type="monotone" 
+                              dataKey={`ca_${seller.id}`}
+                              name={chartData[0]?.[`name_${seller.id}`] || seller.name}
+                              stroke={idx === 0 ? '#3b82f6' : idx === 1 ? '#10b981' : '#f59e0b'}
+                              strokeWidth={2}
+                              dot={{ r: 2 }}
+                            />
+                          ))}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+
+                  {/* Ventes Chart */}
+                  {visibleMetrics.ventes && (
+                    <div className="bg-white rounded-lg p-4 border-2 border-green-200">
+                      <h4 className="font-semibold text-gray-800 mb-3 text-sm">🛍️ Nombre de Ventes</h4>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fontSize: 10 }} 
+                            tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                          />
+                          <YAxis tick={{ fontSize: 10 }} />
+                          <RechartsTooltip />
+                          <Legend wrapperStyle={{ fontSize: '11px' }} />
+                          {sellers.map((seller, idx) => (
+                            <Line 
+                              key={seller.id}
+                              type="monotone" 
+                              dataKey={`ventes_${seller.id}`}
+                              name={chartData[0]?.[`name_${seller.id}`] || seller.name}
+                              stroke={idx === 0 ? '#3b82f6' : idx === 1 ? '#10b981' : '#f59e0b'}
+                              strokeWidth={2}
+                              dot={{ r: 2 }}
+                            />
+                          ))}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+
+                  {/* Panier Moyen Chart */}
+                  {visibleMetrics.panierMoyen && (
+                    <div className="bg-white rounded-lg p-4 border-2 border-purple-200">
+                      <h4 className="font-semibold text-gray-800 mb-3 text-sm">💳 Panier Moyen (€)</h4>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fontSize: 10 }} 
+                            tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                          />
+                          <YAxis tick={{ fontSize: 10 }} />
+                          <RechartsTooltip />
+                          <Legend wrapperStyle={{ fontSize: '11px' }} />
+                          {sellers.map((seller, idx) => (
+                            <Line 
+                              key={seller.id}
+                              type="monotone" 
+                              dataKey={`panier_${seller.id}`}
+                              name={chartData[0]?.[`name_${seller.id}`] || seller.name}
+                              stroke={idx === 0 ? '#3b82f6' : idx === 1 ? '#10b981' : '#f59e0b'}
+                              strokeWidth={2}
+                              dot={{ r: 2 }}
+                            />
+                          ))}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           )}
         </div>
       </div>
