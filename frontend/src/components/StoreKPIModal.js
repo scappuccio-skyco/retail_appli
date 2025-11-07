@@ -333,7 +333,11 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
       toast.error('Aucune donnée à analyser');
       return;
     }
-
+    
+    // Ensure mutual exclusion with overview AI analysis
+    setShowOverviewAIAnalysis(false);
+    setOverviewAIAnalysis(null);
+    
     setLoadingAnalysis(true);
     setShowAnalysis(true);
 
