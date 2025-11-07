@@ -1083,6 +1083,88 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                 </div>
               </div>
 
+              {/* AI Analysis Button */}
+              {historicalData.length > 0 && (
+                <div className="flex justify-center">
+                  <button
+                    onClick={handleOverviewAIAnalysis}
+                    disabled={loadingOverviewAI}
+                    className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {loadingOverviewAI ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        Analyse en cours...
+                      </>
+                    ) : (
+                      <>
+                        🤖 Lancer l'Analyse IA
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* AI Analysis Result */}
+              {showOverviewAIAnalysis && (
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-5 border-2 border-indigo-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-indigo-900 flex items-center gap-2">
+                      <span>🤖</span> Analyse IA - {viewMode === 'week' ? 'Vue Hebdomadaire' : viewMode === 'month' ? 'Vue Mensuelle' : 'Vue Multi-périodes'}
+                    </h3>
+                    <button
+                      onClick={() => setShowOverviewAIAnalysis(false)}
+                      className="text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {loadingOverviewAI ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                      <span className="ml-3 text-indigo-700 font-medium">Génération de l'analyse...</span>
+                    </div>
+                  ) : overviewAIAnalysis ? (
+                    <div className="max-h-96 overflow-y-auto pr-2">
+                      <div className="space-y-3">
+                        {overviewAIAnalysis.split('\n').map((line, idx) => {
+                          if (line.startsWith('## ')) {
+                            return (
+                              <h4 key={`h-${idx}`} className="text-base font-bold text-indigo-900 mt-4 mb-2 flex items-center gap-2">
+                                <span className="w-1 h-5 bg-indigo-600 rounded"></span>
+                                {line.replace('## ', '')}
+                              </h4>
+                            );
+                          }
+                          if (line.startsWith('- ')) {
+                            const content = line.replace('- ', '');
+                            const parts = content.split(/(\*\*.*?\*\*)/g);
+                            return (
+                              <div key={`l-${idx}`} className="flex gap-2 text-sm text-gray-700 leading-relaxed ml-2">
+                                <span className="text-indigo-600 mt-1">•</span>
+                                <span>
+                                  {parts.map((part, i) => {
+                                    if (part.startsWith('**') && part.endsWith('**')) {
+                                      return <strong key={`b-${i}`} className="text-gray-900 font-semibold">{part.slice(2, -2)}</strong>;
+                                    }
+                                    return <span key={`s-${i}`}>{part}</span>;
+                                  })}
+                                </span>
+                              </div>
+                            );
+                          }
+                          if (line.trim() === '') {
+                            return <div key={`sp-${idx}`} className="h-2"></div>;
+                          }
+                          return null;
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
               {/* Charts */}
               {historicalData.length > 0 ? (
                 <div className="space-y-6">
