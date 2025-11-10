@@ -583,22 +583,22 @@ export default function LandingPage() {
                 </p>
               </div>
             )}
-            <div className="flex items-center justify-center gap-6 text-sm text-gray-600 flex-wrap">
+            <div className="flex items-center justify-center gap-6 text-sm text-slate-700 flex-wrap">
               <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-green-500" />
+                <Check className="w-5 h-5 text-amber-600" />
                 <span>14 jours d'essai gratuit</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-green-500" />
+                <Check className="w-5 h-5 text-amber-600" />
                 <span>Sans carte bancaire</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-green-500" />
+                <Check className="w-5 h-5 text-amber-600" />
                 <span>Résiliation à tout moment</span>
               </div>
               {isAnnual && (
                 <div className="flex items-center gap-2">
-                  <Check className="w-5 h-5 text-green-500" />
+                  <Check className="w-5 h-5 text-amber-600" />
                   <span className="font-semibold">Facturation annuelle</span>
                 </div>
               )}
