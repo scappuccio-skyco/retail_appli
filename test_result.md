@@ -600,9 +600,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Manager DISC Questionnaire Enrichment"
-    - "Manager DISC Questionnaire Enrichment - 16 New Questions"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
