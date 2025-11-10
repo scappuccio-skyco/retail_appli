@@ -455,11 +455,12 @@ export default function LandingPage() {
               <ul className="space-y-3 mb-8">
                 {[
                   'Tout Starter +',
+                  'Vue équipe avec graphiques',
                   'Coaching IA personnalisé',
                   'Challenges & gamification',
-                  'Analyses comparatives',
+                  'Analyses comparatives vendeurs',
                   'Historique 365 jours',
-                  'Support prioritaire'
+                  'Support prioritaire + onboarding'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-cyan-500 flex-shrink-0" />
