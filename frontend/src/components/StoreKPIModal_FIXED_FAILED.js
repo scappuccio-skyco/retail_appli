@@ -356,7 +356,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
               </div>
 
               {sellersKPI.length > 0 && (
-                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 border-2 border-yellow-200">
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 border-2 border-blue-200">
                   <h3 className="text-xl font-bold text-gray-800 mb-4">🏆 Top Performers</h3>
                   <div className="space-y-3">
                     {sellersKPI
