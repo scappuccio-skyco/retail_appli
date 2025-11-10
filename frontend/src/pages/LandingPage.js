@@ -148,8 +148,8 @@ export default function LandingPage() {
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white max-h-[500px]">
                 <img 
-                  src="https://images.pexels.com/photos/5486132/pexels-photo-5486132.jpeg" 
-                  alt="Équipe retail en réunion"
+                  src="/hero-retail-boutique.png" 
+                  alt="Vendeuse professionnelle en boutique moderne"
                   className="w-full h-full object-cover"
                 />
               </div>
