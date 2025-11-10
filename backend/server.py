@@ -5156,6 +5156,9 @@ async def create_checkout_session(
         
         # Create checkout session for subscription (not payment)
         # Allow adjustable quantity so user can choose number of sellers
+        # Add description to make quantity selector more visible
+        description = f"📊 Plan {plan_info['name']} - Ajustez la quantité (nombre de vendeurs) : Min {max(seller_count, 1)} / Max {max_sellers}"
+        
         session = stripe_lib.checkout.Session.create(
             mode='subscription',  # Subscription mode for recurring payments
             line_items=[{
@@ -5176,6 +5179,13 @@ async def create_checkout_session(
                 "seller_count": str(quantity)
             },
             customer_email=current_user['email'],
+            subscription_data={
+                'description': description,
+                'metadata': {
+                    'plan': checkout_data.plan,
+                    'max_sellers': str(max_sellers)
+                }
+            }
         )
         
         # Create payment transaction record
