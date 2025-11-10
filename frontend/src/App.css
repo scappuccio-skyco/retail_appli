@@ -28,7 +28,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .btn-primary {
-    @apply px-6 py-3 bg-[#ffd871] text-gray-800 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 hover:bg-[#ffc940];
+    @apply px-6 py-3 bg-[#F97316] text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 hover:bg-[#EA580C];
   }
 
   .btn-secondary {
