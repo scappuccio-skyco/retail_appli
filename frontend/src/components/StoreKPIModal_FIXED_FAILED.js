@@ -342,7 +342,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                   <p className="text-3xl font-bold text-blue-900">{(storeStats.ca_total || 0).toLocaleString('fr-FR')}€</p>
                 </div>
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
-                  <p className="text-sm font-semibold text-green-600 mb-1">🛍️ Ventes</p>
+                  <p className="text-sm font-semibold text-[#10B981] mb-1">🛍️ Ventes</p>
                   <p className="text-3xl font-bold text-green-900">{storeStats.nb_ventes || 0}</p>
                 </div>
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200">
@@ -350,7 +350,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                   <p className="text-3xl font-bold text-purple-900">{(storeStats.panier_moyen || 0).toFixed(2)}€</p>
                 </div>
                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-4 border-2 border-orange-200">
-                  <p className="text-sm font-semibold text-orange-600 mb-1">📈 Taux Transfo</p>
+                  <p className="text-sm font-semibold text-[#F97316] mb-1">📈 Taux Transfo</p>
                   <p className="text-3xl font-bold text-orange-900">{(storeStats.taux_transformation || 0).toFixed(1)}%</p>
                 </div>
               </div>
@@ -460,7 +460,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                       <button
                         onClick={() => handleKPIConfigUpdate('seller_track_ca', !kpiConfig.seller_track_ca)}
                         className={`w-12 h-12 rounded-lg font-bold text-sm transition-all ${
-                          kpiConfig.seller_track_ca ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                          kpiConfig.seller_track_ca ? 'bg-[#10B981] text-white' : 'bg-gray-200 text-gray-500'
                         }`}
                       >
                         🧑‍💼
@@ -494,7 +494,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                       <button
                         onClick={() => handleKPIConfigUpdate('seller_track_ventes', !kpiConfig.seller_track_ventes)}
                         className={`w-12 h-12 rounded-lg font-bold text-sm transition-all ${
-                          kpiConfig.seller_track_ventes ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                          kpiConfig.seller_track_ventes ? 'bg-[#10B981] text-white' : 'bg-gray-200 text-gray-500'
                         }`}
                       >
                         🧑‍💼
@@ -528,7 +528,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                       <button
                         onClick={() => handleKPIConfigUpdate('seller_track_clients', !kpiConfig.seller_track_clients)}
                         className={`w-12 h-12 rounded-lg font-bold text-sm transition-all ${
-                          kpiConfig.seller_track_clients ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                          kpiConfig.seller_track_clients ? 'bg-[#10B981] text-white' : 'bg-gray-200 text-gray-500'
                         }`}
                       >
                         🧑‍💼
@@ -562,7 +562,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                       <button
                         onClick={() => handleKPIConfigUpdate('seller_track_articles', !kpiConfig.seller_track_articles)}
                         className={`w-12 h-12 rounded-lg font-bold text-sm transition-all ${
-                          kpiConfig.seller_track_articles ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                          kpiConfig.seller_track_articles ? 'bg-[#10B981] text-white' : 'bg-gray-200 text-gray-500'
                         }`}
                       >
                         🧑‍💼

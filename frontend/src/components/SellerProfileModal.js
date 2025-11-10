@@ -42,14 +42,14 @@ export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnost
                 <p className="text-xs text-purple-500 mt-1">Ton approche client</p>
               </div>
               <div className="bg-green-50 rounded-xl p-4">
-                <p className="text-sm text-green-600 mb-2">⭐ Niveau d'expérience</p>
+                <p className="text-sm text-[#10B981] mb-2">⭐ Niveau d'expérience</p>
                 <p className="text-xl font-bold text-green-900">{diagnostic.level}</p>
-                <p className="text-xs text-green-500 mt-1">Ta progression</p>
+                <p className="text-xs text-[#10B981] mt-1">Ta progression</p>
               </div>
               <div className="bg-orange-50 rounded-xl p-4">
-                <p className="text-sm text-orange-600 mb-2">⚡ Moteur de motivation</p>
+                <p className="text-sm text-[#F97316] mb-2">⚡ Moteur de motivation</p>
                 <p className="text-xl font-bold text-orange-900">{diagnostic.motivation}</p>
-                <p className="text-xs text-orange-500 mt-1">Ce qui t'anime</p>
+                <p className="text-xs text-[#F97316] mt-1">Ce qui t'anime</p>
               </div>
             </div>
             
@@ -80,7 +80,7 @@ export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnost
                   </div>
                   <div className="bg-white rounded-lg p-3 text-center shadow-sm">
                     <p className="text-xs text-gray-600 mb-1">Stable</p>
-                    <p className="text-2xl font-bold text-green-600">{diagnostic.disc_percentages?.S || 0}%</p>
+                    <p className="text-2xl font-bold text-[#10B981]">{diagnostic.disc_percentages?.S || 0}%</p>
                   </div>
                   <div className="bg-white rounded-lg p-3 text-center shadow-sm">
                     <p className="text-xs text-gray-600 mb-1">Consciencieux</p>

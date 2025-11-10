@@ -77,7 +77,7 @@ export default function ManagerProfileModal({ diagnostic, onClose, onRedo }) {
                     </div>
                     <div className="bg-white rounded-lg p-3 text-center shadow-sm">
                       <p className="text-xs text-gray-600 mb-1">Stable</p>
-                      <p className="text-2xl font-bold text-green-600">{diagnostic.disc_percentages?.S || 0}%</p>
+                      <p className="text-2xl font-bold text-[#10B981]">{diagnostic.disc_percentages?.S || 0}%</p>
                     </div>
                     <div className="bg-white rounded-lg p-3 text-center shadow-sm">
                       <p className="text-xs text-gray-600 mb-1">Consciencieux</p>

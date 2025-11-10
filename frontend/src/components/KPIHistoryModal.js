@@ -86,13 +86,13 @@ export default function KPIHistoryModal({ kpiEntries, kpiConfig, onClose, onNewK
                       )}
                       {kpiConfig?.track_ventes && (
                         <div className="bg-green-50 rounded-lg p-3">
-                          <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
+                          <p className="text-xs text-[#10B981] mb-1">🛒 Ventes</p>
                           <p className="text-lg font-bold text-green-900">{entry.nb_ventes}</p>
                         </div>
                       )}
                       {kpiConfig?.track_articles && (
                         <div className="bg-orange-50 rounded-lg p-3">
-                          <p className="text-xs text-orange-600 mb-1">📦 Articles</p>
+                          <p className="text-xs text-[#F97316] mb-1">📦 Articles</p>
                           <p className="text-lg font-bold text-orange-900">{entry.nb_articles || 0}</p>
                         </div>
                       )}
