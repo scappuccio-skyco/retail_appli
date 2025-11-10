@@ -344,12 +344,14 @@ export default function LandingPage() {
                   ))}
                 </ul>
               </div>
-              <div className="md:order-1 rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100">
-                <img 
-                  src="https://images.pexels.com/photos/6340623/pexels-photo-6340623.jpeg" 
-                  alt="Coaching"
-                  className="w-full h-auto"
-                />
+              <div className="md:order-1 rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 bg-gradient-to-br from-purple-100 to-pink-100 p-12 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                    <Users className="w-12 h-12 text-white" />
+                  </div>
+                  <h4 className="text-2xl font-bold text-gray-700 mb-2">Profils Vendeurs</h4>
+                  <p className="text-gray-600">Analyse DISC et coaching personnalisé</p>
+                </div>
               </div>
             </div>
 
