@@ -466,8 +466,8 @@ export default function DiagnosticFormScrollable({ onComplete }) {
   const [loading, setLoading] = useState(false);
 
   const handleAnswer = (questionId, answer, optionIndex = null) => {
-    // For DISC questions (16-23), store the index; for others, store the text
-    const isDISCQuestion = questionId >= 16 && questionId <= 23;
+    // For DISC questions (16-39), store the index; for others, store the text
+    const isDISCQuestion = questionId >= 16 && questionId <= 39;
     const valueToStore = (isDISCQuestion && optionIndex !== null) ? optionIndex : answer;
     setResponses(prev => ({
       ...prev,
