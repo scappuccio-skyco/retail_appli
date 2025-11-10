@@ -39,9 +39,11 @@ export default function SubscriptionModal({ onClose }) {
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processingPlan, setProcessingPlan] = useState(null);
+  const [sellerCount, setSellerCount] = useState(0);
 
   useEffect(() => {
     fetchSubscriptionStatus();
+    fetchSellerCount();
   }, []);
 
   const fetchSubscriptionStatus = async () => {
