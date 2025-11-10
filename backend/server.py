@@ -5197,7 +5197,7 @@ async def create_checkout_session(
                 'quantity': quantity,
                 'adjustable_quantity': {
                     'enabled': True,
-                    'minimum': max(seller_count, 1),  # Minimum: current sellers or 1
+                    'minimum': min_quantity,  # Minimum: max(current sellers, plan minimum)
                     'maximum': max_sellers  # Maximum: plan limit (5 for Starter, 15 for Pro)
                 }
             }],
