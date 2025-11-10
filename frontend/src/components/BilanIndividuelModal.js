@@ -242,7 +242,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 p-6 rounded-t-2xl relative">
+        <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 transition-colors"
@@ -511,7 +511,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
           )}
 
           {/* Synthèse */}
-          <div className="bg-gradient-to-r from-[#ffd871] to-yellow-200 rounded-xl p-4 mb-4">
+          <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-xl p-4 mb-4">
             <p className="text-gray-800 font-medium">{bilan.synthese}</p>
           </div>
 

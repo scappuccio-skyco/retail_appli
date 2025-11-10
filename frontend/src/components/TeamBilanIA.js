@@ -127,7 +127,7 @@ export default function TeamBilanIA() {
       </div>
 
       {/* Synthèse */}
-      <div className="bg-gradient-to-r from-[#ffd871] to-yellow-200 rounded-xl p-4 mb-4">
+      <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-xl p-4 mb-4">
         <p className="text-gray-800 font-medium">{bilan.synthese}</p>
       </div>
 

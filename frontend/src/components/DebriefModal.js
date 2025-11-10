@@ -167,7 +167,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
         {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-6 rounded-t-2xl relative flex-shrink-0">
+        <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl relative flex-shrink-0">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
@@ -197,7 +197,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
             <div
-              className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-300 shadow-sm"
+              className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] h-3 rounded-full transition-all duration-300 shadow-sm"
               style={{ width: `${(answeredCount() / 7) * 100}%` }}
             />
           </div>
@@ -209,7 +209,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
             {/* SECTION 1 - CONTEXTE RAPIDE */}
             <div className="bg-white rounded-xl p-6 border-2 border-blue-100 shadow-sm">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#1E40AF] to-[#1E3A8A] rounded-lg flex items-center justify-center text-white font-bold shadow-md">
                   1
                 </div>
                 <div>
@@ -436,7 +436,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
             disabled={!isComplete() || loading}
             className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all shadow-lg ${
               isComplete() && !loading
-                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
+                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >

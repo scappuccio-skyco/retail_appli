@@ -183,7 +183,7 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
           }
         `}</style>
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-400 to-red-500 text-white p-6">
+        <div className="bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">

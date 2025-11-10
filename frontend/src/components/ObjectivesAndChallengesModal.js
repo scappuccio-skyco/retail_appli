@@ -189,7 +189,7 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
                   return (
                     <div 
                       key={challenge.id} 
-                      className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 border-2 border-yellow-200"
+                      className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <h4 className="font-bold text-gray-800 text-base">{challenge.title}</h4>
@@ -242,7 +242,7 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
                       {/* Targets */}
                       <div className="space-y-2">
                         {challenge.ca_target && (
-                          <div className="bg-white rounded-lg p-2 border border-yellow-200">
+                          <div className="bg-white rounded-lg p-2 border border-blue-200">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-semibold text-gray-700">💰 CA</span>
                               <span className="text-sm font-bold text-orange-700">
@@ -252,7 +252,7 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
                           </div>
                         )}
                         {challenge.ventes_target && (
-                          <div className="bg-white rounded-lg p-2 border border-yellow-200">
+                          <div className="bg-white rounded-lg p-2 border border-blue-200">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-semibold text-gray-700">🛍️ Ventes</span>
                               <span className="text-sm font-bold text-orange-700">
@@ -262,7 +262,7 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
                           </div>
                         )}
                         {challenge.panier_moyen_target && (
-                          <div className="bg-white rounded-lg p-2 border border-yellow-200">
+                          <div className="bg-white rounded-lg p-2 border border-blue-200">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-semibold text-gray-700">🛒 Panier Moyen</span>
                               <span className="text-sm font-bold text-orange-700">
@@ -272,7 +272,7 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
                           </div>
                         )}
                         {challenge.indice_vente_target && (
-                          <div className="bg-white rounded-lg p-2 border border-yellow-200">
+                          <div className="bg-white rounded-lg p-2 border border-blue-200">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-semibold text-gray-700">📊 Indice de Vente</span>
                               <span className="text-sm font-bold text-orange-700">

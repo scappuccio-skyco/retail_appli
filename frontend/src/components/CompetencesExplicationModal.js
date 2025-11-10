@@ -85,7 +85,7 @@ export default function CompetencesExplicationModal({ onClose }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-6 rounded-t-2xl relative">
+        <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
@@ -139,7 +139,7 @@ export default function CompetencesExplicationModal({ onClose }) {
           </div>
 
           {/* Info box */}
-          <div className="mt-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl p-4">
+          <div className="mt-6 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-4">
             <p className="text-sm text-gray-800">
               <strong>💡 Bon à savoir :</strong> Tes scores évoluent avec le temps ! Pendant les 2 premières semaines, ils sont basés à 100% sur ton questionnaire initial. Ensuite, ils intègrent progressivement tes KPIs réels pour refléter ta performance actuelle (70% KPIs après 1 mois).
             </p>

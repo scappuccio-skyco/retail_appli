@@ -1614,7 +1614,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
       red: 'bg-red-50 border-red-200',
       green: 'bg-green-50 border-green-200',
       purple: 'bg-purple-50 border-purple-200',
-      yellow: 'bg-yellow-50 border-yellow-200',
+      yellow: 'bg-yellow-50 border-blue-200',
       orange: 'bg-orange-50 border-orange-200',
       pink: 'bg-pink-50 border-pink-200',
       gray: 'bg-gray-50 border-gray-200'
@@ -1766,7 +1766,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                 <>
                   {/* Manager Profile Header */}
                   {managerProfile && (
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border-2 border-blue-300">
+                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-6 border-2 border-blue-300">
                       <h3 className="text-2xl font-bold text-gray-800 mb-2">
                         👔 Votre Profil de Management
                       </h3>
