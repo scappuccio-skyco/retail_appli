@@ -82,18 +82,23 @@ export default function SubscriptionModal({ onClose }) {
     const planInfo = PLANS[plan];
     if (sellerCount > planInfo.maxSellers) {
       const sellersToRemove = sellerCount - planInfo.maxSellers;
-      const confirmed = window.confirm(
-        `⚠️ ATTENTION\n\n` +
-        `Vous avez actuellement ${sellerCount} vendeur(s).\n` +
-        `Le plan ${planInfo.name} est limité à ${planInfo.maxSellers} vendeur(s).\n\n` +
-        `Vous devez supprimer ${sellersToRemove} vendeur(s) avant de souscrire à ce plan.\n\n` +
-        `Souhaitez-vous plutôt choisir le plan Professional (15 vendeurs) ?`
-      );
       
-      if (confirmed) {
-        // Switch to Professional plan
-        return handleSubscribe('professional');
-      }
+      // Use setTimeout to avoid DOM manipulation conflicts
+      setTimeout(() => {
+        const confirmed = window.confirm(
+          `⚠️ ATTENTION\n\n` +
+          `Vous avez actuellement ${sellerCount} vendeur(s).\n` +
+          `Le plan ${planInfo.name} est limité à ${planInfo.maxSellers} vendeur(s).\n\n` +
+          `Vous devez supprimer ${sellersToRemove} vendeur(s) avant de souscrire à ce plan.\n\n` +
+          `Souhaitez-vous plutôt choisir le plan Professional (15 vendeurs) ?`
+        );
+        
+        if (confirmed) {
+          // Switch to Professional plan
+          handleSubscribe('professional');
+        }
+      }, 100);
+      
       return;
     }
     
@@ -114,15 +119,21 @@ export default function SubscriptionModal({ onClose }) {
         }
       );
       
-      // Redirect to Stripe Checkout
+      // Redirect to Stripe Checkout with slight delay to avoid DOM conflicts
       if (response.data.url) {
-        window.location.href = response.data.url;
+        setTimeout(() => {
+          window.location.href = response.data.url;
+        }, 100);
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
-      const errorMessage = error.response?.data?.detail || 'Erreur lors de la création de la session de paiement';
-      alert(errorMessage);
       setProcessingPlan(null);
+      
+      // Use setTimeout to avoid DOM manipulation conflicts
+      setTimeout(() => {
+        const errorMessage = error.response?.data?.detail || 'Erreur lors de la création de la session de paiement';
+        alert(errorMessage);
+      }, 100);
     }
   };
 
