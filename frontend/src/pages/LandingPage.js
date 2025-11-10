@@ -310,13 +310,13 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-blue-50">
+      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-[#FAFAFA]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-blue-950 mb-4">
+            <h2 className="text-4xl font-bold text-[#2D3748] mb-4">
               Une Plateforme Complète et Intelligente
             </h2>
-            <p className="text-xl text-slate-700 max-w-3xl mx-auto">
+            <p className="text-xl text-[#2D3748] max-w-3xl mx-auto">
               Tout ce dont vous avez besoin pour développer l'excellence de vos équipes commerciales
             </p>
           </div>
@@ -325,35 +325,35 @@ export default function LandingPage() {
             {[
               {
                 icon: <Users className="w-8 h-8" />,
-                color: 'from-blue-600 to-blue-800',
+                color: 'from-[#0066FF] to-[#1E5EFF]',
                 title: 'Diagnostic DISC',
                 description: 'Profil de personnalité complet pour chaque vendeur avec analyse détaillée'
               },
               {
                 icon: <TrendingUp className="w-8 h-8" />,
-                color: 'from-amber-500 to-yellow-600',
+                color: 'from-[#FF6B35] to-[#FF8C42]',
                 title: 'Dashboard Manager',
                 description: 'KPI en temps réel, comparaisons vendeurs et analyses prédictives'
               },
               {
                 icon: <Zap className="w-8 h-8" />,
-                color: 'from-blue-700 to-blue-900',
+                color: 'from-[#0066FF] to-[#1E5EFF]',
                 title: 'Coaching IA',
                 description: 'Recommandations personnalisées et plans d\'action sur-mesure'
               },
               {
                 icon: <Target className="w-8 h-8" />,
-                color: 'from-slate-600 to-slate-800',
+                color: 'from-[#00D9A3] to-[#00B886]',
                 title: 'Challenges & Gamification',
                 description: 'Objectifs motivants et système de niveaux pour engager vos équipes'
               }
             ].map((feature, idx) => (
-              <div key={idx} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-blue-100 hover:border-amber-300">
+              <div key={idx} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[#0066FF]/20 hover:border-[#FF6B35]">
                 <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center text-white mb-6`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold text-blue-900 mb-3">{feature.title}</h3>
-                <p className="text-slate-700">{feature.description}</p>
+                <h3 className="text-xl font-bold text-[#2D3748] mb-3">{feature.title}</h3>
+                <p className="text-[#2D3748]">{feature.description}</p>
               </div>
             ))}
           </div>
