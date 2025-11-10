@@ -5142,21 +5142,29 @@ async def create_checkout_session(
     success_url = f"{checkout_data.origin_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{checkout_data.origin_url}/dashboard"
     
+    # Calculate quantity (number of sellers)
+    # If seller_count is 0, default to 1 to allow subscription
+    quantity = max(seller_count, 1)
+    
+    # Calculate expected amount (Stripe graduated pricing will apply automatically)
+    expected_amount = quantity * plan_info['price_per_seller']
+    
     # Initialize Stripe Checkout
     host_url = checkout_data.origin_url
     webhook_url = f"{host_url}/api/webhook/stripe"
     stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
     
-    # Create checkout session request
+    # Create checkout session request with quantity
     checkout_request = CheckoutSessionRequest(
-        stripe_price_id=plan_info['price_id'],
-        quantity=1,
+        stripe_price_id=STRIPE_PRICE_ID,  # Use single graduated pricing ID
+        quantity=quantity,  # Number of sellers
         success_url=success_url,
         cancel_url=cancel_url,
         metadata={
             "user_id": current_user['id'],
             "email": current_user['email'],
-            "plan": checkout_data.plan
+            "plan": checkout_data.plan,
+            "seller_count": str(quantity)
         }
     )
     
