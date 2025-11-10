@@ -5093,6 +5093,9 @@ class RetailCoachAPITester:
         print("🚀 Starting Retail Coach 2.0 API Tests")
         print("=" * 50)
 
+        # CRITICAL: Test Stripe Adjustable Quantity Feature (REVIEW REQUEST - HIGHEST PRIORITY)
+        self.test_stripe_adjustable_quantity_feature()
+
         # CRITICAL: Test Stripe Checkout and Subscription Flow (REVIEW REQUEST - HIGHEST PRIORITY)
         self.test_stripe_checkout_and_subscription_flow()
 
