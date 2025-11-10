@@ -568,6 +568,13 @@ export default function ManagerDashboard({ user, onLogout }) {
               Config
             </button>
             <button
+              onClick={() => setShowSubscriptionModal(true)}
+              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
+            >
+              <Settings className="w-4 h-4" />
+              Mon abonnement
+            </button>
+            <button
               data-testid="logout-button"
               onClick={onLogout}
               className="px-3 py-2 flex items-center gap-1.5 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 hover:shadow-lg transition-all text-sm"
