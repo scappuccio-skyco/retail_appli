@@ -310,10 +310,10 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <div className="bg-gradient-to-r from-[#0066FF]/10 to-[#0066FF]/5 border-l-4 border-[#0066FF] p-4 rounded-r-lg">
-                  <p className="text-sm font-semibold text-[#0066FF] mb-2">💡 Débriefs de Vente Intelligents</p>
+                <div className="bg-gradient-to-r from-[#FF6B35]/10 to-[#FF8C42]/5 border-l-4 border-[#FF6B35] p-4 rounded-r-lg">
+                  <p className="text-sm font-semibold text-[#FF6B35] mb-2">🤝 Gestion de Conflit Manager-Vendeur</p>
                   <p className="text-sm text-[#2D3748]">
-                    Vos vendeurs peuvent débriefer chaque vente non conclue. L'IA analyse et génère des recommandations personnalisées instantanées.
+                    Gérez les situations délicates avec des recommandations IA basées sur les profils DISC, les performances et l'historique de chaque vendeur.
                   </p>
                 </div>
               </div>
