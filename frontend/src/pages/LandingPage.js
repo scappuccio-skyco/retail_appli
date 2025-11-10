@@ -94,24 +94,24 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-slate-50 to-gray-50">
+      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-[#FAFAFA]">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left: Text Content */}
             <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm mb-6 border border-blue-100">
-                <Zap className="w-4 h-4 text-amber-500" />
-                <span className="text-sm font-semibold text-blue-900">Propulsé par l'Intelligence Artificielle</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm mb-6 border-2 border-[#0066FF]/20">
+                <Zap className="w-4 h-4 text-[#FF6B35]" />
+                <span className="text-sm font-semibold text-[#0066FF]">Propulsé par l'Intelligence Artificielle</span>
               </div>
               
-              <h1 className="text-5xl lg:text-6xl font-bold text-blue-950 leading-tight mb-6">
+              <h1 className="text-5xl lg:text-6xl font-bold text-[#2D3748] leading-tight mb-6">
                 Transformez Vos Vendeurs en{' '}
-                <span className="bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] bg-clip-text text-transparent">
                   Experts
                 </span>
               </h1>
               
-              <p className="text-xl text-slate-700 mb-8 leading-relaxed">
+              <p className="text-xl text-[#2D3748] mb-8 leading-relaxed">
                 La première plateforme de coaching pour le retail qui analyse les compétences de vos équipes, 
                 identifie les axes de progression et booste votre chiffre d'affaires grâce à l'IA.
               </p>
@@ -119,26 +119,26 @@ export default function LandingPage() {
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <button
                   onClick={() => scrollToSection('pricing')}
-                  className="px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-lg font-semibold rounded-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2"
+                  className="px-8 py-4 bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] text-white text-lg font-semibold rounded-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2"
                 >
                   Essai Gratuit 14 Jours
                   <ArrowRight className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => scrollToSection('contact')}
-                  className="px-8 py-4 bg-white text-blue-900 text-lg font-semibold rounded-xl border-2 border-blue-200 hover:border-amber-500 hover:bg-blue-50 transition-all"
+                  className="px-8 py-4 bg-white text-[#0066FF] text-lg font-semibold rounded-xl border-2 border-[#0066FF] hover:bg-blue-50 transition-all"
                 >
                   Demander une Démo
                 </button>
               </div>
 
-              <div className="flex items-center gap-6 text-sm text-gray-600">
+              <div className="flex items-center gap-6 text-sm text-[#2D3748]">
                 <div className="flex items-center gap-2">
-                  <Check className="w-5 h-5 text-green-500" />
+                  <Check className="w-5 h-5 text-[#00D9A3]" />
                   <span>Sans carte bancaire</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check className="w-5 h-5 text-green-500" />
+                  <Check className="w-5 h-5 text-[#00D9A3]" />
                   <span>Résiliation à tout moment</span>
                 </div>
               </div>
@@ -154,14 +154,14 @@ export default function LandingPage() {
                 />
               </div>
               {/* Floating Badge */}
-              <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-6 border border-blue-100">
+              <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-6 border-2 border-[#0066FF]/20">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] rounded-full flex items-center justify-center">
                     <TrendingUp className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-blue-900">+47%</p>
-                    <p className="text-sm text-slate-600">Performance moyenne</p>
+                    <p className="text-2xl font-bold text-[#0066FF]">+47%</p>
+                    <p className="text-sm text-[#2D3748]">Performance moyenne</p>
                   </div>
                 </div>
               </div>
