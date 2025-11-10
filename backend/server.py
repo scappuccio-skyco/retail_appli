@@ -1841,9 +1841,9 @@ async def create_manager_diagnostic(diagnostic_data: ManagerDiagnosticCreate, cu
     # Analyze with AI
     ai_analysis = await analyze_manager_diagnostic_with_ai(diagnostic_data.responses)
     
-    # Calculate DISC profile from questions 11-18
+    # Calculate DISC profile from questions 11-34
     disc_responses = {}
-    for q_id in range(11, 19):  # Questions 11 to 18
+    for q_id in range(11, 35):  # Questions 11 to 34
         q_key = str(q_id)
         if q_key in diagnostic_data.responses:
             disc_responses[q_key] = diagnostic_data.responses[q_key]
