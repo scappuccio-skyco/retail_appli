@@ -368,7 +368,8 @@ class StripeAPITester:
         # Test unauthorized access to other user's session (create another manager)
         if session_id_starter:
             # Create second manager to test unauthorized access
-            timestamp2 = datetime.now().strftime('%H%M%S') + "2"
+            from datetime import datetime as dt
+            timestamp2 = dt.now().strftime('%H%M%S') + "2"
             manager2_data = {
                 "name": f"Test Manager 2 {timestamp2}",
                 "email": f"manager2_{timestamp2}@test.com",
