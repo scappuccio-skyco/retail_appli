@@ -385,7 +385,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   const sellersWithKPI = teamData.filter(s => s.hasKpiToday).length;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div onClick={onClose} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-cyan-600 to-blue-600 p-6 text-white">
