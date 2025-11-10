@@ -121,6 +121,8 @@ class Subscription(BaseModel):
     current_period_end: Optional[datetime] = None
     stripe_customer_id: Optional[str] = None
     stripe_subscription_id: Optional[str] = None
+    cancel_at_period_end: Optional[bool] = False  # Si l'abonnement est programmé pour annulation
+    canceled_at: Optional[datetime] = None  # Date de demande d'annulation
     ai_credits_remaining: int = 0  # Crédits IA restants
     ai_credits_used_this_month: int = 0  # Crédits utilisés ce mois
     last_credit_reset: Optional[datetime] = None  # Dernière recharge mensuelle
