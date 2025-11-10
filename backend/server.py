@@ -5199,6 +5199,9 @@ async def create_checkout_session(
         }
     
     except Exception as e:
+        logger.error(f"Checkout session creation error: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Failed to create checkout session: {str(e)}")
 
 @api_router.get("/checkout/status/{session_id}")
