@@ -646,18 +646,18 @@ export default function LandingPage() {
                 answer: "Oui, nous offrons un onboarding personnalisé pour tous les plans Professional et Enterprise. Des tutoriels vidéo sont également disponibles."
               }
             ].map((faq, idx) => (
-              <div key={idx} className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+              <div key={idx} className="bg-blue-50 rounded-xl border-2 border-blue-100 overflow-hidden hover:border-amber-300 transition-colors">
                 <button
                   onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-100 transition-colors"
+                  className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-blue-100 transition-colors"
                 >
-                  <span className="font-semibold text-gray-900">{faq.question}</span>
+                  <span className="font-semibold text-blue-900">{faq.question}</span>
                   <ChevronDown 
-                    className={`w-5 h-5 text-gray-500 transition-transform ${openFaq === idx ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 text-amber-600 transition-transform ${openFaq === idx ? 'rotate-180' : ''}`}
                   />
                 </button>
                 {openFaq === idx && (
-                  <div className="px-6 pb-4 text-gray-600">
+                  <div className="px-6 pb-4 text-slate-700">
                     {faq.answer}
                   </div>
                 )}
