@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import { X, Crown, Check, Loader } from 'lucide-react';
 import axios from 'axios';
 
