@@ -4896,6 +4896,128 @@ async def check_can_add_seller(user_id: str) -> dict:
     
     return {"can_add": False, "reason": "subscription_inactive", "current": seller_count, "max": 0}
 
+# ===== AI CREDITS MANAGEMENT =====
+
+async def check_and_reset_monthly_credits(user_id: str):
+    """Check if monthly credits need to be reset and do it if necessary"""
+    sub = await db.subscriptions.find_one({"user_id": user_id})
+    
+    if not sub or sub['status'] not in ['trialing', 'active']:
+        return
+    
+    now = datetime.now(timezone.utc)
+    last_reset = datetime.fromisoformat(sub.get('last_credit_reset', sub['created_at']))
+    
+    # Check if a month has passed
+    days_since_reset = (now - last_reset).days
+    
+    if days_since_reset >= 30:  # Reset every 30 days
+        # Get monthly credits for plan
+        plan = sub.get('plan', 'starter')
+        if sub['status'] == 'trialing':
+            # During trial, no monthly reset
+            return
+        
+        monthly_credits = STRIPE_PLANS[plan]['ai_credits_monthly']
+        
+        # Reset credits
+        await db.subscriptions.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "ai_credits_remaining": monthly_credits,
+                "ai_credits_used_this_month": 0,
+                "last_credit_reset": now.isoformat(),
+                "updated_at": now.isoformat()
+            }}
+        )
+
+async def check_and_consume_ai_credits(user_id: str, action_type: str, metadata: Optional[dict] = None) -> dict:
+    """
+    Check if user has enough AI credits and consume them
+    Returns: {"success": bool, "message": str, "credits_remaining": int}
+    """
+    # Check for monthly reset first
+    await check_and_reset_monthly_credits(user_id)
+    
+    # Get credit cost for this action
+    credits_needed = AI_COSTS.get(action_type, 1)
+    
+    # Get subscription
+    sub = await db.subscriptions.find_one({"user_id": user_id})
+    
+    if not sub:
+        return {"success": False, "message": "Aucun abonnement trouvé", "credits_remaining": 0}
+    
+    credits_remaining = sub.get('ai_credits_remaining', 0)
+    
+    # Check if enough credits
+    if credits_remaining < credits_needed:
+        return {
+            "success": False, 
+            "message": f"Crédits IA insuffisants. Il vous reste {credits_remaining} crédits, {credits_needed} nécessaires.",
+            "credits_remaining": credits_remaining
+        }
+    
+    # Consume credits
+    new_remaining = credits_remaining - credits_needed
+    new_used = sub.get('ai_credits_used_this_month', 0) + credits_needed
+    
+    await db.subscriptions.update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "ai_credits_remaining": new_remaining,
+            "ai_credits_used_this_month": new_used,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Log usage
+    usage_log = AIUsageLog(
+        user_id=user_id,
+        action_type=action_type,
+        credits_consumed=credits_needed,
+        metadata=metadata
+    )
+    
+    log_doc = usage_log.model_dump()
+    log_doc['timestamp'] = log_doc['timestamp'].isoformat()
+    await db.ai_usage_logs.insert_one(log_doc)
+    
+    return {
+        "success": True,
+        "message": f"{credits_needed} crédits consommés",
+        "credits_remaining": new_remaining
+    }
+
+async def add_ai_credits(user_id: str, credits_to_add: int, reason: str = "purchase"):
+    """Add AI credits to a user's subscription"""
+    sub = await db.subscriptions.find_one({"user_id": user_id})
+    
+    if not sub:
+        return False
+    
+    new_remaining = sub.get('ai_credits_remaining', 0) + credits_to_add
+    
+    await db.subscriptions.update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "ai_credits_remaining": new_remaining,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Log credit addition
+    await db.ai_usage_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "action_type": f"credit_addition_{reason}",
+        "credits_consumed": -credits_to_add,  # Negative for addition
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "metadata": {"reason": reason, "amount": credits_to_add}
+    })
+    
+    return True
+
 # ===== STRIPE PAYMENT ENDPOINTS =====
 
 @api_router.get("/subscription/status")
