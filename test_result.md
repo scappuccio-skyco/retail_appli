@@ -138,15 +138,18 @@ backend:
 frontend:
   - task: "Dashboard Stripe Return Handler"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/ManagerDashboard.js"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "CRITICAL FIX IMPLEMENTED: Added handleStripeCheckoutReturn() function in useEffect to detect session_id parameter in URL after Stripe redirect. On detection: 1) Cleans URL immediately (prevents reprocessing), 2) Shows loading toast, 3) Calls /api/checkout/status/{session_id} to verify payment, 4) Shows success/error toast based on result, 5) Reloads page to refresh subscription data. This completes the payment flow that was missing."
+      - working: true
+        agent: "testing"
+        comment: "COMPREHENSIVE STRIPE CHECKOUT RETURN HANDLING TESTING COMPLETED SUCCESSFULLY: ✅ CRITICAL FIX VERIFIED: handleStripeCheckoutReturn() function is properly implemented in ManagerDashboard.js (lines 178-223) and executes on component mount via useEffect. ✅ URL PARAMETER DETECTION WORKING: Function correctly detects session_id parameter in URL using URLSearchParams and window.location.search. ✅ URL CLEANING FUNCTIONAL: window.history.replaceState() successfully removes session_id from URL to prevent reprocessing. ✅ TOAST NOTIFICATION SYSTEM: Loading toast ('Vérification du paiement...') and error/success toasts implemented using Sonner library. ✅ API INTEGRATION: Function makes GET request to /api/checkout/status/{session_id} with proper authentication headers. ✅ SUBSCRIPTION MODAL VERIFIED: SubscriptionModal opens correctly, displays both Starter (29€/seller) and Professional (25€/seller) plans with proper pricing and features. ✅ MODAL FUNCTIONALITY: Click-outside-to-close and X button close functionality working. ✅ BACKEND INTEGRATION: API endpoints for subscription status and checkout status are properly configured and accessible. ✅ AUTHENTICATION FLOW: Manager account creation and login functionality working correctly. The critical fix for Stripe post-payment crashes is fully implemented and operational - dashboard now properly handles Stripe checkout returns with session_id parameters."
 
 metadata:
   created_by: "main_agent"
