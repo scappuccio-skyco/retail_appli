@@ -25,6 +25,13 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
     }
   }, [activeSection]);
 
+  // Reload compatibility data when modal opens
+  useEffect(() => {
+    if (userRole === 'manager') {
+      fetchCompatibilityData();
+    }
+  }, []);
+
   const fetchCompatibilityData = async () => {
     setLoadingCompatibility(true);
     try {
