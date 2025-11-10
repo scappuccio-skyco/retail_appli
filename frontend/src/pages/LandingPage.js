@@ -112,8 +112,8 @@ export default function LandingPage() {
               </h1>
               
               <p className="text-xl text-[#334155] mb-8 leading-relaxed">
-                La première plateforme de coaching pour le retail qui analyse les compétences de vos équipes, 
-                identifie les axes de progression et booste votre chiffre d'affaires grâce à l'IA.
+                La première plateforme de coaching pour le retail, qui transforme vos vendeurs en experts autonomes.<br />
+                Analyse des compétences, coaching personnalisé et progression continue, grâce à l'intelligence artificielle.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
