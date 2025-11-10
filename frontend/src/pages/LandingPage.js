@@ -418,22 +418,27 @@ export default function LandingPage() {
                 <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Démarreur</h3>
                 <p className="text-[#334155] mb-4">Petites boutiques</p>
                 {!isAnnual ? (
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-5xl font-bold text-[#334155]">29€</span>
-                    <span className="text-[#334155]">/mois</span>
+                  <div>
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-5xl font-bold text-[#334155]">29€</span>
+                      <span className="text-[#334155]">/vendeur/mois</span>
+                    </div>
+                    <p className="text-sm text-green-600 font-semibold mt-2">
+                      + Manager gratuit
+                    </p>
                   </div>
                 ) : (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
                       <span className="text-5xl font-bold text-[#334155]">278€</span>
-                      <span className="text-[#334155]">/an</span>
+                      <span className="text-[#334155]">/vendeur/an</span>
                     </div>
                     <p className="text-sm text-green-600 font-semibold mt-2">
-                      Au lieu de 348€ • Économisez 70€/an
+                      Au lieu de 348€ • Économisez 70€/an • Manager gratuit
                     </p>
                   </div>
                 )}
-                <p className="text-sm text-slate-500 mt-2">1 à 5 vendeurs</p>
+                <p className="text-sm text-slate-500 mt-2">1 à 5 vendeurs max</p>
               </div>
 
               <ul className="space-y-3 mb-4">
