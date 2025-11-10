@@ -242,7 +242,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
                             <ul className="space-y-1">
                               {conflict.ai_actions_concretes.map((action, idx) => (
                                 <li key={idx} className="text-sm text-green-800 flex items-start gap-2">
-                                  <span className="text-green-600">•</span>
+                                  <span className="text-[#10B981]">•</span>
                                   <span>{action}</span>
                                 </li>
                               ))}
@@ -254,7 +254,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
                             <ul className="space-y-1">
                               {conflict.ai_points_vigilance.map((point, idx) => (
                                 <li key={idx} className="text-sm text-orange-800 flex items-start gap-2">
-                                  <span className="text-orange-600">•</span>
+                                  <span className="text-[#F97316]">•</span>
                                   <span>{point}</span>
                                 </li>
                               ))}

@@ -238,8 +238,8 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
 
   const getAlertIcon = (level) => {
     if (level === 'danger') return <AlertCircle className="w-5 h-5 text-red-500" />;
-    if (level === 'warning') return <AlertTriangle className="w-5 h-5 text-orange-500" />;
-    return <CheckCircle className="w-5 h-5 text-green-500" />;
+    if (level === 'warning') return <AlertTriangle className="w-5 h-5 text-[#F97316]" />;
+    return <CheckCircle className="w-5 h-5 text-[#10B981]" />;
   };
 
   if (loading) {
@@ -427,7 +427,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                   </p>
                 </div>
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
-                  <p className="text-sm font-semibold text-green-600 mb-1">🛍️ Ventes</p>
+                  <p className="text-sm font-semibold text-[#10B981] mb-1">🛍️ Ventes</p>
                   <p className="text-3xl font-bold text-green-900">
                     {storeStats?.nb_ventes || 0}
                   </p>
@@ -439,7 +439,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                   </p>
                 </div>
                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-4 border-2 border-orange-200">
-                  <p className="text-sm font-semibold text-orange-600 mb-1">📈 Taux Transfo</p>
+                  <p className="text-sm font-semibold text-[#F97316] mb-1">📈 Taux Transfo</p>
                   <p className="text-3xl font-bold text-orange-900">
                     {storeStats?.taux_transformation?.toFixed(1) || 0}%
                   </p>
@@ -587,7 +587,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                           onClick={() => handleKPIConfigUpdate('seller_track_ca', !(kpiConfig.seller_track_ca || false))}
                           disabled={kpiConfig.manager_track_ca}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            kpiConfig.seller_track_ca ? 'bg-green-500' : kpiConfig.manager_track_ca ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
+                            kpiConfig.seller_track_ca ? 'bg-[#10B981]' : kpiConfig.manager_track_ca ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
                           }`}
                         >
                           <span
@@ -643,7 +643,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                           onClick={() => handleKPIConfigUpdate('seller_track_ventes', !(kpiConfig.seller_track_ventes || false))}
                           disabled={kpiConfig.manager_track_ventes}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            kpiConfig.seller_track_ventes ? 'bg-green-500' : kpiConfig.manager_track_ventes ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
+                            kpiConfig.seller_track_ventes ? 'bg-[#10B981]' : kpiConfig.manager_track_ventes ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
                           }`}
                         >
                           <span
@@ -699,7 +699,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                           onClick={() => handleKPIConfigUpdate('seller_track_clients', !(kpiConfig.seller_track_clients || false))}
                           disabled={kpiConfig.manager_track_clients}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            kpiConfig.seller_track_clients ? 'bg-green-500' : kpiConfig.manager_track_clients ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
+                            kpiConfig.seller_track_clients ? 'bg-[#10B981]' : kpiConfig.manager_track_clients ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
                           }`}
                         >
                           <span
@@ -755,7 +755,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
                           onClick={() => handleKPIConfigUpdate('seller_track_articles', !(kpiConfig.seller_track_articles || false))}
                           disabled={kpiConfig.manager_track_articles}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            kpiConfig.seller_track_articles ? 'bg-green-500' : kpiConfig.manager_track_articles ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
+                            kpiConfig.seller_track_articles ? 'bg-[#10B981]' : kpiConfig.manager_track_articles ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-300'
                           }`}
                         >
                           <span

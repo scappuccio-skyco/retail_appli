@@ -109,7 +109,7 @@ export default function TeamBilanIA() {
           <p className="text-lg font-bold text-blue-900">{bilan.kpi_resume.ca_total.toFixed(0)}€</p>
         </div>
         <div className="bg-green-50 rounded-lg p-3">
-          <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
+          <p className="text-xs text-[#10B981] mb-1">🛒 Ventes</p>
           <p className="text-lg font-bold text-green-900">{bilan.kpi_resume.ventes}</p>
         </div>
         <div className="bg-purple-50 rounded-lg p-3">
@@ -117,7 +117,7 @@ export default function TeamBilanIA() {
           <p className="text-lg font-bold text-purple-900">{bilan.kpi_resume.clients}</p>
         </div>
         <div className="bg-orange-50 rounded-lg p-3">
-          <p className="text-xs text-orange-600 mb-1">🧮 P. Moyen</p>
+          <p className="text-xs text-[#F97316] mb-1">🧮 P. Moyen</p>
           <p className="text-lg font-bold text-orange-900">{bilan.kpi_resume.panier_moyen.toFixed(0)}€</p>
         </div>
         <div className="bg-pink-50 rounded-lg p-3">
@@ -186,13 +186,13 @@ export default function TeamBilanIA() {
           {/* Points forts */}
           <div className="bg-green-50 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-5 h-5 text-green-600" />
+              <TrendingUp className="w-5 h-5 text-[#10B981]" />
               <h3 className="font-bold text-green-900">💪 Points forts</h3>
             </div>
             <ul className="space-y-2">
               {bilan.points_forts.map((point, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-green-800">
-                  <span className="text-green-600 mt-1">✓</span>
+                  <span className="text-[#10B981] mt-1">✓</span>
                   <span>{point}</span>
                 </li>
               ))}
@@ -202,13 +202,13 @@ export default function TeamBilanIA() {
           {/* Points d'attention */}
           <div className="bg-orange-50 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="w-5 h-5 text-orange-600" />
+              <AlertTriangle className="w-5 h-5 text-[#F97316]" />
               <h3 className="font-bold text-orange-900">⚠️ Points d'attention</h3>
             </div>
             <ul className="space-y-2">
               {bilan.points_attention.map((point, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-orange-800">
-                  <span className="text-orange-600 mt-1">!</span>
+                  <span className="text-[#F97316] mt-1">!</span>
                   <span>{point}</span>
                 </li>
               ))}

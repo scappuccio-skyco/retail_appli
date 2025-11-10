@@ -1860,7 +1860,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                                     <ul className="space-y-1">
                                       {compatibilityResult.forces.map((item, idx) => (
                                         <li key={idx} className="flex items-start gap-2 text-xs text-green-800">
-                                          <span className="text-green-600 mt-0.5">✓</span>
+                                          <span className="text-[#10B981] mt-0.5">✓</span>
                                           <span>{item}</span>
                                         </li>
                                       ))}
@@ -1874,7 +1874,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                                     <ul className="space-y-1">
                                       {compatibilityResult.attention.map((item, idx) => (
                                         <li key={idx} className="flex items-start gap-2 text-xs text-orange-800">
-                                          <span className="text-orange-600 mt-0.5">!</span>
+                                          <span className="text-[#F97316] mt-0.5">!</span>
                                           <span>{item}</span>
                                         </li>
                                       ))}
@@ -1995,7 +1995,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                   <ul className="space-y-2">
                     {(profile.forces || profile.moteurs || profile.communication || []).map((item, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-green-800">
-                        <span className="text-green-600 mt-1">✓</span>
+                        <span className="text-[#10B981] mt-1">✓</span>
                         <span>{item}</span>
                       </li>
                     ))}
@@ -2009,7 +2009,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                   <ul className="space-y-2">
                     {(profile.attention || profile.objectifs || profile.conseils || []).map((item, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-orange-800">
-                        <span className="text-orange-600 mt-1">→</span>
+                        <span className="text-[#F97316] mt-1">→</span>
                         <span>{item}</span>
                       </li>
                     ))}
