@@ -50,6 +50,7 @@ export default function SubscriptionModal({ onClose }) {
   const [sellerCount, setSellerCount] = useState(0);
   const [selectedPlan, setSelectedPlan] = useState(null); // Plan selected for quantity adjustment
   const [selectedQuantity, setSelectedQuantity] = useState(1); // Quantity to purchase
+  const [isMounted, setIsMounted] = useState(true); // Track if component is mounted
 
   useEffect(() => {
     fetchSubscriptionStatus();
