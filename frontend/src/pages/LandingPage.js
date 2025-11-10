@@ -45,13 +45,13 @@ export default function LandingPage() {
               </button>
               <button
                 onClick={() => navigate('/login')}
-                className="px-4 py-2 text-cyan-600 border border-cyan-600 rounded-lg hover:bg-cyan-50 transition-colors font-medium"
+                className="px-4 py-2 text-orange-600 border border-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-medium"
               >
                 Connexion
               </button>
               <button
                 onClick={() => scrollToSection('pricing')}
-                className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all font-medium"
+                className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-lg hover:shadow-lg transition-all font-medium"
               >
                 Essai Gratuit
               </button>
