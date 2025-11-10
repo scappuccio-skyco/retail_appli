@@ -225,6 +225,90 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Debriefs & Conflict Management Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-900 to-blue-800">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Gestion Avancée des Situations Difficiles
+            </h2>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+              Des outils IA pour transformer chaque échec en opportunité d'apprentissage
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Debriefs Vendeurs */}
+            <div className="bg-white rounded-2xl p-8 shadow-2xl border-2 border-blue-100">
+              <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl flex items-center justify-center mb-6">
+                <Target className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-blue-900 mb-4">Débriefs de Vente Intelligents</h3>
+              <p className="text-slate-700 mb-6">
+                Après chaque vente non conclue, vos vendeurs peuvent débriefer en quelques clics. 
+                L'IA analyse la situation et génère des recommandations personnalisées instantanées.
+              </p>
+              <ul className="space-y-3">
+                {[
+                  'Analyse IA du contexte de vente',
+                  'Identification des points de blocage',
+                  'Recommandations d\'amélioration ciblées',
+                  'Exemples concrets d\'actions correctives',
+                  'Suivi de progression dans le temps'
+                ].map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-slate-700">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Gestion de Conflit */}
+            <div className="bg-white rounded-2xl p-8 shadow-2xl border-2 border-blue-100">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl flex items-center justify-center mb-6">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-blue-900 mb-4">Gestion de Conflit Manager-Vendeur</h3>
+              <p className="text-slate-700 mb-6">
+                Gérez les situations délicates avec des recommandations IA basées sur les profils DISC, 
+                les performances et l'historique de chaque vendeur.
+              </p>
+              <ul className="space-y-3">
+                {[
+                  'Analyse contextuelle de la situation',
+                  'Approche de communication adaptée au profil',
+                  'Actions concrètes et plan d\'action',
+                  'Points de vigilance personnalisés',
+                  'Historique des consultations et résolutions'
+                ].map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-slate-700">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="mt-12 text-center">
+            <div className="inline-block bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-8 py-6">
+              <p className="text-white text-lg mb-4">
+                <strong className="text-amber-400">🎯 Résultat :</strong> Transformez chaque difficulté en leçon, 
+                chaque conflit en opportunité de développement
+              </p>
+              <button
+                onClick={() => scrollToSection('contact')}
+                className="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+              >
+                Découvrir en Démo
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="max-w-7xl mx-auto">
