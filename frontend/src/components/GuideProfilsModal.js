@@ -1819,8 +1819,14 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                     ) : (
                       <div className="space-y-4">
                         {teamSellers.map((seller) => {
-                          const managementType = managerProfile?.management_style || 'Pilote';
-                          const sellingStyle = seller.style_vente || 'Dynamique';
+                          // Enlever "Le " du début du nom du profil pour matcher avec la matrice
+                          const rawManagementType = managerProfile?.management_style || 'Pilote';
+                          const managementType = rawManagementType.replace(/^Le\s+/i, '');
+                          
+                          // Enlever "Le " ou "L'" du début du style de vente
+                          const rawSellingStyle = seller.style_vente || 'Dynamique';
+                          const sellingStyle = rawSellingStyle.replace(/^(Le|L')\s+/i, '');
+                          
                           const compatibilityResult = getCompatibilityResult(managementType, sellingStyle);
 
                           if (!compatibilityResult) return null;
