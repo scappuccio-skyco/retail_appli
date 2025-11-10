@@ -581,11 +581,11 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-4">
                   {[
                     '16+ vendeurs',
-                    'Multi-magasins illimité',
-                    'Account manager dédié',
-                    'Formation équipe management',
-                    'API & intégrations personnalisées',
-                    'SLA sur mesure'
+                    'Support prioritaire (24h)',
+                    'Formations & Onboarding avancé',
+                    'Configuration personnalisée',
+                    'Export de données avancé',
+                    'Accompagnement continu'
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
