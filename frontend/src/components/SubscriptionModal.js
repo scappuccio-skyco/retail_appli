@@ -135,15 +135,13 @@ export default function SubscriptionModal({ onClose }) {
       
       // Redirect to Stripe Checkout
       if (response.data.url) {
-        // Close modal immediately before redirect to prevent black screen
-        setSelectedPlan(null);
-        setProcessingPlan(null);
-        
-        // Use location.replace instead of href for cleaner redirect
+        // DON'T modify React state before redirect - causes setState on unmounted component
+        // Just redirect immediately - the page will be replaced anyway
         window.location.replace(response.data.url);
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
+      // Only reset state on error, not on successful redirect
       setProcessingPlan(null);
       
       setTimeout(() => {
