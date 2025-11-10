@@ -542,7 +542,7 @@ export default function LandingPage() {
               </div>
 
               <button
-                onClick={() => scrollToSection('contact')}
+                onClick={() => navigate('/login')}
                 className="w-full py-3 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white font-semibold rounded-xl hover:shadow-lg transition-all"
               >
                 Essai Gratuit 14 Jours
