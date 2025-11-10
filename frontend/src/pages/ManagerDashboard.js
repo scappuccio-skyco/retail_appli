@@ -27,7 +27,7 @@ const ProgressIndicator = ({ label, emoji, target, progress, type = 'currency', 
     blue: { bg: 'from-blue-50 to-indigo-50', border: 'border-blue-200', text: 'text-indigo-600', textBold: 'text-indigo-700' },
     purple: { bg: 'from-purple-50 to-pink-50', border: 'border-purple-200', text: 'text-purple-600', textBold: 'text-purple-700' },
     yellow: { bg: 'from-yellow-50 to-orange-50', border: 'border-yellow-200', text: 'text-yellow-600', textBold: 'text-yellow-700' },
-    green: { bg: 'from-green-50 to-emerald-50', border: 'border-green-200', text: 'text-green-600', textBold: 'text-green-700' }
+    green: { bg: 'from-green-50 to-emerald-50', border: 'border-green-200', text: 'text-[#10B981]', textBold: 'text-green-700' }
   };
   
   const scheme = colors[colorScheme];
@@ -54,7 +54,7 @@ const ProgressIndicator = ({ label, emoji, target, progress, type = 'currency', 
         </span>
       </div>
       <div className="flex items-center justify-between mb-0.5">
-        <span className="text-xs text-green-600 font-medium">✅ Réalisé</span>
+        <span className="text-xs text-[#10B981] font-medium">✅ Réalisé</span>
         <span className="text-sm font-bold text-green-700">
           {formatValue(progress)}
         </span>
@@ -397,9 +397,9 @@ export default function ManagerDashboard({ user, onLogout }) {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'pending':
-        return <Clock className="w-4 h-4 text-orange-500" />;
+        return <Clock className="w-4 h-4 text-[#F97316]" />;
       case 'accepted':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
+        return <CheckCircle className="w-4 h-4 text-[#10B981]" />;
       case 'expired':
         return <XCircle className="w-4 h-4 text-red-500" />;
       default:
