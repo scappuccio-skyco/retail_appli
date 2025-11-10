@@ -150,6 +150,7 @@ class PaymentTransaction(BaseModel):
 class CheckoutRequest(BaseModel):
     plan: str  # starter or professional
     origin_url: str
+    quantity: Optional[int] = None  # Number of sellers (optional, defaults to current count)
 
 class Sale(BaseModel):
     model_config = ConfigDict(extra="ignore")
