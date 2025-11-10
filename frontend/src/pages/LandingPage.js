@@ -125,7 +125,7 @@ export default function LandingPage() {
                 </button>
                 <button
                   onClick={() => scrollToSection('contact')}
-                  className="px-8 py-4 bg-white text-gray-700 text-lg font-semibold rounded-xl border-2 border-gray-200 hover:border-cyan-500 transition-all"
+                  className="px-8 py-4 bg-white text-gray-700 text-lg font-semibold rounded-xl border-2 border-gray-200 hover:border-orange-500 transition-all"
                 >
                   Demander une Démo
                 </button>
