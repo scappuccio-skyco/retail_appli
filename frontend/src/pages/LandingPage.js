@@ -494,15 +494,15 @@ export default function LandingPage() {
                 )}
               </div>
 
+              <div className="bg-blue-50 rounded-xl p-4 mb-4">
+                <p className="text-sm font-semibold text-[#1E40AF] mb-2">✨ Toutes les fonctionnalités incluses :</p>
+                <p className="text-xs text-[#334155]">Dashboard Manager & Vendeur • Diagnostic DISC • Coaching IA • KPI en temps réel • Objectifs & Challenges • Débriefs • Historique illimité</p>
+              </div>
               <ul className="space-y-3 mb-8">
                 {[
-                  'Tout Starter +',
-                  'Vue équipe avec graphiques',
-                  'Coaching IA personnalisé',
-                  'Challenges & gamification',
-                  'Analyses comparatives vendeurs',
-                  'Historique 365 jours',
-                  'Support prioritaire + onboarding'
+                  'Jusqu\'à 15 vendeurs inclus',
+                  'Support prioritaire',
+                  'Onboarding personnalisé'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
