@@ -319,7 +319,7 @@ export default function LandingPage() {
               </div>
               <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-[#0066FF]/20">
                 <img 
-                  src="/screenshot3.png" 
+                  src="/dashboard-manager.png" 
                   alt="Dashboard Manager - Vue d'ensemble KPI"
                   className="w-full h-auto"
                 />
