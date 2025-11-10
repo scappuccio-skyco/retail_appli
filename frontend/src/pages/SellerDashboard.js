@@ -699,7 +699,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       <div className="max-w-7xl mx-auto mb-8">
         <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-4">
-            <img src="/logo-icon.png" alt="Retail Performer" className="w-16 h-16 rounded-xl shadow-md object-contain bg-white p-2" />
+            <img src="/logo-retail-performer-blue.png" alt="Retail Performer AI" className="h-14 object-contain" />
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
                 Bonjour, {user.name}!
