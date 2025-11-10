@@ -102,9 +102,68 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Implement 'Débriefer ma vente' feature - a form for sellers to debrief non-concluded sales and receive AI-powered personalized coaching feedback."
+user_problem_statement: "Fix Stripe subscription post-payment crashes - users reported crashes 'before and after' successful payment. Dashboard not handling Stripe checkout return properly."
 
 backend:
+  - task: "Stripe Checkout Return Handling"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "CRITICAL FIX IMPLEMENTED: Updated /api/checkout/status/{session_id} endpoint to use native Stripe API instead of emergentintegrations. Now retrieves session from Stripe, checks payment_status, activates subscription with AI credits allocation, and returns proper status. This endpoint is called by frontend after Stripe redirect to complete the subscription activation."
+
+  - task: "Stripe Webhook - Native API"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "WEBHOOK REFACTORED: Replaced emergentintegrations with native Stripe API for webhook handling. Now properly handles: 1) checkout.session.completed (activates subscription with AI credits), 2) customer.subscription.updated (updates subscription period), 3) customer.subscription.deleted (cancels subscription). Added proper logging and error handling. Webhook secret validation optional for development."
+
+frontend:
+  - task: "Dashboard Stripe Return Handler"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ManagerDashboard.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "CRITICAL FIX IMPLEMENTED: Added handleStripeCheckoutReturn() function in useEffect to detect session_id parameter in URL after Stripe redirect. On detection: 1) Cleans URL immediately (prevents reprocessing), 2) Shows loading toast, 3) Calls /api/checkout/status/{session_id} to verify payment, 4) Shows success/error toast based on result, 5) Reloads page to refresh subscription data. This completes the payment flow that was missing."
+
+metadata:
+  created_by: "main_agent"
+  version: "2.0"
+  test_sequence: 10
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Stripe Checkout Return Handling"
+    - "Stripe Webhook - Native API"
+    - "Dashboard Stripe Return Handler"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "critical_first"
+
+agent_communication:
+  - agent: "main"
+    message: "STRIPE POST-PAYMENT CRASH FIX IMPLEMENTED: ✅ ROOT CAUSE IDENTIFIED: Dashboard was not handling the return from Stripe checkout. After successful payment, Stripe redirects to /dashboard?session_id=xxx but the dashboard wasn't checking this parameter or activating the subscription. ✅ SOLUTION IMPLEMENTED: 1) Added handleStripeCheckoutReturn() in ManagerDashboard.js to detect session_id and call status endpoint, 2) Updated /api/checkout/status/{session_id} to use native Stripe API for better subscription handling, 3) Refactored webhook endpoint to use native Stripe API with proper event handling. ✅ IMPROVEMENTS: AI credits now allocated properly on subscription activation, proper toast notifications for payment status, URL cleaned to prevent reprocessing, webhook handles subscription lifecycle events. ✅ READY FOR TESTING: Need to test complete flow: Create checkout → Stripe payment → Return to dashboard → Subscription activation → Toast notification → Data refresh."
+
+old_user_problem_statement: "Implement 'Débriefer ma vente' feature - a form for sellers to debrief non-concluded sales and receive AI-powered personalized coaching feedback."
+
+old_backend:
   - task: "Debrief API - Create Debrief"
     implemented: true
     working: true
