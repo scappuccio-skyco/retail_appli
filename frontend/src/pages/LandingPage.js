@@ -693,54 +693,54 @@ export default function LandingPage() {
       <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl font-bold text-blue-950 mb-4">
               Contactez-Nous
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-slate-700">
               Une question ? Notre équipe vous répond en moins de 24h
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12">
             {/* Contact Form */}
-            <div className="bg-gray-50 rounded-2xl p-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Demander une Démo</h3>
+            <div className="bg-blue-50 rounded-2xl p-8 border-2 border-blue-100">
+              <h3 className="text-2xl font-bold text-blue-900 mb-6">Demander une Démo</h3>
               <form className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nom complet</label>
+                  <label className="block text-sm font-medium text-blue-900 mb-2">Nom complet</label>
                   <input 
                     type="text" 
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
                     placeholder="Jean Dupont"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email professionnel</label>
+                  <label className="block text-sm font-medium text-blue-900 mb-2">Email professionnel</label>
                   <input 
                     type="email" 
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
                     placeholder="jean@entreprise.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nombre de vendeurs</label>
-                  <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
+                  <label className="block text-sm font-medium text-blue-900 mb-2">Nombre de vendeurs</label>
+                  <select className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white">
                     <option>1-5 vendeurs</option>
                     <option>6-15 vendeurs</option>
                     <option>16+ vendeurs</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                  <label className="block text-sm font-medium text-blue-900 mb-2">Message</label>
                   <textarea 
                     rows="4" 
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
                     placeholder="Parlez-nous de votre besoin..."
                   ></textarea>
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                  className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
                 >
                   Envoyer la Demande
                 </button>
@@ -749,18 +749,18 @@ export default function LandingPage() {
 
             {/* Contact Info */}
             <div className="space-y-8">
-              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-8 border border-orange-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Informations de Contact</h3>
+              <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-8 border-2 border-amber-200">
+                <h3 className="text-xl font-bold text-blue-900 mb-4">Informations de Contact</h3>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">Email</p>
-                    <a href="mailto:contact@retailperformerai.com" className="text-orange-600 font-semibold hover:underline">
+                    <p className="text-sm font-medium text-slate-600 mb-1">Email</p>
+                    <a href="mailto:contact@retailperformerai.com" className="text-amber-700 font-semibold hover:underline">
                       contact@retailperformerai.com
                     </a>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">Adresse</p>
-                    <p className="text-gray-700">
+                    <p className="text-sm font-medium text-slate-600 mb-1">Adresse</p>
+                    <p className="text-slate-800">
                       25 allée Rose Dieng-Kuntz<br />
                       75019 Paris, France
                     </p>
@@ -768,13 +768,13 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Horaires</h3>
-                <p className="text-gray-700">
+              <div className="bg-gradient-to-br from-blue-50 to-slate-50 rounded-2xl p-8 border-2 border-blue-200">
+                <h3 className="text-xl font-bold text-blue-900 mb-4">Horaires</h3>
+                <p className="text-slate-800">
                   Lundi - Vendredi : 9h - 18h<br />
                   Samedi - Dimanche : Fermé
                 </p>
-                <p className="text-sm text-gray-500 mt-4">
+                <p className="text-sm text-slate-600 mt-4">
                   Réponse sous 24h ouvrées
                 </p>
               </div>
