@@ -5155,11 +5155,17 @@ async def create_checkout_session(
         stripe_lib.api_key = STRIPE_API_KEY
         
         # Create checkout session for subscription (not payment)
+        # Allow adjustable quantity so user can choose number of sellers
         session = stripe_lib.checkout.Session.create(
             mode='subscription',  # Subscription mode for recurring payments
             line_items=[{
                 'price': STRIPE_PRICE_ID,
                 'quantity': quantity,
+                'adjustable_quantity': {
+                    'enabled': True,
+                    'minimum': max(seller_count, 1),  # Minimum: current sellers or 1
+                    'maximum': max_sellers  # Maximum: plan limit (5 for Starter, 15 for Pro)
+                }
             }],
             success_url=success_url,
             cancel_url=cancel_url,
