@@ -87,12 +87,12 @@ export default function Login({ onLogin }) {
         <div className="glass-morphism rounded-3xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <img 
-              src="/logo-icon.png" 
-              alt="Retail Performer" 
-              className="w-32 h-32 mx-auto mb-4 rounded-2xl shadow-lg object-contain bg-white p-2"
+              src="/logo-retail-performer-blue.png" 
+              alt="Retail Performer AI" 
+              className="h-24 mx-auto mb-4 object-contain"
             />
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Retail Performer
+            <h1 className="text-3xl font-bold text-[#1E40AF] mb-2">
+              Retail Performer AI
             </h1>
             {inviteInfo ? (
               <p className="text-gray-600">
