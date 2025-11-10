@@ -386,7 +386,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
   return (
     <div onClick={onClose} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-cyan-600 to-blue-600 p-6 text-white">
           <div className="flex items-center justify-between">
