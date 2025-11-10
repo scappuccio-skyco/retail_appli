@@ -8,6 +8,7 @@ const PLANS = {
   starter: {
     name: 'Starter',
     pricePerSeller: 29,
+    minSellers: 1,
     maxSellers: 5,
     aiCredits: 500,
     features: [
@@ -24,6 +25,7 @@ const PLANS = {
   professional: {
     name: 'Professional',
     pricePerSeller: 25,
+    minSellers: 6,
     maxSellers: 15,
     aiCredits: 1500,
     features: [
