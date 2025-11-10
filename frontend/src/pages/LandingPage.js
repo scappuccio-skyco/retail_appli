@@ -435,10 +435,22 @@ export default function LandingPage() {
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
                 <p className="text-gray-600 mb-4">Pour petites boutiques</p>
-                <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-5xl font-bold text-gray-900">29€</span>
-                  <span className="text-gray-600">/vendeur/mois</span>
-                </div>
+                {!isAnnual ? (
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className="text-5xl font-bold text-gray-900">29€</span>
+                    <span className="text-gray-600">/vendeur/mois</span>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-5xl font-bold text-gray-900">278€</span>
+                      <span className="text-gray-600">/vendeur/an</span>
+                    </div>
+                    <p className="text-sm text-green-600 font-semibold mt-2">
+                      Au lieu de 348€ • Économisez 70€/an
+                    </p>
+                  </div>
+                )}
                 <p className="text-sm text-gray-500 mt-2">1 à 5 vendeurs</p>
               </div>
 
