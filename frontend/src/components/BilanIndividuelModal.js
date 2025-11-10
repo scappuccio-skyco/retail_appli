@@ -342,7 +342,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
                 <p className="text-lg font-bold text-indigo-900">{bilan.kpi_resume.panier_moyen.toFixed(0)}€</p>
               </div>
             )}
-            {kpiConfig?.track_ventes && kpiConfig?.track_clients && bilan.kpi_resume.taux_transformation !== undefined && (
+            {((kpiConfig?.seller_track_ventes || kpiConfig?.track_ventes) && (kpiConfig?.seller_track_prospects || kpiConfig?.track_prospects)) && bilan.kpi_resume.taux_transformation !== undefined && bilan.kpi_resume.taux_transformation > 0 && (
               <div className="bg-pink-50 rounded-lg p-3">
                 <p className="text-xs text-pink-600 mb-1">📈 Taux Transfo</p>
                 <p className="text-lg font-bold text-pink-900">{bilan.kpi_resume.taux_transformation.toFixed(0)}%</p>
