@@ -561,21 +561,49 @@ backend_new:
         agent: "testing"
         comment: "COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY - ALL REVIEW REQUEST SCENARIOS PASSED: ✅ TEST SETUP: Logged in as manager@test.com, found 3 sellers (Sophie, Thomas, Marie) all under same manager. ✅ OBJECTIVE CREATION: Created test objective 'Objectif Sophie & Thomas uniquement' with type=collective, visible=True, visible_to_sellers=[sophie_id, thomas_id]. ✅ TEST 1 - SOPHIE: Successfully logged in as sophie@test.com, retrieved 9 active objectives, FOUND the restricted objective in her list - SUCCESS: Sophie can see the objective as expected. ✅ TEST 2 - THOMAS: Successfully logged in as thomas@test.com, retrieved 9 active objectives, FOUND the restricted objective in his list - SUCCESS: Thomas can see the objective as expected. ✅ TEST 3 - MARIE: Successfully logged in as marie@test.com, retrieved 7 active objectives, DID NOT FIND the restricted objective in her list - SUCCESS: Marie cannot see the objective as expected (she's not in visible_to_sellers list). ✅ FILTERING LOGIC VERIFIED: Backend correctly filters collective objectives based on visible_to_sellers array - empty array shows to all, populated array shows only to specified sellers. ✅ ALL SUCCESS CRITERIA MET: Sophie sees objective ✓, Thomas sees objective ✓, Marie does NOT see objective ✓. The objective visibility filtering feature is working perfectly as designed."
 
+backend:
+  - task: "Manager DISC Questionnaire Enrichment"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated backend to handle enriched manager DISC questionnaire with 24 questions (Q11-Q34 instead of Q11-Q18). Modified /api/manager-diagnostic endpoint to extract DISC responses from questions 11-34 using range(11, 35). Updated calculate_disc_profile documentation to reflect manager: 11-34 and seller: 16-39. Backend ready for testing."
+
+frontend:
+  - task: "Manager DISC Questionnaire Enrichment - 16 New Questions"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/ManagerDiagnosticForm.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added 16 new ipsative DISC questions (Q19-Q34) to manager diagnostic form. Total DISC questions now: 24 (Q11-Q34). Total questionnaire: 34 questions (10 management + 24 DISC). Each question has 4 options following DISC pattern (0=Dominant, 1=Influent, 2=Stable, 3=Consciencieux). Updated handleSelectOption logic to handle Q11-Q34 as DISC questions (storing indices instead of text). Questions contextualized for managers covering: change management, problem-solving, feedback/coaching, decision-making, organization, team relations, stress management, communication, conflict management, team motivation. Ready for testing."
+
 metadata:
   created_by: "main_agent"
-  version: "1.8"
-  test_sequence: 8
+  version: "1.9"
+  test_sequence: 9
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Manager DISC Questionnaire Enrichment"
+    - "Manager DISC Questionnaire Enrichment - 16 New Questions"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
-  - agent: "testing"
-    message: "OBJECTIVE VISIBILITY FILTERING TESTING COMPLETED SUCCESSFULLY: ✅ Tested the new visible_to_sellers filtering feature for collective objectives. ✅ Created test objective visible only to Sophie and Thomas (not Marie). ✅ All 3 test scenarios passed perfectly: Sophie can see it, Thomas can see it, Marie cannot see it. ✅ Backend filtering logic at /seller/objectives/active endpoint working correctly. ✅ Feature is production-ready and working as designed. No issues found."
+  - agent: "main"
+    message: "MANAGER DISC QUESTIONNAIRE ENRICHMENT COMPLETED: ✅ Added 16 new DISC questions to manager diagnostic form (Q19-Q34). ✅ Updated frontend logic to handle Q11-Q34 as DISC questions. ✅ Updated backend to extract DISC responses from Q11-Q34 (range 11-35). ✅ Updated calculate_disc_profile documentation. ✅ Total manager DISC questions: 24 (matching seller questionnaire). Ready for comprehensive testing to verify: 1) Form displays all 34 questions correctly, 2) All questions can be answered, 3) Form submission works, 4) DISC profile calculation accurate with 24 questions, 5) Profile display in manager dashboard/modal shows correct DISC percentages."
 
 old_old_agent_communication:
   - agent: "main"
