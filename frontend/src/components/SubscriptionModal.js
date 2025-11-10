@@ -8,18 +8,20 @@ const PLANS = {
   starter: {
     name: 'Starter',
     price: 29,
+    maxSellers: 5,
     features: [
       'Accès Manager + Vendeurs',
       'Dashboard complet',
       'Diagnostic DISC',
       'Suivi KPI en temps réel',
-      'Jusqu\'à 15 vendeurs',
+      'Jusqu\'à 5 vendeurs',
       'Support par email'
     ]
   },
   professional: {
     name: 'Professional',
     price: 249,
+    maxSellers: 15,
     features: [
       'Toutes les fonctionnalités Starter',
       'Dashboard complet',
