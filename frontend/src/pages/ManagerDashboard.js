@@ -507,8 +507,18 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   if (loading) {
     return (
-      <div data-testid="manager-loading" className="flex items-center justify-center min-h-screen">
-        <div className="text-xl font-medium text-gray-600">Chargement...</div>
+      <div data-testid="manager-loading" className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-[#1E40AF] mb-4"></div>
+          <div className="text-xl font-medium text-gray-700">
+            {processingStripeReturn ? '🔄 Vérification du paiement...' : 'Chargement...'}
+          </div>
+          {processingStripeReturn && (
+            <div className="text-sm text-gray-500 mt-2">
+              Merci de patienter, nous finalisons votre abonnement.
+            </div>
+          )}
+        </div>
       </div>
     );
   }
