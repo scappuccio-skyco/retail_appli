@@ -217,11 +217,27 @@ export default function SubscriptionModal({ onClose }) {
     onClose();
   };
 
-  // If showing quantity modal, render it instead of subscription modal
-  if (showQuantityModal && selectedPlan) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8">
+  // Single render method with stable container and conditional content
+  return (
+    <div 
+      key="subscription-modal-container" // Stable key for React reconciliation
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !showQuantityModal && !loading) {
+          handleClose();
+        }
+      }}
+    >
+      {/* Conditional content within single stable container */}
+      {loading ? (
+        // Loading State Content
+        <div key="loading-content" className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8 text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1E40AF] mb-4"></div>
+          <p className="text-gray-700">Chargement...</p>
+        </div>
+      ) : showQuantityModal && selectedPlan ? (
+        // Quantity Selection State Content
+        <div key="quantity-content" className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8">
           <h3 className="text-2xl font-bold text-gray-800 mb-2 text-center">
             Nombre de vendeurs
           </h3>
@@ -318,207 +334,176 @@ export default function SubscriptionModal({ onClose }) {
             </button>
           </div>
         </div>
-      </div>
-    );
-  }
+      ) : (
+        // Main Subscription Modal Content
+        <div key="subscription-content" className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl relative">
+            <button
+              onClick={handleClose}
+              disabled={processingPlan !== null}
+              className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+              <Crown className="w-8 h-8" />
+              Mon Abonnement
+            </h2>
+          </div>
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1E40AF] mb-4"></div>
-          <p className="text-gray-700">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
+          {/* Content */}
+          <div className="p-8">
+            {/* Current Status */}
+            {subscriptionInfo && (
+              <div className="mb-8 p-6 bg-blue-50 rounded-xl border-2 border-blue-200">
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                  Statut actuel
+                </h3>
+                {subscriptionInfo.status === 'trialing' && (
+                  <div>
+                    <p className="text-gray-700">
+                      <span className="font-semibold">Essai gratuit</span> - {subscriptionInfo.days_left} jour{subscriptionInfo.days_left > 1 ? 's' : ''} restant{subscriptionInfo.days_left > 1 ? 's' : ''}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Fin de l'essai le {new Date(subscriptionInfo.trial_end).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                )}
+                {subscriptionInfo.status === 'active' && (
+                  <div>
+                    <p className="text-gray-700">
+                      <span className="font-semibold">Plan {PLANS[currentPlan].name}</span> - Actif
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {subscriptionInfo.subscription?.cancel_at_period_end ? (
+                        <>
+                          ⚠️ Annulation programmée - Accès jusqu'au {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
+                        </>
+                      ) : (
+                        <>
+                          Renouvellement le {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
+                        </>
+                      )}
+                    </p>
+                    {!subscriptionInfo.subscription?.cancel_at_period_end && (
+                      <button
+                        onClick={handleCancelSubscription}
+                        className="mt-3 text-sm text-red-600 hover:text-red-700 underline"
+                      >
+                        Annuler l'abonnement
+                      </button>
+                    )}
+                  </div>
+                )}
+                {subscriptionInfo.status === 'trial_expired' && (
+                  <div>
+                    <p className="text-orange-700 font-semibold">
+                      Essai gratuit terminé
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Choisissez un plan pour continuer à utiliser toutes les fonctionnalités
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
-  return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !processingPlan) {
-          handleClose();
-        }
-      }}
-    >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl relative">
-          <button
-            onClick={handleClose}
-            disabled={processingPlan !== null}
-            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Crown className="w-8 h-8" />
-            Mon Abonnement
-          </h2>
-        </div>
-
-        {/* Content */}
-        <div className="p-8">
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader className="w-8 h-8 animate-spin text-blue-600" />
-            </div>
-          ) : (
-            <>
-              {/* Current Status */}
-              {subscriptionInfo && (
-                <div className="mb-8 p-6 bg-blue-50 rounded-xl border-2 border-blue-200">
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">
-                    Statut actuel
-                  </h3>
-                  {subscriptionInfo.status === 'trialing' && (
-                    <div>
-                      <p className="text-gray-700">
-                        <span className="font-semibold">Essai gratuit</span> - {subscriptionInfo.days_left} jour{subscriptionInfo.days_left > 1 ? 's' : ''} restant{subscriptionInfo.days_left > 1 ? 's' : ''}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Fin de l'essai le {new Date(subscriptionInfo.trial_end).toLocaleDateString('fr-FR')}
+            {/* Plans */}
+            <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+              Choisissez votre plan
+            </h3>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {Object.entries(PLANS).map(([planKey, plan]) => {
+                const isCurrentPlan = isActive && currentPlan === planKey;
+                const isProcessing = processingPlan === planKey;
+                
+                return (
+                  <div
+                    key={planKey}
+                    className={`border-2 rounded-xl p-6 transition-all ${
+                      isCurrentPlan
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 hover:border-blue-400 hover:shadow-lg'
+                    }`}
+                  >
+                    <div className="text-center mb-6">
+                      <h4 className="text-2xl font-bold text-gray-800 mb-2">
+                        {plan.name}
+                      </h4>
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="text-4xl font-bold text-[#1E40AF]">
+                          {plan.pricePerSeller}€
+                        </span>
+                        <span className="text-gray-600">/vendeur/mois</span>
+                      </div>
+                      <p className="text-sm text-green-600 font-semibold mt-2">
+                        Manager gratuit
                       </p>
                     </div>
-                  )}
-                  {subscriptionInfo.status === 'active' && (
-                    <div>
-                      <p className="text-gray-700">
-                        <span className="font-semibold">Plan {PLANS[currentPlan].name}</span> - Actif
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {subscriptionInfo.subscription?.cancel_at_period_end ? (
+
+                    <ul className="space-y-3 mb-6">
+                      {plan.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-gray-700">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* Warning if too many sellers */}
+                    {sellerCount > plan.maxSellers && !isCurrentPlan && (
+                      <div className="mb-4 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
+                        <p className="text-sm text-orange-800 font-semibold">
+                          ⚠️ Attention
+                        </p>
+                        <p className="text-xs text-orange-700 mt-1">
+                          Vous avez {sellerCount} vendeur(s). Ce plan est limité à {plan.maxSellers}.
+                        </p>
+                      </div>
+                    )}
+
+                    {isCurrentPlan ? (
+                      <button
+                        disabled
+                        className="w-full py-3 bg-green-600 text-white rounded-lg font-semibold"
+                      >
+                        Plan actuel
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleSelectPlan(planKey)}
+                        disabled={isProcessing}
+                        className="w-full py-3 bg-[#1E40AF] text-white rounded-lg hover:bg-[#1E3A8A] transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {isProcessing ? (
                           <>
-                            ⚠️ Annulation programmée - Accès jusqu'au {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
+                            <Loader className="w-5 h-5 animate-spin" />
+                            Redirection...
                           </>
                         ) : (
                           <>
-                            Renouvellement le {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
+                            <Crown className="w-5 h-5" />
+                            {isActive ? 'Changer de plan' : 'Choisir ce plan'}
                           </>
                         )}
-                      </p>
-                      {!subscriptionInfo.subscription?.cancel_at_period_end && (
-                        <button
-                          onClick={handleCancelSubscription}
-                          className="mt-3 text-sm text-red-600 hover:text-red-700 underline"
-                        >
-                          Annuler l'abonnement
-                        </button>
-                      )}
-                    </div>
-                  )}
-                  {subscriptionInfo.status === 'trial_expired' && (
-                    <div>
-                      <p className="text-orange-700 font-semibold">
-                        Essai gratuit terminé
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Choisissez un plan pour continuer à utiliser toutes les fonctionnalités
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
 
-              {/* Plans */}
-              <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-                Choisissez votre plan
-              </h3>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                {Object.entries(PLANS).map(([planKey, plan]) => {
-                  const isCurrentPlan = isActive && currentPlan === planKey;
-                  const isProcessing = processingPlan === planKey;
-                  
-                  return (
-                    <div
-                      key={planKey}
-                      className={`border-2 rounded-xl p-6 transition-all ${
-                        isCurrentPlan
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-gray-200 hover:border-blue-400 hover:shadow-lg'
-                      }`}
-                    >
-                      <div className="text-center mb-6">
-                        <h4 className="text-2xl font-bold text-gray-800 mb-2">
-                          {plan.name}
-                        </h4>
-                        <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-4xl font-bold text-[#1E40AF]">
-                            {plan.pricePerSeller}€
-                          </span>
-                          <span className="text-gray-600">/vendeur/mois</span>
-                        </div>
-                        <p className="text-sm text-green-600 font-semibold mt-2">
-                          Manager gratuit
-                        </p>
-                      </div>
-
-                      <ul className="space-y-3 mb-6">
-                        {plan.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-start gap-2">
-                            <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                            <span className="text-gray-700">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      {/* Warning if too many sellers */}
-                      {sellerCount > plan.maxSellers && !isCurrentPlan && (
-                        <div className="mb-4 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
-                          <p className="text-sm text-orange-800 font-semibold">
-                            ⚠️ Attention
-                          </p>
-                          <p className="text-xs text-orange-700 mt-1">
-                            Vous avez {sellerCount} vendeur(s). Ce plan est limité à {plan.maxSellers}.
-                          </p>
-                        </div>
-                      )}
-
-                      {isCurrentPlan ? (
-                        <button
-                          disabled
-                          className="w-full py-3 bg-green-600 text-white rounded-lg font-semibold"
-                        >
-                          Plan actuel
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleSelectPlan(planKey)}
-                          disabled={isProcessing}
-                          className="w-full py-3 bg-[#1E40AF] text-white rounded-lg hover:bg-[#1E3A8A] transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                          {isProcessing ? (
-                            <>
-                              <Loader className="w-5 h-5 animate-spin" />
-                              Redirection...
-                            </>
-                          ) : (
-                            <>
-                              <Crown className="w-5 h-5" />
-                              {isActive ? 'Changer de plan' : 'Choisir ce plan'}
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Portal-based quantity modal removed - now using showQuantityModal condition */}
-
-              {/* Info */}
-              <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-sm text-gray-600 text-center">
-                  💳 Paiement sécurisé par Stripe • ✅ Annulation à tout moment • 📧 Support inclus
-                </p>
-              </div>
-            </>
-          )}
+            {/* Info */}
+            <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 text-center">
+                💳 Paiement sécurisé par Stripe • ✅ Annulation à tout moment • 📧 Support inclus
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
