@@ -155,7 +155,7 @@ export default function LandingPage() {
               {/* Floating Badge */}
               <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-full flex items-center justify-center">
                     <TrendingUp className="w-6 h-6 text-white" />
                   </div>
                   <div>
