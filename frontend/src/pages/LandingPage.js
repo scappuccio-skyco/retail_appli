@@ -509,22 +509,37 @@ export default function LandingPage() {
                 )}
               </div>
 
-              <div className="bg-blue-50 rounded-xl p-4 mb-4">
-                <p className="text-sm font-semibold text-[#1E40AF] mb-2">✨ Toutes les fonctionnalités incluses :</p>
-                <p className="text-xs text-[#334155]">Dashboard Manager & Vendeur • Diagnostic DISC • Coaching IA • KPI en temps réel • Objectifs & Challenges • Débriefs • Historique illimité</p>
-              </div>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-4">
                 {[
-                  'Jusqu\'à 15 vendeurs inclus',
-                  'Support prioritaire',
-                  'Onboarding personnalisé'
+                  'Dashboard Manager & Vendeur',
+                  'Diagnostic DISC complet',
+                  'Coaching IA personnalisé',
+                  'Suivi KPI en temps réel',
+                  'Objectifs & Challenges',
+                  'Débriefs de vente intelligents',
+                  'Historique illimité'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                    <span className="text-[#334155] font-medium">{item}</span>
+                    <span className="text-[#334155]">{item}</span>
                   </li>
                 ))}
               </ul>
+              <div className="border-t border-[#F97316] my-4 pt-4">
+                <p className="text-sm font-semibold text-[#F97316] mb-3">Spécificités :</p>
+                <ul className="space-y-3 mb-4">
+                  {[
+                    'Jusqu\'à 15 vendeurs inclus',
+                    'Support prioritaire',
+                    'Onboarding personnalisé'
+                  ].map((item, idx) => (
+                    <li key={idx} className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
+                      <span className="text-[#334155] font-medium">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
               <button
                 onClick={() => scrollToSection('contact')}
