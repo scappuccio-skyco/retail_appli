@@ -1734,6 +1734,21 @@ async def create_diagnostic(diagnostic_data: DiagnosticCreate, current_user: dic
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can create diagnostics")
     
+    # Get manager_id for credit check
+    manager_id = current_user.get('manager_id')
+    if not manager_id:
+        raise HTTPException(status_code=400, detail="Manager not found")
+    
+    # Check and consume AI credits
+    credit_check = await check_and_consume_ai_credits(
+        manager_id, 
+        "diagnostic_seller",
+        {"seller_id": current_user['id'], "seller_name": current_user.get('name')}
+    )
+    
+    if not credit_check['success']:
+        raise HTTPException(status_code=402, detail=credit_check['message'])
+    
     # Check if diagnostic already exists - if yes, delete it to allow update
     existing = await db.diagnostics.find_one({"seller_id": current_user['id']}, {"_id": 0})
     if existing:
