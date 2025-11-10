@@ -131,9 +131,12 @@ export default function SubscriptionModal({ onClose }) {
       
       // Redirect to Stripe Checkout
       if (response.data.url) {
-        setTimeout(() => {
-          window.location.href = response.data.url;
-        }, 100);
+        // Close modal immediately before redirect to prevent black screen
+        setSelectedPlan(null);
+        setProcessingPlan(null);
+        
+        // Use location.replace instead of href for cleaner redirect
+        window.location.replace(response.data.url);
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
