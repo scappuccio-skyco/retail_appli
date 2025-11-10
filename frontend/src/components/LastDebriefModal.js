@@ -5,7 +5,7 @@ export default function LastDebriefModal({ debrief, onClose }) {
   if (!debrief) return null;
 
   return (
-    <div onClick={onClose} className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-8">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-blue-400 p-6 rounded-t-2xl relative">

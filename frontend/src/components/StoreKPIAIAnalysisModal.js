@@ -94,7 +94,7 @@ export default function StoreKPIAIAnalysisModal({
   };
 
   return (
-    <div onClick={onClose} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
