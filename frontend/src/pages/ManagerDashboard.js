@@ -828,6 +828,11 @@ export default function ManagerDashboard({ user, onLogout }) {
           </div>
         </div>
       )}
+
+      {/* Subscription Modal */}
+      {showSubscriptionModal && (
+        <SubscriptionModal onClose={() => setShowSubscriptionModal(false)} />
+      )}
     </div>
   );
 }
