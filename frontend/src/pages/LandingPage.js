@@ -105,7 +105,7 @@ export default function LandingPage() {
               
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
                 Transformez Vos Vendeurs en{' '}
-                <span className="bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
                   Experts
                 </span>
               </h1>
