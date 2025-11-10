@@ -16,7 +16,7 @@ export default function Login({ onLogin }) {
     name: '',
     email: '',
     password: '',
-    role: 'seller',
+    role: inviteToken ? 'seller' : 'manager',  // Manager pour inscription publique, Seller pour invitation
     invitation_token: inviteToken || ''
   });
   const [loading, setLoading] = useState(false);
