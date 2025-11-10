@@ -705,6 +705,9 @@ async def register(user_data: UserCreate):
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     
+    # Force role to 'manager' for public registration (sellers are invited)
+    user_data.role = "manager"
+    
     # Hash password
     hashed_pw = hash_password(user_data.password)
     
