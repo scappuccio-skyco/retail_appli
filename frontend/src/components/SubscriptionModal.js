@@ -86,7 +86,9 @@ export default function SubscriptionModal({ onClose }) {
       const response = await axios.get(`${API}/api/manager/sellers`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setSellerCount(response.data.length);
+      if (isMounted) {
+        setSellerCount(response.data.length);
+      }
     } catch (error) {
       console.error('Error fetching sellers:', error);
     }
