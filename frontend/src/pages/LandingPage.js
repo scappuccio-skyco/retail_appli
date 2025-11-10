@@ -25,34 +25,34 @@ export default function LandingPage() {
             {/* Logo */}
             <div className="flex items-center gap-3">
               <img src="/logo-retail-performer.png" alt="Retail Performer AI" className="h-12 w-auto" />
-              <span className="text-xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
                 Retail Performer AI
               </span>
             </div>
 
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-8">
-              <button onClick={() => scrollToSection('features')} className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
+              <button onClick={() => scrollToSection('features')} className="text-gray-700 hover:text-amber-600 transition-colors font-medium">
                 Fonctionnalités
               </button>
-              <button onClick={() => scrollToSection('pricing')} className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
+              <button onClick={() => scrollToSection('pricing')} className="text-gray-700 hover:text-amber-600 transition-colors font-medium">
                 Tarifs
               </button>
-              <button onClick={() => scrollToSection('faq')} className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
+              <button onClick={() => scrollToSection('faq')} className="text-gray-700 hover:text-amber-600 transition-colors font-medium">
                 FAQ
               </button>
-              <button onClick={() => scrollToSection('contact')} className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
+              <button onClick={() => scrollToSection('contact')} className="text-gray-700 hover:text-amber-600 transition-colors font-medium">
                 Contact
               </button>
               <button
                 onClick={() => navigate('/login')}
-                className="px-4 py-2 text-orange-600 border border-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-medium"
+                className="px-4 py-2 text-amber-600 border-2 border-amber-600 rounded-lg hover:bg-amber-50 transition-colors font-medium"
               >
                 Connexion
               </button>
               <button
                 onClick={() => scrollToSection('pricing')}
-                className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-lg hover:shadow-lg transition-all font-medium"
+                className="px-6 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-white rounded-lg hover:shadow-lg transition-all font-medium"
               >
                 Essai Gratuit
               </button>
