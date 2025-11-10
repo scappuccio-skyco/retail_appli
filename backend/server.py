@@ -800,12 +800,12 @@ async def create_invitation(invite_data: InvitationCreate, current_user: dict = 
             detail=f"Abonnement requis pour inviter des vendeurs. {access_info.get('message', '')}"
         )
     
-    # Check seller limit (15 max)
-    can_add = await check_can_add_seller(current_user['id'])
-    if not can_add:
+    # Check seller limit
+    seller_check = await check_can_add_seller(current_user['id'])
+    if not seller_check['can_add']:
         raise HTTPException(
             status_code=400, 
-            detail=f"Limite atteinte : vous ne pouvez pas avoir plus de {MAX_SELLERS_PER_MANAGER} vendeurs"
+            detail=f"Limite atteinte : vous avez {seller_check['current']} vendeur(s) sur un maximum de {seller_check['max']} pour votre plan"
         )
     
     # Check if user with this email already exists
