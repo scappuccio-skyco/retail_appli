@@ -576,10 +576,14 @@ export default function LandingPage() {
 
           {/* Pricing Footer */}
           <div className="text-center mt-12">
-            <p className="text-gray-600 mb-4">
-              <span className="font-semibold">Réduction annuelle : -20%</span> sur tous les plans
-            </p>
-            <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
+            {isAnnual && (
+              <div className="inline-block mb-6 px-6 py-3 bg-green-50 border-2 border-green-200 rounded-xl">
+                <p className="text-green-800 font-bold text-lg">
+                  🎉 Vous économisez jusqu'à 20% avec le paiement annuel !
+                </p>
+              </div>
+            )}
+            <div className="flex items-center justify-center gap-6 text-sm text-gray-600 flex-wrap">
               <div className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-green-500" />
                 <span>14 jours d'essai gratuit</span>
@@ -592,6 +596,12 @@ export default function LandingPage() {
                 <Check className="w-5 h-5 text-green-500" />
                 <span>Résiliation à tout moment</span>
               </div>
+              {isAnnual && (
+                <div className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-500" />
+                  <span className="font-semibold">Facturation annuelle</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
