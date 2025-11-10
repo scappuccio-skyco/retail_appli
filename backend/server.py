@@ -5176,13 +5176,14 @@ async def create_checkout_session(
         transaction = PaymentTransaction(
             user_id=current_user['id'],
             session_id=session.session_id,
-            amount=plan_info['price'],
+            amount=expected_amount,
             currency=plan_info['currency'],
             plan=checkout_data.plan,
             payment_status="pending",
             metadata={
                 "user_email": current_user['email'],
-                "plan_name": plan_info['name']
+                "plan_name": plan_info['name'],
+                "seller_count": quantity
             }
         )
         
