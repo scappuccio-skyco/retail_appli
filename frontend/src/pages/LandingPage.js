@@ -310,14 +310,12 @@ export default function LandingPage() {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 bg-gradient-to-br from-gray-100 to-gray-200 p-12 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center">
-                    <TrendingUp className="w-12 h-12 text-white" />
-                  </div>
-                  <h4 className="text-2xl font-bold text-gray-700 mb-2">Dashboard Manager</h4>
-                  <p className="text-gray-600">Vue complète des performances en temps réel</p>
-                </div>
+              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100">
+                <img 
+                  src="/screenshot3.png" 
+                  alt="Dashboard Manager - Vue d'ensemble KPI"
+                  className="w-full h-auto"
+                />
               </div>
             </div>
 
