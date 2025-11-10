@@ -737,9 +737,11 @@ export default function ManagerDashboard({ user, onLogout }) {
       {showManagerDiagnostic && (
         <ManagerDiagnosticForm
           onClose={() => setShowManagerDiagnostic(false)}
-          onSuccess={() => {
+          onSuccess={async () => {
             setShowManagerDiagnostic(false);
-            fetchManagerDiagnostic();
+            await fetchManagerDiagnostic();
+            // Ouvrir automatiquement le modal du profil après la soumission
+            setShowManagerProfileModal(true);
           }}
         />
       )}
