@@ -126,22 +126,7 @@ export default function Login({ onLogin }) {
               </div>
             )}
 
-            {isRegister && !inviteToken && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Rôle
-                </label>
-                <select
-                  data-testid="role-select"
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1E40AF] focus:border-transparent transition-all"
-                >
-                  <option value="seller">Vendeur</option>
-                  <option value="manager">Manager</option>
-                </select>
-              </div>
-            )}
+            {/* Role is always 'manager' for public registration */}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
