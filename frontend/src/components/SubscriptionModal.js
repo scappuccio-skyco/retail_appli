@@ -120,7 +120,7 @@ export default function SubscriptionModal({ onClose }) {
       return;
     }
     
-    // Instead of nested modal, close main modal and open quantity modal
+    // Set up quantity modal
     setSelectedPlan(plan);
     const minQuantity = Math.max(sellerCount, planInfo.minSellers);
     setSelectedQuantity(minQuantity);
