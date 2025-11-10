@@ -31,16 +31,16 @@ export default function LandingPage() {
 
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-8">
-              <button onClick={() => scrollToSection('features')} className="text-gray-700 hover:text-cyan-600 transition-colors font-medium">
+              <button onClick={() => scrollToSection('features')} className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
                 Fonctionnalités
               </button>
-              <button onClick={() => scrollToSection('pricing')} className="text-gray-700 hover:text-cyan-600 transition-colors font-medium">
+              <button onClick={() => scrollToSection('pricing')} className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
                 Tarifs
               </button>
-              <button onClick={() => scrollToSection('faq')} className="text-gray-700 hover:text-cyan-600 transition-colors font-medium">
+              <button onClick={() => scrollToSection('faq')} className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
                 FAQ
               </button>
-              <button onClick={() => scrollToSection('contact')} className="text-gray-700 hover:text-cyan-600 transition-colors font-medium">
+              <button onClick={() => scrollToSection('contact')} className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
                 Contact
               </button>
               <button
@@ -81,10 +81,10 @@ export default function LandingPage() {
               <button onClick={() => scrollToSection('contact')} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-lg">
                 Contact
               </button>
-              <button onClick={() => navigate('/login')} className="block w-full text-left px-4 py-2 text-cyan-600 font-medium">
+              <button onClick={() => navigate('/login')} className="block w-full text-left px-4 py-2 text-orange-600 font-medium">
                 Connexion
               </button>
-              <button onClick={() => scrollToSection('pricing')} className="block w-full px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-medium">
+              <button onClick={() => scrollToSection('pricing')} className="block w-full px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-lg font-medium">
                 Essai Gratuit
               </button>
             </div>
@@ -383,7 +383,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-cyan-50 via-blue-50 to-purple-50">
+      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -392,9 +392,9 @@ export default function LandingPage() {
             <p className="text-xl text-gray-600 mb-4">
               Choisissez la formule qui correspond à votre équipe
             </p>
-            <div className="inline-flex items-center gap-3 bg-cyan-50 border border-cyan-200 rounded-full px-6 py-3">
-              <Users className="w-5 h-5 text-cyan-600" />
-              <p className="text-sm font-semibold text-cyan-900">
+            <div className="inline-flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-full px-6 py-3">
+              <Users className="w-5 h-5 text-orange-600" />
+              <p className="text-sm font-semibold text-orange-900">
                 Toutes les formules incluent : Espace Manager complet + Accès vendeurs illimités
               </p>
             </div>
@@ -438,9 +438,9 @@ export default function LandingPage() {
             </div>
 
             {/* Professional - RECOMMENDED */}
-            <div className="bg-white rounded-2xl p-8 shadow-2xl border-4 border-cyan-500 relative transform md:scale-105">
+            <div className="bg-white rounded-2xl p-8 shadow-2xl border-4 border-orange-500 relative transform md:scale-105">
               <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-                <div className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
+                <div className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
                   <Star className="w-4 h-4" />
                   RECOMMANDÉ
                 </div>
@@ -450,10 +450,10 @@ export default function LandingPage() {
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
                 <p className="text-gray-600 mb-4">Pour magasins moyens</p>
                 <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-5xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">249€</span>
+                  <span className="text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">249€</span>
                   <span className="text-gray-600">/mois</span>
                 </div>
-                <p className="text-sm text-cyan-600 font-semibold mt-2">Jusqu'à 15 vendeurs inclus</p>
+                <p className="text-sm text-orange-600 font-semibold mt-2">Jusqu'à 15 vendeurs inclus</p>
               </div>
 
               <ul className="space-y-3 mb-8">
@@ -467,7 +467,7 @@ export default function LandingPage() {
                   'Support prioritaire + onboarding'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-cyan-500 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-orange-500 flex-shrink-0" />
                     <span className="text-gray-700 font-medium">{item}</span>
                   </li>
                 ))}
@@ -475,7 +475,7 @@ export default function LandingPage() {
 
               <button
                 onClick={() => scrollToSection('contact')}
-                className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
               >
                 Essai Gratuit 14 Jours
               </button>
@@ -602,22 +602,22 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-cyan-500 to-blue-600">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-yellow-500 to-orange-600">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Prêt à Transformer Votre Équipe ?
           </h2>
-          <p className="text-xl text-cyan-50 mb-8">
+          <p className="text-xl text-orange-50 mb-8">
             Rejoignez les managers qui font déjà confiance à Retail Performer AI
           </p>
           <button
             onClick={() => scrollToSection('contact')}
-            className="px-8 py-4 bg-white text-cyan-600 text-lg font-semibold rounded-xl hover:shadow-2xl transition-all inline-flex items-center gap-2"
+            className="px-8 py-4 bg-white text-orange-600 text-lg font-semibold rounded-xl hover:shadow-2xl transition-all inline-flex items-center gap-2"
           >
             Commencer l'Essai Gratuit
             <ArrowRight className="w-5 h-5" />
           </button>
-          <p className="text-cyan-50 text-sm mt-4">
+          <p className="text-orange-50 text-sm mt-4">
             14 jours gratuits • Sans carte bancaire • Résiliation à tout moment
           </p>
         </div>
@@ -674,7 +674,7 @@ export default function LandingPage() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                  className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
                 >
                   Envoyer la Demande
                 </button>
@@ -683,12 +683,12 @@ export default function LandingPage() {
 
             {/* Contact Info */}
             <div className="space-y-8">
-              <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl p-8 border border-cyan-100">
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-8 border border-orange-100">
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Informations de Contact</h3>
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm font-medium text-gray-500 mb-1">Email</p>
-                    <a href="mailto:contact@retailperformerai.com" className="text-cyan-600 font-semibold hover:underline">
+                    <a href="mailto:contact@retailperformerai.com" className="text-orange-600 font-semibold hover:underline">
                       contact@retailperformerai.com
                     </a>
                   </div>
