@@ -292,8 +292,8 @@ export default function LandingPage() {
             {/* Screenshot 1 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">Dashboard Manager</h3>
-                <p className="text-lg text-gray-600 mb-6">
+                <h3 className="text-3xl font-bold text-blue-950 mb-4">Dashboard Manager</h3>
+                <p className="text-lg text-slate-700 mb-6">
                   Visualisez la performance de votre équipe en un coup d'œil. 
                   KPI, comparaisons, graphiques et alertes intelligentes.
                 </p>
@@ -305,13 +305,13 @@ export default function LandingPage() {
                     'Export PDF des rapports'
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">{item}</span>
+                      <Check className="w-5 h-5 text-amber-600" />
+                      <span className="text-slate-700">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100">
+              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-100">
                 <img 
                   src="/screenshot3.png" 
                   alt="Dashboard Manager - Vue d'ensemble KPI"
@@ -323,8 +323,8 @@ export default function LandingPage() {
             {/* Screenshot 2 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div className="md:order-2">
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">Profils Vendeurs Intelligents</h3>
-                <p className="text-lg text-gray-600 mb-6">
+                <h3 className="text-3xl font-bold text-blue-950 mb-4">Profils Vendeurs Intelligents</h3>
+                <p className="text-lg text-slate-700 mb-6">
                   Diagnostic DISC complet, points forts, axes d'amélioration et coaching personnalisé par l'IA.
                 </p>
                 <ul className="space-y-3">
@@ -335,13 +335,13 @@ export default function LandingPage() {
                     'Historique de progression'
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">{item}</span>
+                      <Check className="w-5 h-5 text-amber-600" />
+                      <span className="text-slate-700">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="md:order-1 rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100">
+              <div className="md:order-1 rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-100">
                 <img 
                   src="/screenshot1.png" 
                   alt="Bilan Individuel - Analyse de compétences"
@@ -353,8 +353,8 @@ export default function LandingPage() {
             {/* Screenshot 3 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">Gamification & Challenges</h3>
-                <p className="text-lg text-gray-600 mb-6">
+                <h3 className="text-3xl font-bold text-blue-950 mb-4">Gamification & Challenges</h3>
+                <p className="text-lg text-slate-700 mb-6">
                   Créez des challenges motivants, suivez les progrès en temps réel et célébrez les victoires d'équipe.
                 </p>
                 <ul className="space-y-3">
@@ -365,13 +365,13 @@ export default function LandingPage() {
                     'Notifications de succès'
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">{item}</span>
+                      <Check className="w-5 h-5 text-amber-600" />
+                      <span className="text-slate-700">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100">
+              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-100">
                 <img 
                   src="/screenshot2.png" 
                   alt="Coach IA - Défis personnalisés"
