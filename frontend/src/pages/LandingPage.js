@@ -154,14 +154,14 @@ export default function LandingPage() {
                 />
               </div>
               {/* Floating Badge */}
-              <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+              <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-6 border border-blue-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-full flex items-center justify-center">
                     <TrendingUp className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">+47%</p>
-                    <p className="text-sm text-gray-600">Performance moyenne</p>
+                    <p className="text-2xl font-bold text-blue-900">+47%</p>
+                    <p className="text-sm text-slate-600">Performance moyenne</p>
                   </div>
                 </div>
               </div>
