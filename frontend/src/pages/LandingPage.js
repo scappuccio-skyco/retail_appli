@@ -411,9 +411,10 @@ export default function LandingPage() {
 
               <ul className="space-y-3 mb-8">
                 {[
-                  'Diagnostic DISC + Profil',
-                  'Suivi KPI complet',
-                  'Dashboard manager',
+                  'Accès Manager + Vendeurs',
+                  'Dashboard manager complet',
+                  'Diagnostic DISC par vendeur',
+                  'Suivi KPI en temps réel',
                   'Objectifs individuels',
                   'Support email'
                 ].map((item, idx) => (
