@@ -729,7 +729,10 @@ async def register(user_data: UserCreate):
             plan="starter",  # Default to starter plan
             status="trialing",
             trial_start=trial_start,
-            trial_end=trial_end
+            trial_end=trial_end,
+            ai_credits_remaining=TRIAL_AI_CREDITS,  # 100 crédits pour l'essai
+            ai_credits_used_this_month=0,
+            last_credit_reset=trial_start
         )
         
         sub_doc = subscription.model_dump()
@@ -741,6 +744,8 @@ async def register(user_data: UserCreate):
             sub_doc['current_period_start'] = sub_doc['current_period_start'].isoformat()
         if sub_doc.get('current_period_end'):
             sub_doc['current_period_end'] = sub_doc['current_period_end'].isoformat()
+        if sub_doc.get('last_credit_reset'):
+            sub_doc['last_credit_reset'] = sub_doc['last_credit_reset'].isoformat()
         
         await db.subscriptions.insert_one(sub_doc)
     
