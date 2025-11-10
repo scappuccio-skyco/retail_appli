@@ -4830,10 +4830,28 @@ async def check_subscription_access(user_id: str) -> dict:
     
     return {"has_access": False, "status": sub['status'], "message": "Abonnement inactif"}
 
-async def check_can_add_seller(user_id: str) -> bool:
-    """Check if manager can add more sellers (max 15)"""
+async def check_can_add_seller(user_id: str) -> dict:
+    """Check if manager can add more sellers based on subscription plan"""
     seller_count = await db.users.count_documents({"manager_id": user_id, "role": "seller"})
-    return seller_count < MAX_SELLERS_PER_MANAGER
+    sub = await get_user_subscription(user_id)
+    
+    if not sub:
+        return {"can_add": False, "reason": "Aucun abonnement", "current": seller_count, "max": 0}
+    
+    # During trial, use trial limit
+    if sub['status'] == 'trialing':
+        max_sellers = MAX_SELLERS_TRIAL
+        can_add = seller_count < max_sellers
+        return {"can_add": can_add, "reason": "trial", "current": seller_count, "max": max_sellers}
+    
+    # After trial, use plan limit
+    if sub['status'] == 'active':
+        plan = sub.get('plan', 'starter')
+        max_sellers = STRIPE_PLANS[plan]['max_sellers']
+        can_add = seller_count < max_sellers
+        return {"can_add": can_add, "reason": f"plan_{plan}", "current": seller_count, "max": max_sellers}
+    
+    return {"can_add": False, "reason": "subscription_inactive", "current": seller_count, "max": 0}
 
 # ===== STRIPE PAYMENT ENDPOINTS =====
 
