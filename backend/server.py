@@ -41,6 +41,7 @@ STRIPE_PLANS = {
         "name": "Starter",
         "price_per_seller": 29.0,  # 29€ par vendeur/mois (1-5 vendeurs)
         "currency": "eur",
+        "min_sellers": 1,
         "max_sellers": 5,
         "ai_credits_monthly": 500
     },
@@ -48,6 +49,7 @@ STRIPE_PLANS = {
         "name": "Professional",
         "price_per_seller": 25.0,  # 25€ par vendeur/mois (6-15 vendeurs, dégressif)
         "currency": "eur",
+        "min_sellers": 6,
         "max_sellers": 15,
         "ai_credits_monthly": 1500
     },
@@ -55,6 +57,7 @@ STRIPE_PLANS = {
         "name": "Enterprise",
         "price": None,  # Sur devis
         "currency": "eur",
+        "min_sellers": 16,
         "max_sellers": 100,  # Illimité en pratique
         "ai_credits_monthly": 10000
     }
