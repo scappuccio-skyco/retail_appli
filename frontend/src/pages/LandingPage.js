@@ -792,7 +792,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="bg-blue-950 text-white py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             {/* Company */}
@@ -801,43 +801,43 @@ export default function LandingPage() {
                 <img src="/logo-retail-performer.png" alt="Retail Performer AI" className="h-10 w-auto" />
                 <span className="text-xl font-bold">Retail Performer AI</span>
               </div>
-              <p className="text-gray-400 text-sm">
+              <p className="text-slate-300 text-sm">
                 La plateforme de coaching intelligente pour les équipes retail
               </p>
             </div>
 
             {/* Product */}
             <div>
-              <h4 className="font-bold mb-4">Produit</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><button onClick={() => scrollToSection('features')} className="hover:text-white transition-colors">Fonctionnalités</button></li>
-                <li><button onClick={() => scrollToSection('pricing')} className="hover:text-white transition-colors">Tarifs</button></li>
-                <li><button onClick={() => navigate('/login')} className="hover:text-white transition-colors">Se connecter</button></li>
+              <h4 className="font-bold mb-4 text-amber-400">Produit</h4>
+              <ul className="space-y-2 text-sm text-slate-300">
+                <li><button onClick={() => scrollToSection('features')} className="hover:text-amber-300 transition-colors">Fonctionnalités</button></li>
+                <li><button onClick={() => scrollToSection('pricing')} className="hover:text-amber-300 transition-colors">Tarifs</button></li>
+                <li><button onClick={() => navigate('/login')} className="hover:text-amber-300 transition-colors">Se connecter</button></li>
               </ul>
             </div>
 
             {/* Support */}
             <div>
-              <h4 className="font-bold mb-4">Support</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><button onClick={() => scrollToSection('faq')} className="hover:text-white transition-colors">FAQ</button></li>
-                <li><button onClick={() => scrollToSection('contact')} className="hover:text-white transition-colors">Contact</button></li>
-                <li><a href="mailto:contact@retailperformerai.com" className="hover:text-white transition-colors">Email</a></li>
+              <h4 className="font-bold mb-4 text-amber-400">Support</h4>
+              <ul className="space-y-2 text-sm text-slate-300">
+                <li><button onClick={() => scrollToSection('faq')} className="hover:text-amber-300 transition-colors">FAQ</button></li>
+                <li><button onClick={() => scrollToSection('contact')} className="hover:text-amber-300 transition-colors">Contact</button></li>
+                <li><a href="mailto:contact@retailperformerai.com" className="hover:text-amber-300 transition-colors">Email</a></li>
               </ul>
             </div>
 
             {/* Legal */}
             <div>
-              <h4 className="font-bold mb-4">Légal</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Mentions légales</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Confidentialité</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">CGU</a></li>
+              <h4 className="font-bold mb-4 text-amber-400">Légal</h4>
+              <ul className="space-y-2 text-sm text-slate-300">
+                <li><a href="#" className="hover:text-amber-300 transition-colors">Mentions légales</a></li>
+                <li><a href="#" className="hover:text-amber-300 transition-colors">Confidentialité</a></li>
+                <li><a href="#" className="hover:text-amber-300 transition-colors">CGU</a></li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
+          <div className="border-t border-blue-800 pt-8 text-center text-sm text-slate-400">
             <p>© 2025 Retail Performer AI. Tous droits réservés.</p>
             <p className="mt-2">25 allée Rose Dieng-Kuntz, 75019 Paris, France</p>
           </div>
