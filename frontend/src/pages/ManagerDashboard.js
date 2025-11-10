@@ -163,31 +163,32 @@ export default function ManagerDashboard({ user, onLogout }) {
   }, [kpiConfig]);
 
   useEffect(() => {
-    fetchData();
-    fetchManagerDiagnostic();
-    fetchTeamBilan();
-    fetchKpiConfig();
-    fetchActiveChallenges();
-    fetchActiveObjectives();
-    fetchStoreKPIStats();
-    
-    // Handle Stripe checkout return
-    handleStripeCheckoutReturn();
-  }, []);
-
-  const handleStripeCheckoutReturn = async () => {
-    // Check if returning from Stripe checkout
+    // Check for Stripe return FIRST before loading anything else
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session_id');
     
-    if (!sessionId) return;
-    
+    if (sessionId) {
+      // Handle Stripe return - don't load dashboard data yet
+      handleStripeCheckoutReturn(sessionId);
+    } else {
+      // Normal dashboard load
+      fetchData();
+      fetchManagerDiagnostic();
+      fetchTeamBilan();
+      fetchKpiConfig();
+      fetchActiveChallenges();
+      fetchActiveObjectives();
+      fetchStoreKPIStats();
+    }
+  }, []);
+
+  const handleStripeCheckoutReturn = async (sessionId) => {
     try {
       // Clean URL immediately to prevent reprocessing
       window.history.replaceState({}, document.title, '/dashboard');
       
       // Show loading toast
-      const loadingToast = toast.loading('Vérification du paiement...');
+      const loadingToast = toast.loading('🔄 Vérification du paiement en cours...');
       
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API}/checkout/status/${sessionId}`, {
@@ -201,7 +202,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           duration: 5000
         });
         
-        // Refresh subscription data
+        // Reload to show updated subscription data
         setTimeout(() => {
           window.location.reload();
         }, 2000);
@@ -209,16 +210,40 @@ export default function ManagerDashboard({ user, onLogout }) {
         toast.info('⏳ Paiement en cours de traitement...', {
           duration: 5000
         });
+        // Load dashboard normally
+        fetchData();
+        fetchManagerDiagnostic();
+        fetchTeamBilan();
+        fetchKpiConfig();
+        fetchActiveChallenges();
+        fetchActiveObjectives();
+        fetchStoreKPIStats();
       } else {
         toast.error('❌ Le paiement n\'a pas pu être confirmé. Contactez le support si le problème persiste.', {
           duration: 6000
         });
+        // Load dashboard normally
+        fetchData();
+        fetchManagerDiagnostic();
+        fetchTeamBilan();
+        fetchKpiConfig();
+        fetchActiveChallenges();
+        fetchActiveObjectives();
+        fetchStoreKPIStats();
       }
     } catch (error) {
       console.error('Error checking payment status:', error);
       toast.error('Erreur lors de la vérification du paiement. Veuillez rafraîchir la page.', {
         duration: 5000
       });
+      // Load dashboard normally even on error
+      fetchData();
+      fetchManagerDiagnostic();
+      fetchTeamBilan();
+      fetchKpiConfig();
+      fetchActiveChallenges();
+      fetchActiveObjectives();
+      fetchStoreKPIStats();
     }
   };
 
