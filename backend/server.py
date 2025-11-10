@@ -5209,7 +5209,7 @@ async def get_checkout_status(
     session_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get checkout session status and update subscription if paid"""
+    """Get checkout session status and update subscription if paid - using native Stripe API"""
     # Find transaction
     transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
     
@@ -5226,51 +5226,77 @@ async def get_checkout_status(
             "transaction": transaction
         }
     
-    # Check status with Stripe
+    # Check status with Stripe using native API
     try:
-        # Use a dummy webhook URL for status check
-        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url="https://dummy.url/webhook")
-        checkout_status: CheckoutStatusResponse = await stripe_checkout.get_checkout_status(session_id)
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
+        # Retrieve checkout session from Stripe
+        session = stripe_lib.checkout.Session.retrieve(session_id)
+        
+        # Determine payment status
+        payment_status = 'pending'
+        if session.payment_status == 'paid':
+            payment_status = 'paid'
+        elif session.payment_status == 'unpaid':
+            payment_status = 'pending'
+        elif session.status == 'expired':
+            payment_status = 'expired'
         
         # Update transaction
         await db.payment_transactions.update_one(
             {"session_id": session_id},
             {"$set": {
-                "payment_status": checkout_status.payment_status,
+                "payment_status": payment_status,
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
         
-        # If payment successful, update subscription
-        if checkout_status.payment_status == 'paid':
+        # If payment successful, activate subscription
+        if payment_status == 'paid':
             # Check if already activated (prevent double activation)
             sub = await db.subscriptions.find_one({"user_id": current_user['id']})
             
-            if sub and sub['status'] not in ['active']:
+            if sub and sub.get('status') != 'active':
                 # Activate subscription
                 now = datetime.now(timezone.utc)
                 period_end = now + timedelta(days=30)  # Monthly subscription
+                
+                # Get plan info for AI credits
+                plan = transaction['plan']
+                plan_info = STRIPE_PLANS.get(plan, STRIPE_PLANS['starter'])
+                ai_credits = plan_info['ai_credits_monthly']
+                
+                # Get actual Stripe subscription ID
+                stripe_subscription_id = session.subscription if hasattr(session, 'subscription') else session_id
                 
                 await db.subscriptions.update_one(
                     {"user_id": current_user['id']},
                     {"$set": {
                         "status": "active",
-                        "plan": transaction['plan'],
+                        "plan": plan,
                         "current_period_start": now.isoformat(),
                         "current_period_end": period_end.isoformat(),
-                        "stripe_subscription_id": session_id,  # Store session as reference
+                        "stripe_subscription_id": stripe_subscription_id,
+                        "ai_credits_remaining": ai_credits,
+                        "ai_credits_used_this_month": 0,
                         "updated_at": now.isoformat()
                     }}
                 )
+                
+                logger.info(f"Subscription activated for user {current_user['id']}, plan: {plan}, credits: {ai_credits}")
         
         return {
-            "status": checkout_status.payment_status,
-            "amount_total": checkout_status.amount_total,
-            "currency": checkout_status.currency,
+            "status": payment_status,
+            "amount_total": session.amount_total / 100 if session.amount_total else 0,  # Convert from cents
+            "currency": session.currency if hasattr(session, 'currency') else 'eur',
             "transaction": transaction
         }
     
     except Exception as e:
+        logger.error(f"Failed to check payment status: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Failed to check payment status: {str(e)}")
 
 @api_router.post("/webhook/stripe")
