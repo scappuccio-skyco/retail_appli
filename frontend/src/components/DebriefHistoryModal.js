@@ -125,7 +125,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief })
                         </div>
 
                         {/* Points à travailler */}
-                        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-l-4 border-orange-500">
+                        <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-l-4 border-[#F97316]">
                           <p className="text-sm font-bold text-orange-900 mb-2 flex items-center gap-2">
                             <span className="text-lg">🎯</span> Points à travailler
                           </p>
@@ -133,7 +133,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief })
                         </div>
 
                         {/* Recommandation */}
-                        <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 border-l-4 border-green-500">
+                        <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 border-l-4 border-[#10B981]">
                           <p className="text-sm font-bold text-green-900 mb-2 flex items-center gap-2">
                             <span className="text-lg">🚀</span> Recommandation
                           </p>

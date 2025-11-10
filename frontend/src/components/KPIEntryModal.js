@@ -452,7 +452,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-orange-100 rounded-full">
-                <AlertTriangle className="w-6 h-6 text-orange-600" />
+                <AlertTriangle className="w-6 h-6 text-[#F97316]" />
               </div>
               <h3 className="text-xl font-bold text-gray-800">Valeurs inhabituelles détectées</h3>
             </div>
@@ -468,7 +468,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                     <div className="flex-1">
                       <p className="font-semibold text-gray-800">{warning.kpi}</p>
                       <p className="text-sm text-gray-600 mt-1">
-                        Valeur saisie : <span className="font-bold text-orange-600">{warning.value}</span>
+                        Valeur saisie : <span className="font-bold text-[#F97316]">{warning.value}</span>
                       </p>
                       <p className="text-sm text-gray-600">
                         Moyenne habituelle : <span className="font-medium">{warning.average}</span>
@@ -509,7 +509,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                   saveKPIData();
                 }}
                 disabled={saving}
-                className="flex-1 py-3 bg-orange-500 text-white rounded-full font-semibold hover:bg-orange-600 disabled:opacity-50"
+                className="flex-1 py-3 bg-[#F97316] text-white rounded-full font-semibold hover:bg-[#F97316] disabled:opacity-50"
               >
                 {saving ? 'Enregistrement...' : 'Confirmer'}
               </button>

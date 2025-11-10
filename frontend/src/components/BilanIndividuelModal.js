@@ -299,7 +299,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
             <button
               onClick={exportToPDF}
               disabled={exportingPDF}
-              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-[#10B981] hover:bg-green-600 text-white font-semibold rounded-lg transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Exporter en PDF"
             >
               <Download className={`w-4 h-4 ${exportingPDF ? 'animate-bounce' : ''}`} />
@@ -320,7 +320,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
             )}
             {kpiConfig?.track_ventes && bilan.kpi_resume.ventes !== undefined && (
               <div className="bg-green-50 rounded-lg p-3">
-                <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
+                <p className="text-xs text-[#10B981] mb-1">🛒 Ventes</p>
                 <p className="text-lg font-bold text-green-900">{bilan.kpi_resume.ventes}</p>
               </div>
             )}
@@ -332,7 +332,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
             )}
             {kpiConfig?.track_articles && bilan.kpi_resume.articles !== undefined && (
               <div className="bg-orange-50 rounded-lg p-3">
-                <p className="text-xs text-orange-600 mb-1">📦 Articles</p>
+                <p className="text-xs text-[#F97316] mb-1">📦 Articles</p>
                 <p className="text-lg font-bold text-orange-900">{bilan.kpi_resume.articles}</p>
               </div>
             )}
@@ -518,13 +518,13 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
           {/* Points forts */}
           <div className="bg-green-50 rounded-xl p-4 mb-4">
             <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-5 h-5 text-green-600" />
+              <TrendingUp className="w-5 h-5 text-[#10B981]" />
               <h3 className="font-bold text-green-900">💪 Tes points forts</h3>
             </div>
             <ul className="space-y-2">
               {bilan.points_forts && bilan.points_forts.map((point, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-green-800">
-                  <span className="text-green-600 mt-1">✓</span>
+                  <span className="text-[#10B981] mt-1">✓</span>
                   <span>{point}</span>
                 </li>
               ))}
@@ -534,13 +534,13 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
           {/* Points d'attention */}
           <div className="bg-orange-50 rounded-xl p-4 mb-4">
             <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="w-5 h-5 text-orange-600" />
+              <AlertTriangle className="w-5 h-5 text-[#F97316]" />
               <h3 className="font-bold text-orange-900">⚠️ Points à améliorer</h3>
             </div>
             <ul className="space-y-2">
               {bilan.points_attention && bilan.points_attention.map((point, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-orange-800">
-                  <span className="text-orange-600 mt-1">!</span>
+                  <span className="text-[#F97316] mt-1">!</span>
                   <span>{point}</span>
                 </li>
               ))}

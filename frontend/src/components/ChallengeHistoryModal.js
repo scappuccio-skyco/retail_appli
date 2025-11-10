@@ -107,7 +107,7 @@ export default function ChallengeHistoryModal({ onClose }) {
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F97316]"></div>
             </div>
           ) : challenges.length === 0 ? (
             <div className="text-center py-12">
@@ -145,7 +145,7 @@ export default function ChallengeHistoryModal({ onClose }) {
                     </div>
 
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full uppercase">
+                      <span className="px-2 py-0.5 bg-[#F97316] text-white text-xs font-bold rounded-full uppercase">
                         {challenge.competence}
                       </span>
                       <h3 className="text-lg font-bold text-gray-900">{challenge.title}</h3>

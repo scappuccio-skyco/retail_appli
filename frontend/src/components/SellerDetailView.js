@@ -537,7 +537,7 @@ export default function SellerDetailView({ seller, onBack }) {
                 )}
                 {kpiConfig && kpiConfig.track_ventes && (
                 <div className="bg-green-50 rounded-xl p-4">
-                  <p className="text-sm text-green-600 mb-2">🛒 Ventes</p>
+                  <p className="text-sm text-[#10B981] mb-2">🛒 Ventes</p>
                   <p className="text-2xl font-bold text-green-900">
                     {(() => {
                       const filteredEntries = kpiFilter === '7j' 
@@ -567,7 +567,7 @@ export default function SellerDetailView({ seller, onBack }) {
                 )}
                 {kpiConfig && kpiConfig.track_ca && kpiConfig.track_ventes && (
                 <div className="bg-orange-50 rounded-xl p-4">
-                  <p className="text-sm text-orange-600 mb-2">🧮 Panier Moyen</p>
+                  <p className="text-sm text-[#F97316] mb-2">🧮 Panier Moyen</p>
                   <p className="text-2xl font-bold text-orange-900">
                     {(() => {
                       const filteredEntries = kpiFilter === '7j' 
@@ -864,11 +864,11 @@ export default function SellerDetailView({ seller, onBack }) {
                           <p className="text-lg font-bold text-purple-900">{debrief.score_accueil || 0}/5</p>
                         </div>
                         <div className="bg-green-50 rounded-lg p-2 text-center">
-                          <p className="text-xs text-green-600">Découverte</p>
+                          <p className="text-xs text-[#10B981]">Découverte</p>
                           <p className="text-lg font-bold text-green-900">{debrief.score_decouverte || 0}/5</p>
                         </div>
                         <div className="bg-orange-50 rounded-lg p-2 text-center">
-                          <p className="text-xs text-orange-600">Argumentation</p>
+                          <p className="text-xs text-[#F97316]">Argumentation</p>
                           <p className="text-lg font-bold text-orange-900">{debrief.score_argumentation || 0}/5</p>
                         </div>
                         <div className="bg-red-50 rounded-lg p-2 text-center">

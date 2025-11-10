@@ -496,7 +496,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       <div className="text-2xl font-bold text-orange-900">
                         {overviewData.sellers_reported} / {overviewData.total_sellers}
                       </div>
-                      <div className="text-xs text-orange-600 mt-0.5">ont saisi leurs KPIs</div>
+                      <div className="text-xs text-[#F97316] mt-0.5">ont saisi leurs KPIs</div>
                     </div>
 
                     <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
@@ -507,7 +507,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                           : 'N/A'
                         }
                       </div>
-                      <div className="text-xs text-green-600 mt-0.5">
+                      <div className="text-xs text-[#10B981] mt-0.5">
                         {overviewData.calculated_kpis?.panier_moyen !== null 
                           ? 'CA / Ventes'
                           : 'Données manquantes'
@@ -1169,7 +1169,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       <button
                         onClick={() => handleKPIUpdate('seller_track_ca', !kpiConfig.seller_track_ca)}
                         className={`w-12 h-8 rounded font-bold text-xs ${
-                          kpiConfig.seller_track_ca ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                          kpiConfig.seller_track_ca ? 'bg-[#10B981] text-white' : 'bg-gray-200 text-gray-500'
                         }`}
                         title="Vendeur"
                       >
@@ -1198,7 +1198,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       <button
                         onClick={() => handleKPIUpdate('seller_track_ventes', !kpiConfig.seller_track_ventes)}
                         className={`w-12 h-8 rounded font-bold text-xs ${
-                          kpiConfig.seller_track_ventes ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                          kpiConfig.seller_track_ventes ? 'bg-[#10B981] text-white' : 'bg-gray-200 text-gray-500'
                         }`}
                       >
                         🧑‍💼
@@ -1225,7 +1225,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       <button
                         onClick={() => handleKPIUpdate('seller_track_clients', !kpiConfig.seller_track_clients)}
                         className={`w-12 h-8 rounded font-bold text-xs ${
-                          kpiConfig.seller_track_clients ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                          kpiConfig.seller_track_clients ? 'bg-[#10B981] text-white' : 'bg-gray-200 text-gray-500'
                         }`}
                       >
                         🧑‍💼
@@ -1252,7 +1252,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       <button
                         onClick={() => handleKPIUpdate('seller_track_articles', !kpiConfig.seller_track_articles)}
                         className={`w-12 h-8 rounded font-bold text-xs ${
-                          kpiConfig.seller_track_articles ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                          kpiConfig.seller_track_articles ? 'bg-[#10B981] text-white' : 'bg-gray-200 text-gray-500'
                         }`}
                       >
                         🧑‍💼
@@ -1279,7 +1279,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       <button
                         onClick={() => handleKPIUpdate('seller_track_prospects', !kpiConfig.seller_track_prospects)}
                         className={`w-12 h-8 rounded font-bold text-xs ${
-                          kpiConfig.seller_track_prospects ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                          kpiConfig.seller_track_prospects ? 'bg-[#10B981] text-white' : 'bg-gray-200 text-gray-500'
                         }`}
                       >
                         🧑‍💼

@@ -247,12 +247,12 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
               </div>
               <div className="bg-white rounded-xl p-2 text-center shadow-sm">
                 <div className="text-2xl mb-1">✅</div>
-                <p className="text-lg font-bold text-green-600">{stats.success_count}</p>
+                <p className="text-lg font-bold text-[#10B981]">{stats.success_count}</p>
                 <p className="text-xs text-gray-600">Réussi{stats.success_count > 1 ? 's' : ''}</p>
               </div>
               <div className="bg-white rounded-xl p-2 text-center shadow-sm">
                 <div className="text-2xl mb-1">💪</div>
-                <p className="text-lg font-bold text-orange-600">{stats.partial_count}</p>
+                <p className="text-lg font-bold text-[#F97316]">{stats.partial_count}</p>
                 <p className="text-xs text-gray-600">Difficile{stats.partial_count > 1 ? 's' : ''}</p>
               </div>
               <div className="bg-white rounded-xl p-2 text-center shadow-sm">
@@ -268,7 +268,7 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
         <div className="flex-1 overflow-y-auto p-6">
           <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-4 border-2 border-orange-200">
             <div className="flex items-center gap-2 mb-2">
-              <span className="px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full">
+              <span className="px-2 py-0.5 bg-[#F97316] text-white text-xs font-bold rounded-full">
                 {challenge.competence.toUpperCase()}
               </span>
               <h3 className="text-base font-bold text-gray-900">{challenge.title}</h3>

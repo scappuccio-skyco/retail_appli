@@ -118,7 +118,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
             </div>
 
             {/* Points à travailler */}
-            <div className="bg-orange-50 border-l-4 border-orange-500 rounded-lg p-4">
+            <div className="bg-orange-50 border-l-4 border-[#F97316] rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">🎯</span>
                 <div className="flex-1">
@@ -129,7 +129,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
             </div>
 
             {/* Recommandation */}
-            <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-4">
+            <div className="bg-green-50 border-l-4 border-[#10B981] rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">🚀</span>
                 <div>
@@ -421,7 +421,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
                   onChange={(e) => handleChange('amelioration_pensee', e.target.value)}
                   placeholder="Partage tes réflexions..."
                   rows={4}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all resize-none shadow-sm"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-[#10B981] transition-all resize-none shadow-sm"
                 />
               </div>
             </div>

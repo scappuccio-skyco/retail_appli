@@ -322,7 +322,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-cyan-400 to-blue-500 p-6 flex justify-between items-center border-b border-gray-200">
+        <div className="sticky top-0 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 flex justify-between items-center border-b border-gray-200">
           <div className="flex items-center gap-3">
             <Settings className="w-8 h-8 text-white" />
             <h2 className="text-3xl font-bold text-white">🎯 Objectifs & Challenges</h2>
@@ -341,7 +341,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
             onClick={() => setActiveTab('objectives')}
             className={`px-6 py-4 font-semibold transition-all ${
               activeTab === 'objectives'
-                ? 'border-b-4 border-cyan-400 text-gray-800'
+                ? 'border-b-4 border-[#1E40AF] text-gray-800'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -351,7 +351,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
             onClick={() => setActiveTab('challenges')}
             className={`px-6 py-4 font-semibold transition-all ${
               activeTab === 'challenges'
-                ? 'border-b-4 border-cyan-400 text-gray-800'
+                ? 'border-b-4 border-[#1E40AF] text-gray-800'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -510,7 +510,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
 
                   <button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all"
+                    className="w-full bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all"
                   >
                     💾 Enregistrer la Configuration
                   </button>
@@ -661,7 +661,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                                           setSelectedVisibleSellers(selectedVisibleSellers.filter(id => id !== seller.id));
                                         }
                                       }}
-                                      className="w-4 h-4 text-green-600"
+                                      className="w-4 h-4 text-[#10B981]"
                                     />
                                     <span className="text-sm text-gray-700">{seller.name}</span>
                                   </label>
@@ -790,7 +790,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           {getAvailableKPIs().length === 0 && (
                             <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 text-center">
                               <p className="text-orange-700 font-semibold">⚠️ Aucun KPI configuré</p>
-                              <p className="text-sm text-orange-600 mt-1">Veuillez d'abord configurer vos KPI dans "KPI Magasin"</p>
+                              <p className="text-sm text-[#F97316] mt-1">Veuillez d'abord configurer vos KPI dans "KPI Magasin"</p>
                             </div>
                           )}
                         </div>
@@ -1155,7 +1155,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                           {getAvailableKPIs().length === 0 && (
                             <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 text-center">
                               <p className="text-orange-700 font-semibold">⚠️ Aucun KPI configuré</p>
-                              <p className="text-sm text-orange-600 mt-1">Veuillez d'abord configurer vos KPI dans "KPI Magasin"</p>
+                              <p className="text-sm text-[#F97316] mt-1">Veuillez d'abord configurer vos KPI dans "KPI Magasin"</p>
                             </div>
                           )}
                         </div>
@@ -1225,7 +1225,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                                         setSelectedVisibleSellersChallenge(selectedVisibleSellersChallenge.filter(id => id !== seller.id));
                                       }
                                     }}
-                                    className="w-4 h-4 text-green-600"
+                                    className="w-4 h-4 text-[#10B981]"
                                   />
                                   <span className="text-sm text-gray-700">{seller.name}</span>
                                 </label>
@@ -1238,7 +1238,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
                       <div className="flex gap-3">
                         <button
                           type="submit"
-                          className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all"
+                          className="flex-1 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all"
                         >
                           {editingChallenge ? '💾 Enregistrer les modifications' : '➕ Créer le Challenge'}
                         </button>
