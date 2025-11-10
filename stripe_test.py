@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Stripe Checkout and Subscription Flow Testing
-Test the critical Stripe integration endpoints as specified in the review request.
+Stripe Adjustable Quantity Feature Testing
+Test the Stripe adjustable quantity feature as specified in the review request.
 """
 
 import requests
