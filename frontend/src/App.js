@@ -152,23 +152,46 @@ function AppContent() {
     <>
       <Toaster position="top-right" richColors />
       <Routes>
+        {/* Landing Page - Public */}
+        <Route
+          path="/"
+          element={<LandingPage />}
+        />
+        
+        {/* Login Page */}
         <Route
           path="/login"
           element={
             user ? (
-              <Navigate to="/" replace />
+              <Navigate to="/dashboard" replace />
             ) : (
               <Login onLogin={handleLogin} />
             )
           }
         />
+        
+        {/* Dashboard - Protected */}
+        <Route
+          path="/dashboard"
+          element={
+            !user ? (
+              <Navigate to="/login" replace />
+            ) : user.role === 'seller' ? (
+              <SellerDashboard user={user} diagnostic={diagnostic} onLogout={handleLogout} />
+            ) : (
+              <ManagerDashboard user={user} onLogout={handleLogout} />
+            )
+          }
+        />
+        
+        {/* Diagnostic - Seller Only */}
         <Route
           path="/diagnostic"
           element={
             !user ? (
               <Navigate to="/login" replace />
             ) : user.role !== 'seller' ? (
-              <Navigate to="/" replace />
+              <Navigate to="/dashboard" replace />
             ) : diagnosticLoading ? (
               <div className="flex items-center justify-center min-h-screen">
                 <div className="text-xl font-medium text-gray-600">Analyse en cours...</div>
@@ -180,27 +203,17 @@ function AppContent() {
             )
           }
         />
+        
+        {/* Manager Settings - Manager Only */}
         <Route
           path="/manager/settings"
           element={
             !user ? (
               <Navigate to="/login" replace />
             ) : user.role !== 'manager' ? (
-              <Navigate to="/" replace />
+              <Navigate to="/dashboard" replace />
             ) : (
               <ManagerSettings />
-            )
-          }
-        />
-        <Route
-          path="/"
-          element={
-            !user ? (
-              <Navigate to="/login" replace />
-            ) : user.role === 'seller' ? (
-              <SellerDashboard user={user} diagnostic={diagnostic} onLogout={handleLogout} />
-            ) : (
-              <ManagerDashboard user={user} onLogout={handleLogout} />
             )
           }
         />
