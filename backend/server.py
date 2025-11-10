@@ -5144,8 +5144,24 @@ async def create_checkout_session(
     cancel_url = f"{checkout_data.origin_url}/dashboard"
     
     # Calculate quantity (number of sellers)
-    # If seller_count is 0, default to 1 to allow subscription
-    quantity = max(seller_count, 1)
+    # Use quantity from request if provided, otherwise default to current seller count (min 1)
+    if checkout_data.quantity is not None:
+        quantity = checkout_data.quantity
+        # Validate quantity is within allowed range
+        min_quantity = max(seller_count, 1)
+        if quantity < min_quantity:
+            raise HTTPException(
+                status_code=400,
+                detail=f"La quantité minimum est {min_quantity} (nombre de vendeurs actuels)"
+            )
+        if quantity > max_sellers:
+            raise HTTPException(
+                status_code=400,
+                detail=f"La quantité maximum pour le plan {plan_info['name']} est {max_sellers}"
+            )
+    else:
+        # If quantity not provided, default to current seller count (min 1)
+        quantity = max(seller_count, 1)
     
     # Calculate expected amount (Stripe graduated pricing will apply automatically)
     expected_amount = quantity * plan_info['price_per_seller']
