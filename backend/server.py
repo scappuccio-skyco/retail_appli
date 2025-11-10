@@ -31,6 +31,25 @@ JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key')
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION = 24  # hours
 
+# Stripe Configuration
+STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
+STRIPE_PLANS = {
+    "starter": {
+        "name": "Starter",
+        "price_id": "price_1SRwA6IiTXd4gOhvT9OrpV03",
+        "price": 29.0,
+        "currency": "eur"
+    },
+    "professional": {
+        "name": "Professional",
+        "price_id": "price_1SRwQRiiTXd4gOhy8UrBYG2s",
+        "price": 249.0,
+        "currency": "eur"
+    }
+}
+TRIAL_DAYS = 14
+MAX_SELLERS_PER_MANAGER = 15
+
 # Security
 security = HTTPBearer()
 
