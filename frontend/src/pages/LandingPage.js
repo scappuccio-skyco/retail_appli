@@ -406,7 +406,7 @@ export default function LandingPage() {
             <div className="inline-flex items-center gap-3 bg-orange-50 border-2 border-[#F97316] rounded-full px-6 py-3">
               <Users className="w-5 h-5 text-[#EA580C]" />
               <p className="text-sm font-semibold text-[#334155]">
-                Toutes les formules incluent : Espace Manager complet + Accès vendeurs illimités
+                Manager gratuit • Tarif dégressif par vendeur
               </p>
             </div>
           </div>
