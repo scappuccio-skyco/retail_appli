@@ -385,8 +385,8 @@ export default function LandingPage() {
               </div>
               <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-[#0066FF]/20">
                 <img 
-                  src="/screenshot2.png" 
-                  alt="Coach IA - Défis personnalisés"
+                  src="/screenshot1.png" 
+                  alt="Bilan Individuel - Analyse de compétences"
                   className="w-full h-auto"
                 />
               </div>
