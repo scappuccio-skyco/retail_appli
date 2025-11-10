@@ -490,11 +490,26 @@ export default function LandingPage() {
               <div className="text-center mb-6 pt-4">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
                 <p className="text-gray-600 mb-4">Pour magasins moyens</p>
-                <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">249€</span>
-                  <span className="text-gray-600">/mois</span>
-                </div>
-                <p className="text-sm text-orange-600 font-semibold mt-2">Jusqu'à 15 vendeurs inclus</p>
+                {!isAnnual ? (
+                  <div>
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">249€</span>
+                      <span className="text-gray-600">/mois</span>
+                    </div>
+                    <p className="text-sm text-orange-600 font-semibold mt-2">Jusqu'à 15 vendeurs inclus</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">2 390€</span>
+                      <span className="text-gray-600">/an</span>
+                    </div>
+                    <p className="text-sm text-green-600 font-semibold mt-2">
+                      Au lieu de 2 988€ • Économisez 598€/an
+                    </p>
+                    <p className="text-xs text-orange-600 font-semibold mt-1">Jusqu'à 15 vendeurs inclus</p>
+                  </div>
+                )}
               </div>
 
               <ul className="space-y-3 mb-8">
