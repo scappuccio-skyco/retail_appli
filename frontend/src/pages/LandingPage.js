@@ -668,22 +668,22 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-yellow-500 to-orange-600">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-900 to-blue-800">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Prêt à Transformer Votre Équipe ?
           </h2>
-          <p className="text-xl text-orange-50 mb-8">
+          <p className="text-xl text-blue-100 mb-8">
             Rejoignez les managers qui font déjà confiance à Retail Performer AI
           </p>
           <button
             onClick={() => scrollToSection('contact')}
-            className="px-8 py-4 bg-white text-orange-600 text-lg font-semibold rounded-xl hover:shadow-2xl transition-all inline-flex items-center gap-2"
+            className="px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-lg font-semibold rounded-xl hover:shadow-2xl transition-all inline-flex items-center gap-2"
           >
             Commencer l'Essai Gratuit
             <ArrowRight className="w-5 h-5" />
           </button>
-          <p className="text-orange-50 text-sm mt-4">
+          <p className="text-blue-100 text-sm mt-4">
             14 jours gratuits • Sans carte bancaire • Résiliation à tout moment
           </p>
         </div>
