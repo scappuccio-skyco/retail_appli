@@ -170,7 +170,57 @@ export default function ManagerDashboard({ user, onLogout }) {
     fetchActiveChallenges();
     fetchActiveObjectives();
     fetchStoreKPIStats();
+    
+    // Handle Stripe checkout return
+    handleStripeCheckoutReturn();
   }, []);
+
+  const handleStripeCheckoutReturn = async () => {
+    // Check if returning from Stripe checkout
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    
+    if (!sessionId) return;
+    
+    try {
+      // Clean URL immediately to prevent reprocessing
+      window.history.replaceState({}, document.title, '/dashboard');
+      
+      // Show loading toast
+      const loadingToast = toast.loading('Vérification du paiement...');
+      
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/checkout/status/${sessionId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.dismiss(loadingToast);
+      
+      if (response.data.status === 'paid') {
+        toast.success('🎉 Paiement réussi ! Votre abonnement est maintenant actif.', {
+          duration: 5000
+        });
+        
+        // Refresh subscription data
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else if (response.data.status === 'pending') {
+        toast.info('⏳ Paiement en cours de traitement...', {
+          duration: 5000
+        });
+      } else {
+        toast.error('❌ Le paiement n\'a pas pu être confirmé. Contactez le support si le problème persiste.', {
+          duration: 6000
+        });
+      }
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      toast.error('Erreur lors de la vérification du paiement. Veuillez rafraîchir la page.', {
+        duration: 5000
+      });
+    }
+  };
 
   const fetchActiveObjectives = async () => {
     try {
