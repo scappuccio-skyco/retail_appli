@@ -73,6 +73,25 @@ export default function SubscriptionModal({ onClose }) {
   };
 
   const handleSubscribe = async (plan) => {
+    // Check if user has too many sellers for Starter plan
+    const planInfo = PLANS[plan];
+    if (sellerCount > planInfo.maxSellers) {
+      const sellersToRemove = sellerCount - planInfo.maxSellers;
+      const confirmed = window.confirm(
+        `⚠️ ATTENTION\n\n` +
+        `Vous avez actuellement ${sellerCount} vendeur(s).\n` +
+        `Le plan ${planInfo.name} est limité à ${planInfo.maxSellers} vendeur(s).\n\n` +
+        `Vous devez supprimer ${sellersToRemove} vendeur(s) avant de souscrire à ce plan.\n\n` +
+        `Souhaitez-vous plutôt choisir le plan Professional (15 vendeurs) ?`
+      );
+      
+      if (confirmed) {
+        // Switch to Professional plan
+        return handleSubscribe('professional');
+      }
+      return;
+    }
+    
     setProcessingPlan(plan);
     
     try {
@@ -96,7 +115,8 @@ export default function SubscriptionModal({ onClose }) {
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
-      alert('Erreur lors de la création de la session de paiement');
+      const errorMessage = error.response?.data?.detail || 'Erreur lors de la création de la session de paiement';
+      alert(errorMessage);
       setProcessingPlan(null);
     }
   };
