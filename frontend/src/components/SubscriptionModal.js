@@ -79,13 +79,12 @@ export default function SubscriptionModal({ onClose }) {
     }
   };
 
-  const handleSubscribe = async (plan) => {
+  const handleSelectPlan = (plan) => {
     // Check if user has too many sellers for Starter plan
     const planInfo = PLANS[plan];
     if (sellerCount > planInfo.maxSellers) {
       const sellersToRemove = sellerCount - planInfo.maxSellers;
       
-      // Use setTimeout to avoid DOM manipulation conflicts
       setTimeout(() => {
         const confirmed = window.confirm(
           `⚠️ ATTENTION\n\n` +
@@ -96,15 +95,23 @@ export default function SubscriptionModal({ onClose }) {
         );
         
         if (confirmed) {
-          // Switch to Professional plan
-          handleSubscribe('professional');
+          handleSelectPlan('professional');
         }
       }, 100);
       
       return;
     }
     
-    setProcessingPlan(plan);
+    // Open quantity selector
+    setSelectedPlan(plan);
+    const minQuantity = Math.max(sellerCount, 1);
+    setSelectedQuantity(minQuantity);
+  };
+
+  const handleProceedToPayment = async () => {
+    if (!selectedPlan) return;
+    
+    setProcessingPlan(selectedPlan);
     
     try {
       const token = localStorage.getItem('token');
@@ -113,15 +120,16 @@ export default function SubscriptionModal({ onClose }) {
       const response = await axios.post(
         `${API}/api/checkout/create-session`,
         {
-          plan: plan,
-          origin_url: originUrl
+          plan: selectedPlan,
+          origin_url: originUrl,
+          quantity: selectedQuantity  // Send selected quantity
         },
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
       
-      // Redirect to Stripe Checkout with slight delay to avoid DOM conflicts
+      // Redirect to Stripe Checkout
       if (response.data.url) {
         setTimeout(() => {
           window.location.href = response.data.url;
@@ -131,11 +139,20 @@ export default function SubscriptionModal({ onClose }) {
       console.error('Error creating checkout session:', error);
       setProcessingPlan(null);
       
-      // Use setTimeout to avoid DOM manipulation conflicts
       setTimeout(() => {
         const errorMessage = error.response?.data?.detail || 'Erreur lors de la création de la session de paiement';
         alert(errorMessage);
       }, 100);
+    }
+  };
+
+  const handleQuantityChange = (delta) => {
+    const planInfo = PLANS[selectedPlan];
+    const minQuantity = Math.max(sellerCount, 1);
+    const newQuantity = selectedQuantity + delta;
+    
+    if (newQuantity >= minQuantity && newQuantity <= planInfo.maxSellers) {
+      setSelectedQuantity(newQuantity);
     }
   };
 
