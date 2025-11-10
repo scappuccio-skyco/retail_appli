@@ -104,8 +104,8 @@ export default function LandingPage() {
                 <span className="text-sm font-semibold text-[#1E40AF]">Propulsé par l'Intelligence Artificielle</span>
               </div>
               
-              <h1 className="text-5xl lg:text-6xl font-bold text-[#334155] leading-tight mb-6">
-                Transformez Vos Vendeurs en{' '}
+              <h1 className="text-5xl lg:text-6xl font-bold leading-tight mb-6">
+                <span className="text-[#1E40AF]">Transformez Vos Vendeurs en</span>{' '}
                 <span className="bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent">
                   Experts
                 </span>
