@@ -23,7 +23,9 @@ export default function LandingPage() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <img src="/logo.jpg" alt="Retail Performer AI" className="h-10 w-10 rounded-full" />
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-yellow-400 via-orange-300 to-yellow-200 flex items-center justify-center shadow-md">
+                <span className="text-gray-800 font-bold text-lg">RP</span>
+              </div>
               <span className="text-xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
                 Retail Performer AI
               </span>
