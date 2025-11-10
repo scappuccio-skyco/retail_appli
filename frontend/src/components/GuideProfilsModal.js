@@ -42,7 +42,20 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('Manager data:', managerRes.data);
-      setManagerProfile(managerRes.data);
+      
+      // Get manager diagnostic to have profil_nom
+      const diagnosticRes = await axios.get(`${API}/api/manager-diagnostic/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('Manager diagnostic:', diagnosticRes.data);
+      
+      // Combine manager data with diagnostic profil_nom
+      const managerWithProfile = {
+        ...managerRes.data,
+        management_style: diagnosticRes.data?.diagnostic?.profil_nom || managerRes.data.management_style || 'Pilote'
+      };
+      console.log('Manager with profile:', managerWithProfile);
+      setManagerProfile(managerWithProfile);
       
       // Get sellers
       const sellersRes = await axios.get(`${API}/api/manager/sellers`, {
