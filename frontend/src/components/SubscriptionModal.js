@@ -371,7 +371,7 @@ export default function SubscriptionModal({ onClose }) {
                       </div>
 
                       <div className="text-center text-sm text-gray-500">
-                        Min: {Math.max(sellerCount, 1)} • Max: {PLANS[selectedPlan].maxSellers}
+                        Min: {Math.max(sellerCount, PLANS[selectedPlan].minSellers)} • Max: {PLANS[selectedPlan].maxSellers}
                       </div>
                     </div>
 
