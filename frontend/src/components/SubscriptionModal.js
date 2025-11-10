@@ -227,8 +227,24 @@ export default function SubscriptionModal({ onClose }) {
                         <span className="font-semibold">Plan {PLANS[currentPlan].name}</span> - Actif
                       </p>
                       <p className="text-sm text-gray-600 mt-1">
-                        Renouvellement le {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
+                        {subscriptionInfo.subscription?.cancel_at_period_end ? (
+                          <>
+                            ⚠️ Annulation programmée - Accès jusqu'au {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
+                          </>
+                        ) : (
+                          <>
+                            Renouvellement le {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
+                          </>
+                        )}
                       </p>
+                      {!subscriptionInfo.subscription?.cancel_at_period_end && (
+                        <button
+                          onClick={handleCancelSubscription}
+                          className="mt-3 text-sm text-red-600 hover:text-red-700 underline"
+                        >
+                          Annuler l'abonnement
+                        </button>
+                      )}
                     </div>
                   )}
                   {subscriptionInfo.status === 'trial_expired' && (
