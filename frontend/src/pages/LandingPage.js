@@ -761,10 +761,10 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              <div className="rounded-2xl overflow-hidden">
+              <div className="rounded-2xl overflow-hidden shadow-lg">
                 <img 
-                  src="https://images.pexels.com/photos/4173191/pexels-photo-4173191.jpeg" 
-                  alt="Customer service"
+                  src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80" 
+                  alt="Service client professionnel et accueillant"
                   className="w-full h-48 object-cover"
                 />
               </div>
