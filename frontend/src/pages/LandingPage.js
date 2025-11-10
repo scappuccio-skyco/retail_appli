@@ -436,18 +436,18 @@ export default function LandingPage() {
                 <p className="text-sm text-slate-500 mt-2">1 à 5 vendeurs</p>
               </div>
 
+              <div className="bg-blue-50 rounded-xl p-4 mb-4">
+                <p className="text-sm font-semibold text-[#1E40AF] mb-2">✨ Toutes les fonctionnalités incluses :</p>
+                <p className="text-xs text-[#334155]">Dashboard Manager & Vendeur • Diagnostic DISC • Coaching IA • KPI en temps réel • Objectifs & Challenges • Débriefs • Historique illimité</p>
+              </div>
               <ul className="space-y-3 mb-8">
                 {[
-                  'Accès Manager + Vendeurs',
-                  'Dashboard manager complet',
-                  'Diagnostic DISC par vendeur',
-                  'Suivi KPI en temps réel',
-                  'Objectifs individuels',
+                  '1 à 5 vendeurs',
                   'Support email'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
-                    <span className="text-[#334155]">{item}</span>
+                    <span className="text-[#334155] font-medium">{item}</span>
                   </li>
                 ))}
               </ul>
