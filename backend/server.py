@@ -5149,28 +5149,28 @@ async def create_checkout_session(
     # Calculate expected amount (Stripe graduated pricing will apply automatically)
     expected_amount = quantity * plan_info['price_per_seller']
     
-    # Initialize Stripe Checkout
-    host_url = checkout_data.origin_url
-    webhook_url = f"{host_url}/api/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-    
-    # Create checkout session request with quantity
-    checkout_request = CheckoutSessionRequest(
-        stripe_price_id=STRIPE_PRICE_ID,  # Use single graduated pricing ID
-        quantity=quantity,  # Number of sellers
-        success_url=success_url,
-        cancel_url=cancel_url,
-        metadata={
-            "user_id": current_user['id'],
-            "email": current_user['email'],
-            "plan": checkout_data.plan,
-            "seller_count": str(quantity)
-        }
-    )
-    
     try:
-        # Create checkout session
-        session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+        # Use Stripe API directly for subscription mode
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
+        # Create checkout session for subscription (not payment)
+        session = stripe_lib.checkout.Session.create(
+            mode='subscription',  # Subscription mode for recurring payments
+            line_items=[{
+                'price': STRIPE_PRICE_ID,
+                'quantity': quantity,
+            }],
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "user_id": current_user['id'],
+                "email": current_user['email'],
+                "plan": checkout_data.plan,
+                "seller_count": str(quantity)
+            },
+            customer_email=current_user['email'],
+        )
         
         # Create payment transaction record
         transaction = PaymentTransaction(
