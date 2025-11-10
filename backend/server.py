@@ -4762,6 +4762,276 @@ async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
             )
             challenge['status'] = new_status
 
+
+
+# ===== STRIPE SUBSCRIPTION HELPERS =====
+async def get_user_subscription(user_id: str) -> Optional[dict]:
+    """Get user's active subscription"""
+    sub = await db.subscriptions.find_one({"user_id": user_id}, {"_id": 0})
+    return sub
+
+async def check_subscription_access(user_id: str) -> dict:
+    """Check if user has access based on subscription status"""
+    sub = await get_user_subscription(user_id)
+    
+    if not sub:
+        return {"has_access": False, "status": "no_subscription", "message": "Aucun abonnement trouvé"}
+    
+    # Check if trial is still active
+    if sub['status'] == 'trialing':
+        trial_end = datetime.fromisoformat(sub['trial_end'])
+        now = datetime.now(timezone.utc)
+        
+        if now < trial_end:
+            days_left = (trial_end - now).days
+            return {
+                "has_access": True, 
+                "status": "trialing", 
+                "days_left": days_left,
+                "trial_end": sub['trial_end'],
+                "plan": sub['plan']
+            }
+        else:
+            # Trial expired, update status
+            await db.subscriptions.update_one(
+                {"user_id": user_id},
+                {"$set": {"status": "trial_expired", "updated_at": datetime.now(timezone.utc).isoformat()}}
+            )
+            return {"has_access": False, "status": "trial_expired", "message": "Votre essai gratuit est terminé"}
+    
+    # Check if active subscription
+    if sub['status'] == 'active':
+        period_end = datetime.fromisoformat(sub['current_period_end']) if sub.get('current_period_end') else None
+        if period_end and datetime.now(timezone.utc) < period_end:
+            return {
+                "has_access": True, 
+                "status": "active", 
+                "period_end": sub['current_period_end'],
+                "plan": sub['plan']
+            }
+    
+    return {"has_access": False, "status": sub['status'], "message": "Abonnement inactif"}
+
+async def check_can_add_seller(user_id: str) -> bool:
+    """Check if manager can add more sellers (max 15)"""
+    seller_count = await db.users.count_documents({"manager_id": user_id, "role": "seller"})
+    return seller_count < MAX_SELLERS_PER_MANAGER
+
+# ===== STRIPE PAYMENT ENDPOINTS =====
+
+@api_router.get("/subscription/status")
+async def get_subscription_status(current_user: dict = Depends(get_current_user)):
+    """Get current user's subscription status"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers have subscriptions")
+    
+    access_info = await check_subscription_access(current_user['id'])
+    sub = await get_user_subscription(current_user['id'])
+    
+    return {
+        **access_info,
+        "subscription": sub
+    }
+
+@api_router.post("/checkout/create-session")
+async def create_checkout_session(
+    checkout_data: CheckoutRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create Stripe checkout session for subscription"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can subscribe")
+    
+    # Validate plan
+    if checkout_data.plan not in STRIPE_PLANS:
+        raise HTTPException(status_code=400, detail="Invalid plan")
+    
+    plan_info = STRIPE_PLANS[checkout_data.plan]
+    
+    # Build URLs from frontend origin
+    success_url = f"{checkout_data.origin_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{checkout_data.origin_url}/dashboard"
+    
+    # Initialize Stripe Checkout
+    host_url = checkout_data.origin_url
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    
+    # Create checkout session request
+    checkout_request = CheckoutSessionRequest(
+        stripe_price_id=plan_info['price_id'],
+        quantity=1,
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "user_id": current_user['id'],
+            "email": current_user['email'],
+            "plan": checkout_data.plan
+        }
+    )
+    
+    try:
+        # Create checkout session
+        session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        # Create payment transaction record
+        transaction = PaymentTransaction(
+            user_id=current_user['id'],
+            session_id=session.session_id,
+            amount=plan_info['price'],
+            currency=plan_info['currency'],
+            plan=checkout_data.plan,
+            payment_status="pending",
+            metadata={
+                "user_email": current_user['email'],
+                "plan_name": plan_info['name']
+            }
+        )
+        
+        trans_doc = transaction.model_dump()
+        trans_doc['created_at'] = trans_doc['created_at'].isoformat()
+        trans_doc['updated_at'] = trans_doc['updated_at'].isoformat()
+        
+        await db.payment_transactions.insert_one(trans_doc)
+        
+        return {
+            "url": session.url,
+            "session_id": session.session_id
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create checkout session: {str(e)}")
+
+@api_router.get("/checkout/status/{session_id}")
+async def get_checkout_status(
+    session_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get checkout session status and update subscription if paid"""
+    # Find transaction
+    transaction = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    if transaction['user_id'] != current_user['id']:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # If already processed, return cached status
+    if transaction['payment_status'] in ['paid', 'failed', 'expired']:
+        return {
+            "status": transaction['payment_status'],
+            "transaction": transaction
+        }
+    
+    # Check status with Stripe
+    try:
+        # Use a dummy webhook URL for status check
+        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url="https://dummy.url/webhook")
+        checkout_status: CheckoutStatusResponse = await stripe_checkout.get_checkout_status(session_id)
+        
+        # Update transaction
+        await db.payment_transactions.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "payment_status": checkout_status.payment_status,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # If payment successful, update subscription
+        if checkout_status.payment_status == 'paid':
+            # Check if already activated (prevent double activation)
+            sub = await db.subscriptions.find_one({"user_id": current_user['id']})
+            
+            if sub and sub['status'] not in ['active']:
+                # Activate subscription
+                now = datetime.now(timezone.utc)
+                period_end = now + timedelta(days=30)  # Monthly subscription
+                
+                await db.subscriptions.update_one(
+                    {"user_id": current_user['id']},
+                    {"$set": {
+                        "status": "active",
+                        "plan": transaction['plan'],
+                        "current_period_start": now.isoformat(),
+                        "current_period_end": period_end.isoformat(),
+                        "stripe_subscription_id": session_id,  # Store session as reference
+                        "updated_at": now.isoformat()
+                    }}
+                )
+        
+        return {
+            "status": checkout_status.payment_status,
+            "amount_total": checkout_status.amount_total,
+            "currency": checkout_status.currency,
+            "transaction": transaction
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to check payment status: {str(e)}")
+
+@api_router.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhooks"""
+    try:
+        body = await request.body()
+        signature = request.headers.get("Stripe-Signature")
+        
+        if not signature:
+            raise HTTPException(status_code=400, detail="Missing Stripe signature")
+        
+        # Initialize Stripe Checkout for webhook handling
+        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url="https://dummy.url/webhook")
+        
+        # Handle webhook
+        webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        
+        # Process based on event type
+        if webhook_response.event_type == "checkout.session.completed":
+            session_id = webhook_response.session_id
+            metadata = webhook_response.metadata
+            
+            # Update transaction
+            await db.payment_transactions.update_one(
+                {"session_id": session_id},
+                {"$set": {
+                    "payment_status": webhook_response.payment_status,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            # Update subscription if payment successful
+            if webhook_response.payment_status == 'paid' and metadata.get('user_id'):
+                user_id = metadata['user_id']
+                plan = metadata.get('plan', 'starter')
+                
+                # Check if already activated
+                sub = await db.subscriptions.find_one({"user_id": user_id})
+                
+                if sub and sub['status'] not in ['active']:
+                    now = datetime.now(timezone.utc)
+                    period_end = now + timedelta(days=30)
+                    
+                    await db.subscriptions.update_one(
+                        {"user_id": user_id},
+                        {"$set": {
+                            "status": "active",
+                            "plan": plan,
+                            "current_period_start": now.isoformat(),
+                            "current_period_end": period_end.isoformat(),
+                            "stripe_subscription_id": session_id,
+                            "updated_at": now.isoformat()
+                        }}
+                    )
+        
+        return {"status": "success"}
+    
+    except Exception as e:
+        logger.error(f"Webhook error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # Add CORS middleware BEFORE including router (critical for proper OPTIONS handling)
 app.add_middleware(
     CORSMiddleware,
