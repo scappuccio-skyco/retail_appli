@@ -473,6 +473,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       ca_total: 0,
       ventes: 0,
       articles: 0,
+      prospects: 0,
       panier_moyen: 0,
       taux_transformation: 0,
       indice_vente: 0
@@ -483,6 +484,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         kpi_resume.ca_total += entry.ca_journalier || 0;
         kpi_resume.ventes += entry.nb_ventes || 0;
         kpi_resume.articles += entry.nb_articles || 0;
+        kpi_resume.prospects += entry.nb_prospects || 0;
       });
 
       // Calculer les moyennes
@@ -492,6 +494,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       
       if (kpi_resume.ventes > 0) {
         kpi_resume.indice_vente = kpi_resume.articles / kpi_resume.ventes;
+      }
+
+      // Calculer le taux de transformation
+      if (kpi_resume.prospects > 0) {
+        kpi_resume.taux_transformation = (kpi_resume.ventes / kpi_resume.prospects) * 100;
       }
     }
 
