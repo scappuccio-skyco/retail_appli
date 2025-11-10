@@ -491,10 +491,11 @@ export default function LandingPage() {
               <ul className="space-y-3 mb-8">
                 {[
                   'Tout Professional +',
+                  'Dashboard réseau consolidé',
                   'Multi-magasins illimité',
                   'API & intégrations',
                   'Account manager dédié',
-                  'Formation équipe',
+                  'Formation équipe management',
                   'SLA personnalisés'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
