@@ -305,7 +305,7 @@ export default function LandingPage() {
                     'Export PDF des rapports'
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-[#F97316]" />
+                      <Check className="w-5 h-5 text-[#10B981]" />
                       <span className="text-[#334155]">{item}</span>
                     </li>
                   ))}
@@ -341,7 +341,7 @@ export default function LandingPage() {
                     'Radar de compétences et progression'
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-[#F97316]" />
+                      <Check className="w-5 h-5 text-[#10B981]" />
                       <span className="text-[#334155]">{item}</span>
                     </li>
                   ))}
@@ -446,7 +446,7 @@ export default function LandingPage() {
                   'Support email'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-[#F97316] flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
                     <span className="text-[#334155]">{item}</span>
                   </li>
                 ))}
@@ -505,7 +505,7 @@ export default function LandingPage() {
                   'Support prioritaire + onboarding'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-[#F97316] flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
                     <span className="text-[#334155] font-medium">{item}</span>
                   </li>
                 ))}
@@ -541,7 +541,7 @@ export default function LandingPage() {
                   'SLA personnalisés'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-blue-700 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
                     <span className="text-[#334155]">{item}</span>
                   </li>
                 ))}
@@ -567,20 +567,20 @@ export default function LandingPage() {
             )}
             <div className="flex items-center justify-center gap-6 text-sm text-[#334155] flex-wrap">
               <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-[#F97316]" />
+                <Check className="w-5 h-5 text-[#10B981]" />
                 <span>14 jours d'essai gratuit</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-[#F97316]" />
+                <Check className="w-5 h-5 text-[#10B981]" />
                 <span>Sans carte bancaire</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-[#F97316]" />
+                <Check className="w-5 h-5 text-[#10B981]" />
                 <span>Résiliation à tout moment</span>
               </div>
               {isAnnual && (
                 <div className="flex items-center gap-2">
-                  <Check className="w-5 h-5 text-[#F97316]" />
+                  <Check className="w-5 h-5 text-[#10B981]" />
                   <span className="font-semibold">Facturation annuelle</span>
                 </div>
               )}
