@@ -329,16 +329,16 @@ export default function LandingPage() {
             {/* Screenshot 2 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div className="md:order-2">
-                <h3 className="text-3xl font-bold text-[#2D3748] mb-4">Profils Vendeurs Intelligents</h3>
+                <h3 className="text-3xl font-bold text-[#2D3748] mb-4">Dashboard Vendeur</h3>
                 <p className="text-lg text-[#2D3748] mb-6">
-                  Diagnostic DISC complet, points forts, axes d'amélioration et coaching personnalisé par l'IA.
+                  Interface personnalisée pour chaque vendeur avec coach IA, défis quotidiens et suivi de performance.
                 </p>
                 <ul className="space-y-3 mb-6">
                   {[
-                    'Profil de personnalité DISC',
-                    'Radar de compétences',
-                    'Recommandations IA',
-                    'Historique de progression'
+                    'Coach IA personnalisé',
+                    'Défis quotidiens motivants',
+                    'Suivi de ses propres KPI',
+                    'Radar de compétences et progression'
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-[#FF6B35]" />
@@ -346,10 +346,10 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <div className="bg-gradient-to-r from-[#FF6B35]/10 to-[#FF8C42]/5 border-l-4 border-[#FF6B35] p-4 rounded-r-lg">
-                  <p className="text-sm font-semibold text-[#FF6B35] mb-2">🤝 Gestion de Conflit Manager-Vendeur</p>
+                <div className="bg-gradient-to-r from-[#0066FF]/10 to-[#0066FF]/5 border-l-4 border-[#0066FF] p-4 rounded-r-lg">
+                  <p className="text-sm font-semibold text-[#0066FF] mb-2">💡 Débriefs de Vente Intelligents</p>
                   <p className="text-sm text-[#2D3748]">
-                    Gérez les situations délicates avec des recommandations IA basées sur les profils DISC, les performances et l'historique de chaque vendeur.
+                    Après chaque vente non conclue, débrief en quelques clics. L'IA analyse la situation et génère des recommandations personnalisées instantanées.
                   </p>
                 </div>
               </div>
