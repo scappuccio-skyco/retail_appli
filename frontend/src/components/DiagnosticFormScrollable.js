@@ -280,6 +280,182 @@ const questions = [
           "Soulagé que tout se soit bien passé sans accroc",
           "Satisfait d'avoir bien respecté toutes les procédures"
         ]
+      },
+      {
+        id: 24,
+        text: "Face à une réclamation client, ton premier réflexe :",
+        type: "choice",
+        options: [
+          "Trouver une solution rapide et concrète immédiatement",
+          "Rassurer le client avec empathie et optimisme",
+          "Écouter calmement sans l'interrompre",
+          "Analyser précisément le problème avant d'agir"
+        ]
+      },
+      {
+        id: 25,
+        text: "Quand ton manager te donne un feedback, tu préfères qu'il soit :",
+        type: "choice",
+        options: [
+          "Direct et factuel, sans détour",
+          "Encourageant et positif avant tout",
+          "Bienveillant et progressif",
+          "Détaillé et constructif avec des exemples"
+        ]
+      },
+      {
+        id: 26,
+        text: "Dans une période de soldes intense, tu es :",
+        type: "choice",
+        options: [
+          "Stimulé par le challenge et la pression",
+          "Motivé par l'énergie collective et l'ambiance",
+          "Concentré sur le maintien d'un bon service malgré le flux",
+          "Attentif à ne commettre aucune erreur de caisse ou de conseil"
+        ]
+      },
+      {
+        id: 27,
+        text: "Ton organisation au quotidien :",
+        type: "choice",
+        options: [
+          "Je fixe des objectifs clairs et j'avance vite",
+          "Je m'adapte spontanément selon les situations",
+          "Je suis mes routines habituelles qui marchent bien",
+          "Je planifie et je structure mes tâches méthodiquement"
+        ]
+      },
+      {
+        id: 28,
+        text: "Avec un client difficile ou agressif, tu :",
+        type: "choice",
+        options: [
+          "Gardes ton autorité et poses les limites fermement",
+          "Utilises l'humour et la légèreté pour désamorcer",
+          "Restes patient et compréhensif sans te laisser déstabiliser",
+          "Restes professionnel et factuel pour éviter l'émotion"
+        ]
+      },
+      {
+        id: 29,
+        text: "Quand tu apprends une nouvelle technique de vente :",
+        type: "choice",
+        options: [
+          "Je l'applique immédiatement pour voir si ça marche",
+          "J'en discute avec les collègues pour échanger",
+          "Je prends le temps de bien l'assimiler à mon rythme",
+          "J'étudie d'abord la logique avant de l'appliquer"
+        ]
+      },
+      {
+        id: 30,
+        text: "Dans ton espace de vente idéal, il y a :",
+        type: "choice",
+        options: [
+          "Des défis quotidiens et des objectifs stimulants",
+          "Une ambiance chaleureuse et des collègues sympas",
+          "Un environnement stable et prévisible",
+          "Des process clairs et une organisation rigoureuse"
+        ]
+      },
+      {
+        id: 31,
+        text: "Pendant un inventaire ou une tâche répétitive, tu :",
+        type: "choice",
+        options: [
+          "Veux terminer le plus vite possible",
+          "Transformes ça en moment convivial avec l'équipe",
+          "Restes concentré et appliqué jusqu'au bout",
+          "T'assures de la précision de chaque comptage"
+        ]
+      },
+      {
+        id: 32,
+        text: "Ta réaction face à un changement d'organisation du magasin :",
+        type: "choice",
+        options: [
+          "Parfait, on avance et on fait évoluer les choses",
+          "Super, du nouveau ça redonne de l'énergie !",
+          "J'ai besoin de temps pour m'adapter",
+          "Je veux comprendre la logique et les raisons"
+        ]
+      },
+      {
+        id: 33,
+        text: "Ce qui décrit le mieux ton style de closing :",
+        type: "choice",
+        options: [
+          "Je suis assertif et je guide vers la décision",
+          "Je crée l'enthousiasme et l'envie d'acheter",
+          "Je respecte le rythme du client sans pression",
+          "Je récapitule factuellement les bénéfices produit"
+        ]
+      },
+      {
+        id: 34,
+        text: "Si tu pouvais choisir ton environnement de travail idéal :",
+        type: "choice",
+        options: [
+          "Dynamique avec des résultats visibles",
+          "Convivial avec beaucoup d'interactions",
+          "Sécurisant avec des routines stables",
+          "Structuré avec des standards de qualité"
+        ]
+      },
+      {
+        id: 35,
+        text: "Face à un objectif commercial très ambitieux :",
+        type: "choice",
+        options: [
+          "Je relève le défi avec détermination",
+          "Je motive l'équipe pour qu'on y arrive ensemble",
+          "Je reste réaliste et fais de mon mieux",
+          "J'établis un plan d'action précis pour l'atteindre"
+        ]
+      },
+      {
+        id: 36,
+        text: "Quand un collègue a besoin d'aide :",
+        type: "choice",
+        options: [
+          "Je lui donne des conseils directs et actionnables",
+          "Je l'encourage et lui remonte le moral",
+          "Je l'écoute attentivement et le soutiens",
+          "Je l'aide à analyser le problème méthodiquement"
+        ]
+      },
+      {
+        id: 37,
+        text: "Dans une situation de conflit entre collègues :",
+        type: "choice",
+        options: [
+          "Je tranche rapidement pour avancer",
+          "J'essaie de détendre l'atmosphère",
+          "Je cherche un compromis qui satisfasse tout le monde",
+          "J'analyse objectivement les faits pour trouver une solution juste"
+        ]
+      },
+      {
+        id: 38,
+        text: "Ton rapport au temps en boutique :",
+        type: "choice",
+        options: [
+          "J'aime l'action et l'efficacité",
+          "Je vis l'instant et les échanges spontanés",
+          "J'apprécie la constance et la régularité",
+          "Je planifie et respecte les timing"
+        ]
+      },
+      {
+        id: 39,
+        text: "Ce qui te rend le plus fier dans ton travail :",
+        type: "choice",
+        options: [
+          "Mes résultats et mes performances",
+          "Les relations que je crée avec les clients",
+          "Ma fiabilité et ma constance",
+          "Mon expertise et mon professionnalisme"
+        ]
       }
     ]
   }
