@@ -6,31 +6,34 @@ const API = process.env.REACT_APP_BACKEND_URL;
 
 const PLANS = {
   starter: {
-    name: 'Starter',
+    name: 'Démarreur',
     price: 29,
     maxSellers: 5,
+    aiCredits: 500,
     features: [
       'Accès Manager + Vendeurs',
       'Dashboard complet',
       'Diagnostic DISC',
       'Suivi KPI en temps réel',
-      'Jusqu\'à 5 vendeurs',
-      'Support par email'
+      '1 à 5 vendeurs',
+      '500 crédits IA/mois inclus',
+      'Support email sous 48h'
     ]
   },
   professional: {
-    name: 'Professional',
+    name: 'Professionnel',
     price: 249,
     maxSellers: 15,
+    aiCredits: 1500,
     features: [
-      'Toutes les fonctionnalités Starter',
+      'Toutes les fonctionnalités Démarreur',
       'Dashboard complet',
       'Diagnostic DISC',
       'Suivi KPI en temps réel',
-      'Jusqu\'à 15 vendeurs',
+      '6 à 15 vendeurs',
+      '1500 crédits IA/mois inclus',
       'Support prioritaire',
-      'Analyses IA avancées',
-      'Rapports personnalisés'
+      'Onboarding personnalisé'
     ]
   }
 };
