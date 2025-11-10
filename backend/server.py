@@ -45,7 +45,7 @@ STRIPE_PLANS = {
     "professional": {
         "name": "Professional",
         "price_id": "price_1SRwQRiiTXd4gOhy8UrBYG2s",
-        "price": 25.0,  # 25€ par siège
+        "price": 249.0,  # 249€/mois
         "currency": "eur",
         "max_sellers": 15,
         "ai_credits_monthly": 1500
