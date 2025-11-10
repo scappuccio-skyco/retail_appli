@@ -1710,8 +1710,10 @@ async def get_my_live_competence_scores(current_user: dict = Depends(get_current
 # ===== MANAGER DIAGNOSTIC =====
 def calculate_disc_profile(disc_responses: dict) -> dict:
     """
-    Calculate DISC profile from responses to questions 11-18 (manager) or 16-23 (seller)
-    Each question has 4 options corresponding to D, I, S, C
+    Calculate DISC profile from responses to DISC questions
+    Manager: questions 11-34 (24 questions)
+    Seller: questions 16-39 (24 questions)
+    Each question has 4 options corresponding to D, I, S, C (Option 0=D, 1=I, 2=S, 3=C)
     """
     disc_scores = {'D': 0, 'I': 0, 'S': 0, 'C': 0}
     
