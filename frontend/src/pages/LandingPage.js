@@ -370,14 +370,12 @@ export default function LandingPage() {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 bg-gradient-to-br from-orange-100 to-red-100 p-12 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center">
-                    <Target className="w-12 h-12 text-white" />
-                  </div>
-                  <h4 className="text-2xl font-bold text-gray-700 mb-2">Challenges</h4>
-                  <p className="text-gray-600">Gamification et motivation d'équipe</p>
-                </div>
+              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100">
+                <img 
+                  src="/screenshot2.png" 
+                  alt="Coach IA - Défis personnalisés"
+                  className="w-full h-auto"
+                />
               </div>
             </div>
           </div>
