@@ -6,6 +6,7 @@ export default function LandingPage() {
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(false);
 
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
