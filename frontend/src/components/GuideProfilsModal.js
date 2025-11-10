@@ -1796,10 +1796,10 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                         </div>
                         <div>
                           <p className="text-xl font-bold text-gray-800">
-                            Le {managerProfile.management_style || 'Pilote'}
+                            {managerProfile.management_style}
                           </p>
                           <p className="text-gray-600 text-sm">
-                            Structuré, orienté résultats et action concrète
+                            {managerProfile.name || 'Manager'}
                           </p>
                         </div>
                       </div>
