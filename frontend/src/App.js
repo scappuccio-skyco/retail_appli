@@ -92,7 +92,7 @@ function AppContent() {
     
     // Navigate to dashboard after successful login
     // Using window.location for reliable redirect
-    window.location.href = '/';
+    window.location.href = '/dashboard';
   };
 
   const handleLogout = () => {
