@@ -39,18 +39,44 @@ STRIPE_PLANS = {
         "price_id": "price_1SRwA6IiTXd4gOhvT9OrpV03",
         "price": 29.0,
         "currency": "eur",
-        "max_sellers": 5
+        "max_sellers": 5,
+        "ai_credits_monthly": 500
     },
     "professional": {
         "name": "Professional",
         "price_id": "price_1SRwQRiiTXd4gOhy8UrBYG2s",
-        "price": 249.0,
+        "price": 25.0,  # 25€ par siège
         "currency": "eur",
-        "max_sellers": 15
+        "max_sellers": 15,
+        "ai_credits_monthly": 1500
+    },
+    "enterprise": {
+        "name": "Enterprise",
+        "price": None,  # Sur devis
+        "currency": "eur",
+        "max_sellers": 100,  # Illimité en pratique
+        "ai_credits_monthly": 10000
     }
 }
 TRIAL_DAYS = 14
 MAX_SELLERS_TRIAL = 15  # Limite pendant la période d'essai
+TRIAL_AI_CREDITS = 100  # Crédits IA pour l'essai gratuit
+
+# AI Credit Costs (en crédits par appel)
+AI_COSTS = {
+    "diagnostic_seller": 2,
+    "diagnostic_manager": 3,
+    "team_bilan": 6,
+    "individual_bilan": 2,
+    "debrief": 1,
+    "daily_challenge": 1,
+    "kpi_analysis": 2,
+    "evaluation_feedback": 1
+}
+
+# Credit pack for additional purchase
+CREDIT_PACK_SIZE = 5000
+CREDIT_PACK_PRICE = 25.0  # 25€ pour 5000 crédits
 
 # Security
 security = HTTPBearer()
