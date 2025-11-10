@@ -431,27 +431,27 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Starter */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-gray-200">
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-slate-200">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
-                <p className="text-gray-600 mb-4">Pour petites boutiques</p>
+                <h3 className="text-2xl font-bold text-blue-900 mb-2">Starter</h3>
+                <p className="text-slate-600 mb-4">Pour petites boutiques</p>
                 {!isAnnual ? (
                   <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-5xl font-bold text-gray-900">29€</span>
-                    <span className="text-gray-600">/vendeur/mois</span>
+                    <span className="text-5xl font-bold text-blue-950">29€</span>
+                    <span className="text-slate-600">/vendeur/mois</span>
                   </div>
                 ) : (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold text-gray-900">278€</span>
-                      <span className="text-gray-600">/vendeur/an</span>
+                      <span className="text-5xl font-bold text-blue-950">278€</span>
+                      <span className="text-slate-600">/vendeur/an</span>
                     </div>
                     <p className="text-sm text-green-600 font-semibold mt-2">
                       Au lieu de 348€ • Économisez 70€/an
                     </p>
                   </div>
                 )}
-                <p className="text-sm text-gray-500 mt-2">1 à 5 vendeurs</p>
+                <p className="text-sm text-slate-500 mt-2">1 à 5 vendeurs</p>
               </div>
 
               <ul className="space-y-3 mb-8">
@@ -464,15 +464,15 @@ export default function LandingPage() {
                   'Support email'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    <span className="text-gray-700">{item}</span>
+                    <Check className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                    <span className="text-slate-700">{item}</span>
                   </li>
                 ))}
               </ul>
 
               <button
                 onClick={() => scrollToSection('contact')}
-                className="w-full py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+                className="w-full py-3 bg-slate-100 text-blue-900 font-semibold rounded-xl hover:bg-slate-200 transition-colors"
               >
                 Essai Gratuit 14 Jours
               </button>
