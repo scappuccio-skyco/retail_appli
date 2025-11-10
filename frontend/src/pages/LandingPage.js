@@ -530,7 +530,8 @@ export default function LandingPage() {
                 <p className="text-sm font-semibold text-[#F97316] mb-3">Spécificités :</p>
                 <ul className="space-y-3 mb-4">
                   {[
-                    'Jusqu\'à 15 vendeurs inclus',
+                    '6 à 15 vendeurs',
+                    '1500 crédits IA/mois inclus',
                     'Support prioritaire',
                     'Onboarding personnalisé'
                   ].map((item, idx) => (
