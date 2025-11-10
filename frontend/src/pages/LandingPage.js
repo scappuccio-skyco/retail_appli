@@ -147,11 +147,11 @@ export default function LandingPage() {
 
             {/* Right: Hero Image */}
             <div className="relative">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white max-h-[500px]">
                 <img 
                   src="https://images.pexels.com/photos/5486132/pexels-photo-5486132.jpeg" 
                   alt="Équipe retail en réunion"
-                  className="w-full h-auto"
+                  className="w-full h-full object-cover"
                 />
               </div>
               {/* Floating Badge */}
