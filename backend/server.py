@@ -33,19 +33,20 @@ JWT_EXPIRATION = 24  # hours
 
 # Stripe Configuration
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
+# Single Stripe Price ID with graduated pricing
+STRIPE_PRICE_ID = "price_1SRwQRiiTXd4gOhy8UrBYG2s"  # Tarif dégressif : 29€ (1-5) / 25€ (6-15)
+
 STRIPE_PLANS = {
     "starter": {
         "name": "Starter",
-        "price_id": "price_1SRwA6IiTXd4gOhvT9OrpV03",
-        "price_per_seller": 29.0,  # 29€ par vendeur/mois
+        "price_per_seller": 29.0,  # 29€ par vendeur/mois (1-5 vendeurs)
         "currency": "eur",
         "max_sellers": 5,
         "ai_credits_monthly": 500
     },
     "professional": {
         "name": "Professional",
-        "price_id": "price_1SRwQRiiTXd4gOhy8UrBYG2s",
-        "price_per_seller": 25.0,  # 25€ par vendeur/mois (dégressif)
+        "price_per_seller": 25.0,  # 25€ par vendeur/mois (6-15 vendeurs, dégressif)
         "currency": "eur",
         "max_sellers": 15,
         "ai_credits_monthly": 1500
