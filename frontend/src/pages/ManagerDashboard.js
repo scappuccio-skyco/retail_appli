@@ -523,8 +523,8 @@ export default function ManagerDashboard({ user, onLogout }) {
           <div className="flex items-center gap-4">
             <img src="/logo-retail-performer-blue.png" alt="Retail Performer AI" className="h-14 object-contain" />
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-1">
-                Retail Performer
+              <h1 className="text-3xl md:text-4xl font-bold text-[#1E40AF] mb-1">
+                Retail Performer AI
               </h1>
               <p className="text-gray-600">Manager Dashboard - Bienvenue, {user.name}</p>
             </div>
