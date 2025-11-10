@@ -174,10 +174,10 @@ export default function LandingPage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-blue-950 mb-4">
+            <h2 className="text-4xl font-bold text-[#2D3748] mb-4">
               Le Défi des Managers Retail
             </h2>
-            <p className="text-xl text-slate-700 max-w-3xl mx-auto">
+            <p className="text-xl text-[#2D3748] max-w-3xl mx-auto">
               Former, motiver et suivre vos vendeurs demande du temps et des outils adaptés. 
               Retail Performer AI simplifie tout.
             </p>
@@ -185,8 +185,8 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Problem */}
-            <div className="bg-slate-50 rounded-2xl p-8 border-2 border-slate-200">
-              <h3 className="text-2xl font-bold text-slate-900 mb-6">Sans Retail Performer AI</h3>
+            <div className="bg-gray-100 rounded-2xl p-8 border-2 border-gray-200">
+              <h3 className="text-2xl font-bold text-[#2D3748] mb-6">Sans Retail Performer AI</h3>
               <ul className="space-y-4">
                 {[
                   'Suivi manuel des performances sur Excel',
@@ -196,16 +196,16 @@ export default function LandingPage() {
                   'Démotivation et turnover élevé'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3">
-                    <X className="w-6 h-6 text-slate-500 flex-shrink-0 mt-0.5" />
-                    <span className="text-slate-700">{item}</span>
+                    <X className="w-6 h-6 text-gray-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-[#2D3748]">{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
             {/* Solution */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 border-2 border-blue-200">
-              <h3 className="text-2xl font-bold text-blue-950 mb-6">Avec Retail Performer AI</h3>
+            <div className="bg-gradient-to-br from-[#0066FF]/10 to-[#0066FF]/20 rounded-2xl p-8 border-2 border-[#0066FF]">
+              <h3 className="text-2xl font-bold text-[#0066FF] mb-6">Avec Retail Performer AI</h3>
               <ul className="space-y-4">
                 {[
                   'Dashboard automatisé en temps réel',
@@ -215,8 +215,8 @@ export default function LandingPage() {
                   'Gamification et motivation renforcée'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3">
-                    <Check className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-blue-900">{item}</span>
+                    <Check className="w-6 h-6 text-[#00D9A3] flex-shrink-0 mt-0.5" />
+                    <span className="text-[#2D3748]">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -226,7 +226,7 @@ export default function LandingPage() {
       </section>
 
       {/* Debriefs & Conflict Management Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-900 to-blue-800">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#0066FF] to-[#1E5EFF]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4">
