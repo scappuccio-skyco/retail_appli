@@ -707,7 +707,7 @@ export default function LandingPage() {
             Rejoignez les managers qui font déjà confiance à Retail Performer AI
           </p>
           <button
-            onClick={() => scrollToSection('contact')}
+            onClick={() => navigate('/login')}
             className="px-8 py-4 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white text-lg font-semibold rounded-xl hover:shadow-2xl transition-all inline-flex items-center gap-2"
           >
             Commencer l'Essai Gratuit
