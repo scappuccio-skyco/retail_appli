@@ -5175,7 +5175,7 @@ async def create_checkout_session(
         # Create payment transaction record
         transaction = PaymentTransaction(
             user_id=current_user['id'],
-            session_id=session.session_id,
+            session_id=session.id,  # Use session.id instead of session.session_id
             amount=expected_amount,
             currency=plan_info['currency'],
             plan=checkout_data.plan,
@@ -5195,7 +5195,7 @@ async def create_checkout_session(
         
         return {
             "url": session.url,
-            "session_id": session.session_id
+            "session_id": session.id
         }
     
     except Exception as e:
