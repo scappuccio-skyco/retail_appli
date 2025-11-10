@@ -491,28 +491,30 @@ export default function LandingPage() {
               </div>
 
               <div className="text-center mb-6 pt-4">
-                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Professional</h3>
-                <p className="text-[#334155] mb-4">Pour magasins moyens</p>
+                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Professionnel</h3>
+                <p className="text-[#334155] mb-4">Magasins moyens</p>
                 {!isAnnual ? (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent">249€</span>
-                      <span className="text-[#334155]">/mois</span>
+                      <span className="text-5xl font-bold bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent">25€</span>
+                      <span className="text-[#334155]">/vendeur/mois</span>
                     </div>
-                    <p className="text-sm text-[#EA580C] font-semibold mt-2">Jusqu'à 15 vendeurs inclus</p>
+                    <p className="text-sm text-[#EA580C] font-semibold mt-2">
+                      Tarif dégressif • Manager gratuit
+                    </p>
                   </div>
                 ) : (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent">2 390€</span>
-                      <span className="text-[#334155]">/an</span>
+                      <span className="text-5xl font-bold bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent">240€</span>
+                      <span className="text-[#334155]">/vendeur/an</span>
                     </div>
                     <p className="text-sm text-green-600 font-semibold mt-2">
-                      Au lieu de 2 988€ • Économisez 598€/an
+                      Au lieu de 300€ • Économisez 60€/an • Manager gratuit
                     </p>
-                    <p className="text-xs text-[#EA580C] font-semibold mt-1">Jusqu'à 15 vendeurs inclus</p>
                   </div>
                 )}
+                <p className="text-sm text-slate-500 mt-2">6 à 15 vendeurs max</p>
               </div>
 
               <ul className="space-y-3 mb-4">
