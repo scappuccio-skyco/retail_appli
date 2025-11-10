@@ -106,7 +106,8 @@ class StripeAPITester:
         
         if not manager_token:
             # Create test manager account if none exist
-            timestamp = datetime.now().strftime('%H%M%S')
+            from datetime import datetime as dt
+            timestamp = dt.now().strftime('%H%M%S')
             manager_data = {
                 "name": f"Test Manager Stripe {timestamp}",
                 "email": f"manager_stripe_{timestamp}@test.com",
