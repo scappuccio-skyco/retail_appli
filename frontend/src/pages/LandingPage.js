@@ -174,7 +174,7 @@ export default function LandingPage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-[#334155] mb-4">
+            <h2 className="text-4xl font-bold text-[#1E40AF] mb-4">
               Le Défi des Managers Retail
             </h2>
             <p className="text-xl text-[#334155] max-w-3xl mx-auto">
@@ -186,7 +186,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Problem */}
             <div className="bg-gray-100 rounded-2xl p-8 border-2 border-gray-200">
-              <h3 className="text-2xl font-bold text-[#334155] mb-6">Sans Retail Performer AI</h3>
+              <h3 className="text-2xl font-bold text-[#1E40AF] mb-6">Sans Retail Performer AI</h3>
               <ul className="space-y-4">
                 {[
                   'Suivi manuel des performances sur Excel',
@@ -229,7 +229,7 @@ export default function LandingPage() {
       <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-[#334155] mb-4">
+            <h2 className="text-4xl font-bold text-[#1E40AF] mb-4">
               Une Plateforme Complète et Intelligente
             </h2>
             <p className="text-xl text-[#334155] max-w-3xl mx-auto">
@@ -268,7 +268,7 @@ export default function LandingPage() {
                 <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center text-white mb-6`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold text-[#334155] mb-3">{feature.title}</h3>
+                <h3 className="text-xl font-bold text-[#1E40AF] mb-3">{feature.title}</h3>
                 <p className="text-[#334155]">{feature.description}</p>
               </div>
             ))}
@@ -280,7 +280,7 @@ export default function LandingPage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-[#334155] mb-4">
+            <h2 className="text-4xl font-bold text-[#1E40AF] mb-4">
               Une Interface Moderne et Intuitive
             </h2>
             <p className="text-xl text-[#334155]">
@@ -292,7 +292,7 @@ export default function LandingPage() {
             {/* Screenshot 1 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
-                <h3 className="text-3xl font-bold text-[#334155] mb-4">Dashboard Manager</h3>
+                <h3 className="text-3xl font-bold text-[#1E40AF] mb-4">Dashboard Manager</h3>
                 <p className="text-lg text-[#334155] mb-6">
                   Visualisez la performance de votre équipe en un coup d'œil. 
                   KPI, comparaisons, graphiques et alertes intelligentes.
@@ -329,7 +329,7 @@ export default function LandingPage() {
             {/* Screenshot 2 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div className="md:order-2">
-                <h3 className="text-3xl font-bold text-[#334155] mb-4">Dashboard Vendeur</h3>
+                <h3 className="text-3xl font-bold text-[#1E40AF] mb-4">Dashboard Vendeur</h3>
                 <p className="text-lg text-[#334155] mb-6">
                   Interface personnalisée pour chaque vendeur avec coach IA, défis quotidiens et suivi de performance.
                 </p>
@@ -369,7 +369,7 @@ export default function LandingPage() {
       <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-[#334155] mb-4">
+            <h2 className="text-4xl font-bold text-[#1E40AF] mb-4">
               Tarifs Simples et Transparents
             </h2>
             <p className="text-xl text-[#334155] mb-4">
@@ -415,7 +415,7 @@ export default function LandingPage() {
             {/* Starter */}
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-slate-200">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-[#334155] mb-2">Starter</h3>
+                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Starter</h3>
                 <p className="text-[#334155] mb-4">Pour petites boutiques</p>
                 {!isAnnual ? (
                   <div className="flex items-baseline justify-center gap-2">
@@ -470,7 +470,7 @@ export default function LandingPage() {
               </div>
 
               <div className="text-center mb-6 pt-4">
-                <h3 className="text-2xl font-bold text-[#334155] mb-2">Professional</h3>
+                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Professional</h3>
                 <p className="text-[#334155] mb-4">Pour magasins moyens</p>
                 {!isAnnual ? (
                   <div>
@@ -522,10 +522,10 @@ export default function LandingPage() {
             {/* Enterprise */}
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[#1E40AF]/30">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-[#334155] mb-2">Enterprise</h3>
+                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Enterprise</h3>
                 <p className="text-[#334155] mb-4">Pour réseaux & enseignes</p>
                 <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-3xl font-bold text-[#334155]">Sur devis</span>
+                  <span className="text-3xl font-bold text-[#1E40AF]">Sur devis</span>
                 </div>
                 <p className="text-sm text-slate-500 mt-2">16+ vendeurs</p>
               </div>
@@ -593,7 +593,7 @@ export default function LandingPage() {
       <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-[#334155] mb-4">
+            <h2 className="text-4xl font-bold text-[#1E40AF] mb-4">
               Questions Fréquentes
             </h2>
             <p className="text-xl text-[#334155]">
@@ -675,7 +675,7 @@ export default function LandingPage() {
       <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-[#334155] mb-4">
+            <h2 className="text-4xl font-bold text-[#1E40AF] mb-4">
               Contactez-Nous
             </h2>
             <p className="text-xl text-[#334155]">
@@ -686,7 +686,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12">
             {/* Contact Form */}
             <div className="bg-blue-50 rounded-2xl p-8 border-2 border-[#1E40AF]/20">
-              <h3 className="text-2xl font-bold text-[#334155] mb-6">Demander une Démo</h3>
+              <h3 className="text-2xl font-bold text-[#1E40AF] mb-6">Demander une Démo</h3>
               <form className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-[#334155] mb-2">Nom complet</label>
@@ -732,7 +732,7 @@ export default function LandingPage() {
             {/* Contact Info */}
             <div className="space-y-8">
               <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-8 border-2 border-[#F97316]">
-                <h3 className="text-xl font-bold text-[#334155] mb-4">Informations de Contact</h3>
+                <h3 className="text-xl font-bold text-[#1E40AF] mb-4">Informations de Contact</h3>
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm font-medium text-[#334155] mb-1">Email</p>
@@ -751,7 +751,7 @@ export default function LandingPage() {
               </div>
 
               <div className="bg-gradient-to-br from-blue-50 to-slate-50 rounded-2xl p-8 border-2 border-[#1E40AF]/30">
-                <h3 className="text-xl font-bold text-[#334155] mb-4">Horaires</h3>
+                <h3 className="text-xl font-bold text-[#1E40AF] mb-4">Horaires</h3>
                 <p className="text-slate-800">
                   Lundi - Vendredi : 9h - 18h<br />
                   Samedi - Dimanche : Fermé
