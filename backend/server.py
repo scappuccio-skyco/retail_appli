@@ -5026,6 +5026,9 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers have subscriptions")
     
+    # Check for monthly credit reset
+    await check_and_reset_monthly_credits(current_user['id'])
+    
     access_info = await check_subscription_access(current_user['id'])
     sub = await get_user_subscription(current_user['id'])
     
@@ -5033,6 +5036,53 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
         **access_info,
         "subscription": sub
     }
+
+@api_router.get("/ai-credits/status")
+async def get_ai_credits_status(current_user: dict = Depends(get_current_user)):
+    """Get AI credits status for current user"""
+    # For sellers, get their manager's credits
+    user_id = current_user['id']
+    if current_user['role'] == 'seller':
+        user_id = current_user.get('manager_id')
+        if not user_id:
+            raise HTTPException(status_code=404, detail="Manager not found")
+    
+    # Check for monthly reset
+    await check_and_reset_monthly_credits(user_id)
+    
+    sub = await db.subscriptions.find_one({"user_id": user_id}, {"_id": 0})
+    
+    if not sub:
+        return {
+            "credits_remaining": 0,
+            "credits_used_this_month": 0,
+            "plan": None,
+            "status": "no_subscription"
+        }
+    
+    return {
+        "credits_remaining": sub.get('ai_credits_remaining', 0),
+        "credits_used_this_month": sub.get('ai_credits_used_this_month', 0),
+        "plan": sub.get('plan'),
+        "status": sub.get('status')
+    }
+
+@api_router.get("/ai-credits/usage-history")
+async def get_ai_usage_history(
+    limit: int = 50,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get AI usage history"""
+    user_id = current_user['id']
+    if current_user['role'] == 'seller':
+        user_id = current_user.get('manager_id')
+    
+    logs = await db.ai_usage_logs.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(limit)
+    
+    return logs
 
 @api_router.post("/checkout/create-session")
 async def create_checkout_session(
