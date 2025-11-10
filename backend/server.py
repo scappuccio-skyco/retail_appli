@@ -34,7 +34,7 @@ JWT_EXPIRATION = 24  # hours
 # Stripe Configuration
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
 # Single Stripe Price ID with graduated pricing
-STRIPE_PRICE_ID = "price_1SRwQRIiTXd4gOhy8UrBYG2s"  # Tarif dégressif : 29€ (1-5) / 25€ (6-15)
+STRIPE_PRICE_ID = "price_1SS2XxIVM4C8dIGvpBRcYSNX"  # Tarif dégressif : 29€ (1-5) / 25€ (6-15)
 
 STRIPE_PLANS = {
     "starter": {
