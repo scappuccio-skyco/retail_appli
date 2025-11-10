@@ -1689,7 +1689,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
           {allSections.includes('management') && (
             <button
               onClick={() => handleSectionChange('management')}
-              className={`px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
+              className={`px-6 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${
                 activeSection === 'management'
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-800'
@@ -1701,7 +1701,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
           {allSections.includes('style_vente') && (
             <button
               onClick={() => handleSectionChange('style_vente')}
-              className={`px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
+              className={`px-6 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${
                 activeSection === 'style_vente'
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-800'
@@ -1713,7 +1713,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
           {allSections.includes('niveau') && (
             <button
               onClick={() => handleSectionChange('niveau')}
-              className={`px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
+              className={`px-6 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${
                 activeSection === 'niveau'
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-800'
@@ -1725,7 +1725,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
           {allSections.includes('motivation') && (
             <button
               onClick={() => handleSectionChange('motivation')}
-              className={`px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
+              className={`px-6 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${
                 activeSection === 'motivation'
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-800'
@@ -1737,7 +1737,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
           {allSections.includes('disc') && (
             <button
               onClick={() => handleSectionChange('disc')}
-              className={`px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
+              className={`px-6 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${
                 activeSection === 'disc'
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-800'
@@ -1749,7 +1749,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
           {allSections.includes('compatibilite') && (
             <button
               onClick={() => handleSectionChange('compatibilite')}
-              className={`px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
+              className={`px-6 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${
                 activeSection === 'compatibilite'
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-800'
