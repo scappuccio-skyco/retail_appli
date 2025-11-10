@@ -154,7 +154,8 @@ export default function SubscriptionModal({ onClose }) {
 
   const handleQuantityChange = (delta) => {
     const planInfo = PLANS[selectedPlan];
-    const minQuantity = Math.max(sellerCount, 1);
+    // Minimum is either the plan's minimum or the current seller count (whichever is higher)
+    const minQuantity = Math.max(sellerCount, planInfo.minSellers);
     const newQuantity = selectedQuantity + delta;
     
     if (newQuantity >= minQuantity && newQuantity <= planInfo.maxSellers) {
