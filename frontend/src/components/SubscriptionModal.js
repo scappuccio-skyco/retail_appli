@@ -225,10 +225,13 @@ export default function SubscriptionModal({ onClose }) {
                         </h4>
                         <div className="flex items-baseline justify-center gap-1">
                           <span className="text-4xl font-bold text-[#1E40AF]">
-                            {plan.price}€
+                            {plan.pricePerSeller}€
                           </span>
-                          <span className="text-gray-600">/mois</span>
+                          <span className="text-gray-600">/vendeur/mois</span>
                         </div>
+                        <p className="text-sm text-green-600 font-semibold mt-2">
+                          Manager gratuit
+                        </p>
                       </div>
 
                       <ul className="space-y-3 mb-6">
