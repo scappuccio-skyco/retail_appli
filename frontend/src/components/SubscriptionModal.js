@@ -60,6 +60,18 @@ export default function SubscriptionModal({ onClose }) {
     }
   };
 
+  const fetchSellerCount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/api/manager/sellers`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSellerCount(response.data.length);
+    } catch (error) {
+      console.error('Error fetching sellers:', error);
+    }
+  };
+
   const handleSubscribe = async (plan) => {
     setProcessingPlan(plan);
     
