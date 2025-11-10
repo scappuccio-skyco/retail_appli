@@ -6,7 +6,7 @@ const API = process.env.REACT_APP_BACKEND_URL;
 
 const PLANS = {
   starter: {
-    name: 'Démarreur',
+    name: 'Starter',
     pricePerSeller: 29,
     maxSellers: 5,
     aiCredits: 500,
@@ -22,7 +22,7 @@ const PLANS = {
     ]
   },
   professional: {
-    name: 'Professionnel',
+    name: 'Professional',
     pricePerSeller: 25,
     maxSellers: 15,
     aiCredits: 1500,
