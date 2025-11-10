@@ -48,9 +48,9 @@ export default function SubscriptionModal({ onClose }) {
   const [loading, setLoading] = useState(true);
   const [processingPlan, setProcessingPlan] = useState(null);
   const [sellerCount, setSellerCount] = useState(0);
-  const [isMounted, setIsMounted] = useState(true); // Track if component is mounted
+  const [isMounted, setIsMounted] = useState(true);
   
-  // Remove nested modal states - we'll handle this differently
+  // Quantity modal states
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
