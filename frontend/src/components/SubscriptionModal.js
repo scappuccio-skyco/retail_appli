@@ -394,7 +394,15 @@ export default function SubscriptionModal({ onClose }) {
 
               {/* Quantity Selector Modal - Rendered with Portal to avoid DOM conflicts */}
               {selectedPlan && ReactDOM.createPortal(
-                <div className="fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center p-4">
+                <div 
+                  className="fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center p-4"
+                  onClick={(e) => {
+                    // Close modal when clicking backdrop
+                    if (e.target === e.currentTarget) {
+                      setSelectedPlan(null);
+                    }
+                  }}
+                >
                   <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8">
                     <h3 className="text-2xl font-bold text-gray-800 mb-2 text-center">
                       Nombre de vendeurs
@@ -493,7 +501,8 @@ export default function SubscriptionModal({ onClose }) {
                     </div>
                   </div>
                 </div>,
-                document.body
+                // Ensure portal container exists and is stable before rendering
+                document.body || document.documentElement
               )}
 
               {/* Info */}
