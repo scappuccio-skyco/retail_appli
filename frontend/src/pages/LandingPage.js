@@ -85,7 +85,7 @@ export default function LandingPage() {
               <button onClick={() => navigate('/login')} className="block w-full text-left px-4 py-2 text-[#F97316] font-medium">
                 Connexion
               </button>
-              <button onClick={() => scrollToSection('pricing')} className="block w-full px-4 py-2 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white rounded-lg font-medium">
+              <button onClick={() => navigate('/login')} className="block w-full px-4 py-2 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white rounded-lg font-medium">
                 Essai Gratuit
               </button>
             </div>
