@@ -790,6 +790,22 @@ async def create_invitation(invite_data: InvitationCreate, current_user: dict = 
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can send invitations")
     
+    # Check subscription access
+    access_info = await check_subscription_access(current_user['id'])
+    if not access_info['has_access']:
+        raise HTTPException(
+            status_code=403, 
+            detail=f"Abonnement requis pour inviter des vendeurs. {access_info.get('message', '')}"
+        )
+    
+    # Check seller limit (15 max)
+    can_add = await check_can_add_seller(current_user['id'])
+    if not can_add:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Limite atteinte : vous ne pouvez pas avoir plus de {MAX_SELLERS_PER_MANAGER} vendeurs"
+        )
+    
     # Check if user with this email already exists
     existing_user = await db.users.find_one({"email": invite_data.email}, {"_id": 0})
     if existing_user:
