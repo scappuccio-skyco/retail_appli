@@ -1701,7 +1701,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
           {allSections.includes('style_vente') && (
             <button
               onClick={() => handleSectionChange('style_vente')}
-              className={`px-4 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${
+              className={`px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
                 activeSection === 'style_vente'
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:text-gray-800'
