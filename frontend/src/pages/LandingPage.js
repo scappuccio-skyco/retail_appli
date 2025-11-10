@@ -361,36 +361,6 @@ export default function LandingPage() {
                 />
               </div>
             </div>
-
-            {/* Screenshot 3 */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h3 className="text-3xl font-bold text-[#2D3748] mb-4">Gamification & Challenges</h3>
-                <p className="text-lg text-[#2D3748] mb-6">
-                  Créez des challenges motivants, suivez les progrès en temps réel et célébrez les victoires d'équipe.
-                </p>
-                <ul className="space-y-3">
-                  {[
-                    'Objectifs individuels et collectifs',
-                    'Système de niveaux et badges',
-                    'Classements en temps réel',
-                    'Notifications de succès'
-                  ].map((item, idx) => (
-                    <li key={idx} className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-[#FF6B35]" />
-                      <span className="text-[#2D3748]">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-[#0066FF]/20">
-                <img 
-                  src="/screenshot1.png" 
-                  alt="Bilan Individuel - Analyse de compétences"
-                  className="w-full h-auto"
-                />
-              </div>
-            </div>
           </div>
         </div>
       </section>
