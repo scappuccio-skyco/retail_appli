@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Crown, Check, Loader } from 'lucide-react';
 import axios from 'axios';
+import QuantityModal from './QuantityModal';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
