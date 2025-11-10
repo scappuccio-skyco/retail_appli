@@ -400,7 +400,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
 
   return (
     <div onClick={onClose} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl">
+      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 flex justify-between items-center rounded-t-2xl">
           <div className="flex items-center gap-3">
