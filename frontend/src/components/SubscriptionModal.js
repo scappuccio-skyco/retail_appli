@@ -55,6 +55,11 @@ export default function SubscriptionModal({ onClose }) {
   useEffect(() => {
     fetchSubscriptionStatus();
     fetchSellerCount();
+    
+    // Cleanup function to prevent setState on unmounted component
+    return () => {
+      setIsMounted(false);
+    };
   }, []);
 
   const fetchSubscriptionStatus = async () => {
