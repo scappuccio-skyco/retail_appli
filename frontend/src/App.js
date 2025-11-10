@@ -136,8 +136,7 @@ function AppContent() {
 
   const handleContinueToDashboard = () => {
     setShowDiagnosticResult(false);
-    // Navigate to dashboard
-    navigate('/');
+    navigate('/dashboard'); // Go to seller dashboard
   };
 
   if (loading) {
