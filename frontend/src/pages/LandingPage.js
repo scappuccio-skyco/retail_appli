@@ -780,7 +780,7 @@ export default function LandingPage() {
             {/* Company */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <img src="/logo-retail-performer.png" alt="Retail Performer AI" className="h-10 w-auto" />
+                <img src="/logo-retail-performer-blue.png" alt="Retail Performer AI" className="h-10 w-auto" />
                 <span className="text-xl font-bold">Retail Performer AI</span>
               </div>
               <p className="text-[#64748B] text-sm">
