@@ -355,8 +355,8 @@ export default function LandingPage() {
               </div>
               <div className="md:order-1 rounded-2xl overflow-hidden shadow-2xl border-2 border-[#0066FF]/20">
                 <img 
-                  src="/screenshot2.png" 
-                  alt="Dashboard Vendeur - Coach IA et défis personnalisés"
+                  src="/dashboard-vendeur.png" 
+                  alt="Dashboard Vendeur - Mon Bilan Individuel"
                   className="w-full h-auto"
                 />
               </div>
