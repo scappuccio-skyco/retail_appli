@@ -297,7 +297,7 @@ export default function LandingPage() {
                   Visualisez la performance de votre équipe en un coup d'œil. 
                   KPI, comparaisons, graphiques et alertes intelligentes.
                 </p>
-                <ul className="space-y-3">
+                <ul className="space-y-3 mb-6">
                   {[
                     'Suivi CA, ventes, panier moyen',
                     'Comparaisons entre vendeurs',
@@ -310,6 +310,12 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
+                <div className="bg-gradient-to-r from-[#0066FF]/10 to-[#0066FF]/5 border-l-4 border-[#0066FF] p-4 rounded-r-lg">
+                  <p className="text-sm font-semibold text-[#0066FF] mb-2">💡 Débriefs de Vente Intelligents</p>
+                  <p className="text-sm text-[#2D3748]">
+                    Vos vendeurs peuvent débriefer chaque vente non conclue. L'IA analyse et génère des recommandations personnalisées instantanées.
+                  </p>
+                </div>
               </div>
               <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-[#0066FF]/20">
                 <img 
