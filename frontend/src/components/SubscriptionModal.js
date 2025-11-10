@@ -68,11 +68,15 @@ export default function SubscriptionModal({ onClose }) {
       const response = await axios.get(`${API}/api/subscription/status`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setSubscriptionInfo(response.data);
+      if (isMounted) {
+        setSubscriptionInfo(response.data);
+      }
     } catch (error) {
       console.error('Error fetching subscription:', error);
     } finally {
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     }
   };
 
