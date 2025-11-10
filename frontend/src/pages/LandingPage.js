@@ -118,7 +118,7 @@ export default function LandingPage() {
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
                 <button
                   onClick={() => scrollToSection('pricing')}
-                  className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-lg font-semibold rounded-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2"
+                  className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-600 text-white text-lg font-semibold rounded-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2"
                 >
                   Essai Gratuit 14 Jours
                   <ArrowRight className="w-5 h-5" />
