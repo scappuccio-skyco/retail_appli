@@ -479,35 +479,35 @@ export default function LandingPage() {
             </div>
 
             {/* Professional - RECOMMENDED */}
-            <div className="bg-white rounded-2xl p-8 shadow-2xl border-4 border-orange-500 relative transform md:scale-105">
+            <div className="bg-white rounded-2xl p-8 shadow-2xl border-4 border-amber-500 relative transform md:scale-105">
               <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-                <div className="bg-gradient-to-r from-yellow-500 to-orange-600 text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
+                <div className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
                   <Star className="w-4 h-4" />
                   RECOMMANDÉ
                 </div>
               </div>
 
               <div className="text-center mb-6 pt-4">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
-                <p className="text-gray-600 mb-4">Pour magasins moyens</p>
+                <h3 className="text-2xl font-bold text-blue-900 mb-2">Professional</h3>
+                <p className="text-slate-600 mb-4">Pour magasins moyens</p>
                 {!isAnnual ? (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">249€</span>
-                      <span className="text-gray-600">/mois</span>
+                      <span className="text-5xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">249€</span>
+                      <span className="text-slate-600">/mois</span>
                     </div>
-                    <p className="text-sm text-orange-600 font-semibold mt-2">Jusqu'à 15 vendeurs inclus</p>
+                    <p className="text-sm text-amber-700 font-semibold mt-2">Jusqu'à 15 vendeurs inclus</p>
                   </div>
                 ) : (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">2 390€</span>
-                      <span className="text-gray-600">/an</span>
+                      <span className="text-5xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">2 390€</span>
+                      <span className="text-slate-600">/an</span>
                     </div>
                     <p className="text-sm text-green-600 font-semibold mt-2">
                       Au lieu de 2 988€ • Économisez 598€/an
                     </p>
-                    <p className="text-xs text-orange-600 font-semibold mt-1">Jusqu'à 15 vendeurs inclus</p>
+                    <p className="text-xs text-amber-700 font-semibold mt-1">Jusqu'à 15 vendeurs inclus</p>
                   </div>
                 )}
               </div>
@@ -523,15 +523,15 @@ export default function LandingPage() {
                   'Support prioritaire + onboarding'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-orange-500 flex-shrink-0" />
-                    <span className="text-gray-700 font-medium">{item}</span>
+                    <Check className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                    <span className="text-slate-700 font-medium">{item}</span>
                   </li>
                 ))}
               </ul>
 
               <button
                 onClick={() => scrollToSection('contact')}
-                className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
               >
                 Essai Gratuit 14 Jours
               </button>
