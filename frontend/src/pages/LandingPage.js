@@ -333,7 +333,7 @@ export default function LandingPage() {
                 <p className="text-lg text-[#2D3748] mb-6">
                   Diagnostic DISC complet, points forts, axes d'amélioration et coaching personnalisé par l'IA.
                 </p>
-                <ul className="space-y-3">
+                <ul className="space-y-3 mb-6">
                   {[
                     'Profil de personnalité DISC',
                     'Radar de compétences',
@@ -346,6 +346,12 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
+                <div className="bg-gradient-to-r from-[#FF6B35]/10 to-[#FF8C42]/5 border-l-4 border-[#FF6B35] p-4 rounded-r-lg">
+                  <p className="text-sm font-semibold text-[#FF6B35] mb-2">🤝 Gestion de Conflit Manager-Vendeur</p>
+                  <p className="text-sm text-[#2D3748]">
+                    Gérez les situations délicates avec des recommandations IA basées sur les profils DISC, les performances et l'historique de chaque vendeur.
+                  </p>
+                </div>
               </div>
               <div className="md:order-1 rounded-2xl overflow-hidden shadow-2xl border-2 border-[#0066FF]/20">
                 <img 
