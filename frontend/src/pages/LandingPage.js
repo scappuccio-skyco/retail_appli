@@ -384,25 +384,25 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl font-bold text-blue-950 mb-4">
               Tarifs Simples et Transparents
             </h2>
-            <p className="text-xl text-gray-600 mb-4">
+            <p className="text-xl text-slate-700 mb-4">
               Choisissez la formule qui correspond à votre équipe
             </p>
             
             {/* Toggle Mensuel/Annuel */}
             <div className="flex items-center justify-center gap-4 mb-6">
-              <span className={`text-lg font-semibold ${!isAnnual ? 'text-gray-900' : 'text-gray-400'}`}>
+              <span className={`text-lg font-semibold ${!isAnnual ? 'text-blue-900' : 'text-slate-400'}`}>
                 Mensuel
               </span>
               <button
                 onClick={() => setIsAnnual(!isAnnual)}
                 className={`relative w-16 h-8 rounded-full transition-colors duration-300 ${
-                  isAnnual ? 'bg-gradient-to-r from-yellow-500 to-orange-600' : 'bg-gray-300'
+                  isAnnual ? 'bg-gradient-to-r from-amber-500 to-yellow-600' : 'bg-slate-300'
                 }`}
               >
                 <div
@@ -411,7 +411,7 @@ export default function LandingPage() {
                   }`}
                 />
               </button>
-              <span className={`text-lg font-semibold ${isAnnual ? 'text-gray-900' : 'text-gray-400'}`}>
+              <span className={`text-lg font-semibold ${isAnnual ? 'text-blue-900' : 'text-slate-400'}`}>
                 Annuel
               </span>
               {isAnnual && (
@@ -421,9 +421,9 @@ export default function LandingPage() {
               )}
             </div>
 
-            <div className="inline-flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-full px-6 py-3">
-              <Users className="w-5 h-5 text-orange-600" />
-              <p className="text-sm font-semibold text-orange-900">
+            <div className="inline-flex items-center gap-3 bg-amber-50 border-2 border-amber-300 rounded-full px-6 py-3">
+              <Users className="w-5 h-5 text-amber-700" />
+              <p className="text-sm font-semibold text-blue-900">
                 Toutes les formules incluent : Espace Manager complet + Accès vendeurs illimités
               </p>
             </div>
