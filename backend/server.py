@@ -679,6 +679,31 @@ async def register(user_data: UserCreate):
     
     await db.users.insert_one(doc)
     
+    # Create trial subscription for managers only
+    if user_obj.role == "manager":
+        trial_start = datetime.now(timezone.utc)
+        trial_end = trial_start + timedelta(days=TRIAL_DAYS)
+        
+        subscription = Subscription(
+            user_id=user_obj.id,
+            plan="starter",  # Default to starter plan
+            status="trialing",
+            trial_start=trial_start,
+            trial_end=trial_end
+        )
+        
+        sub_doc = subscription.model_dump()
+        sub_doc['trial_start'] = sub_doc['trial_start'].isoformat()
+        sub_doc['trial_end'] = sub_doc['trial_end'].isoformat()
+        sub_doc['created_at'] = sub_doc['created_at'].isoformat()
+        sub_doc['updated_at'] = sub_doc['updated_at'].isoformat()
+        if sub_doc.get('current_period_start'):
+            sub_doc['current_period_start'] = sub_doc['current_period_start'].isoformat()
+        if sub_doc.get('current_period_end'):
+            sub_doc['current_period_end'] = sub_doc['current_period_end'].isoformat()
+        
+        await db.subscriptions.insert_one(sub_doc)
+    
     # Create token
     token = create_token(user_obj.id, user_obj.email, user_obj.role)
     
