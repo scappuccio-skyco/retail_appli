@@ -38,17 +38,19 @@ STRIPE_PLANS = {
         "name": "Starter",
         "price_id": "price_1SRwA6IiTXd4gOhvT9OrpV03",
         "price": 29.0,
-        "currency": "eur"
+        "currency": "eur",
+        "max_sellers": 5
     },
     "professional": {
         "name": "Professional",
         "price_id": "price_1SRwQRiiTXd4gOhy8UrBYG2s",
         "price": 249.0,
-        "currency": "eur"
+        "currency": "eur",
+        "max_sellers": 15
     }
 }
 TRIAL_DAYS = 14
-MAX_SELLERS_PER_MANAGER = 15
+MAX_SELLERS_TRIAL = 15  # Limite pendant la période d'essai
 
 # Security
 security = HTTPBearer()
