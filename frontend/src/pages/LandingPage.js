@@ -384,7 +384,7 @@ export default function LandingPage() {
               <button
                 onClick={() => setIsAnnual(!isAnnual)}
                 className={`relative w-16 h-8 rounded-full transition-colors duration-300 ${
-                  isAnnual ? 'bg-gradient-to-r from-amber-500 to-yellow-600' : 'bg-slate-300'
+                  isAnnual ? 'bg-gradient-to-r from-[#FF6B35] to-[#FF8C42]' : 'bg-slate-300'
                 }`}
               >
                 <div
@@ -461,9 +461,9 @@ export default function LandingPage() {
             </div>
 
             {/* Professional - RECOMMENDED */}
-            <div className="bg-white rounded-2xl p-8 shadow-2xl border-4 border-amber-500 relative transform md:scale-105">
+            <div className="bg-white rounded-2xl p-8 shadow-2xl border-4 border-[#FF6B35] relative transform md:scale-105">
               <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-                <div className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
+                <div className="bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
                   <Star className="w-4 h-4" />
                   RECOMMANDÉ
                 </div>
@@ -475,7 +475,7 @@ export default function LandingPage() {
                 {!isAnnual ? (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">249€</span>
+                      <span className="text-5xl font-bold bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] bg-clip-text text-transparent">249€</span>
                       <span className="text-[#2D3748]">/mois</span>
                     </div>
                     <p className="text-sm text-[#FF8C42] font-semibold mt-2">Jusqu'à 15 vendeurs inclus</p>
@@ -483,7 +483,7 @@ export default function LandingPage() {
                 ) : (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">2 390€</span>
+                      <span className="text-5xl font-bold bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] bg-clip-text text-transparent">2 390€</span>
                       <span className="text-[#2D3748]">/an</span>
                     </div>
                     <p className="text-sm text-green-600 font-semibold mt-2">
@@ -513,7 +513,7 @@ export default function LandingPage() {
 
               <button
                 onClick={() => scrollToSection('contact')}
-                className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                className="w-full py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] text-white font-semibold rounded-xl hover:shadow-lg transition-all"
               >
                 Essai Gratuit 14 Jours
               </button>
@@ -549,7 +549,7 @@ export default function LandingPage() {
 
               <button
                 onClick={() => scrollToSection('contact')}
-                className="w-full py-3 bg-blue-100 text-[#2D3748] font-semibold rounded-xl hover:bg-blue-200 transition-colors"
+                className="w-full py-3 bg-[#0066FF]/10 text-[#2D3748] font-semibold rounded-xl hover:bg-blue-200 transition-colors"
               >
                 Nous Contacter
               </button>
@@ -631,7 +631,7 @@ export default function LandingPage() {
               <div key={idx} className="bg-blue-50 rounded-xl border-2 border-[#0066FF]/20 overflow-hidden hover:border-[#FF6B35] transition-colors">
                 <button
                   onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-blue-100 transition-colors"
+                  className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-[#0066FF]/10 transition-colors"
                 >
                   <span className="font-semibold text-[#2D3748]">{faq.question}</span>
                   <ChevronDown 
@@ -660,7 +660,7 @@ export default function LandingPage() {
           </p>
           <button
             onClick={() => scrollToSection('contact')}
-            className="px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-lg font-semibold rounded-xl hover:shadow-2xl transition-all inline-flex items-center gap-2"
+            className="px-8 py-4 bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] text-white text-lg font-semibold rounded-xl hover:shadow-2xl transition-all inline-flex items-center gap-2"
           >
             Commencer l'Essai Gratuit
             <ArrowRight className="w-5 h-5" />
@@ -692,7 +692,7 @@ export default function LandingPage() {
                   <label className="block text-sm font-medium text-[#2D3748] mb-2">Nom complet</label>
                   <input 
                     type="text" 
-                    className="w-full px-4 py-3 border-2 border-[#0066FF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
+                    className="w-full px-4 py-3 border-2 border-[#0066FF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-[#FF6B35] bg-white"
                     placeholder="Jean Dupont"
                   />
                 </div>
@@ -700,13 +700,13 @@ export default function LandingPage() {
                   <label className="block text-sm font-medium text-[#2D3748] mb-2">Email professionnel</label>
                   <input 
                     type="email" 
-                    className="w-full px-4 py-3 border-2 border-[#0066FF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
+                    className="w-full px-4 py-3 border-2 border-[#0066FF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-[#FF6B35] bg-white"
                     placeholder="jean@entreprise.com"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[#2D3748] mb-2">Nombre de vendeurs</label>
-                  <select className="w-full px-4 py-3 border-2 border-[#0066FF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white">
+                  <select className="w-full px-4 py-3 border-2 border-[#0066FF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-[#FF6B35] bg-white">
                     <option>1-5 vendeurs</option>
                     <option>6-15 vendeurs</option>
                     <option>16+ vendeurs</option>
@@ -716,13 +716,13 @@ export default function LandingPage() {
                   <label className="block text-sm font-medium text-[#2D3748] mb-2">Message</label>
                   <textarea 
                     rows="4" 
-                    className="w-full px-4 py-3 border-2 border-[#0066FF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
+                    className="w-full px-4 py-3 border-2 border-[#0066FF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-[#FF6B35] bg-white"
                     placeholder="Parlez-nous de votre besoin..."
                   ></textarea>
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                  className="w-full py-3 bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] text-white font-semibold rounded-xl hover:shadow-lg transition-all"
                 >
                   Envoyer la Demande
                 </button>
@@ -731,7 +731,7 @@ export default function LandingPage() {
 
             {/* Contact Info */}
             <div className="space-y-8">
-              <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-8 border-2 border-amber-200">
+              <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-8 border-2 border-[#FF6B35]">
                 <h3 className="text-xl font-bold text-[#2D3748] mb-4">Informations de Contact</h3>
                 <div className="space-y-4">
                   <div>
@@ -790,7 +790,7 @@ export default function LandingPage() {
 
             {/* Product */}
             <div>
-              <h4 className="font-bold mb-4 text-amber-400">Produit</h4>
+              <h4 className="font-bold mb-4 text-[#FF8C42]">Produit</h4>
               <ul className="space-y-2 text-sm text-slate-300">
                 <li><button onClick={() => scrollToSection('features')} className="hover:text-amber-300 transition-colors">Fonctionnalités</button></li>
                 <li><button onClick={() => scrollToSection('pricing')} className="hover:text-amber-300 transition-colors">Tarifs</button></li>
@@ -800,7 +800,7 @@ export default function LandingPage() {
 
             {/* Support */}
             <div>
-              <h4 className="font-bold mb-4 text-amber-400">Support</h4>
+              <h4 className="font-bold mb-4 text-[#FF8C42]">Support</h4>
               <ul className="space-y-2 text-sm text-slate-300">
                 <li><button onClick={() => scrollToSection('faq')} className="hover:text-amber-300 transition-colors">FAQ</button></li>
                 <li><button onClick={() => scrollToSection('contact')} className="hover:text-amber-300 transition-colors">Contact</button></li>
@@ -810,7 +810,7 @@ export default function LandingPage() {
 
             {/* Legal */}
             <div>
-              <h4 className="font-bold mb-4 text-amber-400">Légal</h4>
+              <h4 className="font-bold mb-4 text-[#FF8C42]">Légal</h4>
               <ul className="space-y-2 text-sm text-slate-300">
                 <li><a href="#" className="hover:text-amber-300 transition-colors">Mentions légales</a></li>
                 <li><a href="#" className="hover:text-amber-300 transition-colors">Confidentialité</a></li>
