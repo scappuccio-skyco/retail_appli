@@ -31,11 +31,31 @@ export default function InviteModal({ onClose, onSuccess }) {
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(inviteLink);
-    setCopied(true);
-    toast.success('Lien copié!');
-    setTimeout(() => setCopied(false), 2000);
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setCopied(true);
+      toast.success('Lien copié!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      // Fallback pour les navigateurs qui ne supportent pas clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = inviteLink;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        toast.success('Lien copié!');
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        toast.error('Erreur lors de la copie');
+      }
+      document.body.removeChild(textArea);
+    }
   };
 
   return (
