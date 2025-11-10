@@ -120,14 +120,11 @@ export default function SubscriptionModal({ onClose }) {
       return;
     }
     
-    // Open quantity selector with small delay to prevent React 19 concurrent rendering conflict
-    // This allows parent modal DOM reconciliation to complete before portal insertion
-    setTimeout(() => {
-      setSelectedPlan(plan);
-      // Set minimum quantity based on plan's minimum or current seller count
-      const minQuantity = Math.max(sellerCount, planInfo.minSellers);
-      setSelectedQuantity(minQuantity);
-    }, 50); // 50ms delay to avoid DOM insertion conflicts
+    // Instead of nested modal, close main modal and open quantity modal
+    setSelectedPlan(plan);
+    const minQuantity = Math.max(sellerCount, planInfo.minSellers);
+    setSelectedQuantity(minQuantity);
+    setShowQuantityModal(true);
   };
 
   const handleProceedToPayment = async () => {
