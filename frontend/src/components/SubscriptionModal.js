@@ -106,7 +106,8 @@ export default function SubscriptionModal({ onClose }) {
     
     // Open quantity selector
     setSelectedPlan(plan);
-    const minQuantity = Math.max(sellerCount, 1);
+    // Set minimum quantity based on plan's minimum or current seller count
+    const minQuantity = Math.max(sellerCount, planInfo.minSellers);
     setSelectedQuantity(minQuantity);
   };
 
