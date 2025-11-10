@@ -5147,24 +5147,34 @@ async def create_checkout_session(
     cancel_url = f"{checkout_data.origin_url}/dashboard"
     
     # Calculate quantity (number of sellers)
-    # Use quantity from request if provided, otherwise default to current seller count (min 1)
+    # Use quantity from request if provided, otherwise default to current seller count (respecting plan minimum)
+    min_sellers = plan_info['min_sellers']
+    
     if checkout_data.quantity is not None:
         quantity = checkout_data.quantity
         # Validate quantity is within allowed range
-        min_quantity = max(seller_count, 1)
+        # Minimum is either the plan's minimum or the current seller count (whichever is higher)
+        min_quantity = max(seller_count, min_sellers)
+        
         if quantity < min_quantity:
-            raise HTTPException(
-                status_code=400,
-                detail=f"La quantité minimum est {min_quantity} (nombre de vendeurs actuels)"
-            )
+            if seller_count > min_sellers:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"La quantité minimum est {min_quantity} (vous avez actuellement {seller_count} vendeurs)"
+                )
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"La quantité minimum pour le plan {plan_info['name']} est {min_sellers} vendeurs"
+                )
         if quantity > max_sellers:
             raise HTTPException(
                 status_code=400,
                 detail=f"La quantité maximum pour le plan {plan_info['name']} est {max_sellers}"
             )
     else:
-        # If quantity not provided, default to current seller count (min 1)
-        quantity = max(seller_count, 1)
+        # If quantity not provided, default to max of (current seller count, plan minimum)
+        quantity = max(seller_count, min_sellers)
     
     # Calculate expected amount (Stripe graduated pricing will apply automatically)
     expected_amount = quantity * plan_info['price_per_seller']
