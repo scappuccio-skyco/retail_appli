@@ -393,6 +393,34 @@ export default function LandingPage() {
             <p className="text-xl text-gray-600 mb-4">
               Choisissez la formule qui correspond à votre équipe
             </p>
+            
+            {/* Toggle Mensuel/Annuel */}
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <span className={`text-lg font-semibold ${!isAnnual ? 'text-gray-900' : 'text-gray-400'}`}>
+                Mensuel
+              </span>
+              <button
+                onClick={() => setIsAnnual(!isAnnual)}
+                className={`relative w-16 h-8 rounded-full transition-colors duration-300 ${
+                  isAnnual ? 'bg-gradient-to-r from-yellow-500 to-orange-600' : 'bg-gray-300'
+                }`}
+              >
+                <div
+                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300 ${
+                    isAnnual ? 'transform translate-x-8' : ''
+                  }`}
+                />
+              </button>
+              <span className={`text-lg font-semibold ${isAnnual ? 'text-gray-900' : 'text-gray-400'}`}>
+                Annuel
+              </span>
+              {isAnnual && (
+                <span className="ml-2 px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full">
+                  Économisez 20%
+                </span>
+              )}
+            </div>
+
             <div className="inline-flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-full px-6 py-3">
               <Users className="w-5 h-5 text-orange-600" />
               <p className="text-sm font-semibold text-orange-900">
