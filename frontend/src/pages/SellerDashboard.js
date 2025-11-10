@@ -701,7 +701,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           <div className="flex items-center gap-4">
             <img src="/logo-retail-performer-blue.png" alt="Retail Performer AI" className="h-14 object-contain" />
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold text-[#1E40AF] mb-2">
                 Bonjour, {user.name}!
               </h1>
               <p className="text-gray-600">Suivez vos performances et progressez chaque jour</p>
