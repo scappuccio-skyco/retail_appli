@@ -1685,7 +1685,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 bg-gray-50 px-6 py-2 overflow-x-auto">
+        <div className="flex border-b border-gray-200 bg-gray-50 px-6 py-4 overflow-x-auto">
           {allSections.includes('management') && (
             <button
               onClick={() => handleSectionChange('management')}
