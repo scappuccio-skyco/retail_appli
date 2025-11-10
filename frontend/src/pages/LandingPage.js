@@ -70,22 +70,22 @@ export default function LandingPage() {
           {/* Mobile Menu */}
           {mobileMenuOpen && (
             <div className="md:hidden py-4 space-y-3">
-              <button onClick={() => scrollToSection('features')} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 rounded-lg">
+              <button onClick={() => scrollToSection('features')} className="block w-full text-left px-4 py-2 text-[#2D3748] hover:bg-blue-50 rounded-lg">
                 Fonctionnalités
               </button>
-              <button onClick={() => scrollToSection('pricing')} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 rounded-lg">
+              <button onClick={() => scrollToSection('pricing')} className="block w-full text-left px-4 py-2 text-[#2D3748] hover:bg-blue-50 rounded-lg">
                 Tarifs
               </button>
-              <button onClick={() => scrollToSection('faq')} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 rounded-lg">
+              <button onClick={() => scrollToSection('faq')} className="block w-full text-left px-4 py-2 text-[#2D3748] hover:bg-blue-50 rounded-lg">
                 FAQ
               </button>
-              <button onClick={() => scrollToSection('contact')} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 rounded-lg">
+              <button onClick={() => scrollToSection('contact')} className="block w-full text-left px-4 py-2 text-[#2D3748] hover:bg-blue-50 rounded-lg">
                 Contact
               </button>
-              <button onClick={() => navigate('/login')} className="block w-full text-left px-4 py-2 text-amber-600 font-medium">
+              <button onClick={() => navigate('/login')} className="block w-full text-left px-4 py-2 text-[#FF6B35] font-medium">
                 Connexion
               </button>
-              <button onClick={() => scrollToSection('pricing')} className="block w-full px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-white rounded-lg font-medium">
+              <button onClick={() => scrollToSection('pricing')} className="block w-full px-4 py-2 bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] text-white rounded-lg font-medium">
                 Essai Gratuit
               </button>
             </div>
