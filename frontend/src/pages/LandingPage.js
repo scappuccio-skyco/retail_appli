@@ -364,10 +364,10 @@ export default function LandingPage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-blue-950 mb-4">
+            <h2 className="text-4xl font-bold text-[#2D3748] mb-4">
               Une Interface Moderne et Intuitive
             </h2>
-            <p className="text-xl text-slate-700">
+            <p className="text-xl text-[#2D3748]">
               Découvrez la puissance de Retail Performer AI
             </p>
           </div>
@@ -376,8 +376,8 @@ export default function LandingPage() {
             {/* Screenshot 1 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
-                <h3 className="text-3xl font-bold text-blue-950 mb-4">Dashboard Manager</h3>
-                <p className="text-lg text-slate-700 mb-6">
+                <h3 className="text-3xl font-bold text-[#2D3748] mb-4">Dashboard Manager</h3>
+                <p className="text-lg text-[#2D3748] mb-6">
                   Visualisez la performance de votre équipe en un coup d'œil. 
                   KPI, comparaisons, graphiques et alertes intelligentes.
                 </p>
@@ -389,13 +389,13 @@ export default function LandingPage() {
                     'Export PDF des rapports'
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-amber-600" />
-                      <span className="text-slate-700">{item}</span>
+                      <Check className="w-5 h-5 text-[#FF6B35]" />
+                      <span className="text-[#2D3748]">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-100">
+              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-[#0066FF]/20">
                 <img 
                   src="/screenshot3.png" 
                   alt="Dashboard Manager - Vue d'ensemble KPI"
@@ -407,8 +407,8 @@ export default function LandingPage() {
             {/* Screenshot 2 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div className="md:order-2">
-                <h3 className="text-3xl font-bold text-blue-950 mb-4">Profils Vendeurs Intelligents</h3>
-                <p className="text-lg text-slate-700 mb-6">
+                <h3 className="text-3xl font-bold text-[#2D3748] mb-4">Profils Vendeurs Intelligents</h3>
+                <p className="text-lg text-[#2D3748] mb-6">
                   Diagnostic DISC complet, points forts, axes d'amélioration et coaching personnalisé par l'IA.
                 </p>
                 <ul className="space-y-3">
@@ -419,13 +419,13 @@ export default function LandingPage() {
                     'Historique de progression'
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-amber-600" />
-                      <span className="text-slate-700">{item}</span>
+                      <Check className="w-5 h-5 text-[#FF6B35]" />
+                      <span className="text-[#2D3748]">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="md:order-1 rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-100">
+              <div className="md:order-1 rounded-2xl overflow-hidden shadow-2xl border-2 border-[#0066FF]/20">
                 <img 
                   src="/screenshot1.png" 
                   alt="Bilan Individuel - Analyse de compétences"
@@ -437,8 +437,8 @@ export default function LandingPage() {
             {/* Screenshot 3 */}
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
-                <h3 className="text-3xl font-bold text-blue-950 mb-4">Gamification & Challenges</h3>
-                <p className="text-lg text-slate-700 mb-6">
+                <h3 className="text-3xl font-bold text-[#2D3748] mb-4">Gamification & Challenges</h3>
+                <p className="text-lg text-[#2D3748] mb-6">
                   Créez des challenges motivants, suivez les progrès en temps réel et célébrez les victoires d'équipe.
                 </p>
                 <ul className="space-y-3">
@@ -449,13 +449,13 @@ export default function LandingPage() {
                     'Notifications de succès'
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-amber-600" />
-                      <span className="text-slate-700">{item}</span>
+                      <Check className="w-5 h-5 text-[#FF6B35]" />
+                      <span className="text-[#2D3748]">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-100">
+              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-[#0066FF]/20">
                 <img 
                   src="/screenshot2.png" 
                   alt="Coach IA - Défis personnalisés"
@@ -471,16 +471,16 @@ export default function LandingPage() {
       <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-blue-950 mb-4">
+            <h2 className="text-4xl font-bold text-[#2D3748] mb-4">
               Tarifs Simples et Transparents
             </h2>
-            <p className="text-xl text-slate-700 mb-4">
+            <p className="text-xl text-[#2D3748] mb-4">
               Choisissez la formule qui correspond à votre équipe
             </p>
             
             {/* Toggle Mensuel/Annuel */}
             <div className="flex items-center justify-center gap-4 mb-6">
-              <span className={`text-lg font-semibold ${!isAnnual ? 'text-blue-900' : 'text-slate-400'}`}>
+              <span className={`text-lg font-semibold ${!isAnnual ? 'text-[#2D3748]' : 'text-slate-400'}`}>
                 Mensuel
               </span>
               <button
@@ -495,7 +495,7 @@ export default function LandingPage() {
                   }`}
                 />
               </button>
-              <span className={`text-lg font-semibold ${isAnnual ? 'text-blue-900' : 'text-slate-400'}`}>
+              <span className={`text-lg font-semibold ${isAnnual ? 'text-[#2D3748]' : 'text-slate-400'}`}>
                 Annuel
               </span>
               {isAnnual && (
@@ -505,9 +505,9 @@ export default function LandingPage() {
               )}
             </div>
 
-            <div className="inline-flex items-center gap-3 bg-amber-50 border-2 border-amber-300 rounded-full px-6 py-3">
-              <Users className="w-5 h-5 text-amber-700" />
-              <p className="text-sm font-semibold text-blue-900">
+            <div className="inline-flex items-center gap-3 bg-orange-50 border-2 border-[#FF6B35] rounded-full px-6 py-3">
+              <Users className="w-5 h-5 text-[#FF8C42]" />
+              <p className="text-sm font-semibold text-[#2D3748]">
                 Toutes les formules incluent : Espace Manager complet + Accès vendeurs illimités
               </p>
             </div>
@@ -517,18 +517,18 @@ export default function LandingPage() {
             {/* Starter */}
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-slate-200">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-blue-900 mb-2">Starter</h3>
-                <p className="text-slate-600 mb-4">Pour petites boutiques</p>
+                <h3 className="text-2xl font-bold text-[#2D3748] mb-2">Starter</h3>
+                <p className="text-[#2D3748] mb-4">Pour petites boutiques</p>
                 {!isAnnual ? (
                   <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-5xl font-bold text-blue-950">29€</span>
-                    <span className="text-slate-600">/vendeur/mois</span>
+                    <span className="text-5xl font-bold text-[#2D3748]">29€</span>
+                    <span className="text-[#2D3748]">/vendeur/mois</span>
                   </div>
                 ) : (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold text-blue-950">278€</span>
-                      <span className="text-slate-600">/vendeur/an</span>
+                      <span className="text-5xl font-bold text-[#2D3748]">278€</span>
+                      <span className="text-[#2D3748]">/vendeur/an</span>
                     </div>
                     <p className="text-sm text-green-600 font-semibold mt-2">
                       Au lieu de 348€ • Économisez 70€/an
@@ -548,15 +548,15 @@ export default function LandingPage() {
                   'Support email'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-amber-600 flex-shrink-0" />
-                    <span className="text-slate-700">{item}</span>
+                    <Check className="w-5 h-5 text-[#FF6B35] flex-shrink-0" />
+                    <span className="text-[#2D3748]">{item}</span>
                   </li>
                 ))}
               </ul>
 
               <button
                 onClick={() => scrollToSection('contact')}
-                className="w-full py-3 bg-slate-100 text-blue-900 font-semibold rounded-xl hover:bg-slate-200 transition-colors"
+                className="w-full py-3 bg-slate-100 text-[#2D3748] font-semibold rounded-xl hover:bg-slate-200 transition-colors"
               >
                 Essai Gratuit 14 Jours
               </button>
@@ -572,26 +572,26 @@ export default function LandingPage() {
               </div>
 
               <div className="text-center mb-6 pt-4">
-                <h3 className="text-2xl font-bold text-blue-900 mb-2">Professional</h3>
-                <p className="text-slate-600 mb-4">Pour magasins moyens</p>
+                <h3 className="text-2xl font-bold text-[#2D3748] mb-2">Professional</h3>
+                <p className="text-[#2D3748] mb-4">Pour magasins moyens</p>
                 {!isAnnual ? (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
                       <span className="text-5xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">249€</span>
-                      <span className="text-slate-600">/mois</span>
+                      <span className="text-[#2D3748]">/mois</span>
                     </div>
-                    <p className="text-sm text-amber-700 font-semibold mt-2">Jusqu'à 15 vendeurs inclus</p>
+                    <p className="text-sm text-[#FF8C42] font-semibold mt-2">Jusqu'à 15 vendeurs inclus</p>
                   </div>
                 ) : (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
                       <span className="text-5xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">2 390€</span>
-                      <span className="text-slate-600">/an</span>
+                      <span className="text-[#2D3748]">/an</span>
                     </div>
                     <p className="text-sm text-green-600 font-semibold mt-2">
                       Au lieu de 2 988€ • Économisez 598€/an
                     </p>
-                    <p className="text-xs text-amber-700 font-semibold mt-1">Jusqu'à 15 vendeurs inclus</p>
+                    <p className="text-xs text-[#FF8C42] font-semibold mt-1">Jusqu'à 15 vendeurs inclus</p>
                   </div>
                 )}
               </div>
@@ -607,8 +607,8 @@ export default function LandingPage() {
                   'Support prioritaire + onboarding'
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-amber-600 flex-shrink-0" />
-                    <span className="text-slate-700 font-medium">{item}</span>
+                    <Check className="w-5 h-5 text-[#FF6B35] flex-shrink-0" />
+                    <span className="text-[#2D3748] font-medium">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -622,12 +622,12 @@ export default function LandingPage() {
             </div>
 
             {/* Enterprise */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-blue-200">
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[#0066FF]/30">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-blue-900 mb-2">Enterprise</h3>
-                <p className="text-slate-600 mb-4">Pour réseaux & enseignes</p>
+                <h3 className="text-2xl font-bold text-[#2D3748] mb-2">Enterprise</h3>
+                <p className="text-[#2D3748] mb-4">Pour réseaux & enseignes</p>
                 <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-3xl font-bold text-blue-950">Sur devis</span>
+                  <span className="text-3xl font-bold text-[#2D3748]">Sur devis</span>
                 </div>
                 <p className="text-sm text-slate-500 mt-2">16+ vendeurs</p>
               </div>
@@ -644,14 +644,14 @@ export default function LandingPage() {
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-blue-700 flex-shrink-0" />
-                    <span className="text-slate-700">{item}</span>
+                    <span className="text-[#2D3748]">{item}</span>
                   </li>
                 ))}
               </ul>
 
               <button
                 onClick={() => scrollToSection('contact')}
-                className="w-full py-3 bg-blue-100 text-blue-900 font-semibold rounded-xl hover:bg-blue-200 transition-colors"
+                className="w-full py-3 bg-blue-100 text-[#2D3748] font-semibold rounded-xl hover:bg-blue-200 transition-colors"
               >
                 Nous Contacter
               </button>
@@ -667,22 +667,22 @@ export default function LandingPage() {
                 </p>
               </div>
             )}
-            <div className="flex items-center justify-center gap-6 text-sm text-slate-700 flex-wrap">
+            <div className="flex items-center justify-center gap-6 text-sm text-[#2D3748] flex-wrap">
               <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-amber-600" />
+                <Check className="w-5 h-5 text-[#FF6B35]" />
                 <span>14 jours d'essai gratuit</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-amber-600" />
+                <Check className="w-5 h-5 text-[#FF6B35]" />
                 <span>Sans carte bancaire</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-amber-600" />
+                <Check className="w-5 h-5 text-[#FF6B35]" />
                 <span>Résiliation à tout moment</span>
               </div>
               {isAnnual && (
                 <div className="flex items-center gap-2">
-                  <Check className="w-5 h-5 text-amber-600" />
+                  <Check className="w-5 h-5 text-[#FF6B35]" />
                   <span className="font-semibold">Facturation annuelle</span>
                 </div>
               )}
@@ -695,10 +695,10 @@ export default function LandingPage() {
       <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-blue-950 mb-4">
+            <h2 className="text-4xl font-bold text-[#2D3748] mb-4">
               Questions Fréquentes
             </h2>
-            <p className="text-xl text-slate-700">
+            <p className="text-xl text-[#2D3748]">
               Tout ce que vous devez savoir sur Retail Performer AI
             </p>
           </div>
@@ -730,18 +730,18 @@ export default function LandingPage() {
                 answer: "Oui, nous offrons un onboarding personnalisé pour tous les plans Professional et Enterprise. Des tutoriels vidéo sont également disponibles."
               }
             ].map((faq, idx) => (
-              <div key={idx} className="bg-blue-50 rounded-xl border-2 border-blue-100 overflow-hidden hover:border-amber-300 transition-colors">
+              <div key={idx} className="bg-blue-50 rounded-xl border-2 border-[#0066FF]/20 overflow-hidden hover:border-[#FF6B35] transition-colors">
                 <button
                   onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
                   className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-blue-100 transition-colors"
                 >
-                  <span className="font-semibold text-blue-900">{faq.question}</span>
+                  <span className="font-semibold text-[#2D3748]">{faq.question}</span>
                   <ChevronDown 
-                    className={`w-5 h-5 text-amber-600 transition-transform ${openFaq === idx ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 text-[#FF6B35] transition-transform ${openFaq === idx ? 'rotate-180' : ''}`}
                   />
                 </button>
                 {openFaq === idx && (
-                  <div className="px-6 pb-4 text-slate-700">
+                  <div className="px-6 pb-4 text-[#2D3748]">
                     {faq.answer}
                   </div>
                 )}
@@ -777,48 +777,48 @@ export default function LandingPage() {
       <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-blue-950 mb-4">
+            <h2 className="text-4xl font-bold text-[#2D3748] mb-4">
               Contactez-Nous
             </h2>
-            <p className="text-xl text-slate-700">
+            <p className="text-xl text-[#2D3748]">
               Une question ? Notre équipe vous répond en moins de 24h
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12">
             {/* Contact Form */}
-            <div className="bg-blue-50 rounded-2xl p-8 border-2 border-blue-100">
-              <h3 className="text-2xl font-bold text-blue-900 mb-6">Demander une Démo</h3>
+            <div className="bg-blue-50 rounded-2xl p-8 border-2 border-[#0066FF]/20">
+              <h3 className="text-2xl font-bold text-[#2D3748] mb-6">Demander une Démo</h3>
               <form className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-blue-900 mb-2">Nom complet</label>
+                  <label className="block text-sm font-medium text-[#2D3748] mb-2">Nom complet</label>
                   <input 
                     type="text" 
-                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
+                    className="w-full px-4 py-3 border-2 border-[#0066FF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
                     placeholder="Jean Dupont"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-blue-900 mb-2">Email professionnel</label>
+                  <label className="block text-sm font-medium text-[#2D3748] mb-2">Email professionnel</label>
                   <input 
                     type="email" 
-                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
+                    className="w-full px-4 py-3 border-2 border-[#0066FF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
                     placeholder="jean@entreprise.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-blue-900 mb-2">Nombre de vendeurs</label>
-                  <select className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white">
+                  <label className="block text-sm font-medium text-[#2D3748] mb-2">Nombre de vendeurs</label>
+                  <select className="w-full px-4 py-3 border-2 border-[#0066FF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white">
                     <option>1-5 vendeurs</option>
                     <option>6-15 vendeurs</option>
                     <option>16+ vendeurs</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-blue-900 mb-2">Message</label>
+                  <label className="block text-sm font-medium text-[#2D3748] mb-2">Message</label>
                   <textarea 
                     rows="4" 
-                    className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
+                    className="w-full px-4 py-3 border-2 border-[#0066FF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
                     placeholder="Parlez-nous de votre besoin..."
                   ></textarea>
                 </div>
@@ -834,16 +834,16 @@ export default function LandingPage() {
             {/* Contact Info */}
             <div className="space-y-8">
               <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-8 border-2 border-amber-200">
-                <h3 className="text-xl font-bold text-blue-900 mb-4">Informations de Contact</h3>
+                <h3 className="text-xl font-bold text-[#2D3748] mb-4">Informations de Contact</h3>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm font-medium text-slate-600 mb-1">Email</p>
-                    <a href="mailto:contact@retailperformerai.com" className="text-amber-700 font-semibold hover:underline">
+                    <p className="text-sm font-medium text-[#2D3748] mb-1">Email</p>
+                    <a href="mailto:contact@retailperformerai.com" className="text-[#FF8C42] font-semibold hover:underline">
                       contact@retailperformerai.com
                     </a>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-600 mb-1">Adresse</p>
+                    <p className="text-sm font-medium text-[#2D3748] mb-1">Adresse</p>
                     <p className="text-slate-800">
                       25 allée Rose Dieng-Kuntz<br />
                       75019 Paris, France
@@ -852,13 +852,13 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-blue-50 to-slate-50 rounded-2xl p-8 border-2 border-blue-200">
-                <h3 className="text-xl font-bold text-blue-900 mb-4">Horaires</h3>
+              <div className="bg-gradient-to-br from-blue-50 to-slate-50 rounded-2xl p-8 border-2 border-[#0066FF]/30">
+                <h3 className="text-xl font-bold text-[#2D3748] mb-4">Horaires</h3>
                 <p className="text-slate-800">
                   Lundi - Vendredi : 9h - 18h<br />
                   Samedi - Dimanche : Fermé
                 </p>
-                <p className="text-sm text-slate-600 mt-4">
+                <p className="text-sm text-[#2D3748] mt-4">
                   Réponse sous 24h ouvrées
                 </p>
               </div>
@@ -876,7 +876,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-blue-950 text-white py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="bg-[#0066FF] text-white py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             {/* Company */}
