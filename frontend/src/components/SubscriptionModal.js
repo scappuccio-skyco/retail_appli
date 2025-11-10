@@ -45,6 +45,8 @@ export default function SubscriptionModal({ onClose }) {
   const [loading, setLoading] = useState(true);
   const [processingPlan, setProcessingPlan] = useState(null);
   const [sellerCount, setSellerCount] = useState(0);
+  const [selectedPlan, setSelectedPlan] = useState(null); // Plan selected for quantity adjustment
+  const [selectedQuantity, setSelectedQuantity] = useState(1); // Quantity to purchase
 
   useEffect(() => {
     fetchSubscriptionStatus();
