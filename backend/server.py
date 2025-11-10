@@ -35,7 +35,7 @@ JWT_EXPIRATION = 24  # hours
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
 STRIPE_PLANS = {
     "starter": {
-        "name": "Démarreur",
+        "name": "Starter",
         "price_id": "price_1SRwA6IiTXd4gOhvT9OrpV03",
         "price_per_seller": 29.0,  # 29€ par vendeur/mois
         "currency": "eur",
@@ -43,7 +43,7 @@ STRIPE_PLANS = {
         "ai_credits_monthly": 500
     },
     "professional": {
-        "name": "Professionnel",
+        "name": "Professional",
         "price_id": "price_1SRwQRiiTXd4gOhy8UrBYG2s",
         "price_per_seller": 25.0,  # 25€ par vendeur/mois (dégressif)
         "currency": "eur",
