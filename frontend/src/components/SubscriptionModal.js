@@ -301,7 +301,7 @@ export default function SubscriptionModal({ onClose }) {
                         </button>
                       ) : (
                         <button
-                          onClick={() => handleSubscribe(planKey)}
+                          onClick={() => handleSelectPlan(planKey)}
                           disabled={isProcessing}
                           className="w-full py-3 bg-[#1E40AF] text-white rounded-lg hover:bg-[#1E3A8A] transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
                         >
@@ -313,7 +313,7 @@ export default function SubscriptionModal({ onClose }) {
                           ) : (
                             <>
                               <Crown className="w-5 h-5" />
-                              {isActive ? 'Changer de plan' : 'S\'abonner'}
+                              {isActive ? 'Changer de plan' : 'Choisir ce plan'}
                             </>
                           )}
                         </button>
