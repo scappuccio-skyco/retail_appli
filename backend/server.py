@@ -5275,45 +5275,69 @@ async def get_checkout_status(
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
-    """Handle Stripe webhooks"""
+    """Handle Stripe webhooks using native Stripe API"""
     try:
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
         body = await request.body()
         signature = request.headers.get("Stripe-Signature")
         
-        if not signature:
-            raise HTTPException(status_code=400, detail="Missing Stripe signature")
+        # Get webhook secret from environment (optional for now)
+        webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
         
-        # Initialize Stripe Checkout for webhook handling
-        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url="https://dummy.url/webhook")
+        # Parse and verify webhook event
+        if webhook_secret and signature:
+            try:
+                event = stripe_lib.Webhook.construct_event(
+                    body, signature, webhook_secret
+                )
+            except stripe_lib.error.SignatureVerificationError as e:
+                logger.error(f"Webhook signature verification failed: {str(e)}")
+                raise HTTPException(status_code=400, detail="Invalid signature")
+        else:
+            # In development, parse without verification (not recommended for production)
+            event = stripe_lib.Event.construct_from(
+                json.loads(body), stripe_lib.api_key
+            )
         
-        # Handle webhook
-        webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        logger.info(f"Received Stripe webhook event: {event['type']}")
         
-        # Process based on event type
-        if webhook_response.event_type == "checkout.session.completed":
-            session_id = webhook_response.session_id
-            metadata = webhook_response.metadata
+        # Handle checkout.session.completed event
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            session_id = session['id']
+            metadata = session.get('metadata', {})
             
-            # Update transaction
+            logger.info(f"Processing checkout.session.completed for session: {session_id}")
+            
+            # Update transaction status
             await db.payment_transactions.update_one(
                 {"session_id": session_id},
                 {"$set": {
-                    "payment_status": webhook_response.payment_status,
+                    "payment_status": "paid",
                     "updated_at": datetime.now(timezone.utc).isoformat()
                 }}
             )
             
-            # Update subscription if payment successful
-            if webhook_response.payment_status == 'paid' and metadata.get('user_id'):
+            # Activate subscription if payment successful
+            if session.get('payment_status') == 'paid' and metadata.get('user_id'):
                 user_id = metadata['user_id']
                 plan = metadata.get('plan', 'starter')
+                stripe_subscription_id = session.get('subscription')  # Get actual Stripe subscription ID
                 
-                # Check if already activated
+                logger.info(f"Activating subscription for user: {user_id}, plan: {plan}")
+                
+                # Check if subscription exists
                 sub = await db.subscriptions.find_one({"user_id": user_id})
                 
-                if sub and sub['status'] not in ['active']:
+                if sub and sub.get('status') != 'active':
                     now = datetime.now(timezone.utc)
                     period_end = now + timedelta(days=30)
+                    
+                    # Allocate AI credits based on plan
+                    plan_info = STRIPE_PLANS.get(plan, STRIPE_PLANS['starter'])
+                    ai_credits = plan_info['ai_credits_monthly']
                     
                     await db.subscriptions.update_one(
                         {"user_id": user_id},
@@ -5322,15 +5346,57 @@ async def stripe_webhook(request: Request):
                             "plan": plan,
                             "current_period_start": now.isoformat(),
                             "current_period_end": period_end.isoformat(),
-                            "stripe_subscription_id": session_id,
+                            "stripe_subscription_id": stripe_subscription_id,
+                            "ai_credits_remaining": ai_credits,
+                            "ai_credits_used_this_month": 0,
                             "updated_at": now.isoformat()
                         }}
                     )
+                    
+                    logger.info(f"Subscription activated successfully for user: {user_id}")
         
-        return {"status": "success"}
+        # Handle subscription updates
+        elif event['type'] in ['customer.subscription.updated', 'customer.subscription.deleted']:
+            subscription = event['data']['object']
+            stripe_subscription_id = subscription['id']
+            
+            logger.info(f"Processing subscription event: {event['type']} for subscription: {stripe_subscription_id}")
+            
+            # Find subscription by Stripe subscription ID
+            sub = await db.subscriptions.find_one({"stripe_subscription_id": stripe_subscription_id})
+            
+            if sub:
+                if event['type'] == 'customer.subscription.deleted' or subscription['status'] == 'canceled':
+                    # Cancel subscription
+                    await db.subscriptions.update_one(
+                        {"stripe_subscription_id": stripe_subscription_id},
+                        {"$set": {
+                            "status": "canceled",
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }}
+                    )
+                    logger.info(f"Subscription canceled: {stripe_subscription_id}")
+                
+                elif subscription['status'] == 'active':
+                    # Update subscription period
+                    period_end = datetime.fromtimestamp(subscription['current_period_end'], tz=timezone.utc)
+                    
+                    await db.subscriptions.update_one(
+                        {"stripe_subscription_id": stripe_subscription_id},
+                        {"$set": {
+                            "status": "active",
+                            "current_period_end": period_end.isoformat(),
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }}
+                    )
+                    logger.info(f"Subscription updated: {stripe_subscription_id}")
+        
+        return {"status": "success", "event_type": event['type']}
     
     except Exception as e:
         logger.error(f"Webhook error: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=400, detail=str(e))
 
 
