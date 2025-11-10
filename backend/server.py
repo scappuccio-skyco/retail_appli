@@ -5070,6 +5070,63 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
         "subscription": sub
     }
 
+@api_router.post("/subscription/cancel")
+async def cancel_subscription(current_user: dict = Depends(get_current_user)):
+    """Cancel subscription at period end - keeps active until end of billing period"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can cancel subscriptions")
+    
+    # Get user's subscription
+    sub = await db.subscriptions.find_one({"user_id": current_user['id']})
+    
+    if not sub:
+        raise HTTPException(status_code=404, detail="No subscription found")
+    
+    if sub['status'] != 'active':
+        raise HTTPException(status_code=400, detail="Only active subscriptions can be canceled")
+    
+    # Get Stripe subscription ID
+    stripe_subscription_id = sub.get('stripe_subscription_id')
+    
+    if not stripe_subscription_id:
+        raise HTTPException(status_code=400, detail="No Stripe subscription ID found")
+    
+    try:
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
+        # Cancel subscription at period end (not immediately)
+        # This keeps it active until the end of the current billing period
+        updated_subscription = stripe_lib.Subscription.modify(
+            stripe_subscription_id,
+            cancel_at_period_end=True
+        )
+        
+        # Update our database to reflect the cancellation
+        await db.subscriptions.update_one(
+            {"user_id": current_user['id']},
+            {"$set": {
+                "cancel_at_period_end": True,
+                "canceled_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        logger.info(f"Subscription scheduled for cancellation: user={current_user['id']}, ends={sub['current_period_end']}")
+        
+        return {
+            "success": True,
+            "message": "Abonnement annulé. Vous conservez l'accès jusqu'au " + 
+                      datetime.fromisoformat(sub['current_period_end']).strftime('%d/%m/%Y'),
+            "cancel_at_period_end": True,
+            "period_end": sub['current_period_end']
+        }
+        
+    except Exception as e:
+        logger.error(f"Error canceling subscription: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to cancel subscription: {str(e)}")
+
+
 @api_router.get("/ai-credits/status")
 async def get_ai_credits_status(current_user: dict = Depends(get_current_user)):
     """Get AI credits status for current user"""
