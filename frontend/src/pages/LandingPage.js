@@ -583,7 +583,8 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-4">
                   {[
                     '16+ vendeurs',
-                    'Support prioritaire (24h)',
+                    '10 000+ crédits IA/mois',
+                    'Gestionnaire de compte dédié',
                     'Formations & Onboarding avancé',
                     'Configuration personnalisée',
                     'Export de données avancé',
