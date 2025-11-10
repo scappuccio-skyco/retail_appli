@@ -184,6 +184,9 @@ export default function ManagerDashboard({ user, onLogout }) {
   }, []);
 
   const handleStripeCheckoutReturn = async (sessionId) => {
+    setProcessingStripeReturn(true);
+    setLoading(true);
+    
     try {
       // Clean URL immediately to prevent reprocessing
       window.history.replaceState({}, document.title, '/dashboard');
@@ -211,6 +214,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         toast.info('⏳ Paiement en cours de traitement...', {
           duration: 5000
         });
+        setProcessingStripeReturn(false);
         // Load dashboard normally
         fetchData();
         fetchManagerDiagnostic();
@@ -223,6 +227,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         toast.error('❌ Le paiement n\'a pas pu être confirmé. Contactez le support si le problème persiste.', {
           duration: 6000
         });
+        setProcessingStripeReturn(false);
         // Load dashboard normally
         fetchData();
         fetchManagerDiagnostic();
@@ -237,6 +242,7 @@ export default function ManagerDashboard({ user, onLogout }) {
       toast.error('Erreur lors de la vérification du paiement. Veuillez rafraîchir la page.', {
         duration: 5000
       });
+      setProcessingStripeReturn(false);
       // Load dashboard normally even on error
       fetchData();
       fetchManagerDiagnostic();
