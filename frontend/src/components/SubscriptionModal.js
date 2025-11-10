@@ -235,6 +235,18 @@ export default function SubscriptionModal({ onClose }) {
                         ))}
                       </ul>
 
+                      {/* Warning if too many sellers */}
+                      {sellerCount > plan.maxSellers && !isCurrentPlan && (
+                        <div className="mb-4 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
+                          <p className="text-sm text-orange-800 font-semibold">
+                            ⚠️ Attention
+                          </p>
+                          <p className="text-xs text-orange-700 mt-1">
+                            Vous avez {sellerCount} vendeur(s). Ce plan est limité à {plan.maxSellers}.
+                          </p>
+                        </div>
+                      )}
+
                       {isCurrentPlan ? (
                         <button
                           disabled
