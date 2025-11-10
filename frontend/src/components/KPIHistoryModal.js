@@ -14,7 +14,7 @@ export default function KPIHistoryModal({ kpiEntries, kpiConfig, onClose, onNewK
   const remainingCount = kpiEntries.length - displayLimit;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div onClick={onClose} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl">
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 flex justify-between items-center border-b border-gray-200 rounded-t-2xl">
