@@ -140,12 +140,18 @@ export default function SubscriptionModal({ onClose }) {
   const currentPlan = subscriptionInfo?.plan || 'starter';
   const isActive = subscriptionInfo?.status === 'active';
 
+  const handleClose = () => {
+    // Prevent closing while processing
+    if (processingPlan) return;
+    onClose();
+  };
+
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
       onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
+        if (e.target === e.currentTarget && !processingPlan) {
+          handleClose();
         }
       }}
     >
@@ -153,8 +159,9 @@ export default function SubscriptionModal({ onClose }) {
         {/* Header */}
         <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl relative">
           <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
+            onClick={handleClose}
+            disabled={processingPlan !== null}
+            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <X className="w-6 h-6" />
           </button>
