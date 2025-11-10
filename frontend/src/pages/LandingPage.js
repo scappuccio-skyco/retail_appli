@@ -415,18 +415,18 @@ export default function LandingPage() {
             {/* Starter */}
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-slate-200">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Starter</h3>
-                <p className="text-[#334155] mb-4">Pour petites boutiques</p>
+                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Démarreur</h3>
+                <p className="text-[#334155] mb-4">Petites boutiques</p>
                 {!isAnnual ? (
                   <div className="flex items-baseline justify-center gap-2">
                     <span className="text-5xl font-bold text-[#334155]">29€</span>
-                    <span className="text-[#334155]">/vendeur/mois</span>
+                    <span className="text-[#334155]">/mois</span>
                   </div>
                 ) : (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
                       <span className="text-5xl font-bold text-[#334155]">278€</span>
-                      <span className="text-[#334155]">/vendeur/an</span>
+                      <span className="text-[#334155]">/an</span>
                     </div>
                     <p className="text-sm text-green-600 font-semibold mt-2">
                       Au lieu de 348€ • Économisez 70€/an
@@ -457,7 +457,8 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-4">
                   {[
                     '1 à 5 vendeurs',
-                    'Support email'
+                    '500 crédits IA/mois inclus',
+                    'Support email sous 48h'
                   ].map((item, idx) => (
                     <li key={idx} className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
