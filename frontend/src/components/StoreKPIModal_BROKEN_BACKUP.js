@@ -447,7 +447,7 @@ export default function StoreKPIModal({ onClose, onSuccess }) {
               </div>
 
               {/* Top Performers */}
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 border-2 border-yellow-200">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 border-2 border-blue-200">
                 <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                   🏆 Top Performers
                 </h3>

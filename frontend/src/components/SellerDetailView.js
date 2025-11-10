@@ -198,7 +198,7 @@ export default function SellerDetailView({ seller, onBack }) {
         <div className="glass-morphism rounded-2xl p-6 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Profil de vente</h2>
           
-          <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 rounded-xl p-4 shadow-lg">
+          <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-xl p-4 shadow-lg">
             {/* Show legacy detailed format (Style, Level, Motivation) OR new simplified format (Score, Profile) */}
             {diagnostic.style ? (
               // Legacy format for older diagnostics
@@ -266,7 +266,7 @@ export default function SellerDetailView({ seller, onBack }) {
             onClick={() => setActiveTab('competences')}
             className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
               activeTab === 'competences'
-                ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-lg'
+                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -276,7 +276,7 @@ export default function SellerDetailView({ seller, onBack }) {
             onClick={() => setActiveTab('kpi')}
             className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
               activeTab === 'kpi'
-                ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-lg'
+                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -286,7 +286,7 @@ export default function SellerDetailView({ seller, onBack }) {
             onClick={() => setActiveTab('debriefs')}
             className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
               activeTab === 'debriefs'
-                ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-lg'
+                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -296,7 +296,7 @@ export default function SellerDetailView({ seller, onBack }) {
             onClick={() => setActiveTab('conflit')}
             className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
               activeTab === 'conflit'
-                ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-lg'
+                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -383,7 +383,7 @@ export default function SellerDetailView({ seller, onBack }) {
               onClick={() => setKpiFilter('7j')}
               className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                 kpiFilter === '7j'
-                  ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-md'
+                  ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-md'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
               }`}
             >
@@ -393,7 +393,7 @@ export default function SellerDetailView({ seller, onBack }) {
               onClick={() => setKpiFilter('30j')}
               className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                 kpiFilter === '30j'
-                  ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-md'
+                  ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-md'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
               }`}
             >
@@ -403,7 +403,7 @@ export default function SellerDetailView({ seller, onBack }) {
               onClick={() => setKpiFilter('tout')}
               className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                 kpiFilter === 'tout'
-                  ? 'bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 shadow-md'
+                  ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-md'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
               }`}
             >

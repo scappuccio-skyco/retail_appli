@@ -12,7 +12,7 @@ export default function ManagerProfileModal({ diagnostic, onClose, onRedo }) {
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[85vh] overflow-y-auto">
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 p-6 rounded-t-2xl relative">
+          <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl relative">
             <button
               onClick={onClose}
               className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 transition-colors"
@@ -89,13 +89,13 @@ export default function ManagerProfileModal({ diagnostic, onClose, onRedo }) {
             </div>
 
             {/* Guide des Profils Button */}
-            <div className="mt-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border-2 border-blue-200">
+            <div className="mt-6 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
               <p className="text-sm text-gray-700 mb-3 text-center">
                 💡 Envie de mieux comprendre les différents styles de management et de vente ?
               </p>
               <button
                 onClick={() => setShowGuide(true)}
-                className="w-full btn-primary bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-xl flex items-center justify-center gap-2 py-3"
+                className="w-full btn-primary bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white hover:shadow-xl flex items-center justify-center gap-2 py-3"
               >
                 <BookOpen className="w-5 h-5" />
                 📚 Consulter le Guide des Profils

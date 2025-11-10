@@ -17,7 +17,7 @@ export default function KPIHistoryModal({ kpiEntries, kpiConfig, onClose, onNewK
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-blue-600 p-6 flex justify-between items-center border-b border-gray-200 rounded-t-2xl">
+        <div className="sticky top-0 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 flex justify-between items-center border-b border-gray-200 rounded-t-2xl">
           <div className="flex items-center gap-3">
             <BarChart3 className="w-8 h-8 text-white" />
             <div>
@@ -46,7 +46,7 @@ export default function KPIHistoryModal({ kpiEntries, kpiConfig, onClose, onNewK
               <div className="mb-6">
                 <button
                   onClick={onNewKPI}
-                  className="w-full bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 font-bold py-4 px-6 rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 font-bold py-4 px-6 rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
                   ✨ Saisir un nouveau KPI

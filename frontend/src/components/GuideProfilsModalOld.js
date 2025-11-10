@@ -663,7 +663,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-6 text-white">
+        <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 text-white">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold">📚 Guide des Profils</h2>
             <button
@@ -886,7 +886,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                     </div>
                   </div>
 
-                  <div className="bg-yellow-50 rounded-xl border border-yellow-200 p-5">
+                  <div className="bg-yellow-50 rounded-xl border border-blue-200 p-5">
                     <h4 className="font-bold text-yellow-800 mb-3 flex items-center gap-2">
                       🎯 Leviers de motivation
                     </h4>
@@ -977,7 +977,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
             </div>
           ) : activeTab === 'compatibilite' ? (
             <div className="space-y-6">
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
                 <h3 className="font-bold text-gray-800 mb-2">🎯 Compatibilité Manager-Vendeur DISC</h3>
                 <p className="text-sm text-gray-600">
                   Sélectionnez les profils DISC du manager et du vendeur pour voir leur compatibilité
@@ -1109,7 +1109,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                   )}
 
                   {selectedCompatibility.status === 'neutral' && (
-                    <div className="bg-yellow-50 rounded-xl p-5 border border-yellow-200 mt-4">
+                    <div className="bg-yellow-50 rounded-xl p-5 border border-blue-200 mt-4">
                       <p className="text-sm text-yellow-800 font-medium">
                         ⚖️ Compatibilité modérée. Ces profils ont des approches différentes qui peuvent 
                         être complémentaires si bien gérées. La clé : communication claire et respect mutuel 

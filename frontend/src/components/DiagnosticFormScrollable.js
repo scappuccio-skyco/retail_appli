@@ -330,7 +330,7 @@ export default function DiagnosticFormScrollable({ onComplete }) {
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#ffd871] to-yellow-300 p-6 rounded-t-2xl">
+        <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl">
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="w-8 h-8 text-gray-800" />
             <h2 className="text-2xl font-bold text-gray-800">Identifier mon profil vendeur</h2>
