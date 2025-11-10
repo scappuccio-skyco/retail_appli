@@ -163,6 +163,38 @@ export default function SubscriptionModal({ onClose }) {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    const confirmed = window.confirm(
+      '⚠️ Confirmer l\'annulation\n\n' +
+      'Votre abonnement restera actif jusqu\'à la fin de la période payée.\n' +
+      'Après cette date, vous n\'aurez plus accès aux fonctionnalités premium.\n\n' +
+      'Voulez-vous vraiment annuler votre abonnement ?'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${API}/api/subscription/cancel`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      alert('✅ ' + response.data.message);
+      
+      // Refresh subscription status
+      fetchSubscriptionStatus();
+    } catch (error) {
+      console.error('Error canceling subscription:', error);
+      const errorMessage = error.response?.data?.detail || 'Erreur lors de l\'annulation de l\'abonnement';
+      alert('❌ ' + errorMessage);
+    }
+  };
+
+
   const currentPlan = subscriptionInfo?.plan || 'starter';
   const isActive = subscriptionInfo?.status === 'active';
 
