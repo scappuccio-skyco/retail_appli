@@ -491,8 +491,8 @@ export default function LandingPage() {
               </div>
 
               <div className="text-center mb-6 pt-4">
-                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Professionnel</h3>
-                <p className="text-[#334155] mb-4">Magasins moyens</p>
+                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Professional</h3>
+                <parameter name="text-[#334155] mb-4">Magasins moyens</p>
                 {!isAnnual ? (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
