@@ -4884,6 +4884,16 @@ async def create_checkout_session(
     
     plan_info = STRIPE_PLANS[checkout_data.plan]
     
+    # Check if manager has more sellers than plan allows
+    seller_count = await db.users.count_documents({"manager_id": current_user['id'], "role": "seller"})
+    max_sellers = plan_info['max_sellers']
+    
+    if seller_count > max_sellers:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Vous avez actuellement {seller_count} vendeur(s). Le plan {plan_info['name']} est limité à {max_sellers} vendeur(s). Veuillez supprimer {seller_count - max_sellers} vendeur(s) ou choisir le plan Professional."
+        )
+    
     # Build URLs from frontend origin
     success_url = f"{checkout_data.origin_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{checkout_data.origin_url}/dashboard"
