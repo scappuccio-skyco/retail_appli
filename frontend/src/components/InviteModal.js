@@ -157,6 +157,18 @@ export default function InviteModal({ onClose, onSuccess }) {
           )}
         </div>
       </div>
+      {/* Hidden textarea for fallback clipboard copy - React-managed element */}
+      <textarea
+        ref={textAreaRef}
+        style={{
+          position: 'fixed',
+          left: '-999999px',
+          opacity: 0,
+          pointerEvents: 'none'
+        }}
+        readOnly
+        aria-hidden="true"
+      />
     </div>
   );
 }
