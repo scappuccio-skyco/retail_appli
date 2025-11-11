@@ -1,4 +1,5 @@
 import React, { useMemo, useRef } from 'react';
+import { unstable_batchedUpdates } from 'react-dom';
 import { Sparkles, X, TrendingUp, AlertTriangle, Target, ChevronLeft, ChevronRight, BarChart3, Download } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import jsPDF from 'jspdf';
