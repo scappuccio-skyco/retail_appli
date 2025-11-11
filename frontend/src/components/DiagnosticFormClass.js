@@ -275,7 +275,7 @@ class DiagnosticFormClass extends React.Component {
                     const isSelected = responses[currentQuestion.id] === option;
                     return (
                       <div
-                        key={index}
+                        key={`question-${currentQuestion.id}-option-${index}-${option.substring(0, 20)}`}
                         onClick={() => this.handleAnswer(option)}
                         className={`w-full text-left p-4 rounded-xl border-2 cursor-pointer ${
                           isSelected
