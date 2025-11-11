@@ -2011,7 +2011,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                 </h4>
                 <ul className="space-y-2">
                   {profile.caracteristiques.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-gray-700">
+                    <li key={`profile-caract-${idx}-${item.substring(0, 20)}`} className="flex items-start gap-2 text-gray-700">
                       <span className="text-blue-500 mt-1">•</span>
                       <span>{item}</span>
                     </li>
