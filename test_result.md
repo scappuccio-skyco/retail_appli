@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix Stripe subscription post-payment crashes - users reported crashes 'before and after' successful payment. Dashboard not handling Stripe checkout return properly."
+user_problem_statement: "Fix React DOM crashes (black screens) on Chrome/Edge after Stripe checkout or modal interactions. Root cause: React 19 concurrent rendering conflicts with direct DOM manipulation and improper list keys."
 
 backend:
   - task: "Stripe Adjustable Quantity Feature"
