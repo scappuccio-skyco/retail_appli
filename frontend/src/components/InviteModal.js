@@ -7,12 +7,16 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const FRONTEND_URL = window.location.origin;
 
-export default function InviteModal({ onClose, onSuccess }) {
+export default function InviteModal({ onClose, onSuccess, sellerCount = 0, subscriptionInfo = null }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
   const [copied, setCopied] = useState(false);
   const textAreaRef = useRef(null);
+  
+  // Calculate remaining invites
+  const maxSellers = subscriptionInfo?.plan_type === 'professional' ? 15 : 5;
+  const remainingInvites = maxSellers - sellerCount;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
