@@ -1892,7 +1892,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                                     </h5>
                                     <ul className="space-y-1">
                                       {compatibilityResult.forces.map((item, idx) => (
-                                        <li key={idx} className="flex items-start gap-2 text-xs text-green-800">
+                                        <li key={`compat-forces-${idx}-${item.substring(0, 20)}`} className="flex items-start gap-2 text-xs text-green-800">
                                           <span className="text-[#10B981] mt-0.5">✓</span>
                                           <span>{item}</span>
                                         </li>
