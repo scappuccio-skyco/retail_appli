@@ -11,37 +11,31 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
   const contentRef = useRef(null);
   const [exportingPDF, setExportingPDF] = React.useState(false);
 
-  // Export to PDF function
+  // Export to PDF function with React-safe DOM operations
   const exportToPDF = async () => {
-    if (!contentRef.current) return;
+    // Defensive checks
+    if (!contentRef.current || !document.body.contains(contentRef.current)) {
+      console.error('Content ref not available or not in DOM');
+      return;
+    }
     
-    setExportingPDF(true);
+    // Use batchedUpdates to prevent React reconciliation conflicts
+    unstable_batchedUpdates(() => {
+      setExportingPDF(true);
+    });
+    
     try {
-      // Clone the content directly without DOM manipulation
-      const clone = contentRef.current.cloneNode(true);
+      // Wait for React to finish any pending updates before DOM capture
+      await new Promise(resolve => setTimeout(resolve, 150));
       
-      // Force all content to be visible for capture
-      clone.style.overflow = 'visible';
-      clone.style.maxHeight = 'none';
-      clone.style.height = 'auto';
-      clone.style.display = 'block';
-      clone.style.width = '1200px';
+      // Verify ref is still valid after wait
+      if (!contentRef.current || !document.body.contains(contentRef.current)) {
+        throw new Error('Content ref became invalid during wait');
+      }
       
-      // Remove any scroll containers inside
-      const scrollContainers = clone.querySelectorAll('[style*="overflow"]');
-      scrollContainers.forEach(el => {
-        el.style.overflow = 'visible';
-        el.style.maxHeight = 'none';
-      });
+      console.log('Starting PDF export...');
       
-      // Wait a bit for styles to apply
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Get actual rendered height
-      const actualHeight = clone.scrollHeight || contentRef.current.scrollHeight;
-      console.log('Content height to capture:', actualHeight);
-      
-      // Capture directly from the visible content with proper scrolling
+      // Capture with html2canvas - wrapped in try/catch for third-party library errors
       const canvas = await html2canvas(contentRef.current, {
         scale: 2,
         useCORS: true,
@@ -52,7 +46,16 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
         width: 1200,
         windowWidth: 1200,
         allowTaint: true,
-        foreignObjectRendering: false
+        foreignObjectRendering: false,
+        onclone: (clonedDoc) => {
+          // Prepare cloned document for capture
+          const clonedElement = clonedDoc.querySelector('[data-pdf-content]');
+          if (clonedElement) {
+            clonedElement.style.overflow = 'visible';
+            clonedElement.style.maxHeight = 'none';
+            clonedElement.style.height = 'auto';
+          }
+        }
       });
       
       console.log('Canvas captured:', canvas.width, 'x', canvas.height);
