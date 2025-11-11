@@ -212,6 +212,7 @@ test_plan:
   current_focus:
     - "React DOM Stability - BilanIndividuelModal PDF Export"
     - "React DOM Stability - InviteModal Clipboard"
+    - "React DOM Stability - Fix key={index} Patterns"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
