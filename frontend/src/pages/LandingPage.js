@@ -264,7 +264,7 @@ export default function LandingPage() {
                 description: 'Objectifs motivants et système de niveaux pour engager vos équipes'
               }
             ].map((feature, idx) => (
-              <div key={idx} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[#1E40AF]/20 hover:border-[#F97316]">
+              <div key={`feature-${idx}-${feature.title}`} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[#1E40AF]/20 hover:border-[#F97316]">
                 <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center text-white mb-6`}>
                   {feature.icon}
                 </div>
