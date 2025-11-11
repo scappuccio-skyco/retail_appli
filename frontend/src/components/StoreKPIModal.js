@@ -670,7 +670,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                           </thead>
                           <tbody>
                             {overviewData.seller_entries.map((entry, idx) => (
-                              <tr key={idx} className="border-t border-gray-100">
+                              <tr key={`store-kpi-seller-${entry.seller_id || entry.seller_name}-${idx}`} className="border-t border-gray-100">
                                 <td className="px-2 py-1.5 text-gray-800 font-medium">
                                   {entry.seller_name || `Vendeur ${idx + 1}`}
                                 </td>
