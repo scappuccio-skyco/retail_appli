@@ -115,7 +115,7 @@ export default function CompetencesExplicationModal({ onClose }) {
                     <h4 className="font-semibold mb-2 text-sm">✨ Ce qu'on évalue :</h4>
                     <ul className="space-y-1">
                       {competence.details.map((detail, i) => (
-                        <li key={i} className="text-sm flex items-start gap-2">
+                        <li key={`competence-${competence.name}-detail-${i}-${detail.substring(0, 15)}`} className="text-sm flex items-start gap-2">
                           <span className="opacity-60 mt-0.5">•</span>
                           <span>{detail}</span>
                         </li>
