@@ -192,12 +192,14 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "2.0"
-  test_sequence: 10
+  version: "2.1"
+  test_sequence: 11
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "React DOM Stability - BilanIndividuelModal PDF Export"
+    - "React DOM Stability - InviteModal Clipboard"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
