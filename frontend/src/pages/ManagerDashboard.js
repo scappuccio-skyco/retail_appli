@@ -659,10 +659,19 @@ export default function ManagerDashboard({ user, onLogout }) {
             )}
             <button
               onClick={() => setShowInviteModal(true)}
-              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
+              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm relative"
             >
               <UserPlus className="w-4 h-4" />
               Inviter
+              {subscriptionInfo && (() => {
+                const maxSellers = subscriptionInfo.plan_type === 'professional' ? 15 : 5;
+                const remainingInvites = maxSellers - sellers.length;
+                return remainingInvites > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-yellow-400 text-gray-900 text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
+                    {remainingInvites}
+                  </span>
+                );
+              })()}
             </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
