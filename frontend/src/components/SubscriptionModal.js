@@ -227,6 +227,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   if (showQuantityModal) {
     return (
       <QuantityModal
+        isOpen={showQuantityModal}
         selectedPlan={selectedPlan}
         selectedQuantity={selectedQuantity}
         sellerCount={sellerCount}
