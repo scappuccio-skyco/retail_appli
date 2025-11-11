@@ -218,6 +218,11 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     onClose();
   };
 
+  // Don't render anything if not open
+  if (!isOpen) {
+    return null;
+  }
+
   // Simple architecture: if quantity modal is open, don't render subscription modal
   if (showQuantityModal) {
     return (
