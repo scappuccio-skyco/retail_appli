@@ -152,7 +152,7 @@ export default function TeamBilanIA() {
               </thead>
               <tbody>
                 {bilan.donnees_sources.map((seller, idx) => (
-                  <tr key={idx} className="border-b border-blue-100 hover:bg-blue-50">
+                  <tr key={`team-bilan-seller-${seller.seller_id || seller.name}-${idx}`} className="border-b border-blue-100 hover:bg-blue-50">
                     <td className="py-2 px-3 font-medium text-gray-800">{seller.name}</td>
                     <td className="text-right py-2 px-3 text-gray-700">{seller.ca.toFixed(2)}€</td>
                     <td className="text-right py-2 px-3 text-gray-700">{seller.ventes}</td>
