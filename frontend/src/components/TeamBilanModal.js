@@ -101,7 +101,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
             </div>
             <ul className="space-y-2">
               {bilan.points_attention && bilan.points_attention.map((point, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-orange-800">
+                <li key={`team-modal-attention-${idx}-${point.substring(0, 20)}`} className="flex items-start gap-2 text-orange-800">
                   <span className="text-[#F97316] mt-1">!</span>
                   <span>{point}</span>
                 </li>
