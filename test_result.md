@@ -166,6 +166,18 @@ frontend:
         agent: "testing"
         comment: "COMPREHENSIVE STRIPE CHECKOUT RETURN HANDLING TESTING COMPLETED SUCCESSFULLY: ✅ CRITICAL FIX VERIFIED: handleStripeCheckoutReturn() function is properly implemented in ManagerDashboard.js (lines 178-223) and executes on component mount via useEffect. ✅ URL PARAMETER DETECTION WORKING: Function correctly detects session_id parameter in URL using URLSearchParams and window.location.search. ✅ URL CLEANING FUNCTIONAL: window.history.replaceState() successfully removes session_id from URL to prevent reprocessing. ✅ TOAST NOTIFICATION SYSTEM: Loading toast ('Vérification du paiement...') and error/success toasts implemented using Sonner library. ✅ API INTEGRATION: Function makes GET request to /api/checkout/status/{session_id} with proper authentication headers. ✅ SUBSCRIPTION MODAL VERIFIED: SubscriptionModal opens correctly, displays both Starter (29€/seller) and Professional (25€/seller) plans with proper pricing and features. ✅ MODAL FUNCTIONALITY: Click-outside-to-close and X button close functionality working. ✅ BACKEND INTEGRATION: API endpoints for subscription status and checkout status are properly configured and accessible. ✅ AUTHENTICATION FLOW: Manager account creation and login functionality working correctly. The critical fix for Stripe post-payment crashes is fully implemented and operational - dashboard now properly handles Stripe checkout returns with session_id parameters."
 
+  - task: "React DOM Stability - BilanIndividuelModal PDF Export"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/BilanIndividuelModal.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "REACT 19 COMPATIBILITY FIX: Removed direct DOM manipulation from PDF export function. Previously used document.body.appendChild(wrapper) and document.body.removeChild(wrapper) which conflicts with React's Virtual DOM. Refactored to capture directly from visible content using html2canvas without DOM manipulation, eliminating insertBefore/NotFoundError risks. This follows React best practices for React 19 concurrent rendering compatibility."
+
 metadata:
   created_by: "main_agent"
   version: "2.0"
