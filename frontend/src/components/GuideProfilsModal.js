@@ -1944,7 +1944,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                                         </h6>
                                         <ul className="space-y-2">
                                           {compatibilityResult.recommandations.vendeur.map((item, idx) => (
-                                            <li key={idx} className="flex items-start gap-2 text-xs text-blue-900">
+                                            <li key={`compat-reco-vendeur-${idx}-${item.substring(0, 20)}`} className="flex items-start gap-2 text-xs text-blue-900">
                                               <span className="text-blue-600 mt-0.5">▸</span>
                                               <span>{item}</span>
                                             </li>
