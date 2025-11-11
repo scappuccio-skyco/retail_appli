@@ -527,7 +527,7 @@ export default function LandingPage() {
                   'Débriefs de vente intelligents',
                   'Historique illimité'
                 ].map((item, idx) => (
-                  <li key={idx} className="flex items-center gap-3">
+                  <li key={`pro-main-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
                     <span className="text-[#334155]">{item}</span>
                   </li>
@@ -542,7 +542,7 @@ export default function LandingPage() {
                     'Support prioritaire',
                     'Onboarding personnalisé'
                   ].map((item, idx) => (
-                    <li key={idx} className="flex items-center gap-3">
+                    <li key={`pro-spec-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
                       <span className="text-[#334155] font-medium">{item}</span>
                     </li>
