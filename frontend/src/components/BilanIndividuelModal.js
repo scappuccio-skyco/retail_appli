@@ -41,8 +41,14 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
         el.style.maxHeight = 'none';
       });
       
-      wrapper.appendChild(clone);
-      document.body.appendChild(wrapper);
+      // Use timeout to avoid React DOM conflicts
+      await new Promise(resolve => {
+        setTimeout(() => {
+          wrapper.appendChild(clone);
+          document.body.appendChild(wrapper);
+          resolve();
+        }, 0);
+      });
       
       // Wait for full render - longer delay for complex content
       await new Promise(resolve => setTimeout(resolve, 500));
