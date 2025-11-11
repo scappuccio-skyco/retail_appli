@@ -241,7 +241,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
                             <p className="text-xs font-semibold text-green-900 mb-2">✅ Actions concrètes :</p>
                             <ul className="space-y-1">
                               {conflict.ai_actions_concretes.map((action, idx) => (
-                                <li key={idx} className="text-sm text-green-800 flex items-start gap-2">
+                                <li key={`conflict-${conflict.id}-action-${idx}-${action.substring(0, 20)}`} className="text-sm text-green-800 flex items-start gap-2">
                                   <span className="text-[#10B981]">•</span>
                                   <span>{action}</span>
                                 </li>
@@ -253,7 +253,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
                             <p className="text-xs font-semibold text-orange-900 mb-2">⚠️ Points de vigilance :</p>
                             <ul className="space-y-1">
                               {conflict.ai_points_vigilance.map((point, idx) => (
-                                <li key={idx} className="text-sm text-orange-800 flex items-start gap-2">
+                                <li key={`conflict-${conflict.id}-vigilance-${idx}-${point.substring(0, 20)}`} className="text-sm text-orange-800 flex items-start gap-2">
                                   <span className="text-[#F97316]">•</span>
                                   <span>{point}</span>
                                 </li>
