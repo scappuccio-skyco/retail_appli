@@ -541,7 +541,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
             </div>
             <ul className="space-y-2">
               {bilan.recommandations && bilan.recommandations.map((action, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-blue-800">
+                <li key={`bilan-${bilan.periode}-recommandations-${idx}-${action.substring(0, 20)}`} className="flex items-start gap-2 text-blue-800">
                   <span className="text-blue-600 font-bold mt-1">{idx + 1}.</span>
                   <span>{action}</span>
                 </li>
