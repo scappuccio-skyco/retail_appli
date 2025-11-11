@@ -190,6 +190,18 @@ frontend:
         agent: "main"
         comment: "REACT 19 COMPATIBILITY FIX: Replaced direct DOM manipulation in clipboard fallback. Previously created textarea with document.createElement and used document.body.appendChild/removeChild. Refactored to use React ref (textAreaRef) with hidden textarea element rendered in JSX. This eliminates React Virtual DOM conflicts while maintaining clipboard fallback functionality for older browsers."
 
+  - task: "React DOM Stability - Fix key={index} Patterns"
+    implemented: true
+    working: "NA"
+    file: "Multiple components"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "CRITICAL FIX: Troubleshoot agent identified key={index} patterns as root cause of insertBefore errors. Fixed 5 active components: DailyChallengeModal.js (challenge examples), KPIEntryModal.js (warnings), TeamModal.js (tooltip entries), DiagnosticFormClass.js (question options), DiagnosticFormSimple.js (question options). Replaced all with stable unique keys using combination of parent ID, index, and content substring. Verified: 0 key={index} patterns remain in active codebase (excluding backup files)."
+
 metadata:
   created_by: "main_agent"
   version: "2.1"
