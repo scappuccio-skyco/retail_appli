@@ -100,7 +100,7 @@ export default function CompetencesExplicationModal({ onClose }) {
         <div className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6">
             {competences.map((competence, idx) => (
-              <div key={idx} className={`${getColorClasses(competence.color)} rounded-xl border-2 p-5`}>
+              <div key={`competence-${competence.name}-${idx}`} className={`${getColorClasses(competence.color)} rounded-xl border-2 p-5`}>
                 <div className="flex items-start gap-4 mb-4">
                   <span className="text-4xl">{competence.icon}</span>
                   <div className="flex-1">
