@@ -851,6 +851,8 @@ export default function ManagerDashboard({ user, onLogout }) {
         <InviteModal
           onClose={() => setShowInviteModal(false)}
           onSuccess={handleInviteSuccess}
+          sellerCount={sellers.length}
+          subscriptionInfo={subscriptionInfo}
         />
       )}
 
