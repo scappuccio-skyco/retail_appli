@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { X, Mail, Copy, Check } from 'lucide-react';
@@ -12,6 +12,7 @@ export default function InviteModal({ onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
   const [copied, setCopied] = useState(false);
+  const textAreaRef = useRef(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
