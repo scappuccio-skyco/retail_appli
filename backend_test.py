@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class RetailCoachAPITester:
-    def __init__(self, base_url="https://retail-ai-coach.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://react-dom-repair-1.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.seller_token = None
         self.manager_token = None
@@ -4498,7 +4498,7 @@ class RetailCoachAPITester:
         # Test with starter plan
         checkout_data_starter = {
             "plan": "starter",
-            "origin_url": "https://retail-ai-coach.preview.emergentagent.com"
+            "origin_url": "https://react-dom-repair-1.preview.emergentagent.com"
         }
         
         success, checkout_response = self.run_test(
@@ -4538,7 +4538,7 @@ class RetailCoachAPITester:
         # Test with professional plan
         checkout_data_professional = {
             "plan": "professional",
-            "origin_url": "https://retail-ai-coach.preview.emergentagent.com"
+            "origin_url": "https://react-dom-repair-1.preview.emergentagent.com"
         }
         
         success, checkout_response_pro = self.run_test(
@@ -4564,7 +4564,7 @@ class RetailCoachAPITester:
         # Test invalid plan
         invalid_checkout_data = {
             "plan": "invalid_plan",
-            "origin_url": "https://retail-ai-coach.preview.emergentagent.com"
+            "origin_url": "https://react-dom-repair-1.preview.emergentagent.com"
         }
         
         success, _ = self.run_test(
@@ -4799,7 +4799,7 @@ class RetailCoachAPITester:
         
         starter_checkout_data = {
             "plan": "starter",
-            "origin_url": "https://retail-ai-coach.preview.emergentagent.com"
+            "origin_url": "https://react-dom-repair-1.preview.emergentagent.com"
         }
         
         success, starter_response = self.run_test(
@@ -4841,7 +4841,7 @@ class RetailCoachAPITester:
         
         professional_checkout_data = {
             "plan": "professional",
-            "origin_url": "https://retail-ai-coach.preview.emergentagent.com"
+            "origin_url": "https://react-dom-repair-1.preview.emergentagent.com"
         }
         
         success, professional_response = self.run_test(
@@ -5028,7 +5028,7 @@ class RetailCoachAPITester:
         # Test invalid plan
         invalid_checkout_data = {
             "plan": "invalid_plan",
-            "origin_url": "https://retail-ai-coach.preview.emergentagent.com"
+            "origin_url": "https://react-dom-repair-1.preview.emergentagent.com"
         }
         
         success, _ = self.run_test(

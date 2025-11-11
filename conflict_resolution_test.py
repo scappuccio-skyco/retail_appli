@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 class ConflictResolutionTester:
-    def __init__(self, base_url="https://retail-ai-coach.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://react-dom-repair-1.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.manager_token = None
         self.seller_token = None
