@@ -407,6 +407,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           </div>
         </div>
       </div>
+    )}
       
       {/* QuantityModal rendered separately to prevent DOM conflicts */}
       {showQuantityModal && (
@@ -421,6 +422,6 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           onProceedToPayment={handleProceedToPayment}
         />
       )}
-    </div>
+    </>
   );
 }
