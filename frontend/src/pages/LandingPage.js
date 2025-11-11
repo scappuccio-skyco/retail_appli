@@ -304,7 +304,7 @@ export default function LandingPage() {
                     'Graphiques d\'évolution',
                     'Export PDF des rapports'
                   ].map((item, idx) => (
-                    <li key={idx} className="flex items-center gap-3">
+                    <li key={`manager-feature-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-[#10B981]" />
                       <span className="text-[#334155]">{item}</span>
                     </li>
