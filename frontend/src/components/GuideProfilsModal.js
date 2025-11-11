@@ -1906,7 +1906,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                                     </h5>
                                     <ul className="space-y-1">
                                       {compatibilityResult.attention.map((item, idx) => (
-                                        <li key={idx} className="flex items-start gap-2 text-xs text-orange-800">
+                                        <li key={`compat-attention-${idx}-${item.substring(0, 20)}`} className="flex items-start gap-2 text-xs text-orange-800">
                                           <span className="text-[#F97316] mt-0.5">!</span>
                                           <span>{item}</span>
                                         </li>
