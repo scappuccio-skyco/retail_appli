@@ -131,7 +131,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
               <h3 className="font-bold text-purple-900 mb-4">👥 Analyse détaillée par vendeur</h3>
               <div className="space-y-4">
                 {bilan.analyses_vendeurs.map((analyse, idx) => (
-                  <div key={idx} className="bg-white rounded-lg p-4 shadow-sm">
+                  <div key={`team-modal-vendeur-${analyse.vendeur}-${idx}`} className="bg-white rounded-lg p-4 shadow-sm">
                     <h4 className="text-lg font-bold text-purple-800 mb-2">
                       {analyse.vendeur}
                     </h4>
