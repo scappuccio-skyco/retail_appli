@@ -143,7 +143,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
                           <p className="text-xs font-semibold text-green-700 mb-2">✓ Points forts</p>
                           <ul className="text-sm text-green-800 space-y-1">
                             {analyse.points_forts.map((point, i) => (
-                              <li key={i}>• {point}</li>
+                              <li key={`analyse-${analyse.vendeur}-forts-${i}-${point.substring(0, 15)}`}>• {point}</li>
                             ))}
                           </ul>
                         </div>
