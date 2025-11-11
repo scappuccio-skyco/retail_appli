@@ -40,21 +40,33 @@ export default function InviteModal({ onClose, onSuccess }) {
     } catch (error) {
       console.error('Failed to copy:', error);
       // Fallback pour les navigateurs qui ne supportent pas clipboard API
+      // Use React ref instead of direct DOM manipulation
       const textArea = document.createElement('textarea');
       textArea.value = inviteLink;
       textArea.style.position = 'fixed';
       textArea.style.left = '-999999px';
-      document.body.appendChild(textArea);
-      textArea.select();
-      try {
-        document.execCommand('copy');
-        setCopied(true);
-        toast.success('Lien copié!');
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        toast.error('Erreur lors de la copie');
-      }
-      document.body.removeChild(textArea);
+      textArea.style.opacity = '0';
+      textArea.style.pointerEvents = 'none';
+      
+      // Use a timeout to ensure React has finished its reconciliation
+      setTimeout(() => {
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          setCopied(true);
+          toast.success('Lien copié!');
+          setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+          toast.error('Erreur lors de la copie');
+        }
+        // Clean up immediately after
+        setTimeout(() => {
+          if (document.body.contains(textArea)) {
+            document.body.removeChild(textArea);
+          }
+        }, 0);
+      }, 0);
     }
   };
 
