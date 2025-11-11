@@ -298,7 +298,7 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
                 <p className="text-xs font-semibold text-green-900 mb-2">✨ 3 Exemples pour Réussir</p>
                 <div className="space-y-2">
                   {challenge.examples.map((example, index) => (
-                    <div key={index} className="flex gap-2">
+                    <div key={`example-${challenge.id}-${index}-${example.substring(0, 20)}`} className="flex gap-2">
                       <span className="text-green-700 font-bold text-xs flex-shrink-0">{index + 1}.</span>
                       <p className="text-xs text-green-800 italic">{example}</p>
                     </div>
