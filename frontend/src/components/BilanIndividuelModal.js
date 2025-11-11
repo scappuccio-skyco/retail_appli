@@ -173,12 +173,24 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
       
       // Generate filename with date
       const fileName = `bilan_${bilan.periode || 'actuel'}.pdf`.replace(/\s+/g, '_');
-      pdf.save(fileName);
+      
+      // Save PDF in batchedUpdates to prevent React conflicts
+      await new Promise(resolve => {
+        unstable_batchedUpdates(() => {
+          pdf.save(fileName);
+          resolve();
+        });
+      });
+      
+      console.log('PDF export completed successfully');
     } catch (error) {
       console.error('Erreur lors de l\'export PDF:', error);
       alert('Erreur lors de l\'export PDF. Veuillez réessayer.');
     } finally {
-      setExportingPDF(false);
+      // Reset state in batchedUpdates
+      unstable_batchedUpdates(() => {
+        setExportingPDF(false);
+      });
     }
   };
 
