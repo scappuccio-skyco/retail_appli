@@ -75,6 +75,24 @@ export default function InviteModal({ onClose, onSuccess, sellerCount = 0, subsc
         </div>
 
         <div className="p-6">
+          {/* Remaining invites info */}
+          {subscriptionInfo && (
+            <div className={`mb-4 p-3 rounded-lg border-2 ${
+              remainingInvites > 0 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-orange-50 border-orange-200'
+            }`}>
+              <p className={`text-sm font-semibold ${
+                remainingInvites > 0 ? 'text-green-800' : 'text-orange-800'
+              }`}>
+                {remainingInvites > 0 
+                  ? `✅ ${remainingInvites} invitation${remainingInvites > 1 ? 's' : ''} restante${remainingInvites > 1 ? 's' : ''} (${sellerCount}/${maxSellers} vendeurs)`
+                  : `⚠️ Limite atteinte (${sellerCount}/${maxSellers} vendeurs) - Passez au plan supérieur`
+                }
+              </p>
+            </div>
+          )}
+          
           {!inviteLink ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -89,7 +107,8 @@ export default function InviteModal({ onClose, onSuccess, sellerCount = 0, subsc
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                    disabled={remainingInvites <= 0}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                     placeholder="vendeur@example.com"
                   />
                 </div>
