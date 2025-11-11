@@ -509,7 +509,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
             </div>
             <ul className="space-y-2">
               {bilan.points_forts && bilan.points_forts.map((point, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-green-800">
+                <li key={`bilan-${bilan.periode}-forts-${idx}-${point.substring(0, 20)}`} className="flex items-start gap-2 text-green-800">
                   <span className="text-[#10B981] mt-1">✓</span>
                   <span>{point}</span>
                 </li>
