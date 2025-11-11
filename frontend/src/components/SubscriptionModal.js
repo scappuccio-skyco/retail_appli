@@ -43,7 +43,7 @@ const PLANS = {
   }
 };
 
-export default function SubscriptionModal({ onClose }) {
+export default function SubscriptionModal({ isOpen, onClose }) {
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processingPlan, setProcessingPlan] = useState(null);
