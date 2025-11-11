@@ -921,10 +921,11 @@ export default function ManagerDashboard({ user, onLogout }) {
         </div>
       )}
 
-      {/* Subscription Modal */}
-      {showSubscriptionModal && (
-        <SubscriptionModal onClose={() => setShowSubscriptionModal(false)} />
-      )}
+      {/* Subscription Modal - Always mounted, controlled via props */}
+      <SubscriptionModal 
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)} 
+      />
     </div>
   );
 }
