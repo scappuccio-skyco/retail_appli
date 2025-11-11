@@ -2041,7 +2041,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                   </h4>
                   <ul className="space-y-2">
                     {(profile.attention || profile.objectifs || profile.conseils || []).map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-orange-800">
+                      <li key={`profile-attention-${idx}-${item.substring(0, 20)}`} className="flex items-start gap-2 text-orange-800">
                         <span className="text-[#F97316] mt-1">→</span>
                         <span>{item}</span>
                       </li>
