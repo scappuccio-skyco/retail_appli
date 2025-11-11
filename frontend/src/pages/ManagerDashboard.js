@@ -279,6 +279,18 @@ export default function ManagerDashboard({ user, onLogout }) {
     }
   };
 
+  const fetchSubscriptionInfo = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/subscription/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSubscriptionInfo(res.data);
+    } catch (err) {
+      console.error('Error fetching subscription:', err);
+    }
+  };
+
   const getWeekDates = (offset) => {
     const today = new Date();
     const dayOfWeek = today.getDay();
