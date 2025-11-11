@@ -235,8 +235,10 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     );
   }
 
-  // Main subscription modal
   return (
+    <>
+    {/* Main Subscription Modal - hide when quantity modal is open */}
+    {!showQuantityModal && (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
