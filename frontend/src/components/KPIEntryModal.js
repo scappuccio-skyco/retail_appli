@@ -463,7 +463,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
 
             <div className="space-y-3 mb-6">
               {warnings.map((warning, index) => (
-                <div key={index} className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                <div key={`warning-${warning.kpi}-${warning.value}-${index}`} className="bg-orange-50 border border-orange-200 rounded-xl p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <p className="font-semibold text-gray-800">{warning.kpi}</p>
