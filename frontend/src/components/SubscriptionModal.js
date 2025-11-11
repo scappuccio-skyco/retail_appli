@@ -407,6 +407,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           </div>
         </div>
       </div>
+    </div>
     )}
       
       {/* QuantityModal rendered separately to prevent DOM conflicts */}
