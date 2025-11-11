@@ -178,6 +178,18 @@ frontend:
         agent: "main"
         comment: "REACT 19 COMPATIBILITY FIX: Removed direct DOM manipulation from PDF export function. Previously used document.body.appendChild(wrapper) and document.body.removeChild(wrapper) which conflicts with React's Virtual DOM. Refactored to capture directly from visible content using html2canvas without DOM manipulation, eliminating insertBefore/NotFoundError risks. This follows React best practices for React 19 concurrent rendering compatibility."
 
+  - task: "React DOM Stability - InviteModal Clipboard"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/InviteModal.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "REACT 19 COMPATIBILITY FIX: Replaced direct DOM manipulation in clipboard fallback. Previously created textarea with document.createElement and used document.body.appendChild/removeChild. Refactored to use React ref (textAreaRef) with hidden textarea element rendered in JSX. This eliminates React Virtual DOM conflicts while maintaining clipboard fallback functionality for older browsers."
+
 metadata:
   created_by: "main_agent"
   version: "2.0"
