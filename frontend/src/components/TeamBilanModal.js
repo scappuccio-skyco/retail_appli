@@ -166,7 +166,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
                         <p className="text-xs font-semibold text-blue-700 mb-2">🎯 Recommandations personnalisées</p>
                         <ul className="text-sm text-blue-800 space-y-1">
                           {analyse.recommandations.map((reco, i) => (
-                            <li key={i}>• {reco}</li>
+                            <li key={`analyse-${analyse.vendeur}-reco-${i}-${reco.substring(0, 15)}`}>• {reco}</li>
                           ))}
                         </ul>
                       </div>
