@@ -223,22 +223,6 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     return null;
   }
 
-  // Simple architecture: if quantity modal is open, don't render subscription modal
-  if (showQuantityModal) {
-    return (
-      <QuantityModal
-        isOpen={showQuantityModal}
-        selectedPlan={selectedPlan}
-        selectedQuantity={selectedQuantity}
-        sellerCount={sellerCount}
-        processingPlan={processingPlan}
-        onQuantityChange={handleQuantityChange}
-        onBack={() => setShowQuantityModal(false)}
-        onProceedToPayment={handleProceedToPayment}
-      />
-    );
-  }
-
   // Loading screen
   if (loading) {
     return (
