@@ -99,6 +99,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [showDetailView, setShowDetailView] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processingStripeReturn, setProcessingStripeReturn] = useState(false);
   const [generatingTeamBilan, setGeneratingTeamBilan] = useState(false);
