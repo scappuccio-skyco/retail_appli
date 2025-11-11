@@ -2027,7 +2027,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                   </h4>
                   <ul className="space-y-2">
                     {(profile.forces || profile.moteurs || profile.communication || []).map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-green-800">
+                      <li key={`profile-forces-${idx}-${item.substring(0, 20)}`} className="flex items-start gap-2 text-green-800">
                         <span className="text-[#10B981] mt-1">✓</span>
                         <span>{item}</span>
                       </li>
