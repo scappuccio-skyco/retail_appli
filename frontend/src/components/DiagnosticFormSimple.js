@@ -221,7 +221,7 @@ function DiagnosticFormSimple() {
                   const isSelected = responses[currentQuestion.id] === option;
                   return (
                     <label
-                      key={index}
+                      key={`question-${currentQuestion.id}-option-${index}-${option.substring(0, 20)}`}
                       className={`block w-full text-left p-4 rounded-xl border-2 transition-all cursor-pointer ${
                         isSelected
                           ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-10'
