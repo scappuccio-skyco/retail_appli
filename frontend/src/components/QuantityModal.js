@@ -17,6 +17,7 @@ const PLANS = {
 };
 
 export default function QuantityModal({ 
+  isOpen,
   selectedPlan, 
   selectedQuantity, 
   sellerCount, 
@@ -25,7 +26,7 @@ export default function QuantityModal({
   onBack, 
   onProceedToPayment 
 }) {
-  if (!selectedPlan) return null;
+  if (!isOpen || !selectedPlan) return null;
 
   const plan = PLANS[selectedPlan];
   const minQuantity = Math.max(sellerCount, plan.minSellers);
