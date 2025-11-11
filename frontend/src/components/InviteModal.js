@@ -120,10 +120,10 @@ export default function InviteModal({ onClose, onSuccess, sellerCount = 0, subsc
               <button
                 data-testid="send-invite-button"
                 type="submit"
-                disabled={loading}
+                disabled={loading || remainingInvites <= 0}
                 className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Création...' : 'Créer l\'invitation'}
+                {loading ? 'Création...' : remainingInvites <= 0 ? 'Limite atteinte' : 'Créer l\'invitation'}
               </button>
             </form>
           ) : (
