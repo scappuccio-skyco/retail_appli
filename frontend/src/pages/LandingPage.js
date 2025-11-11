@@ -195,7 +195,7 @@ export default function LandingPage() {
                   'Pas de vue d\'ensemble sur l\'équipe',
                   'Démotivation et turnover élevé'
                 ].map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
+                  <li key={`problem-${idx}-${item.substring(0, 20)}`} className="flex items-start gap-3">
                     <X className="w-6 h-6 text-[#64748B] flex-shrink-0 mt-0.5" />
                     <span className="text-[#334155]">{item}</span>
                   </li>
@@ -214,7 +214,7 @@ export default function LandingPage() {
                   'Vue 360° de la performance d\'équipe',
                   'Gamification et motivation renforcée'
                 ].map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
+                  <li key={`solution-${idx}-${item.substring(0, 20)}`} className="flex items-start gap-3">
                     <Check className="w-6 h-6 text-[#10B981] flex-shrink-0 mt-0.5" />
                     <span className="text-[#334155]">{item}</span>
                   </li>
