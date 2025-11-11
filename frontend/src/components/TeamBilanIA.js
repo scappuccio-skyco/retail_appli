@@ -223,7 +223,7 @@ export default function TeamBilanIA() {
             </div>
             <ul className="space-y-2">
               {bilan.actions_prioritaires.map((action, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-blue-800">
+                <li key={`team-bilan-actions-${idx}-${action.substring(0, 20)}`} className="flex items-start gap-2 text-blue-800">
                   <span className="text-blue-600 font-bold mt-1">{idx + 1}.</span>
                   <span>{action}</span>
                 </li>
