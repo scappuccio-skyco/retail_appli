@@ -1876,7 +1876,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
                                   </h5>
                                   <ul className="space-y-1">
                                     {compatibilityResult.caracteristiques.map((item, idx) => (
-                                      <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
+                                      <li key={`compat-caract-${idx}-${item.substring(0, 20)}`} className="flex items-start gap-2 text-sm text-gray-700">
                                         <span className="text-blue-500 mt-1">•</span>
                                         <span>{item}</span>
                                       </li>
