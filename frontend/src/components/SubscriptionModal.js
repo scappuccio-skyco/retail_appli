@@ -405,6 +405,20 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           </div>
         </div>
       </div>
+      
+      {/* QuantityModal rendered separately to prevent DOM conflicts */}
+      {showQuantityModal && (
+        <QuantityModal
+          isOpen={showQuantityModal}
+          selectedPlan={selectedPlan}
+          selectedQuantity={selectedQuantity}
+          sellerCount={sellerCount}
+          processingPlan={processingPlan}
+          onQuantityChange={handleQuantityChange}
+          onBack={() => setShowQuantityModal(false)}
+          onProceedToPayment={handleProceedToPayment}
+        />
+      )}
     </div>
   );
 }
