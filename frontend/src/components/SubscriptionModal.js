@@ -56,14 +56,19 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   const [selectedQuantity, setSelectedQuantity] = useState(1);
 
   useEffect(() => {
-    fetchSubscriptionStatus();
-    fetchSellerCount();
-    
     // Cleanup function to prevent setState on unmounted component
     return () => {
       setIsMounted(false);
     };
   }, []);
+
+  // Fetch data whenever modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchSubscriptionStatus();
+      fetchSellerCount();
+    }
+  }, [isOpen]);
 
   const fetchSubscriptionStatus = async () => {
     try {
