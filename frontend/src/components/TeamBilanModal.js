@@ -154,7 +154,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
                           <p className="text-xs font-semibold text-orange-700 mb-2">📈 Axes de progression</p>
                           <ul className="text-sm text-orange-800 space-y-1">
                             {analyse.axes_progression.map((axe, i) => (
-                              <li key={i}>• {axe}</li>
+                              <li key={`analyse-${analyse.vendeur}-axes-${i}-${axe.substring(0, 15)}`}>• {axe}</li>
                             ))}
                           </ul>
                         </div>
