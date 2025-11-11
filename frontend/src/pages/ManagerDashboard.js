@@ -181,6 +181,7 @@ export default function ManagerDashboard({ user, onLogout }) {
       fetchActiveChallenges();
       fetchActiveObjectives();
       fetchStoreKPIStats();
+      fetchSubscriptionInfo();
     }
   }, []);
 
