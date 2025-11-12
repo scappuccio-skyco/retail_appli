@@ -5917,30 +5917,36 @@ async def stripe_webhook(request: Request):
             
             logger.info(f"Processing subscription event: {event['type']} for subscription: {stripe_subscription_id}")
             
-            # Find subscription by Stripe subscription ID
-            sub = await db.subscriptions.find_one({"stripe_subscription_id": stripe_subscription_id})
+            # Find workspace by Stripe subscription ID
+            workspace = await db.workspaces.find_one({"stripe_subscription_id": stripe_subscription_id}, {"_id": 0})
             
-            if sub:
+            if workspace:
                 if event['type'] == 'customer.subscription.deleted' or subscription['status'] == 'canceled':
                     # Cancel subscription
-                    await db.subscriptions.update_one(
+                    await db.workspaces.update_one(
                         {"stripe_subscription_id": stripe_subscription_id},
                         {"$set": {
-                            "status": "canceled",
+                            "subscription_status": "canceled",
                             "updated_at": datetime.now(timezone.utc).isoformat()
                         }}
                     )
-                    logger.info(f"Subscription canceled: {stripe_subscription_id}")
+                    logger.info(f"Subscription canceled for workspace: {workspace['id']}")
                 
                 elif subscription['status'] == 'active':
-                    # Update subscription period
+                    # Update subscription period and quantity
+                    period_start = datetime.fromtimestamp(subscription['current_period_start'], tz=timezone.utc)
                     period_end = datetime.fromtimestamp(subscription['current_period_end'], tz=timezone.utc)
-                    
-                    # Check if subscription was reactivated (cancel_at_period_end was set to false)
                     cancel_at_period_end = subscription.get('cancel_at_period_end', False)
                     
+                    # Get quantity from subscription items
+                    quantity = workspace.get('stripe_quantity', 1)
+                    if subscription.get('items') and subscription['items']['data']:
+                        quantity = subscription['items']['data'][0].get('quantity', 1)
+                    
                     update_data = {
-                        "status": "active",
+                        "subscription_status": "active",
+                        "stripe_quantity": quantity,
+                        "current_period_start": period_start.isoformat(),
                         "current_period_end": period_end.isoformat(),
                         "cancel_at_period_end": cancel_at_period_end,
                         "updated_at": datetime.now(timezone.utc).isoformat()
@@ -5949,13 +5955,13 @@ async def stripe_webhook(request: Request):
                     # If reactivated, clear cancellation timestamp
                     if not cancel_at_period_end:
                         update_data["canceled_at"] = None
-                        logger.info(f"Subscription reactivated: {stripe_subscription_id}")
+                        logger.info(f"Subscription reactivated for workspace: {workspace['id']}")
                     
-                    await db.subscriptions.update_one(
+                    await db.workspaces.update_one(
                         {"stripe_subscription_id": stripe_subscription_id},
                         {"$set": update_data}
                     )
-                    logger.info(f"Subscription updated: {stripe_subscription_id}")
+                    logger.info(f"Subscription updated for workspace {workspace['id']}: quantity={quantity}, status={subscription['status']}")
         
         return {"status": "success", "event_type": event['type']}
     
