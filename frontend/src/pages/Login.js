@@ -256,7 +256,7 @@ export default function Login({ onLogin }) {
             <button
               data-testid="submit-button"
               type="submit"
-              disabled={loading}
+              disabled={loading || (isRegister && !inviteToken && workspaceAvailability?.available === false)}
               className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Chargement...' : isRegister ? "S'inscrire" : 'Se connecter'}
