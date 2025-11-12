@@ -109,6 +109,35 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class Workspace(BaseModel):
+    """
+    Workspace représente une entreprise/organisation cliente.
+    Chaque workspace a un seul customer Stripe et un seul abonnement actif.
+    """
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # Nom de l'entreprise (unique)
+    stripe_customer_id: Optional[str] = None  # ID du customer Stripe
+    stripe_subscription_id: Optional[str] = None  # ID de l'abonnement Stripe actif
+    stripe_subscription_item_id: Optional[str] = None  # ID de l'item pour modifier quantity
+    stripe_price_id: str = "price_1SS2XxIVM4C8dIGvpBRcYSNX"  # Price ID du plan
+    stripe_quantity: int = 0  # Nombre de sièges dans Stripe
+    subscription_status: str = "inactive"  # inactive, trialing, active, past_due, canceled
+    trial_start: Optional[datetime] = None
+    trial_end: Optional[datetime] = None
+    current_period_start: Optional[datetime] = None
+    current_period_end: Optional[datetime] = None
+    cancel_at_period_end: Optional[bool] = False
+    canceled_at: Optional[datetime] = None
+    ai_credits_remaining: int = 100  # Crédits IA pour trial
+    ai_credits_used_this_month: int = 0
+    last_credit_reset: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class WorkspaceCreate(BaseModel):
+    name: str  # Nom de l'entreprise
+
 class Subscription(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
