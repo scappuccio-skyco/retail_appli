@@ -739,14 +739,42 @@ frontend:
         agent: "testing"
         comment: "FRONTEND TESTING NOT PERFORMED: As per system limitations, frontend testing was not conducted. Backend testing confirms that the frontend form data structure is correctly handled by the backend - 34 questions (10 management + 24 DISC) are properly accepted and processed. The backend successfully receives and processes integer indices (0-3) for DISC questions Q11-Q34, indicating frontend form submission logic is working correctly. Backend validation confirms frontend implementation is functional for the enriched manager DISC questionnaire."
 
+backend:
+  - task: "Subscription Reactivation API - Endpoint Already Implemented"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend endpoint POST /api/subscription/reactivate already exists from previous work. Endpoint finds user's subscription, uses Stripe API (stripe.Subscription.modify) to set cancel_at_period_end to false, and updates local MongoDB record. Ready for testing with frontend integration."
+
+frontend:
+  - task: "Subscription Reactivation - Frontend Implementation"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/SubscriptionModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "SUBSCRIPTION REACTIVATION FRONTEND IMPLEMENTED: ✅ Added handleReactivateSubscription async function in SubscriptionModal.js. Function: 1) Shows confirmation dialog, 2) Calls POST /api/subscription/reactivate endpoint with authentication, 3) Displays success/error toast notifications using Sonner, 4) Refreshes subscription status via fetchSubscriptionStatus() to update UI. ✅ Function connected to existing 'Réactiver l'abonnement' button (line 389) that appears when cancel_at_period_end is true. ✅ Error handling implemented with try/catch. Needs testing to verify: 1) Complete subscription lifecycle (create → cancel → reactivate), 2) UI updates correctly after reactivation, 3) Toast notifications appear, 4) No React DOM errors during state updates."
+
 metadata:
   created_by: "main_agent"
-  version: "1.9"
-  test_sequence: 9
+  version: "2.0"
+  test_sequence: 10
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Subscription Reactivation - Frontend Implementation"
+    - "Subscription Reactivation API - Endpoint Already Implemented"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
