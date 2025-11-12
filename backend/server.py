@@ -43,7 +43,7 @@ STRIPE_PLANS = {
         "currency": "eur",
         "min_sellers": 1,
         "max_sellers": 5,
-        "ai_credits_monthly": 500
+        "ai_credits_monthly": None  # Calculé dynamiquement selon nombre de sièges
     },
     "professional": {
         "name": "Professional",
@@ -51,7 +51,7 @@ STRIPE_PLANS = {
         "currency": "eur",
         "min_sellers": 6,
         "max_sellers": 15,
-        "ai_credits_monthly": 1500
+        "ai_credits_monthly": None  # Calculé dynamiquement selon nombre de sièges
     },
     "enterprise": {
         "name": "Enterprise",
@@ -59,12 +59,16 @@ STRIPE_PLANS = {
         "currency": "eur",
         "min_sellers": 16,
         "max_sellers": 100,  # Illimité en pratique
-        "ai_credits_monthly": 10000
+        "ai_credits_monthly": None  # Calculé dynamiquement selon nombre de sièges
     }
 }
 TRIAL_DAYS = 14
 MAX_SELLERS_TRIAL = 15  # Limite pendant la période d'essai
 TRIAL_AI_CREDITS = 100  # Crédits IA pour l'essai gratuit
+
+# AI Credits Formula: 250 (manager base) + (100 × number of seats)
+MANAGER_BASE_CREDITS = 250  # Base credits for manager analyses
+CREDITS_PER_SEAT = 100  # Credits per seller seat
 
 # AI Credit Costs (en crédits par appel)
 AI_COSTS = {
