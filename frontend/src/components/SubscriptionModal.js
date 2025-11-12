@@ -132,40 +132,38 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   };
 
   const handleChangeSeats = async (newSeats) => {
-    if (!subscriptionInfo || !isMounted) return;
+    if (!subscriptionInfo) return;
     
-    // Batch initial state update
-    unstable_batchedUpdates(() => {
-      setAdjustingSeats(true);
-    });
+    // OPTION 1: Close modal FIRST to avoid any DOM conflicts
+    console.log('🔄 Closing modal before API call...');
+    onClose(); // Close modal immediately
+    
+    // Small delay to let modal close animation complete
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     try {
       const token = localStorage.getItem('token');
+      console.log('📡 Making API call to change seats...');
+      
       const response = await axios.post(
         `${API}/api/subscription/change-seats?new_seats=${newSeats}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
+      console.log('✅ API response:', response.data);
+      
       if (response.data.success) {
-        console.log('✅ Sièges modifiés:', response.data.message);
-        
-        // IMMEDIATE RELOAD: No delay to avoid React DOM conflicts
+        // IMMEDIATE RELOAD after modal is closed
+        console.log('🔄 Reloading page...');
         window.location.reload();
-        return; // Exit immediately
       }
     } catch (error) {
-      if (isMounted) {
-        const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
-        console.error('❌ Erreur:', errorMsg);
-      }
-    } finally {
-      if (isMounted) {
-        // Batch final state update
-        unstable_batchedUpdates(() => {
-          setAdjustingSeats(false);
-        });
-      }
+      const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
+      console.error('❌ API Error:', errorMsg);
+      alert('❌ ' + errorMsg);
+      // Reload anyway to refresh data
+      window.location.reload();
     }
   };
 
