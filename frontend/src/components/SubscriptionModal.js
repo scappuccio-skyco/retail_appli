@@ -13,7 +13,6 @@ const PLANS = {
     pricePerSeller: 29,
     minSellers: 1,
     maxSellers: 5,
-    aiCredits: 500,
     features: [
       'Manager gratuit',
       '29€ par vendeur/mois',
@@ -21,7 +20,8 @@ const PLANS = {
       'Diagnostic DISC',
       'Suivi KPI en temps réel',
       '1 à 5 vendeurs max',
-      '500 crédits IA/mois inclus',
+      '150+ analyses IA manager/mois',
+      '100+ analyses IA par vendeur/mois',
       'Support email sous 48h'
     ]
   },
@@ -30,7 +30,6 @@ const PLANS = {
     pricePerSeller: 25,
     minSellers: 6,
     maxSellers: 15,
-    aiCredits: 1500,
     features: [
       'Manager gratuit',
       '25€ par vendeur/mois (tarif dégressif)',
@@ -38,7 +37,8 @@ const PLANS = {
       'Diagnostic DISC',
       'Suivi KPI en temps réel',
       '6 à 15 vendeurs max',
-      '1500 crédits IA/mois inclus',
+      '150+ analyses IA manager/mois',
+      '100+ analyses IA par vendeur/mois',
       'Support prioritaire',
       'Onboarding personnalisé'
     ]
