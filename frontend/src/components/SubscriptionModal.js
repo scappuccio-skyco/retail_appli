@@ -66,6 +66,21 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmData, setConfirmData] = useState(null);
 
+  // Calculate estimated amount for seat change
+  const calculateEstimatedAmount = (currentSeats, newSeats) => {
+    const diff = newSeats - currentSeats;
+    if (diff === 0) return 0;
+    
+    // Price tiers: 1-5 seats = 29€, 6+ seats = 25€
+    const pricePerSeat = newSeats <= 5 ? 29 : 25;
+    
+    // Simplified prorata calculation (assume mid-month)
+    const monthlyChange = Math.abs(diff) * pricePerSeat;
+    const prorataEstimate = monthlyChange * 0.5; // Rough estimate for mid-month
+    
+    return diff > 0 ? prorataEstimate : -prorataEstimate;
+  };
+
   useEffect(() => {
     // Cleanup function to prevent setState on unmounted component
     return () => {
