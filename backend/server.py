@@ -5206,7 +5206,9 @@ async def check_and_reset_monthly_credits(user_id: str):
             # During trial, no monthly reset
             return
         
-        monthly_credits = STRIPE_PLANS[plan]['ai_credits_monthly']
+        # Calculate credits dynamically based on number of seats
+        seats = sub.get('seats', 1)
+        monthly_credits = calculate_monthly_ai_credits(seats)
         
         # Reset credits
         await db.subscriptions.update_one(
