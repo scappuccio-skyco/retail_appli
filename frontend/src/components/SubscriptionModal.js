@@ -174,6 +174,8 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     if (!subscriptionInfo) return;
     
     const currentSeats = subscriptionInfo.subscription.seats || 1;
+    const diff = newSeats - currentSeats;
+    const action = diff > 0 ? 'Ajout' : 'Réduction';
     
     // Close modal FIRST
     onClose();
@@ -192,20 +194,22 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       console.log('✅ API response:', response.data);
       
       if (response.data.success) {
-        // Pass summary data via URL query params (avoid localStorage blocking)
-        const diff = newSeats - currentSeats;
-        const params = new URLSearchParams({
-          summary: 'true',
-          type: 'seats',
-          action: diff > 0 ? 'add' : 'reduce',
-          oldValue: currentSeats,
-          newValue: newSeats,
-          diff: Math.abs(diff),
-          amount: response.data.amount_charged || 0
-        });
+        // Show alert with summary before reload
+        const amountCharged = response.data.amount_charged || 0;
+        let message = `✅ Modification effectuée !\n\n`;
+        message += `${action} de ${Math.abs(diff)} siège(s)\n`;
+        message += `${currentSeats} → ${newSeats} sièges\n\n`;
         
-        // Reload with query params
-        window.location.href = `/dashboard?${params.toString()}`;
+        if (amountCharged !== 0) {
+          message += amountCharged > 0 
+            ? `💳 Montant facturé : +${amountCharged.toFixed(2)}€ (prorata)\n` 
+            : `💰 Crédit appliqué : ${Math.abs(amountCharged).toFixed(2)}€ (prorata)\n`;
+        }
+        
+        message += `\n${response.data.message}`;
+        
+        alert(message);
+        window.location.reload();
       }
     } catch (error) {
       const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
