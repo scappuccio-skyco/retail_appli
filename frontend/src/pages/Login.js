@@ -136,23 +136,70 @@ export default function Login({ onLogin }) {
 
           <form data-testid="auth-form" onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nom complet
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    data-testid="name-input"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1E40AF] focus:border-transparent transition-all"
-                    placeholder="Votre nom"
-                  />
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nom complet
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      data-testid="name-input"
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1E40AF] focus:border-transparent transition-all"
+                      placeholder="Votre nom"
+                    />
+                  </div>
                 </div>
-              </div>
+
+                {/* Champ nom d'entreprise - seulement pour inscription manager (sans invitation) */}
+                {!inviteToken && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nom de l'entreprise
+                    </label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        data-testid="workspace-name-input"
+                        type="text"
+                        required
+                        value={formData.workspace_name}
+                        onChange={(e) => setFormData({ ...formData, workspace_name: e.target.value })}
+                        className={`w-full pl-10 pr-10 py-3 border rounded-xl focus:ring-2 focus:ring-[#1E40AF] focus:border-transparent transition-all ${
+                          workspaceAvailability?.available === false ? 'border-red-300' : 
+                          workspaceAvailability?.available === true ? 'border-green-300' : 
+                          'border-gray-300'
+                        }`}
+                        placeholder="Nom de votre entreprise"
+                        minLength={3}
+                      />
+                      {checkingWorkspace && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#1E40AF]"></div>
+                        </div>
+                      )}
+                      {!checkingWorkspace && workspaceAvailability && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          {workspaceAvailability.available ? (
+                            <CheckCircle className="w-5 h-5 text-green-500" />
+                          ) : (
+                            <XCircle className="w-5 h-5 text-red-500" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {workspaceAvailability && (
+                      <p className={`mt-1 text-sm ${workspaceAvailability.available ? 'text-green-600' : 'text-red-600'}`}>
+                        {workspaceAvailability.message}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </>
             )}
 
             {/* Role is always 'manager' for public registration */}
