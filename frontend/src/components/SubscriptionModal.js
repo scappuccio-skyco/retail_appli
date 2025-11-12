@@ -138,6 +138,8 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   const handleChangeSeats = async (newSeats) => {
     if (!subscriptionInfo) return;
     
+    const currentSeats = subscriptionInfo.subscription.seats || 1;
+    
     // OPTION 1: Close modal FIRST to avoid any DOM conflicts
     console.log('🔄 Closing modal before API call...');
     onClose(); // Close modal immediately
@@ -158,9 +160,18 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       console.log('✅ API response:', response.data);
       
       if (response.data.success) {
-        // IMMEDIATE RELOAD after modal is closed
-        console.log('🔄 Reloading page...');
-        window.location.reload();
+        // Show summary modal with modification details
+        const diff = newSeats - currentSeats;
+        setSummaryData({
+          type: 'seats',
+          action: diff > 0 ? 'Ajout' : 'Réduction',
+          oldValue: currentSeats,
+          newValue: newSeats,
+          diff: Math.abs(diff),
+          amount: response.data.amount_charged || 0,
+          message: response.data.message
+        });
+        setShowSummaryModal(true);
       }
     } catch (error) {
       const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
