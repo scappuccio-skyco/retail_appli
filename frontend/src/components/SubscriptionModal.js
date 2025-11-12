@@ -902,14 +902,46 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                 Annuler
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   setShowPlanConfirmModal(false);
+                  
+                  // Set selected plan and quantity
                   setSelectedPlan(planConfirmData.planKey);
                   setSelectedQuantity(planConfirmData.quantity);
-                  // Call payment directly instead of showing quantity modal
-                  setTimeout(() => {
-                    handleProceedToPayment();
-                  }, 100);
+                  
+                  // Wait a bit for state to update, then call payment
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  
+                  // Close main modal and proceed to payment
+                  onClose();
+                  await new Promise(resolve => setTimeout(resolve, 300));
+                  
+                  try {
+                    const token = localStorage.getItem('token');
+                    const originUrl = window.location.origin;
+                    
+                    const response = await axios.post(
+                      `${API}/api/checkout/create-session`,
+                      {
+                        plan: planConfirmData.planKey,
+                        origin_url: originUrl,
+                        quantity: planConfirmData.quantity
+                      },
+                      {
+                        headers: { Authorization: `Bearer ${token}` }
+                      }
+                    );
+                    
+                    if (response.data.url) {
+                      window.location.replace(response.data.url);
+                    } else if (response.data.success) {
+                      window.location.reload();
+                    }
+                  } catch (error) {
+                    console.error('❌ Checkout error:', error);
+                    alert('❌ Erreur lors de la création de la session');
+                    window.location.reload();
+                  }
                 }}
                 className="flex-1 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md text-sm"
               >
