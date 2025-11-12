@@ -85,13 +85,14 @@ export default function Login({ onLogin }) {
           invitation_token: inviteToken
         };
       } else if (isRegister) {
-        // Normal registration
+        // Normal registration (manager)
         endpoint = '/auth/register';
         payload = {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          role: formData.role
+          role: formData.role,
+          workspace_name: formData.workspace_name
         };
       } else {
         // Login
