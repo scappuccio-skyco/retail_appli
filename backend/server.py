@@ -5326,17 +5326,17 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can cancel subscriptions")
     
-    # Get user's subscription
-    sub = await db.subscriptions.find_one({"user_id": current_user['id']})
+    # Get workspace
+    workspace = await get_user_workspace(current_user['id'])
     
-    if not sub:
-        raise HTTPException(status_code=404, detail="No subscription found")
+    if not workspace:
+        raise HTTPException(status_code=404, detail="No workspace found")
     
-    if sub['status'] != 'active':
+    if workspace['subscription_status'] != 'active':
         raise HTTPException(status_code=400, detail="Only active subscriptions can be canceled")
     
     # Get Stripe subscription ID
-    stripe_subscription_id = sub.get('stripe_subscription_id')
+    stripe_subscription_id = workspace.get('stripe_subscription_id')
     
     if not stripe_subscription_id:
         raise HTTPException(status_code=400, detail="No Stripe subscription ID found")
@@ -5346,15 +5346,14 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
         stripe_lib.api_key = STRIPE_API_KEY
         
         # Cancel subscription at period end (not immediately)
-        # This keeps it active until the end of the current billing period
-        updated_subscription = stripe_lib.Subscription.modify(
+        stripe_lib.Subscription.modify(
             stripe_subscription_id,
             cancel_at_period_end=True
         )
         
-        # Update our database to reflect the cancellation
-        await db.subscriptions.update_one(
-            {"user_id": current_user['id']},
+        # Update workspace to reflect the cancellation
+        await db.workspaces.update_one(
+            {"id": workspace['id']},
             {"$set": {
                 "cancel_at_period_end": True,
                 "canceled_at": datetime.now(timezone.utc).isoformat(),
@@ -5362,14 +5361,15 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
             }}
         )
         
-        logger.info(f"Subscription scheduled for cancellation: user={current_user['id']}, ends={sub['current_period_end']}")
+        logger.info(f"Subscription scheduled for cancellation: workspace={workspace['id']}, ends={workspace.get('current_period_end')}")
+        
+        period_end_str = datetime.fromisoformat(workspace['current_period_end']).strftime('%d/%m/%Y') if workspace.get('current_period_end') else "fin de période"
         
         return {
             "success": True,
-            "message": "Abonnement annulé. Vous conservez l'accès jusqu'au " + 
-                      datetime.fromisoformat(sub['current_period_end']).strftime('%d/%m/%Y'),
+            "message": f"Abonnement annulé. Vous conservez l'accès jusqu'au {period_end_str}",
             "cancel_at_period_end": True,
-            "period_end": sub['current_period_end']
+            "period_end": workspace.get('current_period_end')
         }
         
     except Exception as e:
