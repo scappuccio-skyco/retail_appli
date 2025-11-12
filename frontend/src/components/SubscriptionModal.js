@@ -671,18 +671,17 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                   </li>
                 </ul>
               </div>
-            </div>
 
               {/* History */}
               {subscriptionHistory.length > 0 && (
-                <div className="mt-4">
-                  <details className="bg-white p-4 rounded-lg border border-green-200">
-                    <summary className="cursor-pointer font-semibold text-gray-700 hover:text-gray-900">
+                <div className="px-6 pb-6">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                       📊 Historique des modifications ({subscriptionHistory.length})
-                    </summary>
-                    <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
+                    </p>
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
                       {subscriptionHistory.map((entry, idx) => (
-                        <div key={entry.id || idx} className="text-sm p-2 bg-gray-50 rounded border-l-4 border-blue-400">
+                        <div key={entry.id || idx} className="text-sm p-2 bg-white rounded border-l-4 border-blue-400">
                           <p className="font-semibold text-gray-700">
                             {entry.action === 'created' && '🎉 Abonnement créé'}
                             {entry.action === 'seats_added' && '➕ Sièges ajoutés'}
@@ -709,9 +708,10 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                         </div>
                       ))}
                     </div>
-                  </details>
+                  </div>
                 </div>
               )}
+              </details>
             </div>
           )}
 
