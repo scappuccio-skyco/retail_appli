@@ -777,7 +777,6 @@ metadata:
 test_plan:
   current_focus:
     - "Subscription Reactivation - Frontend Implementation"
-    - "Subscription Reactivation API - Endpoint Already Implemented"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
