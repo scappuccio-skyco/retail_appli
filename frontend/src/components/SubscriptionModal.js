@@ -198,17 +198,21 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   };
 
   const handleProceedToPayment = async () => {
-    if (!selectedPlan || !isMounted) return;
+    if (!selectedPlan) return;
     
-    // Batch initial state update to prevent React reconciliation conflicts
-    unstable_batchedUpdates(() => {
-      setProcessingPlan(selectedPlan);
-    });
+    // OPTION 1: Close ALL modals FIRST to avoid DOM conflicts
+    console.log('🔄 Closing modals before checkout...');
+    setShowQuantityModal(false);
+    onClose(); // Close main modal
+    
+    // Delay to let modals close
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     try {
       const token = localStorage.getItem('token');
       const originUrl = window.location.origin;
       
+      console.log('📡 Creating checkout session...');
       const response = await axios.post(
         `${API}/api/checkout/create-session`,
         {
@@ -221,32 +225,23 @@ export default function SubscriptionModal({ isOpen, onClose }) {
         }
       );
       
-      // Redirect to Stripe - wrap in batchedUpdates to complete any pending updates
+      console.log('✅ Checkout response:', response.data);
+      
+      // If there's a URL, redirect to Stripe
       if (response.data.url) {
-        unstable_batchedUpdates(() => {
-          // Mark component as unmounting to prevent further state updates
-          setIsMounted(false);
-          
-          // Small delay to let React finish reconciliation
-          setTimeout(() => {
-            window.location.replace(response.data.url);
-          }, 50);
-        });
+        console.log('🔄 Redirecting to Stripe...');
+        window.location.replace(response.data.url);
+      } else if (response.data.success) {
+        // If no URL (subscription updated directly), reload
+        console.log('✅ Subscription updated, reloading...');
+        window.location.reload();
       }
     } catch (error) {
-      console.error('Error creating checkout session:', error);
-      
-      // Only update state if component is still mounted
-      if (isMounted) {
-        unstable_batchedUpdates(() => {
-          setProcessingPlan(null);
-        });
-        
-        setTimeout(() => {
-          const errorMessage = error.response?.data?.detail || 'Erreur lors de la création de la session de paiement';
-          alert(errorMessage);
-        }, 100);
-      }
+      console.error('❌ Checkout error:', error);
+      const errorMessage = error.response?.data?.detail || 'Erreur lors de la création de la session de paiement';
+      alert('❌ ' + errorMessage);
+      // Reload to refresh
+      window.location.reload();
     }
   };
 
