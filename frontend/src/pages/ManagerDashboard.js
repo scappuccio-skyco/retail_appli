@@ -187,8 +187,11 @@ export default function ManagerDashboard({ user, onLogout }) {
   }, []);
 
   const handleStripeCheckoutReturn = async (sessionId) => {
-    setProcessingStripeReturn(true);
-    setLoading(true);
+    // Batch all initial state updates to prevent React reconciliation conflicts
+    unstable_batchedUpdates(() => {
+      setProcessingStripeReturn(true);
+      setLoading(true);
+    });
     
     try {
       // Clean URL immediately to prevent reprocessing
@@ -209,6 +212,12 @@ export default function ManagerDashboard({ user, onLogout }) {
           duration: 5000
         });
         
+        // Batch state update before reload
+        unstable_batchedUpdates(() => {
+          setLoading(false);
+          setProcessingStripeReturn(false);
+        });
+        
         // Reload to show updated subscription data
         setTimeout(() => {
           window.location.reload();
@@ -217,7 +226,12 @@ export default function ManagerDashboard({ user, onLogout }) {
         toast.info('⏳ Paiement en cours de traitement...', {
           duration: 5000
         });
-        setProcessingStripeReturn(false);
+        
+        // Batch state updates
+        unstable_batchedUpdates(() => {
+          setProcessingStripeReturn(false);
+        });
+        
         // Load dashboard normally
         fetchData();
         fetchManagerDiagnostic();
@@ -226,6 +240,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         fetchActiveChallenges();
         fetchActiveObjectives();
         fetchStoreKPIStats();
+        fetchSubscriptionInfo();
       } else {
         toast.error('❌ Le paiement n\'a pas pu être confirmé. Contactez le support si le problème persiste.', {
           duration: 6000
