@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
-import { X, Crown, Check, Loader } from 'lucide-react';
+import { X, Crown, Check, Loader, Users } from 'lucide-react';
 import axios from 'axios';
 import QuantityModal from './QuantityModal';
 
