@@ -109,6 +109,47 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     }
   };
 
+  const fetchSubscriptionHistory = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/api/subscription/history`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (isMounted) {
+        setSubscriptionHistory(response.data.history || []);
+      }
+    } catch (error) {
+      console.error('Error fetching subscription history:', error);
+    }
+  };
+
+  const handleChangeSeats = async (newSeats) => {
+    if (!subscriptionInfo) return;
+    
+    setAdjustingSeats(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${API}/api/subscription/change-seats?new_seats=${newSeats}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (response.data.success) {
+        alert(`✅ ${response.data.message}\n\nMontant ${response.data.amount_charged >= 0 ? 'facturé' : 'crédité'}: ${Math.abs(response.data.amount_charged).toFixed(2)}€`);
+        
+        // Refresh data
+        await fetchSubscriptionStatus();
+        await fetchSubscriptionHistory();
+      }
+    } catch (error) {
+      const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
+      alert(`❌ ${errorMsg}`);
+    } finally {
+      setAdjustingSeats(false);
+    }
+  };
+
   const handleSelectPlan = (plan) => {
     // Check if user has too many sellers for Starter plan
     const planInfo = PLANS[plan];
