@@ -121,13 +121,31 @@ class Subscription(BaseModel):
     current_period_end: Optional[datetime] = None
     stripe_customer_id: Optional[str] = None
     stripe_subscription_id: Optional[str] = None
+    stripe_subscription_item_id: Optional[str] = None  # Pour modifier la quantité de sièges
     cancel_at_period_end: Optional[bool] = False  # Si l'abonnement est programmé pour annulation
     canceled_at: Optional[datetime] = None  # Date de demande d'annulation
+    seats: int = 1  # Nombre de sièges achetés
+    used_seats: int = 0  # Nombre de vendeurs actifs (calculé dynamiquement)
     ai_credits_remaining: int = 0  # Crédits IA restants
     ai_credits_used_this_month: int = 0  # Crédits utilisés ce mois
     last_credit_reset: Optional[datetime] = None  # Dernière recharge mensuelle
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SubscriptionHistory(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    subscription_id: str
+    action: str  # "created", "upgraded", "downgraded", "seats_added", "seats_removed", "canceled", "reactivated"
+    previous_plan: Optional[str] = None
+    new_plan: Optional[str] = None
+    previous_seats: Optional[int] = None
+    new_seats: Optional[int] = None
+    amount_charged: Optional[float] = None  # Montant facturé (peut être négatif si crédit)
+    stripe_invoice_id: Optional[str] = None
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    metadata: Optional[dict] = None
 
 class AIUsageLog(BaseModel):
     model_config = ConfigDict(extra="ignore")
