@@ -441,15 +441,17 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           {/* Seat Management - Only for active subscriptions */}
           {subscriptionInfo && subscriptionInfo.status === 'active' && subscriptionInfo.subscription && (
             <div className="mb-8">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-t-xl p-6 text-white">
-                <h3 className="text-2xl font-bold flex items-center gap-3">
-                  <Users className="w-7 h-7" />
-                  Gérer mes sièges vendeurs
-                </h3>
-                <p className="text-green-50 text-sm mt-1">Ajustez votre capacité en temps réel avec facturation proratée</p>
-              </div>
+              <details className="bg-white rounded-xl border-2 border-green-200 overflow-hidden">
+                <summary className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white cursor-pointer hover:from-green-600 hover:to-emerald-700 transition-all">
+                  <h3 className="text-2xl font-bold flex items-center gap-3">
+                    <Users className="w-7 h-7" />
+                    Gérer mes sièges vendeurs
+                    <span className="ml-auto text-sm font-normal opacity-75">▼ Cliquez pour développer</span>
+                  </h3>
+                  <p className="text-green-50 text-sm mt-1">Ajustez votre capacité en temps réel avec facturation proratée</p>
+                </summary>
               
-              <div className="bg-white rounded-b-xl border-2 border-green-200 p-6">
+              <div className="bg-white p-6">
                 {/* Stats Cards */}
                 <div className="grid md:grid-cols-3 gap-4 mb-6">
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border-2 border-blue-200 relative overflow-hidden">
