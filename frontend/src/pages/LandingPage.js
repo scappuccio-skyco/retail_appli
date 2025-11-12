@@ -592,7 +592,8 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-4">
                   {[
                     '16+ vendeurs',
-                    '10 000+ crédits IA/mois',
+                    '150+ analyses IA manager/mois',
+                    '100+ analyses IA par vendeur/mois',
                     'Gestionnaire de compte dédié',
                     'Formations & Onboarding avancé',
                     'Configuration personnalisée',
