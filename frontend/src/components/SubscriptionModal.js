@@ -380,6 +380,125 @@ export default function SubscriptionModal({ isOpen, onClose }) {
             </div>
           )}
 
+          {/* Seat Management - Only for active subscriptions */}
+          {subscriptionInfo && subscriptionInfo.status === 'active' && subscriptionInfo.subscription && (
+            <div className="mb-8 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <Users className="w-6 h-6 text-green-600" />
+                Gérer mes sièges vendeurs
+              </h3>
+              
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div className="bg-white p-4 rounded-lg border border-green-200">
+                  <p className="text-sm text-gray-600 mb-1">Sièges achetés</p>
+                  <p className="text-2xl font-bold text-gray-800">{subscriptionInfo.subscription.seats || 1}</p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-green-200">
+                  <p className="text-sm text-gray-600 mb-1">Vendeurs actifs</p>
+                  <p className="text-2xl font-bold text-gray-800">{sellerCount}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Disponibles: {(subscriptionInfo.subscription.seats || 1) - sellerCount}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-lg border border-green-200">
+                <p className="text-sm font-semibold text-gray-700 mb-3">Ajuster le nombre de sièges</p>
+                
+                <div className="flex items-center gap-4 mb-3">
+                  <button
+                    onClick={() => {
+                      const currentSeats = subscriptionInfo.subscription.seats || 1;
+                      if (currentSeats > sellerCount) {
+                        if (window.confirm(`Réduire de ${currentSeats} à ${currentSeats - 1} siège(s) ?\n\nUn crédit proraté sera appliqué sur votre prochaine facture.`)) {
+                          handleChangeSeats(currentSeats - 1);
+                        }
+                      }
+                    }}
+                    disabled={adjustingSeats || (subscriptionInfo.subscription.seats || 1) <= sellerCount}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xl"
+                  >
+                    -
+                  </button>
+                  
+                  <div className="flex-1 text-center">
+                    <p className="text-3xl font-bold text-gray-800">{subscriptionInfo.subscription.seats || 1}</p>
+                    <p className="text-sm text-gray-500">siège(s)</p>
+                  </div>
+                  
+                  <button
+                    onClick={() => {
+                      const currentSeats = subscriptionInfo.subscription.seats || 1;
+                      if (currentSeats < 15) {
+                        const newSeats = currentSeats + 1;
+                        const currentPlan = subscriptionInfo.subscription.plan_type || subscriptionInfo.plan_type;
+                        const pricePerSeat = currentPlan === 'professional' ? 25 : 29;
+                        const estimatedCharge = (pricePerSeat * 0.5).toFixed(2); // Estimation moyenne
+                        
+                        if (window.confirm(`Ajouter 1 siège supplémentaire ?\n\nPassage à ${newSeats} siège(s).\nFacturation proratée immédiate (environ ${estimatedCharge}€ selon le temps restant).`)) {
+                          handleChangeSeats(newSeats);
+                        }
+                      }
+                    }}
+                    disabled={adjustingSeats || (subscriptionInfo.subscription.seats || 1) >= 15}
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xl"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <div className="text-xs text-gray-600 bg-blue-50 p-3 rounded-lg">
+                  <p className="font-semibold mb-1">💡 Comment ça marche ?</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Augmentation : facturation immédiate au prorata du temps restant</li>
+                    <li>Réduction : crédit appliqué sur votre prochaine facture</li>
+                    <li>Changement automatique de plan si nécessaire (1-5: Starter 29€, 6-15: Pro 25€)</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* History */}
+              {subscriptionHistory.length > 0 && (
+                <div className="mt-4">
+                  <details className="bg-white p-4 rounded-lg border border-green-200">
+                    <summary className="cursor-pointer font-semibold text-gray-700 hover:text-gray-900">
+                      📊 Historique des modifications ({subscriptionHistory.length})
+                    </summary>
+                    <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
+                      {subscriptionHistory.map((entry, idx) => (
+                        <div key={entry.id || idx} className="text-sm p-2 bg-gray-50 rounded border-l-4 border-blue-400">
+                          <p className="font-semibold text-gray-700">
+                            {entry.action === 'created' && '🎉 Abonnement créé'}
+                            {entry.action === 'seats_added' && '➕ Sièges ajoutés'}
+                            {entry.action === 'seats_removed' && '➖ Sièges réduits'}
+                            {entry.action === 'upgraded' && '⬆️ Mise à niveau'}
+                            {entry.action === 'downgraded' && '⬇️ Réduction'}
+                          </p>
+                          <p className="text-gray-600">
+                            {entry.previous_seats && entry.new_seats && (
+                              <>{entry.previous_seats} → {entry.new_seats} siège(s)</>
+                            )}
+                            {entry.previous_plan !== entry.new_plan && entry.new_plan && (
+                              <> • Plan: {entry.new_plan}</>
+                            )}
+                          </p>
+                          {entry.amount_charged !== null && entry.amount_charged !== undefined && (
+                            <p className={`text-xs ${entry.amount_charged >= 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                              {entry.amount_charged >= 0 ? 'Facturé' : 'Crédité'}: {Math.abs(entry.amount_charged).toFixed(2)}€
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-500">
+                            {new Date(entry.timestamp).toLocaleString('fr-FR')}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Plans */}
           <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
             Choisissez votre plan
