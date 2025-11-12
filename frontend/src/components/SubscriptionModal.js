@@ -77,6 +77,13 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
+  // Initialize newSeatsCount when subscription info is loaded
+  useEffect(() => {
+    if (subscriptionInfo && subscriptionInfo.subscription) {
+      setNewSeatsCount(subscriptionInfo.subscription.seats || 1);
+    }
+  }, [subscriptionInfo]);
+
   const fetchSubscriptionStatus = async () => {
     try {
       const token = localStorage.getItem('token');
