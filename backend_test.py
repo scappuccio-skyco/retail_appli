@@ -5514,39 +5514,20 @@ class RetailCoachAPITester:
             return 1
 
 def main():
+    """Main test execution"""
+    print("🚀 Starting Retail Coach API Testing...")
+    print("=" * 60)
+    
     tester = RetailCoachAPITester()
     
-    print("🚀 Testing KPI Configuration Endpoints - Review Request")
-    print("=" * 60)
-    print("CONTEXT: User experiencing HTTP 405 (Method Not Allowed) error")
-    print("when trying to save KPI configuration from manager settings modal.")
-    print("Testing PUT method functionality and CORS configuration.")
-    print("=" * 60)
+    # Focus on subscription lifecycle testing as per review request
+    print("\n📋 SUBSCRIPTION LIFECYCLE WITH REACTIVATION TESTING")
+    tester.test_subscription_lifecycle_with_reactivation()
     
-    # Run the specific KPI configuration test for the review request
-    tester.test_kpi_configuration_endpoints()
+    # Print final summary
+    tester.print_summary()
     
-    # Print summary
-    print("\n" + "=" * 60)
-    print(f"📊 Test Summary: {tester.tests_passed}/{tester.tests_run} tests passed")
-    
-    if tester.tests_passed == tester.tests_run:
-        print("🎉 All KPI configuration tests passed!")
-        print("\n💡 ANALYSIS:")
-        print("   - If tests pass but frontend still shows 405 error:")
-        print("   - Check browser network tab for actual request method")
-        print("   - Verify frontend is using correct URL endpoint")
-        print("   - Clear browser cache and try again")
-        print("   - Check if nginx/proxy is blocking PUT requests")
-        return 0
-    else:
-        print("⚠️  Some KPI configuration tests failed.")
-        print("\n🔍 TROUBLESHOOTING:")
-        print("   - Check backend logs for detailed error messages")
-        print("   - Verify manager authentication is working")
-        print("   - Confirm database connectivity")
-        print("   - Check CORS configuration in backend")
-        return 1
+    return 0 if tester.tests_passed == tester.tests_run else 1
 
 if __name__ == "__main__":
     sys.exit(main())
