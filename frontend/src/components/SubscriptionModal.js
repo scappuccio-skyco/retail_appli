@@ -73,6 +73,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     if (isOpen) {
       fetchSubscriptionStatus();
       fetchSellerCount();
+      fetchSubscriptionHistory();
     }
   }, [isOpen]);
 
