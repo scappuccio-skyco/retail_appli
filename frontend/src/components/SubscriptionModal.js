@@ -389,25 +389,44 @@ export default function SubscriptionModal({ isOpen, onClose }) {
 
           {/* Seat Management - Only for active subscriptions */}
           {subscriptionInfo && subscriptionInfo.status === 'active' && subscriptionInfo.subscription && (
-            <div className="mb-8 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Users className="w-6 h-6 text-green-600" />
-                Gérer mes sièges vendeurs
-              </h3>
-              
-              <div className="grid md:grid-cols-2 gap-4 mb-4">
-                <div className="bg-white p-4 rounded-lg border border-green-200">
-                  <p className="text-sm text-gray-600 mb-1">Sièges achetés</p>
-                  <p className="text-2xl font-bold text-gray-800">{subscriptionInfo.subscription.seats || 1}</p>
-                </div>
-                <div className="bg-white p-4 rounded-lg border border-green-200">
-                  <p className="text-sm text-gray-600 mb-1">Vendeurs actifs</p>
-                  <p className="text-2xl font-bold text-gray-800">{sellerCount}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Disponibles: {(subscriptionInfo.subscription.seats || 1) - sellerCount}
-                  </p>
-                </div>
+            <div className="mb-8">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-t-xl p-6 text-white">
+                <h3 className="text-2xl font-bold flex items-center gap-3">
+                  <Users className="w-7 h-7" />
+                  Gérer mes sièges vendeurs
+                </h3>
+                <p className="text-green-50 text-sm mt-1">Ajustez votre capacité en temps réel avec facturation proratée</p>
               </div>
+              
+              <div className="bg-white rounded-b-xl border-2 border-green-200 p-6">
+                {/* Stats Cards */}
+                <div className="grid md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border-2 border-blue-200 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 opacity-10">
+                      <Crown className="w-20 h-20 text-blue-600" />
+                    </div>
+                    <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">Sièges achetés</p>
+                    <p className="text-4xl font-black text-blue-900">{subscriptionInfo.subscription.seats || 1}</p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-xl border-2 border-green-200 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 opacity-10">
+                      <Users className="w-20 h-20 text-green-600" />
+                    </div>
+                    <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Vendeurs actifs</p>
+                    <p className="text-4xl font-black text-green-900">{sellerCount}</p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-5 rounded-xl border-2 border-purple-200 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 opacity-10">
+                      <Check className="w-20 h-20 text-purple-600" />
+                    </div>
+                    <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-1">Sièges libres</p>
+                    <p className="text-4xl font-black text-purple-900">
+                      {(subscriptionInfo.subscription.seats || 1) - sellerCount}
+                    </p>
+                  </div>
+                </div>
 
               <div className="bg-white p-4 rounded-lg border border-green-200">
                 <p className="text-sm font-semibold text-gray-700 mb-3">Ajuster le nombre de sièges</p>
