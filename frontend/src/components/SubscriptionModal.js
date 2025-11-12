@@ -82,6 +82,26 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
+  // Check for pending summary after page reload
+  useEffect(() => {
+    const summaryJSON = localStorage.getItem('subscription_change_summary');
+    if (summaryJSON) {
+      try {
+        const data = JSON.parse(summaryJSON);
+        // Only show if less than 5 seconds old (to avoid showing old data)
+        if (Date.now() - data.timestamp < 5000) {
+          setSummaryData(data);
+          setShowSummaryModal(true);
+        }
+        // Clear after reading
+        localStorage.removeItem('subscription_change_summary');
+      } catch (e) {
+        console.error('Error parsing summary data:', e);
+        localStorage.removeItem('subscription_change_summary');
+      }
+    }
+  }, []);
+
   // Initialize newSeatsCount when subscription info is loaded
   useEffect(() => {
     if (subscriptionInfo && subscriptionInfo.subscription) {
