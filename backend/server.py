@@ -5382,17 +5382,17 @@ async def reactivate_subscription(current_user: dict = Depends(get_current_user)
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can reactivate subscriptions")
     
-    # Get subscription
-    sub = await db.subscriptions.find_one({"user_id": current_user['id']})
+    # Get workspace
+    workspace = await get_user_workspace(current_user['id'])
     
-    if not sub:
-        raise HTTPException(status_code=404, detail="No subscription found")
+    if not workspace:
+        raise HTTPException(status_code=404, detail="No workspace found")
     
-    if not sub.get('cancel_at_period_end'):
+    if not workspace.get('cancel_at_period_end'):
         raise HTTPException(status_code=400, detail="Subscription is not scheduled for cancellation")
     
     # Get Stripe subscription ID
-    stripe_subscription_id = sub.get('stripe_subscription_id')
+    stripe_subscription_id = workspace.get('stripe_subscription_id')
     if not stripe_subscription_id:
         raise HTTPException(status_code=400, detail="No Stripe subscription found")
     
@@ -5406,9 +5406,9 @@ async def reactivate_subscription(current_user: dict = Depends(get_current_user)
             cancel_at_period_end=False
         )
         
-        # Update in database
-        await db.subscriptions.update_one(
-            {"user_id": current_user['id']},
+        # Update workspace
+        await db.workspaces.update_one(
+            {"id": workspace['id']},
             {"$set": {
                 "cancel_at_period_end": False,
                 "canceled_at": None,
