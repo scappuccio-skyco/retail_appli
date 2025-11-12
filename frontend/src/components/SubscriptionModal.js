@@ -136,9 +136,13 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   };
 
   const handleChangeSeats = async (newSeats) => {
-    if (!subscriptionInfo) return;
+    if (!subscriptionInfo || !isMounted) return;
     
-    setAdjustingSeats(true);
+    // Batch initial state update
+    unstable_batchedUpdates(() => {
+      setAdjustingSeats(true);
+    });
+    
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
@@ -147,18 +151,37 @@ export default function SubscriptionModal({ isOpen, onClose }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      if (response.data.success) {
-        alert(`✅ ${response.data.message}\n\nMontant ${response.data.amount_charged >= 0 ? 'facturé' : 'crédité'}: ${Math.abs(response.data.amount_charged).toFixed(2)}€`);
+      if (response.data.success && isMounted) {
+        // Show success toast instead of alert
+        const amountText = response.data.amount_charged >= 0 
+          ? `Montant facturé: ${Math.abs(response.data.amount_charged).toFixed(2)}€`
+          : `Crédit appliqué: ${Math.abs(response.data.amount_charged).toFixed(2)}€`;
         
-        // Refresh data
-        await fetchSubscriptionStatus();
-        await fetchSubscriptionHistory();
+        toast.success(`✅ ${response.data.message}`, {
+          description: amountText,
+          duration: 5000
+        });
+        
+        // Refresh data in batched update
+        unstable_batchedUpdates(() => {
+          fetchSubscriptionStatus();
+          fetchSubscriptionHistory();
+        });
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
-      alert(`❌ ${errorMsg}`);
+      if (isMounted) {
+        const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
+        toast.error(`❌ ${errorMsg}`, {
+          duration: 5000
+        });
+      }
     } finally {
-      setAdjustingSeats(false);
+      if (isMounted) {
+        // Batch final state update
+        unstable_batchedUpdates(() => {
+          setAdjustingSeats(false);
+        });
+      }
     }
   };
 
