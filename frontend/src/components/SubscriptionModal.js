@@ -377,12 +377,19 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       </>
                     )}
                   </p>
-                  {!subscriptionInfo.subscription?.cancel_at_period_end && (
+                  {!subscriptionInfo.subscription?.cancel_at_period_end ? (
                     <button
                       onClick={handleCancelSubscription}
                       className="mt-3 text-sm text-red-600 hover:text-red-700 underline"
                     >
                       Annuler l'abonnement
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleReactivateSubscription}
+                      className="mt-3 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
+                    >
+                      ✅ Réactiver l'abonnement
                     </button>
                   )}
                 </div>
