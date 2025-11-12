@@ -811,6 +811,92 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           onProceedToPayment={handleProceedToPayment}
         />
       )}
+
+      {/* Summary Modal - Shows modification details before reload */}
+      {showSummaryModal && summaryData && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden animate-fadeIn">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <Check className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">Modification effectuée !</h3>
+                  <p className="text-green-50 text-sm">Vos changements ont été appliqués</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              {/* Action performed */}
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                <p className="text-sm text-blue-700 font-semibold mb-2">Type de modification</p>
+                <p className="text-2xl font-black text-blue-900">
+                  {summaryData.action} de {summaryData.diff} siège{summaryData.diff > 1 ? 's' : ''}
+                </p>
+              </div>
+
+              {/* Details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <p className="text-xs text-gray-600 font-semibold uppercase mb-1">Avant</p>
+                  <p className="text-3xl font-black text-gray-800">{summaryData.oldValue}</p>
+                  <p className="text-xs text-gray-500">siège{summaryData.oldValue > 1 ? 's' : ''}</p>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4 border-2 border-green-300">
+                  <p className="text-xs text-green-700 font-semibold uppercase mb-1">Maintenant</p>
+                  <p className="text-3xl font-black text-green-800">{summaryData.newValue}</p>
+                  <p className="text-xs text-green-600">siège{summaryData.newValue > 1 ? 's' : ''}</p>
+                </div>
+              </div>
+
+              {/* Amount */}
+              {summaryData.amount !== 0 && (
+                <div className={`rounded-lg p-4 border-2 ${
+                  summaryData.amount > 0 
+                    ? 'bg-orange-50 border-orange-200' 
+                    : 'bg-purple-50 border-purple-200'
+                }`}>
+                  <p className="text-sm font-semibold mb-1">
+                    {summaryData.amount > 0 ? '💳 Montant facturé' : '💰 Crédit appliqué'}
+                  </p>
+                  <p className="text-2xl font-black">
+                    {summaryData.amount > 0 ? '+' : ''}{summaryData.amount.toFixed(2)}€
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {summaryData.amount > 0 
+                      ? 'Prorata ajouté à votre prochaine facture' 
+                      : 'Prorata crédité sur votre prochaine facture'}
+                  </p>
+                </div>
+              )}
+
+              {/* Message */}
+              {summaryData.message && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <p className="text-sm text-green-800">{summaryData.message}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="bg-gray-50 p-4 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowSummaryModal(false);
+                  window.location.reload();
+                }}
+                className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl"
+              >
+                Fermer et actualiser
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
