@@ -941,13 +941,6 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                   </>
                 );
               })()}
-
-              {/* Info */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800">
-                  ℹ️ Vous serez redirigé vers Stripe pour finaliser le paiement sécurisé.
-                </p>
-              </div>
             </div>
 
             {/* Footer */}
