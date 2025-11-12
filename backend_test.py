@@ -2962,7 +2962,7 @@ class RetailCoachAPITester:
             "Scenario 4.3 - Reactivate Without Authentication (Should Fail)",
             "POST",
             "subscription/reactivate",
-            401,  # Should fail with 401 for missing auth
+            403,  # FastAPI returns 403 for missing authentication
         )
         
         if success:
