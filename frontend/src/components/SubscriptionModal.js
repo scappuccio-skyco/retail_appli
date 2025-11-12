@@ -428,55 +428,69 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                   </div>
                 </div>
 
-              <div className="bg-white p-4 rounded-lg border border-green-200">
-                <p className="text-sm font-semibold text-gray-700 mb-3">Ajuster le nombre de sièges</p>
-                
-                <div className="flex items-center gap-4 mb-3">
-                  <div className="flex-1">
-                    <label className="block text-xs text-gray-600 mb-1">Nombre de sièges souhaité</label>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          const currentSeats = subscriptionInfo.subscription.seats || 1;
-                          if (newSeatsCount > sellerCount) {
-                            setNewSeatsCount(Math.max(sellerCount, newSeatsCount - 1));
-                          }
-                        }}
-                        disabled={adjustingSeats || newSeatsCount <= sellerCount}
-                        className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
-                      >
-                        -
-                      </button>
-                      
-                      <input
-                        type="number"
-                        min={sellerCount}
-                        max={15}
-                        value={newSeatsCount}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value) || sellerCount;
-                          setNewSeatsCount(Math.max(sellerCount, Math.min(15, val)));
-                        }}
-                        disabled={adjustingSeats}
-                        className="flex-1 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg py-2 focus:border-green-500 focus:outline-none disabled:bg-gray-100"
-                      />
-                      
-                      <button
-                        onClick={() => {
-                          if (newSeatsCount < 15) {
-                            setNewSeatsCount(Math.min(15, newSeatsCount + 1));
-                          }
-                        }}
-                        disabled={adjustingSeats || newSeatsCount >= 15}
-                        className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
-                      >
-                        +
-                      </button>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Minimum: {sellerCount} (vendeurs actifs) • Maximum: 15
-                    </p>
+              {/* Adjustment Section */}
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border-2 border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-lg font-bold text-gray-800">Ajuster mes sièges</p>
+                    <p className="text-xs text-gray-600">Utilisez le slider ou saisissez directement</p>
                   </div>
+                  <div className="bg-white px-4 py-2 rounded-lg border-2 border-green-500">
+                    <p className="text-xs text-gray-600">Nouveau total</p>
+                    <p className="text-3xl font-black text-green-600">{newSeatsCount}</p>
+                  </div>
+                </div>
+                
+                {/* Slider */}
+                <div className="mb-4">
+                  <input
+                    type="range"
+                    min={sellerCount}
+                    max={15}
+                    value={newSeatsCount}
+                    onChange={(e) => setNewSeatsCount(parseInt(e.target.value))}
+                    disabled={adjustingSeats}
+                    className="w-full h-3 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-green-500"
+                    style={{
+                      background: `linear-gradient(to right, #10b981 0%, #10b981 ${((newSeatsCount - sellerCount) / (15 - sellerCount)) * 100}%, #d1d5db ${((newSeatsCount - sellerCount) / (15 - sellerCount)) * 100}%, #d1d5db 100%)`
+                    }}
+                  />
+                  <div className="flex justify-between text-xs text-gray-600 mt-1">
+                    <span>Min: {sellerCount}</span>
+                    <span>Max: 15</span>
+                  </div>
+                </div>
+                
+                {/* Fine tune buttons */}
+                <div className="flex items-center gap-3 mb-4">
+                  <button
+                    onClick={() => setNewSeatsCount(Math.max(sellerCount, newSeatsCount - 1))}
+                    disabled={adjustingSeats || newSeatsCount <= sellerCount}
+                    className="flex-1 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
+                  >
+                    <span className="text-xl">−</span> Retirer 1
+                  </button>
+                  
+                  <input
+                    type="number"
+                    min={sellerCount}
+                    max={15}
+                    value={newSeatsCount}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || sellerCount;
+                      setNewSeatsCount(Math.max(sellerCount, Math.min(15, val)));
+                    }}
+                    disabled={adjustingSeats}
+                    className="w-24 text-center text-2xl font-bold border-3 border-green-500 rounded-lg py-3 focus:ring-4 focus:ring-green-200 focus:outline-none disabled:bg-gray-100 shadow-md"
+                  />
+                  
+                  <button
+                    onClick={() => setNewSeatsCount(Math.min(15, newSeatsCount + 1))}
+                    disabled={adjustingSeats || newSeatsCount >= 15}
+                    className="flex-1 py-3 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
+                  >
+                    <span className="text-xl">+</span> Ajouter 1
+                  </button>
                 </div>
 
                 {/* Preview of change */}
