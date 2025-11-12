@@ -5870,71 +5870,45 @@ async def stripe_webhook(request: Request):
             )
             
             # Activate subscription if payment successful
-            if session.get('payment_status') == 'paid' and metadata.get('user_id'):
-                user_id = metadata['user_id']
-                plan = metadata.get('plan', 'starter')
+            workspace_id = metadata.get('workspace_id')
+            if session.get('payment_status') == 'paid' and workspace_id:
                 stripe_subscription_id = session.get('subscription')  # Get actual Stripe subscription ID
                 
-                logger.info(f"Activating subscription for user: {user_id}, plan: {plan}")
+                logger.info(f"Activating subscription for workspace: {workspace_id}")
                 
-                # Check if subscription exists
-                sub = await db.subscriptions.find_one({"user_id": user_id})
+                # Get Stripe subscription to extract quantity and subscription_item_id
+                stripe_sub = stripe_lib.Subscription.retrieve(stripe_subscription_id) if stripe_subscription_id else None
+                quantity = 1
+                subscription_item_id = None
                 
-                # Activate or reactivate subscription
-                if sub:
-                    now = datetime.now(timezone.utc)
-                    period_end = now + timedelta(days=30)
-                    
-                    # Get Stripe subscription to extract quantity and subscription_item_id
-                    stripe_sub = stripe_lib.Subscription.retrieve(stripe_subscription_id) if stripe_subscription_id else None
-                    quantity = 1
-                    subscription_item_id = None
-                    
-                    if stripe_sub and stripe_sub.get('items') and stripe_sub['items']['data']:
-                        quantity = stripe_sub['items']['data'][0].get('quantity', 1)
-                        subscription_item_id = stripe_sub['items']['data'][0]['id']
-                    
-                    # Allocate AI credits based on plan
-                    plan_info = STRIPE_PLANS.get(plan, STRIPE_PLANS['starter'])
-                    ai_credits = plan_info['ai_credits_monthly']
-                    
-                    # Count current sellers
-                    seller_count = await db.users.count_documents({"manager_id": user_id, "role": "seller"})
-                    
-                    # Check if this is a reactivation
-                    is_reactivation = sub.get('status') == 'active' and sub.get('cancel_at_period_end') == True
-                    
-                    await db.subscriptions.update_one(
-                        {"user_id": user_id},
-                        {"$set": {
-                            "status": "active",
-                            "plan": plan,
-                            "seats": quantity,
-                            "used_seats": seller_count,
-                            "current_period_start": now.isoformat(),
-                            "current_period_end": period_end.isoformat(),
-                            "stripe_subscription_id": stripe_subscription_id,
-                            "stripe_subscription_item_id": subscription_item_id,
-                            "cancel_at_period_end": False,  # Reset cancellation flag
-                            "canceled_at": None,  # Clear cancellation timestamp
-                            "ai_credits_remaining": ai_credits,
-                            "ai_credits_used_this_month": 0,
-                            "updated_at": now.isoformat()
-                        }}
-                    )
-                    
-                    # Record in history
-                    history_entry = SubscriptionHistory(
-                        user_id=user_id,
-                        subscription_id=sub['id'],
-                        action="created",
-                        new_plan=plan,
-                        new_seats=quantity,
-                        metadata={"initial_activation": True}
-                    )
-                    await db.subscription_history.insert_one(history_entry.model_dump())
-                    
-                    logger.info(f"Subscription activated successfully for user: {user_id}")
+                if stripe_sub and stripe_sub.get('items') and stripe_sub['items']['data']:
+                    quantity = stripe_sub['items']['data'][0].get('quantity', 1)
+                    subscription_item_id = stripe_sub['items']['data'][0]['id']
+                
+                # Update workspace with subscription details
+                now = datetime.now(timezone.utc)
+                period_start = datetime.fromtimestamp(stripe_sub['current_period_start'], tz=timezone.utc) if stripe_sub else now
+                period_end = datetime.fromtimestamp(stripe_sub['current_period_end'], tz=timezone.utc) if stripe_sub else now + timedelta(days=30)
+                
+                await db.workspaces.update_one(
+                    {"id": workspace_id},
+                    {"$set": {
+                        "subscription_status": "active",
+                        "stripe_subscription_id": stripe_subscription_id,
+                        "stripe_subscription_item_id": subscription_item_id,
+                        "stripe_quantity": quantity,
+                        "current_period_start": period_start.isoformat(),
+                        "current_period_end": period_end.isoformat(),
+                        "cancel_at_period_end": False,
+                        "canceled_at": None,
+                        "ai_credits_remaining": 500,  # Base credits for paid subscription
+                        "ai_credits_used_this_month": 0,
+                        "last_credit_reset": now.isoformat(),
+                        "updated_at": now.isoformat()
+                    }}
+                )
+                
+                logger.info(f"Subscription activated successfully for workspace: {workspace_id} with {quantity} seats")
         
         # Handle subscription updates
         elif event['type'] in ['customer.subscription.updated', 'customer.subscription.deleted']:
