@@ -295,6 +295,37 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     }
   };
 
+  const handleReactivateSubscription = async () => {
+    const confirmed = window.confirm(
+      '✅ Réactiver votre abonnement\n\n' +
+      'Votre abonnement reprendra automatiquement à la fin de la période en cours.\n' +
+      'Vous continuerez à avoir accès à toutes les fonctionnalités premium.\n\n' +
+      'Voulez-vous réactiver votre abonnement ?'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${API}/api/subscription/reactivate`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      toast.success('✅ ' + response.data.message);
+      
+      // Refresh subscription status to update UI
+      fetchSubscriptionStatus();
+    } catch (error) {
+      console.error('Error reactivating subscription:', error);
+      const errorMessage = error.response?.data?.detail || 'Erreur lors de la réactivation de l\'abonnement';
+      toast.error('❌ ' + errorMessage);
+    }
+  };
+
 
   const currentPlan = subscriptionInfo?.plan || 'starter';
   const isActive = subscriptionInfo?.status === 'active';
