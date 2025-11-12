@@ -966,15 +966,19 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                           <span className="text-sm font-semibold">
                             {seatDiff > 0 ? '💳 Facturation proratée' : '💰 Crédit proraté'}
                           </span>
-                          <span className="text-2xl font-black">
-                            ~{prorataPercentage}%
+                          <span className="text-lg font-black">
+                            {prorataPercentage !== null ? `~${prorataPercentage}%` : '---'}
                           </span>
                         </div>
                         <p className="text-xs text-gray-600">
                           {seatDiff > 0 ? 'Ajout' : 'Retrait'} de {Math.abs(seatDiff)} siège(s)
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {currentSeats} → {planConfirmData.quantity} sièges • Stripe calculera le montant exact
+                          {currentSeats} → {planConfirmData.quantity} sièges
+                          {prorataPercentage !== null && daysRemaining > 0 && ` • ${daysRemaining} jour(s) restant(s)`}
+                        </p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          ℹ️ Stripe calculera le montant exact
                         </p>
                       </div>
                     )}
