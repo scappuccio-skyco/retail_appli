@@ -812,12 +812,62 @@ async def register(user_data: UserCreate):
     # Force role to 'manager' for public registration (sellers are invited)
     user_data.role = "manager"
     
+    # Vérifier que le nom d'entreprise est fourni pour les managers
+    if user_data.role == "manager" and not user_data.workspace_name:
+        raise HTTPException(status_code=400, detail="Le nom de l'entreprise est requis")
+    
+    # Vérifier que le nom d'entreprise n'existe pas déjà
+    if user_data.workspace_name:
+        existing_workspace = await db.workspaces.find_one({
+            "name": {"$regex": f"^{user_data.workspace_name}$", "$options": "i"}
+        }, {"_id": 0})
+        if existing_workspace:
+            raise HTTPException(status_code=400, detail="Ce nom d'entreprise est déjà utilisé")
+    
+    workspace_id = None
+    
+    # Créer le workspace pour les managers
+    if user_data.role == "manager":
+        trial_start = datetime.now(timezone.utc)
+        trial_end = trial_start + timedelta(days=TRIAL_DAYS)
+        
+        workspace = Workspace(
+            name=user_data.workspace_name,
+            subscription_status="trialing",
+            trial_start=trial_start,
+            trial_end=trial_end,
+            ai_credits_remaining=TRIAL_AI_CREDITS,
+            ai_credits_used_this_month=0,
+            last_credit_reset=trial_start
+        )
+        
+        workspace_doc = workspace.model_dump()
+        workspace_doc['trial_start'] = workspace_doc['trial_start'].isoformat()
+        workspace_doc['trial_end'] = workspace_doc['trial_end'].isoformat()
+        workspace_doc['created_at'] = workspace_doc['created_at'].isoformat()
+        workspace_doc['updated_at'] = workspace_doc['updated_at'].isoformat()
+        if workspace_doc.get('current_period_start'):
+            workspace_doc['current_period_start'] = workspace_doc['current_period_start'].isoformat()
+        if workspace_doc.get('current_period_end'):
+            workspace_doc['current_period_end'] = workspace_doc['current_period_end'].isoformat()
+        if workspace_doc.get('last_credit_reset'):
+            workspace_doc['last_credit_reset'] = workspace_doc['last_credit_reset'].isoformat()
+        if workspace_doc.get('canceled_at'):
+            workspace_doc['canceled_at'] = workspace_doc['canceled_at'].isoformat()
+        
+        await db.workspaces.insert_one(workspace_doc)
+        workspace_id = workspace.id
+        
+        logger.info(f"Workspace created: {workspace.name} (ID: {workspace_id})")
+    
     # Hash password
     hashed_pw = hash_password(user_data.password)
     
-    # Create user
+    # Create user with workspace_id
     user_dict = user_data.model_dump()
     user_dict.pop('password')
+    user_dict.pop('workspace_name', None)  # Remove workspace_name from user dict
+    user_dict['workspace_id'] = workspace_id  # Add workspace_id
     user_obj = User(**user_dict)
     
     doc = user_obj.model_dump()
@@ -826,42 +876,15 @@ async def register(user_data: UserCreate):
     
     await db.users.insert_one(doc)
     
-    # Create trial subscription for managers only
-    if user_obj.role == "manager":
-        trial_start = datetime.now(timezone.utc)
-        trial_end = trial_start + timedelta(days=TRIAL_DAYS)
-        
-        subscription = Subscription(
-            user_id=user_obj.id,
-            plan="starter",  # Default to starter plan
-            status="trialing",
-            trial_start=trial_start,
-            trial_end=trial_end,
-            ai_credits_remaining=TRIAL_AI_CREDITS,  # 100 crédits pour l'essai
-            ai_credits_used_this_month=0,
-            last_credit_reset=trial_start
-        )
-        
-        sub_doc = subscription.model_dump()
-        sub_doc['trial_start'] = sub_doc['trial_start'].isoformat()
-        sub_doc['trial_end'] = sub_doc['trial_end'].isoformat()
-        sub_doc['created_at'] = sub_doc['created_at'].isoformat()
-        sub_doc['updated_at'] = sub_doc['updated_at'].isoformat()
-        if sub_doc.get('current_period_start'):
-            sub_doc['current_period_start'] = sub_doc['current_period_start'].isoformat()
-        if sub_doc.get('current_period_end'):
-            sub_doc['current_period_end'] = sub_doc['current_period_end'].isoformat()
-        if sub_doc.get('last_credit_reset'):
-            sub_doc['last_credit_reset'] = sub_doc['last_credit_reset'].isoformat()
-        
-        await db.subscriptions.insert_one(sub_doc)
+    logger.info(f"User created: {user_obj.email} (Role: {user_obj.role}, Workspace: {workspace_id})")
     
     # Create token
     token = create_token(user_obj.id, user_obj.email, user_obj.role)
     
     return {
         "user": user_obj.model_dump(),
-        "token": token
+        "token": token,
+        "workspace_id": workspace_id
     }
 
 @api_router.post("/auth/login")
