@@ -140,10 +140,6 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   const handleChangeSeats = async (newSeats) => {
     if (!subscriptionInfo) return;
     
-    const currentSeats = subscriptionInfo.subscription.seats || 1;
-    const diff = newSeats - currentSeats;
-    const action = diff > 0 ? 'Ajout' : 'Réduction';
-    
     // Close modal FIRST
     onClose();
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -161,35 +157,19 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       console.log('✅ API response:', response.data);
       
       if (response.data.success) {
-        // Show confirmation dialog with summary - user MUST click OK to reload
+        // Show simple success message with amount if available
         const amountCharged = response.data.amount_charged || 0;
-        let message = `✅ MODIFICATION EFFECTUÉE AVEC SUCCÈS\n\n`;
-        message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        message += `📊 ${action} de ${Math.abs(diff)} siège(s)\n\n`;
-        message += `   Avant : ${currentSeats} siège${currentSeats > 1 ? 's' : ''}\n`;
-        message += `   Maintenant : ${newSeats} siège${newSeats > 1 ? 's' : ''}\n\n`;
+        let message = `✅ ${response.data.message}\n\n`;
         
         if (amountCharged !== 0) {
-          message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
           if (amountCharged > 0) {
-            message += `💳 MONTANT FACTURÉ\n`;
-            message += `   +${amountCharged.toFixed(2)}€ (prorata)\n`;
-            message += `   Ajouté à votre prochaine facture\n\n`;
+            message += `💳 Montant facturé : +${amountCharged.toFixed(2)}€ (prorata)\n`;
           } else {
-            message += `💰 CRÉDIT APPLIQUÉ\n`;
-            message += `   ${Math.abs(amountCharged).toFixed(2)}€ (prorata)\n`;
-            message += `   Déduit de votre prochaine facture\n\n`;
+            message += `💰 Crédit appliqué : ${Math.abs(amountCharged).toFixed(2)}€ (prorata)\n`;
           }
         }
         
-        message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        message += `${response.data.message}\n\n`;
-        message += `Cliquez sur OK pour actualiser la page`;
-        
-        // Use confirm instead of alert to ensure user interaction
-        const userConfirmed = window.confirm(message);
-        
-        // Reload regardless of user choice (but after they interact)
+        alert(message);
         window.location.reload();
       }
     } catch (error) {
