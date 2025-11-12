@@ -82,23 +82,38 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
-  // Check for pending summary after page reload
+  // Check for pending summary from URL after page reload
   useEffect(() => {
-    const summaryJSON = localStorage.getItem('subscription_change_summary');
-    if (summaryJSON) {
-      try {
-        const data = JSON.parse(summaryJSON);
-        // Only show if less than 5 seconds old (to avoid showing old data)
-        if (Date.now() - data.timestamp < 5000) {
-          setSummaryData(data);
-          setShowSummaryModal(true);
-        }
-        // Clear after reading
-        localStorage.removeItem('subscription_change_summary');
-      } catch (e) {
-        console.error('Error parsing summary data:', e);
-        localStorage.removeItem('subscription_change_summary');
-      }
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasSummary = urlParams.get('summary');
+    
+    if (hasSummary === 'true') {
+      console.log('📋 Summary params detected in URL');
+      
+      const type = urlParams.get('type');
+      const action = urlParams.get('action');
+      const oldValue = parseInt(urlParams.get('oldValue'));
+      const newValue = parseInt(urlParams.get('newValue'));
+      const diff = parseInt(urlParams.get('diff'));
+      const amount = parseFloat(urlParams.get('amount'));
+      
+      const summaryData = {
+        type,
+        action: action === 'add' ? 'Ajout' : 'Réduction',
+        oldValue,
+        newValue,
+        diff,
+        amount,
+        message: `Modification effectuée avec succès`
+      };
+      
+      console.log('📋 Summary data:', summaryData);
+      
+      setSummaryData(summaryData);
+      setShowSummaryModal(true);
+      
+      // Clean URL (remove query params)
+      window.history.replaceState({}, '', '/dashboard');
     }
   }, []);
 
