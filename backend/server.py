@@ -5275,19 +5275,49 @@ async def add_ai_credits(user_id: str, credits_to_add: int, reason: str = "purch
 
 @api_router.get("/subscription/status")
 async def get_subscription_status(current_user: dict = Depends(get_current_user)):
-    """Get current user's subscription status"""
+    """Get current user's subscription status - using Workspace architecture"""
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers have subscriptions")
     
-    # Check for monthly credit reset
-    await check_and_reset_monthly_credits(current_user['id'])
+    # Get workspace
+    workspace = await get_user_workspace(current_user['id'])
     
-    access_info = await check_subscription_access(current_user['id'])
-    sub = await get_user_subscription(current_user['id'])
+    if not workspace:
+        raise HTTPException(status_code=404, detail="No workspace found")
+    
+    # Check access
+    access_info = await check_workspace_access(workspace['id'])
+    
+    # Count sellers in workspace
+    seller_count = await db.users.count_documents({"workspace_id": workspace['id'], "role": "seller"})
+    
+    # Build subscription info for frontend compatibility
+    subscription_info = {
+        "id": workspace['id'],
+        "workspace_id": workspace['id'],
+        "workspace_name": workspace['name'],
+        "status": workspace['subscription_status'],
+        "stripe_customer_id": workspace.get('stripe_customer_id'),
+        "stripe_subscription_id": workspace.get('stripe_subscription_id'),
+        "stripe_subscription_item_id": workspace.get('stripe_subscription_item_id'),
+        "seats": workspace.get('stripe_quantity', 0),
+        "used_seats": seller_count,
+        "available_seats": max(0, workspace.get('stripe_quantity', 0) - seller_count),
+        "current_period_start": workspace.get('current_period_start'),
+        "current_period_end": workspace.get('current_period_end'),
+        "trial_start": workspace.get('trial_start'),
+        "trial_end": workspace.get('trial_end'),
+        "cancel_at_period_end": workspace.get('cancel_at_period_end', False),
+        "canceled_at": workspace.get('canceled_at'),
+        "ai_credits_remaining": workspace.get('ai_credits_remaining', 0),
+        "ai_credits_used_this_month": workspace.get('ai_credits_used_this_month', 0)
+    }
     
     return {
         **access_info,
-        "subscription": sub
+        "subscription": subscription_info,
+        "plan": "unified",  # Single unified plan
+        "workspace": workspace
     }
 
 @api_router.post("/subscription/cancel")
