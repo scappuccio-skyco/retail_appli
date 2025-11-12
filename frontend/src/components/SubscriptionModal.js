@@ -902,41 +902,12 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                 </p>
               </div>
 
-              {/* Cost Details - Complete view with current, change, and new amount */}
+              {/* Cost Details - Simplified view */}
               {(() => {
                 const currentSeats = subscriptionInfo?.subscription?.seats || 0;
                 const currentPlan = subscriptionInfo?.plan || 'starter';
                 const currentPricePerSeat = PLANS[currentPlan]?.pricePerSeller || 29;
                 const currentMonthlyAmount = currentSeats * currentPricePerSeat;
-                
-                const seatDiff = planConfirmData.quantity - currentSeats;
-                
-                // Calculate real prorata percentage based on remaining days in billing cycle
-                let prorataPercentage = null; // No default value
-                let daysRemaining = 0;
-                try {
-                  const periodEnd = subscriptionInfo?.subscription?.current_period_end;
-                  const periodStart = subscriptionInfo?.subscription?.current_period_start;
-                  
-                  if (periodEnd && periodStart) {
-                    const endDate = new Date(periodEnd);
-                    const startDate = new Date(periodStart);
-                    const now = new Date();
-                    
-                    // Calculate days remaining
-                    daysRemaining = Math.max(0, Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)));
-                    
-                    // Calculate total days in this billing cycle
-                    const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-                    
-                    // Calculate percentage
-                    if (totalDays > 0) {
-                      prorataPercentage = Math.round((daysRemaining / totalDays) * 100);
-                    }
-                  }
-                } catch (e) {
-                  console.error('Error calculating prorata:', e);
-                }
                 
                 return (
                   <>
@@ -955,34 +926,6 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       </div>
                     )}
                     
-                    {/* Change Cost (Prorata) */}
-                    {currentSeats > 0 && seatDiff !== 0 && (
-                      <div className={`rounded-lg p-3 border ${
-                        seatDiff > 0 
-                          ? 'bg-orange-50 border-orange-300' 
-                          : 'bg-purple-50 border-purple-300'
-                      }`}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-semibold">
-                            {seatDiff > 0 ? '💳 Facturation proratée' : '💰 Crédit proraté'}
-                          </span>
-                          <span className="text-lg font-black">
-                            {prorataPercentage !== null ? `~${prorataPercentage}%` : '---'}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-600">
-                          {seatDiff > 0 ? 'Ajout' : 'Retrait'} de {Math.abs(seatDiff)} siège(s)
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {currentSeats} → {planConfirmData.quantity} sièges
-                          {prorataPercentage !== null && daysRemaining > 0 && ` • ${daysRemaining} jour(s) restant(s)`}
-                        </p>
-                        <p className="text-xs text-blue-600 mt-1">
-                          ℹ️ Stripe calculera le montant exact
-                        </p>
-                      </div>
-                    )}
-                    
                     {/* New Monthly Recurring Amount */}
                     <div className="bg-blue-50 rounded-lg p-3 border border-blue-300">
                       <div className="flex items-center justify-between mb-1">
@@ -994,24 +937,6 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       <p className="text-xs text-gray-600">
                         {planConfirmData.quantity} × {planConfirmData.pricePerSeat}€ = {planConfirmData.monthlyAmount}€/mois
                       </p>
-                      {currentSeats > 0 && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          {(() => {
-                            const difference = planConfirmData.monthlyAmount - currentMonthlyAmount;
-                            if (difference === 0) return null;
-                            
-                            return (
-                              <>
-                                {difference > 0 ? '↗️' : '↘️'} 
-                                {' '}
-                                {Math.abs(difference).toFixed(0)}€ 
-                                {' '}
-                                {difference > 0 ? "d'augmentation" : "d'économie"} par mois
-                              </>
-                            );
-                          })()}
-                        </p>
-                      )}
                     </div>
                   </>
                 );
