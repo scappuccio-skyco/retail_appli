@@ -245,7 +245,12 @@ export default function ManagerDashboard({ user, onLogout }) {
         toast.error('❌ Le paiement n\'a pas pu être confirmé. Contactez le support si le problème persiste.', {
           duration: 6000
         });
-        setProcessingStripeReturn(false);
+        
+        // Batch state update
+        unstable_batchedUpdates(() => {
+          setProcessingStripeReturn(false);
+        });
+        
         // Load dashboard normally
         fetchData();
         fetchManagerDiagnostic();
@@ -254,6 +259,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         fetchActiveChallenges();
         fetchActiveObjectives();
         fetchStoreKPIStats();
+        fetchSubscriptionInfo();
       }
     } catch (error) {
       console.error('Error checking payment status:', error);
