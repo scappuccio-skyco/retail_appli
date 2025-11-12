@@ -154,11 +154,10 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       if (response.data.success && isMounted) {
         console.log('✅ Sièges modifiés:', response.data.message);
         
-        // RADICAL FIX: Close modal completely and reload parent to avoid React reconciliation issues
+        // ULTIMATE FIX: Reload entire page to avoid ALL React DOM conflicts
         setTimeout(() => {
-          onClose(); // Close the modal
-          // Parent will refresh data automatically
-        }, 500);
+          window.location.reload();
+        }, 1000);
       }
     } catch (error) {
       if (isMounted) {
