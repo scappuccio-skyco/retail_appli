@@ -2868,6 +2868,24 @@ class RetailCoachAPITester:
             if success:
                 print("   ✅ Correctly handles case when no subscription exists")
 
+    def print_summary(self):
+        """Print test summary"""
+        print(f"\n{'='*60}")
+        print(f"🎯 RETAIL COACH API TESTING SUMMARY")
+        print(f"{'='*60}")
+        print(f"Total Tests Run: {self.tests_run}")
+        print(f"Tests Passed: {self.tests_passed}")
+        print(f"Tests Failed: {self.tests_run - self.tests_passed}")
+        print(f"Success Rate: {(self.tests_passed/self.tests_run*100):.1f}%" if self.tests_run > 0 else "No tests run")
+        
+        if self.tests_run - self.tests_passed > 0:
+            print(f"\n❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result['success']:
+                    print(f"   • {result['test']}: {result['details']}")
+        
+        print(f"\n{'='*60}")
+
     def test_error_cases(self):
         """Test error handling"""
         # Test invalid login
