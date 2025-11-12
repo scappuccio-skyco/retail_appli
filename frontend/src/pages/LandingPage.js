@@ -614,31 +614,6 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Credit Packs Info */}
-          <div className="mt-12 text-center bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-2xl p-6 max-w-4xl mx-auto">
-            <h3 className="text-xl font-bold text-[#1E40AF] mb-3 flex items-center justify-center gap-2">
-              <Zap className="w-6 h-6 text-purple-600" />
-              Packs de Crédits IA Additionnels
-            </h3>
-            <p className="text-[#334155] mb-4">
-              Besoin de plus de crédits IA ? Achetez des packs supplémentaires à tout moment
-            </p>
-            <div className="inline-flex items-center gap-4 bg-white rounded-xl px-6 py-4 shadow-md">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-purple-600">25€</p>
-                <p className="text-sm text-gray-600">par pack</p>
-              </div>
-              <div className="h-12 w-px bg-gray-300"></div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-[#1E40AF]">5000</p>
-                <p className="text-sm text-gray-600">crédits IA</p>
-              </div>
-            </div>
-            <p className="text-xs text-gray-500 mt-3">
-              Disponible pour tous les plans • Aucune expiration
-            </p>
-          </div>
-
           {/* Pricing Footer */}
           <div className="text-center mt-12">
             {isAnnual && (
