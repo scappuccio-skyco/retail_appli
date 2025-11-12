@@ -266,7 +266,12 @@ export default function ManagerDashboard({ user, onLogout }) {
       toast.error('Erreur lors de la vérification du paiement. Veuillez rafraîchir la page.', {
         duration: 5000
       });
-      setProcessingStripeReturn(false);
+      
+      // Batch state update on error
+      unstable_batchedUpdates(() => {
+        setProcessingStripeReturn(false);
+      });
+      
       // Load dashboard normally even on error
       fetchData();
       fetchManagerDiagnostic();
