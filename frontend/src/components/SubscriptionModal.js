@@ -498,27 +498,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                   </div>
                 </div>
                 
-                {/* Slider */}
-                <div className="mb-4">
-                  <input
-                    type="range"
-                    min={sellerCount}
-                    max={15}
-                    value={newSeatsCount}
-                    onChange={(e) => setNewSeatsCount(parseInt(e.target.value))}
-                    disabled={adjustingSeats}
-                    className="w-full h-3 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-green-500"
-                    style={{
-                      background: `linear-gradient(to right, #10b981 0%, #10b981 ${((newSeatsCount - sellerCount) / (15 - sellerCount)) * 100}%, #d1d5db ${((newSeatsCount - sellerCount) / (15 - sellerCount)) * 100}%, #d1d5db 100%)`
-                    }}
-                  />
-                  <div className="flex justify-between text-xs text-gray-600 mt-1">
-                    <span>Min: {sellerCount}</span>
-                    <span>Max: 15</span>
-                  </div>
-                </div>
-                
-                {/* Fine tune buttons */}
+                {/* Adjust buttons */}
                 <div className="flex items-center gap-3 mb-4">
                   <button
                     onClick={() => setNewSeatsCount(Math.max(sellerCount, newSeatsCount - 1))}
