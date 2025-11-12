@@ -5283,6 +5283,18 @@ async def change_subscription_seats(
         raise HTTPException(status_code=500, detail=f"Failed to change seats: {str(e)}")
 
 
+@api_router.get("/subscription/history")
+async def get_subscription_history(current_user: dict = Depends(get_current_user)):
+    """Get subscription change history"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers have subscription history")
+    
+    history = await db.subscription_history.find(
+        {"user_id": current_user['id']}
+    ).sort("timestamp", -1).limit(20).to_list(length=None)
+    
+    return {"history": history}
+
 @api_router.get("/ai-credits/status")
 async def get_ai_credits_status(current_user: dict = Depends(get_current_user)):
     """Get AI credits status for current user"""
