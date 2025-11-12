@@ -539,7 +539,8 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-4">
                   {[
                     '6 à 15 vendeurs',
-                    '1500 crédits IA/mois inclus',
+                    '150+ analyses IA manager/mois',
+                    '100+ analyses IA par vendeur/mois',
                     'Support prioritaire',
                     'Onboarding personnalisé'
                   ].map((item, idx) => (
