@@ -5748,13 +5748,24 @@ async def stripe_webhook(request: Request):
                     # Update subscription period
                     period_end = datetime.fromtimestamp(subscription['current_period_end'], tz=timezone.utc)
                     
+                    # Check if subscription was reactivated (cancel_at_period_end was set to false)
+                    cancel_at_period_end = subscription.get('cancel_at_period_end', False)
+                    
+                    update_data = {
+                        "status": "active",
+                        "current_period_end": period_end.isoformat(),
+                        "cancel_at_period_end": cancel_at_period_end,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }
+                    
+                    # If reactivated, clear cancellation timestamp
+                    if not cancel_at_period_end:
+                        update_data["canceled_at"] = None
+                        logger.info(f"Subscription reactivated: {stripe_subscription_id}")
+                    
                     await db.subscriptions.update_one(
                         {"stripe_subscription_id": stripe_subscription_id},
-                        {"$set": {
-                            "status": "active",
-                            "current_period_end": period_end.isoformat(),
-                            "updated_at": datetime.now(timezone.utc).isoformat()
-                        }}
+                        {"$set": update_data}
                     )
                     logger.info(f"Subscription updated: {stripe_subscription_id}")
         
