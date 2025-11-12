@@ -4886,8 +4886,8 @@ async def get_user_subscription(user_id: str) -> Optional[dict]:
     if not sub:
         return None
     
-    # If seats field is missing or 0, fetch from Stripe
-    if sub.get('seats', 0) == 0 and sub.get('stripe_subscription_id'):
+    # If stripe_subscription_id exists but no subscription_item_id, fetch from Stripe
+    if sub.get('stripe_subscription_id') and not sub.get('stripe_subscription_item_id'):
         try:
             import stripe as stripe_lib
             stripe_lib.api_key = STRIPE_API_KEY
@@ -4909,12 +4909,16 @@ async def get_user_subscription(user_id: str) -> Optional[dict]:
                 
                 sub['seats'] = quantity
                 sub['stripe_subscription_item_id'] = subscription_item_id
-                logger.info(f"Updated subscription seats from Stripe: user={user_id}, seats={quantity}")
+                logger.info(f"✅ Migration: Updated subscription seats from Stripe: user={user_id}, seats={quantity}")
         except Exception as e:
-            logger.error(f"Error fetching seats from Stripe: {str(e)}")
+            logger.error(f"❌ Error fetching seats from Stripe: {str(e)}")
             # Fallback to 1 if can't fetch from Stripe
-            if 'seats' not in sub:
+            if 'seats' not in sub or sub['seats'] == 0:
                 sub['seats'] = 1
+    
+    # Ensure seats has a default value
+    if 'seats' not in sub or sub['seats'] == 0:
+        sub['seats'] = 1
     
     # Calculate used_seats (current sellers)
     seller_count = await db.users.count_documents({"manager_id": user_id, "role": "seller"})
