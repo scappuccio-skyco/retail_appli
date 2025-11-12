@@ -161,21 +161,35 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       console.log('✅ API response:', response.data);
       
       if (response.data.success) {
-        // Show alert with summary before reload
+        // Show confirmation dialog with summary - user MUST click OK to reload
         const amountCharged = response.data.amount_charged || 0;
-        let message = `✅ Modification effectuée !\n\n`;
-        message += `${action} de ${Math.abs(diff)} siège(s)\n`;
-        message += `${currentSeats} → ${newSeats} sièges\n\n`;
+        let message = `✅ MODIFICATION EFFECTUÉE AVEC SUCCÈS\n\n`;
+        message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        message += `📊 ${action} de ${Math.abs(diff)} siège(s)\n\n`;
+        message += `   Avant : ${currentSeats} siège${currentSeats > 1 ? 's' : ''}\n`;
+        message += `   Maintenant : ${newSeats} siège${newSeats > 1 ? 's' : ''}\n\n`;
         
         if (amountCharged !== 0) {
-          message += amountCharged > 0 
-            ? `💳 Montant facturé : +${amountCharged.toFixed(2)}€ (prorata)\n` 
-            : `💰 Crédit appliqué : ${Math.abs(amountCharged).toFixed(2)}€ (prorata)\n`;
+          message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+          if (amountCharged > 0) {
+            message += `💳 MONTANT FACTURÉ\n`;
+            message += `   +${amountCharged.toFixed(2)}€ (prorata)\n`;
+            message += `   Ajouté à votre prochaine facture\n\n`;
+          } else {
+            message += `💰 CRÉDIT APPLIQUÉ\n`;
+            message += `   ${Math.abs(amountCharged).toFixed(2)}€ (prorata)\n`;
+            message += `   Déduit de votre prochaine facture\n\n`;
+          }
         }
         
-        message += `\n${response.data.message}`;
+        message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        message += `${response.data.message}\n\n`;
+        message += `Cliquez sur OK pour actualiser la page`;
         
-        alert(message);
+        // Use confirm instead of alert to ensure user interaction
+        const userConfirmed = window.confirm(message);
+        
+        // Reload regardless of user choice (but after they interact)
         window.location.reload();
       }
     } catch (error) {
