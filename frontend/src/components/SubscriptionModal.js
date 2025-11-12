@@ -139,13 +139,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     if (!subscriptionInfo) return;
     
     const currentSeats = subscriptionInfo.subscription.seats || 1;
-    
-    // OPTION 1: Close modal FIRST to avoid any DOM conflicts
-    console.log('🔄 Closing modal before API call...');
-    onClose(); // Close modal immediately
-    
-    // Small delay to let modal close animation complete
-    await new Promise(resolve => setTimeout(resolve, 300));
+    setAdjustingSeats(true);
     
     try {
       const token = localStorage.getItem('token');
@@ -160,6 +154,12 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       console.log('✅ API response:', response.data);
       
       if (response.data.success) {
+        // Close main modal first
+        onClose();
+        
+        // Small delay to let main modal close
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
         // Show summary modal with modification details
         const diff = newSeats - currentSeats;
         setSummaryData({
@@ -177,8 +177,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
       console.error('❌ API Error:', errorMsg);
       alert('❌ ' + errorMsg);
-      // Reload anyway to refresh data
-      window.location.reload();
+      setAdjustingSeats(false);
     }
   };
 
