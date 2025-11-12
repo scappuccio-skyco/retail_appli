@@ -5188,6 +5188,58 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
         logger.error(f"Error canceling subscription: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to cancel subscription: {str(e)}")
 
+@api_router.post("/subscription/reactivate")
+async def reactivate_subscription(current_user: dict = Depends(get_current_user)):
+    """Reactivate a subscription that was scheduled for cancellation"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can reactivate subscriptions")
+    
+    # Get subscription
+    sub = await db.subscriptions.find_one({"user_id": current_user['id']})
+    
+    if not sub:
+        raise HTTPException(status_code=404, detail="No subscription found")
+    
+    if not sub.get('cancel_at_period_end'):
+        raise HTTPException(status_code=400, detail="Subscription is not scheduled for cancellation")
+    
+    # Get Stripe subscription ID
+    stripe_subscription_id = sub.get('stripe_subscription_id')
+    if not stripe_subscription_id:
+        raise HTTPException(status_code=400, detail="No Stripe subscription found")
+    
+    try:
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
+        # Reactivate in Stripe - set cancel_at_period_end to false
+        stripe_lib.Subscription.modify(
+            stripe_subscription_id,
+            cancel_at_period_end=False
+        )
+        
+        # Update in database
+        await db.subscriptions.update_one(
+            {"user_id": current_user['id']},
+            {"$set": {
+                "cancel_at_period_end": False,
+                "canceled_at": None,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        logger.info(f"Subscription reactivated: user={current_user['id']}")
+        
+        return {
+            "success": True,
+            "message": "Abonnement réactivé avec succès ! Vous ne serez plus facturé après la période en cours.",
+            "cancel_at_period_end": False
+        }
+        
+    except Exception as e:
+        logger.error(f"Error reactivating subscription: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to reactivate subscription: {str(e)}")
+
 @api_router.post("/subscription/change-seats")
 async def change_subscription_seats(
     new_seats: int,
