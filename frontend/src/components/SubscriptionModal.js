@@ -134,9 +134,12 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   };
 
   const handleProceedToPayment = async () => {
-    if (!selectedPlan) return;
+    if (!selectedPlan || !isMounted) return;
     
-    setProcessingPlan(selectedPlan);
+    // Batch initial state update to prevent React reconciliation conflicts
+    unstable_batchedUpdates(() => {
+      setProcessingPlan(selectedPlan);
+    });
     
     try {
       const token = localStorage.getItem('token');
@@ -147,28 +150,39 @@ export default function SubscriptionModal({ isOpen, onClose }) {
         {
           plan: selectedPlan,
           origin_url: originUrl,
-          quantity: selectedQuantity  // Send selected quantity
+          quantity: selectedQuantity
         },
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
       
-      // Redirect to Stripe Checkout
+      // Redirect to Stripe - wrap in batchedUpdates to complete any pending updates
       if (response.data.url) {
-        // DON'T modify React state before redirect - causes setState on unmounted component
-        // Just redirect immediately - the page will be replaced anyway
-        window.location.replace(response.data.url);
+        unstable_batchedUpdates(() => {
+          // Mark component as unmounting to prevent further state updates
+          setIsMounted(false);
+          
+          // Small delay to let React finish reconciliation
+          setTimeout(() => {
+            window.location.replace(response.data.url);
+          }, 50);
+        });
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
-      // Only reset state on error, not on successful redirect
-      setProcessingPlan(null);
       
-      setTimeout(() => {
-        const errorMessage = error.response?.data?.detail || 'Erreur lors de la création de la session de paiement';
-        alert(errorMessage);
-      }, 100);
+      // Only update state if component is still mounted
+      if (isMounted) {
+        unstable_batchedUpdates(() => {
+          setProcessingPlan(null);
+        });
+        
+        setTimeout(() => {
+          const errorMessage = error.response?.data?.detail || 'Erreur lors de la création de la session de paiement';
+          alert(errorMessage);
+        }, 100);
+      }
     }
   };
 
