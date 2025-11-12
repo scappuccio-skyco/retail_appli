@@ -55,6 +55,11 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
+  
+  // Seat management states
+  const [adjustingSeats, setAdjustingSeats] = useState(false);
+  const [newSeatsCount, setNewSeatsCount] = useState(1);
+  const [subscriptionHistory, setSubscriptionHistory] = useState([]);
 
   useEffect(() => {
     // Cleanup function to prevent setState on unmounted component
