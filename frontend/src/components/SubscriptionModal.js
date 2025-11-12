@@ -177,22 +177,20 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       console.log('✅ API response:', response.data);
       
       if (response.data.success) {
-        // Store summary data in localStorage for display after reload
+        // Pass summary data via URL query params (avoid localStorage blocking)
         const diff = newSeats - currentSeats;
-        const summaryData = {
+        const params = new URLSearchParams({
+          summary: 'true',
           type: 'seats',
-          action: diff > 0 ? 'Ajout' : 'Réduction',
+          action: diff > 0 ? 'add' : 'reduce',
           oldValue: currentSeats,
           newValue: newSeats,
           diff: Math.abs(diff),
-          amount: response.data.amount_charged || 0,
-          message: response.data.message,
-          timestamp: Date.now()
-        };
-        localStorage.setItem('subscription_change_summary', JSON.stringify(summaryData));
+          amount: response.data.amount_charged || 0
+        });
         
-        // Reload page
-        window.location.reload();
+        // Reload with query params
+        window.location.href = `/dashboard?${params.toString()}`;
       }
     } catch (error) {
       const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
