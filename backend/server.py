@@ -4981,6 +4981,62 @@ async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
 
 
 # ===== STRIPE SUBSCRIPTION HELPERS =====
+async def get_user_workspace(user_id: str) -> Optional[dict]:
+    """Get user's workspace"""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    
+    if not user or not user.get('workspace_id'):
+        return None
+    
+    workspace = await db.workspaces.find_one({"id": user['workspace_id']}, {"_id": 0})
+    return workspace
+
+async def check_workspace_access(workspace_id: str) -> dict:
+    """Check if workspace has active subscription access"""
+    workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0})
+    
+    if not workspace:
+        return {"has_access": False, "status": "no_workspace", "message": "Aucun workspace trouvé"}
+    
+    # Check if trial is still active
+    if workspace['subscription_status'] == 'trialing':
+        trial_end = datetime.fromisoformat(workspace['trial_end']) if isinstance(workspace['trial_end'], str) else workspace['trial_end']
+        now = datetime.now(timezone.utc)
+        
+        if now < trial_end:
+            days_left = (trial_end - now).days
+            return {
+                "has_access": True, 
+                "status": "trialing", 
+                "days_left": days_left,
+                "trial_end": workspace['trial_end'],
+                "ai_credits_remaining": workspace.get('ai_credits_remaining', 100)
+            }
+        else:
+            # Trial expired, update status
+            await db.workspaces.update_one(
+                {"id": workspace_id},
+                {"$set": {"subscription_status": "trial_expired", "updated_at": datetime.now(timezone.utc).isoformat()}}
+            )
+            return {"has_access": False, "status": "trial_expired", "message": "Votre essai gratuit est terminé"}
+    
+    # Check if active subscription
+    if workspace['subscription_status'] == 'active':
+        period_end = datetime.fromisoformat(workspace['current_period_end']) if isinstance(workspace['current_period_end'], str) else workspace['current_period_end']
+        now = datetime.now(timezone.utc)
+        days_left = (period_end - now).days
+        
+        return {
+            "has_access": True,
+            "status": "active",
+            "days_left": days_left,
+            "period_end": workspace['current_period_end'],
+            "ai_credits_remaining": workspace.get('ai_credits_remaining', 0),
+            "cancel_at_period_end": workspace.get('cancel_at_period_end', False)
+        }
+    
+    return {"has_access": False, "status": workspace['subscription_status'], "message": "Abonnement inactif"}
+
 async def get_user_subscription(user_id: str) -> Optional[dict]:
     """Get user's active subscription"""
     sub = await db.subscriptions.find_one({"user_id": user_id}, {"_id": 0})
