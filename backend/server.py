@@ -5303,6 +5303,49 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
     if not workspace:
         raise HTTPException(status_code=404, detail="No workspace found")
     
+    # Sync with Stripe if subscription exists
+    if workspace.get('stripe_subscription_id'):
+        try:
+            import stripe as stripe_lib
+            stripe_lib.api_key = STRIPE_API_KEY
+            
+            # Récupérer l'abonnement depuis Stripe
+            stripe_sub = stripe_lib.Subscription.retrieve(workspace['stripe_subscription_id'])
+            
+            # Extraire les vraies données
+            quantity = 1
+            subscription_item_id = None
+            if stripe_sub.get('items') and stripe_sub['items']['data']:
+                quantity = stripe_sub['items']['data'][0].get('quantity', 1)
+                subscription_item_id = stripe_sub['items']['data'][0]['id']
+            
+            period_start = datetime.fromtimestamp(stripe_sub['current_period_start'], tz=timezone.utc)
+            period_end = datetime.fromtimestamp(stripe_sub['current_period_end'], tz=timezone.utc)
+            status = stripe_sub['status']
+            cancel_at_period_end = stripe_sub.get('cancel_at_period_end', False)
+            
+            # Mettre à jour le workspace avec les vraies données Stripe
+            await db.workspaces.update_one(
+                {"id": workspace['id']},
+                {"$set": {
+                    "stripe_quantity": quantity,
+                    "stripe_subscription_item_id": subscription_item_id,
+                    "subscription_status": status,
+                    "current_period_start": period_start.isoformat(),
+                    "current_period_end": period_end.isoformat(),
+                    "cancel_at_period_end": cancel_at_period_end,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            # Recharger le workspace avec les données mises à jour
+            workspace = await db.workspaces.find_one({"id": workspace['id']}, {"_id": 0})
+            
+            logger.info(f"Synced workspace {workspace['id']} with Stripe: quantity={quantity}, status={status}")
+        except Exception as e:
+            logger.error(f"Error syncing with Stripe: {str(e)}")
+            # Continue with cached data if sync fails
+    
     # Check access
     access_info = await check_workspace_access(workspace['id'])
     
