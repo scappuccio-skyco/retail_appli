@@ -861,12 +861,45 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                 <p className="text-sm mt-1">{planConfirmData.pricePerSeat}€ / siège / mois</p>
               </div>
 
-              {/* Quantity */}
+              {/* Quantity Selector */}
               <div className="bg-gray-100 rounded-lg p-3 border border-gray-300">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold">Nombre de sièges</span>
-                  <span className="text-2xl font-black">{planConfirmData.quantity}</span>
+                <p className="text-sm font-semibold mb-2">Nombre de sièges</p>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => {
+                      const planInfo = PLANS[planConfirmData.planKey];
+                      const newQty = Math.max(planConfirmData.quantity - 1, planInfo.minSellers, sellerCount);
+                      setPlanConfirmData({
+                        ...planConfirmData,
+                        quantity: newQty,
+                        monthlyAmount: newQty * planConfirmData.pricePerSeat
+                      });
+                    }}
+                    className="w-10 h-10 bg-white rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all font-bold text-xl"
+                  >
+                    −
+                  </button>
+                  <div className="flex-1 text-center">
+                    <span className="text-4xl font-black">{planConfirmData.quantity}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const planInfo = PLANS[planConfirmData.planKey];
+                      const newQty = Math.min(planConfirmData.quantity + 1, planInfo.maxSellers);
+                      setPlanConfirmData({
+                        ...planConfirmData,
+                        quantity: newQty,
+                        monthlyAmount: newQty * planConfirmData.pricePerSeat
+                      });
+                    }}
+                    className="w-10 h-10 bg-white rounded-lg border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50 transition-all font-bold text-xl"
+                  >
+                    +
+                  </button>
                 </div>
+                <p className="text-xs text-gray-600 text-center mt-2">
+                  Min: {PLANS[planConfirmData.planKey].minSellers} • Max: {PLANS[planConfirmData.planKey].maxSellers}
+                </p>
               </div>
 
               {/* Monthly Amount */}
