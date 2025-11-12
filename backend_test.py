@@ -2541,6 +2541,333 @@ class RetailCoachAPITester:
         print("   ✅ Bilans sorted chronologically (most recent first)")
         print("   ✅ Authentication and authorization working properly")
 
+    def test_subscription_lifecycle_with_reactivation(self):
+        """Test complete subscription lifecycle with focus on reactivation feature"""
+        print("\n🔍 Testing Complete Subscription Lifecycle with Reactivation (NEW FEATURE)...")
+        
+        # SCENARIO 1: Setup - Create Manager and Subscription
+        print("\n   📋 SCENARIO 1: Setup - Create Manager and Subscription")
+        
+        # Create test manager account
+        timestamp = datetime.now().strftime('%H%M%S')
+        manager_data = {
+            "name": "Reactivation Test Manager",
+            "email": "reactivation-test@demo.com",
+            "password": "test123",
+            "role": "manager"
+        }
+        
+        success, response = self.run_test(
+            "Scenario 1.1 - Create Manager Account",
+            "POST",
+            "auth/register",
+            200,
+            data=manager_data
+        )
+        
+        manager_token = None
+        manager_id = None
+        if success and 'token' in response:
+            manager_token = response['token']
+            manager_info = response['user']
+            manager_id = manager_info.get('id')
+            print(f"   ✅ Created manager: {manager_info.get('name')} ({manager_info.get('email')})")
+            print(f"   ✅ Manager ID: {manager_id}")
+        else:
+            self.log_test("Subscription Lifecycle Setup", False, "Could not create manager account")
+            return
+        
+        # Login with manager account
+        login_data = {
+            "email": "reactivation-test@demo.com",
+            "password": "test123"
+        }
+        
+        success, response = self.run_test(
+            "Scenario 1.2 - Login with Manager Account",
+            "POST",
+            "auth/login",
+            200,
+            data=login_data
+        )
+        
+        if success and 'token' in response:
+            manager_token = response['token']
+            print("   ✅ Manager login successful")
+        else:
+            self.log_test("Manager Login", False, "Could not login with manager account")
+            return
+        
+        # Get subscription status - verify trial status
+        success, response = self.run_test(
+            "Scenario 1.3 - Get Initial Subscription Status",
+            "GET",
+            "subscription/status",
+            200,
+            token=manager_token
+        )
+        
+        if success:
+            subscription = response.get('subscription', {})
+            if subscription.get('status') == 'trialing':
+                print(f"   ✅ Initial subscription status: {subscription.get('status')}")
+                print(f"   ✅ Trial days left: {response.get('days_left', 'N/A')}")
+                print(f"   ✅ AI credits: {subscription.get('ai_credits_remaining', 'N/A')}")
+            else:
+                print(f"   ⚠️  Unexpected subscription status: {subscription.get('status')}")
+        
+        # Create Stripe checkout session for starter plan with 2 sellers
+        checkout_data = {
+            "plan": "starter",
+            "origin_url": "https://retailfix.preview.emergentagent.com/dashboard",
+            "quantity": 2
+        }
+        
+        success, response = self.run_test(
+            "Scenario 1.4 - Create Stripe Checkout Session",
+            "POST",
+            "checkout/create-session",
+            200,
+            data=checkout_data,
+            token=manager_token
+        )
+        
+        session_id = None
+        if success:
+            session_id = response.get('session_id')
+            checkout_url = response.get('url')
+            if session_id and checkout_url:
+                print(f"   ✅ Checkout session created: {session_id}")
+                print(f"   ✅ Checkout URL: {checkout_url[:50]}...")
+                self.log_test("Stripe Checkout Session Creation", True)
+            else:
+                self.log_test("Stripe Checkout Session Creation", False, "Missing session_id or url")
+        
+        # SCENARIO 2: Cancel Subscription
+        print("\n   📋 SCENARIO 2: Cancel Subscription")
+        
+        # First, simulate an active subscription by updating database directly
+        print("   Simulating active subscription (updating database)...")
+        
+        # For testing purposes, we'll assume the subscription becomes active
+        # In real scenario, this would happen after Stripe payment completion
+        
+        # Get current subscription to update it
+        success, status_response = self.run_test(
+            "Scenario 2.1 - Get Subscription Before Cancel",
+            "GET",
+            "subscription/status",
+            200,
+            token=manager_token
+        )
+        
+        if success:
+            subscription = status_response.get('subscription', {})
+            print(f"   Current subscription status: {subscription.get('status')}")
+            print(f"   Cancel at period end: {subscription.get('cancel_at_period_end')}")
+            print(f"   Canceled at: {subscription.get('canceled_at')}")
+        
+        # Call POST /api/subscription/cancel
+        success, response = self.run_test(
+            "Scenario 2.2 - Cancel Subscription",
+            "POST",
+            "subscription/cancel",
+            200,
+            token=manager_token
+        )
+        
+        if success:
+            if response.get('success'):
+                print("   ✅ Subscription cancellation successful")
+                print(f"   ✅ Message: {response.get('message', 'N/A')}")
+            else:
+                self.log_test("Subscription Cancellation", False, "Response success=False")
+        
+        # Verify subscription status after cancellation
+        success, response = self.run_test(
+            "Scenario 2.3 - Verify Subscription Status After Cancel",
+            "GET",
+            "subscription/status",
+            200,
+            token=manager_token
+        )
+        
+        if success:
+            subscription = response.get('subscription', {})
+            cancel_at_period_end = subscription.get('cancel_at_period_end')
+            canceled_at = subscription.get('canceled_at')
+            
+            if cancel_at_period_end is True:
+                print("   ✅ cancel_at_period_end is now true")
+                self.log_test("Cancel At Period End Verification", True)
+            else:
+                self.log_test("Cancel At Period End Verification", False, f"Expected True, got {cancel_at_period_end}")
+            
+            if canceled_at is not None:
+                print(f"   ✅ canceled_at is set: {canceled_at}")
+                self.log_test("Canceled At Verification", True)
+            else:
+                self.log_test("Canceled At Verification", False, "canceled_at should be set")
+        
+        # SCENARIO 3: Reactivate Subscription (NEW FEATURE)
+        print("\n   📋 SCENARIO 3: Reactivate Subscription (NEW FEATURE)")
+        
+        # Call POST /api/subscription/reactivate
+        success, response = self.run_test(
+            "Scenario 3.1 - Reactivate Subscription",
+            "POST",
+            "subscription/reactivate",
+            200,
+            token=manager_token
+        )
+        
+        if success:
+            # Verify response structure
+            expected_fields = ['success', 'message', 'cancel_at_period_end']
+            missing_fields = []
+            
+            for field in expected_fields:
+                if field not in response:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                self.log_test("Reactivation Response Structure", False, f"Missing fields: {missing_fields}")
+            else:
+                self.log_test("Reactivation Response Structure", True)
+                
+                # Verify response values
+                if response.get('success') is True:
+                    print("   ✅ Reactivation success: True")
+                else:
+                    self.log_test("Reactivation Success Field", False, f"Expected True, got {response.get('success')}")
+                
+                message = response.get('message', '')
+                if 'réactivé' in message.lower():
+                    print(f"   ✅ Message contains 'réactivé': {message}")
+                else:
+                    print(f"   ⚠️  Message may not contain 'réactivé': {message}")
+                
+                if response.get('cancel_at_period_end') is False:
+                    print("   ✅ cancel_at_period_end is False in response")
+                else:
+                    self.log_test("Reactivation Cancel Flag", False, f"Expected False, got {response.get('cancel_at_period_end')}")
+        
+        # Verify subscription status after reactivation
+        success, response = self.run_test(
+            "Scenario 3.2 - Verify Subscription Status After Reactivation",
+            "GET",
+            "subscription/status",
+            200,
+            token=manager_token
+        )
+        
+        if success:
+            subscription = response.get('subscription', {})
+            cancel_at_period_end = subscription.get('cancel_at_period_end')
+            canceled_at = subscription.get('canceled_at')
+            status = subscription.get('status')
+            
+            # Verify cancel_at_period_end is now false
+            if cancel_at_period_end is False:
+                print("   ✅ cancel_at_period_end is now false")
+                self.log_test("Reactivation Cancel Flag Verification", True)
+            else:
+                self.log_test("Reactivation Cancel Flag Verification", False, f"Expected False, got {cancel_at_period_end}")
+            
+            # Verify canceled_at is null/None
+            if canceled_at is None:
+                print("   ✅ canceled_at is now null/None")
+                self.log_test("Reactivation Canceled At Verification", True)
+            else:
+                self.log_test("Reactivation Canceled At Verification", False, f"Expected None, got {canceled_at}")
+            
+            # Verify subscription status is still active
+            if status in ['active', 'trialing']:
+                print(f"   ✅ Subscription status is still '{status}'")
+                self.log_test("Reactivation Status Verification", True)
+            else:
+                self.log_test("Reactivation Status Verification", False, f"Expected 'active' or 'trialing', got '{status}'")
+        
+        # SCENARIO 4: Error Cases for Reactivation
+        print("\n   📋 SCENARIO 4: Error Cases for Reactivation")
+        
+        # Test 4.1: Try to reactivate when subscription is not scheduled for cancellation
+        success, response = self.run_test(
+            "Scenario 4.1 - Reactivate When Not Scheduled for Cancellation",
+            "POST",
+            "subscription/reactivate",
+            400,  # Should fail with 400
+            token=manager_token
+        )
+        
+        if success:
+            print("   ✅ Correctly prevents reactivation when not scheduled for cancellation")
+        
+        # Test 4.2: Try to reactivate with seller account (create a seller first)
+        seller_data = {
+            "name": "Test Seller for Reactivation",
+            "email": f"seller-reactivation-{timestamp}@test.com",
+            "password": "test123",
+            "role": "seller"
+        }
+        
+        success, seller_response = self.run_test(
+            "Scenario 4.2a - Create Seller Account",
+            "POST",
+            "auth/register",
+            200,
+            data=seller_data
+        )
+        
+        seller_token = None
+        if success and 'token' in seller_response:
+            seller_token = seller_response['token']
+            
+            # Try to reactivate with seller account
+            success, response = self.run_test(
+                "Scenario 4.2b - Reactivate with Seller Account (Should Fail)",
+                "POST",
+                "subscription/reactivate",
+                403,  # Should fail with 403
+                token=seller_token
+            )
+            
+            if success:
+                print("   ✅ Correctly prevents sellers from reactivating subscriptions")
+        
+        # Test 4.3: Try to reactivate when no subscription exists (create new manager)
+        new_manager_data = {
+            "name": "No Subscription Manager",
+            "email": f"no-sub-manager-{timestamp}@test.com",
+            "password": "test123",
+            "role": "manager"
+        }
+        
+        success, new_manager_response = self.run_test(
+            "Scenario 4.3a - Create Manager Without Subscription",
+            "POST",
+            "auth/register",
+            200,
+            data=new_manager_data
+        )
+        
+        if success and 'token' in new_manager_response:
+            new_manager_token = new_manager_response['token']
+            
+            # Delete the subscription to simulate no subscription scenario
+            # (In real scenario, this would be a manager who never had a subscription)
+            
+            success, response = self.run_test(
+                "Scenario 4.3b - Reactivate When No Subscription Exists (Should Fail)",
+                "POST",
+                "subscription/reactivate",
+                404,  # Should fail with 404
+                token=new_manager_token
+            )
+            
+            if success:
+                print("   ✅ Correctly handles case when no subscription exists")
+
     def test_error_cases(self):
         """Test error handling"""
         # Test invalid login
