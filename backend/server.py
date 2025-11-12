@@ -753,6 +753,54 @@ Résume les points forts et les points à améliorer de manière positive et coa
         return "Feedback automatique temporairement indisponible. Continuez votre excellent travail!"
 
 # ===== AUTH ROUTES =====
+# ================== WORKSPACE ENDPOINTS ==================
+
+@api_router.post("/workspaces/check-availability")
+async def check_workspace_availability(data: dict):
+    """
+    Vérifie si un nom d'entreprise est disponible
+    """
+    workspace_name = data.get('name', '').strip()
+    
+    if not workspace_name:
+        raise HTTPException(status_code=400, detail="Le nom de l'entreprise est requis")
+    
+    if len(workspace_name) < 3:
+        raise HTTPException(status_code=400, detail="Le nom doit contenir au moins 3 caractères")
+    
+    # Vérifier si le nom existe déjà (insensible à la casse)
+    existing = await db.workspaces.find_one({
+        "name": {"$regex": f"^{workspace_name}$", "$options": "i"}
+    }, {"_id": 0})
+    
+    if existing:
+        return {
+            "available": False,
+            "message": "Ce nom d'entreprise est déjà utilisé"
+        }
+    
+    return {
+        "available": True,
+        "message": "Ce nom est disponible"
+    }
+
+@api_router.get("/workspaces/me")
+async def get_my_workspace(current_user: dict = Depends(get_current_user)):
+    """
+    Récupère le workspace de l'utilisateur actuel
+    """
+    if not current_user.get('workspace_id'):
+        raise HTTPException(status_code=404, detail="Aucun workspace associé")
+    
+    workspace = await db.workspaces.find_one({"id": current_user['workspace_id']}, {"_id": 0})
+    
+    if not workspace:
+        raise HTTPException(status_code=404, detail="Workspace introuvable")
+    
+    return workspace
+
+# ================== AUTH ENDPOINTS ==================
+
 @api_router.post("/auth/register")
 async def register(user_data: UserCreate):
     # Check if user exists
