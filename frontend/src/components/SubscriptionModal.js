@@ -620,14 +620,16 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     const currentSeats = subscriptionInfo.subscription.seats || 1;
                     const diff = newSeatsCount - currentSeats;
                     const action = diff > 0 ? 'Ajout' : 'Réduction';
+                    const estimatedAmount = calculateEstimatedAmount(currentSeats, newSeatsCount);
                     
-                    // Show custom confirmation modal
+                    // Show custom confirmation modal with estimated amount
                     setConfirmData({
                       action,
                       diff: Math.abs(diff),
                       currentSeats,
                       newSeats: newSeatsCount,
-                      isIncrease: diff > 0
+                      isIncrease: diff > 0,
+                      estimatedAmount: Math.abs(estimatedAmount)
                     });
                     setShowConfirmModal(true);
                   }}
