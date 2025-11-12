@@ -43,6 +43,31 @@ export default function Login({ onLogin }) {
     }
   };
 
+  // Vérifier la disponibilité du nom d'entreprise
+  useEffect(() => {
+    if (!isRegister || inviteToken || !formData.workspace_name || formData.workspace_name.length < 3) {
+      setWorkspaceAvailability(null);
+      return;
+    }
+
+    const checkAvailability = async () => {
+      setCheckingWorkspace(true);
+      try {
+        const res = await axios.post(`${API}/workspaces/check-availability`, {
+          name: formData.workspace_name
+        });
+        setWorkspaceAvailability(res.data);
+      } catch (err) {
+        console.error('Error checking workspace availability:', err);
+      } finally {
+        setCheckingWorkspace(false);
+      }
+    };
+
+    const timeoutId = setTimeout(checkAvailability, 500); // Debounce 500ms
+    return () => clearTimeout(timeoutId);
+  }, [formData.workspace_name, isRegister, inviteToken]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
