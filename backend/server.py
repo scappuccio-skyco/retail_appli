@@ -5266,9 +5266,10 @@ async def change_subscription_seats(
         
         logger.info(f"Seats changed: user={current_user['id']}, {current_seats}→{new_seats}, plan={new_plan}")
         
+        change_type = "Mise à niveau" if new_seats > current_seats else "Réduction"
         return {
             "success": True,
-            "message": f"Sièges modifiés avec succès. {"Mise à niveau" if new_seats > current_seats else "Réduction"} de {current_seats} à {new_seats}.",
+            "message": f"Sièges modifiés avec succès. {change_type} de {current_seats} à {new_seats}.",
             "seats": new_seats,
             "plan": new_plan,
             "amount_charged": amount_charged,
