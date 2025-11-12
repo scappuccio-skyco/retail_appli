@@ -147,13 +147,12 @@ export default function SubscriptionModal({ isOpen, onClose }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      if (response.data.success && isMounted) {
+      if (response.data.success) {
         console.log('✅ Sièges modifiés:', response.data.message);
         
-        // ULTIMATE FIX: Reload entire page to avoid ALL React DOM conflicts
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        // IMMEDIATE RELOAD: No delay to avoid React DOM conflicts
+        window.location.reload();
+        return; // Exit immediately
       }
     } catch (error) {
       if (isMounted) {
