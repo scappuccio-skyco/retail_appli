@@ -902,18 +902,53 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                 </p>
               </div>
 
-              {/* Monthly Amount */}
-              <div className="bg-green-50 rounded-lg p-3 border border-green-300">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-semibold">💳 Montant mensuel</span>
-                  <span className="text-2xl font-black text-green-700">
-                    {planConfirmData.monthlyAmount}€
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600">
-                  {planConfirmData.quantity} × {planConfirmData.pricePerSeat}€ = {planConfirmData.monthlyAmount}€/mois
-                </p>
-              </div>
+              {/* Cost Details - Dynamic calculation */}
+              {(() => {
+                const currentSeats = subscriptionInfo?.subscription?.seats || 0;
+                const seatDiff = planConfirmData.quantity - currentSeats;
+                const prorataEstimate = Math.abs(seatDiff) * planConfirmData.pricePerSeat * 0.5; // Rough mid-month estimate
+                
+                return (
+                  <>
+                    {/* Change Cost (Prorata) */}
+                    {currentSeats > 0 && seatDiff !== 0 && (
+                      <div className={`rounded-lg p-3 border ${
+                        seatDiff > 0 
+                          ? 'bg-orange-50 border-orange-300' 
+                          : 'bg-purple-50 border-purple-300'
+                      }`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-semibold">
+                            {seatDiff > 0 ? '💳 Coût du changement' : '💰 Crédit appliqué'}
+                          </span>
+                          <span className="text-2xl font-black">
+                            {seatDiff > 0 ? '+' : '-'}{prorataEstimate.toFixed(2)}€
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600">
+                          {seatDiff > 0 ? 'Ajout' : 'Retrait'} de {Math.abs(seatDiff)} siège(s) × {planConfirmData.pricePerSeat}€ (prorata ~50%)
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {currentSeats} → {planConfirmData.quantity} sièges
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* New Monthly Recurring Amount */}
+                    <div className="bg-blue-50 rounded-lg p-3 border border-blue-300">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-semibold">📅 Nouveau montant récurrent</span>
+                        <span className="text-2xl font-black text-blue-700">
+                          {planConfirmData.monthlyAmount}€
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600">
+                        {planConfirmData.quantity} × {planConfirmData.pricePerSeat}€ = {planConfirmData.monthlyAmount}€/mois
+                      </p>
+                    </div>
+                  </>
+                );
+              })()}
 
               {/* Info */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
