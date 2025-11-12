@@ -582,27 +582,44 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     }
                   }}
                   disabled={adjustingSeats || newSeatsCount === (subscriptionInfo.subscription.seats || 1)}
-                  className="w-full py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black text-lg rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5"
                 >
                   {adjustingSeats ? (
                     <span className="flex items-center justify-center gap-2">
-                      <Loader className="w-4 h-4 animate-spin" />
+                      <Loader className="w-5 h-5 animate-spin" />
                       Modification en cours...
                     </span>
                   ) : (
-                    'Valider le changement'
+                    <span className="flex items-center justify-center gap-2">
+                      <Check className="w-5 h-5" />
+                      Valider le changement
+                    </span>
                   )}
                 </button>
-
-                <div className="text-xs text-gray-600 bg-blue-50 p-3 rounded-lg mt-3">
-                  <p className="font-semibold mb-1">💡 Comment ça marche ?</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Ajustez le nombre avec +/- ou saisissez directement</li>
-                    <li>Cliquez "Valider" pour confirmer en une seule fois</li>
-                    <li>Stripe gère automatiquement le prorata (facturation ou crédit)</li>
-                  </ul>
-                </div>
               </div>
+
+              {/* Info section */}
+              <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                <p className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+                  <span className="text-xl">💡</span>
+                  Comment ça marche ?
+                </p>
+                <ul className="space-y-2 text-sm text-blue-800">
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <span>Utilisez le slider, +/- ou saisissez directement le nombre</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <span>Une seule confirmation pour valider votre choix</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <span>Stripe calcule automatiquement le prorata (facturation ou crédit)</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
 
               {/* History */}
               {subscriptionHistory.length > 0 && (
