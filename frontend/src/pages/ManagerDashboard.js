@@ -691,8 +691,10 @@ export default function ManagerDashboard({ user, onLogout }) {
               <UserPlus className="w-4 h-4" />
               Inviter
               {subscriptionInfo && (() => {
-                const maxSellers = subscriptionInfo.plan_type === 'professional' ? 15 : 5;
-                const remainingInvites = maxSellers - sellers.length;
+                // Use seats from subscription, fallback to plan_type
+                const seatsAvailable = subscriptionInfo.subscription?.seats || 
+                                      (subscriptionInfo.plan_type === 'professional' ? 15 : 5);
+                const remainingInvites = seatsAvailable - sellers.length;
                 return remainingInvites > 0 && (
                   <span className="absolute -top-2 -right-2 bg-yellow-400 text-gray-900 text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
                     {remainingInvites}
