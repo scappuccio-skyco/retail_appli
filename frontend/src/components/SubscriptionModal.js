@@ -406,53 +406,137 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                 <p className="text-sm font-semibold text-gray-700 mb-3">Ajuster le nombre de sièges</p>
                 
                 <div className="flex items-center gap-4 mb-3">
-                  <button
-                    onClick={() => {
-                      const currentSeats = subscriptionInfo.subscription.seats || 1;
-                      if (currentSeats > sellerCount) {
-                        if (window.confirm(`Réduire de ${currentSeats} à ${currentSeats - 1} siège(s) ?\n\nUn crédit proraté sera appliqué sur votre prochaine facture.`)) {
-                          handleChangeSeats(currentSeats - 1);
-                        }
-                      }
-                    }}
-                    disabled={adjustingSeats || (subscriptionInfo.subscription.seats || 1) <= sellerCount}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xl"
-                  >
-                    -
-                  </button>
-                  
-                  <div className="flex-1 text-center">
-                    <p className="text-3xl font-bold text-gray-800">{subscriptionInfo.subscription.seats || 1}</p>
-                    <p className="text-sm text-gray-500">siège(s)</p>
+                  <div className="flex-1">
+                    <label className="block text-xs text-gray-600 mb-1">Nombre de sièges souhaité</label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          const currentSeats = subscriptionInfo.subscription.seats || 1;
+                          if (newSeatsCount > sellerCount) {
+                            setNewSeatsCount(Math.max(sellerCount, newSeatsCount - 1));
+                          }
+                        }}
+                        disabled={adjustingSeats || newSeatsCount <= sellerCount}
+                        className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                      >
+                        -
+                      </button>
+                      
+                      <input
+                        type="number"
+                        min={sellerCount}
+                        max={15}
+                        value={newSeatsCount}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || sellerCount;
+                          setNewSeatsCount(Math.max(sellerCount, Math.min(15, val)));
+                        }}
+                        disabled={adjustingSeats}
+                        className="flex-1 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg py-2 focus:border-green-500 focus:outline-none disabled:bg-gray-100"
+                      />
+                      
+                      <button
+                        onClick={() => {
+                          if (newSeatsCount < 15) {
+                            setNewSeatsCount(Math.min(15, newSeatsCount + 1));
+                          }
+                        }}
+                        disabled={adjustingSeats || newSeatsCount >= 15}
+                        className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Minimum: {sellerCount} (vendeurs actifs) • Maximum: 15
+                    </p>
                   </div>
-                  
-                  <button
-                    onClick={() => {
-                      const currentSeats = subscriptionInfo.subscription.seats || 1;
-                      if (currentSeats < 15) {
-                        const newSeats = currentSeats + 1;
-                        const currentPlan = subscriptionInfo.subscription.plan_type || subscriptionInfo.plan_type;
-                        const pricePerSeat = currentPlan === 'professional' ? 25 : 29;
-                        const estimatedCharge = (pricePerSeat * 0.5).toFixed(2); // Estimation moyenne
-                        
-                        if (window.confirm(`Ajouter 1 siège supplémentaire ?\n\nPassage à ${newSeats} siège(s).\nFacturation proratée immédiate (environ ${estimatedCharge}€ selon le temps restant).`)) {
-                          handleChangeSeats(newSeats);
-                        }
-                      }
-                    }}
-                    disabled={adjustingSeats || (subscriptionInfo.subscription.seats || 1) >= 15}
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-xl"
-                  >
-                    +
-                  </button>
                 </div>
 
-                <div className="text-xs text-gray-600 bg-blue-50 p-3 rounded-lg">
+                {/* Preview of change */}
+                {newSeatsCount !== (subscriptionInfo.subscription.seats || 1) && (
+                  <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-700">
+                        {(subscriptionInfo.subscription.seats || 1)} → <strong>{newSeatsCount} sièges</strong>
+                      </span>
+                      <span className={`text-sm font-semibold ${newSeatsCount > (subscriptionInfo.subscription.seats || 1) ? 'text-green-600' : 'text-orange-600'}`}>
+                        {newSeatsCount > (subscriptionInfo.subscription.seats || 1) ? '+ ' : '- '}
+                        {Math.abs(newSeatsCount - (subscriptionInfo.subscription.seats || 1))} siège(s)
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      <p className="font-semibold mb-1">
+                        {newSeatsCount > (subscriptionInfo.subscription.seats || 1) 
+                          ? '💳 Facturation immédiate au prorata' 
+                          : '💰 Crédit appliqué sur prochaine facture'}
+                      </p>
+                      {/* Determine new plan */}
+                      {(() => {
+                        const currentSeats = subscriptionInfo.subscription.seats || 1;
+                        const currentPlanType = currentSeats <= 5 ? 'starter' : 'professional';
+                        const newPlanType = newSeatsCount <= 5 ? 'starter' : 'professional';
+                        
+                        if (currentPlanType !== newPlanType) {
+                          return (
+                            <p className="text-blue-700 font-semibold">
+                              ⚡ Changement automatique de plan: {newPlanType === 'starter' ? 'Starter (29€/vendeur)' : 'Professional (25€/vendeur)'}
+                            </p>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => {
+                    const currentSeats = subscriptionInfo.subscription.seats || 1;
+                    if (newSeatsCount === currentSeats) {
+                      alert('Le nombre de sièges est déjà à cette valeur.');
+                      return;
+                    }
+                    
+                    const diff = newSeatsCount - currentSeats;
+                    const action = diff > 0 ? 'ajouter' : 'retirer';
+                    const currentPlan = currentSeats <= 5 ? 'starter' : 'professional';
+                    const newPlan = newSeatsCount <= 5 ? 'starter' : 'professional';
+                    const pricePerSeat = newPlan === 'professional' ? 25 : 29;
+                    
+                    let message = `${action === 'ajouter' ? '➕' : '➖'} ${action.charAt(0).toUpperCase() + action.slice(1)} ${Math.abs(diff)} siège(s)\n\n`;
+                    message += `Passage de ${currentSeats} à ${newSeatsCount} siège(s)\n`;
+                    
+                    if (currentPlan !== newPlan) {
+                      message += `\n⚡ Changement de plan: ${newPlan === 'starter' ? 'Starter (29€)' : 'Professional (25€)'} par vendeur/mois\n`;
+                    }
+                    
+                    message += `\n${diff > 0 ? '💳 Facturation immédiate au prorata du temps restant' : '💰 Crédit appliqué sur votre prochaine facture'}`;
+                    message += `\n\nConfirmer ?`;
+                    
+                    if (window.confirm(message)) {
+                      handleChangeSeats(newSeatsCount);
+                    }
+                  }}
+                  disabled={adjustingSeats || newSeatsCount === (subscriptionInfo.subscription.seats || 1)}
+                  className="w-full py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {adjustingSeats ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader className="w-4 h-4 animate-spin" />
+                      Modification en cours...
+                    </span>
+                  ) : (
+                    'Valider le changement'
+                  )}
+                </button>
+
+                <div className="text-xs text-gray-600 bg-blue-50 p-3 rounded-lg mt-3">
                   <p className="font-semibold mb-1">💡 Comment ça marche ?</p>
                   <ul className="list-disc list-inside space-y-1">
-                    <li>Augmentation : facturation immédiate au prorata du temps restant</li>
-                    <li>Réduction : crédit appliqué sur votre prochaine facture</li>
-                    <li>Changement automatique de plan si nécessaire (1-5: Starter 29€, 6-15: Pro 25€)</li>
+                    <li>Ajustez le nombre avec +/- ou saisissez directement</li>
+                    <li>Cliquez "Valider" pour confirmer en une seule fois</li>
+                    <li>Stripe gère automatiquement le prorata (facturation ou crédit)</li>
                   </ul>
                 </div>
               </div>
