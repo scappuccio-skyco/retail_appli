@@ -613,28 +613,6 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                 </button>
               </div>
 
-              {/* Info section */}
-              <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                <p className="font-bold text-blue-900 mb-2 flex items-center gap-2">
-                  <span className="text-xl">💡</span>
-                  Comment ça marche ?
-                </p>
-                <ul className="space-y-2 text-sm text-blue-800">
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <span>Utilisez le slider, +/- ou saisissez directement le nombre</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <span>Une seule confirmation pour valider votre choix</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <span>Stripe calcule automatiquement le prorata (facturation ou crédit)</span>
-                  </li>
-                </ul>
-              </div>
-
               {/* History */}
               {subscriptionHistory.length > 0 && (
                 <div className="px-6 pb-6">
