@@ -2545,37 +2545,65 @@ class RetailCoachAPITester:
         """Test complete subscription lifecycle with focus on reactivation feature"""
         print("\n🔍 Testing Complete Subscription Lifecycle with Reactivation (NEW FEATURE)...")
         
-        # SCENARIO 1: Setup - Create Manager and Subscription
-        print("\n   📋 SCENARIO 1: Setup - Create Manager and Subscription")
+        # SCENARIO 1: Setup - Try existing manager first, then create new one
+        print("\n   📋 SCENARIO 1: Setup - Manager Authentication and Subscription")
         
-        # Create test manager account
-        timestamp = datetime.now().strftime('%H%M%S')
-        manager_data = {
-            "name": "Reactivation Test Manager",
-            "email": "reactivation-test@demo.com",
-            "password": "test123",
-            "role": "manager"
-        }
-        
-        success, response = self.run_test(
-            "Scenario 1.1 - Create Manager Account",
-            "POST",
-            "auth/register",
-            200,
-            data=manager_data
-        )
+        # Try to use existing manager accounts first
+        existing_managers = [
+            {"email": "reactivation-test@demo.com", "password": "test123"},
+            {"email": "manager@demo.com", "password": "demo123"},
+            {"email": "manager1@test.com", "password": "password123"}
+        ]
         
         manager_token = None
         manager_id = None
-        if success and 'token' in response:
-            manager_token = response['token']
-            manager_info = response['user']
-            manager_id = manager_info.get('id')
-            print(f"   ✅ Created manager: {manager_info.get('name')} ({manager_info.get('email')})")
-            print(f"   ✅ Manager ID: {manager_id}")
-        else:
-            self.log_test("Subscription Lifecycle Setup", False, "Could not create manager account")
-            return
+        manager_info = None
+        
+        # Try existing managers first
+        for creds in existing_managers:
+            success, response = self.run_test(
+                f"Scenario 1.1 - Login Existing Manager ({creds['email']})",
+                "POST",
+                "auth/login",
+                200,
+                data=creds
+            )
+            
+            if success and 'token' in response:
+                manager_token = response['token']
+                manager_info = response['user']
+                manager_id = manager_info.get('id')
+                print(f"   ✅ Logged in as existing manager: {manager_info.get('name')} ({manager_info.get('email')})")
+                print(f"   ✅ Manager ID: {manager_id}")
+                break
+        
+        # If no existing manager worked, create a new one
+        if not manager_token:
+            timestamp = datetime.now().strftime('%H%M%S')
+            manager_data = {
+                "name": "Reactivation Test Manager",
+                "email": f"reactivation-test-{timestamp}@demo.com",
+                "password": "test123",
+                "role": "manager"
+            }
+            
+            success, response = self.run_test(
+                "Scenario 1.1b - Create New Manager Account",
+                "POST",
+                "auth/register",
+                200,
+                data=manager_data
+            )
+            
+            if success and 'token' in response:
+                manager_token = response['token']
+                manager_info = response['user']
+                manager_id = manager_info.get('id')
+                print(f"   ✅ Created new manager: {manager_info.get('name')} ({manager_info.get('email')})")
+                print(f"   ✅ Manager ID: {manager_id}")
+            else:
+                self.log_test("Subscription Lifecycle Setup", False, "Could not create manager account")
+                return
         
         # Login with manager account
         login_data = {
