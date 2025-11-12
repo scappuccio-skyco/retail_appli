@@ -62,9 +62,9 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   const [newSeatsCount, setNewSeatsCount] = useState(1);
   const [subscriptionHistory, setSubscriptionHistory] = useState([]);
   
-  // Summary modal state
-  const [showSummaryModal, setShowSummaryModal] = useState(false);
-  const [summaryData, setSummaryData] = useState(null);
+  // Confirmation modal state
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmData, setConfirmData] = useState(null);
 
   useEffect(() => {
     // Cleanup function to prevent setState on unmounted component
