@@ -5935,10 +5935,10 @@ async def get_checkout_status(
                 now = datetime.now(timezone.utc)
                 period_end = now + timedelta(days=30)  # Monthly subscription
                 
-                # Get plan info for AI credits
+                # Calculate AI credits dynamically based on seats
                 plan = transaction['plan']
-                plan_info = STRIPE_PLANS.get(plan, STRIPE_PLANS['starter'])
-                ai_credits = plan_info['ai_credits_monthly']
+                seats = transaction.get('metadata', {}).get('seller_count', 1)
+                ai_credits = calculate_monthly_ai_credits(seats)
                 
                 # Get actual Stripe subscription ID
                 stripe_subscription_id = session.subscription if hasattr(session, 'subscription') else session_id
@@ -5948,6 +5948,7 @@ async def get_checkout_status(
                     {"$set": {
                         "status": "active",
                         "plan": plan,
+                        "seats": seats,
                         "current_period_start": now.isoformat(),
                         "current_period_end": period_end.isoformat(),
                         "stripe_subscription_id": stripe_subscription_id,
@@ -5957,7 +5958,7 @@ async def get_checkout_status(
                     }}
                 )
                 
-                logger.info(f"Subscription activated for user {current_user['id']}, plan: {plan}, credits: {ai_credits}")
+                logger.info(f"Subscription activated for user {current_user['id']}, plan: {plan}, seats: {seats}, credits: {ai_credits}")
         
         return {
             "status": payment_status,
