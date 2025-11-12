@@ -566,24 +566,19 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     }
                     
                     const diff = newSeatsCount - currentSeats;
-                    const action = diff > 0 ? 'ajouter' : 'retirer';
                     const currentPlan = currentSeats <= 5 ? 'starter' : 'professional';
                     const newPlan = newSeatsCount <= 5 ? 'starter' : 'professional';
-                    const pricePerSeat = newPlan === 'professional' ? 25 : 29;
                     
-                    let message = `${action === 'ajouter' ? '➕' : '➖'} ${action.charAt(0).toUpperCase() + action.slice(1)} ${Math.abs(diff)} siège(s)\n\n`;
-                    message += `Passage de ${currentSeats} à ${newSeatsCount} siège(s)\n`;
-                    
-                    if (currentPlan !== newPlan) {
-                      message += `\n⚡ Changement de plan: ${newPlan === 'starter' ? 'Starter (29€)' : 'Professional (25€)'} par vendeur/mois\n`;
-                    }
-                    
-                    message += `\n${diff > 0 ? '💳 Facturation immédiate au prorata du temps restant' : '💰 Crédit appliqué sur votre prochaine facture'}`;
-                    message += `\n\nConfirmer ?`;
-                    
-                    if (window.confirm(message)) {
-                      handleChangeSeats(newSeatsCount);
-                    }
+                    // Prepare data for custom confirmation modal
+                    setConfirmData({
+                      currentSeats,
+                      newSeats: newSeatsCount,
+                      diff,
+                      currentPlan,
+                      newPlan,
+                      isIncrease: diff > 0
+                    });
+                    setShowConfirmModal(true);
                   }}
                   disabled={adjustingSeats || newSeatsCount === (subscriptionInfo.subscription.seats || 1)}
                   className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black text-lg rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5"
