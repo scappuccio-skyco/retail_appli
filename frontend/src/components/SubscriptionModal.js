@@ -462,7 +462,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     Gérer mes sièges vendeurs
                     <span className="ml-auto text-sm font-normal opacity-75">▼ Cliquez pour développer</span>
                   </h3>
-                  <p className="text-green-50 text-sm mt-1">Ajustez votre capacité en temps réel avec facturation proratée</p>
+                  <p className="text-green-50 text-sm mt-1">Ajustez votre capacité en temps réel</p>
                 </summary>
               
               <div className="bg-white p-6">
