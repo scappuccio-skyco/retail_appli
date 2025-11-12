@@ -96,6 +96,7 @@ class User(BaseModel):
     email: EmailStr
     role: str  # manager or seller
     manager_id: Optional[str] = None
+    workspace_id: Optional[str] = None  # ID du workspace (entreprise)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserCreate(BaseModel):
