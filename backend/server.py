@@ -5672,7 +5672,8 @@ async def stripe_webhook(request: Request):
                 # Check if subscription exists
                 sub = await db.subscriptions.find_one({"user_id": user_id})
                 
-                if sub and sub.get('status') != 'active':
+                # Activate or reactivate subscription
+                if sub:
                     now = datetime.now(timezone.utc)
                     period_end = now + timedelta(days=30)
                     
@@ -5692,6 +5693,9 @@ async def stripe_webhook(request: Request):
                     # Count current sellers
                     seller_count = await db.users.count_documents({"manager_id": user_id, "role": "seller"})
                     
+                    # Check if this is a reactivation
+                    is_reactivation = sub.get('status') == 'active' and sub.get('cancel_at_period_end') == True
+                    
                     await db.subscriptions.update_one(
                         {"user_id": user_id},
                         {"$set": {
@@ -5703,6 +5707,8 @@ async def stripe_webhook(request: Request):
                             "current_period_end": period_end.isoformat(),
                             "stripe_subscription_id": stripe_subscription_id,
                             "stripe_subscription_item_id": subscription_item_id,
+                            "cancel_at_period_end": False,  # Reset cancellation flag
+                            "canceled_at": None,  # Clear cancellation timestamp
                             "ai_credits_remaining": ai_credits,
                             "ai_credits_used_this_month": 0,
                             "updated_at": now.isoformat()
