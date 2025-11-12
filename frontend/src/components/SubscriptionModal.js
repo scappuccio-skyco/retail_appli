@@ -210,11 +210,11 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     setPlanConfirmData({
       planKey: plan,
       planName: planInfo.name,
-      pricePerSeat: planInfo.pricePerSeat,
+      pricePerSeat: planInfo.pricePerSeller,
       quantity: suggestedQuantity,
       currentPlan,
       isUpgrade,
-      monthlyAmount: suggestedQuantity * planInfo.pricePerSeat
+      monthlyAmount: suggestedQuantity * planInfo.pricePerSeller
     });
     setShowPlanConfirmModal(true);
   };
