@@ -902,14 +902,33 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                 </p>
               </div>
 
-              {/* Cost Details - Dynamic calculation */}
+              {/* Cost Details - Complete view with current, change, and new amount */}
               {(() => {
                 const currentSeats = subscriptionInfo?.subscription?.seats || 0;
+                const currentPlan = subscriptionInfo?.plan || 'starter';
+                const currentPricePerSeat = PLANS[currentPlan]?.pricePerSeller || 29;
+                const currentMonthlyAmount = currentSeats * currentPricePerSeat;
+                
                 const seatDiff = planConfirmData.quantity - currentSeats;
                 const prorataEstimate = Math.abs(seatDiff) * planConfirmData.pricePerSeat * 0.5; // Rough mid-month estimate
                 
                 return (
                   <>
+                    {/* Current Amount (if exists) */}
+                    {currentSeats > 0 && (
+                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-300">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-semibold">📊 Abonnement actuel</span>
+                          <span className="text-xl font-black text-gray-700">
+                            {currentMonthlyAmount}€
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600">
+                          {currentSeats} siège(s) × {currentPricePerSeat}€ = {currentMonthlyAmount}€/mois
+                        </p>
+                      </div>
+                    )}
+                    
                     {/* Change Cost (Prorata) */}
                     {currentSeats > 0 && seatDiff !== 0 && (
                       <div className={`rounded-lg p-3 border ${
@@ -945,6 +964,15 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       <p className="text-xs text-gray-600">
                         {planConfirmData.quantity} × {planConfirmData.pricePerSeat}€ = {planConfirmData.monthlyAmount}€/mois
                       </p>
+                      {currentSeats > 0 && currentMonthlyAmount !== planConfirmData.monthlyAmount && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {planConfirmData.monthlyAmount > currentMonthlyAmount ? '↗️' : '↘️'} 
+                          {' '}
+                          {Math.abs(planConfirmData.monthlyAmount - currentMonthlyAmount)}€ 
+                          {' '}
+                          {planConfirmData.monthlyAmount > currentMonthlyAmount ? "d'augmentation" : "d'économie"} par mois
+                        </p>
+                      )}
                     </div>
                   </>
                 );
