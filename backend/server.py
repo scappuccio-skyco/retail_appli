@@ -4882,6 +4882,44 @@ async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
 async def get_user_subscription(user_id: str) -> Optional[dict]:
     """Get user's active subscription"""
     sub = await db.subscriptions.find_one({"user_id": user_id}, {"_id": 0})
+    
+    if not sub:
+        return None
+    
+    # If seats field is missing or 0, fetch from Stripe
+    if sub.get('seats', 0) == 0 and sub.get('stripe_subscription_id'):
+        try:
+            import stripe as stripe_lib
+            stripe_lib.api_key = STRIPE_API_KEY
+            
+            stripe_sub = stripe_lib.Subscription.retrieve(sub['stripe_subscription_id'])
+            if stripe_sub and stripe_sub.get('items') and stripe_sub['items']['data']:
+                quantity = stripe_sub['items']['data'][0].get('quantity', 1)
+                subscription_item_id = stripe_sub['items']['data'][0]['id']
+                
+                # Update the database with correct values
+                await db.subscriptions.update_one(
+                    {"user_id": user_id},
+                    {"$set": {
+                        "seats": quantity,
+                        "stripe_subscription_item_id": subscription_item_id,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                
+                sub['seats'] = quantity
+                sub['stripe_subscription_item_id'] = subscription_item_id
+                logger.info(f"Updated subscription seats from Stripe: user={user_id}, seats={quantity}")
+        except Exception as e:
+            logger.error(f"Error fetching seats from Stripe: {str(e)}")
+            # Fallback to 1 if can't fetch from Stripe
+            if 'seats' not in sub:
+                sub['seats'] = 1
+    
+    # Calculate used_seats (current sellers)
+    seller_count = await db.users.count_documents({"manager_id": user_id, "role": "seller"})
+    sub['used_seats'] = seller_count
+    
     return sub
 
 async def check_subscription_access(user_id: str) -> dict:
