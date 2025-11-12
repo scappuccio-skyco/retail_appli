@@ -488,15 +488,6 @@ export default function SubscriptionModal({ isOpen, onClose }) {
 
               {/* Adjustment Section */}
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="text-sm font-bold text-gray-800">Ajuster mes sièges</p>
-                  </div>
-                  <div className="bg-white px-3 py-1 rounded-lg border-2 border-green-500">
-                    <p className="text-xs text-gray-600">Nouveau</p>
-                    <p className="text-2xl font-black text-green-600">{newSeatsCount}</p>
-                  </div>
-                </div>
                 
                 {/* Adjust buttons */}
                 <div className="flex items-center gap-3 mb-4">
