@@ -82,40 +82,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
-  // Check for pending summary from URL after page reload
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasSummary = urlParams.get('summary');
-    
-    if (hasSummary === 'true') {
-      console.log('📋 Summary params detected in URL');
-      
-      const type = urlParams.get('type');
-      const action = urlParams.get('action');
-      const oldValue = parseInt(urlParams.get('oldValue'));
-      const newValue = parseInt(urlParams.get('newValue'));
-      const diff = parseInt(urlParams.get('diff'));
-      const amount = parseFloat(urlParams.get('amount'));
-      
-      const summaryData = {
-        type,
-        action: action === 'add' ? 'Ajout' : 'Réduction',
-        oldValue,
-        newValue,
-        diff,
-        amount,
-        message: `Modification effectuée avec succès`
-      };
-      
-      console.log('📋 Summary data:', summaryData);
-      
-      setSummaryData(summaryData);
-      setShowSummaryModal(true);
-      
-      // Clean URL (remove query params)
-      window.history.replaceState({}, '', '/dashboard');
-    }
-  }, []);
+  // Removed complex summary modal logic - using simple alert instead
 
   // Initialize newSeatsCount when subscription info is loaded
   useEffect(() => {
