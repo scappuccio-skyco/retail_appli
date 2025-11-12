@@ -14,8 +14,9 @@ export default function InviteModal({ onClose, onSuccess, sellerCount = 0, subsc
   const [copied, setCopied] = useState(false);
   const textAreaRef = useRef(null);
   
-  // Calculate remaining invites
-  const maxSellers = subscriptionInfo?.plan_type === 'professional' ? 15 : 5;
+  // Calculate remaining invites - use seats from subscription
+  const maxSellers = subscriptionInfo?.subscription?.seats || 
+                     (subscriptionInfo?.plan_type === 'professional' ? 15 : 5);
   const remainingInvites = maxSellers - sellerCount;
 
   const handleSubmit = async (e) => {
