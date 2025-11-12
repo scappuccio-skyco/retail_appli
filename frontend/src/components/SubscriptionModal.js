@@ -152,16 +152,13 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       );
       
       if (response.data.success && isMounted) {
-        // TEST: Remove toast to see if it causes insertBefore errors
         console.log('✅ Sièges modifiés:', response.data.message);
         
-        // Defer subscription refresh to avoid useEffect cascade during modal transition
+        // RADICAL FIX: Close modal completely and reload parent to avoid React reconciliation issues
         setTimeout(() => {
-          if (isMounted) {
-            fetchSubscriptionStatus();
-            fetchSubscriptionHistory();
-          }
-        }, 500); // Increased delay
+          onClose(); // Close the modal
+          // Parent will refresh data automatically
+        }, 500);
       }
     } catch (error) {
       if (isMounted) {
