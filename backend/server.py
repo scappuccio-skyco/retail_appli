@@ -1384,7 +1384,21 @@ async def get_sellers(current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can access this")
     
-    sellers = await db.users.find({"manager_id": current_user['id']}, {"_id": 0, "password": 0}).to_list(1000)
+    # Filter by workspace_id (new architecture) AND manager_id (backward compatibility)
+    filter_query = {
+        "$or": [
+            {"manager_id": current_user['id']},
+            {"workspace_id": current_user.get('workspace_id')}
+        ]
+    }
+    if current_user.get('workspace_id'):
+        # Prefer workspace_id if available
+        filter_query = {"workspace_id": current_user['workspace_id'], "role": "seller"}
+    else:
+        # Fallback to manager_id for old data
+        filter_query = {"manager_id": current_user['id']}
+    
+    sellers = await db.users.find(filter_query, {"_id": 0, "password": 0}).to_list(1000)
     
     # Add stats for each seller
     result = []
