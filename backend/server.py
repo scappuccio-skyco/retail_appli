@@ -5544,99 +5544,149 @@ async def create_checkout_session(
     checkout_data: CheckoutRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Create Stripe checkout session for subscription"""
+    """
+    Create or update Stripe subscription using Workspace architecture.
+    - Prevents duplicate customers
+    - Reuses existing customer_id if available
+    - Updates existing subscription quantity instead of creating new one
+    """
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can subscribe")
     
-    # Validate plan
-    if checkout_data.plan not in STRIPE_PLANS:
-        raise HTTPException(status_code=400, detail="Invalid plan")
+    # Get workspace
+    if not current_user.get('workspace_id'):
+        raise HTTPException(status_code=400, detail="No workspace associated with this account")
     
-    plan_info = STRIPE_PLANS[checkout_data.plan]
+    workspace = await db.workspaces.find_one({"id": current_user['workspace_id']}, {"_id": 0})
+    if not workspace:
+        raise HTTPException(status_code=404, detail="Workspace not found")
     
-    # Check if manager has more sellers than plan allows
-    seller_count = await db.users.count_documents({"manager_id": current_user['id'], "role": "seller"})
-    max_sellers = plan_info['max_sellers']
+    # Calculate quantity (number of sellers to pay for)
+    seller_count = await db.users.count_documents({"workspace_id": current_user['workspace_id'], "role": "seller"})
     
-    if seller_count > max_sellers:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Vous avez actuellement {seller_count} vendeur(s). Le plan {plan_info['name']} est limité à {max_sellers} vendeur(s). Veuillez supprimer {seller_count - max_sellers} vendeur(s) ou choisir le plan Professional."
-        )
+    # Use provided quantity or default to max(seller_count, 1)
+    quantity = checkout_data.quantity if checkout_data.quantity else max(seller_count, 1)
     
-    # Build URLs from frontend origin
-    success_url = f"{checkout_data.origin_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}"
-    cancel_url = f"{checkout_data.origin_url}/dashboard"
-    
-    # Calculate quantity (number of sellers)
-    # Use quantity from request if provided, otherwise default to current seller count (respecting plan minimum)
-    min_sellers = plan_info['min_sellers']
-    
-    if checkout_data.quantity is not None:
-        quantity = checkout_data.quantity
-        # Validate quantity is within allowed range
-        # Minimum is either the plan's minimum or the current seller count (whichever is higher)
-        min_quantity = max(seller_count, min_sellers)
-        
-        if quantity < min_quantity:
-            if seller_count > min_sellers:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"La quantité minimum est {min_quantity} (vous avez actuellement {seller_count} vendeurs)"
-                )
-            else:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"La quantité minimum pour le plan {plan_info['name']} est {min_sellers} vendeurs"
-                )
-        if quantity > max_sellers:
-            raise HTTPException(
-                status_code=400,
-                detail=f"La quantité maximum pour le plan {plan_info['name']} est {max_sellers}"
-            )
-    else:
-        # If quantity not provided, default to max of (current seller count, plan minimum)
-        quantity = max(seller_count, min_sellers)
-    
-    # Calculate expected amount (Stripe graduated pricing will apply automatically)
-    expected_amount = quantity * plan_info['price_per_seller']
+    # Validate quantity (minimum 1, maximum 15 for now)
+    if quantity < 1:
+        raise HTTPException(status_code=400, detail="La quantité minimum est 1 siège")
+    if quantity > 15:
+        raise HTTPException(status_code=400, detail="La quantité maximum est 15 sièges")
     
     try:
-        # Use Stripe API directly for subscription mode
         import stripe as stripe_lib
         stripe_lib.api_key = STRIPE_API_KEY
         
-        # Create checkout session for subscription (not payment)
-        # Allow adjustable quantity so user can choose number of sellers
-        # Add description to make quantity selector more visible
-        min_quantity = max(seller_count, min_sellers)
-        description = f"📊 Plan {plan_info['name']} - Ajustez la quantité (nombre de vendeurs) : Min {min_quantity} / Max {max_sellers}"
+        # STEP 1: Get or create Stripe customer
+        stripe_customer_id = workspace.get('stripe_customer_id')
+        
+        if stripe_customer_id:
+            # Verify customer still exists in Stripe
+            try:
+                customer = stripe_lib.Customer.retrieve(stripe_customer_id)
+                if customer.get('deleted'):
+                    stripe_customer_id = None  # Customer was deleted, create new one
+                logger.info(f"Reusing existing Stripe customer: {stripe_customer_id}")
+            except stripe_lib.error.InvalidRequestError:
+                # Customer doesn't exist, create new one
+                stripe_customer_id = None
+                logger.warning(f"Stripe customer {stripe_customer_id} not found, will create new one")
+        
+        if not stripe_customer_id:
+            # Create new customer
+            customer = stripe_lib.Customer.create(
+                email=current_user['email'],
+                name=workspace['name'],
+                metadata={
+                    'workspace_id': workspace['id'],
+                    'workspace_name': workspace['name'],
+                    'manager_id': current_user['id']
+                }
+            )
+            stripe_customer_id = customer.id
+            
+            # Save customer_id in workspace
+            await db.workspaces.update_one(
+                {"id": workspace['id']},
+                {"$set": {
+                    "stripe_customer_id": stripe_customer_id,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            logger.info(f"Created new Stripe customer: {stripe_customer_id} for workspace {workspace['name']}")
+        
+        # STEP 2: Check if active subscription exists
+        existing_subscriptions = stripe_lib.Subscription.list(
+            customer=stripe_customer_id,
+            status='active',
+            limit=1
+        )
+        
+        if existing_subscriptions.data:
+            # Update existing subscription quantity
+            subscription = existing_subscriptions.data[0]
+            subscription_item_id = subscription['items'].data[0].id
+            
+            updated_subscription = stripe_lib.Subscription.modify(
+                subscription.id,
+                items=[{
+                    'id': subscription_item_id,
+                    'quantity': quantity
+                }],
+                proration_behavior='create_prorations'  # Create prorated invoice
+            )
+            
+            # Update workspace with new quantity
+            await db.workspaces.update_one(
+                {"id": workspace['id']},
+                {"$set": {
+                    "stripe_quantity": quantity,
+                    "stripe_subscription_id": subscription.id,
+                    "stripe_subscription_item_id": subscription_item_id,
+                    "subscription_status": "active",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            logger.info(f"Updated existing subscription {subscription.id} to quantity {quantity}")
+            
+            return {
+                "success": True,
+                "message": f"Abonnement mis à jour : {quantity} siège(s)",
+                "subscription_id": subscription.id,
+                "quantity": quantity,
+                "updated_existing": True
+            }
+        
+        # STEP 3: No active subscription - create checkout session
+        success_url = f"{checkout_data.origin_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{checkout_data.origin_url}/dashboard"
         
         session = stripe_lib.checkout.Session.create(
-            mode='subscription',  # Subscription mode for recurring payments
+            mode='subscription',
+            customer=stripe_customer_id,  # Use existing customer
             line_items=[{
-                'price': STRIPE_PRICE_ID,
+                'price': workspace['stripe_price_id'],  # price_1SS2XxIVM4C8dIGvpBRcYSNX
                 'quantity': quantity,
                 'adjustable_quantity': {
                     'enabled': True,
-                    'minimum': min_quantity,  # Minimum: max(current sellers, plan minimum)
-                    'maximum': max_sellers  # Maximum: plan limit (5 for Starter, 15 for Pro)
+                    'minimum': max(seller_count, 1),
+                    'maximum': 15
                 }
             }],
             success_url=success_url,
             cancel_url=cancel_url,
             metadata={
-                "user_id": current_user['id'],
-                "email": current_user['email'],
-                "plan": checkout_data.plan,
+                "workspace_id": workspace['id'],
+                "workspace_name": workspace['name'],
+                "manager_id": current_user['id'],
                 "seller_count": str(quantity)
             },
-            customer_email=current_user['email'],
             subscription_data={
-                'description': description,
+                'description': f"Retail Performer AI - {workspace['name']}",
                 'metadata': {
-                    'plan': checkout_data.plan,
-                    'max_sellers': str(max_sellers)
+                    'workspace_id': workspace['id'],
+                    'workspace_name': workspace['name']
                 }
             }
         )
@@ -5644,14 +5694,14 @@ async def create_checkout_session(
         # Create payment transaction record
         transaction = PaymentTransaction(
             user_id=current_user['id'],
-            session_id=session.id,  # Use session.id instead of session.session_id
-            amount=expected_amount,
-            currency=plan_info['currency'],
-            plan=checkout_data.plan,
+            session_id=session.id,
+            amount=quantity * 29,  # Approximate (Stripe will calculate exact with tiered pricing)
+            currency="eur",
+            plan="unified",
             payment_status="pending",
             metadata={
-                "user_email": current_user['email'],
-                "plan_name": plan_info['name'],
+                "workspace_id": workspace['id'],
+                "workspace_name": workspace['name'],
                 "seller_count": quantity
             }
         )
@@ -5662,16 +5712,20 @@ async def create_checkout_session(
         
         await db.payment_transactions.insert_one(trans_doc)
         
+        logger.info(f"Created checkout session {session.id} for workspace {workspace['name']} with {quantity} seats")
+        
         return {
             "url": session.url,
-            "session_id": session.id
+            "session_id": session.id,
+            "quantity": quantity,
+            "updated_existing": False
         }
     
     except Exception as e:
         logger.error(f"Checkout session creation error: {str(e)}")
         import traceback
         logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Failed to create checkout session: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create/update subscription: {str(e)}")
 
 @api_router.get("/checkout/status/{session_id}")
 async def get_checkout_status(
