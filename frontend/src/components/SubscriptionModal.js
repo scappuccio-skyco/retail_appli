@@ -910,7 +910,21 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                 const currentMonthlyAmount = currentSeats * currentPricePerSeat;
                 
                 const seatDiff = planConfirmData.quantity - currentSeats;
-                const prorataEstimate = Math.abs(seatDiff) * planConfirmData.pricePerSeat * 0.5; // Rough mid-month estimate
+                
+                // Calculate real prorata percentage based on remaining days in billing cycle
+                let prorataPercentage = 50; // Default fallback
+                try {
+                  const periodEnd = subscriptionInfo?.subscription?.current_period_end;
+                  if (periodEnd) {
+                    const endDate = new Date(periodEnd);
+                    const now = new Date();
+                    const daysRemaining = Math.max(0, Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)));
+                    const totalDays = 30; // Approximate monthly cycle
+                    prorataPercentage = Math.round((daysRemaining / totalDays) * 100);
+                  }
+                } catch (e) {
+                  console.error('Error calculating prorata:', e);
+                }
                 
                 return (
                   <>
