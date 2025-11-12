@@ -495,22 +495,39 @@ export default function SubscriptionModal({ isOpen, onClose }) {
 
                 {/* Preview of change */}
                 {newSeatsCount !== (subscriptionInfo.subscription.seats || 1) && (
-                  <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-700">
-                        {(subscriptionInfo.subscription.seats || 1)} → <strong>{newSeatsCount} sièges</strong>
-                      </span>
-                      <span className={`text-sm font-semibold ${newSeatsCount > (subscriptionInfo.subscription.seats || 1) ? 'text-green-600' : 'text-orange-600'}`}>
-                        {newSeatsCount > (subscriptionInfo.subscription.seats || 1) ? '+ ' : '- '}
-                        {Math.abs(newSeatsCount - (subscriptionInfo.subscription.seats || 1))} siège(s)
-                      </span>
+                  <div className="mb-4 p-5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl text-white shadow-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-sm opacity-90">Changement prévu</p>
+                        <p className="text-2xl font-black">
+                          {(subscriptionInfo.subscription.seats || 1)} → {newSeatsCount} sièges
+                        </p>
+                      </div>
+                      <div className={`px-4 py-2 rounded-lg font-black text-2xl ${newSeatsCount > (subscriptionInfo.subscription.seats || 1) ? 'bg-green-400 text-green-900' : 'bg-orange-400 text-orange-900'}`}>
+                        {newSeatsCount > (subscriptionInfo.subscription.seats || 1) ? '+' : ''}
+                        {newSeatsCount - (subscriptionInfo.subscription.seats || 1)}
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-600">
-                      <p className="font-semibold mb-1">
-                        {newSeatsCount > (subscriptionInfo.subscription.seats || 1) 
-                          ? '💳 Facturation immédiate au prorata' 
-                          : '💰 Crédit appliqué sur prochaine facture'}
-                      </p>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2 bg-white bg-opacity-20 rounded-lg p-3">
+                        <span className="text-xl">
+                          {newSeatsCount > (subscriptionInfo.subscription.seats || 1) ? '💳' : '💰'}
+                        </span>
+                        <div className="flex-1">
+                          <p className="font-bold text-sm">
+                            {newSeatsCount > (subscriptionInfo.subscription.seats || 1) 
+                              ? 'Facturation immédiate' 
+                              : 'Crédit appliqué'}
+                          </p>
+                          <p className="text-xs opacity-90">
+                            {newSeatsCount > (subscriptionInfo.subscription.seats || 1)
+                              ? 'Montant au prorata du temps restant sur votre période'
+                              : 'Le crédit sera déduit de votre prochaine facture'}
+                          </p>
+                        </div>
+                      </div>
+                      
                       {/* Determine new plan */}
                       {(() => {
                         const currentSeats = subscriptionInfo.subscription.seats || 1;
@@ -519,9 +536,15 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                         
                         if (currentPlanType !== newPlanType) {
                           return (
-                            <p className="text-blue-700 font-semibold">
-                              ⚡ Changement automatique de plan: {newPlanType === 'starter' ? 'Starter (29€/vendeur)' : 'Professional (25€/vendeur)'}
-                            </p>
+                            <div className="flex items-start gap-2 bg-yellow-400 bg-opacity-30 rounded-lg p-3">
+                              <span className="text-xl">⚡</span>
+                              <div className="flex-1">
+                                <p className="font-bold text-sm">Changement de plan</p>
+                                <p className="text-xs opacity-90">
+                                  {newPlanType === 'starter' ? 'Starter (29€/vendeur/mois)' : 'Professional (25€/vendeur/mois)'}
+                                </p>
+                              </div>
+                            </div>
                           );
                         }
                         return null;
