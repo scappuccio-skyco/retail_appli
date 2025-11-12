@@ -157,24 +157,13 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       console.log('✅ API response:', response.data);
       
       if (response.data.success) {
-        // Show simple success message with amount if available
-        const amountCharged = response.data.amount_charged || 0;
-        let message = `✅ ${response.data.message}\n\n`;
-        
-        if (amountCharged !== 0) {
-          if (amountCharged > 0) {
-            message += `💳 Montant facturé : +${amountCharged.toFixed(2)}€ (prorata)\n`;
-          } else {
-            message += `💰 Crédit appliqué : ${Math.abs(amountCharged).toFixed(2)}€ (prorata)\n`;
-          }
-        }
-        
-        alert(message);
+        // NO ALERT - Just reload directly
         window.location.reload();
       }
     } catch (error) {
       const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
       console.error('❌ API Error:', errorMsg);
+      // Show error only if API fails
       alert('❌ ' + errorMsg);
       window.location.reload();
     }
