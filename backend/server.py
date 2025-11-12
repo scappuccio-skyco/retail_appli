@@ -70,6 +70,19 @@ TRIAL_AI_CREDITS = 100  # Crédits IA pour l'essai gratuit
 MANAGER_BASE_CREDITS = 250  # Base credits for manager analyses
 CREDITS_PER_SEAT = 100  # Credits per seller seat
 
+
+def calculate_monthly_ai_credits(seats: int) -> int:
+    """
+    Calculate monthly AI credits based on number of seats
+    Formula: 250 (manager base) + (100 × seats)
+    
+    Examples:
+    - 1 seat  → 250 + 100 = 350 credits (~250 analyses)
+    - 5 seats → 250 + 500 = 750 credits (~650 analyses)
+    - 15 seats → 250 + 1500 = 1750 credits (~1650 analyses)
+    """
+    return MANAGER_BASE_CREDITS + (seats * CREDITS_PER_SEAT)
+
 # AI Credit Costs (en crédits par appel)
 AI_COSTS = {
     "diagnostic_seller": 2,
