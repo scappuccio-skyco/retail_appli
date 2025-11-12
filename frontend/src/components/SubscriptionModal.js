@@ -878,14 +878,16 @@ export default function SubscriptionModal({ isOpen, onClose }) {
               </button>
               <button
                 onClick={() => {
+                  const seatsToChange = confirmData.newSeats;
+                  
                   // Close modal first
                   setShowConfirmModal(false);
                   setConfirmData(null);
                   
-                  // Add delay to ensure modal DOM cleanup completes before state updates
+                  // Increased delay to ensure modal DOM cleanup completes
                   setTimeout(() => {
-                    handleChangeSeats(confirmData.newSeats);
-                  }, 150);
+                    handleChangeSeats(seatsToChange);
+                  }, 300);
                 }}
                 className={`flex-1 px-6 py-3 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl ${
                   confirmData.isIncrease 
