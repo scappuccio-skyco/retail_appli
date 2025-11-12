@@ -162,11 +162,13 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           duration: 5000
         });
         
-        // Refresh data in batched update
-        unstable_batchedUpdates(() => {
-          fetchSubscriptionStatus();
-          fetchSubscriptionHistory();
-        });
+        // Defer subscription refresh to avoid useEffect cascade during modal transition
+        setTimeout(() => {
+          if (isMounted) {
+            fetchSubscriptionStatus();
+            fetchSubscriptionHistory();
+          }
+        }, 300);
       }
     } catch (error) {
       if (isMounted) {
