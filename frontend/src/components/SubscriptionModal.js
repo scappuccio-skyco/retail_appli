@@ -874,16 +874,23 @@ export default function SubscriptionModal({ isOpen, onClose }) {
               </button>
               <button
                 onClick={() => {
-                  const seatsToChange = confirmData.newSeats;
+                  const currentSeats = subscriptionInfo.subscription.seats || 1;
+                  if (newSeatsCount === currentSeats) {
+                    return;
+                  }
                   
-                  // Close modal first
-                  setShowConfirmModal(false);
-                  setConfirmData(null);
+                  const diff = newSeatsCount - currentSeats;
+                  const action = diff > 0 ? 'ajouter' : 'retirer';
                   
-                  // Increased delay to ensure modal DOM cleanup completes
-                  setTimeout(() => {
-                    handleChangeSeats(seatsToChange);
-                  }, 300);
+                  const confirmed = window.confirm(
+                    `${action === 'ajouter' ? '➕' : '➖'} ${action.charAt(0).toUpperCase() + action.slice(1)} ${Math.abs(diff)} siège(s)\n\n` +
+                    `${currentSeats} → ${newSeatsCount} sièges\n\n` +
+                    `La page se rechargera après confirmation.\n\nConfirmer ?`
+                  );
+                  
+                  if (confirmed) {
+                    handleChangeSeats(newSeatsCount);
+                  }
                 }}
                 className={`flex-1 px-6 py-3 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl ${
                   confirmData.isIncrease 
