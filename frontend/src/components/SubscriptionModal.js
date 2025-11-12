@@ -827,86 +827,75 @@ export default function SubscriptionModal({ isOpen, onClose }) {
         />
       )}
 
-      {/* Confirmation Modal - Custom styled modal instead of window.confirm */}
+      {/* Confirmation Modal - Compact version with pricing details */}
       {showConfirmModal && confirmData && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden animate-fadeIn">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white">
-              <div className="flex items-center gap-3">
-                <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
-                  <span className="text-3xl">📊</span>
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold">Confirmer la modification</h3>
-                  <p className="text-blue-50 text-sm">Vérifiez les détails avant de valider</p>
-                </div>
-              </div>
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            {/* Header - Compact */}
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-4 text-white">
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <span>📊</span>
+                Confirmer la modification
+              </h3>
             </div>
 
-            {/* Content */}
-            <div className="p-6 space-y-5">
-              {/* Action */}
-              <div className={`rounded-xl p-5 border-2 ${
-                confirmData.isIncrease 
-                  ? 'bg-green-50 border-green-300' 
-                  : 'bg-orange-50 border-orange-300'
+            {/* Content - Compact */}
+            <div className="p-4 space-y-3">
+              {/* Action Type */}
+              <div className={`rounded-lg p-3 text-center border-2 ${
+                confirmData.isIncrease ? 'bg-green-50 border-green-300' : 'bg-orange-50 border-orange-300'
               }`}>
-                <p className="text-sm font-semibold mb-2 opacity-75">
-                  Type de modification
-                </p>
-                <p className="text-3xl font-black">
+                <p className="text-xl font-black">
                   {confirmData.action} de {confirmData.diff} siège{confirmData.diff > 1 ? 's' : ''}
                 </p>
               </div>
 
-              {/* Comparison */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-100 rounded-xl p-5 text-center border-2 border-gray-300">
-                  <p className="text-xs text-gray-600 font-bold uppercase mb-2">Actuellement</p>
-                  <p className="text-5xl font-black text-gray-800">{confirmData.currentSeats}</p>
-                  <p className="text-sm text-gray-600 mt-2">siège{confirmData.currentSeats > 1 ? 's' : ''}</p>
+              {/* Comparison - Compact */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-100 rounded-lg p-3 text-center border border-gray-300">
+                  <p className="text-xs text-gray-600 font-semibold">Actuellement</p>
+                  <p className="text-3xl font-black text-gray-800">{confirmData.currentSeats}</p>
                 </div>
-                <div className="bg-blue-50 rounded-xl p-5 text-center border-2 border-blue-400">
-                  <p className="text-xs text-blue-700 font-bold uppercase mb-2">Nouveau total</p>
-                  <p className="text-5xl font-black text-blue-900">{confirmData.newSeats}</p>
-                  <p className="text-sm text-blue-700 mt-2">siège{confirmData.newSeats > 1 ? 's' : ''}</p>
+                <div className="bg-blue-50 rounded-lg p-3 text-center border border-blue-400">
+                  <p className="text-xs text-blue-700 font-semibold">Nouveau</p>
+                  <p className="text-3xl font-black text-blue-900">{confirmData.newSeats}</p>
                 </div>
               </div>
 
-              {/* Info */}
-              <div className={`rounded-xl p-4 border-2 ${
-                confirmData.isIncrease 
-                  ? 'bg-blue-50 border-blue-200' 
-                  : 'bg-purple-50 border-purple-200'
+              {/* Pricing Details */}
+              <div className={`rounded-lg p-3 border ${
+                confirmData.isIncrease ? 'bg-blue-50 border-blue-200' : 'bg-purple-50 border-purple-200'
               }`}>
-                <p className="text-sm font-semibold flex items-center gap-2 mb-2">
-                  {confirmData.isIncrease ? '💳' : '💰'} Facturation proratée
-                </p>
-                <p className="text-sm text-gray-700">
-                  {confirmData.isIncrease 
-                    ? 'Le montant sera ajouté à votre prochaine facture selon le prorata.' 
-                    : 'Un crédit sera appliqué sur votre prochaine facture selon le prorata.'}
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-sm font-semibold">
+                    {confirmData.isIncrease ? '💳 Montant facturé' : '💰 Crédit appliqué'}
+                  </p>
+                  <p className="text-lg font-black">
+                    {confirmData.isIncrease ? '+' : '-'}{confirmData.estimatedAmount.toFixed(2)}€
+                  </p>
+                </div>
+                <p className="text-xs text-gray-600">
+                  Prorata {confirmData.isIncrease ? 'ajouté à' : 'déduit de'} votre prochaine facture
                 </p>
               </div>
 
-              {/* Warning */}
-              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4">
-                <p className="text-sm text-yellow-800 flex items-center gap-2">
+              {/* Warning - Compact */}
+              <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-2">
+                <p className="text-xs text-yellow-800 flex items-center gap-1">
                   <span>⚠️</span>
-                  <span className="font-semibold">La page se rechargera après validation</span>
+                  La page se rechargera après validation
                 </p>
               </div>
             </div>
 
-            {/* Footer with buttons */}
-            <div className="bg-gray-50 p-5 border-t border-gray-200 flex gap-3">
+            {/* Footer - Compact */}
+            <div className="bg-gray-50 p-3 border-t flex gap-2">
               <button
                 onClick={() => {
                   setShowConfirmModal(false);
                   setConfirmData(null);
                 }}
-                className="flex-1 py-3 px-6 bg-white border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition-all"
+                className="flex-1 py-2 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-100 transition-all text-sm"
               >
                 Annuler
               </button>
@@ -915,7 +904,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                   setShowConfirmModal(false);
                   handleChangeSeats(confirmData.newSeats);
                 }}
-                className="flex-1 py-3 px-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl"
+                className="flex-1 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md text-sm"
               >
                 Confirmer
               </button>
