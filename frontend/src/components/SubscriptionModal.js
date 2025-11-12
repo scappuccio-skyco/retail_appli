@@ -192,30 +192,31 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     // Check if user has too many sellers for Starter plan
     const planInfo = PLANS[plan];
     if (sellerCount > planInfo.maxSellers) {
-      const sellersToRemove = sellerCount - planInfo.maxSellers;
-      
-      setTimeout(() => {
-        const confirmed = window.confirm(
-          `⚠️ ATTENTION\n\n` +
-          `Vous avez actuellement ${sellerCount} vendeur(s).\n` +
-          `Le plan ${planInfo.name} est limité à ${planInfo.maxSellers} vendeur(s).\n\n` +
-          `Vous devez supprimer ${sellersToRemove} vendeur(s) avant de souscrire à ce plan.\n\n` +
-          `Souhaitez-vous plutôt choisir le plan Professional (15 vendeurs) ?`
-        );
-        
-        if (confirmed) {
-          handleSelectPlan('professional');
-        }
-      }, 100);
-      
+      alert(
+        `⚠️ ATTENTION\n\n` +
+        `Vous avez actuellement ${sellerCount} vendeur(s).\n` +
+        `Le plan ${planInfo.name} est limité à ${planInfo.maxSellers} vendeur(s).\n\n` +
+        `Veuillez supprimer des vendeurs ou choisir le plan Professional.`
+      );
       return;
     }
     
-    // Set up quantity modal
-    setSelectedPlan(plan);
-    const minQuantity = Math.max(sellerCount, planInfo.minSellers);
-    setSelectedQuantity(minQuantity);
-    setShowQuantityModal(true);
+    // Calculate suggested quantity
+    const suggestedQuantity = Math.max(sellerCount, planInfo.minSellers);
+    const currentPlan = subscriptionInfo?.plan || 'starter';
+    const isUpgrade = (plan === 'professional' && currentPlan === 'starter');
+    
+    // Show plan confirmation modal
+    setPlanConfirmData({
+      planKey: plan,
+      planName: planInfo.name,
+      pricePerSeat: planInfo.pricePerSeat,
+      quantity: suggestedQuantity,
+      currentPlan,
+      isUpgrade,
+      monthlyAmount: suggestedQuantity * planInfo.pricePerSeat
+    });
+    setShowPlanConfirmModal(true);
   };
 
   const handleProceedToPayment = async () => {
