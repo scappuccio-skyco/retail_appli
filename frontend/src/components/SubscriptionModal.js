@@ -912,15 +912,27 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                 const seatDiff = planConfirmData.quantity - currentSeats;
                 
                 // Calculate real prorata percentage based on remaining days in billing cycle
-                let prorataPercentage = 50; // Default fallback
+                let prorataPercentage = null; // No default value
+                let daysRemaining = 0;
                 try {
                   const periodEnd = subscriptionInfo?.subscription?.current_period_end;
-                  if (periodEnd) {
+                  const periodStart = subscriptionInfo?.subscription?.current_period_start;
+                  
+                  if (periodEnd && periodStart) {
                     const endDate = new Date(periodEnd);
+                    const startDate = new Date(periodStart);
                     const now = new Date();
-                    const daysRemaining = Math.max(0, Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)));
-                    const totalDays = 30; // Approximate monthly cycle
-                    prorataPercentage = Math.round((daysRemaining / totalDays) * 100);
+                    
+                    // Calculate days remaining
+                    daysRemaining = Math.max(0, Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)));
+                    
+                    // Calculate total days in this billing cycle
+                    const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+                    
+                    // Calculate percentage
+                    if (totalDays > 0) {
+                      prorataPercentage = Math.round((daysRemaining / totalDays) * 100);
+                    }
                   }
                 } catch (e) {
                   console.error('Error calculating prorata:', e);
