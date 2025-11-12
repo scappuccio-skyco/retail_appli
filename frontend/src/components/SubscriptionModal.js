@@ -711,6 +711,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                   </div>
                 </div>
               )}
+              </div>
               </details>
             </div>
           )}
