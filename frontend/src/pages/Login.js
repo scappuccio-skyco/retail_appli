@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Building2, CheckCircle, XCircle } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -16,12 +16,15 @@ export default function Login({ onLogin }) {
     name: '',
     email: '',
     password: '',
+    workspace_name: '',  // Nom de l'entreprise
     role: inviteToken ? 'seller' : 'manager',  // Manager pour inscription publique, Seller pour invitation
     invitation_token: inviteToken || ''
   });
   const [loading, setLoading] = useState(false);
   const [inviteInfo, setInviteInfo] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [workspaceAvailability, setWorkspaceAvailability] = useState(null);
+  const [checkingWorkspace, setCheckingWorkspace] = useState(false);
 
   useEffect(() => {
     if (inviteToken) {
