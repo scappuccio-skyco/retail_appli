@@ -105,6 +105,7 @@ class UserCreate(BaseModel):
     password: str
     role: str
     manager_id: Optional[str] = None
+    workspace_name: Optional[str] = None  # Nom de l'entreprise (pour managers)
 
 class UserLogin(BaseModel):
     email: EmailStr
