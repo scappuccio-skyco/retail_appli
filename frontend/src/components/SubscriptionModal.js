@@ -617,30 +617,15 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     const diff = newSeatsCount - currentSeats;
                     const action = diff > 0 ? 'Ajout' : 'Réduction';
                     
-                    // Show confirmation BEFORE API call with full details
-                    let message = `📊 RÉSUMÉ DE LA MODIFICATION\n\n`;
-                    message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-                    message += `${action} de ${Math.abs(diff)} siège(s)\n\n`;
-                    message += `   Actuellement : ${currentSeats} siège${currentSeats > 1 ? 's' : ''}\n`;
-                    message += `   Nouveau total : ${newSeatsCount} siège${newSeatsCount > 1 ? 's' : ''}\n\n`;
-                    message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-                    
-                    if (diff > 0) {
-                      message += `💳 Facturation proratée automatique\n`;
-                      message += `   Le montant sera ajouté à votre\n`;
-                      message += `   prochaine facture\n\n`;
-                    } else {
-                      message += `💰 Crédit proraté automatique\n`;
-                      message += `   Le montant sera déduit de votre\n`;
-                      message += `   prochaine facture\n\n`;
-                    }
-                    
-                    message += `⚠️ La page se rechargera après validation\n\n`;
-                    message += `Confirmer cette modification ?`;
-                    
-                    if (window.confirm(message)) {
-                      handleChangeSeats(newSeatsCount);
-                    }
+                    // Show custom confirmation modal
+                    setConfirmData({
+                      action,
+                      diff: Math.abs(diff),
+                      currentSeats,
+                      newSeats: newSeatsCount,
+                      isIncrease: diff > 0
+                    });
+                    setShowConfirmModal(true);
                   }}
                   disabled={adjustingSeats || newSeatsCount === (subscriptionInfo.subscription.seats || 1)}
                   className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black text-lg rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5"
