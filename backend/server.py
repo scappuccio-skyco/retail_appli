@@ -5146,6 +5146,142 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
         logger.error(f"Error canceling subscription: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to cancel subscription: {str(e)}")
 
+@api_router.post("/subscription/change-seats")
+async def change_subscription_seats(
+    new_seats: int,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Change number of seats (add or remove sellers)
+    - Automatically adjusts plan (Starter 1-5, Professional 6-15)
+    - Applies prorated billing via Stripe
+    - Records change in history
+    """
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can modify subscriptions")
+    
+    # Validate seats
+    if new_seats < 1:
+        raise HTTPException(status_code=400, detail="Must have at least 1 seat")
+    if new_seats > 15:
+        raise HTTPException(status_code=400, detail="Maximum 15 seats. Contact support for Enterprise plan")
+    
+    # Get subscription
+    sub = await db.subscriptions.find_one({"user_id": current_user['id']})
+    if not sub:
+        raise HTTPException(status_code=404, detail="No subscription found")
+    
+    if sub['status'] not in ['active', 'trialing']:
+        raise HTTPException(status_code=400, detail="Subscription must be active or trialing")
+    
+    # Get current sellers count
+    sellers = await db.users.find({"manager_id": current_user['id'], "role": "seller"}).to_list(length=None)
+    current_sellers_count = len(sellers)
+    
+    # Check if trying to reduce below current usage
+    if new_seats < current_sellers_count:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot reduce to {new_seats} seats. You currently have {current_sellers_count} active sellers. Please deactivate sellers first."
+        )
+    
+    current_seats = sub.get('seats', 1)
+    if new_seats == current_seats:
+        return {"success": True, "message": "No change needed", "seats": current_seats}
+    
+    # Determine new plan based on seats
+    old_plan = sub['plan']
+    if 1 <= new_seats <= 5:
+        new_plan = 'starter'
+    elif 6 <= new_seats <= 15:
+        new_plan = 'professional'
+    else:
+        new_plan = 'enterprise'
+    
+    try:
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
+        # If subscription has Stripe ID, modify it with proration
+        stripe_subscription_id = sub.get('stripe_subscription_id')
+        if stripe_subscription_id:
+            # Get Stripe subscription
+            stripe_sub = stripe_lib.Subscription.retrieve(stripe_subscription_id)
+            
+            # Get the subscription item ID (for the seats)
+            if not stripe_sub.get('items') or not stripe_sub['items']['data']:
+                raise HTTPException(status_code=500, detail="Invalid Stripe subscription structure")
+            
+            subscription_item_id = stripe_sub['items']['data'][0]['id']
+            
+            # Modify subscription with new quantity (Stripe handles prorating automatically)
+            updated_subscription = stripe_lib.Subscription.modify(
+                stripe_subscription_id,
+                items=[{
+                    'id': subscription_item_id,
+                    'quantity': new_seats
+                }],
+                proration_behavior='create_prorations'  # Automatic prorated billing
+            )
+            
+            logger.info(f"Stripe subscription modified: {stripe_subscription_id}, new quantity: {new_seats}")
+            
+            # Get latest invoice to show amount charged/credited
+            latest_invoice = stripe_lib.Invoice.retrieve(updated_subscription.latest_invoice) if updated_subscription.latest_invoice else None
+            amount_charged = latest_invoice.amount_due / 100 if latest_invoice else 0
+        else:
+            # Trial or no Stripe yet - just update locally
+            subscription_item_id = None
+            amount_charged = 0
+        
+        # Update database
+        await db.subscriptions.update_one(
+            {"user_id": current_user['id']},
+            {"$set": {
+                "seats": new_seats,
+                "used_seats": current_sellers_count,
+                "plan": new_plan,
+                "stripe_subscription_item_id": subscription_item_id,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Record in history
+        history_entry = SubscriptionHistory(
+            user_id=current_user['id'],
+            subscription_id=sub['id'],
+            action="seats_added" if new_seats > current_seats else "seats_removed",
+            previous_plan=old_plan,
+            new_plan=new_plan,
+            previous_seats=current_seats,
+            new_seats=new_seats,
+            amount_charged=amount_charged,
+            stripe_invoice_id=updated_subscription.latest_invoice if 'updated_subscription' in locals() else None,
+            metadata={
+                "current_sellers": current_sellers_count,
+                "prorated": stripe_subscription_id is not None
+            }
+        )
+        await db.subscription_history.insert_one(history_entry.model_dump())
+        
+        logger.info(f"Seats changed: user={current_user['id']}, {current_seats}→{new_seats}, plan={new_plan}")
+        
+        return {
+            "success": True,
+            "message": f"Sièges modifiés avec succès. {"Mise à niveau" if new_seats > current_seats else "Réduction"} de {current_seats} à {new_seats}.",
+            "seats": new_seats,
+            "plan": new_plan,
+            "amount_charged": amount_charged,
+            "used_seats": current_sellers_count
+        }
+        
+    except stripe_lib.error.StripeError as e:
+        logger.error(f"Stripe error changing seats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Stripe error: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error changing seats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to change seats: {str(e)}")
+
 
 @api_router.get("/ai-credits/status")
 async def get_ai_credits_status(current_user: dict = Depends(get_current_user)):
