@@ -5309,18 +5309,28 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
     # Count sellers in workspace
     seller_count = await db.users.count_documents({"workspace_id": workspace['id'], "role": "seller"})
     
+    # Determine plan based on quantity (for frontend compatibility)
+    quantity = workspace.get('stripe_quantity', 0)
+    if quantity <= 5:
+        plan = "starter"
+    elif quantity <= 15:
+        plan = "professional"
+    else:
+        plan = "enterprise"
+    
     # Build subscription info for frontend compatibility
     subscription_info = {
         "id": workspace['id'],
         "workspace_id": workspace['id'],
         "workspace_name": workspace['name'],
         "status": workspace['subscription_status'],
+        "plan": plan,  # Determined based on quantity
         "stripe_customer_id": workspace.get('stripe_customer_id'),
         "stripe_subscription_id": workspace.get('stripe_subscription_id'),
         "stripe_subscription_item_id": workspace.get('stripe_subscription_item_id'),
-        "seats": workspace.get('stripe_quantity', 0),
+        "seats": quantity,
         "used_seats": seller_count,
-        "available_seats": max(0, workspace.get('stripe_quantity', 0) - seller_count),
+        "available_seats": max(0, quantity - seller_count),
         "current_period_start": workspace.get('current_period_start'),
         "current_period_end": workspace.get('current_period_end'),
         "trial_start": workspace.get('trial_start'),
@@ -5334,7 +5344,7 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
     return {
         **access_info,
         "subscription": subscription_info,
-        "plan": "unified",  # Single unified plan
+        "plan": plan,  # For top-level compatibility
         "workspace": workspace
     }
 
