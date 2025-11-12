@@ -5036,15 +5036,19 @@ async def check_workspace_access(workspace_id: str) -> dict:
     
     # Check if active subscription
     if workspace['subscription_status'] == 'active':
-        period_end = datetime.fromisoformat(workspace['current_period_end']) if isinstance(workspace['current_period_end'], str) else workspace['current_period_end']
-        now = datetime.now(timezone.utc)
-        days_left = (period_end - now).days
+        period_end = workspace.get('current_period_end')
+        days_left = 30  # Default
+        
+        if period_end:
+            period_end_dt = datetime.fromisoformat(period_end) if isinstance(period_end, str) else period_end
+            now = datetime.now(timezone.utc)
+            days_left = (period_end_dt - now).days
         
         return {
             "has_access": True,
             "status": "active",
             "days_left": days_left,
-            "period_end": workspace['current_period_end'],
+            "period_end": period_end,
             "ai_credits_remaining": workspace.get('ai_credits_remaining', 0),
             "cancel_at_period_end": workspace.get('cancel_at_period_end', False)
         }
