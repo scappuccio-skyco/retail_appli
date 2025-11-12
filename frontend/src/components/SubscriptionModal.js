@@ -467,29 +467,20 @@ export default function SubscriptionModal({ isOpen, onClose }) {
               
               <div className="bg-white p-6">
                 {/* Stats Cards */}
-                <div className="grid md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border-2 border-blue-200 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 opacity-10">
-                      <Crown className="w-20 h-20 text-blue-600" />
-                    </div>
-                    <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">Sièges achetés</p>
-                    <p className="text-4xl font-black text-blue-900">{subscriptionInfo.subscription.seats || 1}</p>
+                <div className="grid md:grid-cols-3 gap-3 mb-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200">
+                    <p className="text-xs font-semibold text-blue-700 mb-1">Sièges achetés</p>
+                    <p className="text-2xl font-black text-blue-900">{subscriptionInfo.subscription.seats || 1}</p>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-xl border-2 border-green-200 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 opacity-10">
-                      <Users className="w-20 h-20 text-green-600" />
-                    </div>
-                    <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Vendeurs actifs</p>
-                    <p className="text-4xl font-black text-green-900">{sellerCount}</p>
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-3 rounded-lg border border-green-200">
+                    <p className="text-xs font-semibold text-green-700 mb-1">Vendeurs actifs</p>
+                    <p className="text-2xl font-black text-green-900">{sellerCount}</p>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-5 rounded-xl border-2 border-purple-200 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 opacity-10">
-                      <Check className="w-20 h-20 text-purple-600" />
-                    </div>
-                    <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-1">Sièges libres</p>
-                    <p className="text-4xl font-black text-purple-900">
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-3 rounded-lg border border-purple-200">
+                    <p className="text-xs font-semibold text-purple-700 mb-1">Sièges libres</p>
+                    <p className="text-2xl font-black text-purple-900">
                       {(subscriptionInfo.subscription.seats || 1) - sellerCount}
                     </p>
                   </div>
