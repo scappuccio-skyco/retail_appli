@@ -990,13 +990,22 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       <p className="text-xs text-gray-600">
                         {planConfirmData.quantity} × {planConfirmData.pricePerSeat}€ = {planConfirmData.monthlyAmount}€/mois
                       </p>
-                      {currentSeats > 0 && currentMonthlyAmount !== planConfirmData.monthlyAmount && (
+                      {currentSeats > 0 && (
                         <p className="text-xs text-gray-500 mt-1">
-                          {planConfirmData.monthlyAmount > currentMonthlyAmount ? '↗️' : '↘️'} 
-                          {' '}
-                          {Math.abs(planConfirmData.monthlyAmount - currentMonthlyAmount)}€ 
-                          {' '}
-                          {planConfirmData.monthlyAmount > currentMonthlyAmount ? "d'augmentation" : "d'économie"} par mois
+                          {(() => {
+                            const difference = planConfirmData.monthlyAmount - currentMonthlyAmount;
+                            if (difference === 0) return null;
+                            
+                            return (
+                              <>
+                                {difference > 0 ? '↗️' : '↘️'} 
+                                {' '}
+                                {Math.abs(difference).toFixed(0)}€ 
+                                {' '}
+                                {difference > 0 ? "d'augmentation" : "d'économie"} par mois
+                              </>
+                            );
+                          })()}
                         </p>
                       )}
                     </div>
