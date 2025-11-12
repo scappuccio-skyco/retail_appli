@@ -139,7 +139,10 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     if (!subscriptionInfo) return;
     
     const currentSeats = subscriptionInfo.subscription.seats || 1;
-    setAdjustingSeats(true);
+    
+    // Close modal FIRST
+    onClose();
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     try {
       const token = localStorage.getItem('token');
@@ -154,30 +157,28 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       console.log('✅ API response:', response.data);
       
       if (response.data.success) {
-        // Close main modal first
-        onClose();
-        
-        // Small delay to let main modal close
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        // Show summary modal with modification details
+        // Store summary data in localStorage for display after reload
         const diff = newSeats - currentSeats;
-        setSummaryData({
+        const summaryData = {
           type: 'seats',
           action: diff > 0 ? 'Ajout' : 'Réduction',
           oldValue: currentSeats,
           newValue: newSeats,
           diff: Math.abs(diff),
           amount: response.data.amount_charged || 0,
-          message: response.data.message
-        });
-        setShowSummaryModal(true);
+          message: response.data.message,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('subscription_change_summary', JSON.stringify(summaryData));
+        
+        // Reload page
+        window.location.reload();
       }
     } catch (error) {
       const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
       console.error('❌ API Error:', errorMsg);
       alert('❌ ' + errorMsg);
-      setAdjustingSeats(false);
+      window.location.reload();
     }
   };
 
