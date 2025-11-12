@@ -152,15 +152,8 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       );
       
       if (response.data.success && isMounted) {
-        // Show success toast instead of alert
-        const amountText = response.data.amount_charged >= 0 
-          ? `Montant facturé: ${Math.abs(response.data.amount_charged).toFixed(2)}€`
-          : `Crédit appliqué: ${Math.abs(response.data.amount_charged).toFixed(2)}€`;
-        
-        toast.success(`✅ ${response.data.message}`, {
-          description: amountText,
-          duration: 5000
-        });
+        // TEST: Remove toast to see if it causes insertBefore errors
+        console.log('✅ Sièges modifiés:', response.data.message);
         
         // Defer subscription refresh to avoid useEffect cascade during modal transition
         setTimeout(() => {
@@ -168,14 +161,12 @@ export default function SubscriptionModal({ isOpen, onClose }) {
             fetchSubscriptionStatus();
             fetchSubscriptionHistory();
           }
-        }, 300);
+        }, 500); // Increased delay
       }
     } catch (error) {
       if (isMounted) {
         const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
-        toast.error(`❌ ${errorMsg}`, {
-          duration: 5000
-        });
+        console.error('❌ Erreur:', errorMsg);
       }
     } finally {
       if (isMounted) {
