@@ -832,6 +832,94 @@ export default function SubscriptionModal({ isOpen, onClose }) {
         />
       )}
 
+      {/* Plan Change Confirmation Modal */}
+      {showPlanConfirmModal && planConfirmData && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            {/* Header */}
+            <div className={`p-4 text-white ${
+              planConfirmData.isUpgrade 
+                ? 'bg-gradient-to-r from-purple-500 to-indigo-600' 
+                : 'bg-gradient-to-r from-blue-500 to-cyan-600'
+            }`}>
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                <Crown className="w-5 h-5" />
+                Confirmation du plan
+              </h3>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 space-y-3">
+              {/* Plan Selected */}
+              <div className={`rounded-lg p-3 text-center border-2 ${
+                planConfirmData.isUpgrade 
+                  ? 'bg-purple-50 border-purple-300' 
+                  : 'bg-blue-50 border-blue-300'
+              }`}>
+                <p className="text-sm opacity-75 font-semibold">Plan sélectionné</p>
+                <p className="text-2xl font-black">{planConfirmData.planName}</p>
+                <p className="text-sm mt-1">{planConfirmData.pricePerSeat}€ / siège / mois</p>
+              </div>
+
+              {/* Quantity */}
+              <div className="bg-gray-100 rounded-lg p-3 border border-gray-300">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold">Nombre de sièges</span>
+                  <span className="text-2xl font-black">{planConfirmData.quantity}</span>
+                </div>
+              </div>
+
+              {/* Monthly Amount */}
+              <div className="bg-green-50 rounded-lg p-3 border border-green-300">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-semibold">💳 Montant mensuel</span>
+                  <span className="text-2xl font-black text-green-700">
+                    {planConfirmData.monthlyAmount}€
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600">
+                  {planConfirmData.quantity} × {planConfirmData.pricePerSeat}€ = {planConfirmData.monthlyAmount}€/mois
+                </p>
+              </div>
+
+              {/* Info */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs text-blue-800">
+                  ℹ️ Vous serez redirigé vers Stripe pour finaliser le paiement sécurisé.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-gray-50 p-3 border-t flex gap-2">
+              <button
+                onClick={() => {
+                  setShowPlanConfirmModal(false);
+                  setPlanConfirmData(null);
+                }}
+                className="flex-1 py-2 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-100 transition-all text-sm"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  setShowPlanConfirmModal(false);
+                  setSelectedPlan(planConfirmData.planKey);
+                  setSelectedQuantity(planConfirmData.quantity);
+                  // Call payment directly instead of showing quantity modal
+                  setTimeout(() => {
+                    handleProceedToPayment();
+                  }, 100);
+                }}
+                className="flex-1 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md text-sm"
+              >
+                Continuer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Confirmation Modal - Compact version with pricing details */}
       {showConfirmModal && confirmData && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] backdrop-blur-sm">
