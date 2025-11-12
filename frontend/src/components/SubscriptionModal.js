@@ -60,6 +60,10 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   const [adjustingSeats, setAdjustingSeats] = useState(false);
   const [newSeatsCount, setNewSeatsCount] = useState(1);
   const [subscriptionHistory, setSubscriptionHistory] = useState([]);
+  
+  // Confirmation modal state
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmData, setConfirmData] = useState(null);
 
   useEffect(() => {
     // Cleanup function to prevent setState on unmounted component
