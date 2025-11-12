@@ -560,62 +560,20 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                   </button>
                 </div>
 
-                {/* Preview of change */}
+                {/* Preview of change - Simplified */}
                 {newSeatsCount !== (subscriptionInfo.subscription.seats || 1) && (
-                  <div className="mb-4 p-5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl text-white shadow-lg">
-                    <div className="flex items-center justify-between mb-3">
+                  <div className="mb-3 p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg text-white shadow">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm opacity-90">Changement prévu</p>
-                        <p className="text-2xl font-black">
+                        <p className="text-xs opacity-75">Changement prévu</p>
+                        <p className="text-lg font-bold">
                           {(subscriptionInfo.subscription.seats || 1)} → {newSeatsCount} sièges
                         </p>
                       </div>
-                      <div className={`px-4 py-2 rounded-lg font-black text-2xl ${newSeatsCount > (subscriptionInfo.subscription.seats || 1) ? 'bg-green-400 text-green-900' : 'bg-orange-400 text-orange-900'}`}>
+                      <div className={`px-3 py-1 rounded font-bold text-lg ${newSeatsCount > (subscriptionInfo.subscription.seats || 1) ? 'bg-green-400 text-green-900' : 'bg-orange-400 text-orange-900'}`}>
                         {newSeatsCount > (subscriptionInfo.subscription.seats || 1) ? '+' : ''}
                         {newSeatsCount - (subscriptionInfo.subscription.seats || 1)}
                       </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-start gap-2 bg-white bg-opacity-20 rounded-lg p-3">
-                        <span className="text-xl">
-                          {newSeatsCount > (subscriptionInfo.subscription.seats || 1) ? '💳' : '💰'}
-                        </span>
-                        <div className="flex-1">
-                          <p className="font-bold text-sm">
-                            {newSeatsCount > (subscriptionInfo.subscription.seats || 1) 
-                              ? 'Facturation immédiate' 
-                              : 'Crédit appliqué'}
-                          </p>
-                          <p className="text-xs opacity-90">
-                            {newSeatsCount > (subscriptionInfo.subscription.seats || 1)
-                              ? 'Montant au prorata du temps restant sur votre période'
-                              : 'Le crédit sera déduit de votre prochaine facture'}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {/* Determine new plan */}
-                      {(() => {
-                        const currentSeats = subscriptionInfo.subscription.seats || 1;
-                        const currentPlanType = currentSeats <= 5 ? 'starter' : 'professional';
-                        const newPlanType = newSeatsCount <= 5 ? 'starter' : 'professional';
-                        
-                        if (currentPlanType !== newPlanType) {
-                          return (
-                            <div className="flex items-start gap-2 bg-yellow-400 bg-opacity-30 rounded-lg p-3">
-                              <span className="text-xl">⚡</span>
-                              <div className="flex-1">
-                                <p className="font-bold text-sm">Changement de plan</p>
-                                <p className="text-xs opacity-90">
-                                  {newPlanType === 'starter' ? 'Starter (29€/vendeur/mois)' : 'Professional (25€/vendeur/mois)'}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
                     </div>
                   </div>
                 )}
