@@ -32,9 +32,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function TeamModal({ sellers: initialSellers, onClose, onViewSellerDetail }) {
-  // State local pour gérer la liste des vendeurs (pour mise à jour optimiste)
-  const [sellers, setSellers] = useState(initialSellers);
+export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   const [teamData, setTeamData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAIAnalysisModal, setShowAIAnalysisModal] = useState(false);
@@ -54,11 +52,12 @@ export default function TeamModal({ sellers: initialSellers, onClose, onViewSell
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, action: null, seller: null }); // Modal de confirmation
   const [showArchivedSellers, setShowArchivedSellers] = useState(false); // Afficher vendeurs archivés
   const [archivedSellers, setArchivedSellers] = useState([]); // Liste des vendeurs archivés
+  const [localSellers, setLocalSellers] = useState(sellers); // Copie locale pour filtrage optimiste
   
-  // Synchroniser avec la prop quand elle change (pour les refreshs externes)
+  // Synchroniser localSellers avec sellers uniquement lors du refresh
   useEffect(() => {
-    setSellers(initialSellers);
-  }, [initialSellers]);
+    setLocalSellers(sellers);
+  }, [sellers]);
 
   // Initialize visible sellers only once when sellers change
   useEffect(() => {
