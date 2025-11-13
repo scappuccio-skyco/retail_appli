@@ -5531,8 +5531,9 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
                 else:
                     stripe_sub = None
             else:
-                # Use the first truly active subscription
-                stripe_sub = truly_active_subs[0]
+                # Get the subscription ID and RETRIEVE full details (list() returns simplified objects)
+                active_sub_id = truly_active_subs[0].id
+                stripe_sub = stripe_lib.Subscription.retrieve(active_sub_id)
                 
                 # Update workspace with the correct subscription ID if it changed
                 if stripe_sub.id != workspace.get('stripe_subscription_id'):
