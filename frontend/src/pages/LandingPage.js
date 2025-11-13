@@ -505,8 +505,9 @@ export default function LandingPage() {
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
                     <p className="text-sm text-[#EA580C] font-semibold mt-2">
-                      Tarif dégressif • Espace Manager inclus
+                      6 à 15 espaces vendeur
                     </p>
+                    <p className="text-xs text-gray-600 mt-1">Tarif dégressif • Espace Manager inclus</p>
                   </div>
                 ) : (
                   <div>
@@ -516,11 +517,11 @@ export default function LandingPage() {
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
                     <p className="text-sm text-green-600 font-semibold mt-2">
-                      Au lieu de 300€ • Économisez 60€/an • Espace Manager inclus
+                      6 à 15 espaces vendeur
                     </p>
+                    <p className="text-xs text-gray-600 mt-1">Au lieu de 300€ • Économisez 60€/an • Espace Manager inclus</p>
                   </div>
                 )}
-                <p className="text-sm text-slate-500 mt-2">6 à 15 espaces vendeur</p>
               </div>
 
               <ul className="space-y-3 mb-4">
