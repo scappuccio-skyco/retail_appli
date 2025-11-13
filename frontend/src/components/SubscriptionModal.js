@@ -203,15 +203,23 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     const currentPlan = subscriptionInfo?.plan || 'starter';
     const isUpgrade = (plan === 'professional' && currentPlan === 'starter');
     
+    // Calculate price based on billing period
+    const pricePerSeat = isAnnual 
+      ? Math.round(planInfo.pricePerSeller * 12 * 0.8) 
+      : planInfo.pricePerSeller;
+    const totalAmount = suggestedQuantity * pricePerSeat;
+    
     // Show plan confirmation modal
     setPlanConfirmData({
       planKey: plan,
       planName: planInfo.name,
-      pricePerSeat: planInfo.pricePerSeller,
+      pricePerSeat: pricePerSeat,
       quantity: suggestedQuantity,
       currentPlan,
       isUpgrade,
-      monthlyAmount: suggestedQuantity * planInfo.pricePerSeller
+      monthlyAmount: totalAmount,
+      isAnnual: isAnnual,
+      monthlyPrice: planInfo.pricePerSeller
     });
     setShowPlanConfirmModal(true);
   };
