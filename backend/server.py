@@ -6014,19 +6014,50 @@ async def create_checkout_session(
             # Check if billing period is changing
             subscription = active_subs[0]  # Use the first truly active subscription
             current_price_id = subscription['items'].data[0].price.id
+            subscription_item_id = subscription['items'].data[0].id
             
             # Determine requested price ID
             billing_period = checkout_data.billing_period or 'monthly'
             requested_price_id = STRIPE_PRICE_ID_ANNUAL if billing_period == 'annual' else STRIPE_PRICE_ID_MONTHLY
             
-            # If price ID is changing (monthly ↔ annual), create new checkout session
+            # If price ID is changing (monthly ↔ annual), UPDATE the subscription with new price
             if current_price_id != requested_price_id:
-                logger.info(f"Billing period changing from {current_price_id} to {requested_price_id} - creating checkout session")
-                # Continue to STEP 3 to create checkout session (don't return here)
+                logger.info(f"Billing period changing from {current_price_id} to {requested_price_id} - updating subscription")
+                
+                # Update the subscription with new price ID and quantity
+                updated_subscription = stripe_lib.Subscription.modify(
+                    subscription.id,
+                    items=[{
+                        'id': subscription_item_id,
+                        'price': requested_price_id,  # Change the price ID
+                        'quantity': quantity
+                    }],
+                    proration_behavior='create_prorations'  # Create prorated invoice
+                )
+                
+                # Update workspace
+                await db.workspaces.update_one(
+                    {"id": workspace['id']},
+                    {"$set": {
+                        "stripe_quantity": quantity,
+                        "stripe_subscription_id": subscription.id,
+                        "stripe_subscription_item_id": subscription_item_id,
+                        "subscription_status": "active",
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                
+                logger.info(f"Updated subscription {subscription.id} from {current_price_id} to {requested_price_id}")
+                
+                return {
+                    "success": True,
+                    "message": f"Abonnement mis à jour : passage {'à l\'annuel' if billing_period == 'annual' else 'au mensuel'}",
+                    "subscription_id": subscription.id,
+                    "quantity": quantity,
+                    "billing_period_changed": True
+                }
             else:
                 # Same billing period - just update quantity
-                subscription_item_id = subscription['items'].data[0].id
-                
                 updated_subscription = stripe_lib.Subscription.modify(
                     subscription.id,
                     items=[{
