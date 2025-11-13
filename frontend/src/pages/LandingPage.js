@@ -598,7 +598,7 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-4">
                   {[
                     '16+ vendeurs',
-                    '150+ analyses IA manager/mois',
+                    '150 + (30 × vendeurs) analyses IA Manager/mois',
                     '100+ analyses IA par vendeur/mois',
                     'Support email sous 48h'
                   ].map((item, idx) => (
