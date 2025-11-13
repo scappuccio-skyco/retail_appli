@@ -669,7 +669,7 @@ export default function ManagerDashboard({ user, onLogout }) {
             {managerDiagnostic && (
               <button
                 onClick={() => setShowManagerProfileModal(true)}
-                className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 font-medium rounded-lg hover:shadow-lg transition-all text-sm"
+                className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
               >
                 <Sparkles className="w-4 h-4" />
                 Profil
@@ -678,7 +678,7 @@ export default function ManagerDashboard({ user, onLogout }) {
             {!managerDiagnostic && (
               <button
                 onClick={() => setShowManagerDiagnostic(true)}
-                className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#ffd871] to-yellow-300 text-gray-800 font-medium rounded-lg hover:shadow-lg transition-all text-sm"
+                className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
               >
                 <Sparkles className="w-4 h-4" />
                 Profil
@@ -686,7 +686,7 @@ export default function ManagerDashboard({ user, onLogout }) {
             )}
             <button
               onClick={() => setShowInviteModal(true)}
-              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm relative"
+              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm relative"
             >
               <UserPlus className="w-4 h-4" />
               Inviter
@@ -696,7 +696,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                                       (subscriptionInfo.plan_type === 'professional' ? 15 : 5);
                 const remainingInvites = seatsAvailable - sellers.length;
                 return remainingInvites > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-yellow-400 text-gray-900 text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
+                  <span className="absolute -top-2 -right-2 bg-[#F97316] text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
                     {remainingInvites}
                   </span>
                 );
@@ -704,7 +704,7 @@ export default function ManagerDashboard({ user, onLogout }) {
             </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
+              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
@@ -713,7 +713,7 @@ export default function ManagerDashboard({ user, onLogout }) {
             </button>
             <button
               onClick={() => setShowSubscriptionModal(true)}
-              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
+              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
             >
               <Settings className="w-4 h-4" />
               Mon abonnement
