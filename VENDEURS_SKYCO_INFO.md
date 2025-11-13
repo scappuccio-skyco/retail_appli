@@ -65,15 +65,16 @@
 ✅ **6 diagnostics DISC complets** avec profils variés
 ✅ **144 entrées KPI au total** (3-5 par mois sur 6 mois pour chaque vendeur)
 ✅ **KPI inclus**:
-   - Chiffre d'affaires
-   - Nombre de ventes
-   - Panier moyen
-   - Taux de conversion
-   - Nombre de clients
+   - CA journalier (2 000€ - 8 000€)
+   - Nombre de ventes (5-20)
+   - Panier moyen (calculé automatiquement)
+   - Taux de transformation (15-45%)
+   - Nombre de clients (50-150)
 
 ✅ Tous les vendeurs sont **actifs** et prêts à utiliser
 ✅ Les données KPI sont réparties sur les **6 derniers mois**
 ✅ Profils DISC variés pour une équipe équilibrée
+✅ Les KPI sont visibles dans le dashboard manager et dans la vue détaillée de chaque vendeur
 
 ---
 
