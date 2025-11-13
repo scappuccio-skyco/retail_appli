@@ -1168,7 +1168,13 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                           />
                           <YAxis tick={{ fontSize: 10 }} />
                           <RechartsTooltip content={<CustomTooltip />} />
-                          {sellers.filter(seller => visibleSellers[seller.id]).map((seller, idx) => (
+                          {sellers
+                            .filter(seller => 
+                              visibleSellers[seller.id] && 
+                              !hiddenSellerIds.includes(seller.id) && 
+                              (!seller.status || seller.status === 'active')
+                            )
+                            .map((seller, idx) => (
                             <Line 
                               key={seller.id}
                               type="monotone" 
