@@ -86,7 +86,7 @@ export default function SubscriptionBanner({ onUpgradeClick }) {
 
   // Active subscription
   if (subscriptionInfo.status === 'active' && subscriptionInfo.has_access) {
-    const planName = subscriptionInfo.plan === 'starter' ? 'Starter' : 'Professional';
+    const planName = subscriptionInfo.plan === 'starter' ? 'Small Team' : subscriptionInfo.plan === 'professional' ? 'Medium Team' : 'Large Team';
     return (
       <div className="bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 p-4 mb-6 rounded-lg shadow-sm">
         <div className="flex items-center gap-3">
