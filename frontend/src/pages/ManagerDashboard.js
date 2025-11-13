@@ -135,7 +135,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [showFilters, setShowFilters] = useState(false);
   const [sectionOrder, setSectionOrder] = useState(() => {
     const saved = localStorage.getItem('manager_section_order');
-    return saved ? JSON.parse(saved) : ['kpi', 'team', 'settings', 'settings2'];
+    return saved ? JSON.parse(saved) : ['kpi', 'team', 'objectives', 'challenges'];
   });
 
   // Determine which charts should be available based on manager's KPI configuration
