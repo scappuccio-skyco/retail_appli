@@ -107,11 +107,15 @@ async def sync_subscription():
             "stripe_subscription_item_id": subscription_item_id,
             "stripe_quantity": quantity,
             "subscription_status": status,
-            "current_period_start": period_start.isoformat(),
-            "current_period_end": period_end.isoformat(),
             "cancel_at_period_end": cancel_at_period_end,
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
+        
+        # Only add period fields if they exist
+        if period_start:
+            update_data["current_period_start"] = period_start.isoformat()
+        if period_end:
+            update_data["current_period_end"] = period_end.isoformat()
         
         result = await db.workspaces.update_one(
             {"id": workspace_id},
