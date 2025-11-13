@@ -624,7 +624,10 @@ export default function ManagerDashboard({ user, onLogout }) {
       objectives: dashboardFilters.showObjectives && (
         <div
           key="objectives"
-          onClick={() => setShowSettingsModal(true)}
+          onClick={() => {
+            setSettingsModalType('objectives');
+            setShowSettingsModal(true);
+          }}
           className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-blue-400"
           style={{ order: getSectionOrder('objectives') }}
         >
