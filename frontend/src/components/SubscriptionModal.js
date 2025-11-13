@@ -1288,7 +1288,9 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           }}
           action={subscriptionAction}
           subscriptionEndDate={
-            subscriptionInfo?.period_end 
+            subscriptionInfo?.subscription?.current_period_end 
+              ? new Date(subscriptionInfo.subscription.current_period_end).toLocaleDateString('fr-FR')
+              : subscriptionInfo?.period_end 
               ? new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')
               : ''
           }
