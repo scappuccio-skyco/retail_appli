@@ -383,7 +383,7 @@ export default function SellerDetailView({ seller, onBack }) {
               onClick={() => setKpiFilter('7j')}
               className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                 kpiFilter === '7j'
-                  ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-md'
+                  ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-md'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
               }`}
             >
@@ -393,7 +393,7 @@ export default function SellerDetailView({ seller, onBack }) {
               onClick={() => setKpiFilter('30j')}
               className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                 kpiFilter === '30j'
-                  ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-md'
+                  ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-md'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
               }`}
             >
@@ -403,7 +403,7 @@ export default function SellerDetailView({ seller, onBack }) {
               onClick={() => setKpiFilter('tout')}
               className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                 kpiFilter === 'tout'
-                  ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-md'
+                  ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-md'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
               }`}
             >
