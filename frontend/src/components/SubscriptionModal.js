@@ -452,19 +452,40 @@ export default function SubscriptionModal({ isOpen, onClose }) {
               {subscriptionInfo.status === 'active' && (
                 <div>
                   <p className="text-gray-700">
-                    <span className="font-semibold">Plan {PLANS[currentPlan].name}</span> - Actif
+                    <span className="font-semibold">Plan {PLANS[currentPlan].name}</span>
+                    {subscriptionInfo.subscription?.current_period_start && subscriptionInfo.subscription?.current_period_end && (() => {
+                      const start = new Date(subscriptionInfo.subscription.current_period_start);
+                      const end = new Date(subscriptionInfo.subscription.current_period_end);
+                      const diffMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+                      const isAnnual = diffMonths >= 11; // 11+ months = annual
+                      return (
+                        <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
+                          {isAnnual ? 'Annuel' : 'Mensuel'}
+                        </span>
+                      );
+                    })()}
+                    <span className="ml-2 text-green-600 font-medium">- Actif</span>
                   </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {subscriptionInfo.subscription?.cancel_at_period_end ? (
-                      <>
-                        ⚠️ Annulation programmée - Accès jusqu'au {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
-                      </>
-                    ) : (
-                      <>
-                        Renouvellement le {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
-                      </>
+                  
+                  {/* Period information */}
+                  <div className="mt-2 space-y-1">
+                    {subscriptionInfo.subscription?.current_period_start && (
+                      <p className="text-sm text-gray-600">
+                        📅 Début: {new Date(subscriptionInfo.subscription.current_period_start).toLocaleDateString('fr-FR')}
+                      </p>
                     )}
-                  </p>
+                    <p className="text-sm text-gray-600">
+                      {subscriptionInfo.subscription?.cancel_at_period_end ? (
+                        <>
+                          ⚠️ Annulation programmée - Accès jusqu'au {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
+                        </>
+                      ) : (
+                        <>
+                          🔄 Renouvellement: {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
+                        </>
+                      )}
+                    </p>
+                  </div>
                   {/* Seats information */}
                   <div className="mt-3 p-3 bg-white rounded-lg border border-blue-300">
                     <div className="flex items-center justify-between">
