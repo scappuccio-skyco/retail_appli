@@ -263,17 +263,28 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
   // Gérer la suppression d'un vendeur
   const handleDelete = async (sellerId) => {
+    // Mise à jour optimiste : retirer immédiatement de la liste
+    const sellerToRemove = sellers.find(s => s.id === sellerId);
+    setSellers(prevSellers => prevSellers.filter(s => s.id !== sellerId));
+    
+    // Fermer le modal de confirmation immédiatement
+    setConfirmModal({ isOpen: false, action: null, seller: null });
+    
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API}/manager/seller/${sellerId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Vendeur supprimé avec succès');
-      setConfirmModal({ isOpen: false, action: null, seller: null });
+      
+      // Refresh pour être sûr d'avoir les bonnes données
       await refreshSellersData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de la suppression');
-      setConfirmModal({ isOpen: false, action: null, seller: null });
+      // En cas d'erreur, remettre le vendeur dans la liste
+      if (sellerToRemove) {
+        setSellers(prevSellers => [...prevSellers, sellerToRemove]);
+      }
     }
   };
 
