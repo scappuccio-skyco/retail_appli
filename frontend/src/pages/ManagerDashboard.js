@@ -810,6 +810,20 @@ export default function ManagerDashboard({ user, onLogout }) {
                 </button>
 
                 <button
+                  onClick={() => toggleFilter('showObjectives')}
+                  className={`px-6 py-4 rounded-xl font-medium transition-all border-2 ${
+                    dashboardFilters.showObjectives
+                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
+                  }`}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <span className="text-2xl">🎯</span>
+                    <span className="text-sm font-semibold">Objectifs</span>
+                  </div>
+                </button>
+
+                <button
                   onClick={() => toggleFilter('showChallenges')}
                   className={`px-6 py-4 rounded-xl font-medium transition-all border-2 ${
                     dashboardFilters.showChallenges
