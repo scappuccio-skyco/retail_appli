@@ -816,8 +816,102 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                   </div>
                 )}
               </div>
+              )}
+
+              {/* Section Vendeurs Archivés */}
+              {showArchivedSellers && (
+                <div className="bg-white rounded-lg border border-gray-200">
+                  <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                      <Archive className="w-5 h-5 text-orange-600" />
+                      Vendeurs Archivés ({archivedSellers.length})
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Vendeurs en sommeil ou supprimés - L'historique est conservé
+                    </p>
+                  </div>
+
+                  {archivedSellers.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500">
+                      <Archive className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                      <p>Aucun vendeur archivé</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-gray-50 text-gray-600 text-sm">
+                            <th className="px-4 py-3 text-left font-semibold">Vendeur</th>
+                            <th className="px-4 py-3 text-center font-semibold">Statut</th>
+                            <th className="px-4 py-3 text-center font-semibold">Date archivage</th>
+                            <th className="px-4 py-3 text-center font-semibold">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {archivedSellers.map((seller) => (
+                            <tr key={seller.id} className="border-t border-gray-200 hover:bg-gray-50">
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-8 h-8 ${seller.status === 'inactive' ? 'bg-orange-100' : 'bg-gray-200'} rounded-full flex items-center justify-center`}>
+                                    <span className={`text-sm font-bold ${seller.status === 'inactive' ? 'text-orange-700' : 'text-gray-600'}`}>
+                                      {seller.name.charAt(0)}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <div className="font-medium text-gray-800">{seller.name}</div>
+                                    <div className="text-xs text-gray-500">{seller.email}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                {seller.status === 'inactive' ? (
+                                  <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
+                                    En sommeil
+                                  </span>
+                                ) : (
+                                  <span className="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-medium rounded-full">
+                                    Supprimé
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-center text-sm text-gray-600">
+                                {seller.deactivated_at 
+                                  ? new Date(seller.deactivated_at).toLocaleDateString('fr-FR')
+                                  : seller.deleted_at
+                                  ? new Date(seller.deleted_at).toLocaleDateString('fr-FR')
+                                  : '-'
+                                }
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <div className="flex items-center gap-2 justify-center">
+                                  <button
+                                    onClick={() => onViewSellerDetail(seller)}
+                                    className="px-3 py-1.5 bg-cyan-600 text-white text-xs font-medium rounded hover:bg-cyan-700 transition-colors"
+                                  >
+                                    Voir historique
+                                  </button>
+                                  {seller.status === 'inactive' && (
+                                    <button
+                                      onClick={() => setConfirmModal({ isOpen: true, action: 'reactivate', seller })}
+                                      className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors"
+                                      title="Réactiver"
+                                    >
+                                      <PlayCircle className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Charts Section */}
+              {!showArchivedSellers && (
               <div className="mt-8 space-y-6">
                 {isUpdatingCharts && (
                   <div className="text-center py-8">
