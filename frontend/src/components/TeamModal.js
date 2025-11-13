@@ -602,13 +602,79 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                           <td className="px-4 py-3">
                             <span className="text-orange-700 font-medium">{seller.worstCompetence.name}</span>
                           </td>
-                          <td className="px-4 py-3 text-center">
-                            <button
-                              onClick={() => onViewSellerDetail(seller)}
-                              className="px-3 py-1.5 bg-[#1E40AF] text-white text-xs font-medium rounded hover:bg-[#1E40AF] transition-colors"
-                            >
-                              Voir détail
-                            </button>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2 justify-center">
+                              <button
+                                onClick={() => onViewSellerDetail(seller)}
+                                className="px-3 py-1.5 bg-[#1E40AF] text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors"
+                                title="Voir le détail"
+                              >
+                                Voir détail
+                              </button>
+                              
+                              {seller.status === 'active' ? (
+                                <>
+                                  <button
+                                    onClick={async () => {
+                                      if (window.confirm(`Mettre ${seller.name} en sommeil ?\n\nCela libérera un siège mais vous pourrez réactiver ce vendeur plus tard.`)) {
+                                        try {
+                                          await axios.put(`${API}/manager/seller/${seller.id}/deactivate`, {}, {
+                                            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                          });
+                                          toast.success(`${seller.name} a été mis en sommeil`);
+                                          window.location.reload();
+                                        } catch (error) {
+                                          toast.error(error.response?.data?.detail || 'Erreur lors de la désactivation');
+                                        }
+                                      }
+                                    }}
+                                    className="p-2 bg-orange-100 text-orange-600 rounded hover:bg-orange-200 transition-colors"
+                                    title="Mettre en sommeil"
+                                  >
+                                    <PauseCircle className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      if (window.confirm(`Supprimer définitivement ${seller.name} ?\n\nCette action libérera un siège. L'historique sera conservé mais le vendeur ne pourra plus se connecter.`)) {
+                                        try {
+                                          await axios.delete(`${API}/manager/seller/${seller.id}`, {
+                                            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                          });
+                                          toast.success(`${seller.name} a été supprimé`);
+                                          window.location.reload();
+                                        } catch (error) {
+                                          toast.error(error.response?.data?.detail || 'Erreur lors de la suppression');
+                                        }
+                                      }
+                                    }}
+                                    className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors"
+                                    title="Supprimer"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </>
+                              ) : seller.status === 'inactive' ? (
+                                <button
+                                  onClick={async () => {
+                                    if (window.confirm(`Réactiver ${seller.name} ?\n\nCela consommera un siège disponible.`)) {
+                                      try {
+                                        await axios.put(`${API}/manager/seller/${seller.id}/reactivate`, {}, {
+                                          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                        });
+                                        toast.success(`${seller.name} a été réactivé`);
+                                        window.location.reload();
+                                      } catch (error) {
+                                        toast.error(error.response?.data?.detail || 'Erreur lors de la réactivation');
+                                      }
+                                    }
+                                  }}
+                                  className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors"
+                                  title="Réactiver"
+                                >
+                                  <PlayCircle className="w-4 h-4" />
+                                </button>
+                              ) : null}
+                            </div>
                           </td>
                         </tr>
                       ))}
