@@ -734,7 +734,10 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           
           <div className="grid md:grid-cols-3 gap-6">
             {Object.entries(PLANS).map(([planKey, plan]) => {
-              const isCurrentPlan = isActive && currentPlan === planKey;
+              // Check if this is the current plan AND same billing period
+              const currentBillingPeriod = subscriptionInfo?.subscription?.interval || 'month';
+              const selectedBillingPeriod = isAnnual ? 'year' : 'month';
+              const isCurrentPlan = isActive && currentPlan === planKey && currentBillingPeriod === selectedBillingPeriod;
               const isProcessing = processingPlan === planKey;
               const isEnterprise = plan.isEnterprise;
               const isRecommended = plan.isRecommended;
