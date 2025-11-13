@@ -572,7 +572,7 @@ export default function LandingPage() {
                 <div className="flex items-baseline justify-center gap-2">
                   <span className="text-3xl font-bold text-[#1E40AF]">Sur devis</span>
                 </div>
-                <p className="text-sm text-slate-500 mt-2">16+ vendeurs</p>
+                <p className="text-sm text-slate-500 mt-2">16+ espaces vendeur</p>
               </div>
 
               <ul className="space-y-3 mb-4">
