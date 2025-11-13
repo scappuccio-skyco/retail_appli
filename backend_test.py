@@ -3006,6 +3006,124 @@ class RetailCoachAPITester:
         else:
             print("   ℹ️  Using existing manager - skipping 'no subscription' test")
 
+    def test_subscription_status_manager12(self):
+        """Test subscription status endpoint for Manager12@test.com account as requested"""
+        print("\n🔍 Testing Subscription Status for Manager12@test.com (REVIEW REQUEST)...")
+        
+        # Login with the specific credentials from review request
+        login_data = {
+            "email": "Manager12@test.com",
+            "password": "demo123"
+        }
+        
+        success, response = self.run_test(
+            "Manager12 Login",
+            "POST",
+            "auth/login",
+            200,
+            data=login_data
+        )
+        
+        manager12_token = None
+        manager12_info = None
+        if success and 'token' in response:
+            manager12_token = response['token']
+            manager12_info = response['user']
+            print(f"   ✅ Logged in as: {manager12_info.get('name')} ({manager12_info.get('email')})")
+            print(f"   ✅ Manager ID: {manager12_info.get('id')}")
+            print(f"   ✅ Workspace ID: {manager12_info.get('workspace_id')}")
+        else:
+            self.log_test("Manager12 Login", False, "Could not login with Manager12@test.com/demo123")
+            print("   ❌ Could not login with Manager12@test.com - account may not exist")
+            return
+        
+        # Test GET /api/subscription/status with the token
+        print("\n   📋 Testing GET /api/subscription/status endpoint...")
+        success, subscription_response = self.run_test(
+            "Manager12 - GET Subscription Status",
+            "GET",
+            "subscription/status",
+            200,
+            token=manager12_token
+        )
+        
+        if success:
+            print("\n   📊 SUBSCRIPTION STATUS RESPONSE:")
+            print("   " + "="*50)
+            
+            # Print the complete subscription object as requested
+            print(f"   Complete Response: {json.dumps(subscription_response, indent=2, default=str)}")
+            
+            # Verify required fields from review request
+            subscription = subscription_response.get('subscription', {})
+            
+            # Check current_period_end in subscription object
+            current_period_end_sub = subscription.get('current_period_end')
+            print(f"\n   🎯 VERIFICATION RESULTS:")
+            print(f"   subscription.current_period_end: {current_period_end_sub}")
+            
+            # Check period_end at top level
+            period_end_top = subscription_response.get('period_end')
+            print(f"   period_end (top level): {period_end_top}")
+            
+            # Check status
+            status = subscription.get('status')
+            print(f"   status: {status}")
+            
+            # Check plan (should reflect 8 seats)
+            plan = subscription_response.get('plan')
+            print(f"   plan: {plan}")
+            
+            # Check subscription.seats
+            seats = subscription.get('seats')
+            print(f"   subscription.seats: {seats}")
+            
+            # Validation checks
+            validation_results = []
+            
+            # Check if current_period_end is properly set (not January 1, 1970)
+            if current_period_end_sub:
+                if "2026-11-13" in str(current_period_end_sub) or "November 13, 2026" in str(current_period_end_sub):
+                    validation_results.append("✅ current_period_end shows November 13, 2026 (CORRECT)")
+                elif "1970-01-01" in str(current_period_end_sub):
+                    validation_results.append("❌ current_period_end shows January 1, 1970 (INCORRECT)")
+                else:
+                    validation_results.append(f"⚠️  current_period_end shows: {current_period_end_sub}")
+            else:
+                validation_results.append("❌ current_period_end is missing")
+            
+            # Check status is active
+            if status == "active":
+                validation_results.append("✅ status is 'active' (CORRECT)")
+            else:
+                validation_results.append(f"⚠️  status is '{status}' (expected 'active')")
+            
+            # Check plan reflects 8 seats (professional plan)
+            if plan == "professional":
+                validation_results.append("✅ plan is 'professional' (CORRECT for 8 seats)")
+            else:
+                validation_results.append(f"⚠️  plan is '{plan}' (expected 'professional' for 8 seats)")
+            
+            # Check seats count
+            if seats == 8:
+                validation_results.append("✅ subscription.seats is 8 (CORRECT)")
+            else:
+                validation_results.append(f"⚠️  subscription.seats is {seats} (expected 8)")
+            
+            print(f"\n   🔍 VALIDATION SUMMARY:")
+            for result in validation_results:
+                print(f"   {result}")
+            
+            # Overall test result
+            critical_issues = [r for r in validation_results if r.startswith("❌")]
+            if critical_issues:
+                self.log_test("Manager12 Subscription Status Validation", False, f"Critical issues found: {len(critical_issues)}")
+            else:
+                self.log_test("Manager12 Subscription Status Validation", True)
+                print(f"\n   🎉 SUCCESS: Renewal date properly displayed as November 13, 2026 (NOT January 1, 1970)")
+        else:
+            self.log_test("Manager12 Subscription Status", False, "Could not retrieve subscription status")
+
     def print_summary(self):
         """Print test summary"""
         print(f"\n{'='*60}")
