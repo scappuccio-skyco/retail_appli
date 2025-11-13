@@ -706,7 +706,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           </h3>
           
           {/* Billing Period Toggle */}
-          <div className="flex justify-center items-center gap-4 mb-6">
+          <div className="flex justify-center items-center gap-4 mb-10">
             <span className={`text-lg font-semibold ${!isAnnual ? 'text-[#1E40AF]' : 'text-slate-400'}`}>
               Mensuel
             </span>
