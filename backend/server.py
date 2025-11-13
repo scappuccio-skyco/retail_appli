@@ -6435,11 +6435,15 @@ async def stripe_webhook(request: Request):
                     update_data = {
                         "subscription_status": "active",
                         "stripe_quantity": quantity,
-                        "current_period_start": period_start.isoformat(),
-                        "current_period_end": period_end.isoformat(),
                         "cancel_at_period_end": cancel_at_period_end,
                         "updated_at": datetime.now(timezone.utc).isoformat()
                     }
+                    
+                    # Add period fields only if available
+                    if period_start:
+                        update_data["current_period_start"] = period_start.isoformat()
+                    if period_end:
+                        update_data["current_period_end"] = period_end.isoformat()
                     
                     # If reactivated, clear cancellation timestamp
                     if not cancel_at_period_end:
