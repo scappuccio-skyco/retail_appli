@@ -5552,30 +5552,10 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
                 quantity = stripe_sub['items']['data'][0].get('quantity', 1)
                 subscription_item_id = stripe_sub['items']['data'][0]['id']
             
-            # Get period fields - try multiple sources
-            period_start = None
-            period_end = None
-            
-            # Try current_period fields first (for older subscriptions)
-            if stripe_sub.get('current_period_start'):
-                period_start = datetime.fromtimestamp(stripe_sub['current_period_start'], tz=timezone.utc)
-            if stripe_sub.get('current_period_end'):
-                period_end = datetime.fromtimestamp(stripe_sub['current_period_end'], tz=timezone.utc)
-            
-            # If not found, use billing_cycle_anchor and latest_invoice
-            if not period_start and stripe_sub.get('billing_cycle_anchor'):
-                period_start = datetime.fromtimestamp(stripe_sub['billing_cycle_anchor'], tz=timezone.utc)
-            
-            if not period_end and period_start:
-                # Calculate period_end based on subscription interval
-                from dateutil.relativedelta import relativedelta
-                # Check subscription interval from items
-                if stripe_sub.get('items') and stripe_sub['items']['data']:
-                    interval = stripe_sub['items']['data'][0].get('plan', {}).get('interval', 'month')
-                    if interval == 'year':
-                        period_end = period_start + relativedelta(years=1)
-                    else:
-                        period_end = period_start + relativedelta(months=1)
+            # Get period fields directly from Stripe subscription
+            # These fields always exist on active subscriptions
+            period_start = datetime.fromtimestamp(stripe_sub['current_period_start'], tz=timezone.utc)
+            period_end = datetime.fromtimestamp(stripe_sub['current_period_end'], tz=timezone.utc)
             
             status = stripe_sub['status']
             cancel_at_period_end = stripe_sub.get('cancel_at_period_end', False)
