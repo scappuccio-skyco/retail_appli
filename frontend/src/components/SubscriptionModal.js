@@ -228,6 +228,19 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   };
 
   const handleSelectPlan = (plan) => {
+    // Check if trying to downgrade from annual to monthly (NOT ALLOWED)
+    const currentBillingPeriod = subscriptionInfo?.subscription?.billing_interval || 'month';
+    const selectedBillingPeriod = isAnnual ? 'year' : 'month';
+    const currentPlan = subscriptionInfo?.plan || 'starter';
+    
+    if (currentBillingPeriod === 'year' && selectedBillingPeriod === 'month' && plan === currentPlan) {
+      toast.error(
+        '❌ Impossible de passer d\'un abonnement annuel à mensuel. Pour changer, vous devez annuler votre abonnement actuel.',
+        { duration: 6000 }
+      );
+      return;
+    }
+    
     // Check if user has too many sellers for Small Team plan
     const planInfo = PLANS[plan];
     if (sellerCount > planInfo.maxSellers) {
@@ -240,7 +253,6 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     
     // Calculate suggested quantity
     const suggestedQuantity = Math.max(sellerCount, planInfo.minSellers);
-    const currentPlan = subscriptionInfo?.plan || 'starter';
     const isUpgrade = (plan === 'professional' && currentPlan === 'starter');
     
     // Calculate price based on billing period
