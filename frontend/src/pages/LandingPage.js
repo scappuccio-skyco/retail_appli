@@ -423,8 +423,9 @@ export default function LandingPage() {
                       <span className="text-5xl font-bold text-[#334155]">29€</span>
                       <span className="text-[#334155]">/vendeur/mois</span>
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
                     <p className="text-sm text-green-600 font-semibold mt-2">
-                      + Manager gratuit
+                      + Espace Manager inclus
                     </p>
                   </div>
                 ) : (
@@ -433,12 +434,13 @@ export default function LandingPage() {
                       <span className="text-5xl font-bold text-[#334155]">278€</span>
                       <span className="text-[#334155]">/vendeur/an</span>
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
                     <p className="text-sm text-green-600 font-semibold mt-2">
-                      Au lieu de 348€ • Économisez 70€/an • Manager gratuit
+                      Au lieu de 348€ • Économisez 70€/an • Espace Manager inclus
                     </p>
                   </div>
                 )}
-                <p className="text-sm text-slate-500 mt-2">1 à 5 vendeurs max</p>
+                <p className="text-sm text-slate-500 mt-2">1 à 5 espaces vendeur</p>
               </div>
 
               <ul className="space-y-3 mb-4">
