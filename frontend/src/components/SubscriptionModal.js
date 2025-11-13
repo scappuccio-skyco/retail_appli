@@ -483,11 +483,11 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     <p className="text-sm text-gray-600">
                       {subscriptionInfo.subscription?.cancel_at_period_end ? (
                         <>
-                          ⚠️ Annulation programmée - Accès jusqu'au {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
+                          ⚠️ Annulation programmée - Accès jusqu'au {subscriptionInfo.subscription?.current_period_end ? new Date(subscriptionInfo.subscription.current_period_end).toLocaleDateString('fr-FR') : subscriptionInfo.period_end ? new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR') : 'N/A'}
                         </>
                       ) : (
                         <>
-                          🔄 Renouvellement: {new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')}
+                          🔄 Renouvellement: {subscriptionInfo.subscription?.current_period_end ? new Date(subscriptionInfo.subscription.current_period_end).toLocaleDateString('fr-FR') : subscriptionInfo.period_end ? new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR') : 'N/A'}
                         </>
                       )}
                     </p>
