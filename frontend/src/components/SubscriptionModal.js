@@ -742,12 +742,14 @@ export default function SubscriptionModal({ isOpen, onClose }) {
               return (
                 <div
                   key={planKey}
-                  className={`bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all ${
-                    isRecommended
-                      ? 'border-4 border-[#F97316] relative transform scale-105'
+                  className={`rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all ${
+                    isCurrentPlan
+                      ? 'bg-green-50 border-4 border-green-500 relative transform scale-105'
+                      : isRecommended
+                      ? 'bg-white border-4 border-[#F97316] relative transform scale-105'
                       : isEnterprise
-                      ? 'border-2 border-[#1E40AF]/30'
-                      : 'border-2 border-slate-200'
+                      ? 'bg-white border-2 border-[#1E40AF]/30'
+                      : 'bg-white border-2 border-slate-200'
                   }`}
                 >
                   {/* Recommended badge */}
