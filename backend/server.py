@@ -6423,9 +6423,8 @@ async def stripe_webhook(request: Request):
                     logger.info(f"Subscription canceled for workspace: {workspace['id']}")
                 
                 elif subscription['status'] == 'active':
-                    # Update subscription period and quantity
-                    period_start = datetime.fromtimestamp(subscription['current_period_start'], tz=timezone.utc)
-                    period_end = datetime.fromtimestamp(subscription['current_period_end'], tz=timezone.utc)
+                    # Update subscription period and quantity using helper function
+                    period_start, period_end = extract_subscription_period(subscription)
                     cancel_at_period_end = subscription.get('cancel_at_period_end', False)
                     
                     # Get quantity from subscription items
