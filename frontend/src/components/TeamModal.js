@@ -52,12 +52,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, action: null, seller: null }); // Modal de confirmation
   const [showArchivedSellers, setShowArchivedSellers] = useState(false); // Afficher vendeurs archivés
   const [archivedSellers, setArchivedSellers] = useState([]); // Liste des vendeurs archivés
-  const [localSellers, setLocalSellers] = useState(sellers); // Copie locale pour filtrage optimiste
-  
-  // Synchroniser localSellers avec sellers uniquement lors du refresh
-  useEffect(() => {
-    setLocalSellers(sellers);
-  }, [sellers]);
+  const [hiddenSellerIds, setHiddenSellerIds] = useState([]); // IDs des vendeurs à masquer temporairement
 
   // Initialize visible sellers only once when sellers change
   useEffect(() => {
