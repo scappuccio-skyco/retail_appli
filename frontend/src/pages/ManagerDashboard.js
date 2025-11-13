@@ -128,7 +128,8 @@ export default function ManagerDashboard({ user, onLogout }) {
     return saved ? JSON.parse(saved) : {
       showKPI: true,
       showTeam: true,
-      showSettings: true
+      showSettings: true,
+      showSettings2: true
     };
   });
   const [showFilters, setShowFilters] = useState(false);
