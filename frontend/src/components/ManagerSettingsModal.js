@@ -326,7 +326,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         <div className="sticky top-0 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 flex justify-between items-center border-b border-gray-200">
           <div className="flex items-center gap-3">
             <Settings className="w-8 h-8 text-white" />
-            <h2 className="text-3xl font-bold text-white">🎯 Objectifs & Challenges</h2>
+            <h2 className="text-3xl font-bold text-white">
+              {modalType === 'objectives' ? '🎯 Objectifs' : '🏆 Challenges'}
+            </h2>
           </div>
           <button
             onClick={onClose}
@@ -336,28 +338,24 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
           </button>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs - Only show the tab corresponding to modalType */}
         <div className="flex border-b border-gray-200 bg-gray-50 px-6">
-          <button
-            onClick={() => setActiveTab('objectives')}
-            className={`px-6 py-4 font-semibold transition-all ${
-              activeTab === 'objectives'
-                ? 'border-b-4 border-[#1E40AF] text-gray-800'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            🎯 Objectifs
-          </button>
-          <button
-            onClick={() => setActiveTab('challenges')}
-            className={`px-6 py-4 font-semibold transition-all ${
-              activeTab === 'challenges'
-                ? 'border-b-4 border-[#1E40AF] text-gray-800'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            🏆 Challenges
-          </button>
+          {modalType === 'objectives' && (
+            <button
+              onClick={() => setActiveTab('objectives')}
+              className="px-6 py-4 font-semibold transition-all border-b-4 border-[#1E40AF] text-gray-800"
+            >
+              🎯 Objectifs
+            </button>
+          )}
+          {modalType === 'challenges' && (
+            <button
+              onClick={() => setActiveTab('challenges')}
+              className="px-6 py-4 font-semibold transition-all border-b-4 border-[#1E40AF] text-gray-800"
+            >
+              🏆 Challenges
+            </button>
+          )}
         </div>
 
         {/* Content */}
