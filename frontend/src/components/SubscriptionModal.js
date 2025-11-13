@@ -808,7 +808,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     </button>
                   ) : isEnterprise ? (
                     <a
-                      href="mailto:contact@retailperformerai.com?subject=Demande d'information - Plan Entreprise"
+                      href="mailto:contact@retailperformerai.com?subject=Demande d'information - Plan Large Team"
                       className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-colors font-semibold flex items-center justify-center gap-2"
                     >
                       📧 Nous contacter
