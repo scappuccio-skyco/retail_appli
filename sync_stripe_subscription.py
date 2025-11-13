@@ -134,6 +134,8 @@ async def sync_subscription():
             "stripe_subscription_item_id": subscription_item_id,
             "stripe_quantity": quantity,
             "subscription_status": status,
+            "billing_interval": billing_interval,
+            "billing_interval_count": billing_interval_count,
             "cancel_at_period_end": cancel_at_period_end,
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
