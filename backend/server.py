@@ -5524,8 +5524,14 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
                 quantity = stripe_sub['items']['data'][0].get('quantity', 1)
                 subscription_item_id = stripe_sub['items']['data'][0]['id']
             
-            period_start = datetime.fromtimestamp(stripe_sub['current_period_start'], tz=timezone.utc)
-            period_end = datetime.fromtimestamp(stripe_sub['current_period_end'], tz=timezone.utc)
+            # Safe access to period fields (may not exist on canceled subscriptions)
+            period_start = None
+            period_end = None
+            if stripe_sub.get('current_period_start'):
+                period_start = datetime.fromtimestamp(stripe_sub['current_period_start'], tz=timezone.utc)
+            if stripe_sub.get('current_period_end'):
+                period_end = datetime.fromtimestamp(stripe_sub['current_period_end'], tz=timezone.utc)
+            
             status = stripe_sub['status']
             cancel_at_period_end = stripe_sub.get('cancel_at_period_end', False)
             
