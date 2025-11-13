@@ -726,7 +726,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         )
                         .slice(0, displayedSellerCount)
                         .map((seller, idx) => (
-                        <tr key={`${seller.id}-${periodFilter}`} className={`border-b border-gray-100 hover:bg-gray-50 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                        <tr key={`${seller.id}-${periodFilter}`} className={`border-b border-gray-100 hover:bg-gray-50 transition-all duration-300 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
                               <div className={`w-8 h-8 ${seller.status === 'active' ? 'bg-cyan-100' : seller.status === 'inactive' ? 'bg-orange-100' : 'bg-gray-100'} rounded-full flex items-center justify-center`}>
