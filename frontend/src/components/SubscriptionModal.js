@@ -46,9 +46,9 @@ const PLANS = {
       'Dashboard complet',
       'Diagnostic DISC',
       'Suivi KPI en temps réel',
-      'Analyses IA illimitées',
-      'Nombre de vendeurs illimité',
-      'Support prioritaire 24/7',
+      '150 + (30 × vendeurs) analyses IA Manager/mois',
+      '100+ analyses IA par vendeur/mois',
+      'Support Email sous 48h',
       'Account Manager dédié',
       'Formation personnalisée',
       'Intégrations sur mesure'
