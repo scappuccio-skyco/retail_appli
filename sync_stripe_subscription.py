@@ -57,6 +57,10 @@ async def sync_subscription():
         # Retrieve full subscription details
         subscription = stripe_lib.Subscription.retrieve(sub_id)
         
+        # Debug: print all available fields
+        print(f"\n🔍 DEBUG - Available subscription fields:")
+        print(f"   {list(subscription.keys())}")
+        
         # Extract subscription details
         quantity = 1
         subscription_item_id = None
