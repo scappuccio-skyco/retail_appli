@@ -159,10 +159,6 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   const handleChangeSeats = async (newSeats) => {
     if (!subscriptionInfo) return;
     
-    // Close modal FIRST
-    onClose();
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
     try {
       const token = localStorage.getItem('token');
       console.log('📡 Making API call to change seats...');
@@ -176,15 +172,17 @@ export default function SubscriptionModal({ isOpen, onClose }) {
       console.log('✅ API response:', response.data);
       
       if (response.data.success) {
-        // NO ALERT - Just reload directly
+        toast.success('Nombre de sièges modifié avec succès !');
+        // Close modal and reload
+        onClose();
+        await new Promise(resolve => setTimeout(resolve, 500));
         window.location.reload();
       }
     } catch (error) {
       const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
       console.error('❌ API Error:', errorMsg);
-      // Show error only if API fails
-      alert('❌ ' + errorMsg);
-      window.location.reload();
+      // Show error with toast - modal stays open
+      toast.error(errorMsg, { duration: 6000 });
     }
   };
 
