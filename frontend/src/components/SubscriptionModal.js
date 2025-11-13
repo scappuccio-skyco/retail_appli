@@ -4,6 +4,7 @@ import { X, Crown, Check, Loader, Users } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import QuantityModal from './QuantityModal';
+import ConfirmActionModal from './ConfirmActionModal';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
