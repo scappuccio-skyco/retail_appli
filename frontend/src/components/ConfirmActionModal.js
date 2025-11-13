@@ -20,7 +20,8 @@ export default function ConfirmActionModal({
         '✓ Libère 1 siège',
         '✓ Réversible',
         '✓ Historique conservé',
-        '✓ Le vendeur ne pourra plus se connecter'
+        '✓ Le vendeur ne pourra plus se connecter',
+        '💡 Vous pourrez le réactiver dans "Vendeurs archivés"'
       ],
       confirmText: 'Mettre en sommeil',
       cancelText: 'Annuler'
