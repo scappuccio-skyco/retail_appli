@@ -683,14 +683,14 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                                       <Trash2 className="w-4 h-4" />
                                     </button>
                                     {hoveredButton === `delete-${seller.id}` && (
-                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 w-56 bg-gray-900 text-white text-xs rounded-lg shadow-xl p-3 pointer-events-none">
-                                        <div className="font-bold mb-1">🔴 Supprimer définitivement</div>
-                                        <div className="text-gray-300">
-                                          • Libère 1 siège<br/>
-                                          • Action irréversible<br/>
-                                          • Historique conservé
+                                      <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 z-[9999] w-64 bg-gray-900 text-white text-xs rounded-lg shadow-2xl p-3 pointer-events-none whitespace-nowrap">
+                                        <div className="font-bold mb-2 text-red-400">🔴 Supprimer définitivement</div>
+                                        <div className="text-gray-300 space-y-1">
+                                          <div>• Libère 1 siège</div>
+                                          <div>• Action irréversible</div>
+                                          <div>• Historique conservé</div>
                                         </div>
-                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                                        <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
                                       </div>
                                     )}
                                   </div>
