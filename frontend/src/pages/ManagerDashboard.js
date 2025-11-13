@@ -730,11 +730,6 @@ export default function ManagerDashboard({ user, onLogout }) {
         </div>
       </div>
 
-      {/* Subscription Banner */}
-      <div className="max-w-7xl mx-auto">
-        <SubscriptionBanner onUpgradeClick={() => setShowSubscriptionModal(true)} />
-      </div>
-
       {/* Dashboard Filters Panel */}
       {showFilters && (
         <div className="max-w-7xl mx-auto mb-6">
