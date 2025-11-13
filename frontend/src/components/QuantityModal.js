@@ -3,13 +3,13 @@ import { Crown, Loader } from 'lucide-react';
 
 const PLANS = {
   starter: {
-    name: 'Starter',
+    name: 'Small Team',
     pricePerSeller: 29,
     minSellers: 1,
     maxSellers: 5,
   },
   professional: {
-    name: 'Professional', 
+    name: 'Medium Team', 
     pricePerSeller: 25,
     minSellers: 6,
     maxSellers: 15,
