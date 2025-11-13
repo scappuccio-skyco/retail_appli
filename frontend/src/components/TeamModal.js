@@ -292,11 +292,12 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
     // Fermer le modal de confirmation immédiatement
     setConfirmModal({ isOpen: false, action: null, seller: null });
     
-    // Filtrer localement pour feedback instantané
-    setArchivedSellers(prev => prev.filter(s => s.id !== sellerId));
-    
     try {
       const token = localStorage.getItem('token');
+      
+      // Retirer de la liste archivée immédiatement
+      setArchivedSellers(prev => prev.filter(s => s.id !== sellerId));
+      
       await axios.put(`${API}/manager/seller/${sellerId}/reactivate`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
