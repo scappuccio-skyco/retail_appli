@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://workspace-model.preview.emergentagent.com
+https://seller-tracker-1.preview.emergentagent.com
 
 ### Manager
 ```
