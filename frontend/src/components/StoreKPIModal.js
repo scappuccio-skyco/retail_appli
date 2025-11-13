@@ -972,17 +972,21 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                           height={70}
                         />
                         <YAxis tick={{ fontSize: 12 }} />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="total_ca" name="CA Total" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="seller_ca" name="CA Vendeurs" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                  )}
-
-                  {/* Ventes Chart */}
-                  {visibleCharts.ventes && (
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', padding: '10px' }}
+                        />
+                        <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                        
+                        {/* CA Lines */}
+                        {visibleCharts.ca && (
+                          <>
+                            <Line type="monotone" dataKey="total_ca" name="💰 CA Total" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                            <Line type="monotone" dataKey="seller_ca" name="💰 CA Vendeurs" stroke="#a78bfa" strokeWidth={2} dot={{ r: 3 }} strokeDasharray="5 5" />
+                          </>
+                        )}
+                        
+                        {/* Ventes Lines */}
+                        {visibleCharts.ventes && (
                   <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
                     <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                       🛒 Nombre de Ventes
