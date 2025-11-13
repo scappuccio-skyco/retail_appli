@@ -742,41 +742,20 @@ export default function SubscriptionModal({ isOpen, onClose }) {
               return (
                 <div
                   key={planKey}
-                  className={`rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all ${
-                    isCurrentPlan
-                      ? 'bg-green-50 border-4 border-green-500 relative transform scale-105'
-                      : isRecommended
-                      ? 'bg-white border-4 border-[#F97316] relative transform scale-105'
+                  className={`bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all ${
+                    isRecommended
+                      ? 'border-4 border-[#F97316] relative transform scale-105'
                       : isEnterprise
-                      ? 'bg-white border-2 border-[#1E40AF]/30'
-                      : 'bg-white border-2 border-slate-200'
+                      ? 'border-2 border-[#1E40AF]/30'
+                      : 'border-2 border-slate-200'
                   }`}
                 >
                   {/* Recommended badge */}
-                  {isRecommended && !isCurrentPlan && (
+                  {isRecommended && (
                     <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-10">
                       <div className="bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
                         <Star className="w-4 h-4" />
                         RECOMMANDÉ
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Current plan badge - combined with recommended if both */}
-                  {isCurrentPlan && isRecommended && (
-                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-10">
-                      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
-                        <Star className="w-4 h-4" />
-                        RECOMMANDÉ • PLAN ACTUEL
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Current plan badge only */}
-                  {isCurrentPlan && !isRecommended && (
-                    <div className="absolute -top-4 right-4 z-10">
-                      <div className="bg-green-600 text-white px-4 py-1 rounded-full text-xs font-bold">
-                        PLAN ACTUEL
                       </div>
                     </div>
                   )}
