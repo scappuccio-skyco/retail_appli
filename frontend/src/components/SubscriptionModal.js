@@ -10,7 +10,7 @@ const API = process.env.REACT_APP_BACKEND_URL;
 
 const PLANS = {
   starter: {
-    name: 'Starter',
+    name: 'Small Team',
     pricePerSeller: 29,
     minSellers: 1,
     maxSellers: 5,
@@ -24,7 +24,7 @@ const PLANS = {
     ]
   },
   professional: {
-    name: 'Professional',
+    name: 'Medium Team',
     pricePerSeller: 25,
     minSellers: 6,
     maxSellers: 15,
@@ -38,7 +38,7 @@ const PLANS = {
     ]
   },
   enterprise: {
-    name: 'Entreprise',
+    name: 'Large Team',
     pricePerSeller: null, // Custom pricing
     minSellers: 16,
     maxSellers: null,
