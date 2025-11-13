@@ -70,6 +70,10 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   // Confirmation modal state (for plan change)
   const [showPlanConfirmModal, setShowPlanConfirmModal] = useState(false);
   const [planConfirmData, setPlanConfirmData] = useState(null);
+  
+  // Confirmation modal state (for subscription actions)
+  const [showSubscriptionActionModal, setShowSubscriptionActionModal] = useState(false);
+  const [subscriptionAction, setSubscriptionAction] = useState(null);
 
   // Calculate estimated amount for seat change
   const calculateEstimatedAmount = (currentSeats, newSeats) => {
