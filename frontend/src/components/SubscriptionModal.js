@@ -832,7 +832,14 @@ export default function SubscriptionModal({ isOpen, onClose }) {
               }`}>
                 <p className="text-sm opacity-75 font-semibold">Plan sélectionné</p>
                 <p className="text-2xl font-black">{planConfirmData.planName}</p>
-                <p className="text-sm mt-1">{planConfirmData.pricePerSeat}€ / siège / mois</p>
+                <p className="text-sm mt-1">
+                  {planConfirmData.pricePerSeat}€ / siège / {planConfirmData.isAnnual ? 'an' : 'mois'}
+                </p>
+                {planConfirmData.isAnnual && (
+                  <p className="text-xs text-green-600 font-semibold mt-1">
+                    Au lieu de {planConfirmData.monthlyPrice * 12}€ • Économisez {Math.round(planConfirmData.monthlyPrice * 12 * 0.2)}€/an par siège
+                  </p>
+                )}
               </div>
 
               {/* Quantity Selector */}
