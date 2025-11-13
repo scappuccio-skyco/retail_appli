@@ -682,13 +682,30 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     <h4 className="text-2xl font-bold text-gray-800 mb-2">
                       {plan.name}
                     </h4>
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-4xl font-bold text-[#1E40AF]">
-                        {plan.pricePerSeller}€
-                      </span>
-                      <span className="text-gray-600">/vendeur/mois</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
+                    {!isAnnual ? (
+                      <div>
+                        <div className="flex items-baseline justify-center gap-1">
+                          <span className="text-4xl font-bold text-[#1E40AF]">
+                            {plan.pricePerSeller}€
+                          </span>
+                          <span className="text-gray-600">/vendeur/mois</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="flex items-baseline justify-center gap-1">
+                          <span className="text-4xl font-bold text-[#1E40AF]">
+                            {Math.round(plan.pricePerSeller * 12 * 0.8)}€
+                          </span>
+                          <span className="text-gray-600">/vendeur/an</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
+                        <p className="text-xs text-green-600 font-semibold mt-1">
+                          Au lieu de {plan.pricePerSeller * 12}€ • Économisez {Math.round(plan.pricePerSeller * 12 * 0.2)}€/an
+                        </p>
+                      </div>
+                    )}
                     <p className="text-sm text-green-600 font-semibold mt-2">
                       {plan.minSellers} à {plan.maxSellers} espaces vendeur
                     </p>
