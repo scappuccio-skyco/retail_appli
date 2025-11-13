@@ -6320,7 +6320,7 @@ async def stripe_webhook(request: Request):
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origin_regex=r"https://.*\.emergentagent\.com",
+    allow_origin_regex=r"https://.*\.emergentagent\.com|http://localhost:3000",
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
