@@ -64,10 +64,11 @@ async def sync_subscription():
             quantity = subscription['items']['data'][0].get('quantity', 1)
             subscription_item_id = subscription['items']['data'][0]['id']
         
-        period_start = datetime.fromtimestamp(subscription['current_period_start'], tz=timezone.utc)
-        period_end = datetime.fromtimestamp(subscription['current_period_end'], tz=timezone.utc)
-        status = subscription['status']
-        cancel_at_period_end = subscription.get('cancel_at_period_end', False)
+        # Access fields properly from Stripe object
+        period_start = datetime.fromtimestamp(subscription.current_period_start, tz=timezone.utc)
+        period_end = datetime.fromtimestamp(subscription.current_period_end, tz=timezone.utc)
+        status = subscription.status
+        cancel_at_period_end = subscription.cancel_at_period_end if hasattr(subscription, 'cancel_at_period_end') else False
         
         print(f"\n📊 Subscription Details:")
         print(f"   Status: {status}")
