@@ -436,7 +436,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   : 'text-gray-600 hover:text-purple-600'
               }`}
             >
-              📊 Vue d'ensemble
+              📊 Historique
             </button>
             <button
               onClick={() => setActiveTab('config')}
