@@ -547,8 +547,7 @@ export default function LandingPage() {
                     '6 à 15 vendeurs',
                     '150+ analyses IA manager/mois',
                     '100+ analyses IA par vendeur/mois',
-                    'Support prioritaire',
-                    'Onboarding personnalisé'
+                    'Support email sous 48h'
                   ].map((item, idx) => (
                     <li key={`pro-spec-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
