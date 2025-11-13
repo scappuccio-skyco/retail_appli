@@ -5597,9 +5597,18 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
             # Extraire les vraies données
             quantity = 1
             subscription_item_id = None
+            billing_interval = 'month'  # Default
+            billing_interval_count = 1
+            
             if stripe_sub.get('items') and stripe_sub['items']['data']:
                 quantity = stripe_sub['items']['data'][0].get('quantity', 1)
                 subscription_item_id = stripe_sub['items']['data'][0]['id']
+                
+                # Extract billing interval from price
+                item = stripe_sub['items']['data'][0]
+                if item.get('price') and item['price'].get('recurring'):
+                    billing_interval = item['price']['recurring'].get('interval', 'month')
+                    billing_interval_count = item['price']['recurring'].get('interval_count', 1)
             
             # Get period fields from Stripe subscription using helper function
             period_start, period_end = extract_subscription_period(stripe_sub)
