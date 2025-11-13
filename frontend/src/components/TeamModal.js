@@ -538,8 +538,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                   </div>
                 </div>
               </div>
+              )}
 
-              {/* Summary Cards */}
+              {!showArchivedSellers && (
+              <>{/* Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-4 border border-blue-200">
                   <div className="flex items-center gap-3 mb-2">
