@@ -14,13 +14,21 @@ const PLANS = {
     pricePerSeller: 29,
     minSellers: 1,
     maxSellers: 5,
-    features: [
-      'Dashboard complet',
-      'Diagnostic DISC',
+    subtitle: 'Petites boutiques',
+    mainFeatures: [
+      'Dashboard Manager & Vendeur',
+      'Diagnostic DISC complet',
+      'Coaching IA personnalisé',
       'Suivi KPI en temps réel',
+      'Objectifs & Challenges',
+      'Débriefs de vente intelligents',
+      'Historique illimité'
+    ],
+    specs: [
+      '1 à 5 vendeurs',
       '150 + (30 × vendeurs) analyses IA Manager/mois',
       '100+ analyses IA par vendeur/mois',
-      'Support Email sous 48h'
+      'Support email sous 48h'
     ]
   },
   professional: {
@@ -28,32 +36,46 @@ const PLANS = {
     pricePerSeller: 25,
     minSellers: 6,
     maxSellers: 15,
-    features: [
-      'Dashboard complet',
-      'Diagnostic DISC',
+    subtitle: 'Magasins moyens',
+    isRecommended: true,
+    mainFeatures: [
+      'Dashboard Manager & Vendeur',
+      'Diagnostic DISC complet',
+      'Coaching IA personnalisé',
       'Suivi KPI en temps réel',
+      'Objectifs & Challenges',
+      'Débriefs de vente intelligents',
+      'Historique illimité'
+    ],
+    specs: [
+      '6 à 15 vendeurs',
       '150 + (30 × vendeurs) analyses IA Manager/mois',
       '100+ analyses IA par vendeur/mois',
-      'Support Email sous 48h'
+      'Support email sous 48h'
     ]
   },
   enterprise: {
     name: 'Large Team',
-    pricePerSeller: null, // Custom pricing
+    pricePerSeller: null,
     minSellers: 16,
     maxSellers: null,
-    features: [
-      'Dashboard complet',
-      'Diagnostic DISC',
+    subtitle: 'Pour réseaux & enseignes',
+    isEnterprise: true,
+    mainFeatures: [
+      'Dashboard Manager & Vendeur',
+      'Diagnostic DISC complet',
+      'Coaching IA personnalisé',
       'Suivi KPI en temps réel',
+      'Objectifs & Challenges',
+      'Débriefs de vente intelligents',
+      'Historique illimité'
+    ],
+    specs: [
+      '16+ vendeurs',
       '150 + (30 × vendeurs) analyses IA Manager/mois',
       '100+ analyses IA par vendeur/mois',
-      'Support Email sous 48h',
-      'Account Manager dédié',
-      'Formation personnalisée',
-      'Intégrations sur mesure'
-    ],
-    isEnterprise: true
+      'Support email sous 48h'
+    ]
   }
 };
 
