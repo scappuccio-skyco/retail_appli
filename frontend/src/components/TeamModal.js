@@ -1070,7 +1070,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         // Ne compter que les vendeurs actifs et sélectionnés
                         const selectedCount = Object.entries(visibleSellers)
                           .filter(([sellerId, isVisible]) => {
-                            const s = sellers.find(sel => sel.id === sellerId);
+                            const s = teamData.find(sel => sel.id === sellerId);
                             return isVisible && s && !hiddenSellerIds.includes(sellerId) && (!s.status || s.status === 'active');
                           }).length;
                         const canSelect = visibleSellers[seller.id] || selectedCount < 5;
