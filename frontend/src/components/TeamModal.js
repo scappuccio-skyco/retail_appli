@@ -1216,7 +1216,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                           />
                           <YAxis tick={{ fontSize: 10 }} />
                           <RechartsTooltip content={<CustomTooltip />} />
-                          {sellers
+                          {teamData
                             .filter(seller => 
                               visibleSellers[seller.id] && 
                               !hiddenSellerIds.includes(seller.id) && 
