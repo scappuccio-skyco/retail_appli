@@ -721,8 +721,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {localSellers
+                      {teamData
                         .filter(seller => 
+                          // Exclure les vendeurs masqués temporairement
+                          !hiddenSellerIds.includes(seller.id) &&
                           // Exclure les vendeurs inactifs ou supprimés
                           (!seller.status || seller.status === 'active') &&
                           // Filtre de recherche
