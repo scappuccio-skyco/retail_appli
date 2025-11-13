@@ -725,19 +725,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                               ) : seller.status === 'inactive' ? (
                                 <div className="relative">
                                   <button
-                                    onClick={async () => {
-                                      if (window.confirm(`Réactiver ${seller.name} ?\n\nCela consommera un siège disponible.`)) {
-                                        try {
-                                          await axios.put(`${API}/manager/seller/${seller.id}/reactivate`, {}, {
-                                            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                                          });
-                                          toast.success(`${seller.name} a été réactivé`);
-                                          window.location.reload();
-                                        } catch (error) {
-                                          toast.error(error.response?.data?.detail || 'Erreur lors de la réactivation');
-                                        }
-                                      }
-                                    }}
+                                    onClick={() => setConfirmModal({ isOpen: true, action: 'reactivate', seller })}
                                     onMouseEnter={() => setHoveredButton(`reactivate-${seller.id}`)}
                                     onMouseLeave={() => setHoveredButton(null)}
                                     className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors relative"
