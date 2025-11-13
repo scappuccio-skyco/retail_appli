@@ -67,15 +67,36 @@ async def sync_subscription():
         if subscription.get('items') and subscription['items']['data']:
             quantity = subscription['items']['data'][0].get('quantity', 1)
             subscription_item_id = subscription['items']['data'][0]['id']
+            
+            # Try to get period from the price/plan inside items
+            item = subscription['items']['data'][0]
+            if hasattr(item, 'price') and hasattr(item.price, 'recurring'):
+                print(f"\n🔍 Found price recurring info: {item.price.recurring}")
         
-        # Access fields - try to get them safely
-        try:
-            period_start = datetime.fromtimestamp(subscription.current_period_start, tz=timezone.utc)
-            period_end = datetime.fromtimestamp(subscription.current_period_end, tz=timezone.utc)
-        except AttributeError:
-            print("⚠️  Period fields not available in subscription object")
-            period_start = None
-            period_end = None
+        # Try different approaches to get period dates
+        period_start = None
+        period_end = None
+        
+        # Approach 1: billing_cycle_anchor gives us the start
+        if hasattr(subscription, 'billing_cycle_anchor') and subscription.billing_cycle_anchor:
+            period_start = datetime.fromtimestamp(subscription.billing_cycle_anchor, tz=timezone.utc)
+            print(f"✅ Got period_start from billing_cycle_anchor: {period_start}")
+            
+            # Calculate end based on the plan interval
+            if hasattr(subscription, 'plan') and subscription.plan:
+                interval = subscription.plan.get('interval', 'month')
+                interval_count = subscription.plan.get('interval_count', 1)
+                print(f"   Plan interval: {interval_count} {interval}(s)")
+                
+                # For annual subscription
+                if interval == 'year':
+                    from dateutil.relativedelta import relativedelta
+                    period_end = period_start + relativedelta(years=interval_count)
+                elif interval == 'month':
+                    from dateutil.relativedelta import relativedelta
+                    period_end = period_start + relativedelta(months=interval_count)
+                
+                print(f"✅ Calculated period_end: {period_end}")
         
         status = subscription.status if hasattr(subscription, 'status') else 'unknown'
         cancel_at_period_end = subscription.cancel_at_period_end if hasattr(subscription, 'cancel_at_period_end') else False
