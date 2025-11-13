@@ -66,20 +66,21 @@ TRIAL_DAYS = 14
 MAX_SELLERS_TRIAL = 15  # Limite pendant la période d'essai
 TRIAL_AI_CREDITS = 100  # Crédits IA pour l'essai gratuit
 
-# AI Credits Formula: 250 (manager base) + (100 × number of seats)
-MANAGER_BASE_CREDITS = 250  # Base credits for manager analyses
-CREDITS_PER_SEAT = 100  # Credits per seller seat
+# AI Credits Formula: 150 (manager base) + (30 × number of seats)
+MANAGER_BASE_CREDITS = 150  # Base credits for manager analyses
+CREDITS_PER_SEAT = 30  # Credits per seller seat
 
 
 def calculate_monthly_ai_credits(seats: int) -> int:
     """
     Calculate monthly AI credits based on number of seats
-    Formula: 250 (manager base) + (100 × seats)
+    Formula: 150 (manager base) + (30 × seats)
     
     Examples:
-    - 1 seat  → 250 + 100 = 350 credits (~250 analyses)
-    - 5 seats → 250 + 500 = 750 credits (~650 analyses)
-    - 15 seats → 250 + 1500 = 1750 credits (~1650 analyses)
+    - 1 seat  → 150 + 30 = 180 credits
+    - 5 seats → 150 + 150 = 300 credits
+    - 10 seats → 150 + 300 = 450 credits
+    - 15 seats → 150 + 450 = 600 credits
     """
     return MANAGER_BASE_CREDITS + (seats * CREDITS_PER_SEAT)
 
