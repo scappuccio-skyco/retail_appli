@@ -914,7 +914,11 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       ) : (
                         <>
                           <Crown className="w-5 h-5" />
-                          {isActive ? 'Changer de plan' : 'Choisir ce plan'}
+                          {isActive && currentPlan === planKey && currentBillingPeriod !== selectedBillingPeriod
+                            ? `Passer à ${isAnnual ? 'l\'annuel' : 'au mensuel'}`
+                            : isActive 
+                            ? 'Changer de plan' 
+                            : 'Choisir ce plan'}
                         </>
                       )}
                     </button>
