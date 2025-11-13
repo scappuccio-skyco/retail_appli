@@ -702,19 +702,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                                   
                                   <div className="relative">
                                     <button
-                                      onClick={async () => {
-                                        if (window.confirm(`Supprimer définitivement ${seller.name} ?\n\nCette action libérera un siège. L'historique sera conservé mais le vendeur ne pourra plus se connecter.`)) {
-                                          try {
-                                            await axios.delete(`${API}/manager/seller/${seller.id}`, {
-                                              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                                            });
-                                            toast.success(`${seller.name} a été supprimé`);
-                                            window.location.reload();
-                                          } catch (error) {
-                                            toast.error(error.response?.data?.detail || 'Erreur lors de la suppression');
-                                          }
-                                        }
-                                      }}
+                                      onClick={() => setConfirmModal({ isOpen: true, action: 'delete', seller })}
                                       onMouseEnter={() => setHoveredButton(`delete-${seller.id}`)}
                                       onMouseLeave={() => setHoveredButton(null)}
                                       className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors relative"
