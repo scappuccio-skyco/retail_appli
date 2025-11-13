@@ -15,13 +15,12 @@ const PLANS = {
     minSellers: 1,
     maxSellers: 5,
     features: [
-      '29€ par vendeur/mois (Hors taxe)',
       'Dashboard complet',
       'Diagnostic DISC',
       'Suivi KPI en temps réel',
       '150+ analyses IA manager/mois',
       '100+ analyses IA par vendeur/mois',
-      'Support email sous 48h'
+      'Support Email sous 48h'
     ]
   },
   professional: {
@@ -30,14 +29,12 @@ const PLANS = {
     minSellers: 6,
     maxSellers: 15,
     features: [
-      '25€ par vendeur/mois (Hors taxe - tarif dégressif)',
       'Dashboard complet',
       'Diagnostic DISC',
       'Suivi KPI en temps réel',
       '150+ analyses IA manager/mois',
       '100+ analyses IA par vendeur/mois',
-      'Support prioritaire',
-      'Onboarding personnalisé'
+      'Support Email sous 48h'
     ]
   }
 };
