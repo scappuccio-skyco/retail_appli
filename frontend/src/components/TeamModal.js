@@ -258,9 +258,11 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Vendeur supprimé avec succès');
+      setConfirmModal({ isOpen: false, action: null, seller: null });
       await refreshSellersData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de la suppression');
+      setConfirmModal({ isOpen: false, action: null, seller: null });
     }
   };
 
