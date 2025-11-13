@@ -412,10 +412,10 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Starter */}
+            {/* Small Team */}
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-slate-200">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Starter</h3>
+                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Small Team</h3>
                 <p className="text-[#334155] mb-4">Petites boutiques</p>
                 {!isAnnual ? (
                   <div>
