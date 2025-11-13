@@ -425,6 +425,25 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       </>
                     )}
                   </p>
+                  {/* Seats information */}
+                  <div className="mt-3 p-3 bg-white rounded-lg border border-blue-300">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-blue-600" />
+                        <span className="font-semibold text-gray-800">Sièges vendeurs</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl font-bold text-blue-600">
+                          {sellerCount}
+                        </span>
+                        <span className="text-gray-500 mx-1">/</span>
+                        <span className="text-xl font-semibold text-gray-700">
+                          {subscriptionInfo.subscription?.seats || PLANS[currentPlan].maxSellers}
+                        </span>
+                        <p className="text-xs text-gray-500 mt-0.5">actifs / achetés</p>
+                      </div>
+                    </div>
+                  </div>
                   {!subscriptionInfo.subscription?.cancel_at_period_end ? (
                     <button
                       onClick={handleCancelSubscription}
