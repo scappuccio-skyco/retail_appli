@@ -1067,7 +1067,12 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         ];
                         const colorSet = colors[idx % 5] || { bg: 'bg-gray-500', text: 'text-white' };
                         
-                        const selectedCount = Object.values(visibleSellers).filter(v => v).length;
+                        // Ne compter que les vendeurs actifs et sélectionnés
+                        const selectedCount = Object.entries(visibleSellers)
+                          .filter(([sellerId, isVisible]) => {
+                            const s = sellers.find(sel => sel.id === sellerId);
+                            return isVisible && s && !hiddenSellerIds.includes(sellerId) && (!s.status || s.status === 'active');
+                          }).length;
                         const canSelect = visibleSellers[seller.id] || selectedCount < 5;
                         
                         return (
