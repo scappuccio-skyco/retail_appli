@@ -1042,6 +1042,23 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
           onClose={() => setShowAIAnalysisModal(false)}
         />
       )}
+
+      {/* Modal de confirmation */}
+      <ConfirmActionModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, action: null, seller: null })}
+        onConfirm={() => {
+          if (confirmModal.action === 'deactivate') {
+            handleDeactivate(confirmModal.seller.id);
+          } else if (confirmModal.action === 'delete') {
+            handleDelete(confirmModal.seller.id);
+          } else if (confirmModal.action === 'reactivate') {
+            handleReactivate(confirmModal.seller.id);
+          }
+        }}
+        action={confirmModal.action}
+        sellerName={confirmModal.seller?.name}
+      />
     </div>
   );
 }
