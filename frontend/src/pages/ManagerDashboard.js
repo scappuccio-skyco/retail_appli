@@ -620,12 +620,12 @@ export default function ManagerDashboard({ user, onLogout }) {
         </div>
       ),
       
-      settings: dashboardFilters.showSettings && (
+      objectives: dashboardFilters.showObjectives && (
         <div
-          key="settings"
+          key="objectives"
           onClick={() => setShowSettingsModal(true)}
           className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-blue-400"
-          style={{ order: getSectionOrder('settings') }}
+          style={{ order: getSectionOrder('objectives') }}
         >
           <div className="relative h-56 overflow-hidden">
             <img 
