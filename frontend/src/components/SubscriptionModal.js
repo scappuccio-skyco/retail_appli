@@ -665,8 +665,9 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       </span>
                       <span className="text-gray-600">/vendeur/mois</span>
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
                     <p className="text-sm text-green-600 font-semibold mt-2">
-                      Manager gratuit
+                      Espace Manager inclus
                     </p>
                   </div>
 
