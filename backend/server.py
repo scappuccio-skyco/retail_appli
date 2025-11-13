@@ -5553,12 +5553,30 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
                 quantity = stripe_sub['items']['data'][0].get('quantity', 1)
                 subscription_item_id = stripe_sub['items']['data'][0]['id']
             
-            # Get period fields directly from Stripe subscription
-            # These fields always exist on active subscriptions
-            period_start = datetime.fromtimestamp(stripe_sub['current_period_start'], tz=timezone.utc)
-            period_end = datetime.fromtimestamp(stripe_sub['current_period_end'], tz=timezone.utc)
+            # Get period fields from Stripe subscription
+            # Use billing_cycle_anchor as period start and calculate end based on interval
+            period_start = None
+            period_end = None
             
-            status = stripe_sub['status']
+            if stripe_sub.get('billing_cycle_anchor'):
+                from dateutil.relativedelta import relativedelta
+                period_start = datetime.fromtimestamp(stripe_sub['billing_cycle_anchor'], tz=timezone.utc)
+                
+                # Get interval from the plan/price
+                if stripe_sub.get('plan'):
+                    interval = stripe_sub['plan'].get('interval', 'month')
+                    interval_count = stripe_sub['plan'].get('interval_count', 1)
+                    
+                    if interval == 'year':
+                        period_end = period_start + relativedelta(years=interval_count)
+                    elif interval == 'month':
+                        period_end = period_start + relativedelta(months=interval_count)
+                    elif interval == 'day':
+                        period_end = period_start + relativedelta(days=interval_count)
+                    elif interval == 'week':
+                        period_end = period_start + relativedelta(weeks=interval_count)
+            
+            status = stripe_sub.get('status', 'unknown')
             cancel_at_period_end = stripe_sub.get('cancel_at_period_end', False)
             
             # Mettre à jour le workspace avec les vraies données Stripe
