@@ -78,7 +78,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
     }
   }, [periodFilter, visibleSellers]);
 
-  const fetchTeamData = async () => {
+  const fetchTeamData = async (sellersToUse = sellers) => {
     // Only set loading on initial fetch
     if (teamData.length === 0) {
       setLoading(true);
@@ -90,7 +90,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
       console.log(`[TeamModal] ========== FETCHING DATA FOR PERIOD: ${periodFilter} days ==========`);
       
       // Fetch data for each seller
-      const sellersDataPromises = sellers.map(async (seller) => {
+      const sellersDataPromises = sellersToUse.map(async (seller) => {
         try {
           const daysParam = periodFilter === 'all' ? '365' : periodFilter;
           console.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with days=${daysParam}`);
