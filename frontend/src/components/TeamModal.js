@@ -1108,7 +1108,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                     {Object.entries(visibleSellers)
                       .filter(([sellerId, isVisible]) => {
                         // Ne compter que les vendeurs actifs et visibles
-                        const seller = sellers.find(s => s.id === sellerId);
+                        const seller = teamData.find(s => s.id === sellerId);
                         return isVisible && seller && !hiddenSellerIds.includes(sellerId) && (!seller.status || seller.status === 'active');
                       }).length} / 5 vendeurs sélectionnés
                   </div>
