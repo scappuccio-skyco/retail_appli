@@ -219,17 +219,19 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   const refreshSellersData = async () => {
     try {
       const token = localStorage.getItem('token');
-      // Re-fetch la liste des vendeurs
+      // Re-fetch la liste des vendeurs actifs
       const response = await axios.get(`${API}/manager/sellers`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setSellers(response.data);
       
       // Re-fetch les vendeurs archivés
       const archivedResponse = await axios.get(`${API}/manager/sellers/archived`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setArchivedSellers(archivedResponse.data);
+      
+      // IMPORTANT: Re-calculer teamData avec les nouvelles données
+      await fetchTeamData(response.data);
     } catch (error) {
       console.error('Erreur lors du rafraîchissement:', error);
     }
