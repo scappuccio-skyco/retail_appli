@@ -6107,13 +6107,9 @@ def main():
     
     tester = RetailCoachAPITester()
     
-    # PRIORITY TEST: Review Request - Manager12@test.com subscription status
-    print("\n🎯 PRIORITY TEST: MANAGER12 SUBSCRIPTION STATUS")
-    tester.test_subscription_status_manager12()
-    
-    # Focus on subscription lifecycle testing as per review request
-    print("\n📋 SUBSCRIPTION LIFECYCLE WITH REACTIVATION TESTING")
-    tester.test_subscription_lifecycle_with_reactivation()
+    # PRIORITY TEST: Review Request - Manager12@test.com subscription status with detailed field verification
+    print("\n🎯 PRIORITY TEST: MANAGER12 SUBSCRIPTION STATUS - DETAILED FIELD VERIFICATION")
+    tester.test_subscription_status_manager12_detailed()
     
     # Print final summary
     tester.print_summary()
