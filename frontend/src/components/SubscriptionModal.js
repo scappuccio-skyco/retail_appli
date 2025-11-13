@@ -301,7 +301,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     } catch (error) {
       console.error('Error canceling subscription:', error);
       const errorMessage = error.response?.data?.detail || 'Erreur lors de l\'annulation de l\'abonnement';
-      alert('❌ ' + errorMessage);
+      toast.error(errorMessage);
     }
   };
 
