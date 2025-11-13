@@ -6,8 +6,8 @@ import { X, Settings, Target, Trophy, Edit2, Trash2, Plus } from 'lucide-react';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export default function ManagerSettingsModal({ isOpen, onClose, onUpdate }) {
-  const [activeTab, setActiveTab] = useState('objectives'); // 'objectives', 'challenges'
+export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalType = 'objectives' }) {
+  const [activeTab, setActiveTab] = useState(modalType); // 'objectives', 'challenges'
   const [kpiConfig, setKpiConfig] = useState(null);
   const [objectives, setObjectives] = useState([]);
   const [challenges, setChallenges] = useState([]);
