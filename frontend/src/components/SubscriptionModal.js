@@ -307,16 +307,13 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     }
   };
 
-  const handleReactivateSubscription = async () => {
-    const confirmed = window.confirm(
-      '✅ Réactiver votre abonnement\n\n' +
-      'Votre abonnement reprendra automatiquement à la fin de la période en cours.\n' +
-      'Vous continuerez à avoir accès à toutes les fonctionnalités premium.\n\n' +
-      'Voulez-vous réactiver votre abonnement ?'
-    );
-
-    if (!confirmed) return;
-
+  const handleReactivateSubscription = () => {
+    // Show custom confirmation modal
+    setSubscriptionAction('reactivate_subscription');
+    setShowSubscriptionActionModal(true);
+  };
+  
+  const confirmReactivateSubscription = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
