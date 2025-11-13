@@ -83,8 +83,8 @@ async def sync_subscription():
         print(f"\n📊 Subscription Details:")
         print(f"   Status: {status}")
         print(f"   Quantity: {quantity} seats")
-        print(f"   Period Start: {period_start.isoformat()}")
-        print(f"   Period End: {period_end.isoformat()}")
+        print(f"   Period Start: {period_start.isoformat() if period_start else 'N/A'}")
+        print(f"   Period End: {period_end.isoformat() if period_end else 'N/A'}")
         print(f"   Cancel at period end: {cancel_at_period_end}")
         
         # Find user's workspace in MongoDB
