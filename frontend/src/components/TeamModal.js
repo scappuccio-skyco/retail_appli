@@ -1,6 +1,6 @@
 import React, { useState, useEffect, startTransition } from 'react';
 import axios from 'axios';
-import { X, Users, TrendingUp, Target, Award, AlertCircle, Info } from 'lucide-react';
+import { X, Users, TrendingUp, Target, Award, AlertCircle, Info, PauseCircle, PlayCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import TeamAIAnalysisModal from './TeamAIAnalysisModal';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
