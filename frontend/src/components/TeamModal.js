@@ -876,7 +876,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                       onClick={() => setDisplayedSellerCount(prev => prev + 5)}
                       className="px-4 py-2 text-sm font-medium text-[#1E40AF] hover:text-cyan-700 hover:bg-cyan-50 rounded-lg transition-colors"
                     >
-                      Afficher 5 vendeurs de plus ({teamData.filter(seller => 
+                      Afficher 5 vendeurs de plus ({localSellers.filter(seller => 
                         seller.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         seller.email.toLowerCase().includes(searchQuery.toLowerCase())
                       ).length - displayedSellerCount} restants)
