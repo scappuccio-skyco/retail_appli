@@ -439,7 +439,7 @@ export default function LandingPage() {
                     <p className="text-sm text-green-600 font-semibold mt-2">
                       1 à 5 espaces vendeur
                     </p>
-                    <p className="text-xs text-gray-600 mt-1">Au lieu de 348€ • Économisez 70€/an • Espace Manager inclus</p>
+                    <p className="text-xs text-gray-600 mt-1">Au lieu de 348€ • Économisez 70€/vendeur/an • Espace Manager inclus</p>
                   </div>
                 )}
               </div>
