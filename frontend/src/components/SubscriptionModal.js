@@ -453,17 +453,11 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                 <div>
                   <p className="text-gray-700">
                     <span className="font-semibold">Plan {PLANS[currentPlan].name}</span>
-                    {subscriptionInfo.subscription?.current_period_start && subscriptionInfo.subscription?.current_period_end && (() => {
-                      const start = new Date(subscriptionInfo.subscription.current_period_start);
-                      const end = new Date(subscriptionInfo.subscription.current_period_end);
-                      const diffMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-                      const isAnnual = diffMonths >= 11; // 11+ months = annual
-                      return (
-                        <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
-                          {isAnnual ? 'Annuel' : 'Mensuel'}
-                        </span>
-                      );
-                    })()}
+                    {subscriptionInfo.subscription?.billing_interval && (
+                      <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
+                        {subscriptionInfo.subscription.billing_interval === 'year' ? 'Annuel' : 'Mensuel'}
+                      </span>
+                    )}
                     <span className="ml-2 text-green-600 font-medium">- Actif</span>
                   </p>
                   
