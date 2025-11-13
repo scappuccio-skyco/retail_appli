@@ -5566,26 +5566,16 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
             if not period_start and stripe_sub.get('billing_cycle_anchor'):
                 period_start = datetime.fromtimestamp(stripe_sub['billing_cycle_anchor'], tz=timezone.utc)
             
-            if not period_end:
-                # Try to get from latest_invoice
-                if stripe_sub.get('latest_invoice'):
-                    try:
-                        invoice = stripe_lib.Invoice.retrieve(stripe_sub['latest_invoice'])
-                        if invoice.get('period_end'):
-                            period_end = datetime.fromtimestamp(invoice['period_end'], tz=timezone.utc)
-                    except:
-                        pass
-                
-                # If still no period_end, calculate based on interval (annual = +1 year, monthly = +1 month)
-                if not period_end and period_start:
-                    from dateutil.relativedelta import relativedelta
-                    # Check subscription interval from items
-                    if stripe_sub.get('items') and stripe_sub['items']['data']:
-                        interval = stripe_sub['items']['data'][0].get('plan', {}).get('interval', 'month')
-                        if interval == 'year':
-                            period_end = period_start + relativedelta(years=1)
-                        else:
-                            period_end = period_start + relativedelta(months=1)
+            if not period_end and period_start:
+                # Calculate period_end based on subscription interval
+                from dateutil.relativedelta import relativedelta
+                # Check subscription interval from items
+                if stripe_sub.get('items') and stripe_sub['items']['data']:
+                    interval = stripe_sub['items']['data'][0].get('plan', {}).get('interval', 'month')
+                    if interval == 'year':
+                        period_end = period_start + relativedelta(years=1)
+                    else:
+                        period_end = period_start + relativedelta(months=1)
             
             status = stripe_sub['status']
             cancel_at_period_end = stripe_sub.get('cancel_at_period_end', False)
