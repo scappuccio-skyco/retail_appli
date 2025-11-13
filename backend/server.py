@@ -5676,6 +5676,8 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
         "available_seats": max(0, quantity - seller_count),
         "current_period_start": workspace.get('current_period_start'),
         "current_period_end": workspace.get('current_period_end'),
+        "billing_interval": workspace.get('billing_interval', 'month'),
+        "billing_interval_count": workspace.get('billing_interval_count', 1),
         "trial_start": workspace.get('trial_start'),
         "trial_end": workspace.get('trial_end'),
         "cancel_at_period_end": workspace.get('cancel_at_period_end', False),
