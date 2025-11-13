@@ -680,19 +680,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                                 <>
                                   <div className="relative">
                                     <button
-                                      onClick={async () => {
-                                        if (window.confirm(`Mettre ${seller.name} en sommeil ?\n\nCela libérera un siège mais vous pourrez réactiver ce vendeur plus tard.`)) {
-                                          try {
-                                            await axios.put(`${API}/manager/seller/${seller.id}/deactivate`, {}, {
-                                              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                                            });
-                                            toast.success(`${seller.name} a été mis en sommeil`);
-                                            window.location.reload();
-                                          } catch (error) {
-                                            toast.error(error.response?.data?.detail || 'Erreur lors de la désactivation');
-                                          }
-                                        }
-                                      }}
+                                      onClick={() => setConfirmModal({ isOpen: true, action: 'deactivate', seller })}
                                       onMouseEnter={() => setHoveredButton(`pause-${seller.id}`)}
                                       onMouseLeave={() => setHoveredButton(null)}
                                       className="p-2 bg-orange-100 text-orange-600 rounded hover:bg-orange-200 transition-colors relative"
