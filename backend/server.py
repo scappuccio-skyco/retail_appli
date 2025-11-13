@@ -5728,14 +5728,23 @@ async def change_subscription_seats(
     if workspace['subscription_status'] not in ['active', 'trialing']:
         raise HTTPException(status_code=400, detail="Subscription must be active or trialing")
     
-    # Get current sellers count in workspace
-    current_sellers_count = await db.users.count_documents({"workspace_id": workspace['id'], "role": "seller"})
+    # Get current ACTIVE sellers count in workspace (not including inactive/deleted)
+    current_sellers_count = await db.users.count_documents({
+        "workspace_id": workspace['id'], 
+        "role": "seller",
+        "$or": [
+            {"status": "active"},
+            {"status": {"$exists": False}}  # Old sellers without status field
+        ]
+    })
     
     # Check if trying to reduce below current usage
     if new_seats < current_sellers_count:
         raise HTTPException(
             status_code=400, 
-            detail=f"Cannot reduce to {new_seats} seats. You currently have {current_sellers_count} active sellers."
+            detail=f"Impossible de réduire à {new_seats} siège{'s' if new_seats > 1 else ''}. "
+                   f"Vous avez actuellement {current_sellers_count} vendeur{'s' if current_sellers_count > 1 else ''} actif{'s' if current_sellers_count > 1 else ''}. "
+                   f"Veuillez mettre en sommeil ou supprimer {current_sellers_count - new_seats} vendeur{'s' if (current_sellers_count - new_seats) > 1 else ''} avant de réduire votre abonnement."
         )
     
     current_seats = workspace.get('stripe_quantity', 0)
