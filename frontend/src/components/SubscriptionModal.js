@@ -294,7 +294,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
         }
       );
 
-      alert('✅ ' + response.data.message);
+      toast.success(response.data.message);
       
       // Refresh subscription status
       fetchSubscriptionStatus();
