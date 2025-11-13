@@ -64,6 +64,9 @@ async def sync_subscription():
         # Extract subscription details
         quantity = 1
         subscription_item_id = None
+        billing_interval = 'month'
+        billing_interval_count = 1
+        
         if subscription.get('items') and subscription['items']['data']:
             quantity = subscription['items']['data'][0].get('quantity', 1)
             subscription_item_id = subscription['items']['data'][0]['id']
@@ -72,6 +75,9 @@ async def sync_subscription():
             item = subscription['items']['data'][0]
             if hasattr(item, 'price') and hasattr(item.price, 'recurring'):
                 print(f"\n🔍 Found price recurring info: {item.price.recurring}")
+                billing_interval = item.price.recurring.get('interval', 'month')
+                billing_interval_count = item.price.recurring.get('interval_count', 1)
+                print(f"✅ Billing: {billing_interval_count} {billing_interval}(s)")
         
         # Try different approaches to get period dates
         period_start = None
