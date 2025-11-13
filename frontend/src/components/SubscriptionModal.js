@@ -633,9 +633,36 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           )}
 
           {/* Plans */}
-          <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
             Choisissez votre plan
           </h3>
+          
+          {/* Billing Period Toggle */}
+          <div className="flex justify-center items-center gap-4 mb-6">
+            <span className={`text-lg font-semibold ${!isAnnual ? 'text-[#1E40AF]' : 'text-slate-400'}`}>
+              Mensuel
+            </span>
+            <button
+              onClick={() => setIsAnnual(!isAnnual)}
+              className={`relative w-16 h-8 rounded-full transition-colors duration-300 ${
+                isAnnual ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A]' : 'bg-slate-300'
+              }`}
+            >
+              <div
+                className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300 ${
+                  isAnnual ? 'transform translate-x-8' : ''
+                }`}
+              />
+            </button>
+            <span className={`text-lg font-semibold ${isAnnual ? 'text-[#1E40AF]' : 'text-slate-400'}`}>
+              Annuel
+            </span>
+            {isAnnual && (
+              <span className="ml-2 px-3 py-1 bg-green-100 text-green-700 text-sm font-bold rounded-full">
+                Économisez 20%
+              </span>
+            )}
+          </div>
           
           <div className="grid md:grid-cols-2 gap-6">
             {Object.entries(PLANS).map(([planKey, plan]) => {
