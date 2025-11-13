@@ -158,10 +158,54 @@ class AnnualToMonthlyDowngradeTest:
             self.log_result("Get Subscription Status", False, f"Failed to get status: {response}")
             return False
 
-    def test_annual_to_monthly_downgrade_blocking(self):
-        """Test 3: Attempt to downgrade from annual to monthly (should be blocked)"""
+    def test_create_annual_subscription_first(self):
+        """Test 3a: Create annual subscription first to test downgrade blocking"""
         print("\n" + "="*60)
-        print("TEST 3: Annual to Monthly Downgrade Blocking")
+        print("TEST 3a: Create Annual Subscription")
+        print("="*60)
+        
+        if not self.manager_token:
+            self.log_result("Create Annual Subscription", False, "No manager token available")
+            return False
+        
+        # First create an annual subscription
+        checkout_data = {
+            "plan": "professional",
+            "quantity": 8,
+            "billing_period": "annual",
+            "origin_url": "https://retail-performer-2.preview.emergentagent.com/dashboard"
+        }
+        
+        print(f"   Creating annual subscription first...")
+        
+        success, response = self.make_request(
+            "POST",
+            "checkout/create-session",
+            data=checkout_data,
+            token=self.manager_token
+        )
+        
+        if success and 'url' in response:
+            self.log_result(
+                "Create Annual Subscription",
+                True,
+                f"Annual checkout session created: {response.get('session_id', 'N/A')}"
+            )
+            print(f"   ✅ Annual subscription checkout URL created")
+            print(f"   ℹ️  In real scenario, user would complete payment via Stripe")
+            return True
+        else:
+            self.log_result(
+                "Create Annual Subscription",
+                False,
+                f"Failed to create annual subscription: {response}"
+            )
+            return False
+
+    def test_annual_to_monthly_downgrade_blocking(self):
+        """Test 3b: Attempt to downgrade from annual to monthly (should be blocked)"""
+        print("\n" + "="*60)
+        print("TEST 3b: Annual to Monthly Downgrade Blocking")
         print("="*60)
         
         if not self.manager_token:
@@ -172,7 +216,8 @@ class AnnualToMonthlyDowngradeTest:
         checkout_data = {
             "plan": "professional",
             "quantity": 8,
-            "billing_period": "monthly"
+            "billing_period": "monthly",
+            "origin_url": "https://retail-performer-2.preview.emergentagent.com/dashboard"
         }
         
         print(f"   Attempting to downgrade from annual to monthly billing...")
