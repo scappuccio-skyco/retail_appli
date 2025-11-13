@@ -623,23 +623,48 @@ export default function ManagerDashboard({ user, onLogout }) {
         <div
           key="settings"
           onClick={() => setShowSettingsModal(true)}
-          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-cyan-400"
+          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-blue-400"
           style={{ order: getSectionOrder('settings') }}
         >
           <div className="relative h-56 overflow-hidden">
             <img 
-              src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=400&fit=crop" 
-              alt="Objectifs & Challenges"
+              src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=400&fit=crop" 
+              alt="Objectifs"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-cyan-900/80 to-blue-900/80 group-hover:from-blue-900/70 group-hover:via-cyan-900/70 group-hover:to-blue-900/70 transition-all"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/80 to-blue-900/80 group-hover:from-blue-900/70 group-hover:via-blue-800/70 group-hover:to-blue-900/70 transition-all"></div>
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
               <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
                 <Settings className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-white text-center mb-2">Objectifs & Challenges</h3>
-              <p className="text-sm text-white opacity-90 text-center">Définir et suivre les objectifs de l'équipe</p>
+              <h3 className="text-2xl font-bold text-white text-center mb-2">🎯 Objectifs</h3>
+              <p className="text-sm text-white opacity-90 text-center">Définir et suivre les objectifs</p>
               <p className="text-xs text-white opacity-80 mt-3">Gérer les objectifs →</p>
+            </div>
+          </div>
+        </div>
+      ),
+      settings2: dashboardFilters.showSettings && (
+        <div
+          key="settings2"
+          onClick={() => setShowSettingsModal(true)}
+          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
+          style={{ order: getSectionOrder('settings2') }}
+        >
+          <div className="relative h-56 overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop" 
+              alt="Challenges"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-900/80 via-orange-800/80 to-orange-900/80 group-hover:from-orange-900/70 group-hover:via-orange-800/70 group-hover:to-orange-900/70 transition-all"></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
+                <Settings className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-white text-center mb-2">🏆 Challenges</h3>
+              <p className="text-sm text-white opacity-90 text-center">Lancer des challenges d'équipe</p>
+              <p className="text-xs text-white opacity-80 mt-3">Gérer les challenges →</p>
             </div>
           </div>
         </div>
