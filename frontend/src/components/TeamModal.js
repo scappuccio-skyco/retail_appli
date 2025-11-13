@@ -1100,7 +1100,12 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                     </div>
                   </div>
                   <div className="text-xs text-gray-500 mt-1 ml-20">
-                    {Object.values(visibleSellers).filter(v => v).length} / 5 vendeurs sélectionnés
+                    {Object.entries(visibleSellers)
+                      .filter(([sellerId, isVisible]) => {
+                        // Ne compter que les vendeurs actifs et visibles
+                        const seller = sellers.find(s => s.id === sellerId);
+                        return isVisible && seller && !hiddenSellerIds.includes(sellerId) && (!seller.status || seller.status === 'active');
+                      }).length} / 5 vendeurs sélectionnés
                   </div>
                 </div>
 
