@@ -1483,6 +1483,154 @@ async def get_sellers(current_user: dict = Depends(get_current_user)):
     
     return result
 
+
+@api_router.put("/manager/seller/{seller_id}/deactivate")
+async def deactivate_seller(seller_id: str, current_user: dict = Depends(get_current_user)):
+    """Désactiver/Mettre en sommeil un vendeur - libère un siège"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access this")
+    
+    # Vérifier que le vendeur appartient au manager
+    seller = await db.users.find_one({
+        "id": seller_id,
+        "$or": [
+            {"manager_id": current_user['id']},
+            {"workspace_id": current_user.get('workspace_id')}
+        ],
+        "role": "seller"
+    })
+    
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not found")
+    
+    if seller.get('status') == 'inactive':
+        raise HTTPException(status_code=400, detail="Seller is already inactive")
+    
+    if seller.get('status') == 'deleted':
+        raise HTTPException(status_code=400, detail="Cannot deactivate a deleted seller")
+    
+    # Désactiver le vendeur
+    await db.users.update_one(
+        {"id": seller_id},
+        {"$set": {
+            "status": "inactive",
+            "deactivated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    logger.info(f"Seller {seller_id} deactivated by manager {current_user['id']}")
+    
+    return {
+        "success": True,
+        "message": f"Vendeur {seller['name']} désactivé avec succès",
+        "seller_id": seller_id,
+        "status": "inactive"
+    }
+
+@api_router.put("/manager/seller/{seller_id}/reactivate")
+async def reactivate_seller(seller_id: str, current_user: dict = Depends(get_current_user)):
+    """Réactiver un vendeur en sommeil - consomme un siège"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access this")
+    
+    # Vérifier que le vendeur appartient au manager
+    seller = await db.users.find_one({
+        "id": seller_id,
+        "$or": [
+            {"manager_id": current_user['id']},
+            {"workspace_id": current_user.get('workspace_id')}
+        ],
+        "role": "seller"
+    })
+    
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not found")
+    
+    if seller.get('status') == 'active':
+        raise HTTPException(status_code=400, detail="Seller is already active")
+    
+    if seller.get('status') == 'deleted':
+        raise HTTPException(status_code=400, detail="Cannot reactivate a deleted seller")
+    
+    # Vérifier si le manager a des sièges disponibles
+    # Compter les vendeurs actifs
+    active_sellers_count = await db.users.count_documents({
+        "$or": [
+            {"manager_id": current_user['id']},
+            {"workspace_id": current_user.get('workspace_id')}
+        ],
+        "role": "seller",
+        "status": "active"
+    })
+    
+    # Récupérer l'abonnement pour voir les sièges disponibles
+    subscription = await db.subscriptions.find_one({"user_id": current_user['id']})
+    if subscription:
+        seats = subscription.get('seats', 1)
+        if active_sellers_count >= seats:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Tous vos sièges sont utilisés ({active_sellers_count}/{seats}). Augmentez votre nombre de sièges pour réactiver ce vendeur."
+            )
+    
+    # Réactiver le vendeur
+    await db.users.update_one(
+        {"id": seller_id},
+        {"$set": {
+            "status": "active",
+            "deactivated_at": None
+        }}
+    )
+    
+    logger.info(f"Seller {seller_id} reactivated by manager {current_user['id']}")
+    
+    return {
+        "success": True,
+        "message": f"Vendeur {seller['name']} réactivé avec succès",
+        "seller_id": seller_id,
+        "status": "active"
+    }
+
+@api_router.delete("/manager/seller/{seller_id}")
+async def delete_seller(seller_id: str, current_user: dict = Depends(get_current_user)):
+    """Supprimer définitivement un vendeur - libère un siège (soft delete)"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access this")
+    
+    # Vérifier que le vendeur appartient au manager
+    seller = await db.users.find_one({
+        "id": seller_id,
+        "$or": [
+            {"manager_id": current_user['id']},
+            {"workspace_id": current_user.get('workspace_id')}
+        ],
+        "role": "seller"
+    })
+    
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not found")
+    
+    if seller.get('status') == 'deleted':
+        raise HTTPException(status_code=400, detail="Seller is already deleted")
+    
+    # Soft delete : marquer comme supprimé (ne pas vraiment supprimer pour garder l'historique)
+    await db.users.update_one(
+        {"id": seller_id},
+        {"$set": {
+            "status": "deleted",
+            "deleted_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    logger.info(f"Seller {seller_id} deleted by manager {current_user['id']}")
+    
+    return {
+        "success": True,
+        "message": f"Vendeur {seller['name']} supprimé avec succès",
+        "seller_id": seller_id,
+        "status": "deleted"
+    }
+
 @api_router.get("/manager/seller/{seller_id}/stats")
 async def get_seller_stats(seller_id: str, current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'manager':
