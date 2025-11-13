@@ -569,11 +569,23 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                         <tr key={`${seller.id}-${periodFilter}`} className={`border-b border-gray-100 hover:bg-gray-50 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-cyan-100 rounded-full flex items-center justify-center">
-                                <span className="text-sm font-bold text-cyan-700">{seller.name.charAt(0)}</span>
+                              <div className={`w-8 h-8 ${seller.status === 'active' ? 'bg-cyan-100' : seller.status === 'inactive' ? 'bg-orange-100' : 'bg-gray-100'} rounded-full flex items-center justify-center`}>
+                                <span className={`text-sm font-bold ${seller.status === 'active' ? 'text-cyan-700' : seller.status === 'inactive' ? 'text-orange-700' : 'text-gray-700'}`}>{seller.name.charAt(0)}</span>
                               </div>
                               <div>
-                                <div className="font-medium text-gray-800">{seller.name}</div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-gray-800">{seller.name}</span>
+                                  {seller.status === 'inactive' && (
+                                    <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-medium rounded">
+                                      En sommeil
+                                    </span>
+                                  )}
+                                  {seller.status === 'deleted' && (
+                                    <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">
+                                      Supprimé
+                                    </span>
+                                  )}
+                                </div>
                                 <div className="text-xs text-gray-500">{seller.email}</div>
                               </div>
                             </div>
