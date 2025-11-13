@@ -150,6 +150,18 @@ backend:
         agent: "testing"
         comment: "STRIPE WEBHOOK INTEGRATION VERIFIED: ✅ Native Stripe API integration confirmed in backend code (replaced emergentintegrations). ✅ Webhook endpoint structure validated for handling checkout.session.completed, customer.subscription.updated, and customer.subscription.deleted events. ✅ Subscription activation logic working correctly - AI credits allocated based on plan (starter: 500, professional: 1500). ✅ GET /api/subscription/status endpoint returns proper subscription data: has_access, status, plan, ai_credits_remaining, days_left. ✅ Manager subscription records created automatically on registration with trial status. ✅ Subscription status correctly shows 'trialing' with 13 days left and 100 AI credits for new managers. The webhook infrastructure is properly implemented and ready for production use."
 
+  - task: "Subscription Status Endpoint - Manager12@test.com"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "SUBSCRIPTION STATUS ENDPOINT TESTING COMPLETED SUCCESSFULLY FOR MANAGER12@TEST.COM: ✅ AUTHENTICATION VERIFIED: Successfully logged in with Manager12@test.com/demo123 credentials. ✅ GET /api/subscription/status WORKING: Endpoint returns 200 OK with complete subscription data. ✅ RENEWAL DATE ISSUE RESOLVED: subscription.current_period_end shows '2026-11-13T15:06:50+00:00' (November 13, 2026) - NOT January 1, 1970 as previously reported. ✅ ALL REQUIRED FIELDS PRESENT: period_end at top level matches subscription.current_period_end, status is 'active', plan is 'professional' (correct for 8 seats), subscription.seats is 8. ✅ COMPLETE RESPONSE STRUCTURE: Response includes subscription object with all expected fields (workspace_id, stripe_customer_id, stripe_subscription_id, seats, used_seats, current_period_start/end, trial dates, AI credits). ✅ ISSUE RESOLUTION CONFIRMED: The renewal date is properly displayed as November 13, 2026, indicating the previous January 1, 1970 issue has been fixed. All subscription data is correctly synchronized with Stripe and properly formatted."
+
 frontend:
   - task: "Dashboard Stripe Return Handler"
     implemented: true
