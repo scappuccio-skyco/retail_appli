@@ -5622,6 +5622,8 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
                 "stripe_subscription_item_id": subscription_item_id,
                 "subscription_status": status,
                 "cancel_at_period_end": cancel_at_period_end,
+                "billing_interval": billing_interval,
+                "billing_interval_count": billing_interval_count,
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }
             
