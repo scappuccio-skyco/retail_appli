@@ -905,8 +905,8 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     }
                   } catch (error) {
                     console.error('❌ Checkout error:', error);
-                    alert('❌ Erreur lors de la création de la session');
-                    window.location.reload();
+                    toast.error('Erreur lors de la création de la session');
+                    setTimeout(() => window.location.reload(), 2000);
                   }
                 }}
                 className="flex-1 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-md text-sm"
