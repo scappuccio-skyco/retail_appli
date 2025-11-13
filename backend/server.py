@@ -225,6 +225,7 @@ class CheckoutRequest(BaseModel):
     plan: str  # starter or professional
     origin_url: str
     quantity: Optional[int] = None  # Number of sellers (optional, defaults to current count)
+    billing_period: Optional[str] = 'monthly'  # monthly or annual
 
 class Sale(BaseModel):
     model_config = ConfigDict(extra="ignore")
