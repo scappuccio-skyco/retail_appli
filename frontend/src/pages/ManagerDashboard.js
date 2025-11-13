@@ -972,6 +972,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         <ManagerSettingsModal
           isOpen={showSettingsModal}
           onClose={() => setShowSettingsModal(false)}
+          modalType={settingsModalType}
           onUpdate={() => {
             fetchActiveChallenges();
             fetchActiveObjectives();
