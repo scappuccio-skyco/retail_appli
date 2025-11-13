@@ -1413,10 +1413,17 @@ async def get_sellers(current_user: dict = Depends(get_current_user)):
     }
     if current_user.get('workspace_id'):
         # Prefer workspace_id if available
-        filter_query = {"workspace_id": current_user['workspace_id'], "role": "seller"}
+        filter_query = {
+            "workspace_id": current_user['workspace_id'], 
+            "role": "seller",
+            "status": {"$ne": "deleted"}  # Exclure les vendeurs supprimés
+        }
     else:
         # Fallback to manager_id for old data
-        filter_query = {"manager_id": current_user['id']}
+        filter_query = {
+            "manager_id": current_user['id'],
+            "status": {"$ne": "deleted"}  # Exclure les vendeurs supprimés
+        }
     
     sellers = await db.users.find(filter_query, {"_id": 0, "password": 0}).to_list(1000)
     
