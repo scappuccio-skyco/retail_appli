@@ -467,7 +467,54 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Tabs: Actifs / Archivés */}
+              <div className="flex gap-2 border-b border-gray-200 mb-6">
+                <button
+                  onClick={() => setShowArchivedSellers(false)}
+                  className={`px-4 py-2 font-medium transition-colors ${
+                    !showArchivedSellers
+                      ? 'text-cyan-600 border-b-2 border-cyan-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Vendeurs actifs
+                  </div>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowArchivedSellers(true);
+                    // Charger les vendeurs archivés
+                    const fetchArchived = async () => {
+                      try {
+                        const token = localStorage.getItem('token');
+                        const response = await axios.get(`${API}/manager/sellers/archived`, {
+                          headers: { Authorization: `Bearer ${token}` }
+                        });
+                        // On pourrait stocker ça dans un état séparé
+                        console.log('Archived sellers:', response.data);
+                      } catch (error) {
+                        console.error('Error fetching archived sellers:', error);
+                      }
+                    };
+                    fetchArchived();
+                  }}
+                  className={`px-4 py-2 font-medium transition-colors ${
+                    showArchivedSellers
+                      ? 'text-orange-600 border-b-2 border-orange-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Archive className="w-4 h-4" />
+                    Vendeurs archivés
+                  </div>
+                </button>
+              </div>
+
               {/* Period Filter */}
+              {!showArchivedSellers && (
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-gray-700">📅 Période :</span>
