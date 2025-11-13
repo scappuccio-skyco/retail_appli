@@ -266,7 +266,7 @@ export default function SellerDetailView({ seller, onBack }) {
             onClick={() => setActiveTab('competences')}
             className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
               activeTab === 'competences'
-                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-lg'
+                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -276,7 +276,7 @@ export default function SellerDetailView({ seller, onBack }) {
             onClick={() => setActiveTab('kpi')}
             className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
               activeTab === 'kpi'
-                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-lg'
+                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -286,7 +286,7 @@ export default function SellerDetailView({ seller, onBack }) {
             onClick={() => setActiveTab('debriefs')}
             className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
               activeTab === 'debriefs'
-                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-lg'
+                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -296,7 +296,7 @@ export default function SellerDetailView({ seller, onBack }) {
             onClick={() => setActiveTab('conflit')}
             className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
               activeTab === 'conflit'
-                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-gray-800 shadow-lg'
+                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
