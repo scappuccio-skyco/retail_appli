@@ -59,9 +59,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
 
   useEffect(() => {
     if (isOpen) {
+      setActiveTab(modalType);
       fetchData();
     }
-  }, [isOpen]);
+  }, [isOpen, modalType]);
 
   const fetchData = async () => {
     try {
