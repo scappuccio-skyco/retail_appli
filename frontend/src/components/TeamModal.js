@@ -290,28 +290,33 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
   // Gérer la réactivation d'un vendeur
   const handleReactivate = async (sellerId) => {
-    // Fermer le modal de confirmation immédiatement pour UX fluide
+    // Fermer le modal de confirmation immédiatement
     setConfirmModal({ isOpen: false, action: null, seller: null });
+    
+    // Filtrer localement pour feedback instantané
+    setArchivedSellers(prev => prev.filter(s => s.id !== sellerId));
     
     try {
       const token = localStorage.getItem('token');
-      
-      // Mise à jour optimiste simple : filtrer localement
-      setArchivedSellers(prevArchived => prevArchived.filter(s => s.id !== sellerId));
-      
-      // Appel API
       await axios.put(`${API}/manager/seller/${sellerId}/reactivate`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
       toast.success('Vendeur réactivé avec succès');
       
-      // Refresh en arrière-plan (setTimeout pour éviter les conflits React)
-      setTimeout(() => refreshSellersData(), 100);
+      // Refresh des données
+      await refreshSellersData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de la réactivation');
-      // En cas d'erreur, refresh pour restaurer l'état correct
-      await refreshSellersData();
+      // Recharger les archivés en cas d'erreur
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${API}/manager/sellers/archived`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setArchivedSellers(response.data);
+      } catch (err) {
+        console.error('Error restoring archived sellers:', err);
+      }
     }
   };
 
