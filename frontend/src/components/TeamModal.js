@@ -216,7 +216,24 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
   // Fonction pour rafraîchir les données sans recharger la page
   const refreshSellersData = async () => {
-    await fetchTeamData();
+    try {
+      const token = localStorage.getItem('token');
+      // Recharger la liste des vendeurs depuis l'API
+      const response = await axios.get(`${API}/manager/sellers`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { _t: Date.now() } // Cache buster
+      });
+      
+      // Mettre à jour sellers via une réaffectation de la prop (ne fonctionne pas directement)
+      // On doit donc forcer le parent à se rafraîchir ou utiliser teamData
+      // Solution temporaire : recharger la page après un délai
+      // Mieux : on va utiliser un état local pour les sellers
+      
+      // Pour l'instant, force un rechargement de fetchTeamData avec les nouvelles données
+      await fetchTeamData();
+    } catch (error) {
+      console.error('Error refreshing sellers:', error);
+    }
   };
 
   // Gérer la désactivation d'un vendeur
