@@ -663,8 +663,9 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
                     <p className="text-sm text-green-600 font-semibold mt-2">
-                      Espace Manager inclus
+                      {plan.minSellers} à {plan.maxSellers} espaces vendeur
                     </p>
+                    <p className="text-xs text-gray-600 mt-1">+ Espace Manager inclus</p>
                   </div>
 
                   <ul className="space-y-3 mb-6">
