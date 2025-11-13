@@ -212,6 +212,54 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   };
 
   // Prepare chart data with aggregation
+
+  // Fonction pour rafraîchir les données sans recharger la page
+  const refreshSellersData = async () => {
+    await fetchTeamData();
+  };
+
+  // Gérer la désactivation d'un vendeur
+  const handleDeactivate = async (sellerId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API}/manager/seller/${sellerId}/deactivate`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Vendeur mis en sommeil avec succès');
+      await refreshSellersData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de la désactivation');
+    }
+  };
+
+  // Gérer la suppression d'un vendeur
+  const handleDelete = async (sellerId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API}/manager/seller/${sellerId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Vendeur supprimé avec succès');
+      await refreshSellersData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de la suppression');
+    }
+  };
+
+  // Gérer la réactivation d'un vendeur
+  const handleReactivate = async (sellerId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API}/manager/seller/${sellerId}/reactivate`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Vendeur réactivé avec succès');
+      await refreshSellersData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de la réactivation');
+    }
+  };
+
   const prepareChartData = async () => {
     try {
       const token = localStorage.getItem('token');
