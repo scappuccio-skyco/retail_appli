@@ -1,92 +1,103 @@
 <analysis>
-The previous AI engineer made substantial progress on the Retail Performer application. Key work included enriching DISC questionnaires for both sellers and managers, necessitating backend logic adjustments. Significant UI/UX improvements were implemented, such as fixing modal auto-opening, refining tab spacing, correcting compatibility data fetching, and adding click outside to close functionality to numerous modals. Crucially, the landing page was updated with new images and a dynamic pricing structure. A major and challenging effort involved integrating Stripe for subscriptions, which required extensive debugging of Price IDs, correcting an invalid API key, and refactoring to use the native Stripe API for recurring subscriptions, bypassing . A preliminary AI credit system was also implemented in the backend, along with enforcing manager-only public registration. The work concluded with the Stripe checkout session successfully being created, but the user reported subsequent crashes, leading to the current investigation into post-payment logs.
+The trajectory documents a highly iterative and complex development cycle, evolving from minor UI tweaks to significant architectural refactoring and feature implementation. The work began with a simple text removal in the subscription modal but quickly pivoted to a deep analysis of the application's AI credit system based on user queries. This analysis uncovered a fundamental architectural flaw where AI credits were tracked per-user instead of per-workspace, contradicting the intended design.
+
+A new, dynamic AI credit model (base credits for a manager + credits per seller) was proposed and implemented in the backend, along with corresponding UI updates on the landing page to rebrand credits as analyses.
+
+A major feature, seller lifecycle management (deactivation and deletion), was then built. This involved backend API changes, extensive frontend modifications in a  component, and a significant UX overhaul to replace native browser pop-ups (, ) with custom modals and toast notifications. This phase included several rounds of bug fixing related to data synchronization, UI state management, and visual glitches with tooltips.
+
+The final phase focused on enforcing business logic by preventing users from reducing their subscription seat count below the number of active sellers, and providing clear, in-UI feedback for why the action is blocked.
 </analysis>
 
 <product_requirements>
-The Retail Performer application is an AI-driven platform for retail staff self-evaluation and coaching.
-The product requirements include:
-1.  **Manager Dashboard**: Accurate KPI data, AI analysis, competence calculation, comparative graphs, streamlined cards, and customization.
-2.  **Objectives & Challenges**: Dynamic KPI selection, granular visibility for individual sellers.
-3.  **Data & Display Accuracy**: Generate test data, ensure correct diagnostic and KPI displays (e.g., fixing Non défini badges, accurate conversion rate calculation).
-4.  **UI/UX Refinements**: Consistent number formatting, compact forms, improved  graphs, Login page password toggle, concise header menu, correct DISC profile text, click-outside-to-close modals, correct modal spacing.
-5.  **Landing Page**: Professional marketing page with Hero, Features, Pricing, FAQ, Contact sections. Iterative design, content, images, and color palette updates. Dynamic pricing based on seller count.
-6.  **Subscription & Free Trial**: Integrate Stripe for free trial and payment processing, manage seller limits per plan (Starter: 5, Pro: 15), implement AI credit system (Starter: 500/month, Pro: 1500/month, Trial: 100).
-7.  **DISC Questionnaire**: Validate legal rights and enrich questionnaires for more robust profile orientation (24 questions total for seller and manager).
-8.  **Invitation System**: Ensure public account creation is manager-only, and invitations for sellers are managed with subscription limits.
+The application, Retail Performer, is an AI-powered coaching platform for retail teams. The core product requirement was to overhaul the billing and resource management systems to be more robust, scalable, and user-friendly.
+
+**Key Requirements Implemented:**
+
+1.  **Dynamic AI Resource Allocation**: The fixed AI credit system was replaced. The new model allocates resources dynamically based on team size: a base of 250 analyses for the manager plus 100 analyses for each active seller. This logic is applied during subscription creation and updates.
+
+2.  **Seller Lifecycle Management**: Managers must be able to deactivate (put to sleep) or permanently delete sellers. These actions must free up a subscription seat. The UI must provide a clear, non-disruptive experience using custom confirmation modals and toast notifications, avoiding full page reloads.
+
+3.  **Archived Seller History**: Managers need a dedicated UI section to view inactive and deleted sellers and their history, with the ability to reactivate sellers who are asleep.
+
+4.  **Subscription Seat Validation**: The system must prevent a manager from reducing their subscription seat count to a number lower than their current number of *active* sellers.
+
+5.  **Enhanced UX/UI**: All native browser dialogs (, ) must be replaced with custom, styled modals and non-blocking toast notifications. The UI must provide clear, contextual feedback, such as tooltips for actions and visible warnings for blocked operations.
 </product_requirements>
 
 <key_technical_concepts>
--   **MERN-like Stack**: React (Frontend), FastAPI (Backend), MongoDB (Database).
--   **React**: State management, Hooks, Component-based architecture.
--   **UI/UX**: Tailwind CSS, Recharts, Modal-driven design.
--   **API Design**: RESTful endpoints, JWT authentication.
--   **Data Handling**: MongoDB collections.
--   **Third-party Integration**: Stripe API (direct integration),  (LLM).
--   **AI/LLM**: .
+- **Stack**: React (Frontend), FastAPI/Python (Backend), MongoDB (Database).
+- **Backend Logic**:
+  - Implemented dynamic AI credit calculation based on team size.
+  - Added a  field ('active', 'inactive', 'deleted') to the User model to manage seller lifecycle.
+  - Created new REST endpoints for deactivating, reactivating, deleting, and listing archived sellers.
+  - Enhanced business logic in the  endpoint to validate against active seller count.
+- **Frontend UX/UI**:
+  - Replaced all  and  calls with custom components () and  notifications.
+  - Implemented a tabbed interface in  to separate active and archived sellers.
+  - Eliminated disruptive  calls in favor of targeted data re-fetching and state updates.
+  - Added dynamic, positioned tooltips for UI actions.
 </key_technical_concepts>
 
 <code_architecture>
-**Directory Structure:**
+The application is a monorepo with a React frontend and a FastAPI backend.
 
--   :
-    -   **Importance**: Handles all API endpoints and backend logic.
-    -   **Changes**: Updated DISC-related logic for enriched questionnaires. Integrated Stripe models (, ) and API endpoints (checkout, webhooks, subscription status), implementing direct Stripe API calls for subscriptions. Introduced AI credit management with ,  fields and  function, integrated into AI-calling endpoints. Updated pricing constants and enforced manager role for public registration.
--   :
-    -   **Importance**: Stores environment variables.
-    -   **Changes**: Corrected and updated the .
--   :
-    -   **Importance**: User authentication and registration.
-    -   **Changes**: Removed role selection and hardcoded manager for public registration.
--   :
-    -   **Importance**: Manager's main dashboard.
-    -   **Changes**: Implemented auto-opening of  after diagnostic, integrated  and .
--   :
-    -   **Importance**: Public-facing marketing page.
-    -   **Changes**: Updated with new dashboard images, modified Essai Gratuit buttons to redirect to login/register. Revamped pricing section with per-seller models, credit packs, and correct plan names (Starter, Professional).
--   :
-    -   **Importance**: Seller's diagnostic questionnaire.
-    -   **Changes**: Added 16 new DISC questions (total 24).
--   :
-    -   **Importance**: Manager's diagnostic questionnaire.
-    -   **Changes**: Added 16 new DISC questions (total 24), enabled click-outside-to-close.
--   :
-    -   **Importance**: Displays DISC profiles and compatibility.
-    -   **Changes**: Fixed spacing and tabs disappearing by adjusting CSS (, , removing ). Corrected compatibility data fetching and profile name parsing. Enabled click-outside-to-close.
--   :
-    -   **Importance**: Handles seller invitations.
-    -   **Changes**: Improved robustness for copying invitation links, enabled click-outside-to-close.
--    (NEW):
-    -   **Importance**: Displays subscription status.
-    -   **Changes**: New component created.
--    (NEW):
-    -   **Importance**: Manages subscription plans.
-    -   **Changes**: New component. Displays plan details, seller/credit limits, warnings. Updated with per-seller pricing and click-outside-to-close.
 
+
+-   ****
+    -   **Importance**: The central backend file containing all API endpoints, database models, and business logic.
+    -   **Summary of Changes**:
+        -   The  Pydantic model was updated with a  field.
+        -   The logic for calculating AI credits was completely refactored into a dynamic formula () and integrated into the checkout and subscription update flows.
+        -   The  endpoint was modified to return only users with .
+        -   New endpoints were added:
+            -   
+            -   
+            -   
+            -   
+        -   The  endpoint was updated to validate the new seat count against the number of *active* sellers, preventing downgrades that would conflict with the current team size.
+
+-   ****
+    -   **Importance**: The main UI for managers to view and manage their team of sellers. It underwent the most significant refactoring.
+    -   **Summary of Changes**:
+        -   A tabbed interface was added to switch between Vendeurs actifs and Vendeurs archivés.
+        -   Action buttons (Pause, Delete, Reactivate) with icons and CSS-based tooltips were added to the seller list.
+        -   All actions now trigger a custom confirmation modal () instead of .
+        -    was replaced with API calls followed by state updates or targeted re-fetches to provide a smoother UX.
+        -   The active seller count display was fixed to correctly filter by .
+        -   A bug where a deactivated seller appeared in both tabs was fixed by filtering the active list by .
+
+-   ****
+    -   **Importance**: The UI for managing the workspace's subscription plan and seat count.
+    -   **Summary of Changes**:
+        -   A new warning message was added to explain why the seat count cannot be reduced below the number of active sellers. The associated decrease button is disabled.
+        -   All remaining  and  calls were replaced with  notifications to display success or error messages from the backend, such as the seat validation error.
+
+-   ****
+    -   **Importance**: A new, reusable component created to provide a consistent and professional confirmation experience.
+    -   **Summary of Changes**: This file was created from scratch. It is a highly customizable modal that accepts title, message, details, and confirmation button text/styling, replacing all previous  calls for critical actions.
+
+-   ****
+    -   **Importance**: The public-facing landing page for the application.
+    -   **Summary of Changes**:
+        -   The Pack de crédit additionnel section was completely removed to align with the new, more generous AI resource model.
+        -   All text references to crédits IA were replaced with analyses IA to improve marketing language.
 </code_architecture>
 
 <pending_tasks>
--   Verify full impact of DISC questionnaire changes across all components (especially frontend display logic).
--   Manager PDF Report Export functionality.
--   Manager Dashboard KPI Magasin Enrichi (comparisons, alerts), Comparisons & Benchmarks.
--   Manager Notifications (push browser), Further AI functionalities.
--   Implement badges/rewards for challenges, fix Niveau tooltip.
--   Implement automatic email sending for seller invitations.
--   Complete full AI credit system integration on frontend (display counter, alerts, purchase packs, history) and backend (recharge credits, purchase pack endpoint).
--   Implement internationalization (English support).
--   Investigate and resolve any post-Stripe checkout crash/errors.
--   Implement actual subscription status updates and access control based on active subscriptions (trial vs. paid, expired).
+-   **Replace Subscription Confirmation Modals**: The  dialogs for canceling or reactivating a subscription in  still need to be replaced with the new  component to fully eliminate native browser dialogs.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was addressing critical issues with Stripe subscription checkout. The user was encountering a  and a React DOM  when attempting to subscribe. Extensive debugging revealed several root causes: an incorrect  (initially a placeholder, then an invalid one), and a series of incorrect s provided by the user that did not exist in their Stripe account or were not appropriate for recurring subscriptions. The backend () was iteratively updated to use the correct  from the environment and the final, correct  () provided by the user.
+The most recent work focused on fixing the user experience in the Gérer mes sièges (Manage my seats) section of . The user reported that when they tried to reduce their seat count below the number of active sellers (e.g., from 7 to 3), the action was correctly blocked, but the UI provided no explanation for *why*.
 
-A significant architectural decision was made to bypass the  library for Stripe checkout sessions, as it was not correctly handling recurring  mode. The backend was refactored to directly use the official  Python library to create checkout sessions with , correctly passing the  of sellers for graduated pricing.
+To address this, two key changes were made:
+1.  **Added a Visible Warning**: A conditional warning message was added directly into the UI. It becomes visible when the user attempts to set a seat count lower than the active seller count, explaining that they must first deactivate or delete sellers.
+    
+2.  **Replaced  with Toasts**: The backend error message, which was previously shown in a disruptive , is now caught and displayed as a non-blocking  notification. This ensures the user sees the error without the modal closing or the page state being interrupted.
 
-The React DOM error in  was addressed by improving click-handling logic and preventing the modal from closing prematurely during Stripe redirection.
-
-The last interaction from the user indicated that a payment *seemed* to pass, but they reported a crash both before and after this event. The AI engineer reviewed backend logs, which confirmed that the most recent  call returned a , suggesting the checkout session itself was successfully created. The current focus is to investigate the reported crashes/errors occurring *after* a successful checkout session creation.
+The work concluded right after these code modifications were made and the frontend was confirmed to compile successfully. The final step of visually verifying these changes via a screenshot was attempted but failed because the wrong modal was opened during the test navigation.
 </current_work>
 
 <optional_next_step>
-Investigate the user's reported crash before and after the successful Stripe payment by analyzing the latest backend logs for any post-checkout errors.
+I will now correctly navigate to the Mon Abonnement modal and take a screenshot to verify that the new warning message appears as expected when attempting to reduce the seat count below the active seller count.
 </optional_next_step>
