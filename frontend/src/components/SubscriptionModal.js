@@ -519,6 +519,26 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                   </button>
                 </div>
 
+                {/* Warning when can't reduce */}
+                {newSeatsCount <= sellerCount && (
+                  <div className="mb-4 p-4 bg-orange-50 border-2 border-orange-300 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                        !
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-orange-800 mb-1">
+                          Impossible de réduire en dessous de {sellerCount} siège{sellerCount > 1 ? 's' : ''}
+                        </p>
+                        <p className="text-sm text-orange-700">
+                          Vous avez actuellement <strong>{sellerCount} vendeur{sellerCount > 1 ? 's' : ''} actif{sellerCount > 1 ? 's' : ''}</strong>. 
+                          Pour réduire votre abonnement, veuillez d'abord mettre en sommeil ou supprimer des vendeurs dans <strong>"Mon Équipe"</strong>.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Preview of change - Simplified */}
                 {newSeatsCount !== (subscriptionInfo.subscription.seats || 1) && (
                   <div className="mb-3 p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg text-white shadow">
