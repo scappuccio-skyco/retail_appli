@@ -737,77 +737,118 @@ export default function SubscriptionModal({ isOpen, onClose }) {
               const isCurrentPlan = isActive && currentPlan === planKey;
               const isProcessing = processingPlan === planKey;
               const isEnterprise = plan.isEnterprise;
+              const isRecommended = plan.isRecommended;
               
               return (
                 <div
                   key={planKey}
-                  className={`border-2 rounded-xl p-6 transition-all ${
-                    isCurrentPlan
-                      ? 'border-green-500 bg-green-50'
+                  className={`bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all ${
+                    isRecommended
+                      ? 'border-4 border-[#F97316] relative transform scale-105'
                       : isEnterprise
-                      ? 'border-purple-300 bg-gradient-to-br from-purple-50 to-indigo-50 hover:shadow-xl'
-                      : 'border-gray-200 hover:border-blue-400 hover:shadow-lg'
+                      ? 'border-2 border-[#1E40AF]/30'
+                      : 'border-2 border-slate-200'
                   }`}
                 >
-                  <div className="text-center mb-6">
-                    <h4 className="text-2xl font-bold text-gray-800 mb-2">
-                      {plan.name}
-                    </h4>
+                  {/* Recommended badge */}
+                  {isRecommended && (
+                    <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
+                      <div className="bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
+                        <Star className="w-4 h-4" />
+                        RECOMMANDÉ
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Current plan badge */}
+                  {isCurrentPlan && (
+                    <div className="absolute -top-3 right-4">
+                      <div className="bg-green-600 text-white px-4 py-1 rounded-full text-xs font-bold">
+                        PLAN ACTUEL
+                      </div>
+                    </div>
+                  )}
+
+                  <div className={`text-center mb-6 ${isRecommended ? 'pt-4' : ''}`}>
+                    <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">{plan.name}</h3>
+                    <p className="text-[#334155] mb-4">{plan.subtitle}</p>
                     {isEnterprise ? (
                       <div>
-                        <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-3xl font-bold text-purple-700">
-                            Sur mesure
-                          </span>
+                        <div className="flex items-baseline justify-center gap-2">
+                          <span className="text-3xl font-bold text-[#1E40AF]">Sur devis</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Tarif personnalisé</p>
+                        <p className="text-sm text-green-600 font-semibold mt-2">16+ espaces vendeur</p>
+                        <p className="text-xs text-gray-600 mt-1">+ Espace Manager inclus</p>
                       </div>
                     ) : !isAnnual ? (
                       <div>
-                        <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-4xl font-bold text-[#1E40AF]">
+                        <div className="flex items-baseline justify-center gap-2">
+                          <span className={`text-5xl font-bold ${
+                            isRecommended 
+                              ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent'
+                              : 'text-[#1E40AF]'
+                          }`}>
                             {plan.pricePerSeller}€
                           </span>
-                          <span className="text-gray-600">/vendeur/mois</span>
+                          <span className="text-[#334155]">/vendeur/mois</span>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="flex items-baseline justify-center gap-1">
-                          <span className="text-4xl font-bold text-[#1E40AF]">
-                            {Math.round(plan.pricePerSeller * 12 * 0.8)}€
-                          </span>
-                          <span className="text-gray-600">/vendeur/an</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
-                        <p className="text-xs text-green-600 font-semibold mt-1">
-                          Au lieu de {plan.pricePerSeller * 12}€ • Économisez {Math.round(plan.pricePerSeller * 12 * 0.2)}€/an
-                        </p>
-                      </div>
-                    )}
-                    {!isEnterprise ? (
-                      <>
-                        <p className="text-sm text-green-600 font-semibold mt-2">
+                        <p className={`text-sm font-semibold mt-2 ${
+                          isRecommended ? 'text-[#EA580C]' : 'text-green-600'
+                        }`}>
                           {plan.minSellers} à {plan.maxSellers} espaces vendeur
                         </p>
                         <p className="text-xs text-gray-600 mt-1">+ Espace Manager inclus</p>
-                      </>
+                      </div>
                     ) : (
-                      <p className="text-sm text-purple-600 font-semibold mt-2">
-                        16+ espaces vendeur
-                      </p>
+                      <div>
+                        <div className="flex items-baseline justify-center gap-2">
+                          <span className={`text-5xl font-bold ${
+                            isRecommended 
+                              ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent'
+                              : 'text-[#1E40AF]'
+                          }`}>
+                            {Math.round(plan.pricePerSeller * 12 * 0.8)}€
+                          </span>
+                          <span className="text-[#334155]">/vendeur/an</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
+                        <p className="text-sm text-green-600 font-semibold mt-2">
+                          {plan.minSellers} à {plan.maxSellers} espaces vendeur
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1">Au lieu de {plan.pricePerSeller * 12}€ • Économisez {Math.round(plan.pricePerSeller * 12 * 0.2)}€/vendeur/an</p>
+                      </div>
                     )}
                   </div>
 
-                  <ul className="space-y-3 mb-6">
-                    {plan.features.map((feature, idx) => (
-                      <li key={`plan-${planKey}-feature-${idx}-${feature.substring(0, 15)}`} className="flex items-start gap-2">
-                        <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">{feature}</span>
+                  {/* Main Features */}
+                  <ul className="space-y-3 mb-4">
+                    {plan.mainFeatures.map((feature, idx) => (
+                      <li key={`plan-${planKey}-main-${idx}-${feature.substring(0, 15)}`} className="flex items-center gap-3">
+                        <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
+                        <span className="text-[#334155]">{feature}</span>
                       </li>
                     ))}
                   </ul>
+
+                  {/* Specs section */}
+                  <div className={`border-t ${
+                    isRecommended ? 'border-[#F97316]' : 'border-gray-200'
+                  } my-4 pt-4`}>
+                    <p className={`text-sm font-semibold mb-3 ${
+                      isRecommended ? 'text-[#F97316]' : 'text-[#1E40AF]'
+                    }`}>
+                      Spécificités :
+                    </p>
+                    <ul className="space-y-3 mb-4">
+                      {plan.specs.map((spec, idx) => (
+                        <li key={`plan-${planKey}-spec-${idx}-${spec.substring(0, 15)}`} className="flex items-center gap-3">
+                          <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
+                          <span className="text-[#334155] font-medium">{spec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
                   {/* Warning if too many sellers */}
                   {!isEnterprise && plan.maxSellers && sellerCount > plan.maxSellers && !isCurrentPlan && (
