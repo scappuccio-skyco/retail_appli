@@ -485,7 +485,7 @@ export default function LandingPage() {
               </button>
             </div>
 
-            {/* Professional - RECOMMENDED */}
+            {/* Medium Team - RECOMMENDED */}
             <div className="bg-white rounded-2xl p-8 shadow-2xl border-4 border-[#F97316] relative transform md:scale-105">
               <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
                 <div className="bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
@@ -495,7 +495,7 @@ export default function LandingPage() {
               </div>
 
               <div className="text-center mb-6 pt-4">
-                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Professional</h3>
+                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Medium Team</h3>
                 <p className="text-[#334155] mb-4">Magasins moyens</p>
                 {!isAnnual ? (
                   <div>
