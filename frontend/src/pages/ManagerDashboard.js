@@ -652,7 +652,10 @@ export default function ManagerDashboard({ user, onLogout }) {
       challenges: dashboardFilters.showChallenges && (
         <div
           key="challenges"
-          onClick={() => setShowSettingsModal(true)}
+          onClick={() => {
+            setSettingsModalType('challenges');
+            setShowSettingsModal(true);
+          }}
           className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
           style={{ order: getSectionOrder('challenges') }}
         >
