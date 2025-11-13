@@ -292,6 +292,7 @@ class AnnualToMonthlyDowngradeTest:
         tests = [
             ("Manager Authentication", self.test_manager_login),
             ("Subscription Status Check", self.test_get_subscription_status),
+            ("Create Annual Subscription", self.test_create_annual_subscription_first),
             ("Downgrade Blocking Test", self.test_annual_to_monthly_downgrade_blocking),
             ("Consistency Check", self.test_frontend_backend_consistency)
         ]
