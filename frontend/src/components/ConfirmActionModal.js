@@ -1,0 +1,110 @@
+import React from 'react';
+import { X, AlertTriangle, PauseCircle, Trash2, PlayCircle } from 'lucide-react';
+
+export default function ConfirmActionModal({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  action, // 'deactivate', 'delete', 'reactivate'
+  sellerName 
+}) {
+  if (!isOpen) return null;
+
+  const configs = {
+    deactivate: {
+      icon: <PauseCircle className="w-12 h-12 text-orange-500" />,
+      title: 'Mettre en sommeil',
+      color: 'orange',
+      message: `Voulez-vous mettre ${sellerName} en sommeil ?`,
+      details: [
+        '✓ Libère 1 siège',
+        '✓ Réversible',
+        '✓ Historique conservé',
+        '✓ Le vendeur ne pourra plus se connecter'
+      ],
+      confirmText: 'Mettre en sommeil',
+      cancelText: 'Annuler'
+    },
+    delete: {
+      icon: <Trash2 className="w-12 h-12 text-red-500" />,
+      title: 'Supprimer définitivement',
+      color: 'red',
+      message: `Voulez-vous supprimer ${sellerName} ?`,
+      details: [
+        '✓ Libère 1 siège',
+        '⚠️ Action irréversible',
+        '✓ Historique consultable dans "Vendeurs archivés"',
+        '✓ Le vendeur ne pourra plus se connecter'
+      ],
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler'
+    },
+    reactivate: {
+      icon: <PlayCircle className="w-12 h-12 text-green-500" />,
+      title: 'Réactiver',
+      color: 'green',
+      message: `Voulez-vous réactiver ${sellerName} ?`,
+      details: [
+        '✓ Consomme 1 siège',
+        '✓ Le vendeur pourra se reconnecter',
+        '✓ Historique intact'
+      ],
+      confirmText: 'Réactiver',
+      cancelText: 'Annuler'
+    }
+  };
+
+  const config = configs[action] || configs.deactivate;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            {config.icon}
+            <h2 className="text-xl font-bold text-gray-800">{config.title}</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6">
+          <p className="text-gray-700 font-medium mb-4">{config.message}</p>
+          
+          <div className={`bg-${config.color}-50 border border-${config.color}-200 rounded-lg p-4 space-y-2`}>
+            {config.details.map((detail, idx) => (
+              <div key={idx} className="text-sm text-gray-700">
+                {detail}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+          >
+            {config.cancelText}
+          </button>
+          <button
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            className={`flex-1 px-4 py-2.5 bg-${config.color}-600 text-white font-medium rounded-lg hover:bg-${config.color}-700 transition-colors`}
+          >
+            {config.confirmText}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
