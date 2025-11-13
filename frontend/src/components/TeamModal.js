@@ -721,7 +721,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {teamData
+                      {localSellers
                         .filter(seller => 
                           // Exclure les vendeurs inactifs ou supprimés
                           (!seller.status || seller.status === 'active') &&
