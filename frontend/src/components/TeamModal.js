@@ -216,9 +216,22 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
 
   // Fonction pour rafraîchir les données sans recharger la page
   const refreshSellersData = async () => {
-    // Solution simple : recharger la page pour avoir les données à jour
-    // Le modal se fermera mais c'est le comportement le plus sûr
-    window.location.reload();
+    try {
+      const token = localStorage.getItem('token');
+      // Re-fetch la liste des vendeurs
+      const response = await axios.get(`${API}/manager/sellers`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSellers(response.data);
+      
+      // Re-fetch les vendeurs archivés
+      const archivedResponse = await axios.get(`${API}/manager/sellers/archived`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setArchivedSellers(archivedResponse.data);
+    } catch (error) {
+      console.error('Erreur lors du rafraîchissement:', error);
+    }
   };
 
   // Gérer la désactivation d'un vendeur
