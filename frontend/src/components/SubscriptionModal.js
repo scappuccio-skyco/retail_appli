@@ -888,27 +888,44 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       📧 Nous contacter
                     </a>
                   ) : (
-                    <button
-                      onClick={() => handleSelectPlan(planKey)}
-                      disabled={isProcessing}
-                      className="w-full py-3 bg-[#1E40AF] text-white rounded-lg hover:bg-[#1E3A8A] transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      {isProcessing ? (
-                        <>
-                          <Loader className="w-5 h-5 animate-spin" />
-                          Redirection...
-                        </>
+                    <>
+                      {/* Check if trying to downgrade from annual to monthly (not allowed) */}
+                      {isActive && currentPlan === planKey && currentBillingPeriod === 'year' && selectedBillingPeriod === 'month' ? (
+                        <div className="w-full">
+                          <button
+                            disabled
+                            className="w-full py-3 bg-gray-400 text-white rounded-lg font-semibold cursor-not-allowed opacity-50"
+                          >
+                            Non disponible
+                          </button>
+                          <p className="text-xs text-orange-600 mt-2 text-center">
+                            ⚠️ Impossible de passer d'annuel à mensuel. Veuillez annuler votre abonnement actuel.
+                          </p>
+                        </div>
                       ) : (
-                        <>
-                          <Crown className="w-5 h-5" />
-                          {isActive && currentPlan === planKey && currentBillingPeriod !== selectedBillingPeriod
-                            ? `Passer à ${isAnnual ? 'l\'annuel' : 'au mensuel'}`
-                            : isActive 
-                            ? 'Changer de plan' 
-                            : 'Choisir ce plan'}
-                        </>
+                        <button
+                          onClick={() => handleSelectPlan(planKey)}
+                          disabled={isProcessing}
+                          className="w-full py-3 bg-[#1E40AF] text-white rounded-lg hover:bg-[#1E3A8A] transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                          {isProcessing ? (
+                            <>
+                              <Loader className="w-5 h-5 animate-spin" />
+                              Redirection...
+                            </>
+                          ) : (
+                            <>
+                              <Crown className="w-5 h-5" />
+                              {isActive && currentPlan === planKey && currentBillingPeriod === 'month' && selectedBillingPeriod === 'year'
+                                ? "Passer à l'annuel"
+                                : isActive 
+                                ? 'Changer de plan' 
+                                : 'Choisir ce plan'}
+                            </>
+                          )}
+                        </button>
                       )}
-                    </button>
+                    </>
                   )}
                 </div>
               );
