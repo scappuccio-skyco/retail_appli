@@ -257,9 +257,9 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     } catch (error) {
       console.error('❌ Checkout error:', error);
       const errorMessage = error.response?.data?.detail || 'Erreur lors de la création de la session de paiement';
-      alert('❌ ' + errorMessage);
-      // Reload to refresh
-      window.location.reload();
+      toast.error(errorMessage, { duration: 5000 });
+      // Reload to refresh after a delay
+      setTimeout(() => window.location.reload(), 2000);
     }
   };
 
