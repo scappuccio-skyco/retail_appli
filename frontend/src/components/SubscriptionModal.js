@@ -944,7 +944,8 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       {
                         plan: planConfirmData.planKey,
                         origin_url: originUrl,
-                        quantity: planConfirmData.quantity
+                        quantity: planConfirmData.quantity,
+                        billing_period: isAnnual ? 'annual' : 'monthly'
                       },
                       {
                         headers: { Authorization: `Bearer ${token}` }
