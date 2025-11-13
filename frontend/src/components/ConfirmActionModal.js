@@ -1,12 +1,13 @@
 import React from 'react';
-import { X, AlertTriangle, PauseCircle, Trash2, PlayCircle } from 'lucide-react';
+import { X, AlertTriangle, PauseCircle, Trash2, PlayCircle, XCircle, CheckCircle } from 'lucide-react';
 
 export default function ConfirmActionModal({ 
   isOpen, 
   onClose, 
   onConfirm, 
-  action, // 'deactivate', 'delete', 'reactivate'
-  sellerName 
+  action, // 'deactivate', 'delete', 'reactivate', 'cancel_subscription', 'reactivate_subscription'
+  sellerName,
+  subscriptionEndDate // for subscription actions
 }) {
   if (!isOpen) return null;
 
@@ -49,6 +50,35 @@ export default function ConfirmActionModal({
         '✓ Consomme 1 siège',
         '✓ Le vendeur pourra se reconnecter',
         '✓ Historique intact'
+      ],
+      confirmText: 'Réactiver',
+      cancelText: 'Annuler'
+    },
+    cancel_subscription: {
+      icon: <XCircle className="w-12 h-12 text-red-500" />,
+      title: 'Annuler l\'abonnement',
+      color: 'red',
+      message: 'Voulez-vous vraiment annuler votre abonnement ?',
+      details: [
+        `✓ Votre abonnement reste actif jusqu'au ${subscriptionEndDate || 'fin de période'}`,
+        '✓ Aucun remboursement pour la période en cours',
+        '✓ Accès à toutes les fonctionnalités jusqu\'à la fin',
+        '⚠️ Après cette date, votre équipe ne pourra plus accéder à l\'application',
+        '💡 Vous pourrez réactiver l\'abonnement à tout moment avant la fin'
+      ],
+      confirmText: 'Annuler l\'abonnement',
+      cancelText: 'Garder mon abonnement'
+    },
+    reactivate_subscription: {
+      icon: <CheckCircle className="w-12 h-12 text-green-500" />,
+      title: 'Réactiver l\'abonnement',
+      color: 'green',
+      message: 'Voulez-vous réactiver votre abonnement ?',
+      details: [
+        '✓ Votre abonnement reprendra automatiquement',
+        '✓ Accès continu à toutes les fonctionnalités',
+        '✓ Facturation au prochain cycle de renouvellement',
+        '✓ Aucun frais supplémentaire'
       ],
       confirmText: 'Réactiver',
       cancelText: 'Annuler'
