@@ -243,28 +243,28 @@ export default function TeamModal({ sellers: initialSellers, onClose, onViewSell
 
   // Gérer la désactivation d'un vendeur
   const handleDeactivate = async (sellerId) => {
-    // Mise à jour optimiste : retirer immédiatement de la liste
-    const sellerToMove = sellers.find(s => s.id === sellerId);
-    setSellers(prevSellers => prevSellers.filter(s => s.id !== sellerId));
-    
-    // Fermer le modal de confirmation immédiatement
+    // Fermer le modal de confirmation immédiatement pour UX fluide
     setConfirmModal({ isOpen: false, action: null, seller: null });
     
     try {
       const token = localStorage.getItem('token');
+      
+      // Mise à jour optimiste simple : filtrer localement
+      setSellers(prevSellers => prevSellers.filter(s => s.id !== sellerId));
+      
+      // Appel API
       await axios.put(`${API}/manager/seller/${sellerId}/deactivate`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
       toast.success('Vendeur mis en sommeil avec succès');
       
-      // Refresh pour être sûr d'avoir les bonnes données
-      await refreshSellersData();
+      // Refresh en arrière-plan (setTimeout pour éviter les conflits React)
+      setTimeout(() => refreshSellersData(), 100);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de la désactivation');
-      // En cas d'erreur, remettre le vendeur dans la liste
-      if (sellerToMove) {
-        setSellers(prevSellers => [...prevSellers, sellerToMove]);
-      }
+      // En cas d'erreur, refresh pour restaurer l'état correct
+      await refreshSellersData();
     }
   };
 
