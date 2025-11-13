@@ -751,7 +751,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                   }`}
                 >
                   {/* Recommended badge */}
-                  {isRecommended && (
+                  {isRecommended && !isCurrentPlan && (
                     <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
                       <div className="bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
                         <Star className="w-4 h-4" />
@@ -760,8 +760,18 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     </div>
                   )}
 
-                  {/* Current plan badge */}
-                  {isCurrentPlan && (
+                  {/* Current plan badge - combined with recommended if both */}
+                  {isCurrentPlan && isRecommended && (
+                    <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
+                      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
+                        <Star className="w-4 h-4" />
+                        RECOMMANDÉ • PLAN ACTUEL
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Current plan badge only */}
+                  {isCurrentPlan && !isRecommended && (
                     <div className="absolute -top-3 right-4">
                       <div className="bg-green-600 text-white px-4 py-1 rounded-full text-xs font-bold">
                         PLAN ACTUEL
