@@ -718,14 +718,14 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                                     <PlayCircle className="w-4 h-4" />
                                   </button>
                                   {hoveredButton === `reactivate-${seller.id}` && (
-                                    <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 z-[9999] w-72 bg-gray-900 text-white text-xs rounded-lg shadow-2xl p-3 pointer-events-none whitespace-nowrap">
+                                    <div className="absolute right-full top-1/2 transform -translate-y-1/2 mr-2 z-[9999] w-72 bg-gray-900 text-white text-xs rounded-lg shadow-2xl p-3 pointer-events-none whitespace-nowrap">
                                       <div className="font-bold mb-2 text-green-400">🟢 Réactiver</div>
                                       <div className="text-gray-300 space-y-1">
                                         <div>• Consomme 1 siège</div>
                                         <div>• Le vendeur peut se reconnecter</div>
                                         <div>• Historique intact</div>
                                       </div>
-                                      <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+                                      <div className="absolute left-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
                                     </div>
                                   )}
                                 </div>
