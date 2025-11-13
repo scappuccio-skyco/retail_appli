@@ -3220,6 +3220,171 @@ class RetailCoachAPITester:
         else:
             self.log_test("Manager12 Subscription Status - API Call", False, "Failed to get subscription status")
 
+    def test_subscription_cancellation_manager12(self):
+        """Test subscription cancellation and period_end dates for Manager12@test.com - REVIEW REQUEST"""
+        print("\n🔍 Testing Subscription Cancellation for Manager12@test.com (REVIEW REQUEST)...")
+        
+        # Step 1: Login with Manager12@test.com credentials
+        login_data = {
+            "email": "Manager12@test.com",
+            "password": "demo123"
+        }
+        
+        success, response = self.run_test(
+            "Manager12 Login",
+            "POST",
+            "auth/login",
+            200,
+            data=login_data
+        )
+        
+        manager12_token = None
+        if success and 'token' in response:
+            manager12_token = response['token']
+            manager_info = response['user']
+            print(f"   ✅ Logged in as: {manager_info.get('name')} ({manager_info.get('email')})")
+            print(f"   ✅ Manager ID: {manager_info.get('id')}")
+        else:
+            self.log_test("Manager12 Subscription Test Setup", False, "Could not login with Manager12@test.com/demo123")
+            return
+        
+        # Step 2: Call GET /api/subscription/status
+        success, subscription_response = self.run_test(
+            "Manager12 - GET /api/subscription/status",
+            "GET",
+            "subscription/status",
+            200,
+            token=manager12_token
+        )
+        
+        if not success:
+            self.log_test("Manager12 Subscription Status", False, "Could not retrieve subscription status")
+            return
+        
+        print("\n   📋 SUBSCRIPTION STATUS RESPONSE ANALYSIS:")
+        print(f"   Full Response: {json.dumps(subscription_response, indent=2, default=str)}")
+        
+        # Step 3: Verify response structure includes required fields
+        required_fields = {
+            'subscription.current_period_end': None,
+            'period_end': None,
+            'subscription.cancel_at_period_end': None
+        }
+        
+        # Check top-level period_end
+        if 'period_end' in subscription_response:
+            required_fields['period_end'] = subscription_response['period_end']
+            print(f"   ✅ Top-level period_end found: {subscription_response['period_end']}")
+        else:
+            print(f"   ❌ Top-level period_end NOT found")
+            self.log_test("Manager12 - Top-level period_end", False, "period_end field missing at top level")
+        
+        # Check subscription object fields
+        subscription_obj = subscription_response.get('subscription', {})
+        if subscription_obj:
+            if 'current_period_end' in subscription_obj:
+                required_fields['subscription.current_period_end'] = subscription_obj['current_period_end']
+                print(f"   ✅ subscription.current_period_end found: {subscription_obj['current_period_end']}")
+            else:
+                print(f"   ❌ subscription.current_period_end NOT found")
+                self.log_test("Manager12 - subscription.current_period_end", False, "current_period_end field missing in subscription object")
+            
+            if 'cancel_at_period_end' in subscription_obj:
+                required_fields['subscription.cancel_at_period_end'] = subscription_obj['cancel_at_period_end']
+                cancel_status = "CANCELLED" if subscription_obj['cancel_at_period_end'] else "ACTIVE"
+                print(f"   ✅ subscription.cancel_at_period_end found: {subscription_obj['cancel_at_period_end']} ({cancel_status})")
+            else:
+                print(f"   ❌ subscription.cancel_at_period_end NOT found")
+                self.log_test("Manager12 - subscription.cancel_at_period_end", False, "cancel_at_period_end field missing in subscription object")
+        else:
+            print(f"   ❌ subscription object NOT found in response")
+            self.log_test("Manager12 - subscription object", False, "subscription object missing from response")
+        
+        # Step 4: Print BOTH values as requested
+        print("\n   🎯 PERIOD_END VALUES COMPARISON (as requested):")
+        
+        top_level_period_end = subscription_response.get('period_end')
+        subscription_period_end = subscription_obj.get('current_period_end') if subscription_obj else None
+        
+        print(f"   📅 subscriptionInfo.period_end: {top_level_period_end}")
+        print(f"   📅 subscriptionInfo.subscription.current_period_end: {subscription_period_end}")
+        
+        # Validate that both values exist and are valid dates
+        if top_level_period_end and subscription_period_end:
+            if top_level_period_end == subscription_period_end:
+                print(f"   ✅ BOTH VALUES MATCH: {top_level_period_end}")
+                self.log_test("Manager12 - Period End Values Match", True)
+            else:
+                print(f"   ⚠️  VALUES DIFFER: top-level='{top_level_period_end}' vs subscription='{subscription_period_end}'")
+                self.log_test("Manager12 - Period End Values Match", False, f"Values differ: {top_level_period_end} vs {subscription_period_end}")
+            
+            # Check if dates are valid (not January 1, 1970)
+            invalid_dates = ['1970-01-01T00:00:00+00:00', '1970-01-01T00:00:00Z', '1970-01-01']
+            
+            if top_level_period_end not in invalid_dates and subscription_period_end not in invalid_dates:
+                print(f"   ✅ DATES ARE VALID (not January 1, 1970)")
+                self.log_test("Manager12 - Valid Period End Dates", True)
+            else:
+                print(f"   ❌ INVALID DATES DETECTED (January 1, 1970 issue)")
+                self.log_test("Manager12 - Valid Period End Dates", False, "Period end dates show January 1, 1970")
+        else:
+            missing_fields = []
+            if not top_level_period_end:
+                missing_fields.append("period_end")
+            if not subscription_period_end:
+                missing_fields.append("subscription.current_period_end")
+            
+            print(f"   ❌ MISSING REQUIRED FIELDS: {missing_fields}")
+            self.log_test("Manager12 - Required Period End Fields", False, f"Missing fields: {missing_fields}")
+        
+        # Step 5: Additional subscription info analysis
+        print("\n   📊 ADDITIONAL SUBSCRIPTION ANALYSIS:")
+        
+        if subscription_obj:
+            # Check subscription status
+            status = subscription_obj.get('status', 'unknown')
+            print(f"   📈 Subscription Status: {status}")
+            
+            # Check plan
+            plan = subscription_obj.get('plan', 'unknown')
+            print(f"   📦 Plan: {plan}")
+            
+            # Check seats
+            seats = subscription_obj.get('seats', 0)
+            used_seats = subscription_obj.get('used_seats', 0)
+            print(f"   👥 Seats: {used_seats}/{seats}")
+            
+            # Check billing interval
+            billing_interval = subscription_obj.get('billing_interval', 'unknown')
+            billing_interval_count = subscription_obj.get('billing_interval_count', 0)
+            print(f"   💳 Billing: {billing_interval_count} {billing_interval}")
+            
+            # Check AI credits
+            ai_credits = subscription_obj.get('ai_credits_remaining', 0)
+            print(f"   🤖 AI Credits Remaining: {ai_credits}")
+        
+        # Step 6: Determine which field frontend should use
+        print("\n   💡 FRONTEND RECOMMENDATION:")
+        if top_level_period_end and subscription_period_end:
+            if top_level_period_end == subscription_period_end:
+                print(f"   ✅ Frontend can use EITHER field (both contain same value)")
+                print(f"   📝 Recommended: Use 'period_end' (top-level) for simplicity")
+            else:
+                print(f"   ⚠️  Frontend should use 'subscription.current_period_end' (more specific)")
+        elif subscription_period_end:
+            print(f"   📝 Frontend should use 'subscription.current_period_end' (only available field)")
+        elif top_level_period_end:
+            print(f"   📝 Frontend should use 'period_end' (only available field)")
+        else:
+            print(f"   ❌ NO VALID PERIOD END FIELD AVAILABLE")
+        
+        # Final validation
+        if all(required_fields.values()):
+            self.log_test("Manager12 Subscription Cancellation Test", True, "All required fields present and valid")
+        else:
+            missing = [k for k, v in required_fields.items() if not v]
+            self.log_test("Manager12 Subscription Cancellation Test", False, f"Missing or invalid fields: {missing}")
+
     def print_summary(self):
         """Print test summary"""
         print(f"\n{'='*60}")
