@@ -907,7 +907,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       </div>
                     )}
                     
-                    {/* New Monthly Recurring Amount */}
+                    {/* New Recurring Amount */}
                     <div className="bg-blue-50 rounded-lg p-3 border border-blue-300">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm font-semibold">📅 Nouveau montant récurrent</span>
@@ -916,7 +916,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                         </span>
                       </div>
                       <p className="text-xs text-gray-600">
-                        {planConfirmData.quantity} × {planConfirmData.pricePerSeat}€ = {planConfirmData.monthlyAmount}€/mois
+                        {planConfirmData.quantity} × {planConfirmData.pricePerSeat}€ = {planConfirmData.monthlyAmount}€/{planConfirmData.isAnnual ? 'an' : 'mois'}
                       </p>
                     </div>
                   </>
