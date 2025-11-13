@@ -1024,9 +1024,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                     </ResponsiveContainer>
                   </div>
                 </div>
-              ) : (                  </div>
-                  )}
-                </div>
               ) : (
                 <div className="text-center py-12">
                   <p className="text-gray-500">Chargement des données...</p>
