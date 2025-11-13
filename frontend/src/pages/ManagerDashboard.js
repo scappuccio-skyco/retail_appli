@@ -836,7 +836,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                   const sectionNames = {
                     kpi: '📊 KPI Magasin',
                     team: '👥 Mon Équipe',
-                    settings: '🎯 Objectifs & Challenges'
+                    settings: '🎯 Objectifs',
+                    settings2: '🏆 Challenges'
                   };
                   
                   // Skip if section doesn't exist in current cards
