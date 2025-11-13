@@ -885,6 +885,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                 {/* Show More Button */}
                 {teamData.filter(seller => 
                   !hiddenSellerIds.includes(seller.id) &&
+                  (!seller.status || seller.status === 'active') &&
                   (seller.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                   seller.email.toLowerCase().includes(searchQuery.toLowerCase()))
                 ).length > displayedSellerCount && (
@@ -895,6 +896,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                     >
                       Afficher 5 vendeurs de plus ({teamData.filter(seller => 
                         !hiddenSellerIds.includes(seller.id) &&
+                        (!seller.status || seller.status === 'active') &&
                         (seller.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         seller.email.toLowerCase().includes(searchQuery.toLowerCase()))
                       ).length - displayedSellerCount} restants)
