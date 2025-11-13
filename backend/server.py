@@ -6007,11 +6007,15 @@ async def create_checkout_session(
         success_url = f"{checkout_data.origin_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}"
         cancel_url = f"{checkout_data.origin_url}/dashboard"
         
+        # Select price ID based on billing period
+        billing_period = checkout_data.billing_period or 'monthly'
+        stripe_price_id = STRIPE_PRICE_ID_ANNUAL if billing_period == 'annual' else STRIPE_PRICE_ID_MONTHLY
+        
         session = stripe_lib.checkout.Session.create(
             mode='subscription',
             customer=stripe_customer_id,  # Use existing customer
             line_items=[{
-                'price': workspace['stripe_price_id'],  # price_1SS2XxIVM4C8dIGvpBRcYSNX
+                'price': stripe_price_id,  # Monthly or Annual price ID
                 'quantity': quantity,
                 'adjustable_quantity': {
                     'enabled': True,
