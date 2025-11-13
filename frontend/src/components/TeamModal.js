@@ -660,8 +660,11 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                     <tbody>
                       {teamData
                         .filter(seller => 
-                          seller.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          seller.email.toLowerCase().includes(searchQuery.toLowerCase())
+                          // Exclure les vendeurs inactifs ou supprimés
+                          (!seller.status || seller.status === 'active') &&
+                          // Filtre de recherche
+                          (seller.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          seller.email.toLowerCase().includes(searchQuery.toLowerCase()))
                         )
                         .slice(0, displayedSellerCount)
                         .map((seller, idx) => (
