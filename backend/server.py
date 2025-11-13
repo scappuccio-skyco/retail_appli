@@ -38,7 +38,7 @@ STRIPE_PRICE_ID = "price_1SS2XxIVM4C8dIGvpBRcYSNX"  # Tarif dégressif : 29€ (
 
 STRIPE_PLANS = {
     "starter": {
-        "name": "Starter",
+        "name": "Small Team",
         "price_per_seller": 29.0,  # 29€ par vendeur/mois (1-5 vendeurs)
         "currency": "eur",
         "min_sellers": 1,
@@ -46,7 +46,7 @@ STRIPE_PLANS = {
         "ai_credits_monthly": None  # Calculé dynamiquement selon nombre de sièges
     },
     "professional": {
-        "name": "Professional",
+        "name": "Medium Team",
         "price_per_seller": 25.0,  # 25€ par vendeur/mois (6-15 vendeurs, dégressif)
         "currency": "eur",
         "min_sellers": 6,
@@ -54,7 +54,7 @@ STRIPE_PLANS = {
         "ai_credits_monthly": None  # Calculé dynamiquement selon nombre de sièges
     },
     "enterprise": {
-        "name": "Enterprise",
+        "name": "Large Team",
         "price": None,  # Sur devis
         "currency": "eur",
         "min_sellers": 16,
