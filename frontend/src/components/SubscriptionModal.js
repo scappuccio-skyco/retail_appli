@@ -18,7 +18,7 @@ const PLANS = {
       'Dashboard complet',
       'Diagnostic DISC',
       'Suivi KPI en temps réel',
-      '150+ analyses IA manager/mois',
+      '150 + (30 × vendeurs) analyses IA Manager/mois',
       '100+ analyses IA par vendeur/mois',
       'Support Email sous 48h'
     ]
@@ -32,7 +32,7 @@ const PLANS = {
       'Dashboard complet',
       'Diagnostic DISC',
       'Suivi KPI en temps réel',
-      '150+ analyses IA manager/mois',
+      '150 + (30 × vendeurs) analyses IA Manager/mois',
       '100+ analyses IA par vendeur/mois',
       'Support Email sous 48h'
     ]
