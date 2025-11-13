@@ -279,16 +279,13 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     }
   };
 
-  const handleCancelSubscription = async () => {
-    const confirmed = window.confirm(
-      '⚠️ Confirmer l\'annulation\n\n' +
-      'Votre abonnement restera actif jusqu\'à la fin de la période payée.\n' +
-      'Après cette date, vous n\'aurez plus accès aux fonctionnalités premium.\n\n' +
-      'Voulez-vous vraiment annuler votre abonnement ?'
-    );
-
-    if (!confirmed) return;
-
+  const handleCancelSubscription = () => {
+    // Show custom confirmation modal
+    setSubscriptionAction('cancel_subscription');
+    setShowSubscriptionActionModal(true);
+  };
+  
+  const confirmCancelSubscription = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
