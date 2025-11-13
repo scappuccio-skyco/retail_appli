@@ -6049,9 +6049,10 @@ async def create_checkout_session(
                 
                 logger.info(f"Updated subscription {subscription.id} from {current_price_id} to {requested_price_id}")
                 
+                billing_msg = "à l'annuel" if billing_period == 'annual' else "au mensuel"
                 return {
                     "success": True,
-                    "message": f"Abonnement mis à jour : passage {'à l\'annuel' if billing_period == 'annual' else 'au mensuel'}",
+                    "message": f"Abonnement mis à jour : passage {billing_msg}",
                     "subscription_id": subscription.id,
                     "quantity": quantity,
                     "billing_period_changed": True
