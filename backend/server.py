@@ -5508,14 +5508,42 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
     if not workspace:
         raise HTTPException(status_code=404, detail="No workspace found")
     
-    # Sync with Stripe if subscription exists
-    if workspace.get('stripe_subscription_id'):
+    # Sync with Stripe if customer exists
+    if workspace.get('stripe_customer_id'):
         try:
             import stripe as stripe_lib
             stripe_lib.api_key = STRIPE_API_KEY
             
-            # Récupérer l'abonnement depuis Stripe
-            stripe_sub = stripe_lib.Subscription.retrieve(workspace['stripe_subscription_id'])
+            # Get ALL active subscriptions for this customer
+            all_active_subs = stripe_lib.Subscription.list(
+                customer=workspace['stripe_customer_id'],
+                status='active',
+                limit=10
+            )
+            
+            # Filter to get only subscriptions without cancel_at_period_end
+            truly_active_subs = [sub for sub in all_active_subs.data if not sub.get('cancel_at_period_end', False)]
+            
+            if not truly_active_subs:
+                # No truly active subscription, use the stored one (may be canceled)
+                if workspace.get('stripe_subscription_id'):
+                    stripe_sub = stripe_lib.Subscription.retrieve(workspace['stripe_subscription_id'])
+                else:
+                    stripe_sub = None
+            else:
+                # Use the first truly active subscription
+                stripe_sub = truly_active_subs[0]
+                
+                # Update workspace with the correct subscription ID if it changed
+                if stripe_sub.id != workspace.get('stripe_subscription_id'):
+                    await db.workspaces.update_one(
+                        {"id": workspace['id']},
+                        {"$set": {
+                            "stripe_subscription_id": stripe_sub.id,
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }}
+                    )
+                    logger.info(f"Updated workspace subscription ID from {workspace.get('stripe_subscription_id')} to {stripe_sub.id}")
             
             # Extraire les vraies données
             quantity = 1
