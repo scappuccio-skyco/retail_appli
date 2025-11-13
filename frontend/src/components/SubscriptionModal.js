@@ -749,7 +749,15 @@ export default function SubscriptionModal({ isOpen, onClose }) {
 
       {/* Plan Change Confirmation Modal */}
       {showPlanConfirmModal && planConfirmData && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] backdrop-blur-sm">
+        <div 
+          onClick={(e) => { 
+            if (e.target === e.currentTarget) { 
+              setShowPlanConfirmModal(false); 
+              setPlanConfirmData(null); 
+            } 
+          }} 
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] backdrop-blur-sm"
+        >
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
             {/* Header */}
             <div className={`p-4 text-white ${
