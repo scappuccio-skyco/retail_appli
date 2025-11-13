@@ -5571,6 +5571,220 @@ class RetailCoachAPITester:
         print("\n   ⚠️  NOTE: We cannot directly verify the Stripe UI quantity selector from backend API,")
         print("   but we confirmed the API request includes the adjustable_quantity parameter as required.")
 
+    def test_manager_dashboard_endpoints(self):
+        """Test Manager Dashboard UI endpoints as specified in review request"""
+        print("\n🔍 Testing Manager Dashboard UI Endpoints (REVIEW REQUEST)...")
+        
+        # Test with specific credentials from review request
+        login_data = {
+            "email": "Manager12@test.com",
+            "password": "demo123"
+        }
+        
+        print("   📋 AUTHENTICATION TEST:")
+        success, response = self.run_test(
+            "POST /api/auth/login with Manager12@test.com",
+            "POST",
+            "auth/login",
+            200,
+            data=login_data
+        )
+        
+        manager_token = None
+        if success and 'token' in response:
+            manager_token = response['token']
+            manager_info = response['user']
+            print(f"   ✅ Logged in as: {manager_info.get('name')} ({manager_info.get('email')})")
+            print(f"   ✅ Token received and valid")
+        else:
+            print("   ❌ Could not login with Manager12@test.com - account may not exist")
+            print("   This is the specific account mentioned in the review request")
+            self.log_test("Manager Dashboard Authentication", False, "Manager12@test.com login failed")
+            return
+        
+        print("\n   📊 DASHBOARD DATA LOADING TESTS:")
+        
+        # Test all dashboard endpoints as specified in review request
+        dashboard_endpoints = [
+            ("GET /api/manager/sellers", "manager/sellers", "Sellers list"),
+            ("GET /api/manager/invitations", "manager/invitations", "Invitations"),
+            ("GET /api/manager-diagnostic/me", "manager-diagnostic/me", "Manager diagnostic"),
+            ("GET /api/manager/kpi-config", "manager/kpi-config", "KPI configuration"),
+            ("GET /api/manager/challenges/active", "manager/challenges/active", "Active challenges data"),
+            ("GET /api/manager/objectives/active", "manager/objectives/active", "Active objectives data"),
+            ("GET /api/manager/store-kpi/stats", "manager/store-kpi/stats", "Store KPI stats"),
+            ("GET /api/subscription/status", "subscription/status", "Subscription info")
+        ]
+        
+        for test_name, endpoint, description in dashboard_endpoints:
+            success, response = self.run_test(
+                f"{test_name} - {description}",
+                "GET",
+                endpoint,
+                200,
+                token=manager_token
+            )
+            
+            if success:
+                print(f"   ✅ {description} endpoint working correctly")
+                
+                # Specific validation for key endpoints
+                if endpoint == "manager/objectives/active":
+                    if isinstance(response, list):
+                        print(f"      📈 Retrieved {len(response)} active objective(s)")
+                        if len(response) > 0:
+                            obj = response[0]
+                            required_fields = ['title', 'ca_target', 'period_start', 'period_end']
+                            missing = [f for f in required_fields if f not in obj]
+                            if not missing:
+                                print(f"      ✅ Objectives data structure correct")
+                            else:
+                                self.log_test("Objectives Data Structure", False, f"Missing fields: {missing}")
+                    else:
+                        self.log_test("Objectives Response Format", False, "Should return array")
+                
+                elif endpoint == "manager/challenges/active":
+                    if isinstance(response, list):
+                        print(f"      🎯 Retrieved {len(response)} active challenge(s)")
+                        if len(response) > 0:
+                            challenge = response[0]
+                            required_fields = ['title', 'start_date', 'end_date']
+                            missing = [f for f in required_fields if f not in challenge]
+                            if not missing:
+                                print(f"      ✅ Challenges data structure correct")
+                            else:
+                                self.log_test("Challenges Data Structure", False, f"Missing fields: {missing}")
+                    else:
+                        self.log_test("Challenges Response Format", False, "Should return array")
+                
+                elif endpoint == "manager/store-kpi/stats":
+                    if isinstance(response, dict):
+                        print(f"      📊 Store KPI stats retrieved successfully")
+                        print(f"      ✅ KPI data available for store modal")
+                    else:
+                        self.log_test("Store KPI Stats Format", False, "Should return object")
+                
+                elif endpoint == "subscription/status":
+                    if isinstance(response, dict) and 'status' in response:
+                        print(f"      💳 Subscription status: {response.get('status')}")
+                        print(f"      ✅ Subscription info available")
+                    else:
+                        self.log_test("Subscription Status Format", False, "Should return object with status")
+            else:
+                print(f"   ❌ {description} endpoint failed")
+        
+        print("\n   🎯 FOCUS ON OBJECTIVES AND CHALLENGES ENDPOINTS:")
+        
+        # Detailed testing of objectives endpoint
+        success, objectives_response = self.run_test(
+            "Detailed Objectives Test - Data Structure Validation",
+            "GET",
+            "manager/objectives/active",
+            200,
+            token=manager_token
+        )
+        
+        if success:
+            if isinstance(objectives_response, list):
+                print(f"   ✅ Objectives endpoint returns proper array format")
+                
+                for i, obj in enumerate(objectives_response):
+                    print(f"      Objective {i+1}:")
+                    print(f"        Title: {obj.get('title', 'N/A')}")
+                    print(f"        CA Target: {obj.get('ca_target', 'N/A')}")
+                    print(f"        Period: {obj.get('period_start', 'N/A')} to {obj.get('period_end', 'N/A')}")
+                    
+                    # Validate date format
+                    if obj.get('period_start') and obj.get('period_end'):
+                        try:
+                            from datetime import datetime
+                            start_date = datetime.fromisoformat(obj['period_start'].replace('Z', '+00:00'))
+                            end_date = datetime.fromisoformat(obj['period_end'].replace('Z', '+00:00'))
+                            print(f"        ✅ Date format valid")
+                        except:
+                            self.log_test("Objectives Date Format", False, "Invalid date format")
+                
+                self.log_test("Objectives Endpoint Detailed Validation", True)
+            else:
+                self.log_test("Objectives Endpoint Format", False, "Should return array")
+        
+        # Detailed testing of challenges endpoint
+        success, challenges_response = self.run_test(
+            "Detailed Challenges Test - Data Structure Validation",
+            "GET",
+            "manager/challenges/active",
+            200,
+            token=manager_token
+        )
+        
+        if success:
+            if isinstance(challenges_response, list):
+                print(f"   ✅ Challenges endpoint returns proper array format")
+                
+                for i, challenge in enumerate(challenges_response):
+                    print(f"      Challenge {i+1}:")
+                    print(f"        Title: {challenge.get('title', 'N/A')}")
+                    print(f"        Start: {challenge.get('start_date', 'N/A')}")
+                    print(f"        End: {challenge.get('end_date', 'N/A')}")
+                    print(f"        Target CA: {challenge.get('ca_target', 'N/A')}")
+                    
+                    # Validate required fields
+                    required_fields = ['title', 'start_date', 'end_date']
+                    missing = [f for f in required_fields if not challenge.get(f)]
+                    if not missing:
+                        print(f"        ✅ All required fields present")
+                    else:
+                        self.log_test("Challenge Required Fields", False, f"Missing: {missing}")
+                
+                self.log_test("Challenges Endpoint Detailed Validation", True)
+            else:
+                self.log_test("Challenges Endpoint Format", False, "Should return array")
+        
+        print("\n   📊 STORE KPI MODAL DATA TEST:")
+        
+        # Test store KPI stats endpoint specifically
+        success, kpi_stats_response = self.run_test(
+            "Store KPI Stats - Modal Data Validation",
+            "GET",
+            "manager/store-kpi/stats",
+            200,
+            token=manager_token
+        )
+        
+        if success:
+            print(f"   ✅ Store KPI stats endpoint working")
+            print(f"   ✅ Data available for store KPI modal")
+            
+            # Validate KPI data structure
+            if isinstance(kpi_stats_response, dict):
+                print(f"      KPI Stats keys: {list(kpi_stats_response.keys())}")
+                self.log_test("Store KPI Modal Data", True)
+            else:
+                self.log_test("Store KPI Stats Format", False, "Should return object")
+        
+        print("\n   🔒 AUTHENTICATION AND ERROR HANDLING:")
+        
+        # Test endpoints without authentication
+        test_endpoints = [
+            "manager/sellers",
+            "manager/objectives/active", 
+            "manager/challenges/active",
+            "manager/store-kpi/stats"
+        ]
+        
+        for endpoint in test_endpoints:
+            success, _ = self.run_test(
+                f"Auth Test - {endpoint} without token",
+                "GET",
+                endpoint,
+                401  # Should return 401 Unauthorized
+            )
+            
+            if success:
+                print(f"   ✅ {endpoint} correctly requires authentication")
+            else:
+                print(f"   ⚠️  {endpoint} authentication check failed")
+
     def run_all_tests(self):
         """Run all tests in sequence"""
         print("🚀 Starting Retail Coach 2.0 API Tests")
