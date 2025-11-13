@@ -36,6 +36,24 @@ const PLANS = {
       '100+ analyses IA par vendeur/mois',
       'Support Email sous 48h'
     ]
+  },
+  enterprise: {
+    name: 'Entreprise',
+    pricePerSeller: null, // Custom pricing
+    minSellers: 16,
+    maxSellers: null,
+    features: [
+      'Dashboard complet',
+      'Diagnostic DISC',
+      'Suivi KPI en temps réel',
+      'Analyses IA illimitées',
+      'Nombre de vendeurs illimité',
+      'Support prioritaire 24/7',
+      'Account Manager dédié',
+      'Formation personnalisée',
+      'Intégrations sur mesure'
+    ],
+    isEnterprise: true
   }
 };
 
