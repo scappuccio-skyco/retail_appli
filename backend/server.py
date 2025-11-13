@@ -112,8 +112,11 @@ class User(BaseModel):
     name: str
     email: EmailStr
     role: str  # manager or seller
+    status: str = "active"  # active, inactive, deleted
     manager_id: Optional[str] = None
     workspace_id: Optional[str] = None  # ID du workspace (entreprise)
+    deactivated_at: Optional[datetime] = None  # Date de désactivation
+    deleted_at: Optional[datetime] = None  # Date de suppression
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserCreate(BaseModel):
