@@ -6368,8 +6368,17 @@ async def stripe_webhook(request: Request):
                 
                 # Update workspace with subscription details
                 now = datetime.now(timezone.utc)
-                period_start = datetime.fromtimestamp(stripe_sub['current_period_start'], tz=timezone.utc) if stripe_sub else now
-                period_end = datetime.fromtimestamp(stripe_sub['current_period_end'], tz=timezone.utc) if stripe_sub else now + timedelta(days=30)
+                # Extract period from Stripe subscription using helper function
+                if stripe_sub:
+                    period_start, period_end = extract_subscription_period(stripe_sub)
+                    # Fallback if extraction failed
+                    if not period_start:
+                        period_start = now
+                    if not period_end:
+                        period_end = now + timedelta(days=30)
+                else:
+                    period_start = now
+                    period_end = now + timedelta(days=30)
                 
                 await db.workspaces.update_one(
                     {"id": workspace_id},
