@@ -107,6 +107,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [activeChallenges, setActiveChallenges] = useState([]);
   const [activeObjectives, setActiveObjectives] = useState([]);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsModalType, setSettingsModalType] = useState('objectives'); // 'objectives' or 'challenges'
   const [showStoreKPIModal, setShowStoreKPIModal] = useState(false);
   const [storeKPIStats, setStoreKPIStats] = useState(null);
   const [visibleDashboardCharts, setVisibleDashboardCharts] = useState({
