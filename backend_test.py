@@ -3124,6 +3124,102 @@ class RetailCoachAPITester:
         else:
             self.log_test("Manager12 Subscription Status", False, "Could not retrieve subscription status")
 
+    def test_subscription_status_manager12_detailed(self):
+        """Test subscription status endpoint for Manager12@test.com with detailed field verification - REVIEW REQUEST"""
+        print("\n🔍 Testing Updated Subscription Status for Manager12@test.com (DETAILED REVIEW REQUEST)...")
+        
+        # Login with specific credentials from review request
+        login_data = {
+            "email": "Manager12@test.com",
+            "password": "demo123"
+        }
+        
+        success, response = self.run_test(
+            "Manager12 Detailed Login",
+            "POST",
+            "auth/login",
+            200,
+            data=login_data
+        )
+        
+        manager12_token = None
+        if success and 'token' in response:
+            manager12_token = response['token']
+            manager_info = response['user']
+            print(f"   ✅ Logged in as: {manager_info.get('name')} ({manager_info.get('email')})")
+            print(f"   ✅ Manager ID: {manager_info.get('id')}")
+        else:
+            self.log_test("Manager12 Detailed Subscription Status Test", False, "Could not login with Manager12@test.com/demo123")
+            return
+        
+        # Test GET /api/subscription/status
+        print("\n   📋 Testing GET /api/subscription/status with detailed field verification")
+        success, subscription_response = self.run_test(
+            "Manager12 - GET /api/subscription/status (Detailed)",
+            "GET",
+            "subscription/status",
+            200,
+            token=manager12_token
+        )
+        
+        if success:
+            print("\n   📊 DETAILED SUBSCRIPTION RESPONSE ANALYSIS:")
+            print(f"   Full Response: {json.dumps(subscription_response, indent=2)}")
+            
+            # Extract subscription object
+            subscription_obj = subscription_response.get('subscription', {})
+            print(f"\n   🔍 SUBSCRIPTION OBJECT DETAILED ANALYSIS:")
+            print(f"   {json.dumps(subscription_obj, indent=2)}")
+            
+            # Check for specific required fields from review request
+            required_fields = {
+                'billing_interval': 'year',
+                'billing_interval_count': 1,
+                'current_period_start': '2025-11-13T15:06:50+00:00',
+                'current_period_end': '2026-11-13T15:06:50+00:00'
+            }
+            
+            print(f"\n   ✅ VERIFYING REQUIRED FIELDS:")
+            all_fields_correct = True
+            
+            for field_name, expected_value in required_fields.items():
+                actual_value = subscription_obj.get(field_name)
+                
+                print(f"\n   🔍 Field: {field_name}")
+                print(f"      Expected: {expected_value} (type: {type(expected_value).__name__})")
+                print(f"      Actual: {actual_value} (type: {type(actual_value).__name__})")
+                
+                if actual_value == expected_value:
+                    print(f"      ✅ MATCH - Field is correct!")
+                else:
+                    print(f"      ❌ MISMATCH - Field does not match expected value")
+                    all_fields_correct = False
+            
+            # Print all subscription object fields for verification
+            print(f"\n   📋 ALL SUBSCRIPTION OBJECT FIELDS:")
+            for key, value in subscription_obj.items():
+                print(f"      {key}: {value} (type: {type(value).__name__})")
+            
+            # Final validation
+            if all_fields_correct:
+                self.log_test("Manager12 Subscription Status - All Required Fields Present", True)
+                print(f"\n   🎉 SUCCESS: All required fields are present and match expected values!")
+                print(f"   ✅ billing_interval: {subscription_obj.get('billing_interval')}")
+                print(f"   ✅ billing_interval_count: {subscription_obj.get('billing_interval_count')}")
+                print(f"   ✅ current_period_start: {subscription_obj.get('current_period_start')}")
+                print(f"   ✅ current_period_end: {subscription_obj.get('current_period_end')}")
+            else:
+                missing_or_incorrect = []
+                for field_name, expected_value in required_fields.items():
+                    actual_value = subscription_obj.get(field_name)
+                    if actual_value != expected_value:
+                        missing_or_incorrect.append(f"{field_name} (expected: {expected_value}, got: {actual_value})")
+                
+                self.log_test("Manager12 Subscription Status - Required Fields Validation", False, f"Incorrect fields: {', '.join(missing_or_incorrect)}")
+                
+        else:
+            self.log_test("Manager12 Subscription Status - API Call", False, "Failed to get subscription status")
+
     def print_summary(self):
         """Print test summary"""
         print(f"\n{'='*60}")
