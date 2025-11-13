@@ -68,10 +68,16 @@ async def sync_subscription():
             quantity = subscription['items']['data'][0].get('quantity', 1)
             subscription_item_id = subscription['items']['data'][0]['id']
         
-        # Access fields properly from Stripe object
-        period_start = datetime.fromtimestamp(subscription.current_period_start, tz=timezone.utc)
-        period_end = datetime.fromtimestamp(subscription.current_period_end, tz=timezone.utc)
-        status = subscription.status
+        # Access fields - try to get them safely
+        try:
+            period_start = datetime.fromtimestamp(subscription.current_period_start, tz=timezone.utc)
+            period_end = datetime.fromtimestamp(subscription.current_period_end, tz=timezone.utc)
+        except AttributeError:
+            print("⚠️  Period fields not available in subscription object")
+            period_start = None
+            period_end = None
+        
+        status = subscription.status if hasattr(subscription, 'status') else 'unknown'
         cancel_at_period_end = subscription.cancel_at_period_end if hasattr(subscription, 'cancel_at_period_end') else False
         
         print(f"\n📊 Subscription Details:")
