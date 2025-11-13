@@ -240,8 +240,8 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
     // Fermer le modal de confirmation immédiatement
     setConfirmModal({ isOpen: false, action: null, seller: null });
     
-    // Filtrer localement pour feedback instantané
-    setLocalSellers(prev => prev.filter(s => s.id !== sellerId));
+    // Masquer le vendeur immédiatement
+    setHiddenSellerIds(prev => [...prev, sellerId]);
     
     try {
       const token = localStorage.getItem('token');
@@ -252,10 +252,12 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
       
       // Refresh des données
       await refreshSellersData();
+      // Nettoyer les IDs masqués après le refresh
+      setHiddenSellerIds([]);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de la désactivation');
       // Restaurer l'affichage en cas d'erreur
-      setLocalSellers(sellers);
+      setHiddenSellerIds(prev => prev.filter(id => id !== sellerId));
     }
   };
 
