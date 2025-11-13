@@ -749,18 +749,11 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           
           <div className="grid md:grid-cols-3 gap-6">
             {Object.entries(PLANS).map(([planKey, plan]) => {
-              // Calculate if current subscription is annual based on period dates
-              let currentSubscriptionIsAnnual = false;
-              if (subscriptionInfo?.subscription?.current_period_start && subscriptionInfo?.subscription?.current_period_end) {
-                const start = new Date(subscriptionInfo.subscription.current_period_start);
-                const end = new Date(subscriptionInfo.subscription.current_period_end);
-                const diffMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-                currentSubscriptionIsAnnual = diffMonths >= 11; // 11+ months = annual
-              }
+              // Get current subscription billing period from Stripe data
+              const currentBillingPeriod = subscriptionInfo?.subscription?.billing_interval || 'month';
+              const selectedBillingPeriod = isAnnual ? 'year' : 'month';
               
               // Check if this is the current plan AND same billing period
-              const selectedBillingPeriod = isAnnual ? 'year' : 'month';
-              const currentBillingPeriod = currentSubscriptionIsAnnual ? 'year' : 'month';
               const isCurrentPlan = isActive && currentPlan === planKey && currentBillingPeriod === selectedBillingPeriod;
               const isProcessing = processingPlan === planKey;
               const isEnterprise = plan.isEnterprise;
