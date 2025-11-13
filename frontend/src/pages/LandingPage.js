@@ -692,7 +692,7 @@ export default function LandingPage() {
               },
               {
                 question: "Proposez-vous une formation ?",
-                answer: "Oui, nous offrons un onboarding personnalisé pour tous les plans Professional et Enterprise. Des tutoriels vidéo sont également disponibles."
+                answer: "Oui, nous offrons un onboarding personnalisé pour tous les plans Medium Team et Large Team. Des tutoriels vidéo sont également disponibles."
               }
             ].map((faq, idx) => (
               <div key={`faq-${idx}-${faq.question.substring(0, 20)}`} className="bg-blue-50 rounded-xl border-2 border-[#1E40AF]/20 overflow-hidden hover:border-[#F97316] transition-colors">
