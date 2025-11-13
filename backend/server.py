@@ -5968,40 +5968,52 @@ async def create_checkout_session(
         )
         
         if existing_subscriptions.data:
-            # Update existing subscription quantity
+            # Check if billing period is changing
             subscription = existing_subscriptions.data[0]
-            subscription_item_id = subscription['items'].data[0].id
+            current_price_id = subscription['items'].data[0].price.id
             
-            updated_subscription = stripe_lib.Subscription.modify(
-                subscription.id,
-                items=[{
-                    'id': subscription_item_id,
-                    'quantity': quantity
-                }],
-                proration_behavior='create_prorations'  # Create prorated invoice
-            )
+            # Determine requested price ID
+            billing_period = checkout_data.billing_period or 'monthly'
+            requested_price_id = STRIPE_PRICE_ID_ANNUAL if billing_period == 'annual' else STRIPE_PRICE_ID_MONTHLY
             
-            # Update workspace with new quantity
-            await db.workspaces.update_one(
-                {"id": workspace['id']},
-                {"$set": {
-                    "stripe_quantity": quantity,
-                    "stripe_subscription_id": subscription.id,
-                    "stripe_subscription_item_id": subscription_item_id,
-                    "subscription_status": "active",
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }}
-            )
-            
-            logger.info(f"Updated existing subscription {subscription.id} to quantity {quantity}")
-            
-            return {
-                "success": True,
-                "message": f"Abonnement mis à jour : {quantity} siège(s)",
-                "subscription_id": subscription.id,
-                "quantity": quantity,
-                "updated_existing": True
-            }
+            # If price ID is changing (monthly ↔ annual), create new checkout session
+            if current_price_id != requested_price_id:
+                logger.info(f"Billing period changing from {current_price_id} to {requested_price_id} - creating checkout session")
+                # Continue to STEP 3 to create checkout session (don't return here)
+            else:
+                # Same billing period - just update quantity
+                subscription_item_id = subscription['items'].data[0].id
+                
+                updated_subscription = stripe_lib.Subscription.modify(
+                    subscription.id,
+                    items=[{
+                        'id': subscription_item_id,
+                        'quantity': quantity
+                    }],
+                    proration_behavior='create_prorations'  # Create prorated invoice
+                )
+                
+                # Update workspace with new quantity
+                await db.workspaces.update_one(
+                    {"id": workspace['id']},
+                    {"$set": {
+                        "stripe_quantity": quantity,
+                        "stripe_subscription_id": subscription.id,
+                        "stripe_subscription_item_id": subscription_item_id,
+                        "subscription_status": "active",
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                
+                logger.info(f"Updated existing subscription {subscription.id} to quantity {quantity}")
+                
+                return {
+                    "success": True,
+                    "message": f"Abonnement mis à jour : {quantity} siège(s)",
+                    "subscription_id": subscription.id,
+                    "quantity": quantity,
+                    "updated_existing": True
+                }
         
         # STEP 3: No active subscription - create checkout session
         success_url = f"{checkout_data.origin_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}"
