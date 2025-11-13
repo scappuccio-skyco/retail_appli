@@ -627,65 +627,108 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                               
                               {seller.status === 'active' ? (
                                 <>
-                                  <button
-                                    onClick={async () => {
-                                      if (window.confirm(`Mettre ${seller.name} en sommeil ?\n\nCela libérera un siège mais vous pourrez réactiver ce vendeur plus tard.`)) {
-                                        try {
-                                          await axios.put(`${API}/manager/seller/${seller.id}/deactivate`, {}, {
-                                            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                                          });
-                                          toast.success(`${seller.name} a été mis en sommeil`);
-                                          window.location.reload();
-                                        } catch (error) {
-                                          toast.error(error.response?.data?.detail || 'Erreur lors de la désactivation');
+                                  <div className="relative">
+                                    <button
+                                      onClick={async () => {
+                                        if (window.confirm(`Mettre ${seller.name} en sommeil ?\n\nCela libérera un siège mais vous pourrez réactiver ce vendeur plus tard.`)) {
+                                          try {
+                                            await axios.put(`${API}/manager/seller/${seller.id}/deactivate`, {}, {
+                                              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                            });
+                                            toast.success(`${seller.name} a été mis en sommeil`);
+                                            window.location.reload();
+                                          } catch (error) {
+                                            toast.error(error.response?.data?.detail || 'Erreur lors de la désactivation');
+                                          }
                                         }
-                                      }
-                                    }}
-                                    className="p-2 bg-orange-100 text-orange-600 rounded hover:bg-orange-200 transition-colors"
-                                    title="Mettre en sommeil"
-                                  >
-                                    <PauseCircle className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={async () => {
-                                      if (window.confirm(`Supprimer définitivement ${seller.name} ?\n\nCette action libérera un siège. L'historique sera conservé mais le vendeur ne pourra plus se connecter.`)) {
-                                        try {
-                                          await axios.delete(`${API}/manager/seller/${seller.id}`, {
-                                            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                                          });
-                                          toast.success(`${seller.name} a été supprimé`);
-                                          window.location.reload();
-                                        } catch (error) {
-                                          toast.error(error.response?.data?.detail || 'Erreur lors de la suppression');
+                                      }}
+                                      onMouseEnter={() => setHoveredButton(`pause-${seller.id}`)}
+                                      onMouseLeave={() => setHoveredButton(null)}
+                                      className="p-2 bg-orange-100 text-orange-600 rounded hover:bg-orange-200 transition-colors relative"
+                                    >
+                                      <PauseCircle className="w-4 h-4" />
+                                    </button>
+                                    {hoveredButton === `pause-${seller.id}` && (
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 w-56 bg-gray-900 text-white text-xs rounded-lg shadow-xl p-3 pointer-events-none">
+                                        <div className="font-bold mb-1">🟠 Mettre en sommeil</div>
+                                        <div className="text-gray-300">
+                                          • Libère 1 siège<br/>
+                                          • Réversible<br/>
+                                          • Historique conservé
+                                        </div>
+                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="relative">
+                                    <button
+                                      onClick={async () => {
+                                        if (window.confirm(`Supprimer définitivement ${seller.name} ?\n\nCette action libérera un siège. L'historique sera conservé mais le vendeur ne pourra plus se connecter.`)) {
+                                          try {
+                                            await axios.delete(`${API}/manager/seller/${seller.id}`, {
+                                              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                            });
+                                            toast.success(`${seller.name} a été supprimé`);
+                                            window.location.reload();
+                                          } catch (error) {
+                                            toast.error(error.response?.data?.detail || 'Erreur lors de la suppression');
+                                          }
                                         }
-                                      }
-                                    }}
-                                    className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors"
-                                    title="Supprimer"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
+                                      }}
+                                      onMouseEnter={() => setHoveredButton(`delete-${seller.id}`)}
+                                      onMouseLeave={() => setHoveredButton(null)}
+                                      className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors relative"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                    {hoveredButton === `delete-${seller.id}` && (
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 w-56 bg-gray-900 text-white text-xs rounded-lg shadow-xl p-3 pointer-events-none">
+                                        <div className="font-bold mb-1">🔴 Supprimer définitivement</div>
+                                        <div className="text-gray-300">
+                                          • Libère 1 siège<br/>
+                                          • Action irréversible<br/>
+                                          • Historique conservé
+                                        </div>
+                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                                      </div>
+                                    )}
+                                  </div>
                                 </>
                               ) : seller.status === 'inactive' ? (
-                                <button
-                                  onClick={async () => {
-                                    if (window.confirm(`Réactiver ${seller.name} ?\n\nCela consommera un siège disponible.`)) {
-                                      try {
-                                        await axios.put(`${API}/manager/seller/${seller.id}/reactivate`, {}, {
-                                          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-                                        });
-                                        toast.success(`${seller.name} a été réactivé`);
-                                        window.location.reload();
-                                      } catch (error) {
-                                        toast.error(error.response?.data?.detail || 'Erreur lors de la réactivation');
+                                <div className="relative">
+                                  <button
+                                    onClick={async () => {
+                                      if (window.confirm(`Réactiver ${seller.name} ?\n\nCela consommera un siège disponible.`)) {
+                                        try {
+                                          await axios.put(`${API}/manager/seller/${seller.id}/reactivate`, {}, {
+                                            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                          });
+                                          toast.success(`${seller.name} a été réactivé`);
+                                          window.location.reload();
+                                        } catch (error) {
+                                          toast.error(error.response?.data?.detail || 'Erreur lors de la réactivation');
+                                        }
                                       }
-                                    }
-                                  }}
-                                  className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors"
-                                  title="Réactiver"
-                                >
-                                  <PlayCircle className="w-4 h-4" />
-                                </button>
+                                    }}
+                                    onMouseEnter={() => setHoveredButton(`reactivate-${seller.id}`)}
+                                    onMouseLeave={() => setHoveredButton(null)}
+                                    className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors relative"
+                                  >
+                                    <PlayCircle className="w-4 h-4" />
+                                  </button>
+                                  {hoveredButton === `reactivate-${seller.id}` && (
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 w-56 bg-gray-900 text-white text-xs rounded-lg shadow-xl p-3 pointer-events-none">
+                                      <div className="font-bold mb-1">🟢 Réactiver</div>
+                                      <div className="text-gray-300">
+                                        • Consomme 1 siège<br/>
+                                        • Le vendeur peut se reconnecter<br/>
+                                        • Historique intact
+                                      </div>
+                                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                  )}
+                                </div>
                               ) : null}
                             </div>
                           </td>
