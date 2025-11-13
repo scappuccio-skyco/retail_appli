@@ -891,7 +891,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                       disabled
                       className="w-full py-3 bg-green-600 text-white rounded-lg font-semibold"
                     >
-                      Plan actuel
+                      ✓ Plan actuel {isAnnual ? '(Annuel)' : '(Mensuel)'}
                     </button>
                   ) : isEnterprise ? (
                     <a
