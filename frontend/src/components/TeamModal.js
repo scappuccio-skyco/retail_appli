@@ -1039,7 +1039,12 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                   <div className="flex items-start gap-2">
                     <span className="text-sm text-gray-600 font-medium mt-1.5">Vendeurs :</span>
                     <div className="flex flex-wrap gap-2">
-                      {sellers.map((seller, idx) => {
+                      {sellers
+                        .filter(seller => 
+                          !hiddenSellerIds.includes(seller.id) && 
+                          (!seller.status || seller.status === 'active')
+                        )
+                        .map((seller, idx) => {
                         // Define colors for first 5 sellers
                         const colors = [
                           { bg: 'bg-blue-500', text: 'text-white' },
