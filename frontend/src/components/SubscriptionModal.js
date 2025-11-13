@@ -933,10 +933,29 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           </div>
 
           {/* Info */}
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <p className="text-sm text-gray-600 text-center">
-              💳 Paiement sécurisé par Stripe • ✅ Annulation à tout moment • 📧 Support inclus
-            </p>
+          <div className="mt-8 space-y-3">
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 text-center">
+                💳 Paiement sécurisé par Stripe • ✅ Annulation à tout moment • 📧 Support inclus
+              </p>
+            </div>
+            
+            {/* Billing period change notice */}
+            {isActive && subscriptionInfo.subscription?.billing_interval === 'year' && !isAnnual && (
+              <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <p className="text-sm text-orange-800 text-center font-semibold">
+                  ℹ️ Vous avez un abonnement annuel. Le passage à un abonnement mensuel n'est pas possible. Pour changer, vous devez annuler votre abonnement actuel et souscrire un nouveau plan mensuel.
+                </p>
+              </div>
+            )}
+            
+            {isActive && subscriptionInfo.subscription?.billing_interval === 'month' && isAnnual && (
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-sm text-green-800 text-center font-semibold">
+                  💰 Économisez 20% en passant à la facturation annuelle !
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
