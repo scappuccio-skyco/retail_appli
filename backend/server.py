@@ -107,6 +107,54 @@ security = HTTPBearer()
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# ===== HELPER FUNCTIONS =====
+def extract_subscription_period(stripe_subscription):
+    """
+    Extract period_start and period_end from a Stripe subscription object.
+    Stripe subscriptions don't have current_period_start/end as direct fields,
+    we need to use billing_cycle_anchor and calculate based on interval.
+    
+    Args:
+        stripe_subscription: Stripe subscription object from API
+        
+    Returns:
+        tuple: (period_start datetime, period_end datetime) or (None, None)
+    """
+    from dateutil.relativedelta import relativedelta
+    
+    if not stripe_subscription or not stripe_subscription.get('billing_cycle_anchor'):
+        return None, None
+    
+    try:
+        period_start = datetime.fromtimestamp(
+            stripe_subscription['billing_cycle_anchor'], 
+            tz=timezone.utc
+        )
+        
+        # Get interval from the plan/price
+        if stripe_subscription.get('plan'):
+            interval = stripe_subscription['plan'].get('interval', 'month')
+            interval_count = stripe_subscription['plan'].get('interval_count', 1)
+            
+            if interval == 'year':
+                period_end = period_start + relativedelta(years=interval_count)
+            elif interval == 'month':
+                period_end = period_start + relativedelta(months=interval_count)
+            elif interval == 'day':
+                period_end = period_start + relativedelta(days=interval_count)
+            elif interval == 'week':
+                period_end = period_start + relativedelta(weeks=interval_count)
+            else:
+                # Default to 1 month if interval is unknown
+                period_end = period_start + relativedelta(months=1)
+            
+            return period_start, period_end
+        
+        return period_start, None
+    except Exception as e:
+        logging.error(f"Error extracting subscription period: {str(e)}")
+        return None, None
+
 # ===== MODELS =====
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
