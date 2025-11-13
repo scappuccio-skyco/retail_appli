@@ -15,12 +15,10 @@ const PLANS = {
     minSellers: 1,
     maxSellers: 5,
     features: [
-      'Espace Manager inclus',
       '29€ par vendeur/mois (Hors taxe)',
       'Dashboard complet',
       'Diagnostic DISC',
       'Suivi KPI en temps réel',
-      '1 à 5 espaces vendeur',
       '150+ analyses IA manager/mois',
       '100+ analyses IA par vendeur/mois',
       'Support email sous 48h'
@@ -32,12 +30,10 @@ const PLANS = {
     minSellers: 6,
     maxSellers: 15,
     features: [
-      'Espace Manager inclus',
       '25€ par vendeur/mois (Hors taxe - tarif dégressif)',
       'Dashboard complet',
       'Diagnostic DISC',
       'Suivi KPI en temps réel',
-      '6 à 15 espaces vendeur',
       '150+ analyses IA manager/mois',
       '100+ analyses IA par vendeur/mois',
       'Support prioritaire',
