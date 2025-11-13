@@ -206,11 +206,11 @@ export default function SubscriptionModal({ isOpen, onClose }) {
   };
 
   const handleSelectPlan = (plan) => {
-    // Check if user has too many sellers for Starter plan
+    // Check if user has too many sellers for Small Team plan
     const planInfo = PLANS[plan];
     if (sellerCount > planInfo.maxSellers) {
       toast.error(
-        `Vous avez ${sellerCount} vendeur(s). Le plan ${planInfo.name} est limité à ${planInfo.maxSellers}. Veuillez mettre en sommeil des vendeurs ou choisir le plan Professional.`,
+        `Vous avez ${sellerCount} vendeur(s). Le plan ${planInfo.name} est limité à ${planInfo.maxSellers}. Veuillez mettre en sommeil des vendeurs ou choisir le plan Medium Team.`,
         { duration: 5000 }
       );
       return;
