@@ -818,6 +818,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                   </div>
                 )}
               </div>
+              </>
               )}
 
               {/* Section Vendeurs Archivés */}
