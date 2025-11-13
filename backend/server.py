@@ -5976,12 +5976,15 @@ async def create_checkout_session(
         existing_subscriptions = stripe_lib.Subscription.list(
             customer=stripe_customer_id,
             status='active',
-            limit=1
+            limit=10  # Get multiple to filter out canceled ones
         )
         
-        if existing_subscriptions.data:
+        # Filter to get only subscriptions without cancel_at_period_end
+        active_subs = [sub for sub in existing_subscriptions.data if not sub.get('cancel_at_period_end', False)]
+        
+        if active_subs:
             # Check if billing period is changing
-            subscription = existing_subscriptions.data[0]
+            subscription = active_subs[0]  # Use the first truly active subscription
             current_price_id = subscription['items'].data[0].price.id
             
             # Determine requested price ID
