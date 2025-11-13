@@ -566,10 +566,10 @@ export default function LandingPage() {
               </button>
             </div>
 
-            {/* Enterprise */}
+            {/* Large Team */}
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[#1E40AF]/30">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Enterprise</h3>
+                <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Large Team</h3>
                 <p className="text-[#334155] mb-4">Pour réseaux & enseignes</p>
                 <div className="flex items-baseline justify-center gap-2">
                   <span className="text-3xl font-bold text-[#1E40AF]">Sur devis</span>
