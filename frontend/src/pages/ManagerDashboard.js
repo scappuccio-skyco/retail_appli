@@ -780,7 +780,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
                 Afficher/Masquer les cartes
               </p>
-              <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
                 <button
                   onClick={() => toggleFilter('showKPI')}
                   className={`px-6 py-4 rounded-xl font-medium transition-all border-2 ${
