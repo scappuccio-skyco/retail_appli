@@ -484,22 +484,19 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                   </div>
                 </button>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setShowArchivedSellers(true);
                     // Charger les vendeurs archivés
-                    const fetchArchived = async () => {
-                      try {
-                        const token = localStorage.getItem('token');
-                        const response = await axios.get(`${API}/manager/sellers/archived`, {
-                          headers: { Authorization: `Bearer ${token}` }
-                        });
-                        // On pourrait stocker ça dans un état séparé
-                        console.log('Archived sellers:', response.data);
-                      } catch (error) {
-                        console.error('Error fetching archived sellers:', error);
-                      }
-                    };
-                    fetchArchived();
+                    try {
+                      const token = localStorage.getItem('token');
+                      const response = await axios.get(`${API}/manager/sellers/archived`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                      });
+                      setArchivedSellers(response.data);
+                    } catch (error) {
+                      console.error('Error fetching archived sellers:', error);
+                      toast.error('Erreur lors du chargement des vendeurs archivés');
+                    }
                   }}
                   className={`px-4 py-2 font-medium transition-colors ${
                     showArchivedSellers
