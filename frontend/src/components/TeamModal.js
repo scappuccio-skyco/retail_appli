@@ -867,7 +867,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
                 </div>
                 
                 {/* Show More Button */}
-                {teamData.filter(seller => 
+                {localSellers.filter(seller => 
                   seller.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                   seller.email.toLowerCase().includes(searchQuery.toLowerCase())
                 ).length > displayedSellerCount && (
