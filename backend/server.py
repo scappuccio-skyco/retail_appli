@@ -6079,6 +6079,16 @@ async def create_checkout_session(
             
             # If price ID is changing (monthly ↔ annual), UPDATE the subscription with new price
             if current_price_id != requested_price_id:
+                # Check if trying to downgrade from annual to monthly (NOT ALLOWED)
+                is_current_annual = current_price_id == STRIPE_PRICE_ID_ANNUAL
+                is_requested_monthly = requested_price_id == STRIPE_PRICE_ID_MONTHLY
+                
+                if is_current_annual and is_requested_monthly:
+                    raise HTTPException(
+                        status_code=400, 
+                        detail="Impossible de passer d'un abonnement annuel à mensuel. Pour changer, vous devez annuler votre abonnement actuel puis souscrire un nouveau plan mensuel."
+                    )
+                
                 logger.info(f"Billing period changing from {current_price_id} to {requested_price_id} - updating subscription")
                 
                 # Update the subscription with new price ID and quantity
