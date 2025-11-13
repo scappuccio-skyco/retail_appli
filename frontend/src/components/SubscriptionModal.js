@@ -190,11 +190,9 @@ export default function SubscriptionModal({ isOpen, onClose }) {
     // Check if user has too many sellers for Starter plan
     const planInfo = PLANS[plan];
     if (sellerCount > planInfo.maxSellers) {
-      alert(
-        `⚠️ ATTENTION\n\n` +
-        `Vous avez actuellement ${sellerCount} vendeur(s).\n` +
-        `Le plan ${planInfo.name} est limité à ${planInfo.maxSellers} vendeur(s).\n\n` +
-        `Veuillez supprimer des vendeurs ou choisir le plan Professional.`
+      toast.error(
+        `Vous avez ${sellerCount} vendeur(s). Le plan ${planInfo.name} est limité à ${planInfo.maxSellers}. Veuillez mettre en sommeil des vendeurs ou choisir le plan Professional.`,
+        { duration: 5000 }
       );
       return;
     }
