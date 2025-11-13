@@ -5536,17 +5536,23 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
             cancel_at_period_end = stripe_sub.get('cancel_at_period_end', False)
             
             # Mettre à jour le workspace avec les vraies données Stripe
+            update_data = {
+                "stripe_quantity": quantity,
+                "stripe_subscription_item_id": subscription_item_id,
+                "subscription_status": status,
+                "cancel_at_period_end": cancel_at_period_end,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            # Add period fields only if they exist
+            if period_start:
+                update_data["current_period_start"] = period_start.isoformat()
+            if period_end:
+                update_data["current_period_end"] = period_end.isoformat()
+            
             await db.workspaces.update_one(
                 {"id": workspace['id']},
-                {"$set": {
-                    "stripe_quantity": quantity,
-                    "stripe_subscription_item_id": subscription_item_id,
-                    "subscription_status": status,
-                    "current_period_start": period_start.isoformat(),
-                    "current_period_end": period_end.isoformat(),
-                    "cancel_at_period_end": cancel_at_period_end,
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }}
+                {"$set": update_data}
             )
             
             # Recharger le workspace avec les données mises à jour
