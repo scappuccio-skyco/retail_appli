@@ -49,6 +49,8 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [displayedSellerCount, setDisplayedSellerCount] = useState(5);
   const [hoveredButton, setHoveredButton] = useState(null); // Pour les tooltips des boutons d'action
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, action: null, seller: null }); // Modal de confirmation
+  const [showArchivedSellers, setShowArchivedSellers] = useState(false); // Afficher vendeurs archivés
 
   // Initialize visible sellers only once when sellers change
   useEffect(() => {
