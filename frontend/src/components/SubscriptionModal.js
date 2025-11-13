@@ -710,10 +710,11 @@ export default function SubscriptionModal({ isOpen, onClose }) {
             )}
           </div>
           
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             {Object.entries(PLANS).map(([planKey, plan]) => {
               const isCurrentPlan = isActive && currentPlan === planKey;
               const isProcessing = processingPlan === planKey;
+              const isEnterprise = plan.isEnterprise;
               
               return (
                 <div
@@ -721,6 +722,8 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                   className={`border-2 rounded-xl p-6 transition-all ${
                     isCurrentPlan
                       ? 'border-green-500 bg-green-50'
+                      : isEnterprise
+                      ? 'border-purple-300 bg-gradient-to-br from-purple-50 to-indigo-50 hover:shadow-xl'
                       : 'border-gray-200 hover:border-blue-400 hover:shadow-lg'
                   }`}
                 >
@@ -728,7 +731,16 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     <h4 className="text-2xl font-bold text-gray-800 mb-2">
                       {plan.name}
                     </h4>
-                    {!isAnnual ? (
+                    {isEnterprise ? (
+                      <div>
+                        <div className="flex items-baseline justify-center gap-1">
+                          <span className="text-3xl font-bold text-purple-700">
+                            Sur mesure
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Tarif personnalisé</p>
+                      </div>
+                    ) : !isAnnual ? (
                       <div>
                         <div className="flex items-baseline justify-center gap-1">
                           <span className="text-4xl font-bold text-[#1E40AF]">
@@ -752,10 +764,18 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                         </p>
                       </div>
                     )}
-                    <p className="text-sm text-green-600 font-semibold mt-2">
-                      {plan.minSellers} à {plan.maxSellers} espaces vendeur
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1">+ Espace Manager inclus</p>
+                    {!isEnterprise ? (
+                      <>
+                        <p className="text-sm text-green-600 font-semibold mt-2">
+                          {plan.minSellers} à {plan.maxSellers} espaces vendeur
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1">+ Espace Manager inclus</p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-purple-600 font-semibold mt-2">
+                        16+ espaces vendeur
+                      </p>
+                    )}
                   </div>
 
                   <ul className="space-y-3 mb-6">
@@ -768,7 +788,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                   </ul>
 
                   {/* Warning if too many sellers */}
-                  {sellerCount > plan.maxSellers && !isCurrentPlan && (
+                  {!isEnterprise && plan.maxSellers && sellerCount > plan.maxSellers && !isCurrentPlan && (
                     <div className="mb-4 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
                       <p className="text-sm text-orange-800 font-semibold">
                         ⚠️ Attention
@@ -786,6 +806,13 @@ export default function SubscriptionModal({ isOpen, onClose }) {
                     >
                       Plan actuel
                     </button>
+                  ) : isEnterprise ? (
+                    <a
+                      href="mailto:contact@retailperformerai.com?subject=Demande d'information - Plan Entreprise"
+                      className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-colors font-semibold flex items-center justify-center gap-2"
+                    >
+                      📧 Nous contacter
+                    </a>
                   ) : (
                     <button
                       onClick={() => handleSelectPlan(planKey)}
