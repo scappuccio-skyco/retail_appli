@@ -952,16 +952,15 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               </div>
 
 
-              {/* Charts */}
+              {/* Graphique consolidé */}
               {historicalData.length > 0 ? (
                 <div className="space-y-6">
-                  {/* CA Chart */}
-                  {visibleCharts.ca && (
+                  {/* Consolidated Chart */}
                   <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
                     <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                      💰 Chiffre d'Affaires
+                      📊 Vue Consolidée des KPI
                     </h4>
-                    <ResponsiveContainer width="100%" height={300}>
+                    <ResponsiveContainer width="100%" height={500}>
                       <LineChart data={historicalData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis 
