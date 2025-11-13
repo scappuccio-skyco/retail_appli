@@ -1002,6 +1002,30 @@ export default function SubscriptionModal({ isOpen, onClose }) {
           </div>
         </div>
       )}
+
+      {/* Subscription Action Confirmation Modal */}
+      {showSubscriptionActionModal && (
+        <ConfirmActionModal
+          isOpen={showSubscriptionActionModal}
+          onClose={() => {
+            setShowSubscriptionActionModal(false);
+            setSubscriptionAction(null);
+          }}
+          onConfirm={() => {
+            if (subscriptionAction === 'cancel_subscription') {
+              confirmCancelSubscription();
+            } else if (subscriptionAction === 'reactivate_subscription') {
+              confirmReactivateSubscription();
+            }
+          }}
+          action={subscriptionAction}
+          subscriptionEndDate={
+            subscriptionInfo?.period_end 
+              ? new Date(subscriptionInfo.period_end).toLocaleDateString('fr-FR')
+              : ''
+          }
+        />
+      )}
     </>
   );
 }
