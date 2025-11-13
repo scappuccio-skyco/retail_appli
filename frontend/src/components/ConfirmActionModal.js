@@ -77,7 +77,13 @@ export default function ConfirmActionModal({
         <div className="p-6">
           <p className="text-gray-700 font-medium mb-4">{config.message}</p>
           
-          <div className={`bg-${config.color}-50 border border-${config.color}-200 rounded-lg p-4 space-y-2`}>
+          <div className={
+            action === 'deactivate' 
+              ? 'bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-2'
+              : action === 'delete'
+              ? 'bg-red-50 border border-red-200 rounded-lg p-4 space-y-2'
+              : 'bg-green-50 border border-green-200 rounded-lg p-4 space-y-2'
+          }>
             {config.details.map((detail, idx) => (
               <div key={idx} className="text-sm text-gray-700">
                 {detail}
@@ -99,7 +105,13 @@ export default function ConfirmActionModal({
               onConfirm();
               onClose();
             }}
-            className={`flex-1 px-4 py-2.5 bg-${config.color}-600 text-white font-medium rounded-lg hover:bg-${config.color}-700 transition-colors`}
+            className={
+              action === 'deactivate'
+                ? 'flex-1 px-4 py-2.5 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors'
+                : action === 'delete'
+                ? 'flex-1 px-4 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors'
+                : 'flex-1 px-4 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors'
+            }
           >
             {config.confirmText}
           </button>
