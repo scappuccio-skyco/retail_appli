@@ -577,7 +577,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           <div className="relative h-56 overflow-hidden">
             <img 
               src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop" 
-              alt="Vue d'ensemble KPI Magasin"
+              alt="Mon Magasin"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-teal-900/80 via-emerald-900/80 to-cyan-900/80 group-hover:from-teal-900/70 group-hover:via-emerald-900/70 group-hover:to-cyan-900/70 transition-all"></div>
@@ -585,7 +585,7 @@ export default function ManagerDashboard({ user, onLogout }) {
               <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
                 <BarChart3 className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-white text-center mb-2">Vue d'ensemble KPI Magasin</h3>
+              <h3 className="text-2xl font-bold text-white text-center mb-2">🏪 Mon Magasin</h3>
               <p className="text-sm text-white opacity-90 text-center">Performances globales du point de vente</p>
               <p className="text-xs text-white opacity-80 mt-3">Cliquer pour voir les détails →</p>
             </div>
