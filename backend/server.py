@@ -6031,7 +6031,7 @@ async def create_checkout_session(
                 'quantity': quantity,
                 'adjustable_quantity': {
                     'enabled': True,
-                    'minimum': max(seller_count, 1),
+                    'minimum': min(max(seller_count, 1), quantity),  # Cannot be greater than quantity
                     'maximum': 15
                 }
             }],
