@@ -232,6 +232,18 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
       
       // IMPORTANT: Re-calculer teamData avec les nouvelles données
       await fetchTeamData(response.data);
+      
+      // Nettoyer visibleSellers pour ne garder que les vendeurs actifs
+      const activeSellerIds = response.data.map(s => s.id);
+      setVisibleSellers(prev => {
+        const cleaned = {};
+        Object.keys(prev).forEach(sellerId => {
+          if (activeSellerIds.includes(sellerId)) {
+            cleaned[sellerId] = prev[sellerId];
+          }
+        });
+        return cleaned;
+      });
     } catch (error) {
       console.error('Erreur lors du rafraîchissement:', error);
     }
