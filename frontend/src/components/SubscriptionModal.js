@@ -741,7 +741,7 @@ export default function SubscriptionModal({ isOpen, onClose }) {
               
               return (
                 <div
-                  key={planKey}
+                  key={`${planKey}-${isAnnual ? 'annual' : 'monthly'}`}
                   className={`bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all ${
                     isRecommended
                       ? 'border-4 border-[#F97316] relative transform scale-105'
