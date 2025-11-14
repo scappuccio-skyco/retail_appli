@@ -1089,6 +1089,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           <input
                             type="date"
                             required
+                            min={editingChallenge ? editingChallenge.start_date : newChallenge.start_date}
                             value={editingChallenge ? editingChallenge.end_date : newChallenge.end_date}
                             onChange={(e) => editingChallenge
                               ? setEditingChallenge({ ...editingChallenge, end_date: e.target.value })
