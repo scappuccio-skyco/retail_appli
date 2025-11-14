@@ -369,11 +369,12 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
                     setHistoryFilter(e.target.value);
                     loadHistory(e.target.value !== 'all' ? e.target.value : null);
                   }}
-                  className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-800 bg-white"
+                  className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                  style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
                 >
-                  <option value="all" className="text-gray-800">Tous les vendeurs</option>
+                  <option value="all" style={{ color: '#1f2937' }}>Tous les vendeurs</option>
                   {sellers.map(seller => (
-                    <option key={seller.id} value={seller.id} className="text-gray-800">
+                    <option key={seller.id} value={seller.id} style={{ color: '#1f2937' }}>
                       {seller.first_name} {seller.last_name} {seller.status !== 'active' && `(${seller.status})`}
                     </option>
                   ))}
