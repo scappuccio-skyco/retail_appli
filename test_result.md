@@ -297,10 +297,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "React DOM Stability - BilanIndividuelModal PDF Export"
-    - "React DOM Stability - InviteModal Clipboard"
-    - "React DOM Stability - Fix key={index} Patterns"
-  stuck_tasks: []
+    - "RelationshipManagementModal - Fix Invisible Dropdown Options"
+    - "Relationship Management API - Generate Advice"
+    - "Relationship Management API - Get History"
+  stuck_tasks:
+    - "RelationshipManagementModal - Fix Invisible Dropdown Options (3 attempts - now architectural fix applied)"
   test_all: false
   test_priority: "critical_first"
 
