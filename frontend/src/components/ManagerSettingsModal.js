@@ -1027,7 +1027,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     }).join(', ')}
                                   </div>
                                 )}
-                                <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                                <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-3">
                                   {objective.ca_target && <span>💰 CA: {objective.ca_target.toLocaleString('fr-FR')}€</span>}
                                   {objective.ventes_target && <span>📈 Ventes: {objective.ventes_target}</span>}
                                   {objective.clients_target && <span>👥 Clients: {objective.clients_target}</span>}
@@ -1036,6 +1036,57 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   {objective.indice_vente_target && <span>💎 Indice: {objective.indice_vente_target}</span>}
                                   {objective.taux_transformation_target && <span>📊 Taux: {objective.taux_transformation_target}%</span>}
                                 </div>
+                                
+                                {/* Barre de progression */}
+                                {(() => {
+                                  // Calculer le pourcentage moyen de progression
+                                  let progressValues = [];
+                                  
+                                  if (objective.ca_target && objective.ca_target > 0) {
+                                    const progress_ca = objective.progress_ca || 0;
+                                    progressValues.push((progress_ca / objective.ca_target) * 100);
+                                  }
+                                  if (objective.ventes_target && objective.ventes_target > 0) {
+                                    const progress_ventes = objective.progress_ventes || 0;
+                                    progressValues.push((progress_ventes / objective.ventes_target) * 100);
+                                  }
+                                  if (objective.panier_moyen_target && objective.panier_moyen_target > 0) {
+                                    const progress_pm = objective.progress_panier_moyen || 0;
+                                    progressValues.push((progress_pm / objective.panier_moyen_target) * 100);
+                                  }
+                                  if (objective.indice_vente_target && objective.indice_vente_target > 0) {
+                                    const progress_iv = objective.progress_indice_vente || 0;
+                                    progressValues.push((progress_iv / objective.indice_vente_target) * 100);
+                                  }
+                                  
+                                  // Moyenne de progression
+                                  const avgProgress = progressValues.length > 0 
+                                    ? progressValues.reduce((a, b) => a + b, 0) / progressValues.length 
+                                    : 0;
+                                  
+                                  const progressPercent = Math.min(Math.round(avgProgress), 100);
+                                  
+                                  // Couleur selon le pourcentage
+                                  let progressColor = 'bg-red-500';
+                                  if (progressPercent >= 75) progressColor = 'bg-green-500';
+                                  else if (progressPercent >= 50) progressColor = 'bg-yellow-500';
+                                  else if (progressPercent >= 25) progressColor = 'bg-orange-500';
+                                  
+                                  return progressValues.length > 0 ? (
+                                    <div className="mt-2">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs font-semibold text-gray-600">Progression</span>
+                                        <span className="text-xs font-bold text-gray-700">{progressPercent}%</span>
+                                      </div>
+                                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div 
+                                          className={`${progressColor} h-2.5 rounded-full transition-all duration-300`}
+                                          style={{ width: `${progressPercent}%` }}
+                                        ></div>
+                                      </div>
+                                    </div>
+                                  ) : null;
+                                })()}
                               </div>
                               <div className="flex gap-2 ml-4">
                                 <button
