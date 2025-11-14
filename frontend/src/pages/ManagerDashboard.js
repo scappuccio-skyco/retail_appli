@@ -999,6 +999,10 @@ export default function ManagerDashboard({ user, onLogout }) {
             setShowDetailView(true);
             setShowTeamModal(false);
           }}
+          onDataUpdate={async () => {
+            // Recharger les vendeurs après une modification
+            await loadDashboardData();
+          }}
         />
       )}
 
