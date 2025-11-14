@@ -1198,9 +1198,17 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
 
                 <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-gray-800">🛍️ Nombre de Ventes</h4>
-                      <p className="text-sm text-gray-600">Transactions</p>
+                    <div className="flex items-center gap-2">
+                      <div>
+                        <h4 className="font-bold text-gray-800">🛍️ Nombre de Ventes</h4>
+                        <p className="text-sm text-gray-600">Transactions</p>
+                      </div>
+                      <span 
+                        className="text-blue-500 cursor-help" 
+                        title="Nombre de transactions réalisées. Permet de calculer : Panier Moyen (CA ÷ Ventes), Taux de Transformation (Ventes ÷ Prospects) et Indice de Vente (Articles ÷ Ventes)."
+                      >
+                        ⓘ
+                      </span>
                     </div>
                     <div className="flex gap-2">
                       <button
