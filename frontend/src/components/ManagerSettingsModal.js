@@ -86,6 +86,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     }
   };
 
+  // Charger les données au montage du composant
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const handleKPIConfigUpdate = async (e) => {
     e.preventDefault();
     try {
