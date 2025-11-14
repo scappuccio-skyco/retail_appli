@@ -1161,9 +1161,17 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-gray-800">💰 Chiffre d'Affaires</h4>
-                      <p className="text-sm text-gray-600">CA quotidien</p>
+                    <div className="flex items-center gap-2">
+                      <div>
+                        <h4 className="font-bold text-gray-800">💰 Chiffre d'Affaires</h4>
+                        <p className="text-sm text-gray-600">CA quotidien</p>
+                      </div>
+                      <span 
+                        className="text-blue-500 cursor-help" 
+                        title="Total des ventes en euros. Permet de calculer le Panier Moyen (CA ÷ Ventes)."
+                      >
+                        ⓘ
+                      </span>
                     </div>
                     <div className="flex gap-2">
                       <button
