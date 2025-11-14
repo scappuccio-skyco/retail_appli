@@ -183,10 +183,129 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
             ) : (
               <div className="text-center py-8 bg-gray-50 rounded-xl">
                 <Award className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-500">Aucun objectif d'équipe pour le moment</p>
+                <p className="text-gray-500">Aucun objectif actif pour le moment</p>
               </div>
             )}
           </div>
+
+          {/* Objectifs Inactifs */}
+          {inactiveObjectives.length > 0 && (
+            <div className="mb-8">
+              <button
+                onClick={() => setShowInactive(!showInactive)}
+                className="w-full text-left mb-4 flex items-center justify-between p-4 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+              >
+                <h3 className="text-xl font-bold text-gray-700 flex items-center gap-2">
+                  <XCircle className="w-5 h-5 text-gray-500" />
+                  📋 Objectifs Terminés
+                  <span className="ml-2 bg-gray-200 text-gray-700 text-sm font-semibold px-3 py-1 rounded-full">
+                    {inactiveObjectives.length}
+                  </span>
+                </h3>
+                <span className="text-gray-500">
+                  {showInactive ? '▲ Masquer' : '▼ Afficher'}
+                </span>
+              </button>
+
+              {showInactive && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {inactiveObjectives.map((objective) => {
+                    const progressPercentage = calculateProgress(objective);
+                    const status = objective.status || 'in_progress';
+
+                    return (
+                      <div 
+                        key={objective.id} 
+                        className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border-2 border-gray-300 opacity-75"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="font-bold text-gray-700 text-base">{objective.title}</h4>
+                          <div className="flex flex-col gap-1 items-end">
+                            {status === 'achieved' && (
+                              <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
+                                🎉 Atteint !
+                              </span>
+                            )}
+                            {status === 'failed' && (
+                              <span className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full">
+                                ⚠️ Non atteint
+                              </span>
+                            )}
+                            {status === 'in_progress' && (
+                              <span className="bg-gray-200 text-gray-600 text-xs font-semibold px-2 py-1 rounded-full">
+                                ⏹️ Terminé
+                              </span>
+                            )}
+                            <span className="bg-gray-200 text-gray-600 text-xs font-semibold px-2 py-1 rounded-full">
+                              👥 Équipe
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Période */}
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(objective.period_start)} - {formatDate(objective.period_end)}
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="mb-3">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs text-gray-500">Progression finale</span>
+                            <span className="text-xs font-bold text-gray-700">{Math.min(100, progressPercentage.toFixed(0))}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all ${
+                                status === 'achieved' ? 'bg-gradient-to-r from-green-400 to-green-500' :
+                                status === 'failed' ? 'bg-gradient-to-r from-red-400 to-red-500' :
+                                'bg-gradient-to-r from-gray-400 to-gray-500'
+                              }`}
+                              style={{ width: `${Math.min(100, progressPercentage)}%` }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* Targets */}
+                        <div className="space-y-2">
+                          {objective.ca_target && (
+                            <div className="bg-white rounded-lg p-2 border border-gray-300">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-semibold text-gray-600">💰 CA</span>
+                                <span className="text-sm font-bold text-gray-700">
+                                  {(objective.progress_ca || 0).toLocaleString('fr-FR')}€ / {objective.ca_target.toLocaleString('fr-FR')}€
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {objective.panier_moyen_target && (
+                            <div className="bg-white rounded-lg p-2 border border-gray-300">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-semibold text-gray-600">🛒 Panier Moyen</span>
+                                <span className="text-sm font-bold text-gray-700">
+                                  {(objective.progress_panier_moyen || 0).toFixed(2)}€ / {objective.panier_moyen_target.toFixed(2)}€
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {objective.indice_vente_target && (
+                            <div className="bg-white rounded-lg p-2 border border-gray-300">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-semibold text-gray-600">📊 Indice de Vente</span>
+                                <span className="text-sm font-bold text-gray-700">
+                                  {(objective.progress_indice_vente || 0).toFixed(2)} / {objective.indice_vente_target.toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Mes Challenges */}
           <div>
