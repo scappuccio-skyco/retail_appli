@@ -1313,7 +1313,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               {(kpiConfig.manager_track_ca || kpiConfig.manager_track_ventes || kpiConfig.manager_track_clients || kpiConfig.manager_track_articles || kpiConfig.manager_track_prospects) ? (
                 // Formulaire KPI Manager
                 <>
-                  <div className="bg-purple-50 rounded-xl p-4 border-2 border-purple-200 mb-6">
+                  <div className="bg-orange-50 rounded-xl p-4 border-2 border-orange-200 mb-6">
                     <p className="text-sm text-purple-800">
                       💡 <strong>Saisie KPI Manager :</strong> Remplissez les KPIs que vous avez configurés pour le manager.
                     </p>
