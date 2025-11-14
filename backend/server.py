@@ -1467,7 +1467,10 @@ async def get_sellers(current_user: dict = Depends(get_current_user)):
         filter_query = {
             "workspace_id": current_user['workspace_id'], 
             "role": "seller",
-            "status": {"$ne": "deleted"}  # Exclure les vendeurs supprimés
+            "$and": [
+                {"status": {"$ne": "deleted"}},  # Exclure les vendeurs supprimés
+                {"status": {"$ne": "inactive"}}  # Exclure les vendeurs inactifs
+            ]
         }
     else:
         # Fallback to manager_id for old data
