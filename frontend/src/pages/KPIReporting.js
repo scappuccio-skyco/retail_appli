@@ -74,7 +74,7 @@ export default function KPIReporting({ user, onBack }) {
       stats.avgPanierMoyen = (entries.reduce((sum, e) => sum + (e.panier_moyen || 0), 0) / entries.length).toFixed(2);
     }
     
-    if (kpiConfig.track_ventes && kpiConfig.track_clients) {
+    if (kpiConfig.track_ventes && kpiConfig.track_prospects) {
       stats.avgTauxTransfo = (entries.reduce((sum, e) => sum + (e.taux_transformation || 0), 0) / entries.length).toFixed(2);
     }
     
