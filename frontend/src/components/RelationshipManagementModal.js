@@ -305,7 +305,43 @@ export default function RelationshipManagementModal({ onClose, sellers }) {
           ) : (
             /* History view */
             <div className="space-y-4">
-              {/* Filter */}
+              {/* History sub-tabs */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => setActiveHistoryTab('all')}
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${
+                    activeHistoryTab === 'all'
+                      ? 'border-purple-500 bg-purple-500 text-white shadow-md'
+                      : 'border-gray-300 text-gray-700 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50'
+                  }`}
+                >
+                  📊 Tout l'historique
+                </button>
+                <button
+                  onClick={() => setActiveHistoryTab('relationnel')}
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${
+                    activeHistoryTab === 'relationnel'
+                      ? 'border-purple-500 bg-purple-500 text-white shadow-md'
+                      : 'border-gray-300 text-gray-700 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50'
+                  }`}
+                >
+                  <MessageCircle className="w-4 h-4 inline mr-1" />
+                  Relationnel
+                </button>
+                <button
+                  onClick={() => setActiveHistoryTab('conflit')}
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${
+                    activeHistoryTab === 'conflit'
+                      ? 'border-purple-500 bg-purple-500 text-white shadow-md'
+                      : 'border-gray-300 text-gray-700 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50'
+                  }`}
+                >
+                  <AlertTriangle className="w-4 h-4 inline mr-1" />
+                  Conflit
+                </button>
+              </div>
+
+              {/* Filter by seller */}
               <div className="flex items-center gap-3">
                 <Filter className="w-5 h-5 text-gray-600" />
                 <select
