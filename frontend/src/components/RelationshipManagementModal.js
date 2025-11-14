@@ -156,11 +156,12 @@ export default function RelationshipManagementModal({ onClose, sellers }) {
           <div className="flex gap-2 px-6 pt-2">
             <button
               onClick={() => {
-                setActiveTab('relationnel');
+                setActiveMainTab('form');
+                setActiveFormTab('relationnel');
                 resetForm();
               }}
               className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
-                activeTab === 'relationnel'
+                activeMainTab === 'form' && activeFormTab === 'relationnel'
                   ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
                   : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
               }`}
@@ -170,11 +171,12 @@ export default function RelationshipManagementModal({ onClose, sellers }) {
             </button>
             <button
               onClick={() => {
-                setActiveTab('conflit');
+                setActiveMainTab('form');
+                setActiveFormTab('conflit');
                 resetForm();
               }}
               className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
-                activeTab === 'conflit'
+                activeMainTab === 'form' && activeFormTab === 'conflit'
                   ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
                   : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
               }`}
@@ -183,9 +185,9 @@ export default function RelationshipManagementModal({ onClose, sellers }) {
               Gestion de conflit
             </button>
             <button
-              onClick={() => setShowHistory(!showHistory)}
+              onClick={() => setActiveMainTab('history')}
               className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
-                showHistory
+                activeMainTab === 'history'
                   ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
                   : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
               }`}
