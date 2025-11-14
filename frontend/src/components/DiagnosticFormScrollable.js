@@ -566,7 +566,7 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
               ))}
             </div>
           ))}
-        </div>
+      </div>
 
       {/* Footer */}
       <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-between items-center">
