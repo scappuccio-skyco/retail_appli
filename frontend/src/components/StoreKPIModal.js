@@ -1454,7 +1454,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                     
                     <button
                       onClick={() => setActiveTab('config')}
-                      className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                      className="w-full px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2"
                     >
                       <span>⚙️</span>
                       Aller à la Configuration KPI
