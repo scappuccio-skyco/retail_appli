@@ -6533,7 +6533,9 @@ async def get_relationship_advice(
     """
     try:
         # Verify manager
-        current_user = await verify_token(credentials.credentials)
+        token = credentials.credentials
+        payload = decode_token(token)
+        current_user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
         if current_user.get('role') != 'manager':
             raise HTTPException(status_code=403, detail="Manager access only")
         
