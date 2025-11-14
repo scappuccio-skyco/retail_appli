@@ -391,7 +391,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       
       // Ajouter visible_to_sellers si type collective
       if (editingObjective.type === 'collective') {
-        cleanedData.visible_to_sellers = editingObjective.visible_to_sellers || [];
+        cleanedData.visible_to_sellers = selectedVisibleSellers;
       }
       
       if (editingObjective.ca_target && editingObjective.ca_target !== '') {
