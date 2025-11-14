@@ -128,7 +128,15 @@ export default function ManagerDashboard({ user, onLogout }) {
   // Dashboard Filters & Preferences
   const [dashboardFilters, setDashboardFilters] = useState(() => {
     const saved = localStorage.getItem('manager_dashboard_filters');
-    return saved ? JSON.parse(saved) : {
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Migration: Add showRelationship if not present
+      if (parsed.showRelationship === undefined) {
+        return { ...parsed, showRelationship: true };
+      }
+      return parsed;
+    }
+    return {
       showKPI: true,
       showTeam: true,
       showObjectives: true,
