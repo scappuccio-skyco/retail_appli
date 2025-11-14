@@ -1285,7 +1285,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       <button
                         onClick={() => handleKPIUpdate('seller_track_prospects', !kpiConfig.seller_track_prospects)}
                         className={`w-12 h-8 rounded font-bold text-xs ${
-                          kpiConfig.seller_track_prospects ? 'bg-[#10B981] text-white' : 'bg-gray-200 text-gray-500'
+                          kpiConfig.seller_track_prospects ? 'bg-cyan-500 text-white' : 'bg-gray-200 text-gray-500'
                         }`}
                         title="Vendeur"
                       >
