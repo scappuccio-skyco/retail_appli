@@ -724,6 +724,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           <input
                             type="date"
                             required
+                            min={editingObjective ? editingObjective.period_start : newObjective.period_start}
                             value={editingObjective ? editingObjective.period_end : newObjective.period_end}
                             onChange={(e) => editingObjective
                               ? setEditingObjective({ ...editingObjective, period_end: e.target.value })
