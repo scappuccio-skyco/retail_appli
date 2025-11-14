@@ -22,13 +22,13 @@ export default function ManagerProfileModal({ diagnostic, onClose, onRedo }) {
           <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl relative">
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-700 hover:text-gray-900 transition-colors"
+              className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
             <div className="flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-gray-800" />
-              <h2 className="text-2xl font-bold text-gray-800">🎯 Ton Profil Manager</h2>
+              <Sparkles className="w-8 h-8 text-white" />
+              <h2 className="text-2xl font-bold text-white">🎯 Ton Profil Manager</h2>
             </div>
           </div>
 
