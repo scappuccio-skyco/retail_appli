@@ -944,7 +944,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       articles: true,
                       clients: true
                     })}
-                    className="col-span-2 md:col-span-1 px-3 py-2 bg-purple-100 text-purple-700 text-sm font-medium rounded-lg hover:bg-purple-200 transition-colors"
+                    className="col-span-2 md:col-span-1 px-3 py-2 bg-orange-100 text-orange-700 text-sm font-medium rounded-lg hover:bg-orange-200 transition-colors"
                   >
                     ✓ Tout afficher
                   </button>
