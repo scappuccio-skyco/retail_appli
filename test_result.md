@@ -105,6 +105,30 @@
 user_problem_statement: "Fix invisible dropdown options in Gestion relationnelle / Gestion de conflit modal. The native <select> element's options are not visible due to browser-specific styling issues that cannot be overridden with CSS."
 
 backend:
+  - task: "Relationship Management API - Generate Advice"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend API endpoint POST /api/manager/relationship-advice implemented to generate AI-powered advice for relationship management and conflict resolution. Uses GPT-5 to provide personalized recommendations based on seller profiles, performance data, and situation description. Needs testing to verify AI integration and response format."
+  
+  - task: "Relationship Management API - Get History"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend API endpoint GET /api/manager/relationship-history implemented to retrieve consultation history. Supports filtering by seller_id. Needs testing to verify data retrieval and filtering logic."
+  
   - task: "Stripe Adjustable Quantity Feature"
     implemented: true
     working: true
