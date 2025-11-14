@@ -249,8 +249,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
         taux_transformation: period.seller_prospects > 0
           ? (period.seller_ventes / period.seller_prospects) * 100
           : 0,
-        indice_vente: period.seller_clients > 0
-          ? period.seller_articles / period.seller_clients
+        indice_vente: period.seller_ventes > 0
+          ? period.seller_articles / period.seller_ventes
           : 0
       }));
 
