@@ -139,7 +139,15 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [showFilters, setShowFilters] = useState(false);
   const [sectionOrder, setSectionOrder] = useState(() => {
     const saved = localStorage.getItem('manager_section_order');
-    return saved ? JSON.parse(saved) : ['kpi', 'team', 'objectives', 'challenges', 'relationship'];
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Migration: Add 'relationship' if not present
+      if (!parsed.includes('relationship')) {
+        return [...parsed, 'relationship'];
+      }
+      return parsed;
+    }
+    return ['kpi', 'team', 'objectives', 'challenges', 'relationship'];
   });
 
   // Determine which charts should be available based on manager's KPI configuration
