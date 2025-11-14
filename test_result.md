@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix React DOM crashes (black screens) on Chrome/Edge after Stripe checkout or modal interactions. Root cause: React 19 concurrent rendering conflicts with direct DOM manipulation and improper list keys."
+user_problem_statement: "Fix invisible dropdown options in Gestion relationnelle / Gestion de conflit modal. The native <select> element's options are not visible due to browser-specific styling issues that cannot be overridden with CSS."
 
 backend:
   - task: "Stripe Adjustable Quantity Feature"
