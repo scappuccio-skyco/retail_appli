@@ -1340,7 +1340,19 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               </div>
                               <div className="flex gap-2 ml-4">
                                 <button
-                                  onClick={() => setEditingChallenge(challenge)}
+                                  onClick={() => {
+                                    setEditingChallenge(challenge);
+                                    // Initialiser les KPIs sélectionnés
+                                    const kpisSelected = {};
+                                    if (challenge.kpi_targets) {
+                                      Object.keys(challenge.kpi_targets).forEach(key => {
+                                        if (challenge.kpi_targets[key]) {
+                                          kpisSelected[key] = true;
+                                        }
+                                      });
+                                    }
+                                    setSelectedKPIsChallenge(kpisSelected);
+                                  }}
                                   className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded transition-all"
                                   title="Modifier"
                                 >
