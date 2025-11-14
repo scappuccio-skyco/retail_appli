@@ -568,19 +568,39 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
           ))}
         </div>
 
-        {/* Footer */}
-        <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-between items-center">
-          <p className="text-sm text-gray-600">
-            {Object.keys(responses).length} / {questions.reduce((sum, s) => sum + s.items.length, 0)} questions répondues
-          </p>
-          <button
-            onClick={handleSubmit}
-            disabled={loading || Object.keys(responses).length < questions.reduce((sum, s) => sum + s.items.length, 0)}
-            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Analyse en cours...' : 'Découvrir mon profil'}
-          </button>
+      {/* Footer */}
+      <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-between items-center">
+        <p className="text-sm text-gray-600">
+          {Object.keys(responses).length} / {questions.reduce((sum, s) => sum + s.items.length, 0)} questions répondues
+        </p>
+        <button
+          onClick={handleSubmit}
+          disabled={loading || Object.keys(responses).length < questions.reduce((sum, s) => sum + s.items.length, 0)}
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Analyse en cours...' : 'Découvrir mon profil'}
+        </button>
+      </div>
+    </>
+  );
+
+  if (isModal) {
+    return (
+      <div 
+        onClick={(e) => { if (e.target === e.currentTarget && onClose) { onClose(); } }} 
+        className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      >
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-8 max-h-[90vh] overflow-hidden flex flex-col">
+          {containerContent}
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        {containerContent}
       </div>
     </div>
   );
