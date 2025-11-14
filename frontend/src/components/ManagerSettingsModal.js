@@ -1218,10 +1218,14 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               ? setEditingChallenge({ ...editingChallenge, start_date: e.target.value })
                               : setNewChallenge({ ...newChallenge, start_date: e.target.value })
                             }
-                            onClick={(e) => {
-                              // Ouvrir le calendrier au clic sur tout le champ
-                              if (e.target.showPicker) {
-                                e.target.showPicker();
+                            onFocus={(e) => {
+                              // Ouvrir le calendrier au focus
+                              try {
+                                if (typeof e.target.showPicker === 'function') {
+                                  e.target.showPicker();
+                                }
+                              } catch (error) {
+                                console.log('showPicker not supported');
                               }
                             }}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#ffd871] focus:outline-none cursor-pointer"
