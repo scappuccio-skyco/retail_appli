@@ -1135,15 +1135,27 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       <input
                                         type="number"
                                         step={kpi.key.includes('taux') ? '0.1' : kpi.key.includes('moyen') || kpi.key.includes('indice') ? '0.01' : '1'}
-                                        value={newChallenge.kpi_targets[kpi.key] || ''}
+                                        value={editingChallenge 
+                                          ? (editingChallenge.kpi_targets?.[kpi.key] || '') 
+                                          : (newChallenge.kpi_targets[kpi.key] || '')}
                                         onChange={(e) => {
-                                          setNewChallenge({
-                                            ...newChallenge,
-                                            kpi_targets: {
-                                              ...newChallenge.kpi_targets,
-                                              [kpi.key]: e.target.value
-                                            }
-                                          });
+                                          if (editingChallenge) {
+                                            setEditingChallenge({
+                                              ...editingChallenge,
+                                              kpi_targets: {
+                                                ...(editingChallenge.kpi_targets || {}),
+                                                [kpi.key]: e.target.value
+                                              }
+                                            });
+                                          } else {
+                                            setNewChallenge({
+                                              ...newChallenge,
+                                              kpi_targets: {
+                                                ...newChallenge.kpi_targets,
+                                                [kpi.key]: e.target.value
+                                              }
+                                            });
+                                          }
                                         }}
                                         className="flex-1 p-2 text-sm border-2 border-gray-300 rounded-lg focus:border-yellow-400 focus:outline-none"
                                         placeholder={`Ex: ${kpi.key === 'ca' ? '50000' : kpi.key === 'ventes' ? '200' : kpi.key === 'panier_moyen' ? '150' : '2.5'}`}
