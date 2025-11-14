@@ -188,8 +188,8 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
   // Niveaux d'expérience (4 niveaux gamifiés)
   const niveaux = [
     {
-      name: 'Apprenti',
-      icon: '🟢',
+      name: 'Nouveau Talent',
+      icon: '⚡',
       color: 'green',
       niveau: 1,
       description: 'Découvre le terrain, teste, apprend les bases',
