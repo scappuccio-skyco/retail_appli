@@ -394,15 +394,14 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.visible_to_sellers = selectedVisibleSellers;
       }
       
-      if (editingObjective.ca_target && editingObjective.ca_target !== '') {
-        cleanedData.ca_target = parseFloat(editingObjective.ca_target);
-      }
-      if (editingObjective.indice_vente_target && editingObjective.indice_vente_target !== '') {
-        cleanedData.indice_vente_target = parseFloat(editingObjective.indice_vente_target);
-      }
-      if (editingObjective.panier_moyen_target && editingObjective.panier_moyen_target !== '') {
-        cleanedData.panier_moyen_target = parseFloat(editingObjective.panier_moyen_target);
-      }
+      // Ajouter TOUS les KPI possibles s'ils sont présents
+      const possibleKPIs = ['ca', 'ventes', 'clients', 'articles', 'prospects', 'panier_moyen', 'indice_vente', 'taux_transformation'];
+      possibleKPIs.forEach(kpiKey => {
+        const targetKey = `${kpiKey}_target`;
+        if (editingObjective[targetKey] && editingObjective[targetKey] !== '') {
+          cleanedData[targetKey] = parseFloat(editingObjective[targetKey]);
+        }
+      });
       
       await axios.put(`${API}/manager/objectives/${editingObjective.id}`, cleanedData, { headers });
       toast.success('Objectif modifié avec succès');
