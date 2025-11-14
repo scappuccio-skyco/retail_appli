@@ -871,7 +871,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       ? 'bg-blue-100 text-blue-700' 
                                       : 'bg-orange-100 text-orange-700'
                                   }`}>
-                                    {objective.type === 'collective' ? '👥 Collectif' : '👤 Individuel'}
+                                    {objective.type === 'collective' ? '👥 Collectif' : (
+                                      objective.seller_id ? 
+                                        `👤 ${sellers.find(s => s.id === objective.seller_id)?.first_name || ''} ${sellers.find(s => s.id === objective.seller_id)?.last_name || 'Individuel'}` 
+                                        : '👤 Individuel'
+                                    )}
                                   </span>
                                   {/* Visibility badge */}
                                   <span className={`text-xs font-semibold px-2 py-1 rounded ${
