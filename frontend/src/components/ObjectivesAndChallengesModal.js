@@ -74,16 +74,19 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {/* Objectifs d'Équipe */}
+          {/* Objectifs Actifs */}
           <div className="mb-8">
             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
               <Award className="w-5 h-5 text-purple-500" />
-              🎯 Objectifs d'Équipe
+              🎯 Objectifs Actifs
+              <span className="ml-2 bg-green-100 text-green-700 text-sm font-semibold px-3 py-1 rounded-full">
+                {activeObjectives.length}
+              </span>
             </h3>
 
-            {objectives && objectives.length > 0 ? (
+            {activeObjectives.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {objectives.map((objective) => {
+                {activeObjectives.map((objective) => {
                   const progressPercentage = calculateProgress(objective);
                   const status = objective.status || 'in_progress';
 
