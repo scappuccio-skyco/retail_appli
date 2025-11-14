@@ -132,7 +132,8 @@ export default function ManagerDashboard({ user, onLogout }) {
       showKPI: true,
       showTeam: true,
       showObjectives: true,
-      showChallenges: true
+      showChallenges: true,
+      showRelationship: true
     };
   });
   const [showFilters, setShowFilters] = useState(false);
