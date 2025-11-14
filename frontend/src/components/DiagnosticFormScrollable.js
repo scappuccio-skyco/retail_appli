@@ -520,10 +520,10 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
           </button>
         )}
         <div className="flex items-center gap-3 mb-2">
-          <Sparkles className="w-8 h-8 text-gray-800" />
-          <h2 className="text-2xl font-bold text-gray-800">Identifier mon profil vendeur</h2>
+          <Sparkles className="w-8 h-8 text-white" />
+          <h2 className="text-2xl font-bold text-white">Identifier mon profil vendeur</h2>
         </div>
-        <p className="text-gray-700">Découvre ton style de vente et ton profil DISC pour recevoir un coaching personnalisé.</p>
+        <p className="text-white opacity-90">Découvre ton style de vente et ton profil DISC pour recevoir un coaching personnalisé.</p>
       </div>
 
       {/* Content */}
