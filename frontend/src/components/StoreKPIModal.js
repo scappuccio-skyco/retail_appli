@@ -813,7 +813,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               {viewMode === 'multi' && (
                 <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
-                    <h3 className="text-lg font-bold text-purple-900">📊 Sélectionner une période</h3>
+                    <h3 className="text-lg font-bold text-orange-900">📊 Sélectionner une période</h3>
                     <button
                       onClick={() => setShowOverviewAIModal(true)}
                       disabled={!historicalData.length || historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0)}
