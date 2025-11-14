@@ -386,10 +386,15 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
   const handleSelectOption = (questionId, option, optionIndex) => {
     // For DISC questions (11-34), store the index; for others, store the text
     const isDISCQuestion = questionId >= 11 && questionId <= 34;
-    setResponses(prev => ({
-      ...prev,
-      [questionId]: isDISCQuestion ? optionIndex : option
-    }));
+    
+    setResponses(prev => {
+      const updated = {
+        ...prev,
+        [questionId]: isDISCQuestion ? optionIndex : option
+      };
+      console.log('Updated manager responses:', updated);
+      return updated;
+    });
   };
 
   const handleSubmit = async () => {
