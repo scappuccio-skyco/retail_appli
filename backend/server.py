@@ -6513,6 +6513,189 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+# ===== RELATIONSHIP MANAGEMENT / CONFLICT RESOLUTION =====
+
+class RelationshipAdviceRequest(BaseModel):
+    seller_id: str
+    advice_type: str  # "relationnel" or "conflit"
+    situation_type: str  # "augmentation", "conflit_equipe", "demotivation", etc.
+    description: str
+    
+@api_router.post("/manager/relationship-advice")
+async def get_relationship_advice(
+    request: RelationshipAdviceRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """
+    Generate AI-powered relationship/conflict management advice for managers.
+    Uses manager profile, seller profile, KPIs, and recent debriefs.
+    """
+    try:
+        # Verify manager
+        current_user = await verify_token(credentials.credentials)
+        if current_user.get('role') != 'manager':
+            raise HTTPException(status_code=403, detail="Manager access only")
+        
+        manager_id = current_user['id']
+        workspace_id = current_user.get('workspace_id')
+        
+        # Get seller info
+        seller = await db.users.find_one({"id": request.seller_id}, {"_id": 0, "password": 0})
+        if not seller:
+            raise HTTPException(status_code=404, detail="Seller not found")
+        
+        # Get manager profile
+        manager_diagnostic = await db.diagnostic_results.find_one(
+            {"user_id": manager_id},
+            {"_id": 0}
+        )
+        
+        # Get seller profile
+        seller_diagnostic = await db.diagnostic_results.find_one(
+            {"user_id": request.seller_id},
+            {"_id": 0}
+        )
+        
+        # Get seller KPIs (last 30 days)
+        thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        kpi_entries = await db.kpi_entries.find(
+            {
+                "seller_id": request.seller_id,
+                "date": {"$gte": thirty_days_ago}
+            },
+            {"_id": 0}
+        ).to_list(100)
+        
+        # Get recent shared debriefs (last 5)
+        recent_debriefs = await db.debriefs.find(
+            {
+                "seller_id": request.seller_id,
+                "shared_with_manager": True
+            },
+            {"_id": 0}
+        ).sort("created_at", -1).limit(5).to_list(5)
+        
+        # Prepare data summary for AI
+        kpi_summary = f"KPIs sur les 30 derniers jours : {len(kpi_entries)} entrées"
+        if kpi_entries:
+            total_ca = sum(entry.get('ca', 0) for entry in kpi_entries)
+            total_ventes = sum(entry.get('ventes', 0) for entry in kpi_entries)
+            kpi_summary += f"\n- CA total : {total_ca}€\n- Ventes totales : {total_ventes}"
+        
+        debrief_summary = f"{len(recent_debriefs)} debriefs récents"
+        if recent_debriefs:
+            debrief_summary += ":\n" + "\n".join([
+                f"- {d.get('date', 'Date inconnue')}: {d.get('summary', 'Pas de résumé')[:100]}"
+                for d in recent_debriefs
+            ])
+        
+        # Build AI prompt
+        advice_type_fr = "relationnelle" if request.advice_type == "relationnel" else "de conflit"
+        
+        system_message = f"""Tu es un expert en management d'équipe retail et en gestion {advice_type_fr}.
+Tu dois fournir des conseils personnalisés basés sur les profils de personnalité et les performances."""
+
+        user_prompt = f"""# Situation {advice_type_fr.upper()}
+
+**Type de situation :** {request.situation_type}
+**Description :** {request.description}
+
+## Contexte Manager
+**Nom :** {current_user.get('first_name', '')} {current_user.get('last_name', '')}
+**Profil de personnalité :** {json.dumps(manager_diagnostic.get('profile', {}), ensure_ascii=False) if manager_diagnostic else 'Non disponible'}
+
+## Contexte Vendeur
+**Nom :** {seller.get('first_name', '')} {seller.get('last_name', '')}
+**Statut :** {seller.get('status', 'actif')}
+**Profil de personnalité :** {json.dumps(seller_diagnostic.get('profile', {}), ensure_ascii=False) if seller_diagnostic else 'Non disponible'}
+
+## Performances
+{kpi_summary}
+
+## Debriefs récents
+{debrief_summary}
+
+# Ta mission
+Fournis une recommandation structurée avec :
+1. **Analyse de la situation** : Prends en compte les profils de personnalité et le contexte
+2. **Conseils pratiques** : 3-5 actions concrètes adaptées aux profils
+3. **Phrases clés à utiliser** : Des formulations adaptées au profil du vendeur
+4. **Points de vigilance** : Ce qu'il faut éviter compte tenu des profils
+
+Sois empathique, pratique et précis."""
+
+        # Call GPT-5
+        emergent_key = os.environ.get('EMERGENT_LLM_KEY')
+        if not emergent_key:
+            raise HTTPException(status_code=500, detail="EMERGENT_LLM_KEY not configured")
+        
+        chat = LlmChat(
+            api_key=emergent_key,
+            session_id=f"relationship_{manager_id}_{request.seller_id}_{datetime.now(timezone.utc).isoformat()}",
+            system_message=system_message
+        ).with_model("openai", "gpt-5")
+        
+        user_message = UserMessage(text=user_prompt)
+        ai_response = await chat.send_message(user_message)
+        
+        # Save to history
+        consultation_id = str(uuid.uuid4())
+        consultation = {
+            "id": consultation_id,
+            "manager_id": manager_id,
+            "seller_id": request.seller_id,
+            "seller_name": f"{seller.get('first_name', '')} {seller.get('last_name', '')}",
+            "seller_status": seller.get('status', 'active'),
+            "advice_type": request.advice_type,
+            "situation_type": request.situation_type,
+            "description": request.description,
+            "recommendation": ai_response,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.relationship_consultations.insert_one(consultation)
+        
+        return {
+            "consultation_id": consultation_id,
+            "recommendation": ai_response,
+            "seller_name": consultation["seller_name"]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating relationship advice: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@api_router.get("/manager/relationship-history")
+async def get_relationship_history(
+    seller_id: Optional[str] = None,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Get manager's relationship consultation history with optional seller filter."""
+    try:
+        current_user = await verify_token(credentials.credentials)
+        if current_user.get('role') != 'manager':
+            raise HTTPException(status_code=403, detail="Manager access only")
+        
+        manager_id = current_user['id']
+        
+        # Build query
+        query = {"manager_id": manager_id}
+        if seller_id:
+            query["seller_id"] = seller_id
+        
+        # Get consultations
+        consultations = await db.relationship_consultations.find(
+            query,
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(100)
+        
+        return {"consultations": consultations}
+        
+    except Exception as e:
+        logger.error(f"Error fetching relationship history: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
