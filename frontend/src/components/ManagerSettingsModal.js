@@ -157,9 +157,22 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const handleUpdateChallenge = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${API}/manager/challenges/${editingChallenge.id}`, editingChallenge, { headers });
+      // Préparer les données avec conversion des kpi_targets
+      const challengeData = { ...editingChallenge };
+      
+      // Convertir kpi_targets en champs individuels
+      if (challengeData.kpi_targets) {
+        challengeData.ca_target = challengeData.kpi_targets.ca ? parseFloat(challengeData.kpi_targets.ca) : null;
+        challengeData.ventes_target = challengeData.kpi_targets.ventes ? parseInt(challengeData.kpi_targets.ventes) : null;
+        challengeData.panier_moyen_target = challengeData.kpi_targets.panier_moyen ? parseFloat(challengeData.kpi_targets.panier_moyen) : null;
+        challengeData.indice_vente_target = challengeData.kpi_targets.indice_vente ? parseFloat(challengeData.kpi_targets.indice_vente) : null;
+        delete challengeData.kpi_targets; // Supprimer l'objet temporaire
+      }
+      
+      await axios.put(`${API}/manager/challenges/${editingChallenge.id}`, challengeData, { headers });
       toast.success('Challenge modifié avec succès');
       setEditingChallenge(null);
+      setSelectedKPIsChallenge({});
       fetchData();
       if (onUpdate) onUpdate();
     } catch (err) {
