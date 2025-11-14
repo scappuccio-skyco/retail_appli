@@ -11,7 +11,7 @@ import json
 import sys
 
 def test_downgrade_blocking():
-    base_url = "https://retail-performer-2.preview.emergentagent.com/api"
+    base_url = "https://performer-app.preview.emergentagent.com/api"
     
     # Login
     print("🔐 Logging in as Manager12@test.com...")
@@ -45,7 +45,7 @@ def test_downgrade_blocking():
         "plan": "professional",
         "quantity": 8,
         "billing_period": "monthly",
-        "origin_url": "https://retail-performer-2.preview.emergentagent.com/dashboard"
+        "origin_url": "https://performer-app.preview.emergentagent.com/dashboard"
     }
     
     monthly_response = requests.post(f"{base_url}/checkout/create-session", 
@@ -67,7 +67,7 @@ def test_downgrade_blocking():
         "plan": "professional", 
         "quantity": 8,
         "billing_period": "annual",
-        "origin_url": "https://retail-performer-2.preview.emergentagent.com/dashboard"
+        "origin_url": "https://performer-app.preview.emergentagent.com/dashboard"
     }
     
     annual_response = requests.post(f"{base_url}/checkout/create-session",

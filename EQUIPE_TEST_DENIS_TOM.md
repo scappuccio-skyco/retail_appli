@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://retail-performer-2.preview.emergentagent.com
+https://performer-app.preview.emergentagent.com
 
 ### Manager
 ```
