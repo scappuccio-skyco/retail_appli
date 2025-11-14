@@ -416,7 +416,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 bg-gray-50">
+        <div className="border-b border-gray-200 bg-gray-50 pt-2">
           <div className="flex gap-1 px-6">
             <button
               onClick={() => setActiveTab('daily')}
