@@ -1355,9 +1355,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
       {/* Diagnostic Form Modal */}
       {showDiagnosticFormModal && (
-        <DiagnosticFormModal
+        <DiagnosticFormScrollable
           onClose={() => setShowDiagnosticFormModal(false)}
-          onSuccess={() => {
+          onComplete={() => {
             setShowDiagnosticFormModal(false);
             fetchData(); // Reload data including diagnostic
           }}
