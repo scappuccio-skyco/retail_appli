@@ -799,13 +799,13 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                               (seller.niveau === 'Maître du Jeu' || seller.niveau === 'Expert') ? 'bg-red-100 text-red-800' :
                               (seller.niveau === 'Ambassadeur' || seller.niveau === 'Confirmé') ? 'bg-orange-100 text-orange-800' :
                               seller.niveau === 'Challenger' ? 'bg-yellow-100 text-yellow-800' :
-                              (seller.niveau === 'Explorateur' || seller.niveau === 'Apprenti') ? 'bg-green-100 text-green-800' :
+                              (seller.niveau === 'Nouveau Talent' || seller.niveau === 'Explorateur' || seller.niveau === 'Apprenti') ? 'bg-green-100 text-green-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
                               {(seller.niveau === 'Maître du Jeu' || seller.niveau === 'Expert') && '🔴 '}
                               {(seller.niveau === 'Ambassadeur' || seller.niveau === 'Confirmé') && '🟠 '}
                               {seller.niveau === 'Challenger' && '🟡 '}
-                              {(seller.niveau === 'Explorateur' || seller.niveau === 'Apprenti') && '🟢 '}
+                              {(seller.niveau === 'Nouveau Talent' || seller.niveau === 'Explorateur' || seller.niveau === 'Apprenti') && '⚡ '}
                               {seller.niveau}
                             </span>
                           </td>
