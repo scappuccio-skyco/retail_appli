@@ -390,7 +390,7 @@ export default function KPIReporting({ user, onBack }) {
               )}
 
               {/* Ventes vs Clients - Afficher seulement si Ventes ET Clients sont configurés */}
-              {kpiConfig?.track_ventes && kpiConfig?.track_clients && (
+              {kpiConfig?.track_ventes && kpiConfig?.track_prospects && (
                 <div className="glass-morphism rounded-2xl p-6">
                   <h3 className="text-lg font-bold text-gray-800 mb-4">🛍️ Ventes vs Clients</h3>
                   <ResponsiveContainer width="100%" height={250}>
@@ -436,7 +436,7 @@ export default function KPIReporting({ user, onBack }) {
               )}
 
               {/* Taux de Transformation - Afficher seulement si Ventes ET Clients sont configurés */}
-              {kpiConfig?.track_ventes && kpiConfig?.track_clients && (
+              {kpiConfig?.track_ventes && kpiConfig?.track_prospects && (
                 <div className="glass-morphism rounded-2xl p-6">
                   <h3 className="text-lg font-bold text-gray-800 mb-4">📊 Taux de Transformation</h3>
                   <ResponsiveContainer width="100%" height={250}>
@@ -556,7 +556,7 @@ export default function KPIReporting({ user, onBack }) {
                           <p className="text-lg font-bold text-indigo-900">{entry.panier_moyen?.toFixed(2)}€</p>
                         </div>
                       )}
-                      {kpiConfig?.track_ventes && kpiConfig?.track_clients && (
+                      {kpiConfig?.track_ventes && kpiConfig?.track_prospects && (
                         <div className="bg-pink-50 rounded-lg p-3">
                           <p className="text-xs text-pink-600 mb-1">📊 Taux Transfo</p>
                           <p className="text-lg font-bold text-pink-900">{entry.taux_transformation?.toFixed(2)}%</p>
@@ -609,7 +609,7 @@ export default function KPIReporting({ user, onBack }) {
                             {kpiConfig?.track_ca && kpiConfig?.track_ventes && (
                               <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Panier Moyen</th>
                             )}
-                            {kpiConfig?.track_ventes && kpiConfig?.track_clients && (
+                            {kpiConfig?.track_ventes && kpiConfig?.track_prospects && (
                               <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Taux Transfo</th>
                             )}
                             {kpiConfig?.track_ca && kpiConfig?.track_articles && (
@@ -648,7 +648,7 @@ export default function KPIReporting({ user, onBack }) {
                                   {entry.panier_moyen?.toFixed(2)}€
                                 </td>
                               )}
-                              {kpiConfig?.track_ventes && kpiConfig?.track_clients && (
+                              {kpiConfig?.track_ventes && kpiConfig?.track_prospects && (
                                 <td className="py-3 px-4 text-sm text-right text-gray-800">
                                   {entry.taux_transformation?.toFixed(2)}%
                                 </td>
