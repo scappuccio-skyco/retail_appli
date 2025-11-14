@@ -461,7 +461,7 @@ const questions = [
   }
 ];
 
-export default function DiagnosticFormScrollable({ onComplete }) {
+export default function DiagnosticFormScrollable({ onComplete, onClose, isModal = false }) {
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(false);
 
