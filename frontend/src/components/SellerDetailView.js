@@ -165,7 +165,7 @@ export default function SellerDetailView({ seller, onBack }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 p-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-blue-50 p-8">
         <div className="text-center py-12">Chargement...</div>
       </div>
     );
