@@ -1,7 +1,19 @@
-import React from 'react';
-import { X, Award, Calendar, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Award, Calendar, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
 
 export default function ObjectivesAndChallengesModal({ objectives, challenges, onClose }) {
+  const [showInactive, setShowInactive] = useState(false);
+  
+  // Séparer les objectifs actifs et inactifs
+  const activeObjectives = objectives?.filter(obj => {
+    const today = new Date().toISOString().split('T')[0];
+    return obj.period_end > today;
+  }) || [];
+  
+  const inactiveObjectives = objectives?.filter(obj => {
+    const today = new Date().toISOString().split('T')[0];
+    return obj.period_end <= today;
+  }) || [];
   const formatDate = (dateStr) => {
     if (!dateStr) return 'Date non définie';
     try {
