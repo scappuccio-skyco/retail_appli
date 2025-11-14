@@ -876,7 +876,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   }`}>
                                     {objective.type === 'collective' ? '👥 Collectif' : (
                                       objective.seller_id ? 
-                                        `👤 ${sellers.find(s => s.id === objective.seller_id)?.first_name || ''} ${sellers.find(s => s.id === objective.seller_id)?.last_name || 'Individuel'}` 
+                                        `👤 ${sellers.find(s => s.id === objective.seller_id)?.name || 'Individuel'}` 
                                         : '👤 Individuel'
                                     )}
                                   </span>
