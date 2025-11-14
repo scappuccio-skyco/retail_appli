@@ -202,6 +202,27 @@ backend:
         comment: "ANNUAL TO MONTHLY DOWNGRADE BLOCKING TESTING COMPLETED SUCCESSFULLY: ✅ AUTHENTICATION VERIFIED: Successfully logged in with Manager12@test.com/demo123 credentials (DENIS TOM). ✅ DOWNGRADE BLOCKING WORKING: When attempting POST /api/checkout/create-session with billing_period='monthly', the system correctly blocks the request and returns the expected French error message: 'Impossible de passer d'un abonnement annuel à mensuel. Pour changer, vous devez annuler votre abonnement actuel puis souscrire un nouveau plan mensuel.' ✅ BACKEND LOGIC VERIFIED: The blocking logic in server.py (lines 6083-6090) correctly identifies annual subscriptions (price_1SSyK4IVM4C8dIGveBYOSf1m) and prevents downgrade to monthly (price_1SS2XxIVM4C8dIGvpBRcYSNX). ✅ ERROR HANDLING CORRECT: System returns appropriate error response (HTTP 500 wrapping HTTP 400) with proper French error message as specified. ✅ STRIPE INTEGRATION: The blocking occurs at the Stripe API level, confirming that Manager12@test.com has an annual subscription in Stripe despite database showing monthly price ID. ✅ BUSINESS RULE ENFORCEMENT: The feature successfully prevents revenue loss from annual to monthly downgrades while providing clear user feedback. The annual to monthly downgrade blocking is working correctly at both frontend and backend levels as requested."
 
 frontend:
+  - task: "RelationshipManagementModal - Fix Invisible Dropdown Options"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/RelationshipManagementModal.js"
+    stuck_count: 3
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER REPORTED: Dropdown menu for selecting sellers is not displaying any options. The dropdown appears but options are invisible, making the feature completely unusable."
+      - working: false
+        agent: "main"
+        comment: "FIRST FIX ATTEMPT: Added explicit text color classes (text-gray-800) to <option> elements. User confirmed no change ('Pas de changement de mon côté')."
+      - working: false
+        agent: "main"
+        comment: "SECOND FIX ATTEMPT: Applied inline styles (style={{ color: 'black' }}) to <option> elements as workaround for potential CSS specificity issues. User confirmed still not working."
+      - working: "NA"
+        agent: "main"
+        comment: "ARCHITECTURAL FIX IMPLEMENTED: Replaced native <select> with custom dropdown component. ROOT CAUSE: Browser-specific styling for <option> elements cannot be overridden with CSS or inline styles. SOLUTION: Created custom dropdown using <button> elements with explicit styling (text-gray-900 class), ChevronDown icon for visual feedback, absolute positioning with z-10 for proper layering, hover effects (hover:bg-purple-50), selected state highlighting (bg-purple-100 text-purple-700 font-semibold), click-outside-to-close functionality using useRef and useEffect. This gives full control over styling and ensures visibility across all browsers. Needs user verification to confirm options are now visible."
+  
   - task: "Dashboard Stripe Return Handler"
     implemented: true
     working: true
