@@ -710,9 +710,15 @@ class ManagerObjectivesCreate(BaseModel):
     seller_id: Optional[str] = None  # Only for individual objectives
     visible: bool = True  # Visible by sellers
     visible_to_sellers: Optional[List[str]] = None  # Specific seller IDs (empty = all sellers)
+    # Tous les KPI possibles
     ca_target: Optional[float] = None
-    indice_vente_target: Optional[float] = None
+    ventes_target: Optional[float] = None
+    clients_target: Optional[float] = None
+    articles_target: Optional[float] = None
+    prospects_target: Optional[float] = None
     panier_moyen_target: Optional[float] = None
+    indice_vente_target: Optional[float] = None
+    taux_transformation_target: Optional[float] = None
     period_start: str
     period_end: str
 
