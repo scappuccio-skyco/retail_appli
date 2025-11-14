@@ -349,6 +349,13 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
                         </div>
                       </div>
 
+                      {/* Description */}
+                      {challenge.description && (
+                        <p className="text-sm text-gray-600 mb-3">
+                          {challenge.description}
+                        </p>
+                      )}
+
                       {/* Période */}
                       <div className="flex items-center gap-1 text-xs text-gray-600 mb-3">
                         <Calendar className="w-3 h-3" />
