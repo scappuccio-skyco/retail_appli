@@ -130,6 +130,41 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     }
   }, [editingObjective]);
 
+  // Pré-remplir les KPI lors de l'édition d'un challenge
+  useEffect(() => {
+    if (editingChallenge) {
+      // Pré-remplir les KPI sélectionnés en fonction des kpi_targets existants
+      const kpisToSelect = {};
+      
+      if (editingChallenge.kpi_targets && typeof editingChallenge.kpi_targets === 'object') {
+        Object.keys(editingChallenge.kpi_targets).forEach(kpiKey => {
+          if (editingChallenge.kpi_targets[kpiKey] !== undefined && 
+              editingChallenge.kpi_targets[kpiKey] !== null && 
+              editingChallenge.kpi_targets[kpiKey] !== '') {
+            kpisToSelect[kpiKey] = true;
+          }
+        });
+      }
+      
+      setSelectedKPIsChallenge(kpisToSelect);
+    } else {
+      // Réinitialiser quand on quitte le mode édition
+      setSelectedKPIsChallenge({});
+      setNewChallenge({
+        title: '',
+        description: '',
+        type: 'collective',
+        seller_id: '',
+        visible: true,
+        visible_to_sellers: [],
+        start_date: '',
+        end_date: '',
+        kpi_targets: {},
+        status: 'active'
+      });
+    }
+  }, [editingChallenge]);
+
   const handleKPIConfigUpdate = async (e) => {
     e.preventDefault();
     try {
