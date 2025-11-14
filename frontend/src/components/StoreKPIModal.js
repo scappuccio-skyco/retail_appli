@@ -1446,8 +1446,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                         💡 <strong>Pour commencer la saisie :</strong>
                       </p>
                       <ol className="text-xs text-gray-600 space-y-1.5 list-decimal list-inside">
-                        <li>Rendez-vous dans l'onglet <strong className="text-purple-700">⚙️ Configuration KPI</strong></li>
-                        <li>Activez les KPIs (bouton violet 👨‍💼)</li>
+                        <li>Rendez-vous dans l'onglet <strong className="text-orange-700">⚙️ Configuration KPI</strong></li>
+                        <li>Activez les KPIs (bouton orange 👨‍💼)</li>
                         <li>Revenez dans cet onglet pour saisir vos données</li>
                       </ol>
                     </div>
