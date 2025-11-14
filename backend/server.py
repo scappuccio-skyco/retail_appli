@@ -1476,7 +1476,10 @@ async def get_sellers(current_user: dict = Depends(get_current_user)):
         # Fallback to manager_id for old data
         filter_query = {
             "manager_id": current_user['id'],
-            "status": {"$ne": "deleted"}  # Exclure les vendeurs supprimés
+            "$and": [
+                {"status": {"$ne": "deleted"}},  # Exclure les vendeurs supprimés
+                {"status": {"$ne": "inactive"}}  # Exclure les vendeurs inactifs
+            ]
         }
     
     sellers = await db.users.find(filter_query, {"_id": 0, "password": 0}).to_list(1000)
