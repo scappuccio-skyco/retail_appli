@@ -244,7 +244,7 @@ export default function RelationshipManagementModal({ onClose, sellers }) {
                     required
                   >
                     <option value="">Choisir le type de situation...</option>
-                    {situationTypes[activeTab].map(type => (
+                    {situationTypes[activeFormTab].map(type => (
                       <option key={type.value} value={type.value}>
                         {type.label}
                       </option>
