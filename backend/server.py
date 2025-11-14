@@ -1891,7 +1891,7 @@ Utilise un ton bienveillant, professionnel et simple. Évite le jargon.
 Réponds au format JSON avec cette structure exacte :
 {{
   "style": "Convivial|Explorateur|Dynamique|Discret|Stratège",
-  "level": "Explorateur|Challenger|Ambassadeur|Maître du Jeu",
+  "level": "Nouveau Talent|Challenger|Ambassadeur|Maître du Jeu",
   "motivation": "Relation|Reconnaissance|Performance|Découverte",
   "summary": "Ton analyse complète en texte"
 }}"""
