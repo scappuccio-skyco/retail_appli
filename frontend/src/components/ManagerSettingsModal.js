@@ -114,9 +114,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         ...newObjective,
         kpi_targets: kpiTargets
       });
+      
+      // Pré-remplir les vendeurs visibles pour les objectifs collectifs
+      if (editingObjective.type === 'collective' && editingObjective.visible_to_sellers && Array.isArray(editingObjective.visible_to_sellers)) {
+        setSelectedVisibleSellers(editingObjective.visible_to_sellers);
+      } else {
+        setSelectedVisibleSellers([]);
+      }
     } else {
       // Réinitialiser quand on quitte le mode édition
       setSelectedKPIs({});
+      setSelectedVisibleSellers([]);
       setNewObjective({
         title: '',
         type: 'collective',
