@@ -402,7 +402,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 flex justify-between items-center rounded-t-2xl">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 flex justify-between items-center rounded-t-2xl">
           <div className="flex items-center gap-3">
             <TrendingUp className="w-7 h-7 text-white" />
             <h2 className="text-2xl font-bold text-white">🏪 Mon Magasin</h2>
