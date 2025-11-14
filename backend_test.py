@@ -6254,6 +6254,9 @@ class RetailCoachAPITester:
         # Error handling
         self.test_error_cases()
 
+        # RELATIONSHIP MANAGEMENT FEATURE (COMPREHENSIVE TESTING)
+        self.test_relationship_management_feature()
+
         # Print summary
         print("\n" + "=" * 50)
         print(f"📊 Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
