@@ -237,36 +237,56 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
               
               {/* Form */}
               <form onSubmit={handleGenerateAdvice} className="space-y-4">
-                {/* Seller selection */}
+                {/* Seller selection - Custom Dropdown */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     👤 Membre de l'équipe concerné
                   </label>
-                  <select
-                    value={selectedSeller}
-                    onChange={(e) => setSelectedSeller(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none bg-white"
-                    style={{ 
-                      color: '#000000',
-                      backgroundColor: '#ffffff',
-                      WebkitAppearance: 'menulist',
-                      MozAppearance: 'menulist'
-                    }}
-                    required
-                  >
-                    <option value="" style={{ backgroundColor: '#ffffff', color: '#6b7280' }}>
-                      Sélectionner un vendeur...
-                    </option>
-                    {activeSellers.map(seller => (
-                      <option 
-                        key={seller.id} 
-                        value={seller.id} 
-                        style={{ backgroundColor: '#ffffff', color: '#000000' }}
-                      >
-                        {seller.first_name} {seller.last_name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative" ref={sellerDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsSellerDropdownOpen(!isSellerDropdownOpen)}
+                      className={`w-full px-4 py-3 border-2 ${
+                        isSellerDropdownOpen ? 'border-purple-500' : 'border-gray-300'
+                      } rounded-lg focus:border-purple-500 focus:outline-none bg-white text-left flex items-center justify-between transition-colors`}
+                    >
+                      <span className={selectedSeller ? 'text-gray-900' : 'text-gray-400'}>
+                        {selectedSeller 
+                          ? activeSellers.find(s => s.id === selectedSeller)?.first_name + ' ' + 
+                            activeSellers.find(s => s.id === selectedSeller)?.last_name
+                          : 'Sélectionner un vendeur...'}
+                      </span>
+                      <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isSellerDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {isSellerDropdownOpen && (
+                      <div className="absolute z-10 w-full mt-2 bg-white border-2 border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        {activeSellers.length === 0 ? (
+                          <div className="px-4 py-3 text-gray-500 text-sm">
+                            Aucun vendeur actif disponible
+                          </div>
+                        ) : (
+                          activeSellers.map(seller => (
+                            <button
+                              key={seller.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedSeller(seller.id);
+                                setIsSellerDropdownOpen(false);
+                              }}
+                              className={`w-full px-4 py-3 text-left hover:bg-purple-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                                selectedSeller === seller.id 
+                                  ? 'bg-purple-100 text-purple-700 font-semibold' 
+                                  : 'text-gray-900'
+                              }`}
+                            >
+                              {seller.first_name} {seller.last_name}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-700 mt-1 font-semibold">
                     {activeSellers.length > 0 
                       ? `✓ ${activeSellers.length} vendeur(s) actif(s) disponible(s)` 
