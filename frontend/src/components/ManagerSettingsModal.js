@@ -325,7 +325,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       await axios.put(`${API}/manager/objectives/${editingObjective.id}`, cleanedData, { headers });
       toast.success('Objectif modifié avec succès');
       setEditingObjective(null);
-      fetchData();
+      
+      // Forcer le rechargement des données
+      await fetchData();
+      
       if (onUpdate) onUpdate();
     } catch (err) {
       console.error('Error updating objective:', err);
