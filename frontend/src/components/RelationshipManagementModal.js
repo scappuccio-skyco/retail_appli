@@ -242,11 +242,11 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
                       </option>
                     ))}
                   </select>
-                  {activeSellers.length === 0 && (
-                    <p className="text-sm text-orange-600 mt-1">
-                      ⚠️ Aucun vendeur actif disponible
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    {activeSellers.length > 0 
+                      ? `${activeSellers.length} vendeur(s) actif(s) disponible(s)` 
+                      : '⚠️ Aucun vendeur actif disponible'}
+                  </p>
                 </div>
                 
                 {/* Situation type */}
