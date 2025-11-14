@@ -526,8 +526,8 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
         <p className="text-gray-700">Découvre ton style de vente et ton profil DISC pour recevoir un coaching personnalisé.</p>
       </div>
 
-        {/* Content */}
-        <div className="bg-white p-6 rounded-b-2xl shadow-2xl">
+      {/* Content */}
+      <div className={`p-6 ${isModal ? 'max-h-[60vh] overflow-y-auto' : ''}`}>
           {questions.map((section, sectionIdx) => (
             <div key={sectionIdx} className="mb-8">
               <h3 className="text-lg font-bold text-gray-800 mb-4">{section.section}</h3>
