@@ -74,6 +74,18 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
     }
   }, [activeMainTab]);
   
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sellerDropdownRef.current && !sellerDropdownRef.current.contains(event.target)) {
+        setIsSellerDropdownOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
   const handleGenerateAdvice = async (e) => {
     e.preventDefault();
     
