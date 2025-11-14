@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { X, MessageCircle, AlertTriangle, Users, Loader, Filter, Calendar } from 'lucide-react';
+import { X, MessageCircle, AlertTriangle, Users, Loader, Filter, Calendar, ChevronDown } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
