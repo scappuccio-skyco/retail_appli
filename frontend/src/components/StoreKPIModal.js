@@ -1158,6 +1158,50 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                 </p>
               </div>
 
+              {/* Indicateur des KPIs calculés disponibles */}
+              <div className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
+                <h4 className="text-sm font-bold text-green-800 mb-2">
+                  📊 KPIs Calculés Disponibles :
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {/* Panier Moyen */}
+                  {((kpiConfig.seller_track_ca || kpiConfig.manager_track_ca) && 
+                    (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) ? (
+                    <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
+                      ✓ Panier Moyen (CA ÷ Ventes)
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 bg-gray-300 text-gray-600 text-xs font-semibold rounded-full">
+                      ✗ Panier Moyen (nécessite CA + Ventes)
+                    </span>
+                  )}
+
+                  {/* Taux de Transformation */}
+                  {((kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes) && 
+                    (kpiConfig.seller_track_prospects || kpiConfig.manager_track_prospects)) ? (
+                    <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
+                      ✓ Taux de Transformation (Ventes ÷ Prospects)
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 bg-gray-300 text-gray-600 text-xs font-semibold rounded-full">
+                      ✗ Taux de Transformation (nécessite Ventes + Prospects)
+                    </span>
+                  )}
+
+                  {/* Indice de Vente (UPT) */}
+                  {((kpiConfig.seller_track_articles || kpiConfig.manager_track_articles) && 
+                    (kpiConfig.seller_track_ventes || kpiConfig.manager_track_ventes)) ? (
+                    <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
+                      ✓ Indice de Vente / UPT (Articles ÷ Ventes)
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 bg-gray-300 text-gray-600 text-xs font-semibold rounded-full">
+                      ✗ Indice de Vente / UPT (nécessite Articles + Ventes)
+                    </span>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
                   <div className="flex items-center justify-between">
