@@ -22,6 +22,8 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [history, setHistory] = useState([]);
   const [historyFilter, setHistoryFilter] = useState('all');
+  const [isSellerDropdownOpen, setIsSellerDropdownOpen] = useState(false);
+  const sellerDropdownRef = useRef(null);
   
   // Types de situations
   const situationTypes = {
