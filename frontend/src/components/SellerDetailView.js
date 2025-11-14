@@ -172,7 +172,7 @@ export default function SellerDetailView({ seller, onBack }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-cyan-100 to-blue-100 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-600 to-blue-600 p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="glass-morphism rounded-2xl p-6 mb-8">
