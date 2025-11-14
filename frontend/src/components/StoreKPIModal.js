@@ -423,7 +423,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               className={`px-6 py-3 font-semibold transition-all ${
                 activeTab === 'daily'
                   ? 'border-b-3 border-orange-600 text-orange-700 bg-white'
-                  : 'text-gray-600 hover:text-purple-600'
+                  : 'text-gray-600 hover:text-orange-600'
               }`}
             >
               📅 Vue au quotidien
@@ -433,7 +433,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               className={`px-6 py-3 font-semibold transition-all ${
                 activeTab === 'overview'
                   ? 'border-b-3 border-orange-600 text-orange-700 bg-white'
-                  : 'text-gray-600 hover:text-purple-600'
+                  : 'text-gray-600 hover:text-orange-600'
               }`}
             >
               📊 Historique
@@ -443,7 +443,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               className={`px-6 py-3 font-semibold transition-all ${
                 activeTab === 'config'
                   ? 'border-b-3 border-orange-600 text-orange-700 bg-white'
-                  : 'text-gray-600 hover:text-purple-600'
+                  : 'text-gray-600 hover:text-orange-600'
               }`}
             >
               ⚙️ Configuration KPI
@@ -453,7 +453,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               className={`px-6 py-3 font-semibold transition-all ${
                 activeTab === 'prospects'
                   ? 'border-b-3 border-orange-600 text-orange-700 bg-white'
-                  : 'text-gray-600 hover:text-purple-600'
+                  : 'text-gray-600 hover:text-orange-600'
               }`}
             >
               👨‍💼 Saisie KPI Manager
