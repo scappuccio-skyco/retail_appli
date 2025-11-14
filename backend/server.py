@@ -6606,14 +6606,14 @@ async def get_relationship_advice(
             raise HTTPException(status_code=404, detail="Seller not found")
         
         # Get manager profile
-        manager_diagnostic = await db.diagnostic_results.find_one(
-            {"user_id": manager_id},
+        manager_diagnostic = await db.manager_diagnostic_results.find_one(
+            {"manager_id": manager_id},
             {"_id": 0}
         )
         
         # Get seller profile
-        seller_diagnostic = await db.diagnostic_results.find_one(
-            {"user_id": request.seller_id},
+        seller_diagnostic = await db.diagnostics.find_one(
+            {"seller_id": request.seller_id},
             {"_id": 0}
         )
         
