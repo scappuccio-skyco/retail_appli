@@ -61,10 +61,10 @@ export default function RelationshipManagementModal({ onClose, sellers }) {
   };
   
   useEffect(() => {
-    if (showHistory) {
+    if (activeMainTab === 'history') {
       loadHistory();
     }
-  }, [showHistory]);
+  }, [activeMainTab]);
   
   const handleGenerateAdvice = async (e) => {
     e.preventDefault();
