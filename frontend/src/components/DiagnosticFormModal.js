@@ -362,19 +362,26 @@ export default function DiagnosticFormModal({ onClose, onSuccess }) {
                   
                   {question.type === 'choice' ? (
                     <div className="space-y-2">
-                      {question.options.map((option, optionIdx) => (
-                        <button
-                          key={optionIdx}
-                          onClick={() => handleAnswer(question.id, option, optionIdx)}
-                          className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                            responses[question.id] === option || responses[question.id] === optionIdx
-                              ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-20 font-medium'
-                              : 'border-gray-200 hover:border-[#ffd871] hover:bg-gray-100'
-                          }`}
-                        >
-                          {option}
-                        </button>
-                      ))}
+                      {question.options.map((option, optionIdx) => {
+                        const isDISCQuestion = question.id >= 16 && question.id <= 23;
+                        const isSelected = isDISCQuestion 
+                          ? responses[question.id] === optionIdx
+                          : responses[question.id] === option;
+                        
+                        return (
+                          <button
+                            key={optionIdx}
+                            onClick={() => handleAnswer(question.id, option, optionIdx)}
+                            className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                              isSelected
+                                ? 'border-[#ffd871] bg-[#ffd871] bg-opacity-20 font-medium'
+                                : 'border-gray-200 hover:border-[#ffd871] hover:bg-gray-100'
+                            }`}
+                          >
+                            {option}
+                          </button>
+                        );
+                      })}
                     </div>
                   ) : null}
                 </div>
