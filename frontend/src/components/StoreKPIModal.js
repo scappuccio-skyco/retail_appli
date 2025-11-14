@@ -733,7 +733,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   className={`px-6 py-3 font-semibold transition-all ${
                     viewMode === 'week'
                       ? 'border-b-3 border-orange-600 text-orange-700 bg-orange-50'
-                      : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
+                      : 'text-gray-600 hover:text-orange-600 hover:bg-gray-50'
                   }`}
                 >
                   📅 Vue Hebdomadaire
@@ -746,7 +746,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   className={`px-6 py-3 font-semibold transition-all ${
                     viewMode === 'month'
                       ? 'border-b-3 border-orange-600 text-orange-700 bg-orange-50'
-                      : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
+                      : 'text-gray-600 hover:text-orange-600 hover:bg-gray-50'
                   }`}
                 >
                   📆 Vue Mensuelle
@@ -756,7 +756,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   className={`px-6 py-3 font-semibold transition-all ${
                     viewMode === 'multi'
                       ? 'border-b-3 border-orange-600 text-orange-700 bg-orange-50'
-                      : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
+                      : 'text-gray-600 hover:text-orange-600 hover:bg-gray-50'
                   }`}
                 >
                   📊 Vue Multi-périodes
