@@ -91,6 +91,45 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     fetchData();
   }, []);
 
+  // Pré-remplir les KPI et les champs lors de l'édition d'un objectif
+  useEffect(() => {
+    if (editingObjective) {
+      // Pré-remplir les KPI sélectionnés en fonction des targets existantes
+      const kpisToSelect = {};
+      const kpiTargets = {};
+      
+      // Parcourir tous les KPI possibles
+      const possibleKPIs = ['ca', 'ventes', 'clients', 'articles', 'prospects', 'panier_moyen', 'indice_vente', 'taux_transformation'];
+      
+      possibleKPIs.forEach(kpiKey => {
+        const targetKey = `${kpiKey}_target`;
+        if (editingObjective[targetKey] !== undefined && editingObjective[targetKey] !== null && editingObjective[targetKey] !== '') {
+          kpisToSelect[kpiKey] = true;
+          kpiTargets[kpiKey] = editingObjective[targetKey];
+        }
+      });
+      
+      setSelectedKPIs(kpisToSelect);
+      setNewObjective({
+        ...newObjective,
+        kpi_targets: kpiTargets
+      });
+    } else {
+      // Réinitialiser quand on quitte le mode édition
+      setSelectedKPIs({});
+      setNewObjective({
+        title: '',
+        type: 'collective',
+        seller_id: '',
+        visible: true,
+        visible_to_sellers: [],
+        period_start: '',
+        period_end: '',
+        kpi_targets: {}
+      });
+    }
+  }, [editingObjective]);
+
   const handleKPIConfigUpdate = async (e) => {
     e.preventDefault();
     try {
