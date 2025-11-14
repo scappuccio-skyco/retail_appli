@@ -200,7 +200,7 @@ export default function RelationshipManagementModal({ onClose, sellers }) {
         
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {!showHistory ? (
+          {activeMainTab === 'form' ? (
             <div className="space-y-6">
               {/* Info banner */}
               <div className="bg-purple-500 rounded-xl p-4 border-2 border-purple-600">
