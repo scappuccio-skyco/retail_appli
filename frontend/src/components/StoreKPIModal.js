@@ -1152,8 +1152,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
 
           {activeTab === 'config' && (
             <div className="space-y-4">
-              <div className="bg-blue-50 rounded-xl p-3 border-2 border-blue-200">
-                <p className="text-sm text-blue-800">
+              <div className="bg-orange-500 rounded-xl p-3 border-2 border-orange-600">
+                <p className="text-sm text-white font-medium">
                   💡 <strong>Configuration des KPI :</strong> Choisissez qui remplit chaque KPI. Vendeurs (cyan) ou Manager (orange) - exclusif.
                 </p>
               </div>
