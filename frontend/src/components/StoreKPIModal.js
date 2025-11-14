@@ -422,7 +422,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               onClick={() => setActiveTab('daily')}
               className={`px-6 py-3 font-semibold transition-all ${
                 activeTab === 'daily'
-                  ? 'border-b-3 border-purple-600 text-purple-700 bg-white'
+                  ? 'border-b-3 border-orange-600 text-orange-700 bg-white'
                   : 'text-gray-600 hover:text-purple-600'
               }`}
             >
@@ -432,7 +432,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               onClick={() => setActiveTab('overview')}
               className={`px-6 py-3 font-semibold transition-all ${
                 activeTab === 'overview'
-                  ? 'border-b-3 border-purple-600 text-purple-700 bg-white'
+                  ? 'border-b-3 border-orange-600 text-orange-700 bg-white'
                   : 'text-gray-600 hover:text-purple-600'
               }`}
             >
@@ -442,7 +442,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               onClick={() => setActiveTab('config')}
               className={`px-6 py-3 font-semibold transition-all ${
                 activeTab === 'config'
-                  ? 'border-b-3 border-purple-600 text-purple-700 bg-white'
+                  ? 'border-b-3 border-orange-600 text-orange-700 bg-white'
                   : 'text-gray-600 hover:text-purple-600'
               }`}
             >
@@ -452,7 +452,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               onClick={() => setActiveTab('prospects')}
               className={`px-6 py-3 font-semibold transition-all ${
                 activeTab === 'prospects'
-                  ? 'border-b-3 border-purple-600 text-purple-700 bg-white'
+                  ? 'border-b-3 border-orange-600 text-orange-700 bg-white'
                   : 'text-gray-600 hover:text-purple-600'
               }`}
             >
