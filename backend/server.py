@@ -5114,9 +5114,9 @@ async def get_seller_kpi_config(current_user: dict = Depends(get_current_user)):
     return {
         "track_ca": config.get('seller_track_ca', config.get('track_ca', True)),
         "track_ventes": config.get('seller_track_ventes', config.get('track_ventes', True)),
-        "track_clients": config.get('seller_track_clients', True),
+        "track_clients": config.get('seller_track_clients', config.get('track_clients', True)),
         "track_articles": config.get('seller_track_articles', config.get('track_articles', True)),
-        "track_prospects": config.get('seller_track_prospects', True)
+        "track_prospects": config.get('seller_track_prospects', config.get('track_prospects', True))
     }
 
     manager_id = user['manager_id']
