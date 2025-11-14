@@ -407,7 +407,10 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
 
     setLoading(true);
     try {
-      await axios.post(`${API}/manager-diagnostic`, { responses });
+      const token = localStorage.getItem('token');
+      await axios.post(`${API}/manager-diagnostic`, { responses }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       toast.success('Ton profil manager est prêt ! 🔥');
       onSuccess();
       onClose();
