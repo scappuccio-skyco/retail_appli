@@ -2668,7 +2668,7 @@ async def check_kpi_enabled(current_user: dict = Depends(get_current_user)):
     if not current_user.get('manager_id'):
         return {"enabled": False, "seller_input_kpis": SELLER_INPUT_KPIS}
     
-    config = await db.kpi_configurations.find_one({"manager_id": current_user['manager_id']}, {"_id": 0})
+    config = await db.kpi_configs.find_one({"manager_id": current_user['manager_id']}, {"_id": 0})
     
     if not config:
         return {"enabled": False, "seller_input_kpis": SELLER_INPUT_KPIS}
