@@ -96,7 +96,7 @@ export default function RelationshipManagementModal({ onClose, sellers }) {
       toast.success('Recommandation générée avec succès !');
       
       // Refresh history if visible
-      if (showHistory) {
+      if (activeMainTab === 'history') {
         loadHistory(historyFilter !== 'all' ? historyFilter : null);
       }
       
