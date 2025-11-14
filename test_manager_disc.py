@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 class ManagerDISCTester:
-    def __init__(self, base_url="https://performer-app.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://perf-retail.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
