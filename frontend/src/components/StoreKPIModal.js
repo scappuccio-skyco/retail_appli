@@ -539,7 +539,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                           : 'N/A'
                         }
                       </div>
-                      <div className="text-xs text-purple-600 mt-0.5">
+                      <div className="text-xs text-orange-600 mt-0.5">
                         {overviewData.calculated_kpis?.indice_vente !== null 
                           ? 'Articles / Ventes'
                           : 'Données manquantes'
