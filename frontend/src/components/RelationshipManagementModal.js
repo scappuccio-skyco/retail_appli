@@ -256,12 +256,12 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
                   <select
                     value={situationType}
                     onChange={(e) => setSituationType(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-800 bg-white"
                     required
                   >
-                    <option value="">Choisir le type de situation...</option>
+                    <option value="" className="text-gray-500">Choisir le type de situation...</option>
                     {situationTypes[activeFormTab].map(type => (
-                      <option key={type.value} value={type.value}>
+                      <option key={type.value} value={type.value} className="text-gray-800">
                         {type.label}
                       </option>
                     ))}
