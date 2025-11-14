@@ -1333,7 +1333,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {kpiConfig.manager_track_ca && (
-                        <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
+                        <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
                           <label className="block text-sm font-semibold text-gray-700 mb-2">💰 Chiffre d'Affaires</label>
                           <input
                             type="number"
@@ -1349,7 +1349,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       )}
 
                       {kpiConfig.manager_track_ventes && (
-                        <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
+                        <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
                           <label className="block text-sm font-semibold text-gray-700 mb-2">🛍️ Nombre de Ventes</label>
                           <input
                             type="number"
@@ -1364,7 +1364,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       )}
 
                       {kpiConfig.manager_track_clients && (
-                        <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
+                        <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
                           <label className="block text-sm font-semibold text-gray-700 mb-2">👥 Nombre de Clients</label>
                           <input
                             type="number"
@@ -1379,7 +1379,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       )}
 
                       {kpiConfig.manager_track_articles && (
-                        <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
+                        <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
                           <label className="block text-sm font-semibold text-gray-700 mb-2">📦 Nombre d'Articles</label>
                           <input
                             type="number"
@@ -1394,7 +1394,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       )}
 
                       {kpiConfig.manager_track_prospects && (
-                        <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
+                        <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
                           <label className="block text-sm font-semibold text-gray-700 mb-2">🚶 Nombre de Prospects</label>
                           <input
                             type="number"
