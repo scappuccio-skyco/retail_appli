@@ -157,12 +157,10 @@ export default function ManagerDashboard({ user, onLogout }) {
     return {
       ca: kpiConfig.track_ca === true,
       ventes: kpiConfig.track_ventes === true,
-      clients: kpiConfig.track_clients === true,
       articles: kpiConfig.track_articles === true,
-      ventesVsClients: kpiConfig.track_ventes === true && kpiConfig.track_clients === true,
       panierMoyen: kpiConfig.track_ca === true && kpiConfig.track_ventes === true,
-      tauxTransfo: kpiConfig.track_ventes === true && kpiConfig.track_clients === true,
-      indiceVente: kpiConfig.track_ca === true && kpiConfig.track_ventes === true && kpiConfig.track_articles === true
+      tauxTransfo: kpiConfig.track_ventes === true && kpiConfig.track_prospects === true,
+      indiceVente: kpiConfig.track_articles === true && kpiConfig.track_ventes === true
     };
   }, [kpiConfig]);
 
