@@ -352,7 +352,7 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
                       {/* Période */}
                       <div className="flex items-center gap-1 text-xs text-gray-600 mb-3">
                         <Calendar className="w-3 h-3" />
-                        {formatDate(challenge.period_start)} - {formatDate(challenge.period_end)}
+                        {formatDate(challenge.start_date || challenge.period_start)} - {formatDate(challenge.end_date || challenge.period_end)}
                       </div>
 
                       {/* Progress Bar */}
