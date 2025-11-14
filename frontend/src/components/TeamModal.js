@@ -32,7 +32,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function TeamModal({ sellers, onClose, onViewSellerDetail }) {
+export default function TeamModal({ sellers, onClose, onViewSellerDetail, onDataUpdate }) {
   const [teamData, setTeamData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAIAnalysisModal, setShowAIAnalysisModal] = useState(false);
