@@ -1001,7 +1001,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           }}
           onDataUpdate={async () => {
             // Recharger les vendeurs après une modification
-            await loadDashboardData();
+            await fetchData();
           }}
         />
       )}
