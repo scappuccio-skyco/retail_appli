@@ -231,12 +231,12 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
                   <select
                     value={selectedSeller}
                     onChange={(e) => setSelectedSeller(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-800 bg-white"
                     required
                   >
-                    <option value="">Sélectionner un vendeur...</option>
+                    <option value="" className="text-gray-500">Sélectionner un vendeur...</option>
                     {activeSellers.map(seller => (
-                      <option key={seller.id} value={seller.id}>
+                      <option key={seller.id} value={seller.id} className="text-gray-800">
                         {seller.first_name} {seller.last_name}
                       </option>
                     ))}
