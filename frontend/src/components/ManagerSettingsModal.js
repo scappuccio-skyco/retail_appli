@@ -1106,9 +1106,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     onChange={(e) => {
                                       setSelectedKPIsChallenge({ ...selectedKPIsChallenge, [kpi.key]: e.target.checked });
                                       if (!e.target.checked) {
-                                        const newTargets = { ...newChallenge.kpi_targets };
-                                        delete newTargets[kpi.key];
-                                        setNewChallenge({ ...newChallenge, kpi_targets: newTargets });
+                                        if (editingChallenge) {
+                                          const newTargets = { ...editingChallenge.kpi_targets };
+                                          delete newTargets[kpi.key];
+                                          setEditingChallenge({ ...editingChallenge, kpi_targets: newTargets });
+                                        } else {
+                                          const newTargets = { ...newChallenge.kpi_targets };
+                                          delete newTargets[kpi.key];
+                                          setNewChallenge({ ...newChallenge, kpi_targets: newTargets });
+                                        }
                                       }
                                     }}
                                     className="w-4 h-4 text-yellow-600"
