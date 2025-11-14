@@ -356,6 +356,7 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
               {/* Filter by seller */}
               <div className="flex items-center gap-3">
                 <Filter className="w-5 h-5 text-gray-600" />
+                <label className="text-sm font-semibold text-gray-700 mr-2">Filtrer par vendeur :</label>
                 <select
                   value={historyFilter}
                   onChange={(e) => {
@@ -367,7 +368,7 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
                   <option value="all">Tous les vendeurs</option>
                   {sellers.map(seller => (
                     <option key={seller.id} value={seller.id}>
-                      {seller.first_name} {seller.last_name}
+                      {seller.first_name} {seller.last_name} {seller.status !== 'active' && `(${seller.status})`}
                     </option>
                   ))}
                 </select>
