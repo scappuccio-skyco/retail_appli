@@ -1356,6 +1356,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       {/* Diagnostic Form Modal */}
       {showDiagnosticFormModal && (
         <DiagnosticFormScrollable
+          isModal={true}
           onClose={() => setShowDiagnosticFormModal(false)}
           onComplete={() => {
             setShowDiagnosticFormModal(false);
