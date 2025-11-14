@@ -5,7 +5,9 @@ import { X, MessageCircle, AlertTriangle, Users, Loader, Filter, Calendar } from
 
 const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
-export default function RelationshipManagementModal({ onClose, sellers }) {
+export default function RelationshipManagementModal({ onClose, sellers = [] }) {
+  // Filter to get only active sellers
+  const activeSellers = sellers.filter(s => s.status === 'active' || !s.status);
   const [activeMainTab, setActiveMainTab] = useState('form'); // 'form' or 'history'
   const [activeFormTab, setActiveFormTab] = useState('relationnel'); // 'relationnel' or 'conflit'
   const [activeHistoryTab, setActiveHistoryTab] = useState('all'); // 'all', 'relationnel', or 'conflit'
