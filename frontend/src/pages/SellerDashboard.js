@@ -971,9 +971,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         
         {/* Profile & Bilan - Visual Cards */}
             {/* Profile Card - Visual */}
-            {diagnostic && dashboardFilters.showProfile && (
+            {dashboardFilters.showProfile && (
             <div 
-              onClick={() => setShowProfileModal(true)}
+              onClick={() => diagnostic ? setShowProfileModal(true) : setShowDiagnosticModal(true)}
               className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
             >
               <div className="relative h-48 overflow-hidden">
@@ -984,12 +984,16 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-900/70 via-pink-900/70 to-red-900/70 group-hover:from-purple-900/60 group-hover:via-pink-900/60 group-hover:to-red-900/60 transition-all"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center text-white">
+                  <div className="text-center text-white px-4">
                     <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
                       <Sparkles className="w-8 h-8" />
                     </div>
                     <h3 className="text-2xl font-bold">Mon Profil de Vente</h3>
-                    <p className="text-sm mt-2 opacity-90">Cliquer pour voir les détails →</p>
+                    {diagnostic ? (
+                      <p className="text-sm mt-2 opacity-90">Cliquer pour voir les détails →</p>
+                    ) : (
+                      <p className="text-sm mt-2 opacity-90">Complétez votre diagnostic pour découvrir votre profil →</p>
+                    )}
                   </div>
                 </div>
               </div>
