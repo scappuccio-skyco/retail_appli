@@ -949,6 +949,35 @@ async def register(user_data: UserCreate):
     
     logger.info(f"User created: {user_obj.email} (Role: {user_obj.role}, Workspace: {workspace_id})")
     
+    # Create trial subscription for the new user
+    if user_obj.role == "manager":
+        trial_start = datetime.now(timezone.utc)
+        trial_end = trial_start + timedelta(days=TRIAL_DAYS)
+        
+        trial_subscription = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_obj.id,
+            "workspace_id": workspace_id,
+            "stripe_subscription_id": f"trial_{user_obj.id}",
+            "stripe_customer_id": f"trial_cus_{user_obj.id}",
+            "plan_id": "trial",
+            "status": "trialing",
+            "billing_interval": "monthly",
+            "current_period_start": trial_start.isoformat(),
+            "current_period_end": trial_end.isoformat(),
+            "trial_start": trial_start.isoformat(),
+            "trial_end": trial_end.isoformat(),
+            "quantity": 1,
+            "ai_credits_remaining": TRIAL_AI_CREDITS,
+            "ai_credits_used_this_month": 0,
+            "ai_credits_reset_date": trial_start.isoformat(),
+            "created_at": trial_start.isoformat(),
+            "updated_at": trial_start.isoformat()
+        }
+        
+        await db.subscriptions.insert_one(trial_subscription)
+        logger.info(f"Trial subscription created for {user_obj.email} with {TRIAL_AI_CREDITS} AI credits")
+    
     # Create token
     token = create_token(user_obj.id, user_obj.email, user_obj.role)
     
