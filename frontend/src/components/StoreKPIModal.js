@@ -828,7 +828,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       onClick={() => setMultiPeriod('3months')}
                       className={`px-6 py-3 rounded-lg font-medium transition-all ${
                         multiPeriod === '3months'
-                          ? 'bg-purple-600 text-white shadow-lg scale-105'
+                          ? 'bg-orange-600 text-white shadow-lg scale-105'
                           : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400 hover:scale-105'
                       }`}
                     >
@@ -838,7 +838,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       onClick={() => setMultiPeriod('6months')}
                       className={`px-6 py-3 rounded-lg font-medium transition-all ${
                         multiPeriod === '6months'
-                          ? 'bg-purple-600 text-white shadow-lg scale-105'
+                          ? 'bg-orange-600 text-white shadow-lg scale-105'
                           : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400 hover:scale-105'
                       }`}
                     >
@@ -848,7 +848,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       onClick={() => setMultiPeriod('12months')}
                       className={`px-6 py-3 rounded-lg font-medium transition-all ${
                         multiPeriod === '12months'
-                          ? 'bg-purple-600 text-white shadow-lg scale-105'
+                          ? 'bg-orange-600 text-white shadow-lg scale-105'
                           : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-400 hover:scale-105'
                       }`}
                     >
