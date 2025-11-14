@@ -533,7 +533,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
               {activeTab === 'objectives' && (
                 <div className="space-y-6">
                   {/* Create/Edit Objective Form */}
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-300">
+                  <div id="objective-form-section" className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-300">
                     <h3 className="text-xl font-bold text-gray-800 mb-4">
                       {editingObjective ? '✏️ Modifier l\'Objectif' : '➕ Créer un Objectif'}
                     </h3>
