@@ -83,7 +83,7 @@ export default function RelationshipManagementModal({ onClose, sellers }) {
         `${API}/api/manager/relationship-advice`,
         {
           seller_id: selectedSeller,
-          advice_type: activeTab,
+          advice_type: activeFormTab,
           situation_type: situationType,
           description: description
         },
