@@ -1420,7 +1420,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       <button
                         type="submit"
                         disabled={loading}
-                        className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
+                        className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
                       >
                         {loading ? 'Enregistrement...' : '💾 Enregistrer KPI'}
                       </button>
