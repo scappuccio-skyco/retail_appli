@@ -304,6 +304,11 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
       if (onDataUpdate) {
         await onDataUpdate();
       }
+      
+      // Notifier le parent pour recharger ses données
+      if (onDataUpdate) {
+        await onDataUpdate();
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de la suppression');
       // Restaurer l'affichage en cas d'erreur
