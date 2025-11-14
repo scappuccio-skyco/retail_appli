@@ -724,16 +724,16 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
           {activeTab === 'overview' && (
             <div className="space-y-6">
               {/* View Mode Selector - Tabs */}
-              <div className="flex gap-2 border-b-2 border-gray-200">
+              <div className="flex gap-2 mb-4">
                 <button
                   onClick={() => {
                     setViewMode('week');
                     setSelectedWeek(new Date().toISOString().split('T')[0].slice(0,8) + 'W' + Math.ceil(new Date().getDate() / 7).toString().padStart(2, '0'));
                   }}
-                  className={`px-6 py-3 font-semibold transition-all ${
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${
                     viewMode === 'week'
-                      ? 'border-b-3 border-orange-600 text-orange-700 bg-orange-50'
-                      : 'text-gray-600 hover:text-orange-600 hover:bg-gray-50'
+                      ? 'border-orange-500 bg-orange-500 text-white shadow-md'
+                      : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'
                   }`}
                 >
                   📅 Vue Hebdomadaire
@@ -743,23 +743,23 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                     setViewMode('month');
                     setSelectedMonth(new Date().toISOString().slice(0,7));
                   }}
-                  className={`px-6 py-3 font-semibold transition-all ${
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${
                     viewMode === 'month'
-                      ? 'border-b-3 border-orange-600 text-orange-700 bg-orange-50'
-                      : 'text-gray-600 hover:text-orange-600 hover:bg-gray-50'
+                      ? 'border-orange-500 bg-orange-500 text-white shadow-md'
+                      : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'
                   }`}
                 >
                   📆 Vue Mensuelle
                 </button>
                 <button
                   onClick={() => setViewMode('multi')}
-                  className={`px-6 py-3 font-semibold transition-all ${
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${
                     viewMode === 'multi'
-                      ? 'border-b-3 border-orange-600 text-orange-700 bg-orange-50'
-                      : 'text-gray-600 hover:text-orange-600 hover:bg-gray-50'
+                      ? 'border-orange-500 bg-orange-500 text-white shadow-md'
+                      : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'
                   }`}
                 >
-                  📊 Vue Multi-périodes
+                  📅 Vue Annuelle
                 </button>
               </div>
 
