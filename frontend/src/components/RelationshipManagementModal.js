@@ -231,20 +231,31 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
                   <select
                     value={selectedSeller}
                     onChange={(e) => setSelectedSeller(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                    style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none bg-white"
+                    style={{ 
+                      color: '#000000',
+                      backgroundColor: '#ffffff',
+                      WebkitAppearance: 'menulist',
+                      MozAppearance: 'menulist'
+                    }}
                     required
                   >
-                    <option value="" style={{ color: '#6b7280' }}>Sélectionner un vendeur...</option>
+                    <option value="" style={{ backgroundColor: '#ffffff', color: '#6b7280' }}>
+                      Sélectionner un vendeur...
+                    </option>
                     {activeSellers.map(seller => (
-                      <option key={seller.id} value={seller.id} style={{ color: '#1f2937' }}>
+                      <option 
+                        key={seller.id} 
+                        value={seller.id} 
+                        style={{ backgroundColor: '#ffffff', color: '#000000' }}
+                      >
                         {seller.first_name} {seller.last_name}
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-700 mt-1 font-semibold">
                     {activeSellers.length > 0 
-                      ? `${activeSellers.length} vendeur(s) actif(s) disponible(s)` 
+                      ? `✓ ${activeSellers.length} vendeur(s) actif(s) disponible(s)` 
                       : '⚠️ Aucun vendeur actif disponible'}
                   </p>
                 </div>
