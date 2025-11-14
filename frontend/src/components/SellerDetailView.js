@@ -292,16 +292,6 @@ export default function SellerDetailView({ seller, onBack }) {
           >
             📝 Débriefs
           </button>
-          <button
-            onClick={() => setActiveTab('conflit')}
-            className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
-              activeTab === 'conflit'
-                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-lg'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            🤝 Gestion de Conflit
-          </button>
         </div>
       </div>
 
