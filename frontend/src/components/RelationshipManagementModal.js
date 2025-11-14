@@ -231,13 +231,17 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
                     required
                   >
                     <option value="">Sélectionner un vendeur...</option>
-                    {sellers.map(seller => (
+                    {activeSellers.map(seller => (
                       <option key={seller.id} value={seller.id}>
-                        {seller.first_name} {seller.last_name} 
-                        {seller.status !== 'active' && ` (${seller.status})`}
+                        {seller.first_name} {seller.last_name}
                       </option>
                     ))}
                   </select>
+                  {activeSellers.length === 0 && (
+                    <p className="text-sm text-orange-600 mt-1">
+                      ⚠️ Aucun vendeur actif disponible
+                    </p>
+                  )}
                 </div>
                 
                 {/* Situation type */}
