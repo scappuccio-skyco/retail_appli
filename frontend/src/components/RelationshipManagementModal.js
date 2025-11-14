@@ -8,6 +8,10 @@ const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 export default function RelationshipManagementModal({ onClose, sellers = [] }) {
   // Filter to get only active sellers
   const activeSellers = sellers.filter(s => s.status === 'active' || !s.status);
+  
+  // Debug
+  console.log('Total sellers:', sellers.length);
+  console.log('Active sellers:', activeSellers.length);
   const [activeMainTab, setActiveMainTab] = useState('form'); // 'form' or 'history'
   const [activeFormTab, setActiveFormTab] = useState('relationnel'); // 'relationnel' or 'conflit'
   const [activeHistoryTab, setActiveHistoryTab] = useState('all'); // 'all', 'relationnel', or 'conflit'
