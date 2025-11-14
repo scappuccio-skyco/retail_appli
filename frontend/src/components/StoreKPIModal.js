@@ -732,7 +732,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   }}
                   className={`px-6 py-3 font-semibold transition-all ${
                     viewMode === 'week'
-                      ? 'border-b-3 border-purple-600 text-purple-700 bg-purple-50'
+                      ? 'border-b-3 border-orange-600 text-orange-700 bg-orange-50'
                       : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
                   }`}
                 >
@@ -745,7 +745,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   }}
                   className={`px-6 py-3 font-semibold transition-all ${
                     viewMode === 'month'
-                      ? 'border-b-3 border-purple-600 text-purple-700 bg-purple-50'
+                      ? 'border-b-3 border-orange-600 text-orange-700 bg-orange-50'
                       : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
                   }`}
                 >
@@ -755,7 +755,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                   onClick={() => setViewMode('multi')}
                   className={`px-6 py-3 font-semibold transition-all ${
                     viewMode === 'multi'
-                      ? 'border-b-3 border-purple-600 text-purple-700 bg-purple-50'
+                      ? 'border-b-3 border-orange-600 text-orange-700 bg-orange-50'
                       : 'text-gray-600 hover:text-purple-600 hover:bg-gray-50'
                   }`}
                 >
