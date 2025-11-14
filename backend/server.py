@@ -4936,6 +4936,64 @@ async def get_active_seller_challenges(current_user: dict = Depends(get_current_
     
     return filtered_challenges
 
+@api_router.get("/seller/objectives/all")
+async def get_all_seller_objectives(current_user: dict = Depends(get_current_user)):
+    """Get all team objectives (active and inactive) for seller"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access objectives")
+    
+    # Get manager
+    user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    if not user or not user.get('manager_id'):
+        return {"active": [], "inactive": []}
+    
+    manager_id = user['manager_id']
+    seller_id = current_user['id']
+    today = datetime.now(timezone.utc).date().isoformat()
+    
+    # Get ALL objectives from the seller's manager
+    all_objectives = await db.manager_objectives.find(
+        {
+            "manager_id": manager_id,
+            "visible": True  # Only visible objectives
+        },
+        {"_id": 0}
+    ).sort("period_start", -1).to_list(100)  # Sort by most recent first
+    
+    # Filter objectives based on visibility rules and separate active/inactive
+    active_objectives = []
+    inactive_objectives = []
+    
+    for objective in all_objectives:
+        # Check if objective is for this seller
+        obj_type = objective.get('type', 'collective')
+        should_include = False
+        
+        # Individual objectives: only show if it's for this seller
+        if obj_type == 'individual':
+            if objective.get('seller_id') == seller_id:
+                should_include = True
+        # Collective objectives: check visible_to_sellers list
+        else:
+            visible_to = objective.get('visible_to_sellers', [])
+            if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
+                should_include = True
+        
+        if should_include:
+            # Calculate progress
+            await calculate_objective_progress(objective, manager_id)
+            
+            # Separate active vs inactive
+            if objective.get('period_end', '') > today:
+                active_objectives.append(objective)
+            else:
+                inactive_objectives.append(objective)
+    
+    return {
+        "active": active_objectives,
+        "inactive": inactive_objectives
+    }
+
 @api_router.get("/seller/objectives/active")
 async def get_active_seller_objectives(current_user: dict = Depends(get_current_user)):
     """Get active team objectives for display in seller dashboard"""
