@@ -1020,6 +1020,13 @@ export default function ManagerDashboard({ user, onLogout }) {
         />
       )}
 
+      {showRelationshipModal && (
+        <RelationshipManagementModal
+          onClose={() => setShowRelationshipModal(false)}
+          sellers={sellers}
+        />
+      )}
+
       {showTeamModal && (
         <TeamModal
           sellers={sellers}
