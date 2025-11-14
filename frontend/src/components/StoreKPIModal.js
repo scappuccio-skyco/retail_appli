@@ -766,7 +766,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               {/* Week View */}
               {viewMode === 'week' && (
                 <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
-                  <h3 className="text-lg font-bold text-purple-900 mb-3">📅 Sélectionner une semaine</h3>
+                  <h3 className="text-lg font-bold text-orange-900 mb-3">📅 Sélectionner une semaine</h3>
                   <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                     <input
                       type="week"
@@ -789,7 +789,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
               {/* Month View */}
               {viewMode === 'month' && (
                 <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
-                  <h3 className="text-lg font-bold text-purple-900 mb-3">📆 Sélectionner un mois</h3>
+                  <h3 className="text-lg font-bold text-orange-900 mb-3">📆 Sélectionner un mois</h3>
                   <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                     <input
                       type="month"
