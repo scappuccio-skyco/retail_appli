@@ -115,9 +115,19 @@ export default function RelationshipManagementModal({ onClose, sellers }) {
     setRecommendation('');
   };
   
-  const filteredHistory = historyFilter === 'all' 
-    ? history 
-    : history.filter(h => h.seller_id === historyFilter);
+  // Filter history by type and seller
+  const filteredHistory = history
+    .filter(h => {
+      // Filter by type tab
+      if (activeHistoryTab === 'relationnel') return h.advice_type === 'relationnel';
+      if (activeHistoryTab === 'conflit') return h.advice_type === 'conflit';
+      return true; // 'all'
+    })
+    .filter(h => {
+      // Filter by seller
+      if (historyFilter === 'all') return true;
+      return h.seller_id === historyFilter;
+    });
   
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
