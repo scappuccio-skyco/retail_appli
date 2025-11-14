@@ -892,7 +892,16 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               </div>
                               <div className="flex gap-2 ml-4">
                                 <button
-                                  onClick={() => setEditingObjective(objective)}
+                                  onClick={() => {
+                                    setEditingObjective(objective);
+                                    // Scroll vers le formulaire d'objectif
+                                    setTimeout(() => {
+                                      const objectiveSection = document.querySelector('#objective-form-section');
+                                      if (objectiveSection) {
+                                        objectiveSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                      }
+                                    }, 100);
+                                  }}
                                   className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded transition-all"
                                   title="Modifier"
                                 >
