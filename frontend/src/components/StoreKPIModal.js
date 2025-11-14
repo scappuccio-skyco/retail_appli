@@ -420,40 +420,40 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
           <div className="flex gap-1 px-6">
             <button
               onClick={() => setActiveTab('daily')}
-              className={`px-6 py-3 font-semibold transition-all ${
+              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
                 activeTab === 'daily'
-                  ? 'border-b-3 border-orange-600 text-orange-700 bg-white'
-                  : 'text-gray-600 hover:text-orange-600'
+                  ? 'bg-orange-500 text-white shadow-md border-b-4 border-orange-600'
+                  : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
               }`}
             >
               📅 Vue au quotidien
             </button>
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-6 py-3 font-semibold transition-all ${
+              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
                 activeTab === 'overview'
-                  ? 'border-b-3 border-orange-600 text-orange-700 bg-white'
-                  : 'text-gray-600 hover:text-orange-600'
+                  ? 'bg-orange-500 text-white shadow-md border-b-4 border-orange-600'
+                  : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
               }`}
             >
               📊 Historique
             </button>
             <button
               onClick={() => setActiveTab('config')}
-              className={`px-6 py-3 font-semibold transition-all ${
+              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
                 activeTab === 'config'
-                  ? 'border-b-3 border-orange-600 text-orange-700 bg-white'
-                  : 'text-gray-600 hover:text-orange-600'
+                  ? 'bg-orange-500 text-white shadow-md border-b-4 border-orange-600'
+                  : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
               }`}
             >
               ⚙️ Configuration KPI
             </button>
             <button
               onClick={() => setActiveTab('prospects')}
-              className={`px-6 py-3 font-semibold transition-all ${
+              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
                 activeTab === 'prospects'
-                  ? 'border-b-3 border-orange-600 text-orange-700 bg-white'
-                  : 'text-gray-600 hover:text-orange-600'
+                  ? 'bg-orange-500 text-white shadow-md border-b-4 border-orange-600'
+                  : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
               }`}
             >
               👨‍💼 Saisie KPI Manager
