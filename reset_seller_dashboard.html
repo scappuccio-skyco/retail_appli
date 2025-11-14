@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réinitialiser Dashboard Vendeur</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .success {
+            background: #c8e6c9;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.02);
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .card-list {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .card-list h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        .card-list ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .card-list li {
+            margin: 5px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Réinitialiser Dashboard Vendeur</h1>
+        
+        <div class="info">
+            <strong>⚠️ Problème détecté :</strong> Votre dashboard vendeur affiche seulement 4 cartes au lieu de 6.
+        </div>
+
+        <div class="card-list">
+            <h3>Les 6 cartes qui devraient s'afficher :</h3>
+            <ul>
+                <li>✨ Mon Profil de Vente</li>
+                <li>🤖 Mon Bilan Individuel</li>
+                <li>🎯 Objectifs et Challenges</li>
+                <li>🤖 Mon Coach IA</li>
+                <li>📊 Mes KPI</li>
+                <li>📊 Analyse de vente</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <strong>📋 Instructions :</strong><br>
+            1. Cliquez sur le bouton ci-dessous pour réinitialiser les filtres<br>
+            2. Rechargez ensuite la page de votre dashboard vendeur<br>
+            3. Toutes les 6 cartes devraient maintenant être visibles
+        </div>
+
+        <button onclick="resetFilters()">
+            🔄 Réinitialiser les filtres du dashboard
+        </button>
+
+        <div id="successMessage" class="success">
+            <strong>✅ Succès !</strong> Les filtres ont été réinitialisés. Vous pouvez maintenant fermer cette page et recharger votre dashboard vendeur. Toutes les 6 cartes devraient s'afficher.
+        </div>
+    </div>
+
+    <script>
+        function resetFilters() {
+            // Réinitialiser les filtres du dashboard vendeur
+            const defaultFilters = {
+                showProfile: true,
+                showCompetences: true,
+                showObjectives: true,
+                showChallenges: true,
+                showKPI: true,
+                showDebriefs: true,
+                showBilan: true,
+                periodFilter: 'all'
+            };
+
+            // Réinitialiser l'ordre des sections
+            const defaultOrder = ['profile', 'bilan', 'objectives', 'competences', 'kpi', 'debriefs'];
+
+            // Sauvegarder dans localStorage
+            localStorage.setItem('seller_dashboard_filters', JSON.stringify(defaultFilters));
+            localStorage.setItem('seller_section_order', JSON.stringify(defaultOrder));
+
+            // Afficher le message de succès
+            document.getElementById('successMessage').style.display = 'block';
+            
+            // Faire défiler vers le message de succès
+            document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+
+            console.log('✅ Filtres réinitialisés avec succès!');
+            console.log('Filtres:', defaultFilters);
+            console.log('Ordre:', defaultOrder);
+        }
+
+        // Afficher l'état actuel au chargement
+        window.onload = function() {
+            const currentFilters = localStorage.getItem('seller_dashboard_filters');
+            const currentOrder = localStorage.getItem('seller_section_order');
+            
+            console.log('État actuel du localStorage:');
+            console.log('Filtres:', currentFilters ? JSON.parse(currentFilters) : 'Non défini');
+            console.log('Ordre:', currentOrder ? JSON.parse(currentOrder) : 'Non défini');
+        };
+    </script>
+</body>
+</html>
