@@ -292,8 +292,20 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       const cleanedData = {
         title: editingObjective.title,
         period_start: editingObjective.period_start,
-        period_end: editingObjective.period_end
+        period_end: editingObjective.period_end,
+        type: editingObjective.type,
+        visible: editingObjective.visible !== undefined ? editingObjective.visible : true
       };
+      
+      // Ajouter seller_id si type individual
+      if (editingObjective.type === 'individual' && editingObjective.seller_id) {
+        cleanedData.seller_id = editingObjective.seller_id;
+      }
+      
+      // Ajouter visible_to_sellers si type collective
+      if (editingObjective.type === 'collective') {
+        cleanedData.visible_to_sellers = editingObjective.visible_to_sellers || [];
+      }
       
       if (editingObjective.ca_target && editingObjective.ca_target !== '') {
         cleanedData.ca_target = parseFloat(editingObjective.ca_target);
