@@ -1272,9 +1272,17 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
 
                 <div className="bg-white rounded-lg p-4 border-2 border-gray-200">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-gray-800">🚶 Nombre de Prospects</h4>
-                      <p className="text-sm text-gray-600">Entrées magasin</p>
+                    <div className="flex items-center gap-2">
+                      <div>
+                        <h4 className="font-bold text-gray-800">🚶 Nombre de Prospects</h4>
+                        <p className="text-sm text-gray-600">Entrées magasin</p>
+                      </div>
+                      <span 
+                        className="text-blue-500 cursor-help" 
+                        title="Nombre de personnes entrées dans le magasin. Permet de calculer le Taux de Transformation (Ventes ÷ Prospects) : pourcentage de visiteurs qui achètent."
+                      >
+                        ⓘ
+                      </span>
                     </div>
                     <div className="flex gap-2">
                       <button
