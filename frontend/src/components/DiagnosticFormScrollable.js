@@ -469,10 +469,15 @@ export default function DiagnosticFormScrollable({ onComplete }) {
     // For DISC questions (16-39), store the index; for others, store the text
     const isDISCQuestion = questionId >= 16 && questionId <= 39;
     const valueToStore = (isDISCQuestion && optionIndex !== null) ? optionIndex : answer;
-    setResponses(prev => ({
-      ...prev,
-      [questionId]: valueToStore
-    }));
+    
+    setResponses(prev => {
+      const updated = {
+        ...prev,
+        [questionId]: valueToStore
+      };
+      console.log('Updated responses:', updated);
+      return updated;
+    });
   };
 
   const handleSubmit = async () => {
