@@ -795,7 +795,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               ? setEditingObjective({ ...editingObjective, period_end: e.target.value })
                               : setNewObjective({ ...newObjective, period_end: e.target.value })
                             }
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                            onClick={(e) => {
+                              // Ouvrir le calendrier au clic sur tout le champ
+                              if (e.target.showPicker) {
+                                e.target.showPicker();
+                              }
+                            }}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer"
                           />
                         </div>
 
