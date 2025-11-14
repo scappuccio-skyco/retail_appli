@@ -507,17 +507,24 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl">
-          <div className="flex items-center gap-3 mb-2">
-            <Sparkles className="w-8 h-8 text-gray-800" />
-            <h2 className="text-2xl font-bold text-gray-800">Identifier mon profil vendeur</h2>
-          </div>
-          <p className="text-gray-700">Découvre ton style de vente et ton profil DISC pour recevoir un coaching personnalisé.</p>
+  const containerContent = (
+    <>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl relative">
+        {isModal && onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        )}
+        <div className="flex items-center gap-3 mb-2">
+          <Sparkles className="w-8 h-8 text-gray-800" />
+          <h2 className="text-2xl font-bold text-gray-800">Identifier mon profil vendeur</h2>
         </div>
+        <p className="text-gray-700">Découvre ton style de vente et ton profil DISC pour recevoir un coaching personnalisé.</p>
+      </div>
 
         {/* Content */}
         <div className="bg-white p-6 rounded-b-2xl shadow-2xl">
