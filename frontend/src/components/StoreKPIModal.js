@@ -869,7 +869,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       type="checkbox"
                       checked={visibleCharts.ca}
                       onChange={() => toggleChart('ca')}
-                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                      className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
                     />
                     <span className="text-sm font-medium text-gray-700">💰 CA</span>
                   </label>
@@ -879,7 +879,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       type="checkbox"
                       checked={visibleCharts.ventes}
                       onChange={() => toggleChart('ventes')}
-                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                      className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
                     />
                     <span className="text-sm font-medium text-gray-700">🛒 Ventes</span>
                   </label>
@@ -889,7 +889,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       type="checkbox"
                       checked={visibleCharts.panierMoyen}
                       onChange={() => toggleChart('panierMoyen')}
-                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                      className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
                     />
                     <span className="text-sm font-medium text-gray-700">🛍️ Panier Moyen</span>
                   </label>
@@ -899,7 +899,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       type="checkbox"
                       checked={visibleCharts.tauxTransformation}
                       onChange={() => toggleChart('tauxTransformation')}
-                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                      className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
                     />
                     <span className="text-sm font-medium text-gray-700">📈 Taux Transfo</span>
                   </label>
@@ -909,7 +909,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       type="checkbox"
                       checked={visibleCharts.indiceVente}
                       onChange={() => toggleChart('indiceVente')}
-                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                      className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
                     />
                     <span className="text-sm font-medium text-gray-700">📊 Indice Vente</span>
                   </label>
@@ -919,7 +919,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       type="checkbox"
                       checked={visibleCharts.articles}
                       onChange={() => toggleChart('articles')}
-                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                      className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
                     />
                     <span className="text-sm font-medium text-gray-700">📦 Articles</span>
                   </label>
@@ -929,7 +929,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                       type="checkbox"
                       checked={visibleCharts.clients}
                       onChange={() => toggleChart('clients')}
-                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                      className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
                     />
                     <span className="text-sm font-medium text-gray-700">👥 Clients</span>
                   </label>
