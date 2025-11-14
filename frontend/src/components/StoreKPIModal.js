@@ -1200,6 +1200,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                         className={`w-12 h-8 rounded font-bold text-xs ${
                           kpiConfig.seller_track_ventes ? 'bg-[#10B981] text-white' : 'bg-gray-200 text-gray-500'
                         }`}
+                        title="Vendeur"
                       >
                         🧑‍💼
                       </button>
@@ -1208,6 +1209,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                         className={`w-12 h-8 rounded font-bold text-xs ${
                           kpiConfig.manager_track_ventes ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-500'
                         }`}
+                        title="Manager"
                       >
                         👨‍💼
                       </button>
