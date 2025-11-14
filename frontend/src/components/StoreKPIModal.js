@@ -532,7 +532,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }
                     </div>
 
                     <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 border border-orange-200">
-                      <div className="text-xs text-purple-700 font-semibold mb-0.5">📦 Indice de Vente (UPT)</div>
+                      <div className="text-xs text-orange-700 font-semibold mb-0.5">📦 Indice de Vente (UPT)</div>
                       <div className="text-2xl font-bold text-purple-900">
                         {overviewData.calculated_kpis?.indice_vente !== null 
                           ? overviewData.calculated_kpis.indice_vente
