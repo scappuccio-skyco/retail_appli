@@ -3519,23 +3519,41 @@ class RetailCoachAPITester:
                 else:
                     self.log_test("KPI Entry Field Validation", False, f"{field} mismatch: expected {expected_value}, got {actual_value}")
             
-            # Verify calculated fields are present
+            # Verify calculated fields are present and use nb_ventes for calculations
             calculated_fields = ['panier_moyen', 'indice_vente']
             for field in calculated_fields:
                 if field in kpi_response and kpi_response[field] is not None:
-                    print(f"   ✅ {field}: {kpi_response[field]} (calculated correctly)")
+                    print(f"   ✅ {field}: {kpi_response[field]} (calculated using nb_ventes)")
                 else:
                     print(f"   ⚠️  {field}: missing or null")
             
-            # Verify nb_clients is absent or null (not causing errors)
+            # Verify panier_moyen calculation: CA / nb_ventes
+            expected_panier_moyen = kpi_entry_data['ca_journalier'] / kpi_entry_data['nb_ventes']
+            actual_panier_moyen = kpi_response.get('panier_moyen')
+            if actual_panier_moyen == expected_panier_moyen:
+                print(f"   ✅ panier_moyen calculation correct: {actual_panier_moyen}€ (CA/nb_ventes)")
+                self.log_test("KPI Calculation - Panier Moyen", True)
+            else:
+                print(f"   ⚠️  panier_moyen calculation: expected {expected_panier_moyen}, got {actual_panier_moyen}")
+            
+            # Verify indice_vente calculation: nb_articles / nb_ventes
+            expected_indice_vente = kpi_entry_data['nb_articles'] / kpi_entry_data['nb_ventes']
+            actual_indice_vente = kpi_response.get('indice_vente')
+            if actual_indice_vente == expected_indice_vente:
+                print(f"   ✅ indice_vente calculation correct: {actual_indice_vente} (articles/nb_ventes)")
+                self.log_test("KPI Calculation - Indice Vente", True)
+            else:
+                print(f"   ⚠️  indice_vente calculation: expected {expected_indice_vente}, got {actual_indice_vente}")
+            
+            # Verify nb_clients is absent or null (merged with nb_ventes)
             nb_clients = kpi_response.get('nb_clients')
             if nb_clients is None or nb_clients == 0:
-                print(f"   ✅ nb_clients: {nb_clients} (correctly absent/null)")
-                self.log_test("KPI Entry - nb_clients Handling", True)
+                print(f"   ✅ nb_clients: {nb_clients} (correctly absent - merged with nb_ventes)")
+                self.log_test("KPI Entry - nb_clients Merged", True)
             else:
-                print(f"   ⚠️  nb_clients: {nb_clients} (unexpected value)")
+                print(f"   ⚠️  nb_clients: {nb_clients} (should be absent after merge)")
             
-            self.log_test("KPI Entry Creation Without nb_clients", True)
+            self.log_test("KPI Entry Creation With Merged Fields", True)
         
         # TEST 4: GET /api/seller/kpi-entries - verify data retrieval works
         print("\n   📈 TEST 4: GET /api/seller/kpi-entries")
