@@ -1588,13 +1588,67 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 {challenge.description && (
                                   <p className="text-sm text-gray-600 mb-2">{challenge.description}</p>
                                 )}
-                                <div className="flex flex-wrap gap-3 text-xs text-gray-600">
+                                <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-3">
                                   <span>📅 Du {new Date(challenge.start_date).toLocaleDateString('fr-FR')} au {new Date(challenge.end_date).toLocaleDateString('fr-FR')}</span>
-                                  {challenge.ca_target && <span>💰 CA: {challenge.ca_target}€</span>}
-                                  {challenge.ventes_target && <span>🛍️ Ventes: {challenge.ventes_target}</span>}
-                                  {challenge.panier_moyen_target && <span>🛒 PM: {challenge.panier_moyen_target}€</span>}
-                                  {challenge.indice_vente_target && <span>💎 IV: {challenge.indice_vente_target}</span>}
+                                  {challenge.ca_target && <span>💰 CA: {challenge.ca_target.toLocaleString('fr-FR')}€</span>}
+                                  {challenge.ventes_target && <span>📈 Ventes: {challenge.ventes_target}</span>}
+                                  {challenge.clients_target && <span>👥 Clients: {challenge.clients_target}</span>}
+                                  {challenge.articles_target && <span>📦 Articles: {challenge.articles_target}</span>}
+                                  {challenge.panier_moyen_target && <span>🛒 Panier Moyen: {challenge.panier_moyen_target.toLocaleString('fr-FR')}€</span>}
+                                  {challenge.indice_vente_target && <span>💎 Indice: {challenge.indice_vente_target}</span>}
+                                  {challenge.taux_transformation_target && <span>📊 Taux: {challenge.taux_transformation_target}%</span>}
                                 </div>
+                                
+                                {/* Barre de progression */}
+                                {(() => {
+                                  // Calculer le pourcentage moyen de progression
+                                  let progressValues = [];
+                                  
+                                  if (challenge.ca_target && challenge.ca_target > 0) {
+                                    const progress_ca = challenge.progress_ca || 0;
+                                    progressValues.push((progress_ca / challenge.ca_target) * 100);
+                                  }
+                                  if (challenge.ventes_target && challenge.ventes_target > 0) {
+                                    const progress_ventes = challenge.progress_ventes || 0;
+                                    progressValues.push((progress_ventes / challenge.ventes_target) * 100);
+                                  }
+                                  if (challenge.panier_moyen_target && challenge.panier_moyen_target > 0) {
+                                    const progress_pm = challenge.progress_panier_moyen || 0;
+                                    progressValues.push((progress_pm / challenge.panier_moyen_target) * 100);
+                                  }
+                                  if (challenge.indice_vente_target && challenge.indice_vente_target > 0) {
+                                    const progress_iv = challenge.progress_indice_vente || 0;
+                                    progressValues.push((progress_iv / challenge.indice_vente_target) * 100);
+                                  }
+                                  
+                                  // Moyenne de progression
+                                  const avgProgress = progressValues.length > 0 
+                                    ? progressValues.reduce((a, b) => a + b, 0) / progressValues.length 
+                                    : 0;
+                                  
+                                  const progressPercent = Math.min(Math.round(avgProgress), 100);
+                                  
+                                  // Couleur selon le pourcentage
+                                  let progressColor = 'bg-red-500';
+                                  if (progressPercent >= 75) progressColor = 'bg-green-500';
+                                  else if (progressPercent >= 50) progressColor = 'bg-yellow-500';
+                                  else if (progressPercent >= 25) progressColor = 'bg-orange-500';
+                                  
+                                  return progressValues.length > 0 ? (
+                                    <div className="mt-2">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs font-semibold text-gray-600">Progression</span>
+                                        <span className="text-xs font-bold text-gray-700">{progressPercent}%</span>
+                                      </div>
+                                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div 
+                                          className={`${progressColor} h-2.5 rounded-full transition-all duration-300`}
+                                          style={{ width: `${progressPercent}%` }}
+                                        ></div>
+                                      </div>
+                                    </div>
+                                  ) : null;
+                                })()}
                               </div>
                               <div className="flex gap-2 ml-4">
                                 <button
