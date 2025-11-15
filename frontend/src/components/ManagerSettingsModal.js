@@ -155,9 +155,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       }
       
       setSelectedKPIsChallenge(kpisToSelect);
+      
+      // Pré-remplir les vendeurs visibles pour les challenges collectifs
+      if (editingChallenge.type === 'collective' && editingChallenge.visible_to_sellers && Array.isArray(editingChallenge.visible_to_sellers)) {
+        setSelectedVisibleSellersChallenge(editingChallenge.visible_to_sellers);
+      } else {
+        setSelectedVisibleSellersChallenge([]);
+      }
     } else {
       // Réinitialiser quand on quitte le mode édition
       setSelectedKPIsChallenge({});
+      setSelectedVisibleSellersChallenge([]);
       setNewChallenge({
         title: '',
         description: '',
