@@ -5402,9 +5402,29 @@ async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
             new_status = 'completed' if completed else 'failed'
             await db.challenges.update_one(
                 {"id": challenge['id']},
-                {"$set": {"status": new_status, "completed_at": datetime.now(timezone.utc).isoformat()}}
+                {"$set": {
+                    "status": new_status,
+                    "completed_at": datetime.now(timezone.utc).isoformat(),
+                    "progress_ca": total_ca,
+                    "progress_ventes": total_ventes,
+                    "progress_articles": total_articles,
+                    "progress_panier_moyen": panier_moyen,
+                    "progress_indice_vente": indice_vente
+                }}
             )
             challenge['status'] = new_status
+    else:
+        # Challenge en cours : sauvegarder seulement les valeurs de progression
+        await db.challenges.update_one(
+            {"id": challenge['id']},
+            {"$set": {
+                "progress_ca": total_ca,
+                "progress_ventes": total_ventes,
+                "progress_articles": total_articles,
+                "progress_panier_moyen": panier_moyen,
+                "progress_indice_vente": indice_vente
+            }}
+        )
 
 
 
