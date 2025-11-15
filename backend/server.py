@@ -5311,6 +5311,19 @@ async def calculate_objective_progress(objective: dict, manager_id: str):
             objective_met = False
         
         objective['status'] = 'achieved' if objective_met else 'in_progress'
+    
+    # Sauvegarder les valeurs de progression en base de données
+    await db.manager_objectives.update_one(
+        {"id": objective['id']},
+        {"$set": {
+            "progress_ca": total_ca,
+            "progress_ventes": total_ventes,
+            "progress_articles": total_articles,
+            "progress_panier_moyen": panier_moyen,
+            "progress_indice_vente": indice_vente,
+            "status": objective.get('status', 'in_progress')
+        }}
+    )
 
 async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
     """Calculate progress for a challenge"""
