@@ -3398,7 +3398,7 @@ class RetailCoachAPITester:
         }
         
         success, response = self.run_test(
-            "Seller KPI Test - Login as vendeur2@test.com",
+            "Seller KPI Test - Login as emma.petit@test.com",
             "POST",
             "auth/login",
             200,
