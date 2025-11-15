@@ -1585,6 +1585,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     }).join(', ')}
                                   </div>
                                 )}
+                                {/* Show assigned seller for individual challenges */}
+                                {challenge.type === 'individual' && challenge.seller_id && (
+                                  <div className="text-xs text-purple-700 mb-2 font-semibold">
+                                    👤 Assigné à : {(() => {
+                                      const seller = sellers.find(s => s.id === challenge.seller_id);
+                                      return seller ? seller.name : 'Vendeur inconnu';
+                                    })()}
+                                  </div>
+                                )}
                                 {challenge.description && (
                                   <p className="text-sm text-gray-600 mb-2">{challenge.description}</p>
                                 )}
