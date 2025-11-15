@@ -3420,7 +3420,7 @@ class RetailCoachAPITester:
             else:
                 self.log_test("Seller Account Role Verification", True)
         else:
-            print("   ❌ Could not login with vendeur2@test.com/password123")
+            print("   ❌ Could not login with emma.petit@test.com/password123")
             self.log_test("Seller Login", False, "Login failed - account may not exist or credentials incorrect")
             return
         
