@@ -3386,9 +3386,10 @@ class RetailCoachAPITester:
             self.log_test("Manager12 Subscription Cancellation Test", False, f"Missing or invalid fields: {missing}")
 
     def test_seller_kpi_without_clients_field(self):
-        """Test seller KPI endpoints after removing 'Nombre de clients' field - REVIEW REQUEST"""
-        print("\n🔍 Testing Seller KPI Endpoints Without 'Nombre de clients' Field (REVIEW REQUEST)...")
-        print("   OBJECTIVE: Verify that removing 'track_clients' field doesn't break the application")
+        """Test seller KPI endpoints after merging 'Nombre de clients' with 'Nombre de ventes' - REVIEW REQUEST"""
+        print("\n🔍 Testing Seller KPI Endpoints After Merging 'Nombre de clients' with 'Nombre de ventes' (REVIEW REQUEST)...")
+        print("   CONTEXT: 'Nombre de clients' and 'Nombre de ventes' were merged as they were the same thing")
+        print("   OBJECTIVE: Verify that removing 'track_clients' field and using only 'nb_ventes' works correctly")
         
         # Test with the specific seller account mentioned in review request
         login_data = {
