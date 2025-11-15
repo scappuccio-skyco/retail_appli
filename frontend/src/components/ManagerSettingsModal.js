@@ -1594,10 +1594,14 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 )}
                                 {/* Show assigned seller for individual challenges */}
                                 {challenge.type === 'individual' && challenge.seller_id && (
-                                  <div className="text-xs text-purple-700 mb-2 font-semibold">
+                                  <div className="text-sm text-purple-700 mb-2 font-semibold bg-purple-50 px-3 py-1 rounded-lg inline-block">
                                     👤 Assigné à : {(() => {
                                       const seller = sellers.find(s => s.id === challenge.seller_id);
-                                      return seller ? seller.name : 'Vendeur inconnu';
+                                      if (seller) {
+                                        // Essayer différents champs possibles pour le nom
+                                        return seller.name || `${seller.first_name || ''} ${seller.last_name || ''}`.trim() || seller.email || 'Vendeur';
+                                      }
+                                      return `Vendeur (ID: ${challenge.seller_id.substring(0, 8)}...)`;
                                     })()}
                                   </div>
                                 )}
