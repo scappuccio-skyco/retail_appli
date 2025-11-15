@@ -926,7 +926,12 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   className="bg-white rounded-lg p-2 border border-gray-200 hover:shadow-md transition-all cursor-pointer"
                   onClick={() => {
                     if (task.type === 'diagnostic') {
-                      setShowDiagnosticModal(true);
+                      // Si pas de diagnostic, ouvrir le formulaire pour le faire
+                      if (!diagnostic) {
+                        setShowDiagnosticFormModal(true);
+                      } else {
+                        setShowDiagnosticModal(true);
+                      }
                     } else if (task.type === 'kpi') {
                       setShowKPIModal(true);
                     } else if (task.type === 'challenge') {
