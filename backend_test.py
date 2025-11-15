@@ -3394,7 +3394,7 @@ class RetailCoachAPITester:
         # Test with existing Emma seller account found in database
         login_data = {
             "email": "emma.petit@test.com",
-            "password": "demo123"
+            "password": "password123"
         }
         
         success, response = self.run_test(
