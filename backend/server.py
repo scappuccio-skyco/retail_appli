@@ -5366,6 +5366,7 @@ async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
     # Update progress
     challenge['progress_ca'] = total_ca
     challenge['progress_ventes'] = total_ventes
+    challenge['progress_articles'] = total_articles
     challenge['progress_panier_moyen'] = panier_moyen
     challenge['progress_indice_vente'] = indice_vente
     
