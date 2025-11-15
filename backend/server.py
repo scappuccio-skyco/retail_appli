@@ -5294,10 +5294,10 @@ async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
     """Calculate progress for a challenge"""
     start_date = challenge['start_date']
     end_date = challenge['end_date']
+    manager_id = challenge['manager_id']
     
     if challenge['type'] == 'collective':
         # Get all sellers for this manager
-        manager_id = challenge['manager_id']
         sellers = await db.users.find({"manager_id": manager_id, "role": "seller"}, {"_id": 0, "id": 1}).to_list(1000)
         seller_ids = [s['id'] for s in sellers]
         
@@ -5314,10 +5314,22 @@ async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
             "date": {"$gte": start_date, "$lte": end_date}
         }, {"_id": 0}).to_list(10000)
     
-    # Calculate totals
+    # Calculate totals from seller entries
     total_ca = sum(e.get('ca_journalier', 0) for e in entries)
     total_ventes = sum(e.get('nb_ventes', 0) for e in entries)
     total_articles = sum(e.get('nb_articles', 0) for e in entries)
+    
+    # Si les vendeurs n'ont pas saisi de KPI, chercher dans les KPI du manager (store_kpis)
+    if total_ca == 0 and total_ventes == 0:
+        store_entries = await db.store_kpis.find({
+            "manager_id": manager_id,
+            "date": {"$gte": start_date, "$lte": end_date}
+        }, {"_id": 0}).to_list(10000)
+        
+        if store_entries:
+            total_ca = sum(e.get('ca_journalier', 0) for e in store_entries)
+            total_ventes = sum(e.get('nb_ventes', 0) for e in store_entries)
+            total_articles = sum(e.get('nb_articles', 0) for e in store_entries)
     
     # Calculate averages
     panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
