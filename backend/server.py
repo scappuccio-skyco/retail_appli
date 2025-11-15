@@ -5256,25 +5256,25 @@ async def calculate_objective_progress(objective: dict, manager_id: str):
     total_ventes = sum(e.get('nb_ventes', 0) for e in entries)
     total_articles = sum(e.get('nb_articles', 0) for e in entries)
     
-    # Si certains KPI ne sont pas renseignés par les vendeurs, chercher dans les KPI du manager (store_kpis)
+    # Si certains KPI ne sont pas renseignés par les vendeurs, chercher dans les KPI du manager (manager_kpis)
     # On vérifie chaque KPI individuellement
-    store_entries = await db.store_kpis.find({
+    manager_entries = await db.manager_kpis.find({
         "manager_id": manager_id,
         "date": {"$gte": start_date, "$lte": end_date}
     }, {"_id": 0}).to_list(10000)
     
-    if store_entries:
+    if manager_entries:
         # Si CA n'est pas renseigné par les vendeurs, utiliser celui du manager
         if total_ca == 0:
-            total_ca = sum(e.get('ca_journalier', 0) for e in store_entries)
+            total_ca = sum(e.get('ca_journalier', 0) for e in manager_entries if e.get('ca_journalier'))
         
         # Si Ventes n'est pas renseigné par les vendeurs, utiliser celui du manager
         if total_ventes == 0:
-            total_ventes = sum(e.get('nb_ventes', 0) for e in store_entries)
+            total_ventes = sum(e.get('nb_ventes', 0) for e in manager_entries if e.get('nb_ventes'))
         
         # Si Articles n'est pas renseigné par les vendeurs, utiliser celui du manager
         if total_articles == 0:
-            total_articles = sum(e.get('nb_articles', 0) for e in store_entries)
+            total_articles = sum(e.get('nb_articles', 0) for e in manager_entries if e.get('nb_articles'))
     
     # Calculate averages
     panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
@@ -5341,25 +5341,25 @@ async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
     total_ventes = sum(e.get('nb_ventes', 0) for e in entries)
     total_articles = sum(e.get('nb_articles', 0) for e in entries)
     
-    # Si certains KPI ne sont pas renseignés par les vendeurs, chercher dans les KPI du manager (store_kpis)
+    # Si certains KPI ne sont pas renseignés par les vendeurs, chercher dans les KPI du manager (manager_kpis)
     # On vérifie chaque KPI individuellement
-    store_entries = await db.store_kpis.find({
+    manager_entries = await db.manager_kpis.find({
         "manager_id": manager_id,
         "date": {"$gte": start_date, "$lte": end_date}
     }, {"_id": 0}).to_list(10000)
     
-    if store_entries:
+    if manager_entries:
         # Si CA n'est pas renseigné par les vendeurs, utiliser celui du manager
         if total_ca == 0:
-            total_ca = sum(e.get('ca_journalier', 0) for e in store_entries)
+            total_ca = sum(e.get('ca_journalier', 0) for e in manager_entries if e.get('ca_journalier'))
         
         # Si Ventes n'est pas renseigné par les vendeurs, utiliser celui du manager
         if total_ventes == 0:
-            total_ventes = sum(e.get('nb_ventes', 0) for e in store_entries)
+            total_ventes = sum(e.get('nb_ventes', 0) for e in manager_entries if e.get('nb_ventes'))
         
         # Si Articles n'est pas renseigné par les vendeurs, utiliser celui du manager
         if total_articles == 0:
-            total_articles = sum(e.get('nb_articles', 0) for e in store_entries)
+            total_articles = sum(e.get('nb_articles', 0) for e in manager_entries if e.get('nb_articles'))
     
     # Calculate averages
     panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
