@@ -3640,7 +3640,7 @@ class RetailCoachAPITester:
         print("   ✅ No 500 errors or backend crashes detected")
         print("   ✅ KPI entries use nb_ventes for both sales and client counts")
         print("   ✅ Rate calculations (panier_moyen, indice_vente) work correctly with merged field")
-        print("   ✅ Application functions normally for Emma (seller)")
+        print("   ✅ Application functions normally for seller (vendeur2@test.com)")
         print("   ✅ track_clients properly disabled, track_ventes handles both concepts")
 
     def print_summary(self):
