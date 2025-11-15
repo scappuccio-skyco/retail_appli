@@ -1088,6 +1088,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       percent
                                     });
                                   }
+                                  if (objective.articles_target && objective.articles_target > 0) {
+                                    const progress_articles = objective.progress_articles || 0;
+                                    const percent = Math.min(Math.round((progress_articles / objective.articles_target) * 100), 100);
+                                    kpiProgressions.push({
+                                      label: '📦 Articles',
+                                      current: progress_articles,
+                                      target: objective.articles_target,
+                                      unit: '',
+                                      percent
+                                    });
+                                  }
                                   if (objective.panier_moyen_target && objective.panier_moyen_target > 0) {
                                     const progress_pm = objective.progress_panier_moyen || 0;
                                     const percent = Math.min(Math.round((progress_pm / objective.panier_moyen_target) * 100), 100);
