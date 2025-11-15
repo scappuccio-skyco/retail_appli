@@ -1554,12 +1554,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2 flex-wrap">
                                   <h4 className="font-bold text-gray-800">{challenge.title}</h4>
-                                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                                    challenge.type === 'collective'
-                                      ? 'bg-green-100 text-green-700'
-                                      : 'bg-purple-100 text-purple-700'
+                                  {/* Type badge */}
+                                  <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                                    challenge.type === 'collective' 
+                                      ? 'bg-blue-100 text-blue-700' 
+                                      : 'bg-orange-100 text-orange-700'
                                   }`}>
-                                    {challenge.type === 'collective' ? '🏆 Collectif' : '👤 Individuel'}
+                                    {challenge.type === 'collective' ? '👥 Collectif' : (
+                                      challenge.seller_id ? 
+                                        `👤 ${sellers.find(s => s.id === challenge.seller_id)?.name || 'Individuel'}` 
+                                        : '👤 Individuel'
+                                    )}
                                   </span>
                                   <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
                                     challenge.status === 'active'
