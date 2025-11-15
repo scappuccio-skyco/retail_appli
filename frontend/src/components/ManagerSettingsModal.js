@@ -1552,8 +1552,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                  <h4 className="font-bold text-gray-800">{challenge.title}</h4>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className="font-bold text-gray-800 text-lg">
+                                    🏆 {challenge.title}
+                                  </h4>
                                   {/* Type badge */}
                                   <span className={`text-xs font-semibold px-2 py-1 rounded ${
                                     challenge.type === 'collective' 
@@ -1565,15 +1567,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                         `👤 ${sellers.find(s => s.id === challenge.seller_id)?.name || 'Individuel'}` 
                                         : '👤 Individuel'
                                     )}
-                                  </span>
-                                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                                    challenge.status === 'active'
-                                      ? 'bg-blue-100 text-blue-700'
-                                      : challenge.status === 'completed'
-                                      ? 'bg-green-100 text-green-700'
-                                      : 'bg-red-100 text-red-700'
-                                  }`}>
-                                    {challenge.status === 'active' ? '✅ Actif' : challenge.status === 'completed' ? '✔️ Terminé' : '❌ Échoué'}
                                   </span>
                                   {/* Visibility badge */}
                                   <span className={`text-xs font-semibold px-2 py-1 rounded ${
@@ -1588,6 +1581,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     }
                                   </span>
                                 </div>
+                                <div className="text-sm text-gray-600 mb-2">
+                                  📅 Période: {new Date(challenge.start_date).toLocaleDateString('fr-FR')} - {new Date(challenge.end_date).toLocaleDateString('fr-FR')}
+                                </div>
                                 {/* Show specific sellers if any */}
                                 {challenge.visible && challenge.visible_to_sellers && challenge.visible_to_sellers.length > 0 && (
                                   <div className="text-xs text-gray-600 mb-2">
@@ -1600,8 +1596,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 {challenge.description && (
                                   <p className="text-sm text-gray-600 mb-2">{challenge.description}</p>
                                 )}
-                                <div className="flex flex-wrap gap-3 text-xs text-gray-600 mb-3">
-                                  <span>📅 Du {new Date(challenge.start_date).toLocaleDateString('fr-FR')} au {new Date(challenge.end_date).toLocaleDateString('fr-FR')}</span>
+                                <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-3">
                                   {challenge.ca_target && <span>💰 CA: {challenge.ca_target.toLocaleString('fr-FR')}€</span>}
                                   {challenge.ventes_target && <span>📈 Ventes: {challenge.ventes_target}</span>}
                                   {challenge.clients_target && <span>👥 Clients: {challenge.clients_target}</span>}
