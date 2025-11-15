@@ -1039,6 +1039,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                         : '👁️ Tous les vendeurs'
                                     }
                                   </span>
+                                  {/* Status badge */}
+                                  <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                                    objective.status === 'achieved'
+                                      ? 'bg-green-500 text-white shadow-lg' 
+                                      : objective.status === 'failed'
+                                      ? 'bg-red-500 text-white shadow-lg'
+                                      : 'bg-yellow-400 text-gray-800 shadow-md'
+                                  }`}>
+                                    {objective.status === 'achieved' ? '✅ Réussi' : 
+                                      objective.status === 'failed' ? '❌ Raté' : '⏳ En cours'}
+                                  </span>
                                 </div>
                                 <div className="text-sm text-gray-600 mb-2">
                                   📅 Période: {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
