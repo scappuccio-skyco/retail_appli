@@ -1597,19 +1597,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     }).join(', ')}
                                   </div>
                                 )}
-                                {/* Show assigned seller for individual challenges */}
-                                {challenge.type === 'individual' && challenge.seller_id && (
-                                  <div className="text-sm text-purple-700 mb-2 font-semibold bg-purple-50 px-3 py-1 rounded-lg inline-block">
-                                    👤 Assigné à : {(() => {
-                                      const seller = sellers.find(s => s.id === challenge.seller_id);
-                                      if (seller) {
-                                        // Essayer différents champs possibles pour le nom
-                                        return seller.name || `${seller.first_name || ''} ${seller.last_name || ''}`.trim() || seller.email || 'Vendeur';
-                                      }
-                                      return `Vendeur (ID: ${challenge.seller_id.substring(0, 8)}...)`;
-                                    })()}
-                                  </div>
-                                )}
                                 {challenge.description && (
                                   <p className="text-sm text-gray-600 mb-2">{challenge.description}</p>
                                 )}
