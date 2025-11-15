@@ -3391,10 +3391,10 @@ class RetailCoachAPITester:
         print("   CONTEXT: 'Nombre de clients' and 'Nombre de ventes' were merged as they were the same thing")
         print("   OBJECTIVE: Verify that removing 'track_clients' field and using only 'nb_ventes' works correctly")
         
-        # Test with existing seller account (emma@test.com doesn't exist, using vendeur2@test.com)
+        # Test with existing Emma seller account found in database
         login_data = {
-            "email": "vendeur2@test.com",
-            "password": "password123"
+            "email": "emma.petit@test.com",
+            "password": "demo123"
         }
         
         success, response = self.run_test(
