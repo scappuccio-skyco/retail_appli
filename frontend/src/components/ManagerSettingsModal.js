@@ -247,13 +247,22 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       // Préparer les données avec conversion des kpi_targets
       const challengeData = { ...editingChallenge };
       
-      // Convertir kpi_targets en champs individuels
+      // Convertir kpi_targets en champs individuels - TOUS LES KPI
       if (challengeData.kpi_targets) {
         challengeData.ca_target = challengeData.kpi_targets.ca ? parseFloat(challengeData.kpi_targets.ca) : null;
         challengeData.ventes_target = challengeData.kpi_targets.ventes ? parseInt(challengeData.kpi_targets.ventes) : null;
+        challengeData.clients_target = challengeData.kpi_targets.clients ? parseInt(challengeData.kpi_targets.clients) : null;
+        challengeData.articles_target = challengeData.kpi_targets.articles ? parseInt(challengeData.kpi_targets.articles) : null;
+        challengeData.prospects_target = challengeData.kpi_targets.prospects ? parseInt(challengeData.kpi_targets.prospects) : null;
         challengeData.panier_moyen_target = challengeData.kpi_targets.panier_moyen ? parseFloat(challengeData.kpi_targets.panier_moyen) : null;
         challengeData.indice_vente_target = challengeData.kpi_targets.indice_vente ? parseFloat(challengeData.kpi_targets.indice_vente) : null;
+        challengeData.taux_transformation_target = challengeData.kpi_targets.taux_transformation ? parseFloat(challengeData.kpi_targets.taux_transformation) : null;
         delete challengeData.kpi_targets; // Supprimer l'objet temporaire
+      }
+      
+      // Ajouter visible_to_sellers si type collective
+      if (editingChallenge.type === 'collective') {
+        challengeData.visible_to_sellers = selectedVisibleSellersChallenge;
       }
       
       await axios.put(`${API}/manager/challenges/${editingChallenge.id}`, challengeData, { headers });
