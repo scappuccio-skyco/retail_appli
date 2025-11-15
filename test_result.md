@@ -308,13 +308,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "RelationshipManagementModal - Fix Invisible Dropdown Options"
-    - "Relationship Management API - Generate Advice"
-    - "Relationship Management API - Get History"
-  stuck_tasks:
-    - "RelationshipManagementModal - Fix Invisible Dropdown Options (3 attempts - now architectural fix applied)"
+    - "Seller KPI Endpoints - Nombre de clients Field Removal"
+  stuck_tasks: []
   test_all: false
-  test_priority: "critical_first"
+  test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
