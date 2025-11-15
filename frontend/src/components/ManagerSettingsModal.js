@@ -1661,6 +1661,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       percent
                                     });
                                   }
+                                  if (challenge.articles_target && challenge.articles_target > 0) {
+                                    const progress_articles = challenge.progress_articles || 0;
+                                    const percent = Math.min(Math.round((progress_articles / challenge.articles_target) * 100), 100);
+                                    kpiProgressions.push({
+                                      label: '📦 Articles',
+                                      current: progress_articles,
+                                      target: challenge.articles_target,
+                                      unit: '',
+                                      percent
+                                    });
+                                  }
                                   if (challenge.panier_moyen_target && challenge.panier_moyen_target > 0) {
                                     const progress_pm = challenge.progress_panier_moyen || 0;
                                     const percent = Math.min(Math.round((progress_pm / challenge.panier_moyen_target) * 100), 100);
