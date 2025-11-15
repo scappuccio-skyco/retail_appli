@@ -5282,6 +5282,8 @@ async def calculate_objective_progress(objective: dict, manager_id: str):
     
     # Update progress
     objective['progress_ca'] = total_ca
+    objective['progress_ventes'] = total_ventes
+    objective['progress_articles'] = total_articles
     objective['progress_panier_moyen'] = panier_moyen
     objective['progress_indice_vente'] = indice_vente
     
