@@ -3604,12 +3604,12 @@ class RetailCoachAPITester:
             else:
                 self.log_test("KPI Entries Response Format", False, "Response should be an array")
         
-        # TEST 5: GET /api/seller/profile - verify profile loads correctly
-        print("\n   👤 TEST 5: GET /api/seller/profile")
+        # TEST 5: GET /api/auth/me - verify profile loads correctly
+        print("\n   👤 TEST 5: GET /api/auth/me (seller profile)")
         success, profile_response = self.run_test(
-            "Seller Profile Test - GET /api/seller/profile",
+            "Seller Profile Test - GET /api/auth/me",
             "GET",
-            "seller/profile",
+            "auth/me",
             200,
             token=seller_token
         )
