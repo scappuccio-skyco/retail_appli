@@ -1631,6 +1631,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                         : '👁️ Tous les vendeurs'
                                     }
                                   </span>
+                                  {/* Status badge */}
+                                  <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                                    challenge.status === 'completed'
+                                      ? 'bg-green-500 text-white shadow-lg' 
+                                      : challenge.status === 'failed'
+                                      ? 'bg-red-500 text-white shadow-lg'
+                                      : 'bg-yellow-400 text-gray-800 shadow-md'
+                                  }`}>
+                                    {challenge.status === 'completed' ? '✅ Réussi' : 
+                                      challenge.status === 'failed' ? '❌ Raté' : '⏳ En cours'}
+                                  </span>
                                 </div>
                                 <div className="text-sm text-gray-600 mb-2">
                                   📅 Période: {new Date(challenge.start_date).toLocaleDateString('fr-FR')} - {new Date(challenge.end_date).toLocaleDateString('fr-FR')}
