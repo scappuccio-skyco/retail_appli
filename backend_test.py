@@ -3431,7 +3431,7 @@ class RetailCoachAPITester:
             "GET",
             "seller/kpi-config",
             200,
-            token=emma_token
+            token=seller_token
         )
         
         if success:
@@ -3469,7 +3469,7 @@ class RetailCoachAPITester:
             "GET",
             "seller/kpi-enabled",
             200,
-            token=emma_token
+            token=seller_token
         )
         
         if success:
@@ -3503,7 +3503,7 @@ class RetailCoachAPITester:
             "seller/kpi-entry",
             200,
             data=kpi_entry_data,
-            token=emma_token
+            token=seller_token
         )
         
         created_kpi_id = None
@@ -3562,7 +3562,7 @@ class RetailCoachAPITester:
             "GET",
             "seller/kpi-entries",
             200,
-            token=emma_token
+            token=seller_token
         )
         
         if success:
@@ -3611,7 +3611,7 @@ class RetailCoachAPITester:
             "GET",
             "seller/profile",
             200,
-            token=emma_token
+            token=seller_token
         )
         
         if success:
