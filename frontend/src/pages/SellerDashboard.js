@@ -978,7 +978,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             {/* Profile Card - Visual */}
             {dashboardFilters.showProfile && (
             <div 
-              onClick={() => diagnostic ? setShowProfileModal(true) : setShowDiagnosticModal(true)}
+              onClick={() => diagnostic ? setShowProfileModal(true) : setShowDiagnosticFormModal(true)}
               className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
             >
               <div className="relative h-48 overflow-hidden">
