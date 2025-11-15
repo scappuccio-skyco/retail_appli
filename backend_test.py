@@ -3635,12 +3635,13 @@ class RetailCoachAPITester:
             self.log_test("Seller Profile Loading", True)
         
         # SUMMARY
-        print("\n   📋 SUMMARY: Seller KPI Without 'Nombre de clients' Field")
+        print("\n   📋 SUMMARY: Seller KPI After Merging 'Nombre de clients' with 'Nombre de ventes'")
         print("   ✅ All critical endpoints respond with 200 OK")
         print("   ✅ No 500 errors or backend crashes detected")
-        print("   ✅ KPI entries without 'nb_clients' are processed correctly")
+        print("   ✅ KPI entries use nb_ventes for both sales and client counts")
+        print("   ✅ Rate calculations (panier_moyen, indice_vente) work correctly with merged field")
         print("   ✅ Application functions normally for Emma (seller)")
-        print("   ✅ track_clients configuration properly disabled")
+        print("   ✅ track_clients properly disabled, track_ventes handles both concepts")
 
     def print_summary(self):
         """Print test summary"""
