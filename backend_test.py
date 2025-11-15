@@ -3481,8 +3481,8 @@ class RetailCoachAPITester:
                 print(f"   ❌ KPI enabled: {enabled} (should be true)")
                 self.log_test("KPI Enabled Status", False, f"Expected enabled: true, got {enabled}")
         
-        # TEST 3: POST /api/seller/kpi-entry - create KPI without nb_clients field
-        print("\n   📊 TEST 3: POST /api/seller/kpi-entry (without nb_clients)")
+        # TEST 3: POST /api/seller/kpi-entry - create KPI using nb_ventes (merged field)
+        print("\n   📊 TEST 3: POST /api/seller/kpi-entry (using nb_ventes for both clients and sales)")
         
         kpi_entry_data = {
             "date": "2025-01-22",
@@ -3490,12 +3490,12 @@ class RetailCoachAPITester:
             "nb_ventes": 25,
             "nb_articles": 50,
             "nb_prospects": 30
-            # Deliberately NOT including nb_clients
+            # nb_clients is no longer needed - nb_ventes handles both concepts
         }
         
         print(f"   Creating KPI entry for date: {kpi_entry_data['date']}")
         print(f"   Data: CA={kpi_entry_data['ca_journalier']}€, Ventes={kpi_entry_data['nb_ventes']}, Articles={kpi_entry_data['nb_articles']}, Prospects={kpi_entry_data['nb_prospects']}")
-        print("   Note: nb_clients field is deliberately omitted")
+        print("   Note: nb_ventes now represents both sales count and client count (merged concept)")
         
         success, kpi_response = self.run_test(
             "KPI Entry Test - POST /api/seller/kpi-entry",
