@@ -141,20 +141,27 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   // Pré-remplir les KPI lors de l'édition d'un challenge
   useEffect(() => {
     if (editingChallenge) {
-      // Pré-remplir les KPI sélectionnés en fonction des kpi_targets existants
+      // Pré-remplir les KPI sélectionnés en fonction des targets existantes (comme pour les objectifs)
       const kpisToSelect = {};
+      const kpiTargets = {};
       
-      if (editingChallenge.kpi_targets && typeof editingChallenge.kpi_targets === 'object') {
-        Object.keys(editingChallenge.kpi_targets).forEach(kpiKey => {
-          if (editingChallenge.kpi_targets[kpiKey] !== undefined && 
-              editingChallenge.kpi_targets[kpiKey] !== null && 
-              editingChallenge.kpi_targets[kpiKey] !== '') {
-            kpisToSelect[kpiKey] = true;
-          }
-        });
-      }
+      // Parcourir tous les KPI possibles
+      const possibleKPIs = ['ca', 'ventes', 'clients', 'articles', 'prospects', 'panier_moyen', 'indice_vente', 'taux_transformation'];
+      
+      possibleKPIs.forEach(kpiKey => {
+        const targetKey = `${kpiKey}_target`;
+        if (editingChallenge[targetKey] !== undefined && editingChallenge[targetKey] !== null && editingChallenge[targetKey] !== '') {
+          kpisToSelect[kpiKey] = true;
+          kpiTargets[kpiKey] = editingChallenge[targetKey];
+        }
+      });
       
       setSelectedKPIsChallenge(kpisToSelect);
+      
+      // Mettre les kpi_targets pour l'affichage dans le formulaire
+      if (!editingChallenge.kpi_targets) {
+        editingChallenge.kpi_targets = kpiTargets;
+      }
       
       // Pré-remplir les vendeurs visibles pour les challenges collectifs
       if (editingChallenge.type === 'collective' && editingChallenge.visible_to_sellers && Array.isArray(editingChallenge.visible_to_sellers)) {
