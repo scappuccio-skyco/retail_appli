@@ -6845,9 +6845,9 @@ def main():
     
     tester = RetailCoachAPITester()
     
-    # PRIORITY TEST: Review Request - Manager12@test.com subscription status with detailed field verification
-    print("\n🎯 PRIORITY TEST: MANAGER12 SUBSCRIPTION STATUS - DETAILED FIELD VERIFICATION")
-    tester.test_subscription_status_manager12_detailed()
+    # FOCUSED TEST: Seller KPI without 'Nombre de clients' field - REVIEW REQUEST
+    print("\n🎯 FOCUSED TEST: SELLER KPI ENDPOINTS WITHOUT 'NOMBRE DE CLIENTS' FIELD")
+    tester.test_seller_kpi_without_clients_field()
     
     # Print final summary
     tester.print_summary()
