@@ -3424,7 +3424,7 @@ class RetailCoachAPITester:
             self.log_test("Emma Login", False, "Login failed - account may not exist or credentials incorrect")
             return
         
-        # TEST 1: GET /api/seller/kpi-config - verify track_clients is false or absent
+        # TEST 1: GET /api/seller/kpi-config - verify track_clients is false and track_ventes is true
         print("\n   📋 TEST 1: GET /api/seller/kpi-config")
         success, config_response = self.run_test(
             "KPI Config Test - GET /api/seller/kpi-config",
@@ -3435,17 +3435,26 @@ class RetailCoachAPITester:
         )
         
         if success:
-            # Check that track_clients is false or absent
+            # Check that track_clients is false or absent (merged with track_ventes)
             track_clients = config_response.get('track_clients')
             if track_clients is False or track_clients is None:
-                print(f"   ✅ track_clients is {track_clients} (correctly disabled/absent)")
+                print(f"   ✅ track_clients is {track_clients} (correctly disabled - merged with track_ventes)")
                 self.log_test("KPI Config - track_clients Disabled", True)
             else:
-                print(f"   ❌ track_clients is {track_clients} (should be false or absent)")
+                print(f"   ❌ track_clients is {track_clients} (should be false/absent after merge)")
                 self.log_test("KPI Config - track_clients Disabled", False, f"track_clients should be false/absent, got {track_clients}")
             
+            # Verify track_ventes is enabled (now handles both clients and sales)
+            track_ventes = config_response.get('track_ventes')
+            if track_ventes is True:
+                print(f"   ✅ track_ventes: {track_ventes} (correctly enabled - now handles both clients and sales)")
+                self.log_test("KPI Config - track_ventes Enabled", True)
+            else:
+                print(f"   ❌ track_ventes: {track_ventes} (should be true for rate calculations)")
+                self.log_test("KPI Config - track_ventes Enabled", False, f"track_ventes should be true, got {track_ventes}")
+            
             # Verify other KPI fields are properly configured
-            expected_enabled = ['track_ca', 'track_ventes', 'track_articles', 'track_prospects']
+            expected_enabled = ['track_ca', 'track_articles', 'track_prospects']
             for field in expected_enabled:
                 value = config_response.get(field)
                 if value is True:
