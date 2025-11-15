@@ -139,8 +139,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   }, [editingObjective]);
 
   // Pré-remplir les KPI lors de l'édition d'un challenge
+  // IMPORTANT : Se déclenche uniquement à l'ouverture, pas pendant la modification
   useEffect(() => {
-    if (editingChallenge) {
+    if (editingChallenge && editingChallenge.id) {
       // Pré-remplir les KPI sélectionnés en fonction des targets existantes (comme pour les objectifs)
       const kpisToSelect = {};
       const kpiTargets = {};
@@ -169,7 +170,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       } else {
         setSelectedVisibleSellersChallenge([]);
       }
-    } else {
+    } else if (!editingChallenge) {
       // Réinitialiser quand on quitte le mode édition
       setSelectedKPIsChallenge({});
       setSelectedVisibleSellersChallenge([]);
@@ -186,7 +187,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         status: 'active'
       });
     }
-  }, [editingChallenge]);
+  }, [editingChallenge?.id]); // Dépendance sur l'ID uniquement, pas sur tout l'objet
 
   const handleKPIConfigUpdate = async (e) => {
     e.preventDefault();
