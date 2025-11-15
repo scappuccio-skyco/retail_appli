@@ -1607,53 +1607,81 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   {challenge.taux_transformation_target && <span>📊 Taux: {challenge.taux_transformation_target}%</span>}
                                 </div>
                                 
-                                {/* Barre de progression */}
+                                {/* Barres de progression par KPI */}
                                 {(() => {
-                                  // Calculer le pourcentage moyen de progression
-                                  let progressValues = [];
+                                  const kpiProgressions = [];
                                   
                                   if (challenge.ca_target && challenge.ca_target > 0) {
                                     const progress_ca = challenge.progress_ca || 0;
-                                    progressValues.push((progress_ca / challenge.ca_target) * 100);
+                                    const percent = Math.min(Math.round((progress_ca / challenge.ca_target) * 100), 100);
+                                    kpiProgressions.push({
+                                      label: '💰 CA',
+                                      current: progress_ca.toLocaleString('fr-FR'),
+                                      target: challenge.ca_target.toLocaleString('fr-FR'),
+                                      unit: '€',
+                                      percent
+                                    });
                                   }
                                   if (challenge.ventes_target && challenge.ventes_target > 0) {
                                     const progress_ventes = challenge.progress_ventes || 0;
-                                    progressValues.push((progress_ventes / challenge.ventes_target) * 100);
+                                    const percent = Math.min(Math.round((progress_ventes / challenge.ventes_target) * 100), 100);
+                                    kpiProgressions.push({
+                                      label: '📈 Ventes',
+                                      current: progress_ventes,
+                                      target: challenge.ventes_target,
+                                      unit: '',
+                                      percent
+                                    });
                                   }
                                   if (challenge.panier_moyen_target && challenge.panier_moyen_target > 0) {
                                     const progress_pm = challenge.progress_panier_moyen || 0;
-                                    progressValues.push((progress_pm / challenge.panier_moyen_target) * 100);
+                                    const percent = Math.min(Math.round((progress_pm / challenge.panier_moyen_target) * 100), 100);
+                                    kpiProgressions.push({
+                                      label: '🛒 Panier Moyen',
+                                      current: progress_pm.toFixed(2),
+                                      target: challenge.panier_moyen_target.toFixed(2),
+                                      unit: '€',
+                                      percent
+                                    });
                                   }
                                   if (challenge.indice_vente_target && challenge.indice_vente_target > 0) {
                                     const progress_iv = challenge.progress_indice_vente || 0;
-                                    progressValues.push((progress_iv / challenge.indice_vente_target) * 100);
+                                    const percent = Math.min(Math.round((progress_iv / challenge.indice_vente_target) * 100), 100);
+                                    kpiProgressions.push({
+                                      label: '💎 Indice',
+                                      current: progress_iv.toFixed(2),
+                                      target: challenge.indice_vente_target.toFixed(2),
+                                      unit: '',
+                                      percent
+                                    });
                                   }
                                   
-                                  // Moyenne de progression
-                                  const avgProgress = progressValues.length > 0 
-                                    ? progressValues.reduce((a, b) => a + b, 0) / progressValues.length 
-                                    : 0;
-                                  
-                                  const progressPercent = Math.min(Math.round(avgProgress), 100);
-                                  
-                                  // Couleur selon le pourcentage
-                                  let progressColor = 'bg-red-500';
-                                  if (progressPercent >= 75) progressColor = 'bg-green-500';
-                                  else if (progressPercent >= 50) progressColor = 'bg-yellow-500';
-                                  else if (progressPercent >= 25) progressColor = 'bg-orange-500';
-                                  
-                                  return progressValues.length > 0 ? (
-                                    <div className="mt-2">
-                                      <div className="flex items-center justify-between mb-1">
-                                        <span className="text-xs font-semibold text-gray-600">Progression</span>
-                                        <span className="text-xs font-bold text-gray-700">{progressPercent}%</span>
-                                      </div>
-                                      <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                        <div 
-                                          className={`${progressColor} h-2.5 rounded-full transition-all duration-300`}
-                                          style={{ width: `${progressPercent}%` }}
-                                        ></div>
-                                      </div>
+                                  return kpiProgressions.length > 0 ? (
+                                    <div className="mt-3 space-y-2">
+                                      <div className="text-xs font-semibold text-gray-600 mb-2">📊 Progression par KPI</div>
+                                      {kpiProgressions.map((kpi, index) => {
+                                        let progressColor = 'bg-red-500';
+                                        if (kpi.percent >= 75) progressColor = 'bg-green-500';
+                                        else if (kpi.percent >= 50) progressColor = 'bg-yellow-500';
+                                        else if (kpi.percent >= 25) progressColor = 'bg-orange-500';
+                                        
+                                        return (
+                                          <div key={index} className="bg-gray-50 rounded-lg p-2">
+                                            <div className="flex items-center justify-between mb-1">
+                                              <span className="text-xs font-medium text-gray-700">{kpi.label}</span>
+                                              <span className="text-xs text-gray-600">
+                                                {kpi.current}{kpi.unit} / {kpi.target}{kpi.unit} ({kpi.percent}%)
+                                              </span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                              <div 
+                                                className={`${progressColor} h-2 rounded-full transition-all duration-300`}
+                                                style={{ width: `${kpi.percent}%` }}
+                                              ></div>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
                                     </div>
                                   ) : null;
                                 })()}
