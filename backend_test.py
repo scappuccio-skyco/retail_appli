@@ -3398,16 +3398,16 @@ class RetailCoachAPITester:
         }
         
         success, response = self.run_test(
-            "Seller KPI Test - Login as emma@test.com",
+            "Seller KPI Test - Login as vendeur2@test.com",
             "POST",
             "auth/login",
             200,
             data=login_data
         )
         
-        emma_token = None
+        seller_token = None
         if success and 'token' in response:
-            emma_token = response['token']
+            seller_token = response['token']
             seller_info = response['user']
             print(f"   ✅ Logged in as: {seller_info.get('name')} ({seller_info.get('email')})")
             print(f"   ✅ Seller ID: {seller_info.get('id')}")
@@ -3415,13 +3415,13 @@ class RetailCoachAPITester:
             
             # Verify this is a seller account
             if seller_info.get('role') != 'seller':
-                self.log_test("Emma Account Role Verification", False, f"Expected 'seller', got '{seller_info.get('role')}'")
+                self.log_test("Seller Account Role Verification", False, f"Expected 'seller', got '{seller_info.get('role')}'")
                 return
             else:
-                self.log_test("Emma Account Role Verification", True)
+                self.log_test("Seller Account Role Verification", True)
         else:
-            print("   ❌ Could not login with emma@test.com/demo123")
-            self.log_test("Emma Login", False, "Login failed - account may not exist or credentials incorrect")
+            print("   ❌ Could not login with vendeur2@test.com/password123")
+            self.log_test("Seller Login", False, "Login failed - account may not exist or credentials incorrect")
             return
         
         # TEST 1: GET /api/seller/kpi-config - verify track_clients is false and track_ventes is true
