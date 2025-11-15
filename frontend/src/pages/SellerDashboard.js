@@ -1366,6 +1366,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           onComplete={() => {
             setShowDiagnosticFormModal(false);
             fetchData(); // Reload data including diagnostic
+            // Ouvrir automatiquement le modal de profil après avoir terminé le diagnostic
+            setTimeout(() => {
+              setShowProfileModal(true);
+            }, 500);
           }}
         />
       )}
