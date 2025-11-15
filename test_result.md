@@ -102,9 +102,20 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix invisible dropdown options in Gestion relationnelle / Gestion de conflit modal. The native <select> element's options are not visible due to browser-specific styling issues that cannot be overridden with CSS."
+user_problem_statement: "Test des endpoints KPI vendeur pour vérifier que la suppression du champ 'Nombre de clients' n'impacte pas le fonctionnement de l'application."
 
 backend:
+  - task: "Seller KPI Endpoints - Nombre de clients Field Removal"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "SELLER KPI ENDPOINTS TESTING COMPLETED SUCCESSFULLY AFTER 'NOMBRE DE CLIENTS' FIELD MERGE: ✅ CONTEXT VERIFIED: 'Nombre de clients' and 'Nombre de ventes' were merged as they represented the same concept. ✅ LOGIN SUCCESSFUL: emma.petit@test.com authenticated successfully with seller role. ✅ KPI CONFIGURATION CORRECT: GET /api/seller/kpi-config shows track_clients=false (disabled), track_ventes=true (enabled for both sales and client counts), track_articles=true, track_prospects=true. ✅ KPI ENABLED STATUS: GET /api/seller/kpi-enabled returns enabled=true. ✅ KPI ENTRY CREATION: POST /api/seller/kpi-entry successfully creates entries without nb_clients field using only nb_ventes for calculations. ✅ CALCULATIONS VERIFIED: panier_moyen=60.0€ (CA/nb_ventes), indice_vente=2.0 (articles/nb_ventes) calculated correctly. ✅ DATA RETRIEVAL: GET /api/seller/kpi-entries returns data without errors, nb_clients field properly handled as null/0. ✅ PROFILE ACCESS: GET /api/auth/me loads seller profile correctly. ✅ SUCCESS CRITERIA MET: All endpoints return 200 OK, no 500 errors or crashes, KPI entries processed correctly without nb_clients, application functions normally for Emma. SUCCESS RATE: 18/18 tests passed (100%) - field merge implementation is production-ready."
   - task: "Relationship Management API - Generate Advice"
     implemented: true
     working: "NA"
