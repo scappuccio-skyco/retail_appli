@@ -837,7 +837,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
                     </button>
                   </div>
 
-                  {/* Liste des débriefs */}
+                  {/* Liste des analyses de vente */}
                   <div className="space-y-4">
                     {sortedAndLimitedDebriefs.map((debrief) => {
                       const isConclue = debrief.vente_conclue === true;
