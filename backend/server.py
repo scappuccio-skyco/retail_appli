@@ -1297,6 +1297,59 @@ Tu viens d'analyser une vente qui s'est CONCLUE AVEC SUCCÈS ! Voici les détail
 - Fidélisation : {current_scores.get('fidelisation', 3.0)}
 
 ### OBJECTIF
+1. FÉLICITER le vendeur pour cette réussite avec enthousiasme !
+2. Identifier 2 points forts qui ont contribué au succès (écoute, argumentation, closing, posture, etc.).
+3. Donner 1 recommandation pour reproduire ou dépasser ce succès.
+4. Ajouter 1 exemple concret de ce qui a particulièrement bien fonctionné.
+5. **IMPORTANT** : Réévaluer les 5 compétences en valorisant les points forts mobilisés.
+   - Augmente les scores des compétences clés qui ont conduit au succès (+0.2 à +0.5)
+   - Les scores doivent rester entre 1.0 et 5.0
+
+### FORMAT DE SORTIE (JSON uniquement)
+Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
+{{
+  "analyse": "[2–3 phrases de FÉLICITATIONS enthousiastes et d'analyse des points forts, en tutoyant (Bravo ! Tu as réussi à...)]",
+  "points_travailler": "[Point fort 1]\\n[Point fort 2]",
+  "recommandation": "[Une phrase courte et motivante pour reproduire ce succès]",
+  "exemple_concret": "[Ce qui a particulièrement bien fonctionné dans cette vente]",
+  "score_accueil": 3.5,
+  "score_decouverte": 4.0,
+  "score_argumentation": 3.0,
+  "score_closing": 3.5,
+  "score_fidelisation": 4.0
+}}
+
+### STYLE ATTENDU
+- Ton ENTHOUSIASTE, FÉLICITANT et encourageant
+- TUTOIEMENT OBLIGATOIRE : "tu", "ta", "tes", "ton"
+- Vocabulaire positif : bravo, excellent, parfait, réussi, maîtrisé
+- L'exemple doit mettre en valeur ce qui a fonctionné
+- Maximum 12 lignes au total
+"""
+    else:
+        # Prompt pour OPPORTUNITÉ MANQUÉE (échec)
+        prompt = f"""Tu es un coach expert en vente retail.
+Analyse la vente décrite pour identifier les causes probables de l'échec et proposer des leviers d'amélioration concrets.
+
+### CONTEXTE
+Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
+
+🎯 Produit : {debrief_data.get('produit')}
+👥 Type de client : {debrief_data.get('type_client')}
+💼 Situation : {debrief_data.get('situation_vente')}
+💬 Description : {debrief_data.get('description_vente')}
+📍 Moment clé du blocage : {debrief_data.get('moment_perte_client')}
+❌ Raisons évoquées : {debrief_data.get('raisons_echec')}
+🔄 Ce que tu penses pouvoir faire différemment : {debrief_data.get('amelioration_pensee')}
+
+### SCORES ACTUELS DES COMPÉTENCES (sur 5)
+- Accueil : {current_scores.get('accueil', 3.0)}
+- Découverte : {current_scores.get('decouverte', 3.0)}
+- Argumentation : {current_scores.get('argumentation', 3.0)}
+- Closing : {current_scores.get('closing', 3.0)}
+- Fidélisation : {current_scores.get('fidelisation', 3.0)}
+
+### OBJECTIF
 1. Fournir une analyse commerciale réaliste et empathique EN UTILISANT LE TUTOIEMENT ("tu").
 2. Identifier 2 axes d'amélioration concrets (écoute, argumentation, closing, posture, etc.).
 3. Donner 1 recommandation claire et motivante.
@@ -1322,10 +1375,10 @@ Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
 
 ### STYLE ATTENDU
 - Ton professionnel, positif, utile et centré sur la performance commerciale
-- TUTOIEMENT OBLIGATOIRE : utilise "tu", "ta", "tes", "ton" (ex: "Tu as bien identifié le besoin", "Ta reformulation pourrait être...")
+- TUTOIEMENT OBLIGATOIRE : utilise "tu", "ta", "tes", "ton"
 - Évite toute approche psychologique ou moralisante
 - Utilise un vocabulaire de vendeur retail : client, besoin, argument, reformulation, closing, objection
-- L'exemple doit être simple, réaliste et crédible ("Tu aurais pu dire : 'Je comprends, ce modèle est plus léger et répond mieux à ce que vous cherchez.'")
+- L'exemple doit être simple, réaliste et crédible
 - Maximum 12 lignes au total
 """
 
