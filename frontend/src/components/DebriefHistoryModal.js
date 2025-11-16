@@ -204,8 +204,8 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
 
         {/* Content - Toujours l'historique */}
         <div className="flex-1 overflow-y-auto p-6">
-          {/* Onglet Vente conclue */}
-          {activeTab === 'conclue' && (
+          {/* Form modal Vente conclue */}
+          {showVenteConclueForm && (
             <div className="space-y-4">
               <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 border-l-4 border-green-500">
                 <h3 className="text-lg font-bold text-green-900 flex items-center gap-2">
