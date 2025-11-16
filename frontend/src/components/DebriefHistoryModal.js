@@ -104,6 +104,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
     }
     
     setLoading(true);
+    setIsSubmitting(true);
     try {
       // Préparer les données
       const moment = formConclue.moment_perte_client.includes('Autre')
@@ -120,7 +121,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
           visible_to_manager: formConclue.visible_to_manager,
           produit: formConclue.produit,
           type_client: formConclue.type_client,
-          situation_vente: 'En magasin', // Toujours en magasin
+          situation_vente: 'En magasin',
           description_vente: formConclue.description_vente,
           moment_perte_client: moment,
           raisons_echec: raisons,
@@ -131,27 +132,31 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
       
       toast.success('🎉 Analyse créée avec succès !');
       
-      // Reset form et fermeture après un petit délai pour éviter les problèmes de DOM
-      setTimeout(() => {
-        setFormConclue({
-          produit: '',
-          type_client: '',
-          description_vente: '',
-          moment_perte_client: [],
-          moment_perte_autre: '',
-          raisons_echec: [],
-          raisons_echec_autre: '',
-          amelioration_pensee: '',
-          visible_to_manager: false
-        });
-        setShowVenteConclueForm(false);
-        if (onNewDebrief) onNewDebrief();
-      }, 100);
+      // Reset et fermeture
+      setFormConclue({
+        produit: '',
+        type_client: '',
+        description_vente: '',
+        moment_perte_client: [],
+        moment_perte_autre: '',
+        raisons_echec: [],
+        raisons_echec_autre: '',
+        amelioration_pensee: '',
+        visible_to_manager: false
+      });
+      setShowVenteConclueForm(false);
+      setLoading(false);
+      setIsSubmitting(false);
+      
+      // Rafraîchir APRÈS la fermeture complète
+      if (onNewDebrief) {
+        setTimeout(() => onNewDebrief(), 200);
+      }
     } catch (error) {
       console.error('Error:', error);
       toast.error('Erreur lors de la création');
-    } finally {
       setLoading(false);
+      setIsSubmitting(false);
     }
   };
   
