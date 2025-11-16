@@ -6,35 +6,37 @@ import { toast } from 'sonner';
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, token }) {
-  const [filtreHistorique, setFiltreHistorique] = useState('all'); // 'all', 'conclue', 'manquee'
+  const [filtreHistorique, setFiltreHistorique] = useState('all');
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [displayLimit, setDisplayLimit] = useState(20);
   const [loading, setLoading] = useState(false);
   
-  // Modal states for creating new analyses
+  // Modal states
   const [showVenteConclueForm, setShowVenteConclueForm] = useState(false);
   const [showOpportuniteManqueeForm, setShowOpportuniteManqueeForm] = useState(false);
   
-  // Form states pour "Vente conclue"
+  // Form vente conclue
   const [formConclue, setFormConclue] = useState({
     produit: '',
     type_client: '',
-    situation_vente: '',
     description_vente: '',
-    moment_perte_client: '', // "moment clé du succès"
-    raisons_echec: '', // "facteurs de réussite"
-    amelioration_pensee: '', // "ce qui a le mieux fonctionné"
+    moment_perte_client: '',
+    moment_perte_autre: '',
+    raisons_echec: [], // Sélection multiple
+    raisons_echec_autre: '',
+    amelioration_pensee: '',
     visible_to_manager: false
   });
   
-  // Form states pour "Opportunité manquée"
+  // Form opportunité manquée
   const [formManquee, setFormManquee] = useState({
     produit: '',
     type_client: '',
-    situation_vente: '',
     description_vente: '',
     moment_perte_client: '',
-    raisons_echec: '',
+    moment_perte_autre: '',
+    raisons_echec: [], // Sélection multiple
+    raisons_echec_autre: '',
     amelioration_pensee: '',
     visible_to_manager: false
   });
@@ -46,17 +48,44 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
     }));
   };
   
-  // Soumettre le formulaire "Vente conclue"
+  // Toggle checkbox pour sélection multiple
+  const toggleCheckbox = (form, setForm, field, value) => {
+    setForm(prev => {
+      const currentArray = prev[field] || [];
+      const newArray = currentArray.includes(value)
+        ? currentArray.filter(item => item !== value)
+        : [...currentArray, value];
+      return { ...prev, [field]: newArray };
+    });
+  };
+  
+  // Soumettre vente conclue
   const handleSubmitConclue = async () => {
-    if (!formConclue.produit || !formConclue.type_client || !formConclue.situation_vente || 
-        !formConclue.description_vente || !formConclue.moment_perte_client || 
-        !formConclue.raisons_echec || !formConclue.amelioration_pensee) {
+    if (!formConclue.produit || !formConclue.type_client || !formConclue.description_vente || 
+        !formConclue.moment_perte_client || formConclue.raisons_echec.length === 0 || 
+        !formConclue.amelioration_pensee) {
       toast.error('Veuillez remplir tous les champs');
+      return;
+    }
+    
+    // Vérifier "Autre"
+    if (formConclue.moment_perte_client === 'Autre' && !formConclue.moment_perte_autre.trim()) {
+      toast.error('Veuillez préciser le moment clé');
+      return;
+    }
+    if (formConclue.raisons_echec.includes('Autre') && !formConclue.raisons_echec_autre.trim()) {
+      toast.error('Veuillez préciser les facteurs');
       return;
     }
     
     setLoading(true);
     try {
+      // Préparer les données
+      const moment = formConclue.moment_perte_client === 'Autre' ? formConclue.moment_perte_autre : formConclue.moment_perte_client;
+      const raisons = formConclue.raisons_echec.includes('Autre') 
+        ? formConclue.raisons_echec.filter(r => r !== 'Autre').concat([formConclue.raisons_echec_autre]).join(', ')
+        : formConclue.raisons_echec.join(', ');
+      
       await axios.post(
         `${API}/api/debriefs`,
         {
@@ -64,10 +93,10 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
           visible_to_manager: formConclue.visible_to_manager,
           produit: formConclue.produit,
           type_client: formConclue.type_client,
-          situation_vente: formConclue.situation_vente,
+          situation_vente: 'En magasin', // Toujours en magasin
           description_vente: formConclue.description_vente,
-          moment_perte_client: formConclue.moment_perte_client,
-          raisons_echec: formConclue.raisons_echec,
+          moment_perte_client: moment,
+          raisons_echec: raisons,
           amelioration_pensee: formConclue.amelioration_pensee
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -77,34 +106,49 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
       setFormConclue({
         produit: '',
         type_client: '',
-        situation_vente: '',
         description_vente: '',
         moment_perte_client: '',
-        raisons_echec: '',
+        moment_perte_autre: '',
+        raisons_echec: [],
+        raisons_echec_autre: '',
         amelioration_pensee: '',
         visible_to_manager: false
       });
       setShowVenteConclueForm(false);
       if (onNewDebrief) onNewDebrief();
     } catch (error) {
-      console.error('Error submitting vente conclue:', error);
-      toast.error('Erreur lors de la création de l\'analyse');
+      console.error('Error:', error);
+      toast.error('Erreur lors de la création');
     } finally {
       setLoading(false);
     }
   };
   
-  // Soumettre le formulaire "Opportunité manquée"
+  // Soumettre opportunité manquée
   const handleSubmitManquee = async () => {
-    if (!formManquee.produit || !formManquee.type_client || !formManquee.situation_vente || 
-        !formManquee.description_vente || !formManquee.moment_perte_client || 
-        !formManquee.raisons_echec || !formManquee.amelioration_pensee) {
+    if (!formManquee.produit || !formManquee.type_client || !formManquee.description_vente || 
+        !formManquee.moment_perte_client || formManquee.raisons_echec.length === 0 || 
+        !formManquee.amelioration_pensee) {
       toast.error('Veuillez remplir tous les champs');
+      return;
+    }
+    
+    if (formManquee.moment_perte_client === 'Autre' && !formManquee.moment_perte_autre.trim()) {
+      toast.error('Veuillez préciser le moment');
+      return;
+    }
+    if (formManquee.raisons_echec.includes('Autre') && !formManquee.raisons_echec_autre.trim()) {
+      toast.error('Veuillez préciser les raisons');
       return;
     }
     
     setLoading(true);
     try {
+      const moment = formManquee.moment_perte_client === 'Autre' ? formManquee.moment_perte_autre : formManquee.moment_perte_client;
+      const raisons = formManquee.raisons_echec.includes('Autre')
+        ? formManquee.raisons_echec.filter(r => r !== 'Autre').concat([formManquee.raisons_echec_autre]).join(', ')
+        : formManquee.raisons_echec.join(', ');
+      
       await axios.post(
         `${API}/api/debriefs`,
         {
@@ -112,10 +156,10 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
           visible_to_manager: formManquee.visible_to_manager,
           produit: formManquee.produit,
           type_client: formManquee.type_client,
-          situation_vente: formManquee.situation_vente,
+          situation_vente: 'En magasin',
           description_vente: formManquee.description_vente,
-          moment_perte_client: formManquee.moment_perte_client,
-          raisons_echec: formManquee.raisons_echec,
+          moment_perte_client: moment,
+          raisons_echec: raisons,
           amelioration_pensee: formManquee.amelioration_pensee
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -125,24 +169,25 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
       setFormManquee({
         produit: '',
         type_client: '',
-        situation_vente: '',
         description_vente: '',
         moment_perte_client: '',
-        raisons_echec: '',
+        moment_perte_autre: '',
+        raisons_echec: [],
+        raisons_echec_autre: '',
         amelioration_pensee: '',
         visible_to_manager: false
       });
       setShowOpportuniteManqueeForm(false);
       if (onNewDebrief) onNewDebrief();
     } catch (error) {
-      console.error('Error submitting opportunité manquée:', error);
-      toast.error('Erreur lors de la création de l\'analyse');
+      console.error('Error:', error);
+      toast.error('Erreur lors de la création');
     } finally {
       setLoading(false);
     }
   };
   
-  // Toggle visibility d'une analyse
+  // Toggle visibility
   const handleToggleVisibility = async (debriefId, currentVisibility) => {
     try {
       await axios.put(
@@ -154,12 +199,12 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
       toast.success(!currentVisibility ? 'Analyse visible par le manager' : 'Analyse masquée au manager');
       if (onNewDebrief) onNewDebrief();
     } catch (error) {
-      console.error('Error toggling visibility:', error);
-      toast.error('Erreur lors de la modification de la visibilité');
+      console.error('Error:', error);
+      toast.error('Erreur lors de la modification');
     }
   };
 
-  // Filtrer et trier les débriefs
+  // Filtrer debriefs
   const sortedAndLimitedDebriefs = useMemo(() => {
     let filtered = [...debriefs];
     
@@ -180,7 +225,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} 
          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl">
-        {/* Header simple sans onglets */}
+        {/* Header simple */}
         <div className="sticky top-0 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl">
           <button
             onClick={onClose}
@@ -202,9 +247,9 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
           </div>
         </div>
 
-        {/* Content - Toujours l'historique */}
+        {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {/* Form modal Vente conclue */}
+          {/* FORM VENTE CONCLUE */}
           {showVenteConclueForm && (
             <div className="space-y-4">
               <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 border-l-4 border-green-500">
@@ -213,11 +258,12 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                   Analyser une vente réussie
                 </h3>
                 <p className="text-sm text-green-700 mt-2">
-                  Félicitations ! Partagez les détails de votre succès pour identifier vos forces et les reproduire.
+                  Super ! Quelques secondes pour enregistrer ce succès 🎉
                 </p>
               </div>
 
               <div className="space-y-4">
+                {/* Produit */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     🎯 Produit vendu
@@ -226,92 +272,133 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                     type="text"
                     value={formConclue.produit}
                     onChange={(e) => setFormConclue({...formConclue, produit: e.target.value})}
-                    placeholder="Ex: iPhone 16 Pro Max"
+                    placeholder="Ex: iPhone 16 Pro"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
 
+                {/* Type client */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     👤 Type de client
                   </label>
-                  <select
-                    value={formConclue.type_client}
-                    onChange={(e) => setFormConclue({...formConclue, type_client: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option value="">Sélectionner...</option>
-                    <option value="Nouveau client">Nouveau client</option>
-                    <option value="Client existant">Client existant</option>
-                    <option value="Client fidèle">Client fidèle</option>
-                  </select>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Nouveau client', 'Client fidèle', 'Touriste', 'Indécis'].map(type => (
+                      <button
+                        key={`conclue-type-${type}`}
+                        type="button"
+                        onClick={() => setFormConclue({...formConclue, type_client: type})}
+                        className={`p-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                          formConclue.type_client === type
+                            ? 'border-green-500 bg-green-50 text-green-700'
+                            : 'border-gray-200 hover:border-green-300'
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
+                {/* Description courte */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    💼 Situation de vente
-                  </label>
-                  <select
-                    value={formConclue.situation_vente}
-                    onChange={(e) => setFormConclue({...formConclue, situation_vente: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option value="">Sélectionner...</option>
-                    <option value="En magasin">En magasin</option>
-                    <option value="Au téléphone">Au téléphone</option>
-                    <option value="En ligne">En ligne</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    💬 Décrivez le déroulement de cette vente
+                    💬 En 2 mots, comment ça s'est passé ?
                   </label>
                   <textarea
                     value={formConclue.description_vente}
                     onChange={(e) => setFormConclue({...formConclue, description_vente: e.target.value})}
-                    placeholder="Racontez comment s'est déroulée la vente, du premier contact à la conclusion..."
-                    rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Ex: Client convaincu dès la démo..."
+                    rows={2}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
                   />
                 </div>
 
+                {/* Moment clé */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     ✨ Moment clé du succès
                   </label>
-                  <input
-                    type="text"
-                    value={formConclue.moment_perte_client}
-                    onChange={(e) => setFormConclue({...formConclue, moment_perte_client: e.target.value})}
-                    placeholder="Ex: Quand j'ai démontré la fonctionnalité..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
+                  <div className="space-y-2">
+                    {['Accueil', 'Découverte du besoin', 'Argumentation', 'Closing', 'Autre'].map(moment => (
+                      <button
+                        key={`conclue-moment-${moment}`}
+                        type="button"
+                        onClick={() => setFormConclue({...formConclue, moment_perte_client: moment})}
+                        className={`w-full text-left p-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                          formConclue.moment_perte_client === moment
+                            ? 'border-green-500 bg-green-50 text-green-700'
+                            : 'border-gray-200 hover:border-green-300'
+                        }`}
+                      >
+                        {moment}
+                      </button>
+                    ))}
+                  </div>
+                  {formConclue.moment_perte_client === 'Autre' && (
+                    <input
+                      type="text"
+                      value={formConclue.moment_perte_autre}
+                      onChange={(e) => setFormConclue({...formConclue, moment_perte_autre: e.target.value})}
+                      placeholder="Précisez..."
+                      className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    />
+                  )}
                 </div>
 
+                {/* Facteurs de réussite - SÉLECTION MULTIPLE */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    🎉 Facteurs de réussite
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    🎉 Facteurs de réussite (plusieurs choix possibles)
                   </label>
-                  <input
-                    type="text"
-                    value={formConclue.raisons_echec}
-                    onChange={(e) => setFormConclue({...formConclue, raisons_echec: e.target.value})}
-                    placeholder="Ex: Bonne écoute active, argumentation personnalisée..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
+                  <div className="space-y-2">
+                    {[
+                      'Bonne écoute active',
+                      'Argumentation solide',
+                      'Produit adapté au besoin',
+                      'Bonne relation établie',
+                      'Autre'
+                    ].map(facteur => (
+                      <label
+                        key={`conclue-facteur-${facteur}`}
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                          formConclue.raisons_echec.includes(facteur)
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formConclue.raisons_echec.includes(facteur)}
+                          onChange={() => toggleCheckbox(formConclue, setFormConclue, 'raisons_echec', facteur)}
+                          className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">{facteur}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {formConclue.raisons_echec.includes('Autre') && (
+                    <textarea
+                      value={formConclue.raisons_echec_autre}
+                      onChange={(e) => setFormConclue({...formConclue, raisons_echec_autre: e.target.value})}
+                      placeholder="Précisez les autres facteurs..."
+                      rows={2}
+                      className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 resize-none"
+                    />
+                  )}
                 </div>
 
+                {/* Ce qui a fonctionné */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    💪 Ce qui a le mieux fonctionné
+                    💪 Qu'est-ce qui a vraiment fait la différence ?
                   </label>
                   <textarea
                     value={formConclue.amelioration_pensee}
                     onChange={(e) => setFormConclue({...formConclue, amelioration_pensee: e.target.value})}
-                    placeholder="Qu'est-ce qui a vraiment fait la différence selon vous ?"
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Ex: La démo en direct..."
+                    rows={2}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 resize-none"
                   />
                 </div>
 
@@ -329,11 +416,11 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                       <p className="text-sm text-gray-600">
                         {formConclue.visible_to_manager ? (
                           <span className="flex items-center gap-1 text-green-600">
-                            <Eye className="w-4 h-4" /> Votre manager pourra voir cette analyse
+                            <Eye className="w-4 h-4" /> Visible
                           </span>
                         ) : (
                           <span className="flex items-center gap-1 text-gray-500">
-                            <EyeOff className="w-4 h-4" /> Cette analyse reste privée
+                            <EyeOff className="w-4 h-4" /> Privé
                           </span>
                         )}
                       </p>
@@ -345,14 +432,14 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                   <button
                     onClick={() => setShowVenteConclueForm(false)}
                     disabled={loading}
-                    className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all"
                   >
                     ← Retour
                   </button>
                   <button
                     onClick={handleSubmitConclue}
                     disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {loading ? (
                       <>
@@ -371,7 +458,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
             </div>
           )}
 
-          {/* Form modal Opportunité manquée */}
+          {/* FORM OPPORTUNITÉ MANQUÉE */}
           {showOpportuniteManqueeForm && (
             <div className="space-y-4">
               <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-l-4 border-orange-500">
@@ -380,11 +467,12 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                   Analyser une opportunité manquée
                 </h3>
                 <p className="text-sm text-orange-700 mt-2">
-                  Transformez cette expérience en apprentissage. Identifiez les leviers d'amélioration.
+                  Quelques secondes pour progresser 📈
                 </p>
               </div>
 
               <div className="space-y-4">
+                {/* Produit */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     🎯 Produit
@@ -393,92 +481,134 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                     type="text"
                     value={formManquee.produit}
                     onChange={(e) => setFormManquee({...formManquee, produit: e.target.value})}
-                    placeholder="Ex: iPhone 16 Pro Max"
+                    placeholder="Ex: iPhone 16 Pro"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                 </div>
 
+                {/* Type client */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     👤 Type de client
                   </label>
-                  <select
-                    value={formManquee.type_client}
-                    onChange={(e) => setFormManquee({...formManquee, type_client: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    <option value="">Sélectionner...</option>
-                    <option value="Nouveau client">Nouveau client</option>
-                    <option value="Client existant">Client existant</option>
-                    <option value="Client fidèle">Client fidèle</option>
-                  </select>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Nouveau client', 'Client fidèle', 'Touriste', 'Indécis'].map(type => (
+                      <button
+                        key={`manquee-type-${type}`}
+                        type="button"
+                        onClick={() => setFormManquee({...formManquee, type_client: type})}
+                        className={`p-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                          formManquee.type_client === type
+                            ? 'border-orange-500 bg-orange-50 text-orange-700'
+                            : 'border-gray-200 hover:border-orange-300'
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
+                {/* Description */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    💼 Situation de vente
-                  </label>
-                  <select
-                    value={formManquee.situation_vente}
-                    onChange={(e) => setFormManquee({...formManquee, situation_vente: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    <option value="">Sélectionner...</option>
-                    <option value="En magasin">En magasin</option>
-                    <option value="Au téléphone">Au téléphone</option>
-                    <option value="En ligne">En ligne</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    💬 Décrivez ce qui s'est passé
+                    💬 En 2 mots, ce qui s'est passé
                   </label>
                   <textarea
                     value={formManquee.description_vente}
                     onChange={(e) => setFormManquee({...formManquee, description_vente: e.target.value})}
-                    placeholder="Racontez comment s'est déroulée la vente, du premier contact jusqu'à la fin..."
-                    rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Ex: Client hésitant sur le prix..."
+                    rows={2}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 resize-none"
                   />
                 </div>
 
+                {/* Moment de perte */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    📍 Moment où vous avez perdu le client
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ⏱️ Moment où ça a basculé
                   </label>
-                  <input
-                    type="text"
-                    value={formManquee.moment_perte_client}
-                    onChange={(e) => setFormManquee({...formManquee, moment_perte_client: e.target.value})}
-                    placeholder="Ex: Lors de l'objection sur le prix..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  />
+                  <div className="space-y-2">
+                    {['Accueil', 'Découverte du besoin', 'Argumentation', 'Objections', 'Closing', 'Autre'].map(moment => (
+                      <button
+                        key={`manquee-moment-${moment}`}
+                        type="button"
+                        onClick={() => setFormManquee({...formManquee, moment_perte_client: moment})}
+                        className={`w-full text-left p-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                          formManquee.moment_perte_client === moment
+                            ? 'border-orange-500 bg-orange-50 text-orange-700'
+                            : 'border-gray-200 hover:border-orange-300'
+                        }`}
+                      >
+                        {moment}
+                      </button>
+                    ))}
+                  </div>
+                  {formManquee.moment_perte_client === 'Autre' && (
+                    <input
+                      type="text"
+                      value={formManquee.moment_perte_autre}
+                      onChange={(e) => setFormManquee({...formManquee, moment_perte_autre: e.target.value})}
+                      placeholder="Précisez..."
+                      className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                    />
+                  )}
                 </div>
 
+                {/* Raisons - SÉLECTION MULTIPLE */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    ❌ Raisons de l'échec (selon vous)
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    🤔 Raisons de l'échec (plusieurs choix possibles)
                   </label>
-                  <input
-                    type="text"
-                    value={formManquee.raisons_echec}
-                    onChange={(e) => setFormManquee({...formManquee, raisons_echec: e.target.value})}
-                    placeholder="Ex: Pas assez écouté le besoin, argument trop générique..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  />
+                  <div className="space-y-2">
+                    {[
+                      'N\'a pas perçu la valeur',
+                      'Pas convaincu',
+                      'Manque de confiance',
+                      'J\'ai manqué d\'arguments',
+                      'Prix trop élevé',
+                      'Autre'
+                    ].map(raison => (
+                      <label
+                        key={`manquee-raison-${raison}`}
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                          formManquee.raisons_echec.includes(raison)
+                            ? 'border-orange-500 bg-orange-50'
+                            : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formManquee.raisons_echec.includes(raison)}
+                          onChange={() => toggleCheckbox(formManquee, setFormManquee, 'raisons_echec', raison)}
+                          className="w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">{raison}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {formManquee.raisons_echec.includes('Autre') && (
+                    <textarea
+                      value={formManquee.raisons_echec_autre}
+                      onChange={(e) => setFormManquee({...formManquee, raisons_echec_autre: e.target.value})}
+                      placeholder="Précisez les autres raisons..."
+                      rows={2}
+                      className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 resize-none"
+                    />
+                  )}
                 </div>
 
+                {/* Amélioration */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    🔄 Ce que vous pensez pouvoir améliorer
+                    🔄 Qu'aurais-tu pu faire différemment ?
                   </label>
                   <textarea
                     value={formManquee.amelioration_pensee}
                     onChange={(e) => setFormManquee({...formManquee, amelioration_pensee: e.target.value})}
-                    placeholder="Qu'auriez-vous pu faire différemment ?"
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Ex: Mieux reformuler le besoin..."
+                    rows={2}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 resize-none"
                   />
                 </div>
 
@@ -496,11 +626,11 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                       <p className="text-sm text-gray-600">
                         {formManquee.visible_to_manager ? (
                           <span className="flex items-center gap-1 text-orange-600">
-                            <Eye className="w-4 h-4" /> Votre manager pourra voir cette analyse
+                            <Eye className="w-4 h-4" /> Visible
                           </span>
                         ) : (
                           <span className="flex items-center gap-1 text-gray-500">
-                            <EyeOff className="w-4 h-4" /> Cette analyse reste privée
+                            <EyeOff className="w-4 h-4" /> Privé
                           </span>
                         )}
                       </p>
@@ -512,14 +642,14 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                   <button
                     onClick={() => setShowOpportuniteManqueeForm(false)}
                     disabled={loading}
-                    className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all"
                   >
                     ← Retour
                   </button>
                   <button
                     onClick={handleSubmitManquee}
                     disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {loading ? (
                       <>
@@ -538,7 +668,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
             </div>
           )}
 
-          {/* Historique - Toujours affiché si pas de formulaire ouvert */}
+          {/* HISTORIQUE */}
           {!showVenteConclueForm && !showOpportuniteManqueeForm && (
             <>
               {debriefs.length > 0 ? (
@@ -564,7 +694,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                       }`}
                     >
                       <CheckCircle className="w-4 h-4" />
-                      Ventes conclues ({debriefs.filter(d => d.vente_conclue).length})
+                      Réussies ({debriefs.filter(d => d.vente_conclue).length})
                     </button>
                     <button
                       onClick={() => setFiltreHistorique('manquee')}
@@ -575,7 +705,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                       }`}
                     >
                       <XCircle className="w-4 h-4" />
-                      Opportunités manquées ({debriefs.filter(d => !d.vente_conclue).length})
+                      Manquées ({debriefs.filter(d => !d.vente_conclue).length})
                     </button>
                   </div>
 
@@ -614,7 +744,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                                       ? 'bg-green-100 text-green-700' 
                                       : 'bg-orange-100 text-orange-700'
                                   }`}>
-                                    {isConclue ? '✅ Vente conclue' : '❌ Opportunité manquée'}
+                                    {isConclue ? '✅ Réussie' : '❌ Manquée'}
                                   </span>
                                   <span className="text-sm font-semibold text-gray-800">
                                     {debrief.produit}
@@ -622,7 +752,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                                   <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded">
                                     {debrief.type_client}
                                   </span>
-                                  {/* Indicateur visibilité */}
+                                  {/* Toggle visibilité */}
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -633,7 +763,6 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                                         ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
-                                    title={debrief.visible_to_manager ? 'Visible par le manager' : 'Privé'}
                                   >
                                     {debrief.visible_to_manager ? (
                                       <><Eye className="w-3 h-3" /> Visible</>
@@ -730,17 +859,14 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                     })}
                   </div>
 
-                  {/* Bouton Charger plus */}
+                  {/* Charger plus */}
                   {hasMore && (
                     <div className="mt-6 text-center">
                       <button
                         onClick={() => setDisplayLimit(prev => prev + 20)}
-                        className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all inline-flex items-center gap-2"
+                        className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                        Charger plus ({remainingCount} analyse{remainingCount > 1 ? 's' : ''} restante{remainingCount > 1 ? 's' : ''})
+                        Charger plus ({remainingCount} restante{remainingCount > 1 ? 's' : ''})
                       </button>
                     </div>
                   )}
