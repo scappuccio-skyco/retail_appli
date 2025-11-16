@@ -734,14 +734,14 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                   <p className="text-gray-400 text-sm mb-6">Commencez à analyser vos ventes !</p>
                   <div className="flex gap-3 justify-center">
                     <button
-                      onClick={() => setActiveTab('conclue')}
+                      onClick={() => setShowVenteConclueForm(true)}
                       className="btn-primary inline-flex items-center gap-2 bg-green-600 hover:bg-green-700"
                     >
                       <CheckCircle className="w-5 h-5" />
                       Vente conclue
                     </button>
                     <button
-                      onClick={() => setActiveTab('manquee')}
+                      onClick={() => setShowOpportuniteManqueeForm(true)}
                       className="btn-primary inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700"
                     >
                       <XCircle className="w-5 h-5" />
