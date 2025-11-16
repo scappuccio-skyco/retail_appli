@@ -960,23 +960,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">💬</div>
                   <p className="text-gray-500 font-medium mb-4">Aucune analyse pour le moment</p>
-                  <p className="text-gray-400 text-sm mb-6">Commencez à analyser vos ventes !</p>
-                  <div className="flex gap-3 justify-center">
-                    <button
-                      onClick={() => setShowVenteConclueForm(true)}
-                      className="btn-primary inline-flex items-center gap-2 bg-green-600 hover:bg-green-700"
-                    >
-                      <CheckCircle className="w-5 h-5" />
-                      Vente conclue
-                    </button>
-                    <button
-                      onClick={() => setShowOpportuniteManqueeForm(true)}
-                      className="btn-primary inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700"
-                    >
-                      <XCircle className="w-5 h-5" />
-                      Opportunité manquée
-                    </button>
-                  </div>
+                  <p className="text-gray-400 text-sm">Utilisez les boutons ci-dessus pour créer votre première analyse !</p>
                 </div>
               )}
             </>
