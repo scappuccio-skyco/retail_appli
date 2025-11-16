@@ -531,28 +531,32 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                   />
                 </div>
 
-                {/* Moment de perte */}
+                {/* Moment de perte - SÉLECTION MULTIPLE */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ⏱️ Moment où ça a basculé
+                    ⏱️ Moments où ça a basculé (plusieurs choix possibles)
                   </label>
                   <div className="space-y-2">
                     {['Accueil', 'Découverte du besoin', 'Argumentation', 'Objections', 'Closing', 'Autre'].map(moment => (
-                      <button
+                      <label
                         key={`manquee-moment-${moment}`}
-                        type="button"
-                        onClick={() => setFormManquee({...formManquee, moment_perte_client: moment})}
-                        className={`w-full text-left p-2 rounded-lg border-2 text-sm font-medium transition-all ${
-                          formManquee.moment_perte_client === moment
-                            ? 'border-orange-500 bg-orange-50 text-orange-700'
-                            : 'border-gray-200 hover:border-orange-300'
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                          formManquee.moment_perte_client.includes(moment)
+                            ? 'border-orange-500 bg-orange-50'
+                            : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50'
                         }`}
                       >
-                        {moment}
-                      </button>
+                        <input
+                          type="checkbox"
+                          checked={formManquee.moment_perte_client.includes(moment)}
+                          onChange={() => toggleCheckbox(formManquee, setFormManquee, 'moment_perte_client', moment)}
+                          className="w-5 h-5 text-orange-600 rounded focus:ring-orange-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">{moment}</span>
+                      </label>
                     ))}
                   </div>
-                  {formManquee.moment_perte_client === 'Autre' && (
+                  {formManquee.moment_perte_client.includes('Autre') && (
                     <input
                       type="text"
                       value={formManquee.moment_perte_autre}
