@@ -1185,8 +1185,13 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
       {showDebriefHistoryModal && (
         <DebriefHistoryModal
-          onClose={() => setShowDebriefHistoryModal(false)}
+          onClose={() => {
+            setShowDebriefHistoryModal(false);
+            setAutoExpandDebriefId(null); // Reset
+          }}
           onSuccess={(newDebrief) => {
+            // Sauvegarder l'ID dans le parent
+            setAutoExpandDebriefId(newDebrief.id);
             // Fermer d'abord (comme DiagnosticFormScrollable)
             setShowDebriefHistoryModal(false);
             // Puis rafraîchir
@@ -1196,6 +1201,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               setShowDebriefHistoryModal(true);
             }, 500);
           }}
+          autoExpandDebriefId={autoExpandDebriefId}
           token={localStorage.getItem('token')}
         />
       )}
