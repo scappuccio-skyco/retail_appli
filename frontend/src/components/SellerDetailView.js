@@ -290,7 +290,7 @@ export default function SellerDetailView({ seller, onBack }) {
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
-            📝 Débriefs
+            📝 Analyses des ventes
           </button>
         </div>
       </div>
