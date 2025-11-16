@@ -1323,7 +1323,7 @@ Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
   "analyse": "[2–3 phrases de FÉLICITATIONS enthousiastes et d'analyse des points forts, en tutoyant (Bravo ! Tu as réussi à...)]",
   "points_travailler": "[Point fort 1]\\n[Point fort 2]",
   "recommandation": "[Une phrase courte et motivante pour reproduire ce succès]",
-  "exemple_concret": "[Action concrète pour REPRODUIRE ce succès la prochaine fois, commençant par 'La prochaine fois...' ou 'Pour refaire pareil...']",
+  "exemple_concret": "[Action concrète pour REPRODUIRE ce succès la prochaine fois, commençant par 'La prochaine fois...' ou 'Pour refaire pareil...'. Si tu inclus une phrase à dire au client, utilise VOUS/VOTRE/VOS]",
   "score_accueil": 3.5,
   "score_decouverte": 4.0,
   "score_argumentation": 3.0,
