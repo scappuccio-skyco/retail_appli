@@ -158,10 +158,8 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
       
       toast.success('🎉 Analyse créée avec succès !');
       
-      // Appeler onSuccess qui fermera le modal ET rafraîchira (comme DiagnosticFormScrollable)
-      if (onSuccess) {
-        onSuccess(response.data);
-      }
+      // Déclencher onSuccess via useEffect pour éviter conflit DOM
+      setPendingSuccess(response.data);
     } catch (error) {
       console.error('Error:', error);
       toast.error('Erreur lors de la création');
