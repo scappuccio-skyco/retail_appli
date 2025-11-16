@@ -204,6 +204,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
     }
     
     setLoading(true);
+    setIsSubmitting(true);
     try {
       const moment = formManquee.moment_perte_client.includes('Autre')
         ? formManquee.moment_perte_client.filter(m => m !== 'Autre').concat([formManquee.moment_perte_autre]).join(', ')
@@ -230,27 +231,31 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
       
       toast.success('Analyse créée avec succès !');
       
-      // Reset form et fermeture après un petit délai pour éviter les problèmes de DOM
-      setTimeout(() => {
-        setFormManquee({
-          produit: '',
-          type_client: '',
-          description_vente: '',
-          moment_perte_client: [],
-          moment_perte_autre: '',
-          raisons_echec: [],
-          raisons_echec_autre: '',
-          amelioration_pensee: '',
-          visible_to_manager: false
-        });
-        setShowOpportuniteManqueeForm(false);
-        if (onNewDebrief) onNewDebrief();
-      }, 100);
+      // Reset et fermeture
+      setFormManquee({
+        produit: '',
+        type_client: '',
+        description_vente: '',
+        moment_perte_client: [],
+        moment_perte_autre: '',
+        raisons_echec: [],
+        raisons_echec_autre: '',
+        amelioration_pensee: '',
+        visible_to_manager: false
+      });
+      setShowOpportuniteManqueeForm(false);
+      setLoading(false);
+      setIsSubmitting(false);
+      
+      // Rafraîchir APRÈS la fermeture complète
+      if (onNewDebrief) {
+        setTimeout(() => onNewDebrief(), 200);
+      }
     } catch (error) {
       console.error('Error:', error);
       toast.error('Erreur lors de la création');
-    } finally {
       setLoading(false);
+      setIsSubmitting(false);
     }
   };
   
