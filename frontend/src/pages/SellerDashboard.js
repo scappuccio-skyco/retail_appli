@@ -1178,8 +1178,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           onClose={() => setShowDebriefHistoryModal(false)}
           onNewDebrief={() => {
             setShowDebriefHistoryModal(false);
-            setShowDebriefModal(true);
+            fetchDebriefs(); // Refresh the debriefs list
           }}
+          token={localStorage.getItem('token')}
         />
       )}
 
