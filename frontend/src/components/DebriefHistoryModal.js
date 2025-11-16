@@ -10,6 +10,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [displayLimit, setDisplayLimit] = useState(20);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Nouveau flag
   
   // Modal states
   const [showVenteConclueForm, setShowVenteConclueForm] = useState(false);
