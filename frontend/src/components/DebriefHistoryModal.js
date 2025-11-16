@@ -24,35 +24,10 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
     fetchDebriefs();
   }, []);
   
-  // Gérer le succès SANS fermer le modal (pour éviter insertBefore)
+  // Gérer onSuccess APRÈS le rendu pour éviter conflit DOM
   useEffect(() => {
-    if (pendingSuccess) {
-      // Ajouter le nouveau debrief à la liste locale
-      setDebriefs(prev => [pendingSuccess, ...prev]);
-      
-      // Fermer les formulaires
-      setShowVenteConclueForm(false);
-      setShowOpportuniteManqueeForm(false);
-      
-      // Auto-expand le nouveau debrief après un court délai
-      setTimeout(() => {
-        setExpandedDebriefs({ [pendingSuccess.id]: true });
-        
-        // Scroll vers le nouveau debrief
-        setTimeout(() => {
-          const element = document.querySelector(`[data-debrief-id="${pendingSuccess.id}"]`);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }, 200);
-      }, 300);
-      
-      // Notifier le parent (juste pour les stats, sans fermer)
-      if (onSuccess) {
-        onSuccess(pendingSuccess);
-      }
-      
-      // Réinitialiser
+    if (pendingSuccess && onSuccess) {
+      onSuccess(pendingSuccess);
       setPendingSuccess(null);
     }
   }, [pendingSuccess, onSuccess]);
