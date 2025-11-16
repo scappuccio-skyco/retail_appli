@@ -60,6 +60,8 @@ export default function DebriefModal({ onClose, onSuccess }) {
     
     // Prepare final data
     const submitData = {
+      vente_conclue: venteConclue,
+      visible_to_manager: visibleToManager,
       produit: formData.produit,
       type_client: formData.type_client,
       situation_vente: formData.situation_vente,
