@@ -1,16 +1,40 @@
 import React, { useState, useMemo } from 'react';
-import { X, MessageSquare, Sparkles, Eye, EyeOff } from 'lucide-react';
+import { X, MessageSquare, Sparkles, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
-export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief }) {
+export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, token }) {
   const [activeTab, setActiveTab] = useState('historique'); // 'conclue', 'manquee', 'historique'
   const [filtreHistorique, setFiltreHistorique] = useState('all'); // 'all', 'conclue', 'manquee'
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [displayLimit, setDisplayLimit] = useState(20); // Afficher 20 débriefs à la fois
   const [loading, setLoading] = useState(false);
+  
+  // Form states pour "Vente conclue"
+  const [formConclue, setFormConclue] = useState({
+    produit: '',
+    type_client: '',
+    situation_vente: '',
+    description_vente: '',
+    moment_perte_client: '', // "moment clé du succès"
+    raisons_echec: '', // "facteurs de réussite"
+    amelioration_pensee: '', // "ce qui a le mieux fonctionné"
+    visible_to_manager: false
+  });
+  
+  // Form states pour "Opportunité manquée"
+  const [formManquee, setFormManquee] = useState({
+    produit: '',
+    type_client: '',
+    situation_vente: '',
+    description_vente: '',
+    moment_perte_client: '',
+    raisons_echec: '',
+    amelioration_pensee: '',
+    visible_to_manager: false
+  });
 
   const toggleDebrief = (debriefId) => {
     setExpandedDebriefs(prev => ({
