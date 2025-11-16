@@ -24,17 +24,36 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
     fetchDebriefs();
   }, []);
   
-  // Gérer onSuccess APRÈS le rendu pour éviter conflit DOM
+  // Gérer le succès SANS fermer le modal (pour éviter insertBefore)
   useEffect(() => {
-    if (pendingSuccess && onSuccess) {
-      // Attendre que React termine TOUS les rendus en cours avant de notifier le parent
-      // Cela évite l'erreur insertBefore quand le parent ferme le modal trop tôt
-      const timer = setTimeout(() => {
-        onSuccess(pendingSuccess);
-        setPendingSuccess(null);
-      }, 150);
+    if (pendingSuccess) {
+      // Ajouter le nouveau debrief à la liste locale
+      setDebriefs(prev => [pendingSuccess, ...prev]);
       
-      return () => clearTimeout(timer);
+      // Fermer les formulaires
+      setShowVenteConclueForm(false);
+      setShowOpportuniteManqueeForm(false);
+      
+      // Auto-expand le nouveau debrief après un court délai
+      setTimeout(() => {
+        setExpandedDebriefs({ [pendingSuccess.id]: true });
+        
+        // Scroll vers le nouveau debrief
+        setTimeout(() => {
+          const element = document.querySelector(`[data-debrief-id="${pendingSuccess.id}"]`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 200);
+      }, 300);
+      
+      // Notifier le parent (juste pour les stats, sans fermer)
+      if (onSuccess) {
+        onSuccess(pendingSuccess);
+      }
+      
+      // Réinitialiser
+      setPendingSuccess(null);
     }
   }, [pendingSuccess, onSuccess]);
   
