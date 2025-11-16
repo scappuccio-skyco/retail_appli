@@ -463,46 +463,39 @@ export default function DebriefModal({ onClose, onSuccess }) {
           </div>
         </div>
 
-        {/* Visibilité */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={visibleToManager}
-              onChange={(e) => setVisibleToManager(e.target.checked)}
-              className="w-5 h-5 text-blue-600 rounded mt-0.5"
-            />
-            <div>
-              <span className="text-sm font-semibold text-gray-800">
+        {/* Actions compactes */}
+        <div className="bg-gradient-to-r from-gray-50 to-white border-t-2 border-gray-200 p-4 flex-shrink-0 rounded-b-2xl">
+          <div className="flex items-center gap-3 mb-3">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={visibleToManager}
+                onChange={(e) => setVisibleToManager(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded"
+              />
+              <span className="text-xs text-gray-700">
                 📤 Partager avec mon manager
               </span>
-              <p className="text-xs text-gray-600 mt-1">
-                Tu peux modifier cela plus tard dans ton historique d'analyses
-              </p>
-            </div>
-          </label>
-        </div>
-
-        {/* Actions */}
-        <div className="bg-gradient-to-r from-gray-50 to-white border-t-2 border-gray-200 p-6 flex gap-3 flex-shrink-0 rounded-b-2xl">
+            </label>
+          </div>
           <button
             type="button"
             onClick={handleSubmit}
             disabled={!isComplete() || loading}
-            className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all shadow-lg ${
+            className={`w-full py-3 rounded-xl font-bold text-base transition-all shadow-lg ${
               isComplete() && !loading
-                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]'
+                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white hover:shadow-xl hover:scale-[1.01]'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
-                <Sparkles className="w-5 h-5 animate-pulse" />
+                <Sparkles className="w-4 h-4 animate-pulse" />
                 Analyse en cours...
               </span>
             ) : (
               <span className="flex items-center justify-center gap-2">
-                <Sparkles className="w-5 h-5" />
+                <Sparkles className="w-4 h-4" />
                 Recevoir mon coaching IA
               </span>
             )}
