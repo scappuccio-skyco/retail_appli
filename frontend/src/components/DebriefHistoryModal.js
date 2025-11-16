@@ -31,26 +31,58 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief })
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl">
-        {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 flex justify-between items-center border-b border-gray-200 rounded-t-2xl">
-          <div className="flex items-center gap-3">
-            <MessageSquare className="w-8 h-8 text-white" />
-            <div>
-              <h2 className="text-3xl font-bold text-white">📝 Historique de mes Débriefs</h2>
-              <p className="text-sm text-white opacity-90 mt-1">
-                {displayLimit >= debriefs.length 
-                  ? `${debriefs.length} débrief${debriefs.length > 1 ? 's' : ''} affiché${debriefs.length > 1 ? 's' : ''}`
-                  : `Affichage de ${displayLimit} sur ${debriefs.length} débriefs`
-                }
-              </p>
-            </div>
-          </div>
+        {/* Header avec onglets */}
+        <div className="sticky top-0 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-4 rounded-t-2xl">
           <button
             onClick={onClose}
-            className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
+            className="absolute top-3 right-3 text-white hover:text-gray-200 transition-colors z-10"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
+          
+          <h2 className="text-xl font-bold text-white mb-4">📊 Analyse de vente</h2>
+          
+          {/* Onglets */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab('conclue')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                activeTab === 'conclue'
+                  ? 'bg-white text-green-700 shadow-lg'
+                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+              }`}
+            >
+              <span className="text-lg">✅</span>
+              <span>Vente conclue</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('manquee')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                activeTab === 'manquee'
+                  ? 'bg-white text-orange-700 shadow-lg'
+                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+              }`}
+            >
+              <span className="text-lg">❌</span>
+              <span>Opportunité manquée</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('historique')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                activeTab === 'historique'
+                  ? 'bg-white text-blue-700 shadow-lg'
+                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+              }`}
+            >
+              <span className="text-lg">📚</span>
+              <span>Historique</span>
+              {debriefs.length > 0 && (
+                <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {debriefs.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Content */}
