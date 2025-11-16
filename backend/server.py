@@ -320,15 +320,18 @@ class Debrief(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     seller_id: str
+    # Type de vente
+    vente_conclue: bool = False  # True = vente conclue, False = opportunité manquée
+    visible_to_manager: bool = False  # Visibilité pour le manager
     # Section 1 - Contexte rapide
     produit: str
     type_client: str
     situation_vente: str
     # Section 2 - Ce qui s'est passé
     description_vente: str
-    moment_perte_client: str
-    raisons_echec: str
-    amelioration_pensee: str
+    moment_perte_client: str  # Sera "moment_cle_succes" pour vente conclue
+    raisons_echec: str  # Sera "facteurs_reussite" pour vente conclue
+    amelioration_pensee: str  # Sera "ce_qui_a_fonctionne" pour vente conclue
     # AI Analysis
     ai_analyse: Optional[str] = None
     ai_points_travailler: Optional[str] = None
@@ -343,6 +346,8 @@ class Debrief(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class DebriefCreate(BaseModel):
+    vente_conclue: bool = False
+    visible_to_manager: bool = False
     produit: str
     type_client: str
     situation_vente: str
