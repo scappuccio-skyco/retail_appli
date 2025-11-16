@@ -152,19 +152,44 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
   
   // Soumettre opportunité manquée
   const handleSubmitManquee = async () => {
-    if (!formManquee.produit || !formManquee.type_client || !formManquee.description_vente || 
-        formManquee.moment_perte_client.length === 0 || formManquee.raisons_echec.length === 0 || 
-        !formManquee.amelioration_pensee) {
-      toast.error('Veuillez remplir tous les champs');
+    // Validation détaillée
+    if (!formManquee.produit.trim()) {
+      toast.error('📦 Veuillez indiquer le produit');
+      return;
+    }
+    
+    if (!formManquee.type_client) {
+      toast.error('👤 Veuillez sélectionner le type de client');
+      return;
+    }
+    
+    if (!formManquee.description_vente.trim()) {
+      toast.error('💬 Veuillez décrire ce qui s\'est passé');
+      return;
+    }
+    
+    if (formManquee.moment_perte_client.length === 0) {
+      toast.error('⏱️ Veuillez sélectionner au moins un moment où ça a basculé');
       return;
     }
     
     if (formManquee.moment_perte_client.includes('Autre') && !formManquee.moment_perte_autre.trim()) {
-      toast.error('Veuillez préciser le moment');
+      toast.error('⏱️ Veuillez préciser le moment (Autre)');
       return;
     }
+    
+    if (formManquee.raisons_echec.length === 0) {
+      toast.error('🤔 Veuillez sélectionner au moins une raison de l\'échec');
+      return;
+    }
+    
     if (formManquee.raisons_echec.includes('Autre') && !formManquee.raisons_echec_autre.trim()) {
-      toast.error('Veuillez préciser les raisons');
+      toast.error('🤔 Veuillez préciser les raisons (Autre)');
+      return;
+    }
+    
+    if (!formManquee.amelioration_pensee.trim()) {
+      toast.error('🔄 Veuillez indiquer ce que vous auriez pu faire différemment');
       return;
     }
     
