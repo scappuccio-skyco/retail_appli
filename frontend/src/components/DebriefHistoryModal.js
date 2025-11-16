@@ -147,29 +147,16 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
+      // Fermer le modal IMMÉDIATEMENT
+      onClose();
+      
+      // Toast après fermeture
       toast.success('🎉 Analyse créée avec succès !');
       
-      // Reset form
-      setFormConclue({
-        produit: '',
-        type_client: '',
-        description_vente: '',
-        moment_perte_client: [],
-        moment_perte_autre: '',
-        raisons_echec: [],
-        raisons_echec_autre: '',
-        amelioration_pensee: '',
-        visible_to_manager: false
-      });
-      
-      // Fermer le formulaire d'abord
-      setShowVenteConclueForm(false);
-      setLoading(false);
-      
-      // Rafraîchir l'historique APRÈS fermeture complète
-      setTimeout(() => {
-        fetchDebriefs();
-      }, 100);
+      // Appeler onSuccess pour rafraîchir le parent
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error('Error:', error);
       toast.error('Erreur lors de la création');
