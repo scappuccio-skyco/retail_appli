@@ -6,11 +6,14 @@ import { toast } from 'sonner';
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, token }) {
-  const [activeTab, setActiveTab] = useState('historique'); // Toujours commencer par l'historique
   const [filtreHistorique, setFiltreHistorique] = useState('all'); // 'all', 'conclue', 'manquee'
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [displayLimit, setDisplayLimit] = useState(20);
   const [loading, setLoading] = useState(false);
+  
+  // Modal states for creating new analyses
+  const [showVenteConclueForm, setShowVenteConclueForm] = useState(false);
+  const [showOpportuniteManqueeForm, setShowOpportuniteManqueeForm] = useState(false);
   
   // Form states pour "Vente conclue"
   const [formConclue, setFormConclue] = useState({
