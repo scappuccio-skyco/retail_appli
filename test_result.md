@@ -102,7 +102,20 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test des endpoints KPI vendeur pour vérifier que la suppression du champ 'Nombre de clients' n'impacte pas le fonctionnement de l'application."
+user_problem_statement: "Finaliser l'intégration des KPIs récents dans le prompt IA pour les analyses de vente + Corriger le vouvoiement du client dans les exemples de dialogue AI"
+
+backend:
+  - task: "AI Sales Analysis - Client Vouvoiement Fix + KPI Context Enhancement"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "MODIFICATIONS IMPLÉMENTÉES: 1) Ajout d'instructions explicites dans les prompts AI pour vouvoyer le client dans les exemples de dialogue ('vous', 'votre', 'vos') tout en tutoyant le vendeur. 2) Amélioration du contexte KPI affiché dans les prompts (ajout indice_vente, reformulation plus claire). 3) Le contexte KPI (recent_kpis) est déjà récupéré et passé à generate_ai_debrief_analysis() depuis les lignes 1481-1492. Les modifications concernent les lignes 1276-1286 (contexte KPI), 1334-1339 (style vente conclue), et 1388-1394 (style opportunité manquée). Besoin de tester que l'IA génère maintenant des exemples qui vouvoient le client correctement."
 
 backend:
   - task: "Seller KPI Endpoints - Nombre de clients Field Removal"
