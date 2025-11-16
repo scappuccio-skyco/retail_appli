@@ -868,8 +868,20 @@ export default function SellerDetailView({ seller, onBack }) {
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                            isConclue 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-orange-100 text-orange-700'
+                          }`}>
+                            {isConclue ? '✅ Vente réussie' : '❌ Opportunité manquée'}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            🗓️ {new Date(debrief.created_at).toLocaleDateString('fr-FR')}
+                          </span>
+                        </div>
                         <p className="text-sm text-gray-500 mb-2">
-                          🗓️ {new Date(debrief.created_at).toLocaleDateString('fr-FR')} — Produit : {debrief.produit || debrief.context} — Type : {debrief.type_client || debrief.customer_profile}
+                          📦 Produit : {debrief.produit || debrief.context} — 👤 Type : {debrief.type_client || debrief.customer_profile}
                         </p>
                         <div className="space-y-1 text-sm text-gray-600">
                           <p>💬 Description : {debrief.description_vente || debrief.demarche_commerciale}</p>
