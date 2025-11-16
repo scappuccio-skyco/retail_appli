@@ -263,10 +263,16 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      toast.success('Analyse créée avec succès !');
+      // NE PAS mettre à jour l'état après ce point pour éviter conflit DOM
+      // Le parent va gérer le rafraîchissement
       
       // Déclencher onSuccess via useEffect pour éviter conflit DOM
       setPendingSuccess(response.data);
+      
+      // Toast après un court délai pour laisser React finir
+      setTimeout(() => {
+        toast.success('Analyse créée avec succès !');
+      }, 100);
     } catch (error) {
       console.error('Error:', error);
       toast.error('Erreur lors de la création');
