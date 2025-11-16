@@ -36,11 +36,24 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
   // Ouvrir automatiquement la dernière analyse créée
   useEffect(() => {
     if (lastCreatedDebriefId && debriefs.length > 0) {
-      setExpandedDebriefs(prev => ({
-        ...prev,
-        [lastCreatedDebriefId]: true
-      }));
-      setLastCreatedDebriefId(null);
+      // Vérifier que l'analyse existe bien dans la liste
+      const debriefExists = debriefs.find(d => d.id === lastCreatedDebriefId);
+      if (debriefExists) {
+        setExpandedDebriefs(prev => ({
+          ...prev,
+          [lastCreatedDebriefId]: true
+        }));
+        
+        // Scroll vers l'analyse après un court délai
+        setTimeout(() => {
+          const element = document.querySelector(`[data-debrief-id="${lastCreatedDebriefId}"]`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 200);
+        
+        setLastCreatedDebriefId(null);
+      }
     }
   }, [lastCreatedDebriefId, debriefs]);
   
