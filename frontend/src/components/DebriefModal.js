@@ -172,47 +172,46 @@ export default function DebriefModal({ onClose, onSuccess }) {
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
-        {/* Header with gradient */}
-        <div className={`${venteConclue ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A]'} p-6 rounded-t-2xl relative flex-shrink-0`}>
+        {/* Header compact with gradient */}
+        <div className={`${venteConclue ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A]'} p-4 rounded-t-2xl relative flex-shrink-0`}>
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
+            className="absolute top-3 right-3 text-white hover:text-gray-200 transition-colors"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-4xl">{venteConclue ? '🎉' : '💬'}</span>
-            <div>
-              <h2 className="text-2xl font-bold text-white">
-                {venteConclue ? 'Analyse de vente réussie' : 'Analyse de vente'}
-              </h2>
-              <p className="text-white text-opacity-90">
-                {venteConclue ? 'Célèbre ton succès et apprends de tes forces !' : 'Fais-en ton meilleur apprentissage !'}
-              </p>
+          <div className="flex items-center justify-between pr-8">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{venteConclue ? '🎉' : '💬'}</span>
+              <div>
+                <h2 className="text-lg font-bold text-white">
+                  {venteConclue ? 'Analyse de vente réussie' : 'Analyse de vente'}
+                </h2>
+                <p className="text-white text-opacity-90 text-xs">
+                  {venteConclue ? 'Célèbre et apprends !' : 'Fais-en un apprentissage !'}
+                </p>
+              </div>
             </div>
-          </div>
-          
-          {/* Sélecteur de type de vente */}
-          <div className="bg-white bg-opacity-20 rounded-lg p-4">
-            <p className="text-white text-sm font-semibold mb-3">Type de vente :</p>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
+            
+            {/* Sélecteur de type de vente compact */}
+            <div className="flex gap-3">
+              <label className="flex items-center gap-1.5 cursor-pointer bg-white bg-opacity-20 px-3 py-1.5 rounded-lg">
                 <input
                   type="radio"
                   checked={venteConclue}
                   onChange={() => setVenteConclue(true)}
-                  className="w-4 h-4"
+                  className="w-3.5 h-3.5"
                 />
-                <span className="text-white font-medium">✅ Vente conclue</span>
+                <span className="text-white text-sm font-medium">✅ Réussie</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-1.5 cursor-pointer bg-white bg-opacity-20 px-3 py-1.5 rounded-lg">
                 <input
                   type="radio"
                   checked={!venteConclue}
                   onChange={() => setVenteConclue(false)}
-                  className="w-4 h-4"
+                  className="w-3.5 h-3.5"
                 />
-                <span className="text-white font-medium">❌ Opportunité manquée</span>
+                <span className="text-white text-sm font-medium">❌ Manquée</span>
               </label>
             </div>
           </div>
