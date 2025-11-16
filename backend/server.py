@@ -6981,6 +6981,15 @@ async def get_relationship_history(
         logger.error(f"Error fetching relationship history: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
+# Include router
+app.include_router(api_router)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
