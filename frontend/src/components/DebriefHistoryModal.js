@@ -24,6 +24,14 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
     fetchDebriefs();
   }, []);
   
+  // Gérer onSuccess APRÈS le rendu pour éviter conflit DOM
+  useEffect(() => {
+    if (pendingSuccess && onSuccess) {
+      onSuccess(pendingSuccess);
+      setPendingSuccess(null);
+    }
+  }, [pendingSuccess, onSuccess]);
+  
   const fetchDebriefs = async () => {
     try {
       const response = await axios.get(`${API}/debriefs`, {
