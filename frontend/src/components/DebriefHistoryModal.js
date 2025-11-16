@@ -965,7 +965,8 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
                               {/* Exemple concret */}
                               <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-4 border-l-4 border-purple-500">
                                 <p className="text-sm font-bold text-purple-900 mb-2 flex items-center gap-2">
-                                  <span className="text-lg">💡</span> Exemple concret
+                                  <span className="text-lg">{isConclue ? '✨' : '💡'}</span> 
+                                  {isConclue ? 'Ce qui a fait la différence' : 'Exemple concret'}
                                 </p>
                                 <p className="text-sm text-purple-800 italic whitespace-pre-line leading-relaxed">{debrief.ai_exemple_concret}</p>
                               </div>
