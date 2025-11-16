@@ -260,11 +260,14 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
         visible_to_manager: false
       });
       
-      // Fermer le formulaire
+      // Fermer le formulaire d'abord
       setShowOpportuniteManqueeForm(false);
+      setLoading(false);
       
-      // Rafraîchir l'historique INTERNE
-      await fetchDebriefs();
+      // Rafraîchir l'historique APRÈS fermeture complète
+      setTimeout(() => {
+        fetchDebriefs();
+      }, 100);
     } catch (error) {
       console.error('Error:', error);
       toast.error('Erreur lors de la création');
