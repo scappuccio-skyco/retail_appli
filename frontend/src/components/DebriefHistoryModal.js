@@ -267,30 +267,6 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
       setLoading(false);
     }
   };
-  
-  // Toggle visibility
-  const handleToggleVisibility = async (debriefId, currentVisibility) => {
-    try {
-      const newVisibility = !currentVisibility;
-      await axios.patch(
-        `${API}/api/debriefs/${debriefId}/visibility?visible_to_manager=${newVisibility}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      // Mettre à jour localement
-      setDebriefs(prev => prev.map(d => 
-        d.id === debriefId 
-          ? { ...d, visible_to_manager: newVisibility }
-          : d
-      ));
-      
-      toast.success(newVisibility ? 'Analyse visible par le manager ✓' : 'Analyse masquée au manager');
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Erreur lors de la modification');
-    }
-  };
 
   // Filtrer debriefs
   const sortedAndLimitedDebriefs = useMemo(() => {
