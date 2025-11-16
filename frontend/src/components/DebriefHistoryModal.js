@@ -61,20 +61,44 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
   
   // Soumettre vente conclue
   const handleSubmitConclue = async () => {
-    if (!formConclue.produit || !formConclue.type_client || !formConclue.description_vente || 
-        formConclue.moment_perte_client.length === 0 || formConclue.raisons_echec.length === 0 || 
-        !formConclue.amelioration_pensee) {
-      toast.error('Veuillez remplir tous les champs');
+    // Validation détaillée
+    if (!formConclue.produit.trim()) {
+      toast.error('📦 Veuillez indiquer le produit vendu');
       return;
     }
     
-    // Vérifier "Autre"
-    if (formConclue.moment_perte_client.includes('Autre') && !formConclue.moment_perte_autre.trim()) {
-      toast.error('Veuillez préciser le moment clé');
+    if (!formConclue.type_client) {
+      toast.error('👤 Veuillez sélectionner le type de client');
       return;
     }
+    
+    if (!formConclue.description_vente.trim()) {
+      toast.error('💬 Veuillez décrire brièvement la vente');
+      return;
+    }
+    
+    if (formConclue.moment_perte_client.length === 0) {
+      toast.error('✨ Veuillez sélectionner au moins un moment clé du succès');
+      return;
+    }
+    
+    if (formConclue.moment_perte_client.includes('Autre') && !formConclue.moment_perte_autre.trim()) {
+      toast.error('✨ Veuillez préciser le moment clé (Autre)');
+      return;
+    }
+    
+    if (formConclue.raisons_echec.length === 0) {
+      toast.error('🎉 Veuillez sélectionner au moins un facteur de réussite');
+      return;
+    }
+    
     if (formConclue.raisons_echec.includes('Autre') && !formConclue.raisons_echec_autre.trim()) {
-      toast.error('Veuillez préciser les facteurs');
+      toast.error('🎉 Veuillez préciser les facteurs de réussite (Autre)');
+      return;
+    }
+    
+    if (!formConclue.amelioration_pensee.trim()) {
+      toast.error('💪 Veuillez indiquer ce qui a fait la différence');
       return;
     }
     
