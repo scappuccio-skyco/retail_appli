@@ -1300,7 +1300,7 @@ Tu viens d'analyser une vente qui s'est CONCLUE AVEC SUCCÈS ! Voici les détail
 1. FÉLICITER le vendeur pour cette réussite avec enthousiasme !
 2. Identifier 2 points forts qui ont contribué au succès (écoute, argumentation, closing, posture, etc.).
 3. Donner 1 recommandation pour reproduire ou dépasser ce succès.
-4. Ajouter 1 exemple concret de ce qui a particulièrement bien fonctionné.
+4. Donner 1 exemple concret et actionnable pour REPRODUIRE ce succès dans les prochaines ventes (ex: "La prochaine fois, commence aussi par une démonstration pour créer l'enthousiasme").
 5. **IMPORTANT** : Réévaluer les 5 compétences en valorisant les points forts mobilisés.
    - Augmente les scores des compétences clés qui ont conduit au succès (+0.2 à +0.5)
    - Les scores doivent rester entre 1.0 et 5.0
@@ -1311,7 +1311,7 @@ Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
   "analyse": "[2–3 phrases de FÉLICITATIONS enthousiastes et d'analyse des points forts, en tutoyant (Bravo ! Tu as réussi à...)]",
   "points_travailler": "[Point fort 1]\\n[Point fort 2]",
   "recommandation": "[Une phrase courte et motivante pour reproduire ce succès]",
-  "exemple_concret": "[Ce qui a particulièrement bien fonctionné dans cette vente]",
+  "exemple_concret": "[Action concrète pour REPRODUIRE ce succès la prochaine fois, commençant par 'La prochaine fois...' ou 'Pour refaire pareil...']",
   "score_accueil": 3.5,
   "score_decouverte": 4.0,
   "score_argumentation": 3.0,
