@@ -11,9 +11,11 @@ export default function DebriefModal({ onClose, onSuccess }) {
   const [showResult, setShowResult] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   
-  // Type de vente
-  const [venteConclue, setVenteConclue] = useState(false);
+  // Onglets
+  const [activeTab, setActiveTab] = useState('conclue'); // 'conclue', 'manquee', 'historique'
   const [visibleToManager, setVisibleToManager] = useState(false);
+  const [historique, setHistorique] = useState([]);
+  const [filtreHistorique, setFiltreHistorique] = useState('all'); // 'all', 'conclue', 'manquee'
   
   // Form data
   const [formData, setFormData] = useState({
