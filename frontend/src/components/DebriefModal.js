@@ -11,6 +11,10 @@ export default function DebriefModal({ onClose, onSuccess }) {
   const [showResult, setShowResult] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   
+  // Type de vente
+  const [venteConclue, setVenteConclue] = useState(false);
+  const [visibleToManager, setVisibleToManager] = useState(false);
+  
   // Form data
   const [formData, setFormData] = useState({
     produit: '',
