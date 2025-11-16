@@ -17,6 +17,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
   // Modal states
   const [showVenteConclueForm, setShowVenteConclueForm] = useState(false);
   const [showOpportuniteManqueeForm, setShowOpportuniteManqueeForm] = useState(false);
+  const [pendingSuccess, setPendingSuccess] = useState(null);
   
   // Charger l'historique au montage (comme DebriefModal)
   useEffect(() => {
