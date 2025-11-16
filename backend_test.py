@@ -6776,7 +6776,7 @@ class RetailCoachAPITester:
         # Login as Emma (emma.petit@test.com)
         emma_credentials = {
             "email": "emma.petit@test.com",
-            "password": "demo123"
+            "password": "password123"
         }
         
         success, response = self.run_test(
