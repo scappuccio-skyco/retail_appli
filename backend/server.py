@@ -1378,7 +1378,7 @@ Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
   "analyse": "[2–3 phrases d'analyse réaliste, orientée performance, en tutoyant (tu as bien identifié...)]",
   "points_travailler": "[Axe 1 en tutoyant]\\n[Axe 2 en tutoyant]",
   "recommandation": "[Une phrase courte, claire et motivante en tutoyant — action directe à tester dès la prochaine vente]",
-  "exemple_concret": "[Une phrase illustrant ce que tu aurais pu dire ou faire dans cette situation]",
+  "exemple_concret": "[Une phrase illustrant ce que tu aurais pu dire ou faire dans cette situation. Si tu proposes une phrase à dire au client, utilise VOUS/VOTRE/VOS]",
   "score_accueil": 3.5,
   "score_decouverte": 4.0,
   "score_argumentation": 3.0,
