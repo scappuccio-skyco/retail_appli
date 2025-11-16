@@ -5660,7 +5660,7 @@ async def check_subscription_access(user_id: str) -> dict:
                 "has_access": True, 
                 "status": "active", 
                 "period_end": sub['current_period_end'],
-                "plan": sub['plan']
+                "plan": sub.get('plan', 'professional')
             }
     
     return {"has_access": False, "status": sub['status'], "message": "Abonnement inactif"}
