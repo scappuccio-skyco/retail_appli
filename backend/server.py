@@ -1388,7 +1388,8 @@ Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
 
 ### STYLE ATTENDU
 - Ton professionnel, positif, utile et centré sur la performance commerciale
-- TUTOIEMENT OBLIGATOIRE : utilise "tu", "ta", "tes", "ton"
+- TUTOIEMENT OBLIGATOIRE pour s'adresser au vendeur : utilise "tu", "ta", "tes", "ton"
+- **IMPORTANT** : Dans les exemples de dialogue avec le CLIENT, utilise TOUJOURS le VOUVOIEMENT ("vous", "votre", "vos")
 - Évite toute approche psychologique ou moralisante
 - Utilise un vocabulaire de vendeur retail : client, besoin, argument, reformulation, closing, objection
 - L'exemple doit être simple, réaliste et crédible
