@@ -1268,10 +1268,22 @@ async def get_evaluations(current_user: dict = Depends(get_current_user)):
 
 # ===== DEBRIEF ROUTES =====
 
-async def generate_ai_debrief_analysis(debrief_data: dict, seller_name: str, current_scores: dict) -> dict:
+async def generate_ai_debrief_analysis(debrief_data: dict, seller_name: str, current_scores: dict, recent_kpis: dict = None) -> dict:
     """Generate AI coaching feedback for a debrief"""
     
     vente_conclue = debrief_data.get('vente_conclue', False)
+    
+    # Préparer le contexte KPI
+    kpi_context = ""
+    if recent_kpis:
+        kpi_context = f"""
+### 📊 PERFORMANCES RÉCENTES (KPI)
+- Ventes du jour : {recent_kpis.get('nb_ventes', 'N/A')}
+- Chiffre d'affaires : {recent_kpis.get('chiffre_affaires', 'N/A')}€
+- Panier moyen : {recent_kpis.get('panier_moyen', 'N/A')}€
+- Nombre de clients reçus : {recent_kpis.get('nb_clients', 'N/A')}
+- Articles vendus : {recent_kpis.get('nb_articles', 'N/A')}
+"""
     
     if vente_conclue:
         # Prompt pour vente CONCLUE (succès)
@@ -1288,7 +1300,7 @@ Tu viens d'analyser une vente qui s'est CONCLUE AVEC SUCCÈS ! Voici les détail
 ✨ Moment clé du succès : {debrief_data.get('moment_perte_client')}
 🎉 Facteurs de réussite : {debrief_data.get('raisons_echec')}
 💪 Ce qui a le mieux fonctionné : {debrief_data.get('amelioration_pensee')}
-
+{kpi_context}
 ### SCORES ACTUELS DES COMPÉTENCES (sur 5)
 - Accueil : {current_scores.get('accueil', 3.0)}
 - Découverte : {current_scores.get('decouverte', 3.0)}
