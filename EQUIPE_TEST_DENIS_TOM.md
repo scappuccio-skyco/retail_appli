@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://perf-retail.preview.emergentagent.com
+https://kpi-tracker-36.preview.emergentagent.com
 
 ### Manager
 ```
