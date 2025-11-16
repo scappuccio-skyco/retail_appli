@@ -131,6 +131,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
       );
       
       toast.success('🎉 Analyse créée avec succès !');
+      setLoading(false);
       
       // Reset form
       setFormConclue({
@@ -145,17 +146,16 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
         visible_to_manager: false
       });
       
-      // Rafraîchir immédiatement
-      if (onNewDebrief) {
-        onNewDebrief();
-      }
+      // Fermer le formulaire d'abord
+      setShowVenteConclueForm(false);
+      setIsSubmitting(false);
       
-      // Fermer le formulaire APRÈS le refresh
+      // Rafraîchir SEULEMENT après que le formulaire soit complètement fermé
       setTimeout(() => {
-        setShowVenteConclueForm(false);
-        setLoading(false);
-        setIsSubmitting(false);
-      }, 300);
+        if (onNewDebrief) {
+          onNewDebrief();
+        }
+      }, 500);
     } catch (error) {
       console.error('Error:', error);
       toast.error('Erreur lors de la création');
