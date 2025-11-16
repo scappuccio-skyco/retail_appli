@@ -1333,7 +1333,8 @@ Réponds UNIQUEMENT avec un objet JSON valide comme ceci :
 
 ### STYLE ATTENDU
 - Ton ENTHOUSIASTE, FÉLICITANT et encourageant
-- TUTOIEMENT OBLIGATOIRE : "tu", "ta", "tes", "ton"
+- TUTOIEMENT OBLIGATOIRE pour s'adresser au vendeur : "tu", "ta", "tes", "ton"
+- **IMPORTANT** : Dans les exemples de dialogue avec le CLIENT, utilise TOUJOURS le VOUVOIEMENT ("vous", "votre", "vos")
 - Vocabulaire positif : bravo, excellent, parfait, réussi, maîtrisé
 - L'exemple doit mettre en valeur ce qui a fonctionné
 - Maximum 12 lignes au total
