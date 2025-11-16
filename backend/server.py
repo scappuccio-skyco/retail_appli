@@ -1465,8 +1465,20 @@ async def create_debrief(debrief_data: DebriefCreate, current_user: dict = Depen
                 'fidelisation': diagnostic.get('score_fidelisation', 3.0)
             }
     
-    # Generate AI analysis with current scores
-    analysis = await generate_ai_debrief_analysis(debrief_data.model_dump(), current_user['name'], current_scores)
+    # Get recent KPIs for context
+    recent_kpis = await db.kpi_entries.find_one(
+        {"seller_id": current_user['id']},
+        {"_id": 0},
+        sort=[("date", -1)]
+    )
+    
+    # Generate AI analysis with current scores and KPIs
+    analysis = await generate_ai_debrief_analysis(
+        debrief_data.model_dump(), 
+        current_user['name'], 
+        current_scores,
+        recent_kpis
+    )
     
     # Create debrief object
     debrief = Debrief(
