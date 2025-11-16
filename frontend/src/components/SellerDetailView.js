@@ -813,8 +813,51 @@ export default function SellerDetailView({ seller, onBack }) {
         
         {debriefs.length > 0 ? (
           <>
+            {/* Filtres */}
+            <div className="flex gap-3 mb-6">
+              <button
+                onClick={() => setDebriefFilter('all')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  debriefFilter === 'all'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Toutes ({debriefs.length})
+              </button>
+              <button
+                onClick={() => setDebriefFilter('success')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  debriefFilter === 'success'
+                    ? 'bg-green-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                ✅ Réussies ({debriefs.filter(d => d.vente_conclue === true).length})
+              </button>
+              <button
+                onClick={() => setDebriefFilter('missed')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  debriefFilter === 'missed'
+                    ? 'bg-orange-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                ❌ Manquées ({debriefs.filter(d => d.vente_conclue === false).length})
+              </button>
+            </div>
+
             <div className="space-y-4">
-              {debriefs.slice(0, showAllDebriefs ? debriefs.length : 3).map((debrief) => (
+              {debriefs
+                .filter(debrief => {
+                  if (debriefFilter === 'success') return debrief.vente_conclue === true;
+                  if (debriefFilter === 'missed') return debrief.vente_conclue === false;
+                  return true; // 'all'
+                })
+                .slice(0, showAllDebriefs ? debriefs.length : 3)
+                .map((debrief) => {
+                  const isConclue = debrief.vente_conclue === true;
+                  return (
                 <div
                   key={debrief.id}
                   className="bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all"
