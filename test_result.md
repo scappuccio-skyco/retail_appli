@@ -324,7 +324,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "AI Sales Analysis - Client Vouvoiement Fix + KPI Context Enhancement"
+    - "Relationship Management API - Generate Advice"
+    - "Relationship Management API - Get History"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
