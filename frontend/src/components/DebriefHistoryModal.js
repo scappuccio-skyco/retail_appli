@@ -20,7 +20,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
     produit: '',
     type_client: '',
     description_vente: '',
-    moment_perte_client: '',
+    moment_perte_client: [], // Sélection multiple
     moment_perte_autre: '',
     raisons_echec: [], // Sélection multiple
     raisons_echec_autre: '',
@@ -33,7 +33,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
     produit: '',
     type_client: '',
     description_vente: '',
-    moment_perte_client: '',
+    moment_perte_client: [], // Sélection multiple
     moment_perte_autre: '',
     raisons_echec: [], // Sélection multiple
     raisons_echec_autre: '',
