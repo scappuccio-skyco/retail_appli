@@ -235,7 +235,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
       
       toast.success('Analyse créée avec succès !');
       
-      // Reset et fermeture
+      // Reset form
       setFormManquee({
         produit: '',
         type_client: '',
@@ -247,14 +247,18 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
         amelioration_pensee: '',
         visible_to_manager: false
       });
-      setShowOpportuniteManqueeForm(false);
-      setLoading(false);
-      setIsSubmitting(false);
       
-      // Rafraîchir APRÈS la fermeture complète
+      // Rafraîchir immédiatement
       if (onNewDebrief) {
-        setTimeout(() => onNewDebrief(), 200);
+        onNewDebrief();
       }
+      
+      // Fermer le formulaire APRÈS le refresh
+      setTimeout(() => {
+        setShowOpportuniteManqueeForm(false);
+        setLoading(false);
+        setIsSubmitting(false);
+      }, 300);
     } catch (error) {
       console.error('Error:', error);
       toast.error('Erreur lors de la création');
