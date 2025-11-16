@@ -1271,19 +1271,23 @@ async def get_evaluations(current_user: dict = Depends(get_current_user)):
 async def generate_ai_debrief_analysis(debrief_data: dict, seller_name: str, current_scores: dict) -> dict:
     """Generate AI coaching feedback for a debrief"""
     
-    prompt = f"""Tu es un coach expert en vente retail.
-Analyse la vente décrite pour identifier les causes probables de l'échec et proposer des leviers d'amélioration concrets.
+    vente_conclue = debrief_data.get('vente_conclue', False)
+    
+    if vente_conclue:
+        # Prompt pour vente CONCLUE (succès)
+        prompt = f"""Tu es un coach expert en vente retail.
+Analyse la vente décrite pour identifier les facteurs de réussite et renforcer les compétences mobilisées.
 
 ### CONTEXTE
-Tu viens de débriefer une vente qui n'a pas abouti. Voici les détails :
+Tu viens d'analyser une vente qui s'est CONCLUE AVEC SUCCÈS ! Voici les détails :
 
-🎯 Produit : {debrief_data.get('produit')}
+🎯 Produit vendu : {debrief_data.get('produit')}
 👥 Type de client : {debrief_data.get('type_client')}
 💼 Situation : {debrief_data.get('situation_vente')}
-💬 Description : {debrief_data.get('description_vente')}
-📍 Moment clé du blocage : {debrief_data.get('moment_perte_client')}
-❌ Raisons évoquées : {debrief_data.get('raisons_echec')}
-🔄 Ce que tu penses pouvoir faire différemment : {debrief_data.get('amelioration_pensee')}
+💬 Description du déroulé : {debrief_data.get('description_vente')}
+✨ Moment clé du succès : {debrief_data.get('moment_perte_client')}
+🎉 Facteurs de réussite : {debrief_data.get('raisons_echec')}
+💪 Ce qui a le mieux fonctionné : {debrief_data.get('amelioration_pensee')}
 
 ### SCORES ACTUELS DES COMPÉTENCES (sur 5)
 - Accueil : {current_scores.get('accueil', 3.0)}
