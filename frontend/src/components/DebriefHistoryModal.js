@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, token }) {
-  const [activeTab, setActiveTab] = useState('historique'); // 'conclue', 'manquee', 'historique'
+  const [activeTab, setActiveTab] = useState('historique'); // Toujours commencer par l'historique
   const [filtreHistorique, setFiltreHistorique] = useState('all'); // 'all', 'conclue', 'manquee'
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [displayLimit, setDisplayLimit] = useState(20);
