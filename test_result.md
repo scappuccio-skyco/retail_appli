@@ -315,13 +315,13 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "2.2"
-  test_sequence: 12
+  version: "2.3"
+  test_sequence: 13
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Seller KPI Endpoints - Nombre de clients Field Removal"
+    - "AI Sales Analysis - Client Vouvoiement Fix + KPI Context Enhancement"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
