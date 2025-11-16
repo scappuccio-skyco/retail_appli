@@ -1190,16 +1190,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             setAutoExpandDebriefId(null); // Reset
           }}
           onSuccess={(newDebrief) => {
-            // Sauvegarder l'ID dans le parent
-            setAutoExpandDebriefId(newDebrief.id);
-            // Fermer d'abord (comme DiagnosticFormScrollable)
-            setShowDebriefHistoryModal(false);
-            // Puis rafraîchir
+            // L'enfant gère maintenant tout en interne (pas de fermeture)
+            // On rafraîchit juste les stats du parent
             fetchDebriefs();
-            // Rouvrir le même modal après 500ms pour afficher le résultat
-            setTimeout(() => {
-              setShowDebriefHistoryModal(true);
-            }, 500);
           }}
           autoExpandDebriefId={autoExpandDebriefId}
           token={localStorage.getItem('token')}
