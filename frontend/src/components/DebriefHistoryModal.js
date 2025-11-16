@@ -275,16 +275,8 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
   const hasMore = displayLimit < debriefs.length;
   const remainingCount = debriefs.length - displayLimit;
 
-  const handleClose = () => {
-    // Appeler onSuccess pour rafraîchir le parent (comme DebriefModal)
-    if (onSuccess) {
-      onSuccess();
-    }
-    onClose();
-  };
-
   return (
-    <div onClick={(e) => { if (e.target === e.currentTarget && !loading) { handleClose(); } }} 
+    <div onClick={(e) => { if (e.target === e.currentTarget && !loading) { onClose(); } }} 
          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl" onClick={(e) => e.stopPropagation()}>
         {/* Header simple */}
