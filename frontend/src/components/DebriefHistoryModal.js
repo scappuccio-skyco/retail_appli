@@ -840,9 +840,9 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
                           }`}
                         >
                           {/* Header */}
-                          <button
+                          <div
                             onClick={() => toggleDebrief(debrief.id)}
-                            className="w-full p-5 text-left hover:bg-white hover:bg-opacity-50 transition-colors"
+                            className="w-full p-5 cursor-pointer hover:bg-white hover:bg-opacity-50 transition-colors"
                           >
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
@@ -869,24 +869,18 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
                                   <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded">
                                     {debrief.type_client}
                                   </span>
-                                  {/* Toggle visibilité */}
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleToggleVisibility(debrief.id, debrief.visible_to_manager);
-                                    }}
-                                    className={`px-2 py-1 text-xs font-medium rounded flex items-center gap-1 ${
-                                      debrief.visible_to_manager
-                                        ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                                  >
+                                  {/* Badge visibilité (lecture seule) */}
+                                  <span className={`px-2 py-1 text-xs font-medium rounded flex items-center gap-1 ${
+                                    debrief.visible_to_manager
+                                      ? 'bg-blue-100 text-blue-700'
+                                      : 'bg-gray-100 text-gray-600'
+                                  }`}>
                                     {debrief.visible_to_manager ? (
                                       <><Eye className="w-3 h-3" /> Visible</>
                                     ) : (
                                       <><EyeOff className="w-3 h-3" /> Privé</>
                                     )}
-                                  </button>
+                                  </span>
                                 </div>
                                 <div className="space-y-2">
                                   <div className="flex items-start gap-2">
