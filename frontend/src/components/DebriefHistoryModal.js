@@ -520,8 +520,8 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
             </div>
           )}
 
-          {/* Onglet Historique */}
-          {activeTab === 'historique' && (
+          {/* Historique - Toujours affiché si pas de formulaire ouvert */}
+          {!showVenteConclueForm && !showOpportuniteManqueeForm && (
             <>
               {debriefs.length > 0 ? (
                 <>
