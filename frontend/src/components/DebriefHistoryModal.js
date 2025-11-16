@@ -841,6 +841,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
                       return (
                         <div
                           key={`debrief-${debrief.id}`}
+                          data-debrief-id={debrief.id}
                           className={`rounded-2xl border-2 hover:shadow-lg transition-all overflow-hidden ${
                             isConclue
                               ? 'bg-gradient-to-r from-white to-green-50 border-green-200'
