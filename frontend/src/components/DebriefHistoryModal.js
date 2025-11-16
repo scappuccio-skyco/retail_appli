@@ -899,7 +899,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
                                 </div>
                               </div>
                             </div>
-                          </button>
+                          </div>
 
                           {/* AI Analysis - Expandable */}
                           {expandedDebriefs[debrief.id] && (
