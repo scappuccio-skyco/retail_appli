@@ -852,17 +852,30 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
                                   <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded">
                                     {debrief.type_client}
                                   </span>
-                                  {/* Badge visibilité (lecture seule) */}
-                                  <span className={`px-2 py-1 text-xs font-medium rounded flex items-center gap-1 ${
-                                    debrief.visible_to_manager
-                                      ? 'bg-blue-100 text-blue-700'
-                                      : 'bg-gray-100 text-gray-600'
-                                  }`}>
+                                </div>
+                                
+                                {/* Bouton toggle visibilité - Placé EN DEHORS du header cliquable */}
+                                <div className="mt-2 flex items-center gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleVisibility(debrief.id, debrief.visible_to_manager);
+                                    }}
+                                    className={`px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-all ${
+                                      debrief.visible_to_manager
+                                        ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                                    title={debrief.visible_to_manager ? "Masquer cette analyse au manager" : "Partager cette analyse avec le manager"}
+                                  >
                                     {debrief.visible_to_manager ? (
-                                      <><Eye className="w-3 h-3" /> Visible par le Manager</>
+                                      <><Eye className="w-3.5 h-3.5" /> Visible par le Manager</>
                                     ) : (
-                                      <><EyeOff className="w-3 h-3" /> Privé</>
+                                      <><EyeOff className="w-3.5 h-3.5" /> Privé</>
                                     )}
+                                  </button>
+                                  <span className="text-xs text-gray-500">
+                                    {debrief.visible_to_manager ? 'Le manager peut voir cette analyse' : 'Seul vous pouvez voir cette analyse'}
                                   </span>
                                 </div>
                                 <div className="space-y-2">
