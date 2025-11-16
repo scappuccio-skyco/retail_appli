@@ -21,7 +21,7 @@ const PLANS = {
       'Coaching IA personnalisé',
       'Suivi KPI en temps réel',
       'Objectifs & Challenges',
-      'Débriefs de vente intelligents',
+      'Analyses des ventes intelligentes',
       'Historique illimité'
     ],
     specs: [
@@ -44,7 +44,7 @@ const PLANS = {
       'Coaching IA personnalisé',
       'Suivi KPI en temps réel',
       'Objectifs & Challenges',
-      'Débriefs de vente intelligents',
+      'Analyses des ventes intelligentes',
       'Historique illimité'
     ],
     specs: [
@@ -67,7 +67,7 @@ const PLANS = {
       'Coaching IA personnalisé',
       'Suivi KPI en temps réel',
       'Objectifs & Challenges',
-      'Débriefs de vente intelligents',
+      'Analyses des ventes intelligentes',
       'Historique illimité'
     ],
     specs: [
