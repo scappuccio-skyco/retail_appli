@@ -2952,9 +2952,9 @@ async def get_seller_debriefs(seller_id: str, current_user: dict = Depends(get_c
     if not seller or seller.get('manager_id') != current_user['id']:
         raise HTTPException(status_code=404, detail="Seller not in your team")
     
-    # Get all debriefs for this seller
+    # Get all debriefs for this seller that are visible to manager
     debriefs = await db.debriefs.find(
-        {"seller_id": seller_id},
+        {"seller_id": seller_id, "visible_to_manager": True},
         {"_id": 0}
     ).sort("created_at", -1).to_list(1000)
     
