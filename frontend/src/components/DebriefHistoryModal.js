@@ -246,7 +246,6 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
       );
       
       toast.success('Analyse créée avec succès !');
-      setLoading(false);
       
       // Reset form
       setFormManquee({
@@ -261,16 +260,11 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
         visible_to_manager: false
       });
       
-      // Fermer le formulaire d'abord
+      // Fermer le formulaire
       setShowOpportuniteManqueeForm(false);
-      setIsSubmitting(false);
       
-      // Rafraîchir SEULEMENT après que le formulaire soit complètement fermé
-      setTimeout(() => {
-        if (onNewDebrief) {
-          onNewDebrief();
-        }
-      }, 500);
+      // Rafraîchir l'historique INTERNE
+      await fetchDebriefs();
     } catch (error) {
       console.error('Error:', error);
       toast.error('Erreur lors de la création');
