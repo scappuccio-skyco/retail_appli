@@ -7038,7 +7038,10 @@ class RetailCoachAPITester:
         print("🚀 Starting Retail Coach 2.0 API Tests")
         print("=" * 50)
 
-        # PRIORITY 1: Manager Dashboard UI Tests (CURRENT REVIEW REQUEST - HIGHEST PRIORITY)
+        # PRIORITY 1: AI Sales Analysis - Client Vouvoiement Fix + KPI Context Enhancement (CURRENT REVIEW REQUEST - HIGHEST PRIORITY)
+        self.test_ai_sales_analysis_vouvoiement_kpi_context()
+
+        # PRIORITY 2: Manager Dashboard UI Tests (CURRENT REVIEW REQUEST - HIGHEST PRIORITY)
         self.test_manager_dashboard_endpoints()
 
         # CRITICAL: Test Stripe Adjustable Quantity Feature (REVIEW REQUEST - HIGHEST PRIORITY)
