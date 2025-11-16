@@ -732,8 +732,32 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
           {/* HISTORIQUE */}
           {!showVenteConclueForm && !showOpportuniteManqueeForm && (
             <>
+              {/* Boutons d'action - TOUJOURS VISIBLES */}
+              <div className="mb-6">
+                <p className="text-sm text-gray-600 mb-3 font-medium">Créer une nouvelle analyse :</p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowVenteConclueForm(true)}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg"
+                  >
+                    <CheckCircle className="w-5 h-5" />
+                    Vente conclue
+                  </button>
+                  <button
+                    onClick={() => setShowOpportuniteManqueeForm(true)}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg"
+                  >
+                    <XCircle className="w-5 h-5" />
+                    Opportunité manquée
+                  </button>
+                </div>
+              </div>
+
               {debriefs.length > 0 ? (
                 <>
+                  {/* Séparateur */}
+                  <div className="border-t border-gray-200 my-6"></div>
+                  
                   {/* Filtres */}
                   <div className="mb-6 flex gap-2">
                     <button
