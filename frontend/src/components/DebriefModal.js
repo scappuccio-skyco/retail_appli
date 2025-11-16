@@ -173,20 +173,47 @@ export default function DebriefModal({ onClose, onSuccess }) {
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
         {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl relative flex-shrink-0">
+        <div className={`${venteConclue ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A]'} p-6 rounded-t-2xl relative flex-shrink-0`}>
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-4xl">💬</span>
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-4xl">{venteConclue ? '🎉' : '💬'}</span>
             <div>
               <h2 className="text-2xl font-bold text-white">
-                Une vente n'a pas abouti ?
+                {venteConclue ? 'Analyse de vente réussie' : 'Analyse de vente'}
               </h2>
-              <p className="text-white text-opacity-90">Fais-en ton meilleur apprentissage !</p>
+              <p className="text-white text-opacity-90">
+                {venteConclue ? 'Célèbre ton succès et apprends de tes forces !' : 'Fais-en ton meilleur apprentissage !'}
+              </p>
+            </div>
+          </div>
+          
+          {/* Sélecteur de type de vente */}
+          <div className="bg-white bg-opacity-20 rounded-lg p-4">
+            <p className="text-white text-sm font-semibold mb-3">Type de vente :</p>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={venteConclue}
+                  onChange={() => setVenteConclue(true)}
+                  className="w-4 h-4"
+                />
+                <span className="text-white font-medium">✅ Vente conclue</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={!venteConclue}
+                  onChange={() => setVenteConclue(false)}
+                  className="w-4 h-4"
+                />
+                <span className="text-white font-medium">❌ Opportunité manquée</span>
+              </label>
             </div>
           </div>
         </div>
