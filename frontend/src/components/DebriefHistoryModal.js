@@ -129,19 +129,23 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
       );
       
       toast.success('🎉 Analyse créée avec succès !');
-      setFormConclue({
-        produit: '',
-        type_client: '',
-        description_vente: '',
-        moment_perte_client: [],
-        moment_perte_autre: '',
-        raisons_echec: [],
-        raisons_echec_autre: '',
-        amelioration_pensee: '',
-        visible_to_manager: false
-      });
-      setShowVenteConclueForm(false);
-      if (onNewDebrief) onNewDebrief();
+      
+      // Reset form et fermeture après un petit délai pour éviter les problèmes de DOM
+      setTimeout(() => {
+        setFormConclue({
+          produit: '',
+          type_client: '',
+          description_vente: '',
+          moment_perte_client: [],
+          moment_perte_autre: '',
+          raisons_echec: [],
+          raisons_echec_autre: '',
+          amelioration_pensee: '',
+          visible_to_manager: false
+        });
+        setShowVenteConclueForm(false);
+        if (onNewDebrief) onNewDebrief();
+      }, 100);
     } catch (error) {
       console.error('Error:', error);
       toast.error('Erreur lors de la création');
