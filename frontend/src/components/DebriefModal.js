@@ -461,6 +461,26 @@ export default function DebriefModal({ onClose, onSuccess }) {
           </div>
         </div>
 
+        {/* Visibilité */}
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={visibleToManager}
+              onChange={(e) => setVisibleToManager(e.target.checked)}
+              className="w-5 h-5 text-blue-600 rounded mt-0.5"
+            />
+            <div>
+              <span className="text-sm font-semibold text-gray-800">
+                📤 Partager avec mon manager
+              </span>
+              <p className="text-xs text-gray-600 mt-1">
+                Tu peux modifier cela plus tard dans ton historique d'analyses
+              </p>
+            </div>
+          </label>
+        </div>
+
         {/* Actions */}
         <div className="bg-gradient-to-r from-gray-50 to-white border-t-2 border-gray-200 p-6 flex gap-3 flex-shrink-0 rounded-b-2xl">
           <button
