@@ -890,7 +890,7 @@ export default function SellerDetailView({ seller, onBack }) {
           </>
         ) : (
           <div className="text-center py-12 text-gray-500">
-            Aucun débrief pour le moment
+            Aucune analyse de vente pour le moment
           </div>
         )}
       </div>
