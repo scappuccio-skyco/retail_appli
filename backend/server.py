@@ -6965,8 +6965,11 @@ async def get_relationship_history(
 ):
     """Get manager's relationship consultation history with optional seller filter."""
     try:
-        current_user = await verify_token(credentials.credentials)
-        if current_user.get('role') != 'manager':
+        # Verify manager
+        token = credentials.credentials
+        payload = decode_token(token)
+        current_user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
+        if not current_user or current_user.get('role') != 'manager':
             raise HTTPException(status_code=403, detail="Manager access only")
         
         manager_id = current_user['id']
