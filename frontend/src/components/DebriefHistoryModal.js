@@ -140,7 +140,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
         ? formConclue.raisons_echec.filter(r => r !== 'Autre').concat([formConclue.raisons_echec_autre]).join(', ')
         : formConclue.raisons_echec.join(', ');
       
-      await axios.post(
+      const response = await axios.post(
         `${API}/api/debriefs`,
         {
           vente_conclue: true,
