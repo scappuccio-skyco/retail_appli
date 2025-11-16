@@ -330,6 +330,16 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     }
   };
 
+  const fetchDebriefs = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const debriefsRes = await axios.get(`${API}/debriefs`, { headers: { Authorization: `Bearer ${token}` } });
+      setDebriefs(debriefsRes.data);
+    } catch (error) {
+      console.error('Error fetching debriefs:', error);
+    }
+  };
+
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
