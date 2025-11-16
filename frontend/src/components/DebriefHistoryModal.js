@@ -362,8 +362,8 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
             </div>
           )}
 
-          {/* Onglet Opportunité manquée */}
-          {activeTab === 'manquee' && (
+          {/* Form modal Opportunité manquée */}
+          {showOpportuniteManqueeForm && (
             <div className="space-y-4">
               <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-l-4 border-orange-500">
                 <h3 className="text-lg font-bold text-orange-900 flex items-center gap-2">
