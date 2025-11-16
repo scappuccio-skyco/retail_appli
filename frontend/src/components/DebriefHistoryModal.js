@@ -84,7 +84,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
         amelioration_pensee: '',
         visible_to_manager: false
       });
-      setActiveTab('historique');
+      setShowVenteConclueForm(false);
       if (onNewDebrief) onNewDebrief();
     } catch (error) {
       console.error('Error submitting vente conclue:', error);
