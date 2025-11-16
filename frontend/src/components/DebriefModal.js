@@ -446,15 +446,16 @@ export default function DebriefModal({ onClose, onSuccess }) {
                 </div>
               </div>
 
-              {/* Amélioration */}
+              {/* Amélioration / Ce qui a fonctionné */}
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                  <span className="text-lg">💡</span> Qu'aurais-tu pu faire différemment selon toi ?
+                  <span className="text-lg">{venteConclue ? '🌟' : '💡'}</span> 
+                  {venteConclue ? 'Qu\'est-ce qui a le mieux fonctionné ?' : 'Qu\'aurais-tu pu faire différemment selon toi ?'}
                 </label>
                 <textarea
                   value={formData.amelioration_pensee}
                   onChange={(e) => handleChange('amelioration_pensee', e.target.value)}
-                  placeholder="Partage tes réflexions..."
+                  placeholder={venteConclue ? "Partage ce qui t'a permis de réussir..." : "Partage tes réflexions..."}
                   rows={4}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-[#10B981] transition-all resize-none shadow-sm"
                 />
