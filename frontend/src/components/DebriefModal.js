@@ -25,10 +25,26 @@ export default function DebriefModal({ onClose, onSuccess }) {
     description_vente: '',
     moment_perte_client: '',
     moment_perte_autre: '',
-    raisons_echec: '',
+    raisons_echec: [],  // Maintenant un array pour sélection multiple
     raisons_echec_autre: '',
     amelioration_pensee: ''
   });
+  
+  // Charger l'historique au montage
+  useEffect(() => {
+    const fetchHistorique = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${API}/debriefs`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setHistorique(response.data);
+      } catch (error) {
+        console.error('Erreur chargement historique:', error);
+      }
+    };
+    fetchHistorique();
+  }, []);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
