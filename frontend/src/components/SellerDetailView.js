@@ -805,10 +805,10 @@ export default function SellerDetailView({ seller, onBack }) {
         </div>
       )}
 
-      {/* Tab Content - Débriefs */}
+      {/* Tab Content - Analyses des ventes */}
       {activeTab === 'debriefs' && (
       <div className="glass-morphism rounded-2xl p-6 mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">📝 Derniers débriefs</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">📝 Dernières analyses des ventes</h2>
         
         {debriefs.length > 0 ? (
           <>
