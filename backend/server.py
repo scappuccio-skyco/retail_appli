@@ -1277,12 +1277,12 @@ async def generate_ai_debrief_analysis(debrief_data: dict, seller_name: str, cur
     kpi_context = ""
     if recent_kpis:
         kpi_context = f"""
-### 📊 PERFORMANCES RÉCENTES (KPI)
-- Ventes du jour : {recent_kpis.get('nb_ventes', 'N/A')}
+### 📊 PERFORMANCES RÉCENTES (dernière saisie KPI)
+- Ventes : {recent_kpis.get('nb_ventes', 'N/A')}
 - Chiffre d'affaires : {recent_kpis.get('chiffre_affaires', 'N/A')}€
 - Panier moyen : {recent_kpis.get('panier_moyen', 'N/A')}€
-- Nombre de clients reçus : {recent_kpis.get('nb_clients', 'N/A')}
 - Articles vendus : {recent_kpis.get('nb_articles', 'N/A')}
+- Indice de vente : {recent_kpis.get('indice_vente', 'N/A')}
 """
     
     if vente_conclue:
