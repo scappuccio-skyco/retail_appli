@@ -42,6 +42,119 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
       [debriefId]: !prev[debriefId]
     }));
   };
+  
+  // Soumettre le formulaire "Vente conclue"
+  const handleSubmitConclue = async () => {
+    if (!formConclue.produit || !formConclue.type_client || !formConclue.situation_vente || 
+        !formConclue.description_vente || !formConclue.moment_perte_client || 
+        !formConclue.raisons_echec || !formConclue.amelioration_pensee) {
+      toast.error('Veuillez remplir tous les champs');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `${API}/api/debriefs`,
+        {
+          vente_conclue: true,
+          visible_to_manager: formConclue.visible_to_manager,
+          produit: formConclue.produit,
+          type_client: formConclue.type_client,
+          situation_vente: formConclue.situation_vente,
+          description_vente: formConclue.description_vente,
+          moment_perte_client: formConclue.moment_perte_client,
+          raisons_echec: formConclue.raisons_echec,
+          amelioration_pensee: formConclue.amelioration_pensee
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success('🎉 Analyse créée avec succès !');
+      setFormConclue({
+        produit: '',
+        type_client: '',
+        situation_vente: '',
+        description_vente: '',
+        moment_perte_client: '',
+        raisons_echec: '',
+        amelioration_pensee: '',
+        visible_to_manager: false
+      });
+      setActiveTab('historique');
+      if (onNewDebrief) onNewDebrief(); // Refresh debriefs
+    } catch (error) {
+      console.error('Error submitting vente conclue:', error);
+      toast.error('Erreur lors de la création de l\'analyse');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Soumettre le formulaire "Opportunité manquée"
+  const handleSubmitManquee = async () => {
+    if (!formManquee.produit || !formManquee.type_client || !formManquee.situation_vente || 
+        !formManquee.description_vente || !formManquee.moment_perte_client || 
+        !formManquee.raisons_echec || !formManquee.amelioration_pensee) {
+      toast.error('Veuillez remplir tous les champs');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `${API}/api/debriefs`,
+        {
+          vente_conclue: false,
+          visible_to_manager: formManquee.visible_to_manager,
+          produit: formManquee.produit,
+          type_client: formManquee.type_client,
+          situation_vente: formManquee.situation_vente,
+          description_vente: formManquee.description_vente,
+          moment_perte_client: formManquee.moment_perte_client,
+          raisons_echec: formManquee.raisons_echec,
+          amelioration_pensee: formManquee.amelioration_pensee
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success('Analyse créée avec succès !');
+      setFormManquee({
+        produit: '',
+        type_client: '',
+        situation_vente: '',
+        description_vente: '',
+        moment_perte_client: '',
+        raisons_echec: '',
+        amelioration_pensee: '',
+        visible_to_manager: false
+      });
+      setActiveTab('historique');
+      if (onNewDebrief) onNewDebrief(); // Refresh debriefs
+    } catch (error) {
+      console.error('Error submitting opportunité manquée:', error);
+      toast.error('Erreur lors de la création de l\'analyse');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Toggle visibility d'une analyse
+  const handleToggleVisibility = async (debriefId, currentVisibility) => {
+    try {
+      await axios.put(
+        `${API}/api/debriefs/${debriefId}/visibility`,
+        { visible_to_manager: !currentVisibility },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(!currentVisibility ? 'Analyse visible par le manager' : 'Analyse masquée au manager');
+      if (onNewDebrief) onNewDebrief(); // Refresh debriefs
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+      toast.error('Erreur lors de la modification de la visibilité');
+    }
+  };
 
   // Trier les débriefs par date (plus récents en premier) et limiter l'affichage
   const sortedAndLimitedDebriefs = useMemo(() => {
