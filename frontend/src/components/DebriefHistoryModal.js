@@ -147,15 +147,11 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      // Fermer le modal IMMÉDIATEMENT
-      onClose();
-      
-      // Toast après fermeture
       toast.success('🎉 Analyse créée avec succès !');
       
-      // Appeler onSuccess pour rafraîchir le parent
+      // Appeler onSuccess qui fermera le modal ET rafraîchira (comme DiagnosticFormScrollable)
       if (onSuccess) {
-        onSuccess();
+        onSuccess(response.data);
       }
     } catch (error) {
       console.error('Error:', error);
