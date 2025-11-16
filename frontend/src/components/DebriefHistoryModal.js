@@ -27,8 +27,14 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
   // Gérer onSuccess APRÈS le rendu pour éviter conflit DOM
   useEffect(() => {
     if (pendingSuccess && onSuccess) {
-      onSuccess(pendingSuccess);
-      setPendingSuccess(null);
+      // Attendre que React termine TOUS les rendus en cours avant de notifier le parent
+      // Cela évite l'erreur insertBefore quand le parent ferme le modal trop tôt
+      const timer = setTimeout(() => {
+        onSuccess(pendingSuccess);
+        setPendingSuccess(null);
+      }, 150);
+      
+      return () => clearTimeout(timer);
     }
   }, [pendingSuccess, onSuccess]);
   
