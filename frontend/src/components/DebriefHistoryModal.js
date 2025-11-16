@@ -62,14 +62,14 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
   // Soumettre vente conclue
   const handleSubmitConclue = async () => {
     if (!formConclue.produit || !formConclue.type_client || !formConclue.description_vente || 
-        !formConclue.moment_perte_client || formConclue.raisons_echec.length === 0 || 
+        formConclue.moment_perte_client.length === 0 || formConclue.raisons_echec.length === 0 || 
         !formConclue.amelioration_pensee) {
       toast.error('Veuillez remplir tous les champs');
       return;
     }
     
     // Vérifier "Autre"
-    if (formConclue.moment_perte_client === 'Autre' && !formConclue.moment_perte_autre.trim()) {
+    if (formConclue.moment_perte_client.includes('Autre') && !formConclue.moment_perte_autre.trim()) {
       toast.error('Veuillez préciser le moment clé');
       return;
     }
@@ -81,7 +81,9 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
     setLoading(true);
     try {
       // Préparer les données
-      const moment = formConclue.moment_perte_client === 'Autre' ? formConclue.moment_perte_autre : formConclue.moment_perte_client;
+      const moment = formConclue.moment_perte_client.includes('Autre')
+        ? formConclue.moment_perte_client.filter(m => m !== 'Autre').concat([formConclue.moment_perte_autre]).join(', ')
+        : formConclue.moment_perte_client.join(', ');
       const raisons = formConclue.raisons_echec.includes('Autre') 
         ? formConclue.raisons_echec.filter(r => r !== 'Autre').concat([formConclue.raisons_echec_autre]).join(', ')
         : formConclue.raisons_echec.join(', ');
