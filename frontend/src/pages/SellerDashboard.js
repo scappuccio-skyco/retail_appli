@@ -1190,7 +1190,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             setShowDebriefHistoryModal(false);
             // Puis rafraîchir
             fetchDebriefs();
-            // TODO: Ouvrir modal résultat si besoin
+            // Ouvrir automatiquement le modal de résultat après 500ms
+            setTimeout(() => {
+              setShowDebriefModal(true);
+            }, 500);
           }}
           token={localStorage.getItem('token')}
         />
