@@ -171,7 +171,6 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
       console.error('Error:', error);
       toast.error('Erreur lors de la création');
       setLoading(false);
-      setIsSubmitting(false);
     }
   };
   
@@ -267,7 +266,6 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
       console.error('Error:', error);
       toast.error('Erreur lors de la création');
       setLoading(false);
-      setIsSubmitting(false);
     }
   };
   
