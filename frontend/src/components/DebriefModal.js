@@ -189,50 +189,59 @@ export default function DebriefModal({ onClose, onSuccess }) {
 
   // Form view
   return (
-    <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
-        {/* Header compact with gradient */}
-        <div className={`${venteConclue ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A]'} p-4 rounded-t-2xl relative flex-shrink-0`}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh]">
+        {/* Header avec onglets */}
+        <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-4 rounded-t-2xl relative flex-shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 text-white hover:text-gray-200 transition-colors"
+            className="absolute top-3 right-3 text-white hover:text-gray-200 transition-colors z-10"
           >
             <X className="w-5 h-5" />
           </button>
-          <div className="flex items-center justify-between pr-8">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{venteConclue ? '🎉' : '💬'}</span>
-              <div>
-                <h2 className="text-lg font-bold text-white">
-                  {venteConclue ? 'Analyse de vente réussie' : 'Analyse de vente'}
-                </h2>
-                <p className="text-white text-opacity-90 text-xs">
-                  {venteConclue ? 'Célèbre et apprends !' : 'Fais-en un apprentissage !'}
-                </p>
-              </div>
-            </div>
-            
-            {/* Sélecteur de type de vente compact */}
-            <div className="flex gap-3">
-              <label className="flex items-center gap-1.5 cursor-pointer bg-white bg-opacity-20 px-3 py-1.5 rounded-lg">
-                <input
-                  type="radio"
-                  checked={venteConclue}
-                  onChange={() => setVenteConclue(true)}
-                  className="w-3.5 h-3.5"
-                />
-                <span className="text-white text-sm font-medium">✅ Réussie</span>
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer bg-white bg-opacity-20 px-3 py-1.5 rounded-lg">
-                <input
-                  type="radio"
-                  checked={!venteConclue}
-                  onChange={() => setVenteConclue(false)}
-                  className="w-3.5 h-3.5"
-                />
-                <span className="text-white text-sm font-medium">❌ Manquée</span>
-              </label>
-            </div>
+          
+          <h2 className="text-xl font-bold text-white mb-4">📊 Analyse de vente</h2>
+          
+          {/* Onglets */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab('conclue')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                activeTab === 'conclue'
+                  ? 'bg-white text-green-700 shadow-lg'
+                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+              }`}
+            >
+              <span className="text-lg">✅</span>
+              <span>Vente conclue</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('manquee')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                activeTab === 'manquee'
+                  ? 'bg-white text-orange-700 shadow-lg'
+                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+              }`}
+            >
+              <span className="text-lg">❌</span>
+              <span>Opportunité manquée</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('historique')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                activeTab === 'historique'
+                  ? 'bg-white text-blue-700 shadow-lg'
+                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+              }`}
+            >
+              <span className="text-lg">📚</span>
+              <span>Historique</span>
+              {historique.length > 0 && (
+                <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {historique.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
