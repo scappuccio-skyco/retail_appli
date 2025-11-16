@@ -390,10 +390,11 @@ export default function DebriefModal({ onClose, onSuccess }) {
                 )}
               </div>
 
-              {/* Raisons */}
+              {/* Raisons / Facteurs */}
               <div>
                 <label className="block text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                  <span className="text-lg">🤔</span> Pourquoi penses-tu que le client n'a pas acheté ?
+                  <span className="text-lg">{venteConclue ? '🎉' : '🤔'}</span> 
+                  {venteConclue ? 'Quels ont été les facteurs de réussite ?' : 'Pourquoi penses-tu que le client n\'a pas acheté ?'}
                 </label>
                 <div className="space-y-2">
                   {[
