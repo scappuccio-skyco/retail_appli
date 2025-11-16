@@ -318,28 +318,32 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
                   />
                 </div>
 
-                {/* Moment clé */}
+                {/* Moment clé - SÉLECTION MULTIPLE */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ✨ Moment clé du succès
+                    ✨ Moments clés du succès (plusieurs choix possibles)
                   </label>
                   <div className="space-y-2">
                     {['Accueil', 'Découverte du besoin', 'Argumentation', 'Closing', 'Autre'].map(moment => (
-                      <button
+                      <label
                         key={`conclue-moment-${moment}`}
-                        type="button"
-                        onClick={() => setFormConclue({...formConclue, moment_perte_client: moment})}
-                        className={`w-full text-left p-2 rounded-lg border-2 text-sm font-medium transition-all ${
-                          formConclue.moment_perte_client === moment
-                            ? 'border-green-500 bg-green-50 text-green-700'
-                            : 'border-gray-200 hover:border-green-300'
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                          formConclue.moment_perte_client.includes(moment)
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
                         }`}
                       >
-                        {moment}
-                      </button>
+                        <input
+                          type="checkbox"
+                          checked={formConclue.moment_perte_client.includes(moment)}
+                          onChange={() => toggleCheckbox(formConclue, setFormConclue, 'moment_perte_client', moment)}
+                          className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">{moment}</span>
+                      </label>
                     ))}
                   </div>
-                  {formConclue.moment_perte_client === 'Autre' && (
+                  {formConclue.moment_perte_client.includes('Autre') && (
                     <input
                       type="text"
                       value={formConclue.moment_perte_autre}
