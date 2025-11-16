@@ -267,6 +267,35 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
       setLoading(false);
     }
   };
+  
+  // Toggle la visibilité d'une analyse pour le manager
+  const handleToggleVisibility = async (debriefId, currentVisibility) => {
+    try {
+      const newVisibility = !currentVisibility;
+      
+      await axios.patch(
+        `${API}/api/debriefs/${debriefId}/visibility?visible_to_manager=${newVisibility}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Mettre à jour localement sans fermer le modal
+      setDebriefs(prev => prev.map(d => 
+        d.id === debriefId 
+          ? { ...d, visible_to_manager: newVisibility }
+          : d
+      ));
+      
+      toast.success(
+        newVisibility 
+          ? '✅ Analyse partagée avec le manager' 
+          : '🔒 Analyse masquée au manager'
+      );
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+      toast.error('Erreur lors de la modification');
+    }
+  };
 
   // Filtrer debriefs
   const sortedAndLimitedDebriefs = useMemo(() => {
