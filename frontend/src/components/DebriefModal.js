@@ -13,6 +13,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
   
   // Onglets
   const [activeTab, setActiveTab] = useState('conclue'); // 'conclue', 'manquee', 'historique'
+  const [venteConclue, setVenteConclue] = useState(true);
   const [visibleToManager, setVisibleToManager] = useState(false);
   const [historique, setHistorique] = useState([]);
   const [filtreHistorique, setFiltreHistorique] = useState('all'); // 'all', 'conclue', 'manquee'
