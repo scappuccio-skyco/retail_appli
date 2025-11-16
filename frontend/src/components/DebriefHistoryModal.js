@@ -34,7 +34,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
   
   const fetchDebriefs = async () => {
     try {
-      const response = await axios.get(`${API}/debriefs`, {
+      const response = await axios.get(`${API}/api/debriefs`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDebriefs(response.data);
