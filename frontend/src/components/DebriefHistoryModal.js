@@ -1,9 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { X, MessageSquare } from 'lucide-react';
+import { X, MessageSquare, Sparkles, Eye, EyeOff } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'sonner';
+
+const API = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief }) {
+  const [activeTab, setActiveTab] = useState('historique'); // 'conclue', 'manquee', 'historique'
+  const [filtreHistorique, setFiltreHistorique] = useState('all'); // 'all', 'conclue', 'manquee'
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [displayLimit, setDisplayLimit] = useState(20); // Afficher 20 débriefs à la fois
+  const [loading, setLoading] = useState(false);
 
   const toggleDebrief = (debriefId) => {
     setExpandedDebriefs(prev => ({
