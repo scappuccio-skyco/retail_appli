@@ -122,7 +122,6 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
     }
     
     setLoading(true);
-    setIsSubmitting(true);
     try {
       // Préparer les données
       const moment = formConclue.moment_perte_client.includes('Autre')
@@ -220,7 +219,6 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
     }
     
     setLoading(true);
-    setIsSubmitting(true);
     try {
       const moment = formManquee.moment_perte_client.includes('Autre')
         ? formManquee.moment_perte_client.filter(m => m !== 'Autre').concat([formManquee.moment_perte_autre]).join(', ')
