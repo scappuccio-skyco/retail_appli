@@ -33,6 +33,17 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
     }
   }, [pendingSuccess, onSuccess]);
   
+  // Ouvrir automatiquement la dernière analyse créée
+  useEffect(() => {
+    if (lastCreatedDebriefId && debriefs.length > 0) {
+      setExpandedDebriefs(prev => ({
+        ...prev,
+        [lastCreatedDebriefId]: true
+      }));
+      setLastCreatedDebriefId(null);
+    }
+  }, [lastCreatedDebriefId, debriefs]);
+  
   const fetchDebriefs = async () => {
     try {
       const response = await axios.get(`${API}/api/debriefs`, {
