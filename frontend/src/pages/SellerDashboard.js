@@ -1184,10 +1184,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
       {showDebriefHistoryModal && (
         <DebriefHistoryModal
-          debriefs={debriefs}
           onClose={() => setShowDebriefHistoryModal(false)}
-          onNewDebrief={() => {
-            // Ne pas fermer le modal, juste rafraîchir les debriefs
+          onSuccess={() => {
+            // Rafraîchir les debriefs du parent quand le modal se ferme
             fetchDebriefs();
           }}
           token={localStorage.getItem('token')}
