@@ -282,7 +282,8 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
         <div className="sticky top-0 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors z-10"
+            disabled={loading}
+            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors z-10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <X className="w-6 h-6" />
           </button>
