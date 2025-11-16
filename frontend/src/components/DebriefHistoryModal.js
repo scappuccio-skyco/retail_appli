@@ -859,7 +859,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
                                       : 'bg-gray-100 text-gray-600'
                                   }`}>
                                     {debrief.visible_to_manager ? (
-                                      <><Eye className="w-3 h-3" /> Visible</>
+                                      <><Eye className="w-3 h-3" /> Visible par le Manager</>
                                     ) : (
                                       <><EyeOff className="w-3 h-3" /> Privé</>
                                     )}
