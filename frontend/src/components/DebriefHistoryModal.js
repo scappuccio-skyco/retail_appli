@@ -156,11 +156,20 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
     }
   };
 
-  // Trier les débriefs par date (plus récents en premier) et limiter l'affichage
+  // Filtrer et trier les débriefs par date (plus récents en premier) et limiter l'affichage
   const sortedAndLimitedDebriefs = useMemo(() => {
-    const sorted = [...debriefs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    let filtered = [...debriefs];
+    
+    // Appliquer le filtre
+    if (filtreHistorique === 'conclue') {
+      filtered = filtered.filter(d => d.vente_conclue === true);
+    } else if (filtreHistorique === 'manquee') {
+      filtered = filtered.filter(d => d.vente_conclue === false || !d.vente_conclue);
+    }
+    
+    const sorted = filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     return sorted.slice(0, displayLimit);
-  }, [debriefs, displayLimit]);
+  }, [debriefs, displayLimit, filtreHistorique]);
 
   const hasMore = displayLimit < debriefs.length;
   const remainingCount = debriefs.length - displayLimit;
