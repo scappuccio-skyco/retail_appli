@@ -1471,6 +1471,8 @@ async def create_debrief(debrief_data: DebriefCreate, current_user: dict = Depen
     # Create debrief object
     debrief = Debrief(
         seller_id=current_user['id'],
+        vente_conclue=debrief_data.vente_conclue,
+        visible_to_manager=debrief_data.visible_to_manager,
         produit=debrief_data.produit,
         type_client=debrief_data.type_client,
         situation_vente=debrief_data.situation_vente,
