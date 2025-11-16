@@ -347,9 +347,9 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <div className="bg-gradient-to-r from-[#1E40AF]/10 to-[#1E40AF]/5 border-l-4 border-[#1E40AF] p-4 rounded-r-lg">
-                  <p className="text-sm font-semibold text-[#1E40AF] mb-2">💡 Débriefs de Vente Intelligents</p>
+                  <p className="text-sm font-semibold text-[#1E40AF] mb-2">💡 Analyses des Ventes Intelligentes</p>
                   <p className="text-sm text-[#334155]">
-                    Après chaque vente non conclue, débrief en quelques clics. L'IA analyse la situation et génère des recommandations personnalisées instantanées.
+                    Après chaque vente, analyse en quelques clics. L'IA analyse la situation et génère des recommandations personnalisées instantanées.
                   </p>
                 </div>
               </div>
