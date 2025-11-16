@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://kpi-tracker-36.preview.emergentagent.com
+https://seller-insights-3.preview.emergentagent.com
 
 ### Manager
 ```
