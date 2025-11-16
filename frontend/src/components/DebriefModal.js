@@ -350,10 +350,11 @@ export default function DebriefModal({ onClose, onSuccess }) {
                 />
               </div>
 
-              {/* Moment blocage */}
+              {/* Moment blocage / succès */}
               <div className="mb-4">
                 <label className="block text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                  <span className="text-lg">⏱️</span> À quel moment la vente a basculé ou s'est bloquée ?
+                  <span className="text-lg">{venteConclue ? '✨' : '⏱️'}</span> 
+                  {venteConclue ? 'À quel moment la vente s\'est conclue ?' : 'À quel moment la vente a basculé ou s\'est bloquée ?'}
                 </label>
                 <div className="space-y-2">
                   {[
