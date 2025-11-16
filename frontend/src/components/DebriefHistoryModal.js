@@ -876,19 +876,26 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
                                   <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded">
                                     {debrief.type_client}
                                   </span>
-                                  {/* Badge visibilité (lecture seule) */}
-                                  <span className={`px-2 py-1 text-xs font-medium rounded flex items-center gap-1 ${
-                                    debrief.visible_to_manager
-                                      ? 'bg-blue-100 text-blue-700'
-                                      : 'bg-gray-100 text-gray-600'
-                                  }`}>
-                                    {debrief.visible_to_manager ? (
-                                      <><Eye className="w-3 h-3" /> Visible</>
-                                    ) : (
-                                      <><EyeOff className="w-3 h-3" /> Privé</>
-                                    )}
-                                  </span>
                                 </div>
+                                {/* Bouton toggle visibilité - EN DEHORS des badges pour éviter imbrication */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleVisibility(debrief.id, debrief.visible_to_manager);
+                                  }}
+                                  className={`mt-2 px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-all ${
+                                    debrief.visible_to_manager
+                                      ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                  }`}
+                                  title={debrief.visible_to_manager ? "Masquer au manager" : "Rendre visible au manager"}
+                                >
+                                  {debrief.visible_to_manager ? (
+                                    <><Eye className="w-3.5 h-3.5" /> Visible par le manager</>
+                                  ) : (
+                                    <><EyeOff className="w-3.5 h-3.5" /> Privé</>
+                                  )}
+                                </button>
                                 <div className="space-y-2">
                                   <div className="flex items-start gap-2">
                                     <span className="text-gray-400 text-sm mt-0.5">💬</span>
