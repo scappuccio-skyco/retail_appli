@@ -1513,6 +1513,29 @@ async def get_debriefs(current_user: dict = Depends(get_current_user)):
     
     return debriefs
 
+@api_router.patch("/debriefs/{debrief_id}/visibility")
+async def update_debrief_visibility(
+    debrief_id: str,
+    visible_to_manager: bool,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update debrief visibility to manager"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can modify debrief visibility")
+    
+    # Verify debrief belongs to current user
+    debrief = await db.debriefs.find_one({"id": debrief_id}, {"_id": 0})
+    if not debrief or debrief.get('seller_id') != current_user['id']:
+        raise HTTPException(status_code=404, detail="Debrief not found")
+    
+    # Update visibility
+    await db.debriefs.update_one(
+        {"id": debrief_id},
+        {"$set": {"visible_to_manager": visible_to_manager}}
+    )
+    
+    return {"success": True, "visible_to_manager": visible_to_manager}
+
 @api_router.get("/competences/history")
 async def get_competences_history(current_user: dict = Depends(get_current_user)):
     """Get competence scores history (diagnostic + all debriefs)"""
