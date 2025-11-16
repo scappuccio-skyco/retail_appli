@@ -929,7 +929,8 @@ export default function SellerDetailView({ seller, onBack }) {
                     </div>
                   )}
                 </div>
-              ))}
+                  );
+              })}
             </div>
             
             {/* Bouton Charger plus */}
