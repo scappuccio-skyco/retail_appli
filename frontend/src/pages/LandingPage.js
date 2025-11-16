@@ -451,7 +451,7 @@ export default function LandingPage() {
                   'Coaching IA personnalisé',
                   'Suivi KPI en temps réel',
                   'Objectifs & Challenges',
-                  'Débriefs de vente intelligents',
+                  'Analyses des ventes intelligentes',
                   'Historique illimité'
                 ].map((item, idx) => (
                   <li key={`starter-main-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
@@ -531,7 +531,7 @@ export default function LandingPage() {
                   'Coaching IA personnalisé',
                   'Suivi KPI en temps réel',
                   'Objectifs & Challenges',
-                  'Débriefs de vente intelligents',
+                  'Analyses des ventes intelligentes',
                   'Historique illimité'
                 ].map((item, idx) => (
                   <li key={`pro-main-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
@@ -584,7 +584,7 @@ export default function LandingPage() {
                   'Coaching IA personnalisé',
                   'Suivi KPI en temps réel',
                   'Objectifs & Challenges',
-                  'Débriefs de vente intelligents',
+                  'Analyses des ventes intelligentes',
                   'Historique illimité'
                 ].map((item, idx) => (
                   <li key={`enterprise-main-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
