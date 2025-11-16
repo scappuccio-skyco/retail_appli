@@ -96,7 +96,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
       });
       setAiAnalysis(response.data);
       setShowResult(true);
-      toast.success('Débrief enregistré avec succès!');
+      toast.success('Analyse de vente enregistrée avec succès!');
     } catch (err) {
       console.error('Error submitting debrief:', err);
       toast.error(err.response?.data?.detail || 'Erreur lors de l\'enregistrement');
