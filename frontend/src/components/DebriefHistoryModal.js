@@ -132,7 +132,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
         amelioration_pensee: '',
         visible_to_manager: false
       });
-      setActiveTab('historique');
+      setShowOpportuniteManqueeForm(false);
       if (onNewDebrief) onNewDebrief();
     } catch (error) {
       console.error('Error submitting opportunité manquée:', error);
