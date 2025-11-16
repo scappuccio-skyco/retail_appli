@@ -750,7 +750,7 @@ export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, t
           )}
 
           {/* HISTORIQUE */}
-          {!showVenteConclueForm && !showOpportuniteManqueeForm && (
+          {!showVenteConclueForm && !showOpportuniteManqueeForm && !isSubmitting && (
             <>
               {/* Boutons d'action - TOUJOURS VISIBLES */}
               <div className="mb-6">
