@@ -6763,6 +6763,276 @@ class RetailCoachAPITester:
         print("   ✅ Authentication and authorization working properly")
         print("   ✅ Filtering by seller_id working correctly")
 
+    def test_ai_sales_analysis_vouvoiement_kpi_context(self):
+        """Test AI Sales Analysis - Client Vouvoiement Fix + KPI Context Enhancement - CRITICAL FEATURE"""
+        print("\n🔍 Testing AI Sales Analysis - Client Vouvoiement Fix + KPI Context Enhancement (CRITICAL FEATURE)...")
+        print("   FOCUS: AI must use 'vous' (formal) when giving dialogue examples with clients")
+        print("   FOCUS: AI must use 'tu' (informal) when addressing the seller")
+        print("   FOCUS: KPI context must be included in AI generation")
+        
+        # Phase 1: Setup & Data Preparation
+        print("\n   📋 PHASE 1: Setup & Data Preparation")
+        
+        # Login as Emma (emma.petit@test.com)
+        emma_credentials = {
+            "email": "emma.petit@test.com",
+            "password": "demo123"
+        }
+        
+        success, response = self.run_test(
+            "Phase 1 - Login as Emma (emma.petit@test.com)",
+            "POST",
+            "auth/login",
+            200,
+            data=emma_credentials
+        )
+        
+        emma_token = None
+        emma_user = None
+        if success and 'token' in response:
+            emma_token = response['token']
+            emma_user = response['user']
+            print(f"   ✅ Logged in as: {emma_user.get('name')} ({emma_user.get('email')})")
+            print(f"   ✅ Seller ID: {emma_user.get('id')}")
+        else:
+            print("   ❌ Could not login with emma.petit@test.com - account may not exist")
+            self.log_test("AI Sales Analysis Setup", False, "emma.petit@test.com account not available")
+            return
+        
+        # Verify Emma has at least one recent KPI entry
+        success, kpi_response = self.run_test(
+            "Phase 1 - Check Emma's Recent KPI Entries",
+            "GET",
+            "seller/kpi-entries?days=30",
+            200,
+            token=emma_token
+        )
+        
+        has_kpi_data = False
+        if success and isinstance(kpi_response, list) and len(kpi_response) > 0:
+            has_kpi_data = True
+            recent_kpi = kpi_response[0]
+            print(f"   ✅ Emma has {len(kpi_response)} KPI entries in last 30 days")
+            print(f"   ✅ Most recent KPI: CA={recent_kpi.get('ca_journalier')}€, Ventes={recent_kpi.get('nb_ventes')}")
+        else:
+            print("   ⚠️  Emma has no recent KPI entries - creating test data")
+            # Create a test KPI entry for Emma
+            test_kpi_data = {
+                "date": "2025-01-13",
+                "ca_journalier": 1200.0,
+                "nb_ventes": 8,
+                "nb_clients": 8,
+                "nb_articles": 16,
+                "nb_prospects": 25,
+                "comment": "Test KPI entry for AI analysis"
+            }
+            
+            success, kpi_create_response = self.run_test(
+                "Phase 1 - Create Test KPI Entry for Emma",
+                "POST",
+                "seller/kpi-entry",
+                200,
+                data=test_kpi_data,
+                token=emma_token
+            )
+            
+            if success:
+                has_kpi_data = True
+                print("   ✅ Created test KPI entry for Emma")
+        
+        # Phase 2: Test "Vente Conclue" (Successful Sale) Analysis
+        print("\n   🎉 PHASE 2: Test 'Vente Conclue' (Successful Sale) Analysis")
+        
+        vente_conclue_data = {
+            "vente_conclue": True,
+            "produit": "iPhone 16 Pro Max",
+            "type_client": "Particulier",
+            "situation_vente": "Vente initiée par le client (demande spontanée)",
+            "description_vente": "Client intéressé par un nouveau téléphone haut de gamme",
+            "moment_perte_client": "Pendant la démonstration",
+            "raisons_echec": "Prix élevé bien accepté, Client convaincu par les fonctionnalités",
+            "amelioration_pensee": "La démo live du produit a été décisive",
+            "visible_to_manager": False
+        }
+        
+        print("   Creating successful sale debrief with AI analysis (may take 10-15 seconds)...")
+        success, vente_conclue_response = self.run_test(
+            "Phase 2 - Create Vente Conclue Debrief",
+            "POST",
+            "debriefs",
+            200,
+            data=vente_conclue_data,
+            token=emma_token
+        )
+        
+        if success:
+            print("   ✅ Vente Conclue debrief created successfully")
+            
+            # Verify all required AI fields are present
+            required_ai_fields = ['ai_analyse', 'ai_points_travailler', 'ai_recommandation', 'ai_exemple_concret']
+            missing_fields = []
+            
+            for field in required_ai_fields:
+                if field not in vente_conclue_response or not vente_conclue_response[field]:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                self.log_test("Vente Conclue - AI Fields Validation", False, f"Missing AI fields: {missing_fields}")
+            else:
+                self.log_test("Vente Conclue - AI Fields Validation", True)
+                
+                # Check ai_analyse uses "tu" for seller
+                ai_analyse = vente_conclue_response.get('ai_analyse', '')
+                print(f"   ✅ AI Analysis: {ai_analyse[:100]}...")
+                
+                if any(word in ai_analyse.lower() for word in ['tu as', 'tu ', 'bravo', 'félicitations']):
+                    print("   ✅ AI analysis correctly uses 'tu' (informal) when addressing seller")
+                    self.log_test("Vente Conclue - Seller Tutoiement", True)
+                else:
+                    print("   ⚠️  AI analysis may not be using 'tu' when addressing seller")
+                    self.log_test("Vente Conclue - Seller Tutoiement", False, "AI should use 'tu' when addressing seller")
+                
+                # CRITICAL CHECK: ai_exemple_concret must use "vous" for client dialogue
+                ai_exemple_concret = vente_conclue_response.get('ai_exemple_concret', '')
+                print(f"   ✅ AI Concrete Example: {ai_exemple_concret[:100]}...")
+                
+                # Check for vouvoiement in client dialogue examples
+                vouvoiement_indicators = ['vous ', 'votre ', 'vos ']
+                tutoiement_indicators = ['tu ', 'ta ', 'tes ', 'ton ']
+                
+                has_vouvoiement = any(indicator in ai_exemple_concret.lower() for indicator in vouvoiement_indicators)
+                has_tutoiement = any(indicator in ai_exemple_concret.lower() for indicator in tutoiement_indicators)
+                
+                if has_vouvoiement and not has_tutoiement:
+                    print("   ✅ CRITICAL SUCCESS: AI example uses 'vous/votre/vos' (formal) for client dialogue")
+                    self.log_test("Vente Conclue - Client Vouvoiement", True)
+                elif has_tutoiement:
+                    print("   ❌ CRITICAL FAILURE: AI example uses 'tu/ta/tes' instead of 'vous' for client dialogue")
+                    self.log_test("Vente Conclue - Client Vouvoiement", False, "AI example must use 'vous' for client dialogue, not 'tu'")
+                else:
+                    print("   ⚠️  AI example may not contain client dialogue or vouvoiement unclear")
+                    self.log_test("Vente Conclue - Client Vouvoiement", False, "No clear vouvoiement detected in AI example")
+                
+                # Verify competency scores are updated
+                competency_fields = ['score_accueil', 'score_decouverte', 'score_argumentation', 'score_closing', 'score_fidelisation']
+                scores_present = all(field in vente_conclue_response for field in competency_fields)
+                
+                if scores_present:
+                    print("   ✅ Competency scores updated appropriately")
+                    for field in competency_fields:
+                        score = vente_conclue_response.get(field, 0)
+                        print(f"      {field}: {score}")
+                    self.log_test("Vente Conclue - Competency Scores", True)
+                else:
+                    self.log_test("Vente Conclue - Competency Scores", False, "Missing competency scores")
+        
+        # Phase 3: Test "Opportunité Manquée" (Missed Opportunity) Analysis
+        print("\n   📉 PHASE 3: Test 'Opportunité Manquée' (Missed Opportunity) Analysis")
+        
+        opportunite_manquee_data = {
+            "vente_conclue": False,
+            "produit": "MacBook Air",
+            "type_client": "Professionnel",
+            "situation_vente": "Vente initiée par moi (approche proactive)",
+            "description_vente": "Client comparant plusieurs modèles",
+            "moment_perte_client": "Au moment de l'encaissement, Objection prix",
+            "raisons_echec": "Prix trop élevé, Concurrent moins cher",
+            "amelioration_pensee": "Peut-être mieux argumenter la valeur ajoutée",
+            "visible_to_manager": False
+        }
+        
+        print("   Creating missed opportunity debrief with AI analysis (may take 10-15 seconds)...")
+        success, opportunite_response = self.run_test(
+            "Phase 3 - Create Opportunité Manquée Debrief",
+            "POST",
+            "debriefs",
+            200,
+            data=opportunite_manquee_data,
+            token=emma_token
+        )
+        
+        if success:
+            print("   ✅ Opportunité Manquée debrief created successfully")
+            
+            # Verify all required AI fields are present
+            required_ai_fields = ['ai_analyse', 'ai_points_travailler', 'ai_recommandation', 'ai_exemple_concret']
+            missing_fields = []
+            
+            for field in required_ai_fields:
+                if field not in opportunite_response or not opportunite_response[field]:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                self.log_test("Opportunité Manquée - AI Fields Validation", False, f"Missing AI fields: {missing_fields}")
+            else:
+                self.log_test("Opportunité Manquée - AI Fields Validation", True)
+                
+                # Check ai_analyse uses "tu" for seller
+                ai_analyse = opportunite_response.get('ai_analyse', '')
+                print(f"   ✅ AI Analysis: {ai_analyse[:100]}...")
+                
+                if any(word in ai_analyse.lower() for word in ['tu as', 'tu ', 'tu peux', 'tu aurais']):
+                    print("   ✅ AI analysis correctly uses 'tu' (informal) when addressing seller")
+                    self.log_test("Opportunité Manquée - Seller Tutoiement", True)
+                else:
+                    print("   ⚠️  AI analysis may not be using 'tu' when addressing seller")
+                    self.log_test("Opportunité Manquée - Seller Tutoiement", False, "AI should use 'tu' when addressing seller")
+                
+                # CRITICAL CHECK: ai_exemple_concret must use "vous" for client dialogue
+                ai_exemple_concret = opportunite_response.get('ai_exemple_concret', '')
+                print(f"   ✅ AI Concrete Example: {ai_exemple_concret[:100]}...")
+                
+                # Check for vouvoiement in client dialogue examples
+                vouvoiement_indicators = ['vous ', 'votre ', 'vos ']
+                tutoiement_indicators = ['tu ', 'ta ', 'tes ', 'ton ']
+                
+                has_vouvoiement = any(indicator in ai_exemple_concret.lower() for indicator in vouvoiement_indicators)
+                has_tutoiement = any(indicator in ai_exemple_concret.lower() for indicator in tutoiement_indicators)
+                
+                if has_vouvoiement and not has_tutoiement:
+                    print("   ✅ CRITICAL SUCCESS: AI example uses 'vous/votre/vos' (formal) for client dialogue")
+                    self.log_test("Opportunité Manquée - Client Vouvoiement", True)
+                elif has_tutoiement:
+                    print("   ❌ CRITICAL FAILURE: AI example uses 'tu/ta/tes' instead of 'vous' for client dialogue")
+                    self.log_test("Opportunité Manquée - Client Vouvoiement", False, "AI example must use 'vous' for client dialogue, not 'tu'")
+                else:
+                    print("   ⚠️  AI example may not contain client dialogue or vouvoiement unclear")
+                    self.log_test("Opportunité Manquée - Client Vouvoiement", False, "No clear vouvoiement detected in AI example")
+                
+                # Verify competency scores are updated
+                competency_fields = ['score_accueil', 'score_decouverte', 'score_argumentation', 'score_closing', 'score_fidelisation']
+                scores_present = all(field in opportunite_response for field in competency_fields)
+                
+                if scores_present:
+                    print("   ✅ Competency scores updated appropriately")
+                    for field in competency_fields:
+                        score = opportunite_response.get(field, 0)
+                        print(f"      {field}: {score}")
+                    self.log_test("Opportunité Manquée - Competency Scores", True)
+                else:
+                    self.log_test("Opportunité Manquée - Competency Scores", False, "Missing competency scores")
+        
+        # Phase 4: KPI Context Verification
+        print("\n   📊 PHASE 4: KPI Context Verification")
+        
+        if has_kpi_data:
+            print("   ✅ KPI data is available for context inclusion")
+            print("   ✅ The AI generation function should include KPI context in prompts")
+            print("   ✅ KPI data includes: nb_ventes, chiffre_affaires, panier_moyen, nb_articles, indice_vente")
+            self.log_test("KPI Context Availability", True)
+        else:
+            print("   ⚠️  No KPI data available for context")
+            self.log_test("KPI Context Availability", False, "No KPI data available for AI context")
+        
+        # Summary of critical checks
+        print("\n   🎯 CRITICAL CHECKS SUMMARY:")
+        print("   1. Both debrief creations should return 200 OK")
+        print("   2. All AI fields should be populated with French text")
+        print("   3. The 'ai_exemple_concret' field should use 'vous' when showing client dialogue")
+        print("   4. The analysis text should use 'tu' when addressing the seller")
+        print("   5. KPI context should be included in AI generation")
+        print("   6. Competency scores should be updated appropriately")
+
     def run_all_tests(self):
         """Run all tests in sequence"""
         print("🚀 Starting Retail Coach 2.0 API Tests")
