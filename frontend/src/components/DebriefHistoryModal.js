@@ -182,9 +182,6 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
       
       toast.success('🎉 Analyse créée avec succès !');
       
-      // Sauvegarder l'ID pour l'ouvrir automatiquement après
-      setLastCreatedDebriefId(response.data.id);
-      
       // Déclencher onSuccess via useEffect pour éviter conflit DOM
       setPendingSuccess(response.data);
     } catch (error) {
