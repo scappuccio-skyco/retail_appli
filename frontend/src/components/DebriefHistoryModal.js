@@ -5,16 +5,34 @@ import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
-export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, token }) {
+export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
   const [filtreHistorique, setFiltreHistorique] = useState('all');
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [displayLimit, setDisplayLimit] = useState(20);
   const [loading, setLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Nouveau flag
+  
+  // Gestion interne de l'historique (comme DebriefModal)
+  const [debriefs, setDebriefs] = useState([]);
   
   // Modal states
   const [showVenteConclueForm, setShowVenteConclueForm] = useState(false);
   const [showOpportuniteManqueeForm, setShowOpportuniteManqueeForm] = useState(false);
+  
+  // Charger l'historique au montage (comme DebriefModal)
+  useEffect(() => {
+    fetchDebriefs();
+  }, []);
+  
+  const fetchDebriefs = async () => {
+    try {
+      const response = await axios.get(`${API}/debriefs`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setDebriefs(response.data);
+    } catch (error) {
+      console.error('Erreur chargement debriefs:', error);
+    }
+  };
   
   // Form vente conclue
   const [formConclue, setFormConclue] = useState({
