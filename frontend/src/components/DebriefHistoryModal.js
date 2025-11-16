@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
-export default function DebriefHistoryModal({ onClose, onSuccess, token }) {
+export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExpandDebriefId }) {
   const [filtreHistorique, setFiltreHistorique] = useState('all');
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [displayLimit, setDisplayLimit] = useState(20);
