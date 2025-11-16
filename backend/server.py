@@ -1353,7 +1353,7 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
 📍 Moment clé du blocage : {debrief_data.get('moment_perte_client')}
 ❌ Raisons évoquées : {debrief_data.get('raisons_echec')}
 🔄 Ce que tu penses pouvoir faire différemment : {debrief_data.get('amelioration_pensee')}
-
+{kpi_context}
 ### SCORES ACTUELS DES COMPÉTENCES (sur 5)
 - Accueil : {current_scores.get('accueil', 3.0)}
 - Découverte : {current_scores.get('decouverte', 3.0)}
