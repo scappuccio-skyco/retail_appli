@@ -85,6 +85,14 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     }
   }, [state.aiRecommendations]);
 
+  // Gérer recommendation APRÈS le rendu pour éviter conflit DOM (comme DebriefHistoryModal)
+  useEffect(() => {
+    if (state.pendingRecommendation) {
+      dispatch({ type: 'SET_AI_RECOMMENDATIONS', payload: state.pendingRecommendation });
+      toast.success('Recommandations générées avec succès');
+    }
+  }, [state.pendingRecommendation]);
+
   const fetchConflictHistory = async () => {
     dispatch({ type: 'SET_LOADING_HISTORY', payload: true });
     try {
