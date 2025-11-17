@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Corriger le bug React DOM 'insertBefore' qui crash les composants RelationshipManagementModal et ConflictResolutionForm lors de la génération d'analyses IA"
+user_problem_statement: "1) Bug React DOM 'insertBefore' 2) Améliorer UX (auto-ouverture dernier bilan, design) 3) Réduire temps génération AI 4) Dropdown filtre historique ne montre pas vendeurs 5) Ajouter suppression consultations"
 
 backend:
   - task: "Relationship Management & Conflict Resolution APIs"
