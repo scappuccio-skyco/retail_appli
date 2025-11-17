@@ -5,7 +5,7 @@ import { X, MessageCircle, AlertTriangle, Users, Loader, Filter, Calendar, Chevr
 
 const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
-export default function RelationshipManagementModal({ onClose, onSuccess, sellers = [] }) {
+export default function RelationshipManagementModal({ onClose, onSuccess, sellers = [], autoShowResult = false }) {
   // Use all sellers (no filter) - archived sellers are already filtered by ManagerDashboard
   const activeSellers = sellers;
   
@@ -16,7 +16,7 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   if (sellers.length > 0) {
     console.log('First seller structure:', sellers[0]);
   }
-  const [activeMainTab, setActiveMainTab] = useState('form'); // 'form' or 'history'
+  const [activeMainTab, setActiveMainTab] = useState('history'); // Start with history if autoShowResult
   const [activeFormTab, setActiveFormTab] = useState('relationnel'); // 'relationnel' or 'conflit'
   const [activeHistoryTab, setActiveHistoryTab] = useState('all'); // 'all', 'relationnel', or 'conflit'
   const [selectedSeller, setSelectedSeller] = useState('');
