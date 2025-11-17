@@ -20,8 +20,8 @@ const conflictReducer = (state, action) => {
       return { ...state, pendingRecommendation: null };
     case 'SET_LOADING_FALSE':
       return { ...state, loading: false };
-    case 'SHOW_RESULT':
-      return { ...state, showResult: true, showForm: false };
+    case 'HIDE_FORM':
+      return { ...state, showForm: false };
     case 'RESET_FORM':
       return { 
         ...state, 
