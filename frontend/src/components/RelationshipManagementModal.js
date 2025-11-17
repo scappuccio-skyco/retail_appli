@@ -6,8 +6,8 @@ import { X, MessageCircle, AlertTriangle, Users, Loader, Filter, Calendar, Chevr
 const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
 export default function RelationshipManagementModal({ onClose, sellers = [] }) {
-  // Filter to get only active sellers
-  const activeSellers = sellers.filter(s => s.status === 'active' || !s.status);
+  // Use all sellers (no filter) - archived sellers are already filtered by ManagerDashboard
+  const activeSellers = sellers;
   
   // Debug
   console.log('Total sellers:', sellers.length);
