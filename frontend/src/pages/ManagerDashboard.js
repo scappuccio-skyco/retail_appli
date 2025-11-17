@@ -838,7 +838,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
                 Afficher/Masquer les cartes
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-w-3xl mx-auto">
+              <div className="flex flex-wrap gap-2 justify-center">
                 <button
                   onClick={() => toggleFilter('showKPI')}
                   className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
@@ -849,7 +849,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-lg">📊</span>
-                    <span className="text-sm font-semibold">KPI Magasin</span>
+                    <span className="text-sm font-semibold whitespace-nowrap">KPI Magasin</span>
                   </div>
                 </button>
 
@@ -863,7 +863,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-lg">👥</span>
-                    <span className="text-sm font-semibold">Mon Équipe</span>
+                    <span className="text-sm font-semibold whitespace-nowrap">Mon Équipe</span>
                   </div>
                 </button>
 
@@ -877,7 +877,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🎯</span>
-                    <span className="text-sm font-semibold">Objectifs</span>
+                    <span className="text-sm font-semibold whitespace-nowrap">Objectifs</span>
                   </div>
                 </button>
 
@@ -891,7 +891,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🏆</span>
-                    <span className="text-sm font-semibold">Challenges</span>
+                    <span className="text-sm font-semibold whitespace-nowrap">Challenges</span>
                   </div>
                 </button>
 
@@ -905,7 +905,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🤝</span>
-                    <span className="text-sm font-semibold">Gestion relationnelle</span>
+                    <span className="text-sm font-semibold whitespace-nowrap">Gestion relationnelle</span>
                   </div>
                 </button>
 
