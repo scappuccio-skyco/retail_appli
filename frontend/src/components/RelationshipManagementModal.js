@@ -12,6 +12,10 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
   // Debug
   console.log('Total sellers:', sellers.length);
   console.log('Active sellers:', activeSellers.length);
+  console.log('Sellers data:', sellers);
+  if (sellers.length > 0) {
+    console.log('First seller structure:', sellers[0]);
+  }
   const [activeMainTab, setActiveMainTab] = useState('form'); // 'form' or 'history'
   const [activeFormTab, setActiveFormTab] = useState('relationnel'); // 'relationnel' or 'conflit'
   const [activeHistoryTab, setActiveHistoryTab] = useState('all'); // 'all', 'relationnel', or 'conflit'
