@@ -918,51 +918,49 @@ export default function ManagerDashboard({ user, onLogout }) {
                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
                 Réorganiser l'ordre des cartes
               </p>
-              <div className="space-y-3 max-w-2xl mx-auto">
+              <div className="flex flex-wrap gap-2 max-w-4xl mx-auto">
                 {sectionOrder.map((sectionId, index) => {
                   const sectionNames = {
-                    kpi: '📊 KPI Magasin',
-                    team: '👥 Mon Équipe',
+                    kpi: '📊 KPI',
+                    team: '👥 Équipe',
                     objectives: '🎯 Objectifs',
                     challenges: '🏆 Challenges',
-                    relationship: '🤝 Gestion relationnelle'
+                    relationship: '🤝 Gestion rel.'
                   };
                   
                   // Skip if section doesn't exist in current cards
                   if (!sectionNames[sectionId]) return null;
                   
                   return (
-                    <div key={sectionId} className="flex items-center justify-between bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 transition-all shadow-sm">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-bold text-gray-400">#{index + 1}</span>
-                        <span className="font-semibold text-gray-800">{sectionNames[sectionId]}</span>
-                      </div>
-                      <div className="flex gap-2">
+                    <div key={sectionId} className="inline-flex items-center gap-2 bg-white rounded-lg px-3 py-2 border-2 border-gray-200 hover:border-purple-300 transition-all shadow-sm">
+                      <span className="text-xs font-bold text-gray-400">#{index + 1}</span>
+                      <span className="text-sm font-semibold text-gray-800">{sectionNames[sectionId]}</span>
+                      <div className="flex gap-1 ml-1">
                         <button
                           onClick={() => moveSectionUp(sectionId)}
                           disabled={index === 0}
-                          className={`p-2 rounded-lg transition-all ${
+                          className={`p-1 rounded transition-all ${
                             index === 0
                               ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
-                              : 'bg-purple-100 text-purple-600 hover:bg-purple-200 hover:shadow-md'
+                              : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
                           }`}
                           title="Monter"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                           </svg>
                         </button>
                         <button
                           onClick={() => moveSectionDown(sectionId)}
                           disabled={index === sectionOrder.length - 1}
-                          className={`p-2 rounded-lg transition-all ${
+                          className={`p-1 rounded transition-all ${
                             index === sectionOrder.length - 1
                               ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
-                              : 'bg-purple-100 text-purple-600 hover:bg-purple-200 hover:shadow-md'
+                              : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
                           }`}
                           title="Descendre"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
                         </button>
