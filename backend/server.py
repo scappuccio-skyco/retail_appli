@@ -4318,6 +4318,52 @@ Format : Markdown simple et structuré.
         print(f"Error in team AI analysis: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de l'analyse IA: {str(e)}")
 
+@api_router.get("/manager/team-analyses-history")
+async def get_team_analyses_history(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get history of team analyses"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access this endpoint")
+    
+    try:
+        analyses = await db.team_analyses.find(
+            {"manager_id": current_user['id']},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(100)
+        
+        return {"analyses": analyses}
+        
+    except Exception as e:
+        print(f"Error fetching team analyses history: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+@api_router.delete("/manager/team-analysis/{analysis_id}")
+async def delete_team_analysis(
+    analysis_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a team analysis"""
+    if current_user['role'] != 'manager':
+        raise HTTPException(status_code=403, detail="Only managers can access this endpoint")
+    
+    try:
+        result = await db.team_analyses.delete_one({
+            "analysis_id": analysis_id,
+            "manager_id": current_user['id']
+        })
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Analysis not found")
+        
+        return {"status": "success", "message": "Analysis deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting team analysis: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
 @api_router.post("/manager/analyze-store-kpis")
 async def analyze_store_kpis(
     request_data: dict,
