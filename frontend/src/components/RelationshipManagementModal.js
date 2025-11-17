@@ -98,12 +98,8 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
       return;
     }
     
-    // Clear previous recommendation first
-    setRecommendation('');
-    
-    // Small delay before setting loading to avoid race condition
-    await new Promise(resolve => setTimeout(resolve, 50));
     setIsGenerating(true);
+    setRecommendation('');
     
     try {
       const token = localStorage.getItem('token');
@@ -120,9 +116,6 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
         }
       );
       
-      // Sequential state updates with delay
-      setIsGenerating(false);
-      await new Promise(resolve => setTimeout(resolve, 100));
       setRecommendation(response.data.recommendation);
       toast.success('Recommandation générée avec succès !');
       
@@ -133,8 +126,9 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
       
     } catch (error) {
       console.error('Error generating advice:', error);
-      setIsGenerating(false);
       toast.error('Erreur lors de la génération des recommandations');
+    } finally {
+      setIsGenerating(false);
     }
   };
   
