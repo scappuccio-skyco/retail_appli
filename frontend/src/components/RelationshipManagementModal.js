@@ -64,7 +64,14 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setHistory(response.data.consultations || []);
+      const consultations = response.data.consultations || [];
+      setHistory(consultations);
+      
+      // Si autoShowResult, auto-expand le dernier bilan
+      if (autoShowResult && consultations.length > 0) {
+        const latestId = consultations[0].consultation_id;
+        setExpandedItems({ [latestId]: true });
+      }
     } catch (error) {
       console.error('Error loading history:', error);
       toast.error('Erreur lors du chargement de l\'historique');
