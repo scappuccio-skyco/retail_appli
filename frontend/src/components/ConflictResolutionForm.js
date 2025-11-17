@@ -35,14 +35,11 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     }
   }, [aiRecommendations]);
 
-  // Gérer recommendation APRÈS le rendu pour éviter conflit DOM
+  // Pattern Ultra Simple - pas de useEffect compliqué
   useEffect(() => {
     if (pendingRecommendation) {
-      // Action atomique unique pour éviter conflits DOM avec React 19
       setAiRecommendations(pendingRecommendation);
       setPendingRecommendation(null);
-      setLoading(false);
-      setShowForm(false);
       toast.success('Recommandations générées avec succès');
     }
   }, [pendingRecommendation]);
