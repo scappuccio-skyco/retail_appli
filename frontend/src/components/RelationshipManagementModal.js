@@ -370,64 +370,6 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
                   )}
                 </button>
               </form>
-              
-              {/* Recommendation display */}
-              {recommendation && (
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-8 mt-6 shadow-lg">
-                  <div className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-green-200">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-2xl">
-                      ✨
-                    </div>
-                    <h3 className="text-2xl font-bold text-green-900">
-                      Recommandations Personnalisées
-                    </h3>
-                  </div>
-                  <div className="space-y-4 text-gray-800 leading-relaxed">
-                    {recommendation.split('\n\n').map((section, idx) => {
-                      // Check if section is a title (starts with ##)
-                      if (section.trim().startsWith('##')) {
-                        const title = section.replace(/^##\s*/, '').trim();
-                        return (
-                          <h4 key={idx} className="text-xl font-bold text-green-800 mt-6 mb-3 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                            {title}
-                          </h4>
-                        );
-                      }
-                      // Check if section contains bullet points
-                      else if (section.includes('- ') || section.includes('• ')) {
-                        const lines = section.split('\n');
-                        return (
-                          <div key={idx} className="space-y-2">
-                            {lines.map((line, lineIdx) => {
-                              if (line.trim().startsWith('-') || line.trim().startsWith('•')) {
-                                return (
-                                  <div key={lineIdx} className="flex gap-3 items-start">
-                                    <span className="text-green-600 font-bold mt-1">•</span>
-                                    <span className="flex-1">{line.replace(/^[-•]\s*/, '')}</span>
-                                  </div>
-                                );
-                              } else if (line.trim()) {
-                                return <p key={lineIdx} className="font-semibold text-gray-900 mb-2">{line}</p>;
-                              }
-                              return null;
-                            })}
-                          </div>
-                        );
-                      }
-                      // Regular paragraph
-                      else if (section.trim()) {
-                        return (
-                          <p key={idx} className="text-gray-700 leading-relaxed">
-                            {section}
-                          </p>
-                        );
-                      }
-                      return null;
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
             /* History view */
