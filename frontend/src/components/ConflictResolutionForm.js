@@ -14,14 +14,15 @@ const conflictReducer = (state, action) => {
       return { ...state, loading: action.payload };
     case 'SET_PENDING_RECOMMENDATION':
       return { ...state, pendingRecommendation: action.payload };
-    case 'SET_AI_RECOMMENDATIONS':
-      return { ...state, aiRecommendations: action.payload };
-    case 'CLEAR_PENDING':
-      return { ...state, pendingRecommendation: null };
-    case 'SET_LOADING_FALSE':
-      return { ...state, loading: false };
-    case 'HIDE_FORM':
-      return { ...state, showForm: false };
+    case 'APPLY_RECOMMENDATIONS':
+      // Action atomique qui fait tout d'un coup pour éviter conflit DOM
+      return { 
+        ...state, 
+        aiRecommendations: action.payload,
+        pendingRecommendation: null,
+        loading: false,
+        showForm: false
+      };
     case 'RESET_FORM':
       return { 
         ...state, 
