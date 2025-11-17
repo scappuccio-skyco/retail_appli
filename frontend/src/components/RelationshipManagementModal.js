@@ -401,45 +401,151 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredHistory.map(item => (
-                    <div key={item.id} className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h4 className="font-bold text-gray-800">
-                            {item.seller_name}
-                            {item.seller_status !== 'active' && (
-                              <span className="text-xs text-gray-500 ml-2">({item.seller_status})</span>
-                            )}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            <span className={`px-2 py-0.5 rounded ${
-                              item.advice_type === 'relationnel' 
-                                ? 'bg-blue-100 text-blue-700' 
-                                : 'bg-red-100 text-red-700'
-                            }`}>
-                              {item.advice_type === 'relationnel' ? 'Relationnel' : 'Conflit'}
-                            </span>
-                            <span className="mx-2">•</span>
-                            {item.situation_type}
-                          </p>
+                  {filteredHistory.map((item, index) => {
+                    const isExpanded = expandedItems[item.id];
+                    const isLatest = index === 0;
+                    
+                    return (
+                      <div 
+                        key={item.id} 
+                        className={`border-2 rounded-xl overflow-hidden transition-all ${
+                          isLatest 
+                            ? 'border-purple-400 bg-gradient-to-br from-purple-50 to-indigo-50 shadow-lg' 
+                            : 'border-gray-200 bg-white hover:shadow-md'
+                        }`}
+                      >
+                        {/* Header - Cliquable pour expand/collapse */}
+                        <div 
+                          className="p-4 cursor-pointer hover:bg-white/50 transition-colors"
+                          onClick={() => setExpandedItems(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                {isLatest && (
+                                  <span className="px-2 py-0.5 bg-purple-500 text-white text-xs font-bold rounded-full">
+                                    NOUVEAU
+                                  </span>
+                                )}
+                                <h4 className="font-bold text-gray-800">
+                                  {item.seller_name}
+                                  {item.seller_status !== 'active' && (
+                                    <span className="text-xs text-gray-500 ml-2">({item.seller_status})</span>
+                                  )}
+                                </h4>
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                                  item.advice_type === 'relationnel' 
+                                    ? 'bg-blue-100 text-blue-700' 
+                                    : 'bg-red-100 text-red-700'
+                                }`}>
+                                  {item.advice_type === 'relationnel' ? '🤝 Relationnel' : '⚡ Conflit'}
+                                </span>
+                                <span className="text-sm text-gray-600 font-medium">
+                                  {item.situation_type}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <span className="text-xs text-gray-500 font-medium">
+                                {new Date(item.created_at).toLocaleDateString('fr-FR', { 
+                                  day: 'numeric', 
+                                  month: 'short', 
+                                  year: 'numeric' 
+                                })}
+                              </span>
+                              <ChevronDown 
+                                className={`w-5 h-5 text-gray-500 transition-transform ${
+                                  isExpanded ? 'rotate-180' : ''
+                                }`}
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Aperçu de la situation quand fermé */}
+                          {!isExpanded && (
+                            <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                              <strong>Situation :</strong> {item.description}
+                            </p>
+                          )}
                         </div>
-                        <span className="text-xs text-gray-500">
-                          {new Date(item.created_at).toLocaleDateString('fr-FR')}
-                        </span>
+                        
+                        {/* Contenu détaillé quand ouvert */}
+                        {isExpanded && (
+                          <div className="border-t-2 border-gray-200 bg-white">
+                            {/* Situation complète */}
+                            <div className="p-4 bg-gray-50 border-b border-gray-200">
+                              <h5 className="font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                📋 Situation décrite
+                              </h5>
+                              <p className="text-sm text-gray-700 leading-relaxed">
+                                {item.description}
+                              </p>
+                            </div>
+                            
+                            {/* Recommandations améliorées */}
+                            <div className="p-4">
+                              <h5 className="font-bold text-purple-700 mb-3 flex items-center gap-2 text-lg">
+                                ✨ Recommandations IA
+                              </h5>
+                              <div className="space-y-3 text-sm text-gray-700 leading-relaxed">
+                                {item.recommendation.split('\n\n').map((section, idx) => {
+                                  const trimmed = section.trim();
+                                  if (!trimmed) return null;
+                                  
+                                  // Titre de section (commence par ##)
+                                  if (trimmed.startsWith('##')) {
+                                    const title = trimmed.replace(/^##\s*/, '');
+                                    return (
+                                      <h6 key={idx} className="font-bold text-purple-800 mt-4 mb-2 text-base flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                                        {title}
+                                      </h6>
+                                    );
+                                  }
+                                  
+                                  // Liste à puces
+                                  if (trimmed.includes('- ') || trimmed.includes('• ')) {
+                                    const lines = trimmed.split('\n');
+                                    return (
+                                      <ul key={idx} className="space-y-2 ml-2">
+                                        {lines.map((line, lineIdx) => {
+                                          const cleaned = line.trim();
+                                          if (cleaned.startsWith('-') || cleaned.startsWith('•')) {
+                                            return (
+                                              <li key={lineIdx} className="flex gap-3 items-start">
+                                                <span className="text-purple-500 font-bold mt-0.5">•</span>
+                                                <span className="flex-1">{cleaned.replace(/^[-•]\s*/, '')}</span>
+                                              </li>
+                                            );
+                                          } else if (cleaned) {
+                                            return (
+                                              <p key={lineIdx} className="font-semibold text-gray-800 mb-1">
+                                                {cleaned}
+                                              </p>
+                                            );
+                                          }
+                                          return null;
+                                        })}
+                                      </ul>
+                                    );
+                                  }
+                                  
+                                  // Paragraphe normal
+                                  return (
+                                    <p key={idx} className="leading-relaxed">
+                                      {trimmed}
+                                    </p>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
-                        <strong>Situation :</strong> {item.description.substring(0, 150)}...
-                      </p>
-                      <details className="text-sm">
-                        <summary className="cursor-pointer text-purple-600 hover:text-purple-700 font-semibold">
-                          Voir les recommandations
-                        </summary>
-                        <div className="mt-2 p-3 bg-gray-50 rounded-lg whitespace-pre-wrap text-gray-700">
-                          {item.recommendation}
-                        </div>
-                      </details>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
