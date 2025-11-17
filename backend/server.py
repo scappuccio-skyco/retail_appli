@@ -6950,7 +6950,8 @@ IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE. Évite les longues explications th�
         chat = LlmChat(
             api_key=emergent_key,
             session_id=f"relationship_{manager_id}_{request.seller_id}_{datetime.now(timezone.utc).isoformat()}",
-            system_message=system_message
+            system_message=system_message,
+            max_tokens=800  # Limite pour des réponses plus concises et rapides
         ).with_model("openai", "gpt-5")
         
         user_message = UserMessage(text=user_prompt)
