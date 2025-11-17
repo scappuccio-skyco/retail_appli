@@ -272,7 +272,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
               </label>
               <textarea
                 name="contexte"
-                value={state.formData.contexte}
+                value={formData.contexte}
                 onChange={handleChange}
                 placeholder="Décrivez le contexte général (ex: retards répétés, attitude avec les clients, non-respect des procédures...)"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
