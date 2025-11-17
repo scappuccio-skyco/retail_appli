@@ -66,8 +66,11 @@ async def sync_workspaces_with_stripe():
                 else:
                     print(f"   ⚠️  No items found in Stripe subscription")
                     
-            except stripe.error.InvalidRequestError as e:
-                print(f"   ❌ Stripe error: {str(e)}")
+            except Exception as e:
+                if 'stripe' in str(e).lower():
+                    print(f"   ❌ Stripe error: {str(e)}")
+                else:
+                    print(f"   ❌ Error: {str(e)}")
                 error_count += 1
                 
         except Exception as e:
