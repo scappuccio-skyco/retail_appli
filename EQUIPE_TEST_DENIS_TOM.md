@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://seller-insights-3.preview.emergentagent.com
+https://sale-insights.preview.emergentagent.com
 
 ### Manager
 ```
