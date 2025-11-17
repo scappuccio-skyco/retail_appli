@@ -5,16 +5,13 @@ from datetime import datetime, timezone
 
 # MongoDB connection
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+DB_NAME = os.environ.get('DB_NAME', 'retail_coach')
 client = AsyncIOMotorClient(MONGO_URL)
-db = client.retail_db
+db = client[DB_NAME]
 
-async def sync_subscriptions():
-    """Force sync all subscriptions with Stripe to get correct seats"""
-    print("🔄 Starting subscription sync with Stripe...")
-    
-    # Get all active subscriptions
-    subscriptions = await db.subscriptions.find({"status": {"$in": ["active", "trialing"]}}).to_list(1000)
-    print(f"📊 Found {len(subscriptions)} active subscriptions")
+async def sync_workspaces_with_stripe():
+    """Force sync all workspaces with Stripe to get correct seats"""
+    print("🔄 Starting workspace sync with Stripe...")
     
     # Import Stripe
     STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
@@ -25,22 +22,24 @@ async def sync_subscriptions():
     import stripe
     stripe.api_key = STRIPE_API_KEY
     
+    # Get all workspaces with Stripe subscription ID
+    workspaces = await db.workspaces.find({"stripe_subscription_id": {"$exists": True, "$ne": None}}).to_list(1000)
+    print(f"📊 Found {len(workspaces)} workspaces with Stripe subscriptions\n")
+    
     updated_count = 0
     error_count = 0
     
-    for sub in subscriptions:
+    for ws in workspaces:
         try:
-            user_id = sub.get('user_id')
-            stripe_sub_id = sub.get('stripe_subscription_id')
+            workspace_id = ws.get('id')
+            workspace_name = ws.get('name')
+            stripe_sub_id = ws.get('stripe_subscription_id')
+            current_seats = ws.get('seats', 'NOT SET')
             
-            # Skip trial subscriptions without real Stripe ID
-            if not stripe_sub_id or stripe_sub_id.startswith('trial_'):
-                print(f"⏭️  Skipping trial subscription for user {user_id}")
-                continue
-            
-            print(f"\n🔍 Processing subscription for user {user_id}")
-            print(f"   Stripe ID: {stripe_sub_id}")
-            print(f"   Current seats in DB: {sub.get('seats', 'NOT SET')}")
+            print(f"\n🔍 Processing workspace: {workspace_name}")
+            print(f"   Workspace ID: {workspace_id}")
+            print(f"   Stripe Sub ID: {stripe_sub_id}")
+            print(f"   Current seats in DB: {current_seats}")
             
             # Fetch from Stripe
             try:
@@ -52,9 +51,9 @@ async def sync_subscriptions():
                     
                     print(f"   ✅ Stripe says: {quantity} seats")
                     
-                    # Update MongoDB
-                    await db.subscriptions.update_one(
-                        {"user_id": user_id},
+                    # Update workspace in MongoDB
+                    await db.workspaces.update_one(
+                        {"id": workspace_id},
                         {"$set": {
                             "seats": quantity,
                             "stripe_subscription_item_id": subscription_item_id,
@@ -62,7 +61,7 @@ async def sync_subscriptions():
                         }}
                     )
                     
-                    print(f"   💾 Updated MongoDB with {quantity} seats")
+                    print(f"   💾 Updated workspace with {quantity} seats")
                     updated_count += 1
                 else:
                     print(f"   ⚠️  No items found in Stripe subscription")
@@ -72,15 +71,15 @@ async def sync_subscriptions():
                 error_count += 1
                 
         except Exception as e:
-            print(f"   ❌ Error processing subscription: {str(e)}")
+            print(f"   ❌ Error processing workspace: {str(e)}")
             error_count += 1
     
     print(f"\n" + "="*50)
     print(f"✅ Sync complete!")
     print(f"   Updated: {updated_count}")
     print(f"   Errors: {error_count}")
-    print(f"   Skipped: {len(subscriptions) - updated_count - error_count}")
+    print(f"   Skipped: {len(workspaces) - updated_count - error_count}")
     print("="*50)
 
 if __name__ == "__main__":
-    asyncio.run(sync_subscriptions())
+    asyncio.run(sync_workspaces_with_stripe())
