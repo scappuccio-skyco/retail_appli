@@ -156,6 +156,7 @@ export default function LandingPage() {
                   src="/hero-retail-boutique.png" 
                   alt="Vendeuse professionnelle en boutique moderne"
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
               {/* Floating Badge */}
