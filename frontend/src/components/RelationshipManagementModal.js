@@ -405,26 +405,55 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
                 </button>
               </div>
 
-              {/* Filter by seller */}
+              {/* Filter by seller - Custom Dropdown */}
               <div className="flex items-center gap-3">
                 <Filter className="w-5 h-5 text-gray-600" />
                 <label className="text-sm font-semibold text-gray-700 mr-2">Filtrer par vendeur :</label>
-                <select
-                  value={historyFilter}
-                  onChange={(e) => {
-                    setHistoryFilter(e.target.value);
-                    loadHistory(e.target.value !== 'all' ? e.target.value : null);
-                  }}
-                  className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                  style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
-                >
-                  <option value="all" style={{ color: '#1f2937' }}>Tous les vendeurs</option>
-                  {sellers.map(seller => (
-                    <option key={seller.id} value={seller.id} style={{ color: '#1f2937' }}>
-                      {seller.first_name} {seller.last_name} {seller.status !== 'active' && `(${seller.status})`}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative" ref={filterDropdownRef}>
+                  <button
+                    onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                    className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none bg-white text-gray-900 flex items-center justify-between gap-3 min-w-[250px] hover:bg-gray-50 transition-colors"
+                  >
+                    <span>
+                      {historyFilter === 'all' 
+                        ? 'Tous les vendeurs' 
+                        : sellers.find(s => s.id === historyFilter)?.name || 'Sélectionner...'}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${isFilterDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {isFilterDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-2 w-full bg-white border-2 border-gray-300 rounded-lg shadow-xl z-10 max-h-64 overflow-y-auto">
+                      <button
+                        onClick={() => {
+                          setHistoryFilter('all');
+                          loadHistory(null);
+                          setIsFilterDropdownOpen(false);
+                        }}
+                        className={`w-full px-4 py-2 text-left hover:bg-purple-50 transition-colors ${
+                          historyFilter === 'all' ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-900'
+                        }`}
+                      >
+                        Tous les vendeurs
+                      </button>
+                      {sellers.map(seller => (
+                        <button
+                          key={seller.id}
+                          onClick={() => {
+                            setHistoryFilter(seller.id);
+                            loadHistory(seller.id);
+                            setIsFilterDropdownOpen(false);
+                          }}
+                          className={`w-full px-4 py-2 text-left hover:bg-purple-50 transition-colors ${
+                            historyFilter === seller.id ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-900'
+                          }`}
+                        >
+                          {seller.name} {seller.status !== 'active' && `(${seller.status})`}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* History list */}
