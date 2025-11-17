@@ -318,13 +318,13 @@ export default function LandingPage() {
                 </p>
                 <ul className="space-y-3 mb-6">
                   {[
-                    'Suivi CA, ventes, panier moyen',
-                    'Comparaisons entre vendeurs',
-                    'Graphiques d\'évolution',
-                    'Export PDF des rapports'
+                    'Repérez un vendeur en difficulté avant que les KPI chutent',
+                    'Comparez vos équipes en un clic',
+                    'Recevez des alertes intelligentes sur les performances',
+                    'Exportez vos rapports pour votre hiérarchie'
                   ].map((item, idx) => (
-                    <li key={`manager-feature-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-[#10B981]" />
+                    <li key={`manager-feature-${idx}-${item.substring(0, 15)}`} className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-[#10B981] flex-shrink-0 mt-1" />
                       <span className="text-[#334155]">{item}</span>
                     </li>
                   ))}
