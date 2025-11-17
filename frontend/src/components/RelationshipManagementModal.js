@@ -363,17 +363,17 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
                 </button>
               </form>
               
-              {/* Recommendation display - Always rendered but hidden if empty */}
-              <div className={`bg-green-50 border-2 border-green-200 rounded-xl p-6 mt-6 transition-all ${
-                recommendation ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden p-0 mt-0 border-0'
-              }`}>
-                <h3 className="text-lg font-bold text-green-800 mb-4 flex items-center gap-2">
-                  ✨ Recommandations personnalisées
-                </h3>
-                <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
-                  {recommendation}
+              {/* Recommendation display */}
+              {recommendation && (
+                <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 mt-6">
+                  <h3 className="text-lg font-bold text-green-800 mb-4 flex items-center gap-2">
+                    ✨ Recommandations personnalisées
+                  </h3>
+                  <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
+                    {recommendation}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           ) : (
             /* History view */
