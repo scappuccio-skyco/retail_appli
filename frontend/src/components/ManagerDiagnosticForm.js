@@ -448,10 +448,8 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
                   </p>
                   <div className="space-y-2">
                     {question.options.map((option, optionIdx) => {
-                      const isDISCQuestion = question.id >= 11 && question.id <= 34;
-                      const isSelected = isDISCQuestion 
-                        ? responses[question.id] === optionIdx
-                        : responses[question.id] === option;
+                      // All questions now use index-based selection
+                      const isSelected = responses[question.id] === optionIdx;
                       
                       return (
                         <button
