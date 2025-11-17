@@ -287,7 +287,8 @@ export default function LandingPage() {
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-bold text-[#1E40AF] mb-3">{feature.title}</h3>
-                <p className="text-[#334155]">{feature.description}</p>
+                <p className="text-[#334155] mb-3">{feature.description}</p>
+                <p className="text-sm font-semibold text-[#F97316] italic">{feature.impact}</p>
               </div>
             ))}
           </div>
