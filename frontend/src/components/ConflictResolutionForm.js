@@ -164,7 +164,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
   return (
     <div className="space-y-8">
       {/* Overview Section - Show by default */}
-      {!state.showForm && !state.showResult && (
+      {!state.showForm && !state.aiRecommendations && (
         <div className="space-y-6">
           {/* Hero section avec bouton */}
           <div className="glass-morphism rounded-2xl p-8 text-center">
