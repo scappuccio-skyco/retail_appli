@@ -8,7 +8,7 @@ import requests
 import json
 from datetime import datetime, timedelta
 
-BASE_URL = "https://seller-insights-3.preview.emergentagent.com/api"
+BASE_URL = "https://sale-insights.preview.emergentagent.com/api"
 
 def login(email, password):
     """Login and return token"""
