@@ -708,6 +708,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           key="relationship"
           onClick={() => setShowRelationshipModal(true)}
           className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-purple-400"
+          style={{ order: getSectionOrder('relationship') }}
         >
           <div className="relative h-56 overflow-hidden">
             <img 
