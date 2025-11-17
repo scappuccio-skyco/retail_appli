@@ -4432,10 +4432,11 @@ async def get_store_kpi_overview(
         "date": date
     }, {"_id": 0})
     
-    # Get all sellers under this manager
+    # Get all active sellers under this manager
     sellers = await db.users.find({
         "manager_id": current_user['id'],
-        "role": "seller"
+        "role": "seller",
+        "status": "active"  # Filtre uniquement les vendeurs actifs
     }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
     
     seller_ids = [s['id'] for s in sellers]
