@@ -318,20 +318,10 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
                 {/* Submit button */}
                 <button
                   type="submit"
-                  disabled={isGenerating}
-                  className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2"
                 >
-                  {isGenerating ? (
-                    <>
-                      <Loader className="w-5 h-5 animate-spin" />
-                      Génération en cours...
-                    </>
-                  ) : (
-                    <>
-                      <MessageCircle className="w-5 h-5" />
-                      Obtenir des recommandations
-                    </>
-                  )}
+                  <MessageCircle className="w-5 h-5" />
+                  Obtenir des recommandations
                 </button>
               </form>
             </div>
