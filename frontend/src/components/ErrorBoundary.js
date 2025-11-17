@@ -7,10 +7,31 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
+    // Ignorer les erreurs provenant d'extensions de navigateur
+    if (error.stack && (
+      error.stack.includes('chrome-extension://') ||
+      error.stack.includes('MetaMask') ||
+      error.stack.includes('moz-extension://') ||
+      error.message.includes('MetaMask')
+    )) {
+      console.warn('Erreur d\'extension de navigateur ignorée:', error.message);
+      return { hasError: false };
+    }
+    
     return { hasError: true, error };
   }
 
   componentDidCatch(error, errorInfo) {
+    // Ignorer les erreurs d'extensions
+    if (error.stack && (
+      error.stack.includes('chrome-extension://') ||
+      error.stack.includes('MetaMask') ||
+      error.message.includes('MetaMask')
+    )) {
+      console.warn('Erreur MetaMask/Extension ignorée');
+      return;
+    }
+    
     console.error('ErrorBoundary caught error:', error);
     console.error('Error info:', errorInfo);
     this.setState({ errorInfo });
