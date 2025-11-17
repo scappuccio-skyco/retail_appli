@@ -690,6 +690,10 @@ export default function LandingPage() {
                 answer: "Aucune carte bancaire requise. Vous testez toutes les fonctionnalités pendant 14 jours. À la fin de l'essai, vous choisissez votre formule ou arrêtez simplement."
               },
               {
+                question: "Quel impact réel sur mes KPI (transformation, panier moyen, etc.) ?",
+                answer: "Nos utilisateurs constatent des améliorations mesurables sur leurs indicateurs clés en 4 à 6 semaines. L'IA identifie précisément les axes d'amélioration pour chaque vendeur et génère des plans d'action concrets, ce qui se traduit par une progression rapide sur le CA, le taux de transformation et le panier moyen."
+              },
+              {
                 question: "Puis-je changer de formule à tout moment ?",
                 answer: "Oui, absolument. Vous pouvez passer d'une formule à l'autre à tout moment selon l'évolution de votre équipe. Le changement est instantané."
               },
