@@ -8,126 +8,156 @@ const API = `${BACKEND_URL}/api`;
 
 const questions = [
   {
-    section: "🟡 Ton style de management",
+    section: "🟡 Compétences Managériales",
     items: [
       {
         id: 1,
         text: "Quand ton équipe rencontre une difficulté, ta première réaction est de :",
         options: [
-          "Chercher à comprendre individuellement ce qui bloque",
           "Trouver une solution rapide et passer à l'action",
           "Encourager tout le monde pour garder le moral",
-          "Vérifier les indicateurs pour objectiver le problème",
-          "Recadrer pour remettre de la rigueur"
+          "Chercher à comprendre individuellement ce qui bloque",
+          "Vérifier les indicateurs pour objectiver le problème"
         ]
       },
       {
         id: 2,
         text: "En briefing, tu es plutôt du genre à :",
         options: [
-          "Dynamiser et créer de l'énergie dans le groupe",
           "Délivrer un message clair, précis et orienté résultats",
+          "Dynamiser et créer de l'énergie dans le groupe",
           "Poser des questions et impliquer chacun dans la réflexion",
-          "Cadrer les priorités et rappeler les process",
-          "Mettre en avant les réussites de ton équipe"
+          "Cadrer les priorités et rappeler les process"
         ]
       },
       {
         id: 3,
         text: "Quand un collaborateur n'atteint pas ses objectifs, tu :",
         options: [
-          "Cherches à comprendre le \"pourquoi\" avant de juger",
           "Fixes un plan d'action concret et mesurable",
           "Encourages et motives pour qu'il retrouve confiance",
-          "Reformules la méthode pour qu'il suive les bonnes étapes",
-          "Rappelles l'importance du cadre et des attentes"
+          "Cherches à comprendre le \"pourquoi\" avant de juger",
+          "Reformules la méthode pour qu'il suive les bonnes étapes"
         ]
-      }
-    ]
-  },
-  {
-    section: "🟡 Ta posture de performance",
-    items: [
+      },
       {
         id: 4,
         text: "Tu te sens le plus efficace quand :",
         options: [
-          "Ton équipe est engagée et autonome",
           "Les chiffres progressent et les objectifs sont clairs",
           "L'ambiance est positive et tout le monde se parle",
-          "Les process tournent bien sans que tu aies à intervenir",
-          "Tu formes et accompagnes un collaborateur à réussir"
+          "Ton équipe est engagée et autonome",
+          "Les process tournent bien sans que tu aies à intervenir"
         ]
       },
       {
         id: 5,
         text: "Quand tu prépares un brief ou un coaching, tu penses d'abord à :",
         options: [
-          "Ce que tu veux faire ressentir",
           "Les résultats à atteindre",
+          "Ce que tu veux faire ressentir",
           "Les comportements à améliorer",
-          "La méthode à transmettre",
-          "Le message clé à faire passer"
+          "La méthode à transmettre"
         ]
       },
       {
         id: 6,
         text: "Ce que tu regardes le plus souvent pour piloter ton équipe :",
         options: [
-          "Le moral et la cohésion du groupe",
           "Les ventes, taux de transfo, panier moyen",
+          "Le moral et la cohésion du groupe",
           "Les comportements observés en boutique",
-          "Le respect du cadre (planning, procédures, standards)",
-          "Les progressions individuelles"
+          "Le respect du cadre (planning, procédures, standards)"
         ]
-      }
-    ]
-  },
-  {
-    section: "🟡 Ta motivation managériale",
-    items: [
+      },
       {
         id: 7,
         text: "Ce qui te motive le plus dans ton rôle de manager :",
         options: [
-          "Voir ton équipe s'épanouir et progresser",
           "Atteindre les objectifs et performer",
           "Créer une belle dynamique collective",
-          "Faire respecter une organisation fluide et efficace",
-          "Transmettre ton expérience"
+          "Voir ton équipe s'épanouir et progresser",
+          "Faire respecter une organisation fluide et efficace"
         ]
       },
       {
         id: 8,
         text: "Quand tout va bien, ton réflexe est de :",
         options: [
-          "Féliciter et célébrer les réussites",
           "Fixer un nouveau challenge",
+          "Féliciter et célébrer les réussites",
           "Renforcer la cohésion du groupe",
-          "Capitaliser pour formaliser la méthode",
-          "Former sur ce qui a bien fonctionné"
+          "Capitaliser pour formaliser la méthode"
         ]
       },
       {
         id: 9,
         text: "Et quand ça va moins bien, tu :",
         options: [
-          "Écoutes et accompagnes avec empathie",
           "Rappelles les priorités et recentres l'énergie",
           "Boostes l'équipe avec une communication positive",
-          "Cherches la cause racine pour corriger durablement",
-          "Soutiens et reformules pour aider à retrouver confiance"
+          "Écoutes et accompagnes avec empathie",
+          "Cherches la cause racine pour corriger durablement"
         ]
       },
       {
         id: 10,
         text: "Si tu devais résumer ta mission de manager en une phrase, ce serait :",
         options: [
-          "Faire grandir les autres",
           "Atteindre les objectifs",
           "Créer de la motivation collective",
-          "Garantir la rigueur et l'efficacité",
-          "Transmettre une méthode gagnante"
+          "Faire grandir les autres",
+          "Garantir la rigueur et l'efficacité"
+        ]
+      },
+      {
+        id: 11,
+        text: "Quand tu délègues une tâche importante à un collaborateur, tu :",
+        options: [
+          "Fixes des résultats attendus et lui laisses la main",
+          "Encourages et montres ta confiance avec enthousiasme",
+          "Accompagnes progressivement et restes disponible",
+          "Expliques la méthode précise à suivre étape par étape"
+        ]
+      },
+      {
+        id: 12,
+        text: "Pour faire monter un vendeur en compétence, tu privilégies :",
+        options: [
+          "Des objectifs challenges qui le poussent à progresser",
+          "Des feedbacks positifs et des encouragements constants",
+          "Un accompagnement patient et personnalisé",
+          "Une formation structurée avec des méthodes claires"
+        ]
+      },
+      {
+        id: 13,
+        text: "Pour communiquer la stratégie de l'entreprise à ton équipe, tu :",
+        options: [
+          "Présentes les objectifs chiffrés et les priorités d'action",
+          "Racontes une histoire inspirante qui donne du sens",
+          "Prends le temps d'écouter leurs questions et préoccupations",
+          "Expliques la logique et les étapes du plan avec rigueur"
+        ]
+      },
+      {
+        id: 14,
+        text: "Ta méthode pour gérer tes priorités quotidiennes :",
+        options: [
+          "Je me concentre sur ce qui a le plus d'impact immédiat",
+          "Je jongle facilement entre plusieurs sujets selon les besoins",
+          "Je traite mes tâches dans un ordre logique et prévisible",
+          "Je planifie rigoureusement chaque activité de la journée"
+        ]
+      },
+      {
+        id: 15,
+        text: "Face à un processus inefficace dans ton équipe, tu :",
+        options: [
+          "Changes rapidement pour gagner en efficacité",
+          "Impliques l'équipe pour co-construire l'amélioration",
+          "Observes d'abord l'impact avant de modifier",
+          "Analyses en détail avant de proposer une solution optimale"
         ]
       }
     ]
