@@ -79,6 +79,16 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
     }
   }, [activeMainTab]);
   
+  // Gérer recommendation APRÈS le rendu pour éviter conflit DOM (comme DebriefHistoryModal)
+  useEffect(() => {
+    if (pendingRecommendation) {
+      setRecommendation(pendingRecommendation);
+      setPendingRecommendation(null);
+      setIsGenerating(false);
+      toast.success('Recommandation générée avec succès !');
+    }
+  }, [pendingRecommendation]);
+  
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
