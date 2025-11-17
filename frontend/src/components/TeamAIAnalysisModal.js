@@ -122,9 +122,35 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="border-b border-gray-200 px-6">
+          <div className="flex gap-4">
+            <button
+              onClick={() => setActiveTab('new')}
+              className={`px-4 py-3 font-semibold transition-colors border-b-2 ${
+                activeTab === 'new'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Nouvelle Analyse
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`px-4 py-3 font-semibold transition-colors border-b-2 ${
+                activeTab === 'history'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Historique ({history.length})
+            </button>
+          </div>
+        </div>
+
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
-          {!aiAnalysis && !loading && (
+        <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)]">
+          {activeTab === 'new' && !aiAnalysis && !loading && (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🤖</div>
               <p className="text-gray-600 mb-6">
