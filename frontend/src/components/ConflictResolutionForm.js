@@ -302,7 +302,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
               </label>
               <textarea
                 name="impact"
-                value={state.formData.impact}
+                value={formData.impact}
                 onChange={handleChange}
                 placeholder="Quel est l'impact de cette situation ? (moral de l'équipe, résultats commerciaux, satisfaction client...)"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
