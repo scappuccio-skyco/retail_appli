@@ -15,6 +15,42 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
 
+  const loadHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(
+        `${API}/manager/team-analyses-history`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setHistory(res.data.analyses || []);
+    } catch (err) {
+      console.error('Error loading history:', err);
+      toast.error('Erreur lors du chargement de l\'historique');
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const handleDeleteAnalysis = async (analysisId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette analyse ?')) {
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(
+        `${API}/manager/team-analysis/${analysisId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Analyse supprimée');
+      loadHistory();
+    } catch (err) {
+      console.error('Error deleting analysis:', err);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
   const handleGenerateAnalysis = async () => {
     setLoading(true);
 
@@ -45,7 +81,15 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
       );
 
       setAiAnalysis(res.data.analysis);
+      setAnalysisMetadata({
+        period_start: res.data.period_start,
+        period_end: res.data.period_end,
+        generated_at: res.data.generated_at
+      });
       toast.success('Analyse IA générée !');
+      
+      // Refresh history
+      loadHistory();
     } catch (err) {
       console.error('Error generating AI analysis:', err);
       toast.error('Erreur lors de l\'analyse IA');
