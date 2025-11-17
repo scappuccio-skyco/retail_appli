@@ -331,7 +331,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
               </label>
               <textarea
                 name="description_libre"
-                value={state.formData.description_libre}
+                value={formData.description_libre}
                 onChange={handleChange}
                 placeholder="Ajoutez tout autre élément important pour comprendre la situation..."
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
