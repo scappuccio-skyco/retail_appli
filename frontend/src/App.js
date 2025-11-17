@@ -247,6 +247,7 @@ function AppContent() {
           }
         />
       </Routes>
+      </Suspense>
     </>
   );
 }
