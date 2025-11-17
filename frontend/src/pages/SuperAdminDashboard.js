@@ -60,10 +60,46 @@ export default function SuperAdminDashboard() {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      toast.success(`Workspace ${newStatus === 'active' ? 'activé' : 'suspendu'}`);
+      const statusMessage = newStatus === 'active' ? 'activé' : newStatus === 'suspended' ? 'suspendu' : 'supprimé';
+      toast.success(`Workspace ${statusMessage}`);
       fetchData();
     } catch (error) {
       toast.error('Erreur lors de la modification');
+      console.error('Error:', error);
+    }
+  };
+
+  const handleChangePlan = async (workspaceId, workspaceName) => {
+    const newPlan = prompt(
+      `Changer le plan pour "${workspaceName}":\n\n` +
+      `Options disponibles:\n` +
+      `- trial (Essai gratuit)\n` +
+      `- starter (Plan Starter)\n` +
+      `- professional (Plan Professional)\n` +
+      `- enterprise (Plan Enterprise)\n\n` +
+      `Entrez le nouveau plan:`
+    );
+
+    if (!newPlan) return;
+
+    const validPlans = ['trial', 'starter', 'professional', 'enterprise'];
+    if (!validPlans.includes(newPlan.toLowerCase())) {
+      toast.error('Plan invalide. Choisissez: trial, starter, professional ou enterprise');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      // Endpoint à créer dans le backend
+      await axios.patch(
+        `${API}/superadmin/workspaces/${workspaceId}/plan`,
+        { plan: newPlan.toLowerCase() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`Plan changé en ${newPlan}`);
+      fetchData();
+    } catch (error) {
+      toast.error('Erreur lors du changement de plan');
       console.error('Error:', error);
     }
   };
