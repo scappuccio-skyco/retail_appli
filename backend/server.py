@@ -5963,14 +5963,14 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
         "id": workspace['id'],
         "workspace_id": workspace['id'],
         "workspace_name": workspace['name'],
-        "status": workspace['subscription_status'],
+        "status": workspace.get('subscription_status', 'trial'),  # Default to 'trial' if not set
         "plan": plan,  # Determined based on quantity
         "stripe_customer_id": workspace.get('stripe_customer_id'),
         "stripe_subscription_id": workspace.get('stripe_subscription_id'),
         "stripe_subscription_item_id": workspace.get('stripe_subscription_item_id'),
-        "seats": quantity,
+        "seats": quantity if quantity > 0 else 1,  # Minimum 1 seat
         "used_seats": seller_count,
-        "available_seats": max(0, quantity - seller_count),
+        "available_seats": max(0, (quantity if quantity > 0 else 1) - seller_count),
         "current_period_start": workspace.get('current_period_start'),
         "current_period_end": workspace.get('current_period_end'),
         "billing_interval": workspace.get('billing_interval', 'month'),
