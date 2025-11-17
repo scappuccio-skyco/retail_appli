@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Finaliser l'intégration des KPIs récents dans le prompt IA pour les analyses de vente + Corriger le vouvoiement du client dans les exemples de dialogue AI"
+user_problem_statement: "Corriger le bug React DOM 'insertBefore' qui crash les composants RelationshipManagementModal et ConflictResolutionForm lors de la génération d'analyses IA"
 
 backend:
   - task: "AI Sales Analysis - Client Vouvoiement Fix + KPI Context Enhancement"
