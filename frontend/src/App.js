@@ -151,8 +151,7 @@ function AppContent() {
   return (
     <>
       <Toaster position="top-right" richColors />
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
+      <Routes>
         {/* Landing Page - Public */}
         <Route
           path="/"
