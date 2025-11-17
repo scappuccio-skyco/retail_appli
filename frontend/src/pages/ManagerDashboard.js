@@ -918,7 +918,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
                 Réorganiser l'ordre des cartes
               </p>
-              <div className="flex flex-wrap gap-2 max-w-4xl mx-auto">
+              <div className="flex flex-wrap gap-2 justify-center">
                 {sectionOrder.map((sectionId, index) => {
                   const sectionNames = {
                     kpi: '📊 KPI',
