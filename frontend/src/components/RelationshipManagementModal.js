@@ -27,6 +27,8 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   const [isSellerDropdownOpen, setIsSellerDropdownOpen] = useState(false);
   const sellerDropdownRef = useRef(null);
   const [expandedItems, setExpandedItems] = useState({});
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const filterDropdownRef = useRef(null);
   
   // Types de situations
   const situationTypes = {
