@@ -119,20 +119,20 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
         }
       );
       
-      // Déclencher recommendation via useEffect - EXACTEMENT comme DebriefHistoryModal
-      setPendingRecommendation(response.data.recommendation);
+      // Pattern Ultra Simple - Direct comme TeamAIAnalysisModal
+      setRecommendation(response.data.recommendation);
+      toast.success('Recommandation générée avec succès !');
       
       // Refresh history if visible
       if (activeMainTab === 'history') {
         loadHistory(historyFilter !== 'all' ? historyFilter : null);
       }
       
-      // PAS de setIsGenerating(false) ici - géré dans useEffect
-      
     } catch (error) {
       console.error('Error generating advice:', error);
       toast.error('Erreur lors de la génération des recommandations');
-      setIsGenerating(false);  // Seulement dans le catch, comme DebriefHistoryModal
+    } finally {
+      setIsGenerating(false);
     }
   };
   
