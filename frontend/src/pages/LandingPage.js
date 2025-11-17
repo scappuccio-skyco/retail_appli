@@ -111,6 +111,11 @@ export default function LandingPage() {
                 </span>
               </h1>
               
+              {/* Sous-titre avec preuve */}
+              <p className="text-2xl font-semibold text-[#F97316] mb-4 leading-relaxed">
+                Un coaching IA simple et actionnable pour des performances mesurables en quelques semaines
+              </p>
+              
               <p className="text-xl text-[#334155] mb-8 leading-relaxed">
                 La première plateforme de coaching pour le retail, qui transforme vos vendeurs en experts autonomes pour booster votre CA.<br />
                 Analyse des compétences, coaching personnalisé et progression continue, grâce à l'intelligence artificielle.
