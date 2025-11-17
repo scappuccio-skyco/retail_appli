@@ -75,7 +75,12 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
       return;
     }
 
+    // IMPORTANT : Fermer le form AVANT l'appel API (pattern correct)
+    setShowForm(false);
     setLoading(true);
+    
+    // Afficher loading toast
+    const loadingToast = toast.loading('🤖 Génération des recommandations IA...');
     
     try {
       const token = localStorage.getItem('token');
@@ -88,8 +93,15 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Déclencher pendingSuccess via useEffect pour éviter conflit DOM (pattern DebriefHistoryModal)
-      setPendingSuccess(response.data);
+      toast.dismiss(loadingToast);
+      toast.success('Recommandations générées avec succès');
+      
+      // Attendre 500ms pour garantir un cycle de rendu propre
+      setTimeout(() => {
+        setAiRecommendations(response.data);
+        // Rafraîchir l'historique
+        fetchConflictHistory();
+      }, 500);
       
       // Reset form
       setFormData({
@@ -100,13 +112,9 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         description_libre: ''
       });
       
-      toast.success('Recommandations générées avec succès');
-      
-      // Fermer le form
-      setShowForm(false);
-      
     } catch (err) {
       console.error('Error creating conflict resolution:', err);
+      toast.dismiss(loadingToast);
       toast.error('Erreur lors de la génération des recommandations');
     } finally {
       setLoading(false);
