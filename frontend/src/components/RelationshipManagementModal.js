@@ -16,14 +16,12 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   if (sellers.length > 0) {
     console.log('First seller structure:', sellers[0]);
   }
-  const [activeMainTab, setActiveMainTab] = useState('history'); // Start with history if autoShowResult
+  const [activeMainTab, setActiveMainTab] = useState('form'); // 'form' or 'history'
   const [activeFormTab, setActiveFormTab] = useState('relationnel'); // 'relationnel' or 'conflit'
   const [activeHistoryTab, setActiveHistoryTab] = useState('all'); // 'all', 'relationnel', or 'conflit'
   const [selectedSeller, setSelectedSeller] = useState('');
   const [situationType, setSituationType] = useState('');
   const [description, setDescription] = useState('');
-  // Pattern Ultra Simple - États séparés
-  const [recommendation, setRecommendation] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [history, setHistory] = useState([]);
   const [historyFilter, setHistoryFilter] = useState('all');
