@@ -94,18 +94,9 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
   // Gérer recommendation APRÈS le rendu pour éviter conflit DOM
   useEffect(() => {
     if (state.pendingRecommendation) {
-      // Le reducer batch les actions - il faut les séparer avec setTimeout
-      dispatch({ type: 'SET_LOADING_FALSE' });
-      
-      setTimeout(() => {
-        dispatch({ type: 'SET_AI_RECOMMENDATIONS', payload: state.pendingRecommendation });
-        
-        setTimeout(() => {
-          dispatch({ type: 'CLEAR_PENDING' });
-          dispatch({ type: 'HIDE_FORM' });
-          toast.success('Recommandations générées avec succès');
-        }, 50);
-      }, 50);
+      // Action atomique unique pour éviter conflits DOM avec React 19
+      dispatch({ type: 'APPLY_RECOMMENDATIONS', payload: state.pendingRecommendation });
+      toast.success('Recommandations générées avec succès');
     }
   }, [state.pendingRecommendation]);
 
