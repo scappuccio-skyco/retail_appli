@@ -31,11 +31,13 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
   // Gérer pendingSuccess APRÈS le rendu pour éviter conflit DOM (pattern DebriefHistoryModal)
   useEffect(() => {
     if (pendingSuccess) {
-      // Afficher les recommandations après fermeture du form
-      setAiRecommendations(pendingSuccess);
-      setPendingSuccess(null);
-      // Rafraîchir l'historique
-      fetchConflictHistory();
+      // Attendre 500ms pour garantir un cycle de rendu propre
+      setTimeout(() => {
+        setAiRecommendations(pendingSuccess);
+        setPendingSuccess(null);
+        // Rafraîchir l'historique
+        fetchConflictHistory();
+      }, 500);
     }
   }, [pendingSuccess]);
 
