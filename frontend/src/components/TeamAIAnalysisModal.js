@@ -361,6 +361,195 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
               </div>
             </div>
           )}
+
+          {/* Onglet Historique */}
+          {activeTab === 'history' && (
+            <div className="space-y-4">
+              {loadingHistory && (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Chargement de l'historique...</p>
+                </div>
+              )}
+
+              {!loadingHistory && history.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">📊</div>
+                  <p className="text-gray-600">Aucune analyse dans l'historique</p>
+                  <button
+                    onClick={() => setActiveTab('new')}
+                    className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                  >
+                    Créer une analyse
+                  </button>
+                </div>
+              )}
+
+              {!loadingHistory && history.length > 0 && (
+                <div className="space-y-4">
+                  {history.map((item, index) => {
+                    const isExpanded = expandedItems[item.analysis_id];
+                    const isLatest = index === 0;
+
+                    return (
+                      <div
+                        key={item.analysis_id}
+                        className={`border-2 rounded-xl overflow-hidden transition-all ${
+                          isLatest
+                            ? 'border-indigo-400 bg-gradient-to-br from-indigo-50 to-purple-50 shadow-lg'
+                            : 'border-gray-200 bg-white hover:shadow-md'
+                        }`}
+                      >
+                        {/* Header cliquable */}
+                        <div
+                          className="p-4 cursor-pointer hover:bg-white/50 transition-colors"
+                          onClick={() => setExpandedItems(prev => ({ ...prev, [item.analysis_id]: !prev[item.analysis_id] }))}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                {isLatest && (
+                                  <span className="px-2 py-0.5 bg-indigo-500 text-white text-xs font-bold rounded-full">
+                                    DERNIER
+                                  </span>
+                                )}
+                                <span className="text-sm font-semibold text-gray-800">
+                                  Analyse d'équipe
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-4 flex-wrap text-sm text-gray-600">
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="w-4 h-4" />
+                                  <span>
+                                    {new Date(item.period_start).toLocaleDateString('fr-FR')} 
+                                    {' → '}
+                                    {new Date(item.period_end).toLocaleDateString('fr-FR')}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-4 h-4" />
+                                  <span>
+                                    {new Date(item.generated_at).toLocaleDateString('fr-FR')}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <ChevronDown
+                                className={`w-5 h-5 text-gray-500 transition-transform ${
+                                  isExpanded ? 'rotate-180' : ''
+                                }`}
+                              />
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteAnalysis(item.analysis_id);
+                                }}
+                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Supprimer cette analyse"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Contenu détaillé */}
+                        {isExpanded && (
+                          <div className="border-t-2 border-gray-200 bg-gradient-to-br from-orange-50 to-yellow-50 p-6">
+                            {/* Afficher l'analyse avec le même style que l'onglet nouveau */}
+                            {(() => {
+                              const sections = item.analysis.split('##').filter(s => s.trim());
+                              
+                              return (
+                                <div className="space-y-4">
+                                  {sections.map((section, sectionIdx) => {
+                                    const lines = section.trim().split('\n');
+                                    const title = lines[0].trim().replace(/\*\*/g, '');
+                                    const content = lines.slice(1).join('\n').trim();
+                                    
+                                    const colorPalette = [
+                                      { badge: 'bg-indigo-100 text-indigo-800', card: 'bg-indigo-50 border-indigo-200', icon: '📊', gradient: 'from-indigo-500 to-purple-600' },
+                                      { badge: 'bg-green-100 text-green-800', card: 'bg-green-50 border-green-200', icon: '✅', gradient: 'from-green-500 to-emerald-600' },
+                                      { badge: 'bg-orange-100 text-orange-800', card: 'bg-orange-50 border-orange-200', icon: '⚠️', gradient: 'from-orange-500 to-red-500' },
+                                      { badge: 'bg-purple-100 text-purple-800', card: 'bg-purple-50 border-purple-200', icon: '🎯', gradient: 'from-purple-500 to-indigo-600' },
+                                      { badge: 'bg-teal-100 text-teal-800', card: 'bg-teal-50 border-teal-200', icon: '💡', gradient: 'from-teal-500 to-cyan-600' },
+                                      { badge: 'bg-pink-100 text-pink-800', card: 'bg-pink-50 border-pink-200', icon: '🌟', gradient: 'from-pink-500 to-rose-600' }
+                                    ];
+                                    
+                                    let colorScheme;
+                                    const titleLower = title.toLowerCase();
+                                    
+                                    if (titleLower.includes('force') || titleLower.includes('positif') || titleLower.includes('réussite')) {
+                                      colorScheme = colorPalette[1];
+                                    } else if (titleLower.includes('attention') || titleLower.includes('faible') || titleLower.includes('améliorer') || titleLower.includes('difficulté')) {
+                                      colorScheme = colorPalette[2];
+                                    } else if (titleLower.includes('recommandation') || titleLower.includes('action') || titleLower.includes('priorité')) {
+                                      colorScheme = colorPalette[3];
+                                    } else if (titleLower.includes('analyse') || titleLower.includes('synthèse') || titleLower.includes('résumé')) {
+                                      colorScheme = colorPalette[0];
+                                    } else if (titleLower.includes('opportunité') || titleLower.includes('potentiel') || titleLower.includes('développement')) {
+                                      colorScheme = colorPalette[4];
+                                    } else {
+                                      colorScheme = colorPalette[sectionIdx % colorPalette.length];
+                                    }
+                                    
+                                    return (
+                                      <div key={sectionIdx} className={`rounded-xl p-5 shadow-sm border-2 ${colorScheme.card}`}>
+                                        <div className="mb-4">
+                                          <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm ${colorScheme.badge}`}>
+                                            <span>{colorScheme.icon}</span>
+                                            {title}
+                                          </span>
+                                        </div>
+                                        <div className="space-y-3">
+                                          {content.split('\n').map((line, lineIdx) => {
+                                            const cleaned = line.trim();
+                                            if (!cleaned) return null;
+                                            
+                                            if (cleaned.startsWith('-')) {
+                                              const text = cleaned.replace(/^[-•]\s*/, '');
+                                              const parts = text.split(/(\*\*.*?\*\*)/g);
+                                              
+                                              return (
+                                                <div key={lineIdx} className="flex gap-3 items-start bg-white rounded-lg p-3 shadow-sm">
+                                                  <span className={`flex-shrink-0 w-7 h-7 bg-gradient-to-br ${colorScheme.gradient} text-white rounded-full flex items-center justify-center font-bold text-sm`}>
+                                                    •
+                                                  </span>
+                                                  <p className="flex-1 text-gray-800">
+                                                    {parts.map((part, i) => {
+                                                      if (part.startsWith('**') && part.endsWith('**')) {
+                                                        return <strong key={i} className="font-bold">{part.slice(2, -2)}</strong>;
+                                                      }
+                                                      return <span key={i}>{part}</span>;
+                                                    })}
+                                                  </p>
+                                                </div>
+                                              );
+                                            }
+                                            
+                                            return (
+                                              <p key={lineIdx} className="text-gray-700 leading-relaxed">
+                                                {cleaned}
+                                              </p>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
