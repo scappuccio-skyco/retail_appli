@@ -22,7 +22,6 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
   const [expandedHistoryItems, setExpandedHistoryItems] = useState({});
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [pendingRecommendation, setPendingRecommendation] = useState(null);
 
   useEffect(() => {
     fetchConflictHistory();
