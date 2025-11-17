@@ -161,10 +161,10 @@ const questions = [
         text: "Après une vente, que fais-tu pour que le client revienne ?",
         type: "choice",
         options: [
+          "Je lui fixe un rappel pour assurer son suivi",
           "Je lui propose de rejoindre le programme de fidélité",
-          "Je prends ses coordonnées pour le tenir informé",
           "Je lui donne des conseils d'utilisation personnalisés",
-          "Je lui parle des prochaines nouveautés"
+          "Je lui remets un guide technique détaillé"
         ]
       },
       {
