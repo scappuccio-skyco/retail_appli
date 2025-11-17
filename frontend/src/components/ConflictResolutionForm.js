@@ -342,10 +342,10 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
 
           <button
             type="submit"
-            disabled={state.loading}
+            disabled={loading}
             className="w-full btn-primary py-4 text-lg font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {state.loading ? (
+            {loading ? (
               <>
                 <Loader className="w-5 h-5 animate-spin" />
                 Génération des recommandations IA...
