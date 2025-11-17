@@ -13,9 +13,11 @@ const conflictReducer = (state, action) => {
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
     case 'SET_PENDING_RECOMMENDATION':
-      return { ...state, pendingRecommendation: action.payload };
+      return { ...state, pendingRecommendation: action.payload, loading: false };
     case 'SET_AI_RECOMMENDATIONS':
-      return { ...state, aiRecommendations: action.payload, loading: false, showResult: true, showForm: false, pendingRecommendation: null };
+      return { ...state, aiRecommendations: action.payload, pendingRecommendation: null };
+    case 'SHOW_RESULT':
+      return { ...state, showResult: true, showForm: false };
     case 'RESET_FORM':
       return { 
         ...state, 
