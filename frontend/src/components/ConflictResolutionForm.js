@@ -74,12 +74,12 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     e.preventDefault();
     
     // Validation
-    if (!state.formData.contexte || !state.formData.comportement_observe || !state.formData.impact) {
+    if (!formData.contexte || !formData.comportement_observe || !formData.impact) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
-    dispatch({ type: 'SET_LOADING', payload: true });
+    setLoading(true);
     
     try {
       const token = localStorage.getItem('token');
@@ -87,19 +87,25 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         `${API}/manager/conflict-resolution`,
         {
           seller_id: sellerId,
-          ...state.formData
+          ...formData
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       // Déclencher recommendation via useEffect pour éviter conflit DOM
-      dispatch({ type: 'SET_PENDING_RECOMMENDATION', payload: response.data });
-      dispatch({ type: 'RESET_FORM' });
+      setPendingRecommendation(response.data);
+      setFormData({
+        contexte: '',
+        comportement_observe: '',
+        impact: '',
+        tentatives_precedentes: '',
+        description_libre: ''
+      });
       
     } catch (err) {
       console.error('Error creating conflict resolution:', err);
       toast.error('Erreur lors de la génération des recommandations');
-      dispatch({ type: 'SET_LOADING', payload: false });
+      setLoading(false);
     }
   };
 
