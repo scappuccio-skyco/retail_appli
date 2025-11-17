@@ -837,74 +837,74 @@ export default function ManagerDashboard({ user, onLogout }) {
                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
                 Afficher/Masquer les cartes
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto">
                 <button
                   onClick={() => toggleFilter('showKPI')}
-                  className={`px-6 py-4 rounded-xl font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
                     dashboardFilters.showKPI
                       ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
                       : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-2">
-                    <span className="text-2xl">📊</span>
-                    <span className="text-sm font-semibold">KPI Magasin</span>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <span className="text-xl">📊</span>
+                    <span className="text-xs font-semibold">KPI Magasin</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showTeam')}
-                  className={`px-6 py-4 rounded-xl font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
                     dashboardFilters.showTeam
                       ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
                       : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-2">
-                    <span className="text-2xl">👥</span>
-                    <span className="text-sm font-semibold">Mon Équipe</span>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <span className="text-xl">👥</span>
+                    <span className="text-xs font-semibold">Mon Équipe</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showObjectives')}
-                  className={`px-6 py-4 rounded-xl font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
                     dashboardFilters.showObjectives
                       ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
                       : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-2">
-                    <span className="text-2xl">🎯</span>
-                    <span className="text-sm font-semibold">Objectifs</span>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <span className="text-xl">🎯</span>
+                    <span className="text-xs font-semibold">Objectifs</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showChallenges')}
-                  className={`px-6 py-4 rounded-xl font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
                     dashboardFilters.showChallenges
                       ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
                       : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-2">
-                    <span className="text-2xl">🏆</span>
-                    <span className="text-sm font-semibold">Challenges</span>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <span className="text-xl">🏆</span>
+                    <span className="text-xs font-semibold">Challenges</span>
                   </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showRelationship')}
-                  className={`px-6 py-4 rounded-xl font-medium transition-all border-2 ${
+                  className={`px-4 py-3 rounded-xl font-medium transition-all border-2 ${
                     dashboardFilters.showRelationship
                       ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
                       : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-2">
-                    <span className="text-2xl">🤝</span>
-                    <span className="text-sm font-semibold">Gestion relationnelle</span>
+                  <div className="flex flex-col items-center gap-1.5">
+                    <span className="text-xl">🤝</span>
+                    <span className="text-xs font-semibold">Gestion relationnelle</span>
                   </div>
                 </button>
 
