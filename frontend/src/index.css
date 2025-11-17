@@ -113,3 +113,17 @@ code {
         border-bottom-color: inherit;
     }
 }
+
+/* AI Loading Progress Bar Animation */
+@keyframes progress-slide {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.animate-progress-slide {
+    animation: progress-slide 1.5s ease-in-out infinite;
+}
