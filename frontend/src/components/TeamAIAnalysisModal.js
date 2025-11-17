@@ -194,8 +194,36 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
             </div>
           )}
 
-          {aiAnalysis && !loading && (
+          {activeTab === 'new' && aiAnalysis && !loading && (
             <div className="space-y-4">
+              {/* Métadonnées de l'analyse */}
+              {analysisMetadata && (
+                <div className="bg-white rounded-xl p-4 shadow-sm border-2 border-gray-200">
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Calendar className="w-4 h-4" />
+                      <span className="font-semibold">Période :</span>
+                      <span>
+                        {new Date(analysisMetadata.period_start).toLocaleDateString('fr-FR')} 
+                        {' → '}
+                        {new Date(analysisMetadata.period_end).toLocaleDateString('fr-FR')}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Clock className="w-4 h-4" />
+                      <span className="font-semibold">Générée le :</span>
+                      <span>
+                        {new Date(analysisMetadata.generated_at).toLocaleDateString('fr-FR')} à{' '}
+                        {new Date(analysisMetadata.generated_at).toLocaleTimeString('fr-FR', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 space-y-4">
                 {(() => {
                   const sections = aiAnalysis.split('##').filter(s => s.trim());
