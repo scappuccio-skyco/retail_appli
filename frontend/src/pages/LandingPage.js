@@ -233,22 +233,10 @@ export default function LandingPage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           {/* Accroche émotionnelle */}
-          <div className="text-center mb-12">
-            <p className="text-2xl font-bold text-[#334155] max-w-4xl mx-auto leading-relaxed">
-              Les managers retail perdent encore <span className="text-[#F97316]">3h par jour</span> en suivi manuel, reporting et gestion RH.
-              <br />
-              <span className="text-[#1E40AF]">Retail Performer AI automatise tout ça.</span>
-            </p>
-          </div>
-          
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-[#1E40AF] mb-4">
-              Le Défi des Managers Retail
+            <h2 className="text-3xl md:text-4xl font-bold text-[#334155] mb-12 max-w-4xl mx-auto leading-relaxed">
+              Vous ou vos managers retail perdent encore plusieurs heures par jour en suivi manuel, reporting et gestion RH ?
             </h2>
-            <p className="text-xl text-[#334155] max-w-3xl mx-auto">
-              Former, motiver et suivre vos vendeurs demande du temps et des outils adaptés. 
-              Retail Performer AI simplifie tout.
-            </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
