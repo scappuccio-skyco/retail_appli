@@ -1791,20 +1791,40 @@ async def reactivate_seller(seller_id: str, current_user: dict = Depends(get_cur
         raise HTTPException(status_code=400, detail="Cannot reactivate a deleted seller")
     
     # Vérifier si le manager a des sièges disponibles
-    # Compter les vendeurs actifs
+    # Compter les vendeurs actifs dans le workspace
+    workspace_id = current_user.get('workspace_id')
     active_sellers_count = await db.users.count_documents({
-        "$or": [
-            {"manager_id": current_user['id']},
-            {"workspace_id": current_user.get('workspace_id')}
-        ],
+        "workspace_id": workspace_id,
         "role": "seller",
         "status": "active"
     })
     
-    # Récupérer l'abonnement avec sync Stripe pour avoir les bonnes données
-    subscription = await get_user_subscription(current_user['id'])
-    if subscription:
-        seats = subscription.get('seats', 1)
+    # Récupérer le workspace pour voir les sièges disponibles
+    workspace = await get_user_workspace(current_user['id'])
+    if workspace:
+        # Sync with Stripe to get accurate seats count
+        seats = workspace.get('seats')
+        
+        # If seats not set in workspace, try to get from Stripe
+        if not seats and workspace.get('stripe_subscription_id'):
+            try:
+                import stripe as stripe_lib
+                stripe_lib.api_key = STRIPE_API_KEY
+                stripe_sub = stripe_lib.Subscription.retrieve(workspace['stripe_subscription_id'])
+                if stripe_sub and stripe_sub.get('items') and stripe_sub['items']['data']:
+                    seats = stripe_sub['items']['data'][0].get('quantity', 1)
+                    # Update workspace with seats
+                    await db.workspaces.update_one(
+                        {"id": workspace_id},
+                        {"$set": {"seats": seats, "updated_at": datetime.now(timezone.utc).isoformat()}}
+                    )
+            except Exception as e:
+                logger.error(f"Error fetching seats from Stripe: {e}")
+                seats = 1
+        
+        if not seats:
+            seats = 1  # Default fallback
+            
         if active_sellers_count >= seats:
             raise HTTPException(
                 status_code=400, 
