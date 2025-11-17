@@ -110,7 +110,10 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
   };
 
   const toggleHistoryItem = (id) => {
-    dispatch({ type: 'TOGGLE_HISTORY_ITEM', id });
+    setExpandedHistoryItems({
+      ...expandedHistoryItems,
+      [id]: !expandedHistoryItems[id]
+    });
   };
 
   return (
