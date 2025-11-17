@@ -361,14 +361,14 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
       )}
 
       {/* AI Recommendations Display - Only show when showResult is true */}
-      {state.aiRecommendations && (
+      {aiRecommendations && (
         <div className="space-y-6">
-          <AIRecommendations recommendations={state.aiRecommendations} />
+          <AIRecommendations recommendations={aiRecommendations} />
           
           {/* Button to go back to overview */}
           <div className="text-center">
             <button
-              onClick={() => dispatch({ type: 'BACK_TO_OVERVIEW' })}
+              onClick={() => { setShowForm(false); setAiRecommendations(null); }}
               className="btn-secondary px-8 py-3"
             >
               ← Retour à l'aperçu
