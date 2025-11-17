@@ -144,14 +144,14 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
           <div className="glass-morphism rounded-2xl p-6">
             <h3 className="text-2xl font-bold text-gray-800 mb-6">📚 Historique des consultations</h3>
             
-            {state.loadingHistory ? (
+            {loadingHistory ? (
               <div className="text-center py-8">
                 <Loader className="w-8 h-8 animate-spin mx-auto text-gray-400" />
                 <p className="text-gray-500 mt-2">Chargement...</p>
               </div>
-            ) : state.conflictHistory.length > 0 ? (
+            ) : conflictHistory.length > 0 ? (
               <div className="space-y-4">
-                {state.conflictHistory.map((conflict) => (
+                {conflictHistory.map((conflict) => (
                   <div
                     key={conflict.id}
                     className="bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all overflow-hidden"
