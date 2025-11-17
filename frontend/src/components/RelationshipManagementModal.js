@@ -256,8 +256,8 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
                     >
                       <span className={selectedSeller ? 'text-gray-900' : 'text-gray-400'}>
                         {selectedSeller 
-                          ? activeSellers.find(s => s.id === selectedSeller)?.first_name + ' ' + 
-                            activeSellers.find(s => s.id === selectedSeller)?.last_name
+                          ? activeSellers.find(s => s.id === selectedSeller)?.name || 
+                            `${activeSellers.find(s => s.id === selectedSeller)?.first_name || ''} ${activeSellers.find(s => s.id === selectedSeller)?.last_name || ''}`.trim()
                           : 'Sélectionner un vendeur...'}
                       </span>
                       <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isSellerDropdownOpen ? 'rotate-180' : ''}`} />
