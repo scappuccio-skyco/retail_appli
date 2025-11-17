@@ -257,25 +257,29 @@ export default function LandingPage() {
                 icon: <Users className="w-8 h-8" />,
                 color: 'from-[#1E40AF] to-[#1E3A8A]',
                 title: 'Diagnostic DISC',
-                description: 'Profil de personnalité complet pour chaque vendeur avec analyse détaillée'
+                description: 'Profil de personnalité complet pour chaque vendeur avec analyse détaillée.',
+                impact: 'Pour adapter votre management à chaque profil.'
               },
               {
                 icon: <TrendingUp className="w-8 h-8" />,
                 color: 'from-[#F97316] to-[#EA580C]',
                 title: 'Dashboard Manager',
-                description: 'KPI en temps réel, comparaisons vendeurs et analyses prédictives'
+                description: 'KPI en temps réel, comparaisons vendeurs et analyses prédictives.',
+                impact: 'Pour visualiser en 10 secondes l\'état réel de votre équipe.'
               },
               {
                 icon: <Zap className="w-8 h-8" />,
                 color: 'from-[#1E40AF] to-[#1E3A8A]',
                 title: 'Coaching IA',
-                description: 'Recommandations personnalisées et plans d\'action sur-mesure'
+                description: 'Recommandations personnalisées et plans d\'action sur-mesure.',
+                impact: 'Pour progresser chaque jour sans effort manuel.'
               },
               {
                 icon: <Target className="w-8 h-8" />,
                 color: 'from-[#10B981] to-[#00B886]',
                 title: 'Challenges & Gamification',
-                description: 'Objectifs motivants et système de niveaux pour engager vos équipes'
+                description: 'Objectifs motivants et système de niveaux pour engager vos équipes.',
+                impact: 'Pour motiver naturellement et réduire le turnover.'
               }
             ].map((feature, idx) => (
               <div key={`feature-${idx}-${feature.title}`} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[#1E40AF]/20 hover:border-[#F97316]">
