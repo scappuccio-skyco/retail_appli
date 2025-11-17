@@ -773,7 +773,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                 // Use seats from subscription, fallback to plan_type
                 const seatsAvailable = subscriptionInfo.subscription?.seats || 
                                       (subscriptionInfo.plan_type === 'professional' ? 15 : 5);
-                const remainingInvites = seatsAvailable - sellers.length;
+                const activeSellersCount = sellers.filter(s => s.status === 'active').length;
+                const remainingInvites = seatsAvailable - activeSellersCount;
                 return remainingInvites > 0 && (
                   <span className="absolute -top-2 -right-2 bg-[#F97316] text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
                     {remainingInvites}
