@@ -294,7 +294,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
       )}
 
       {/* Form Section - Only show when showForm is true */}
-      {state.showForm && !state.showResult && (
+      {state.showForm && !state.aiRecommendations && (
       <div className="glass-morphism rounded-2xl p-6">
         <div className="mb-6 flex items-center gap-4">
           <button
