@@ -374,13 +374,11 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
 
   const handleSelectOption = (questionId, option, optionIndex) => {
-    // For DISC questions (11-34), store the index; for others, store the text
-    const isDISCQuestion = questionId >= 11 && questionId <= 34;
-    
+    // All questions now use DISC index (0-3) for 4 options
     setResponses(prev => {
       const updated = {
         ...prev,
-        [questionId]: isDISCQuestion ? optionIndex : option
+        [questionId]: optionIndex
       };
       console.log('Updated manager responses:', updated);
       return updated;
