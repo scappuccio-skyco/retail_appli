@@ -112,6 +112,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [showStoreKPIModal, setShowStoreKPIModal] = useState(false);
   const [showRelationshipModal, setShowRelationshipModal] = useState(false);
   const [storeKPIStats, setStoreKPIStats] = useState(null);
+  const [autoShowRelationshipResult, setAutoShowRelationshipResult] = useState(false);
   const [visibleDashboardCharts, setVisibleDashboardCharts] = useState({
     ca: true,
     ventesVsClients: true,
