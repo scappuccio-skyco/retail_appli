@@ -175,6 +175,60 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Social Proof Section */}
+      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-50 to-slate-50 border-y border-[#1E40AF]/20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-[#334155] mb-6">
+              Déjà utilisé par des équipes retail ambitieuses en phase pilote
+            </p>
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {/* Testimonial 1 */}
+              <div className="bg-white rounded-xl p-6 shadow-md border-2 border-[#1E40AF]/20">
+                <div className="flex items-center gap-1 mb-3">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-[#F97316] text-[#F97316]" />
+                  ))}
+                </div>
+                <p className="text-[#334155] mb-4 italic">
+                  "L'IA nous fait gagner un temps fou sur le coaching. Mes vendeurs progressent plus vite qu'avant."
+                </p>
+                <p className="text-sm font-semibold text-[#1E40AF]">Sophie M.</p>
+                <p className="text-xs text-[#64748B]">Responsable boutique, Paris</p>
+              </div>
+
+              {/* Testimonial 2 */}
+              <div className="bg-white rounded-xl p-6 shadow-md border-2 border-[#1E40AF]/20">
+                <div className="flex items-center gap-1 mb-3">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-[#F97316] text-[#F97316]" />
+                  ))}
+                </div>
+                <p className="text-[#334155] mb-4 italic">
+                  "Enfin un outil qui comprend les enjeux du retail. Le tableau de bord est ultra clair."
+                </p>
+                <p className="text-sm font-semibold text-[#1E40AF]">Marc L.</p>
+                <p className="text-xs text-[#64748B]">Manager régional</p>
+              </div>
+
+              {/* Testimonial 3 */}
+              <div className="bg-white rounded-xl p-6 shadow-md border-2 border-[#1E40AF]/20">
+                <div className="flex items-center gap-1 mb-3">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="w-5 h-5 fill-[#F97316] text-[#F97316]" />
+                  ))}
+                </div>
+                <p className="text-[#334155] mb-4 italic">
+                  "Mes vendeurs adorent les défis quotidiens. Ça booste vraiment la motivation de l'équipe."
+                </p>
+                <p className="text-sm font-semibold text-[#1E40AF]">Julie R.</p>
+                <p className="text-xs text-[#64748B]">Directrice magasin</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Problem/Solution Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
