@@ -235,14 +235,14 @@ frontend:
   - task: "RelationshipManagementModal & ConflictResolutionForm - Complete Overhaul"
     implemented: true
     working: "NA"
-    file: "/app/frontend/src/components/RelationshipManagementModal.js, /app/frontend/src/components/ConflictResolutionForm.js, /app/frontend/src/pages/ManagerDashboard.js, /app/backend/server.py"
+    file: "/app/frontend/src/components/RelationshipManagementModal.js, /app/frontend/src/components/ConflictResolutionForm.js, /app/frontend/src/pages/ManagerDashboard.js, /app/backend/server.py, /app/frontend/src/index.css"
     stuck_count: 0
     priority: "critical"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "COMPLETE FEATURE OVERHAUL: 1) REACT DOM BUG FIXED: Applied 'close BEFORE API call' pattern everywhere. 2) UX IMPROVEMENTS: Auto-expand latest consultation, 'NOUVEAU' badge, collapsible cards with gradient design. 3) AI OPTIMIZATION: Prompt modified for conciseness (max 400 words), max_tokens=800 for faster generation. 4) FILTER DROPDOWN FIX: Replaced native <select> with custom dropdown for history filter. Used 'seller.name' instead of 'seller.first_name/last_name'. Added ChevronDown icon, hover states, proper z-index, click-outside-to-close functionality. Fixed same issue that existed in form dropdown. 5) DELETE FUNCTIONALITY: Added Trash2 icon button on each consultation card. Created DELETE /api/manager/relationship-consultation/{consultation_id} endpoint with manager ownership verification. Confirmation dialog before deletion. Proper error handling and success feedback. Auto-refresh history after deletion."
+        comment: "COMPLETE FEATURE OVERHAUL: 1) REACT DOM BUG FIXED: Applied 'close BEFORE API call' pattern. 2) UX IMPROVEMENTS: Auto-expand latest, 'NOUVEAU' badge, collapsible cards. 3) AI OPTIMIZATION: Prompt for conciseness (max 400 words). FIXED 'max_tokens' error - removed from LlmChat constructor as it's not supported. 4) FILTER DROPDOWN FIX: Custom dropdown with seller.name. 5) DELETE FUNCTIONALITY: Trash2 button + backend endpoint. 6) LOADING BAR ADDED: Beautiful animated loading overlay during AI generation. Replaces toast with full-screen modal showing Sparkles icon animation, gradient progress bar with sliding animation, estimated time (30-60s). CSS keyframe animation in index.css. State management with generatingAIAdvice. Backdrop blur for focus. Much better UX during 30-60s wait."
   
   - task: "Dashboard Stripe Return Handler"
     implemented: true
