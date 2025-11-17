@@ -116,19 +116,22 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
         }
       );
       
-      setRecommendation(response.data.recommendation);
-      toast.success('Recommandation générée avec succès !');
-      
-      // Refresh history if visible
-      if (activeMainTab === 'history') {
-        loadHistory(historyFilter !== 'all' ? historyFilter : null);
-      }
+      // Use setTimeout to avoid insertBefore error by deferring state update
+      setTimeout(() => {
+        setIsGenerating(false);
+        setRecommendation(response.data.recommendation);
+        toast.success('Recommandation générée avec succès !');
+        
+        // Refresh history if visible
+        if (activeMainTab === 'history') {
+          loadHistory(historyFilter !== 'all' ? historyFilter : null);
+        }
+      }, 0);
       
     } catch (error) {
       console.error('Error generating advice:', error);
-      toast.error('Erreur lors de la génération des recommandations');
-    } finally {
       setIsGenerating(false);
+      toast.error('Erreur lors de la génération des recommandations');
     }
   };
   
