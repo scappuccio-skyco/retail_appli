@@ -370,9 +370,9 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
                 </button>
               </form>
               
-              {/* Recommendation display - key force un remount propre */}
+              {/* Recommendation display */}
               {recommendation && (
-                <div key={`recommendation-${Date.now()}`} className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-8 mt-6 shadow-lg">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-8 mt-6 shadow-lg">
                   <div className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-green-200">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-2xl">
                       ✨
