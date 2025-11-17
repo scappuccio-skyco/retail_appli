@@ -51,9 +51,9 @@ const conflictReducer = (state, action) => {
         }
       };
     case 'SHOW_FORM':
-      return { ...state, showForm: true, showResult: false };
+      return { ...state, showForm: true };
     case 'BACK_TO_OVERVIEW':
-      return { ...state, showForm: false, showResult: false, aiRecommendations: null };
+      return { ...state, showForm: false, aiRecommendations: null };
     default:
       return state;
   }
