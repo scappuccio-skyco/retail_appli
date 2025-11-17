@@ -354,15 +354,26 @@ export default function SuperAdminDashboard() {
                       </td>
                       <td className="p-3 text-white">{workspace.sellers_count}</td>
                       <td className="p-3">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          workspace.subscription.plan === 'enterprise' 
-                            ? 'bg-purple-500/20 text-purple-200'
-                            : workspace.subscription.plan === 'professional'
-                            ? 'bg-blue-500/20 text-blue-200'
-                            : 'bg-green-500/20 text-green-200'
-                        }`}>
-                          {workspace.subscription.plan}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            workspace.subscription.plan === 'enterprise' 
+                              ? 'bg-purple-500/20 text-purple-200'
+                              : workspace.subscription.plan === 'professional'
+                              ? 'bg-blue-500/20 text-blue-200'
+                              : workspace.subscription.plan === 'starter'
+                              ? 'bg-green-500/20 text-green-200'
+                              : 'bg-gray-500/20 text-gray-200'
+                          }`}>
+                            {workspace.subscription.plan}
+                          </span>
+                          <button
+                            onClick={() => handleChangePlan(workspace.id, workspace.name)}
+                            className="text-xs text-purple-300 hover:text-purple-100 underline"
+                            title="Changer le plan"
+                          >
+                            modifier
+                          </button>
+                        </div>
                       </td>
                       <td className="p-3">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
