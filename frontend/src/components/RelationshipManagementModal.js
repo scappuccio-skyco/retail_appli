@@ -284,7 +284,7 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
                                   : 'text-gray-900'
                               }`}
                             >
-                              {seller.first_name} {seller.last_name}
+                              {seller.name || `${seller.first_name || ''} ${seller.last_name || ''}`.trim() || 'Vendeur sans nom'}
                             </button>
                           ))
                         )}
