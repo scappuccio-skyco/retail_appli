@@ -79,13 +79,20 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
     }
   }, [activeMainTab]);
   
-  // Gérer recommendation APRÈS le rendu pour éviter conflit DOM (comme DebriefHistoryModal)
+  // Gérer recommendation APRÈS le rendu pour éviter conflit DOM (comme ConflictResolutionForm)
   useEffect(() => {
     if (pendingRecommendation) {
-      setRecommendation(pendingRecommendation);
-      setPendingRecommendation(null);
+      // Séparer les updates avec setTimeout pour éviter conflit DOM
       setIsGenerating(false);
-      toast.success('Recommandation générée avec succès !');
+      
+      setTimeout(() => {
+        setRecommendation(pendingRecommendation);
+        
+        setTimeout(() => {
+          setPendingRecommendation(null);
+          toast.success('Recommandation générée avec succès !');
+        }, 50);
+      }, 50);
     }
   }, [pendingRecommendation]);
   
