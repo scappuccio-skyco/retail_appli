@@ -1,16 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '@/App.css';
-import LandingPage from './pages/LandingPage';
-import Login from './pages/Login';
-import SellerDashboard from './pages/SellerDashboard';
-import ManagerDashboard from './pages/ManagerDashboard';
-import ManagerSettings from './pages/ManagerSettings';
-import SuperAdminDashboard from './pages/SuperAdminDashboard';
-import DiagnosticForm from './components/DiagnosticFormScrollable';
-import DiagnosticResult from './components/DiagnosticResult';
 import { Toaster } from 'sonner';
+
+// Lazy load pages for better performance (Code Splitting)
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const Login = lazy(() => import('./pages/Login'));
+const SellerDashboard = lazy(() => import('./pages/SellerDashboard'));
+const ManagerDashboard = lazy(() => import('./pages/ManagerDashboard'));
+const ManagerSettings = lazy(() => import('./pages/ManagerSettings'));
+const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
+const DiagnosticForm = lazy(() => import('./components/DiagnosticFormScrollable'));
+const DiagnosticResult = lazy(() => import('./components/DiagnosticResult'));
+
+// Loading component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="text-center">
+      <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p className="mt-4 text-gray-600 font-medium">Chargement...</p>
+    </div>
+  </div>
+);
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
