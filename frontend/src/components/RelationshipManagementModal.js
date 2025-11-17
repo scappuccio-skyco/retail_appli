@@ -510,19 +510,31 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
                                 </span>
                               </div>
                             </div>
-                            <div className="flex flex-col items-end gap-2">
-                              <span className="text-xs text-gray-500 font-medium">
-                                {new Date(item.created_at).toLocaleDateString('fr-FR', { 
-                                  day: 'numeric', 
-                                  month: 'short', 
-                                  year: 'numeric' 
-                                })}
-                              </span>
-                              <ChevronDown 
-                                className={`w-5 h-5 text-gray-500 transition-transform ${
-                                  isExpanded ? 'rotate-180' : ''
-                                }`}
-                              />
+                            <div className="flex items-center gap-3">
+                              <div className="flex flex-col items-end gap-2">
+                                <span className="text-xs text-gray-500 font-medium">
+                                  {new Date(item.created_at).toLocaleDateString('fr-FR', { 
+                                    day: 'numeric', 
+                                    month: 'short', 
+                                    year: 'numeric' 
+                                  })}
+                                </span>
+                                <ChevronDown 
+                                  className={`w-5 h-5 text-gray-500 transition-transform ${
+                                    isExpanded ? 'rotate-180' : ''
+                                  }`}
+                                />
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteConsultation(item.id);
+                                }}
+                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Supprimer cette consultation"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
                             </div>
                           </div>
                           
