@@ -28,8 +28,8 @@ const questions = [
         options: [
           "Mon sourire et mon attitude accueillante",
           "Ma disponibilité immédiate et mon écoute",
-          "Mon professionnalisme et ma présentation",
-          "Ma connaissance des produits"
+          "Ma capacité à comprendre rapidement ses besoins",
+          "Ma connaissance approfondie des produits"
         ]
       },
       {
