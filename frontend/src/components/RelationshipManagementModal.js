@@ -80,6 +80,14 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
     }
   }, [activeMainTab]);
   
+  // Gérer onSuccess APRÈS le rendu pour éviter conflit DOM (pattern DebriefHistoryModal)
+  useEffect(() => {
+    if (pendingSuccess && onSuccess) {
+      onSuccess(pendingSuccess);
+      setPendingSuccess(null);
+    }
+  }, [pendingSuccess, onSuccess]);
+  
   // Pattern Ultra Simple - Pas de useEffect compliqué
   
   // Close dropdown when clicking outside
