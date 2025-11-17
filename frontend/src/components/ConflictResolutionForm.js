@@ -406,7 +406,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
       )}
 
       {/* AI Recommendations Display - Only show when showResult is true */}
-      {state.showResult && state.aiRecommendations && (
+      {state.aiRecommendations && (
         <div className="space-y-6">
           <AIRecommendations recommendations={state.aiRecommendations} />
           
