@@ -86,8 +86,10 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Pattern Ultra Simple - Direct comme TeamAIAnalysisModal
-      setAiRecommendations(response.data);
+      // Déclencher pendingSuccess via useEffect pour éviter conflit DOM (pattern DebriefHistoryModal)
+      setPendingSuccess(response.data);
+      
+      // Reset form
       setFormData({
         contexte: '',
         comportement_observe: '',
@@ -95,14 +97,17 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         tentatives_precedentes: '',
         description_libre: ''
       });
+      
       toast.success('Recommandations générées avec succès');
+      
+      // Fermer le form
+      setShowForm(false);
       
     } catch (err) {
       console.error('Error creating conflict resolution:', err);
       toast.error('Erreur lors de la génération des recommandations');
     } finally {
       setLoading(false);
-      setShowForm(false);
     }
   };
 
