@@ -309,20 +309,29 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
                             const cleaned = line.trim();
                             if (!cleaned) return null;
                             
-                            // Liste à puces
+                            // Sous-titre en gras (**Titre**)
+                            if (cleaned.startsWith('**') && cleaned.endsWith('**') && !cleaned.includes('-')) {
+                              const subtitle = cleaned.replace(/\*\*/g, '');
+                              return (
+                                <h5 key={lineIdx} className="text-base font-bold text-gray-900 mt-4 mb-2 flex items-center gap-2 first:mt-0">
+                                  <span className={`w-2 h-2 rounded-full bg-gradient-to-br ${colorScheme.gradient}`}></span>
+                                  {subtitle}
+                                </h5>
+                              );
+                            }
+                            
+                            // Liste à puces avec **texte en gras** dedans
                             if (cleaned.startsWith('-')) {
                               const text = cleaned.replace(/^[-•]\s*/, '');
                               const parts = text.split(/(\*\*.*?\*\*)/g);
                               
                               return (
-                                <div key={lineIdx} className="flex gap-3 items-start bg-white rounded-lg p-3 shadow-sm">
-                                  <span className={`flex-shrink-0 w-7 h-7 bg-gradient-to-br ${colorScheme.gradient} text-white rounded-full flex items-center justify-center font-bold text-sm`}>
-                                    •
-                                  </span>
-                                  <p className="flex-1 text-gray-800">
+                                <div key={lineIdx} className="flex gap-3 items-start">
+                                  <span className="text-gray-400 font-bold text-lg mt-0.5">•</span>
+                                  <p className="flex-1 text-gray-700 leading-relaxed">
                                     {parts.map((part, i) => {
                                       if (part.startsWith('**') && part.endsWith('**')) {
-                                        return <strong key={i} className="font-bold">{part.slice(2, -2)}</strong>;
+                                        return <strong key={i} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
                                       }
                                       return <span key={i}>{part}</span>;
                                     })}
@@ -331,10 +340,16 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
                               );
                             }
                             
-                            // Paragraphe normal
+                            // Paragraphe normal avec **texte en gras**
+                            const parts = cleaned.split(/(\*\*.*?\*\*)/g);
                             return (
                               <p key={lineIdx} className="text-gray-700 leading-relaxed">
-                                {cleaned}
+                                {parts.map((part, i) => {
+                                  if (part.startsWith('**') && part.endsWith('**')) {
+                                    return <strong key={i} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
+                                  }
+                                  return <span key={i}>{part}</span>;
+                                })}
                               </p>
                             );
                           })}
