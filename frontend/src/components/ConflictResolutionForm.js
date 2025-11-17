@@ -72,7 +72,6 @@ const initialState = {
   conflictHistory: [],
   expandedHistoryItems: {},
   loadingHistory: true,
-  showResult: false,
   showForm: false, // Start with overview, not form
   pendingRecommendation: null
 };
