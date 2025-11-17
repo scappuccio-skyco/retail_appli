@@ -22,13 +22,13 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
   const [selectedSeller, setSelectedSeller] = useState('');
   const [situationType, setSituationType] = useState('');
   const [description, setDescription] = useState('');
+  // Pattern Ultra Simple - États séparés
   const [recommendation, setRecommendation] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [history, setHistory] = useState([]);
   const [historyFilter, setHistoryFilter] = useState('all');
   const [isSellerDropdownOpen, setIsSellerDropdownOpen] = useState(false);
   const sellerDropdownRef = useRef(null);
-  const [pendingRecommendation, setPendingRecommendation] = useState(null);
   
   // Types de situations
   const situationTypes = {
