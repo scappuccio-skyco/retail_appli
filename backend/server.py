@@ -6925,13 +6925,22 @@ Tu dois fournir des conseils personnalisés basés sur les profils de personnali
 {debrief_summary}
 
 # Ta mission
-Fournis une recommandation structurée avec :
-1. **Analyse de la situation** : Prends en compte les profils de personnalité et le contexte
-2. **Conseils pratiques** : 3-5 actions concrètes adaptées aux profils
-3. **Phrases clés à utiliser** : Des formulations adaptées au profil du vendeur
-4. **Points de vigilance** : Ce qu'il faut éviter compte tenu des profils
+Fournis une recommandation CONCISE et ACTIONNABLE (maximum 400 mots) structurée avec :
 
-Sois empathique, pratique et précis."""
+## Analyse de la situation (2-3 phrases max)
+- Diagnostic rapide en tenant compte des profils de personnalité
+
+## Conseils pratiques (3 actions concrètes max)
+- Actions spécifiques et immédiatement applicables
+- Adaptées aux profils de personnalité
+
+## Phrases clés (2-3 phrases max)
+- Formulations précises adaptées au profil du vendeur
+
+## Points de vigilance (2 points max)
+- Ce qu'il faut éviter compte tenu des profils
+
+IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE. Évite les longues explications théoriques."""
 
         # Call GPT-5
         emergent_key = os.environ.get('EMERGENT_LLM_KEY')
