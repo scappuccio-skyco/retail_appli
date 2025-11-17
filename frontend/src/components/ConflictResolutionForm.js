@@ -30,19 +30,22 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
 
   // Refresh history when new AI recommendations are set
   useEffect(() => {
-    if (state.aiRecommendations) {
+    if (aiRecommendations) {
       fetchConflictHistory();
     }
-  }, [state.aiRecommendations]);
+  }, [aiRecommendations]);
 
   // Gérer recommendation APRÈS le rendu pour éviter conflit DOM
   useEffect(() => {
-    if (state.pendingRecommendation) {
+    if (pendingRecommendation) {
       // Action atomique unique pour éviter conflits DOM avec React 19
-      dispatch({ type: 'APPLY_RECOMMENDATIONS', payload: state.pendingRecommendation });
+      setAiRecommendations(pendingRecommendation);
+      setPendingRecommendation(null);
+      setLoading(false);
+      setShowForm(false);
       toast.success('Recommandations générées avec succès');
     }
-  }, [state.pendingRecommendation]);
+  }, [pendingRecommendation]);
 
   const fetchConflictHistory = async () => {
     dispatch({ type: 'SET_LOADING_HISTORY', payload: true });
