@@ -171,7 +171,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
                         <p className="text-gray-700 font-medium line-clamp-2">{conflict.contexte}</p>
                       </div>
                       <div className="ml-4 text-gray-600">
-                        {state.expandedHistoryItems[conflict.id] ? (
+                        {expandedHistoryItems[conflict.id] ? (
                           <ChevronUp className="w-5 h-5" />
                         ) : (
                           <ChevronDown className="w-5 h-5" />
@@ -179,7 +179,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
                       </div>
                     </button>
 
-                    {state.expandedHistoryItems[conflict.id] && (
+                    {expandedHistoryItems[conflict.id] && (
                       <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-4 animate-fadeIn">
                         <div className="space-y-3">
                           <div>
