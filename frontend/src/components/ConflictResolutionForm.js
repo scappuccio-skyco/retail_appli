@@ -65,7 +65,8 @@ const initialState = {
   expandedHistoryItems: {},
   loadingHistory: true,
   showResult: false,
-  showForm: false // Start with overview, not form
+  showForm: false, // Start with overview, not form
+  pendingRecommendation: null
 };
 
 export default function ConflictResolutionForm({ sellerId, sellerName }) {
