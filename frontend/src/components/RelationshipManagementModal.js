@@ -114,7 +114,6 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
     setSelectedSeller('');
     setSituationType('');
     setDescription('');
-    setRecommendation('');
   };
   
   // Filter history by type and seller
