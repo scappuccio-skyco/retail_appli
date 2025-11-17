@@ -127,8 +127,8 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
         }
       );
       
-      setRecommendation(response.data.recommendation);
-      toast.success('Recommandation générée avec succès !');
+      // Déclencher recommendation via useEffect pour éviter conflit DOM (comme DebriefHistoryModal)
+      setPendingRecommendation(response.data.recommendation);
       
       // Refresh history if visible
       if (activeMainTab === 'history') {
@@ -138,7 +138,6 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
     } catch (error) {
       console.error('Error generating advice:', error);
       toast.error('Erreur lors de la génération des recommandations');
-    } finally {
       setIsGenerating(false);
     }
   };
