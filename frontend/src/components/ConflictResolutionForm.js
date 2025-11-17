@@ -7,78 +7,22 @@ import AIRecommendations from './AIRecommendations';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Reducer for managing complex state
-const conflictReducer = (state, action) => {
-  switch (action.type) {
-    case 'SET_LOADING':
-      return { ...state, loading: action.payload };
-    case 'SET_PENDING_RECOMMENDATION':
-      return { ...state, pendingRecommendation: action.payload };
-    case 'APPLY_RECOMMENDATIONS':
-      // Action atomique qui fait tout d'un coup pour éviter conflit DOM
-      return { 
-        ...state, 
-        aiRecommendations: action.payload,
-        pendingRecommendation: null,
-        loading: false,
-        showForm: false
-      };
-    case 'RESET_FORM':
-      return { 
-        ...state, 
-        formData: {
-          contexte: '',
-          comportement_observe: '',
-          impact: '',
-          tentatives_precedentes: '',
-          description_libre: ''
-        }
-      };
-    case 'UPDATE_FORM':
-      return { 
-        ...state, 
-        formData: { ...state.formData, [action.field]: action.value }
-      };
-    case 'SET_HISTORY':
-      return { ...state, conflictHistory: action.payload, loadingHistory: false };
-    case 'SET_LOADING_HISTORY':
-      return { ...state, loadingHistory: action.payload };
-    case 'TOGGLE_HISTORY_ITEM':
-      return {
-        ...state,
-        expandedHistoryItems: {
-          ...state.expandedHistoryItems,
-          [action.id]: !state.expandedHistoryItems[action.id]
-        }
-      };
-    case 'SHOW_FORM':
-      return { ...state, showForm: true };
-    case 'BACK_TO_OVERVIEW':
-      return { ...state, showForm: false, aiRecommendations: null };
-    default:
-      return state;
-  }
-};
-
-const initialState = {
-  formData: {
+export default function ConflictResolutionForm({ sellerId, sellerName }) {
+  // Pattern Ultra Simple - États séparés avec useState
+  const [formData, setFormData] = useState({
     contexte: '',
     comportement_observe: '',
     impact: '',
     tentatives_precedentes: '',
     description_libre: ''
-  },
-  loading: false,
-  aiRecommendations: null,
-  conflictHistory: [],
-  expandedHistoryItems: {},
-  loadingHistory: true,
-  showForm: false, // Start with overview, not form
-  pendingRecommendation: null
-};
-
-export default function ConflictResolutionForm({ sellerId, sellerName }) {
-  const [state, dispatch] = useReducer(conflictReducer, initialState);
+  });
+  const [loading, setLoading] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState(null);
+  const [conflictHistory, setConflictHistory] = useState([]);
+  const [expandedHistoryItems, setExpandedHistoryItems] = useState({});
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [pendingRecommendation, setPendingRecommendation] = useState(null);
 
   useEffect(() => {
     fetchConflictHistory();
