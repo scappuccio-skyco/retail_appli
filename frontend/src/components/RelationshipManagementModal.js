@@ -80,6 +80,27 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
     }
   };
   
+  const handleDeleteConsultation = async (consultationId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette consultation ?')) {
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(
+        `${API}/api/manager/relationship-consultation/${consultationId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success('Consultation supprimée avec succès');
+      // Recharger l'historique
+      loadHistory(historyFilter !== 'all' ? historyFilter : null);
+    } catch (error) {
+      console.error('Error deleting consultation:', error);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+  
   useEffect(() => {
     if (activeMainTab === 'history') {
       loadHistory();
