@@ -34,14 +34,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     }
   }, [aiRecommendations]);
 
-  // Pattern Ultra Simple - pas de useEffect compliqué
-  useEffect(() => {
-    if (pendingRecommendation) {
-      setAiRecommendations(pendingRecommendation);
-      setPendingRecommendation(null);
-      toast.success('Recommandations générées avec succès');
-    }
-  }, [pendingRecommendation]);
+  // Pattern Ultra Simple - Pas de useEffect compliqué
 
   const fetchConflictHistory = async () => {
     setLoadingHistory(true);
