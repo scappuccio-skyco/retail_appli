@@ -176,6 +176,8 @@ function AppContent() {
           element={
             !user ? (
               <Navigate to="/login" replace />
+            ) : user.role === 'super_admin' ? (
+              <Navigate to="/superadmin" replace />
             ) : user.role === 'seller' ? (
               <SellerDashboard user={user} diagnostic={diagnostic} onLogout={handleLogout} />
             ) : (
