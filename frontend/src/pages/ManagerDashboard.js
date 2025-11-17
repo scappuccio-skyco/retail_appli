@@ -923,7 +923,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                     kpi: '📊 KPI Magasin',
                     team: '👥 Mon Équipe',
                     objectives: '🎯 Objectifs',
-                    challenges: '🏆 Challenges'
+                    challenges: '🏆 Challenges',
+                    relationship: '🤝 Gestion relationnelle'
                   };
                   
                   // Skip if section doesn't exist in current cards
