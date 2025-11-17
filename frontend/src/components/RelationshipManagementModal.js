@@ -29,7 +29,6 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
   const [isSellerDropdownOpen, setIsSellerDropdownOpen] = useState(false);
   const sellerDropdownRef = useRef(null);
   const [pendingRecommendation, setPendingRecommendation] = useState(null);
-  const [showResult, setShowResult] = useState(false);
   
   // Types de situations
   const situationTypes = {
