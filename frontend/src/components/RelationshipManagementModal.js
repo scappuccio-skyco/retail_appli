@@ -80,23 +80,21 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
     }
   }, [activeMainTab]);
   
-  // Gérer recommendation APRÈS le rendu - EXACTEMENT comme DebriefHistoryModal (2 setState seulement)
+  // Gérer recommendation APRÈS le rendu - UN SEUL setState comme DebriefHistoryModal
   useEffect(() => {
     if (pendingRecommendation) {
+      // UN SEUL setState - DebriefHistoryModal fait juste onSuccess(data)
       setRecommendation(pendingRecommendation);
-      setPendingRecommendation(null);
-      // Autres états gérés séparément
+      
+      // Le reste en async pour pas bloquer le render
+      Promise.resolve().then(() => {
+        setPendingRecommendation(null);
+        setIsGenerating(false);
+        setShowResult(true);
+        toast.success('Recommandation générée avec succès !');
+      });
     }
   }, [pendingRecommendation]);
-  
-  // Gérer l'affichage APRÈS que recommendation soit set
-  useEffect(() => {
-    if (recommendation && !showResult) {
-      setIsGenerating(false);
-      setShowResult(true);
-      toast.success('Recommandation générée avec succès !');
-    }
-  }, [recommendation, showResult]);
   
   // Close dropdown when clicking outside
   useEffect(() => {
