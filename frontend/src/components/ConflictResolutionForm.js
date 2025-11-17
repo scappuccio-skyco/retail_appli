@@ -287,7 +287,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
               </label>
               <textarea
                 name="comportement_observe"
-                value={state.formData.comportement_observe}
+                value={formData.comportement_observe}
                 onChange={handleChange}
                 placeholder="Décrivez précisément ce que vous avez observé (fréquence, situations spécifiques...)"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
