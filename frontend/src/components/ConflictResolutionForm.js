@@ -253,7 +253,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
       <div className="glass-morphism rounded-2xl p-6">
         <div className="mb-6 flex items-center gap-4">
           <button
-            onClick={() => dispatch({ type: 'BACK_TO_OVERVIEW' })}
+            onClick={() => { setShowForm(false); setAiRecommendations(null); }}
             className="text-gray-600 hover:text-gray-800 flex items-center gap-2"
           >
             ← Retour
