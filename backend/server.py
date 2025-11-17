@@ -7012,24 +7012,30 @@ async def get_superadmin_stats(current_admin: dict = Depends(get_super_admin)):
         # Nombre de workspaces
         total_workspaces = await db.workspaces.count_documents({})
         active_workspaces = await db.workspaces.count_documents({"status": "active"})
+        trial_workspaces = await db.workspaces.count_documents({"status": {"$in": ["trial", None]}})
+        suspended_workspaces = await db.workspaces.count_documents({"status": "suspended"})
         
-        # Nombre d'utilisateurs
-        total_users = await db.users.count_documents({"role": {"$in": ["manager", "seller"]}})
-        active_users = await db.users.count_documents({
-            "role": {"$in": ["manager", "seller"]},
-            "status": "active"
-        })
-        total_managers = await db.users.count_documents({"role": "manager"})
-        total_sellers = await db.users.count_documents({"role": "seller", "status": "active"})
+        # Nombre d'utilisateurs (UNIFORMISÉ - uniquement les actifs)
+        active_managers = await db.users.count_documents({"role": "manager", "status": "active"})
+        active_sellers = await db.users.count_documents({"role": "seller", "status": "active"})
+        total_active_users = active_managers + active_sellers
+        
+        # Total incluant inactifs (pour référence)
+        all_managers = await db.users.count_documents({"role": "manager"})
+        all_sellers = await db.users.count_documents({"role": "seller"})
         
         # Statistiques d'utilisation IA (anonymisées)
         total_diagnostics = await db.diagnostics.count_documents({})
         total_debriefs = await db.debriefs.count_documents({})
         total_evaluations = await db.evaluations.count_documents({})
         
-        # Abonnements
+        # Abonnements et revenus
         subscriptions = await db.subscriptions.find({}, {"_id": 0}).to_list(1000)
-        total_revenue = sum(sub.get('amount', 0) for sub in subscriptions if sub.get('status') == 'active')
+        active_paid_subs = [sub for sub in subscriptions if sub.get('status') == 'active' and sub.get('amount', 0) > 0]
+        trial_subs = [sub for sub in subscriptions if sub.get('status') == 'trialing']
+        
+        total_revenue = sum(sub.get('amount', 0) for sub in active_paid_subs)
+        total_mrr = total_revenue  # Monthly Recurring Revenue
         
         # Activité récente (7 derniers jours)
         seven_days_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
@@ -7038,28 +7044,41 @@ async def get_superadmin_stats(current_admin: dict = Depends(get_super_admin)):
             "role": "manager"
         })
         
+        # Analyses créées récemment (7 derniers jours)
+        recent_debriefs = await db.debriefs.count_documents({
+            "created_at": {"$gte": seven_days_ago}
+        })
+        
         return {
             "workspaces": {
                 "total": total_workspaces,
-                "active": active_workspaces
+                "active": active_workspaces,
+                "trial": trial_workspaces,
+                "suspended": suspended_workspaces
             },
             "users": {
-                "total": total_users,
-                "active": active_users,
-                "managers": total_managers,
-                "sellers": total_sellers
+                "total_active": total_active_users,
+                "active_managers": active_managers,
+                "active_sellers": active_sellers,
+                "all_managers": all_managers,
+                "all_sellers": all_sellers,
+                "inactive": (all_managers + all_sellers) - total_active_users
             },
             "usage": {
                 "diagnostics": total_diagnostics,
                 "analyses_ventes": total_debriefs,
-                "evaluations": total_evaluations
+                "evaluations": total_evaluations,
+                "total_ai_operations": total_diagnostics + total_debriefs + total_evaluations
             },
             "revenue": {
-                "total_monthly": total_revenue,
+                "mrr": total_mrr,
+                "active_subscriptions": len(active_paid_subs),
+                "trial_subscriptions": len(trial_subs),
                 "currency": "EUR"
             },
             "activity": {
-                "recent_signups_7d": recent_signups
+                "recent_signups_7d": recent_signups,
+                "recent_analyses_7d": recent_debriefs
             }
         }
     except Exception as e:
