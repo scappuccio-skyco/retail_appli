@@ -86,6 +86,17 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
     }
   }, [activeMainTab]);
   
+  // Close dropdown when clicking outside (filter dropdown)
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
+        setIsFilterDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
   // Pattern Ultra Simple - Pas de useEffect compliqué
   
   // Close dropdown when clicking outside
