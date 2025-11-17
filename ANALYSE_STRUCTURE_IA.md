@@ -21,9 +21,9 @@
 | **DebriefHistoryModal** | ✅ `useState` | `setPendingSuccess()` | `useEffect` → `onSuccess()` | ✅ **FONCTIONNE** | ❌ Non |
 | **RelationshipManagementModal** | ✅ `useState` | `setPendingRecommendation()` | `useEffect` → `setRecommendation()` | ✅ **FONCTIONNE** | ❌ Non (après fix) |
 | **ConflictResolutionForm** | ⚠️ `useReducer` | `dispatch(SET_PENDING)` | `useEffect` → `dispatch(APPLY)` | ❌ **CRASH** | ✅ Oui |
-| **TeamAIAnalysisModal** | ? | ? | ? | ❓ À vérifier | ❓ |
-| **StoreKPIAIAnalysisModal** | ? | ? | ? | ❓ À vérifier | ❓ |
-| **DailyChallengeModal** | ? | ? | ? | ❓ À vérifier | ❓ |
+| **TeamAIAnalysisModal** | ✅ `useState` | `setAiAnalysis()` direct | Affichage direct | ✅ **FONCTIONNE** | ❌ Non |
+| **StoreKPIAIAnalysisModal** | ✅ `useState` | Pattern simple | Affichage direct | ✅ **FONCTIONNE** | ❌ Non |
+| **DailyChallengeModal** | ✅ `useState` | Pattern simple | Affichage direct | ✅ **FONCTIONNE** | ❌ Non |
 
 ---
 
