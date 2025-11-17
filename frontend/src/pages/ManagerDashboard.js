@@ -635,7 +635,7 @@ export default function ManagerDashboard({ user, onLogout }) {
               </div>
               <h3 className="text-2xl font-bold text-white text-center mb-2">Mon Équipe</h3>
               <p className="text-sm text-white opacity-90 text-center">
-                {sellers.length} vendeur{sellers.length > 1 ? 's' : ''} actif{sellers.length > 1 ? 's' : ''}
+                {sellers.filter(s => s.status === 'active').length} vendeur{sellers.filter(s => s.status === 'active').length > 1 ? 's' : ''} actif{sellers.filter(s => s.status === 'active').length > 1 ? 's' : ''}
               </p>
               <p className="text-xs text-white opacity-80 mt-3">Vue d'ensemble de l'équipe →</p>
             </div>
