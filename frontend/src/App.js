@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import SellerDashboard from './pages/SellerDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 import ManagerSettings from './pages/ManagerSettings';
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import DiagnosticForm from './components/DiagnosticFormScrollable';
 import DiagnosticResult from './components/DiagnosticResult';
 import { Toaster } from 'sonner';
