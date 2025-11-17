@@ -91,22 +91,14 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     }
   }, [state.aiRecommendations]);
 
-  // Gérer recommendation APRÈS le rendu pour éviter conflit DOM (comme DebriefHistoryModal)
+  // Gérer recommendation APRÈS le rendu pour éviter conflit DOM (EXACTEMENT comme RelationshipManagementModal)
   useEffect(() => {
     if (state.pendingRecommendation) {
-      // Séparer les updates d'état en plusieurs cycles de render
-      const timer1 = setTimeout(() => {
-        dispatch({ type: 'SET_AI_RECOMMENDATIONS', payload: state.pendingRecommendation });
-        
-        const timer2 = setTimeout(() => {
-          dispatch({ type: 'SHOW_RESULT' });
-          toast.success('Recommandations générées avec succès');
-        }, 100);
-        
-        return () => clearTimeout(timer2);
-      }, 50);
-      
-      return () => clearTimeout(timer1);
+      dispatch({ type: 'SET_AI_RECOMMENDATIONS', payload: state.pendingRecommendation });
+      dispatch({ type: 'CLEAR_PENDING' });
+      dispatch({ type: 'SET_LOADING_FALSE' });
+      dispatch({ type: 'SHOW_RESULT' });
+      toast.success('Recommandations générées avec succès');
     }
   }, [state.pendingRecommendation]);
 
