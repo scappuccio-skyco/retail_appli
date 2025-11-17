@@ -5,7 +5,7 @@ import { X, MessageCircle, AlertTriangle, Users, Loader, Filter, Calendar, Chevr
 
 const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
-export default function RelationshipManagementModal({ onClose, sellers = [] }) {
+export default function RelationshipManagementModal({ onClose, onSuccess, sellers = [] }) {
   // Use all sellers (no filter) - archived sellers are already filtered by ManagerDashboard
   const activeSellers = sellers;
   
@@ -29,6 +29,7 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
   const [historyFilter, setHistoryFilter] = useState('all');
   const [isSellerDropdownOpen, setIsSellerDropdownOpen] = useState(false);
   const sellerDropdownRef = useRef(null);
+  const [pendingSuccess, setPendingSuccess] = useState(null);
   
   // Types de situations
   const situationTypes = {
