@@ -80,6 +80,15 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
     }
   }, [activeMainTab]);
   
+  // Si autoShowResult, afficher l'onglet historique par défaut
+  useEffect(() => {
+    if (autoShowResult) {
+      setActiveMainTab('history');
+    } else {
+      setActiveMainTab('form');
+    }
+  }, [autoShowResult]);
+  
   // Gérer onSuccess APRÈS le rendu pour éviter conflit DOM (pattern DebriefHistoryModal)
   useEffect(() => {
     if (pendingSuccess && onSuccess) {
