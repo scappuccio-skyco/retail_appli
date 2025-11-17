@@ -22,17 +22,22 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
   const [expandedHistoryItems, setExpandedHistoryItems] = useState({});
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [pendingSuccess, setPendingSuccess] = useState(null);
 
   useEffect(() => {
     fetchConflictHistory();
   }, [sellerId]);
 
-  // Refresh history when new AI recommendations are set
+  // Gérer pendingSuccess APRÈS le rendu pour éviter conflit DOM (pattern DebriefHistoryModal)
   useEffect(() => {
-    if (aiRecommendations) {
+    if (pendingSuccess) {
+      // Afficher les recommandations après fermeture du form
+      setAiRecommendations(pendingSuccess);
+      setPendingSuccess(null);
+      // Rafraîchir l'historique
       fetchConflictHistory();
     }
-  }, [aiRecommendations]);
+  }, [pendingSuccess]);
 
   // Pattern Ultra Simple - Pas de useEffect compliqué
 
