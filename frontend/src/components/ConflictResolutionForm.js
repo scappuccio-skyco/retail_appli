@@ -48,17 +48,18 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
   }, [pendingRecommendation]);
 
   const fetchConflictHistory = async () => {
-    dispatch({ type: 'SET_LOADING_HISTORY', payload: true });
+    setLoadingHistory(true);
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API}/manager/conflict-history/${sellerId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      dispatch({ type: 'SET_HISTORY', payload: response.data });
+      setConflictHistory(response.data);
+      setLoadingHistory(false);
     } catch (err) {
       console.error('Error loading conflict history:', err);
       toast.error('Erreur de chargement de l\'historique');
-      dispatch({ type: 'SET_LOADING_HISTORY', payload: false });
+      setLoadingHistory(false);
     }
   };
 
