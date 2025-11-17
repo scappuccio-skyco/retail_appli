@@ -1055,8 +1055,24 @@ export default function ManagerDashboard({ user, onLogout }) {
 
       {showRelationshipModal && (
         <RelationshipManagementModal
-          onClose={() => setShowRelationshipModal(false)}
+          onClose={() => {
+            setShowRelationshipModal(false);
+            setAutoShowRelationshipResult(false);
+          }}
+          onSuccess={(newConsultation) => {
+            console.log('New consultation created:', newConsultation);
+            // Fermer d'abord (comme DebriefHistoryModal)
+            setShowRelationshipModal(false);
+            // Puis rafraîchir les sellers
+            fetchData();
+            // Rouvrir le modal après 500ms pour afficher le résultat
+            setTimeout(() => {
+              setAutoShowRelationshipResult(true);
+              setShowRelationshipModal(true);
+            }, 500);
+          }}
           sellers={sellers}
+          autoShowResult={autoShowRelationshipResult}
         />
       )}
 
