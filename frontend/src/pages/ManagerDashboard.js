@@ -1059,17 +1059,40 @@ export default function ManagerDashboard({ user, onLogout }) {
             setShowRelationshipModal(false);
             setAutoShowRelationshipResult(false);
           }}
-          onSuccess={(newConsultation) => {
-            console.log('New consultation created:', newConsultation);
-            // Fermer d'abord (comme DebriefHistoryModal)
+          onSuccess={async (formData) => {
+            console.log('Form data:', formData);
+            // FERMER LE MODAL IMMÉDIATEMENT (pattern correct)
             setShowRelationshipModal(false);
-            // Puis rafraîchir les sellers
-            fetchData();
-            // Rouvrir le modal après 500ms pour afficher le résultat
-            setTimeout(() => {
-              setAutoShowRelationshipResult(true);
-              setShowRelationshipModal(true);
-            }, 500);
+            
+            // Afficher loading toast
+            const loadingToast = toast.loading('🤖 Génération des recommandations IA...');
+            
+            try {
+              // Faire l'appel API APRÈS fermeture du modal
+              const token = localStorage.getItem('token');
+              const response = await axios.post(
+                `${API}/manager/relationship-advice`,
+                formData,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              
+              toast.dismiss(loadingToast);
+              toast.success('Recommandation générée avec succès !');
+              
+              // Rafraîchir les sellers
+              await fetchData();
+              
+              // Rouvrir le modal après 500ms pour afficher le résultat dans l'historique
+              setTimeout(() => {
+                setAutoShowRelationshipResult(true);
+                setShowRelationshipModal(true);
+              }, 500);
+              
+            } catch (error) {
+              toast.dismiss(loadingToast);
+              console.error('Error generating advice:', error);
+              toast.error('Erreur lors de la génération des recommandations');
+            }
           }}
           sellers={sellers}
           autoShowResult={autoShowRelationshipResult}
