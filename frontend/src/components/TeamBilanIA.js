@@ -218,62 +218,78 @@ export default function TeamBilanIA() {
       )}
 
       {expanded && (
-        <div className="space-y-4 animate-fadeIn">
+        <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 space-y-4 animate-fadeIn">
           {/* Points forts */}
-          <div className="bg-green-50 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-5 h-5 text-[#10B981]" />
-              <h3 className="font-bold text-green-900">💪 Points forts</h3>
+          <div className="rounded-xl p-5 shadow-sm border-2 bg-green-50 border-green-200">
+            <div className="mb-4">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm bg-green-100 text-green-800">
+                <span>✅</span>
+                Points forts
+              </span>
             </div>
-            <ul className="space-y-2">
+            <div className="space-y-3">
               {bilan.points_forts.map((point, idx) => (
-                <li key={`team-bilan-forts-${idx}-${point.substring(0, 20)}`} className="flex items-start gap-2 text-green-800">
-                  <span className="text-[#10B981] mt-1">✓</span>
-                  <span>{point}</span>
-                </li>
+                <div key={`team-bilan-forts-${idx}-${point.substring(0, 20)}`} className="flex gap-3 items-start bg-white rounded-lg p-3 shadow-sm">
+                  <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                    {idx + 1}
+                  </span>
+                  <p className="flex-1 text-gray-800">{point}</p>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
 
           {/* Points d'attention */}
-          <div className="bg-orange-50 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="w-5 h-5 text-[#F97316]" />
-              <h3 className="font-bold text-orange-900">⚠️ Points d'attention</h3>
+          <div className="rounded-xl p-5 shadow-sm border-2 bg-red-50 border-red-200">
+            <div className="mb-4">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm bg-red-100 text-red-800">
+                <span>⚠️</span>
+                Points d'attention
+              </span>
             </div>
-            <ul className="space-y-2">
+            <div className="space-y-3">
               {bilan.points_attention.map((point, idx) => (
-                <li key={`team-bilan-attention-${idx}-${point.substring(0, 20)}`} className="flex items-start gap-2 text-orange-800">
-                  <span className="text-[#F97316] mt-1">!</span>
-                  <span>{point}</span>
-                </li>
+                <div key={`team-bilan-attention-${idx}-${point.substring(0, 20)}`} className="flex gap-3 items-start bg-white rounded-lg p-3 shadow-sm">
+                  <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-red-500 to-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                    !
+                  </span>
+                  <p className="flex-1 text-gray-800">{point}</p>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
 
           {/* Actions prioritaires */}
-          <div className="bg-blue-50 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Target className="w-5 h-5 text-blue-600" />
-              <h3 className="font-bold text-blue-900">🎯 3 Actions prioritaires</h3>
+          <div className="rounded-xl p-5 shadow-sm border-2 bg-purple-50 border-purple-200">
+            <div className="mb-4">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm bg-purple-100 text-purple-800">
+                <span>🎯</span>
+                Actions prioritaires
+              </span>
             </div>
-            <ul className="space-y-2">
+            <div className="space-y-3">
               {bilan.actions_prioritaires.map((action, idx) => (
-                <li key={`team-bilan-actions-${idx}-${action.substring(0, 20)}`} className="flex items-start gap-2 text-blue-800">
-                  <span className="text-blue-600 font-bold mt-1">{idx + 1}.</span>
-                  <span>{action}</span>
-                </li>
+                <div key={`team-bilan-actions-${idx}-${action.substring(0, 20)}`} className="flex gap-3 items-start bg-white rounded-lg p-3 shadow-sm">
+                  <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                    {idx + 1}
+                  </span>
+                  <p className="flex-1 text-gray-800">{action}</p>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
 
           {/* Suggestion de brief */}
-          <div className="bg-purple-50 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <MessageSquare className="w-5 h-5 text-purple-600" />
-              <h3 className="font-bold text-purple-900">💬 Suggestion de brief</h3>
+          <div className="rounded-xl p-5 shadow-sm border-2 bg-amber-50 border-amber-200">
+            <div className="mb-4">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm bg-amber-100 text-amber-800">
+                <span>💬</span>
+                Suggestion de brief
+              </span>
             </div>
-            <p className="text-purple-800 italic">"{bilan.suggestion_brief}"</p>
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <p className="text-gray-800 italic leading-relaxed">"{bilan.suggestion_brief}"</p>
+            </div>
           </div>
 
           {/* Compétences moyennes */}
