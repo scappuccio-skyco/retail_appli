@@ -71,7 +71,7 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
       
       // Si autoShowResult, auto-expand le dernier bilan
       if (autoShowResult && consultations.length > 0) {
-        const latestId = consultations[0].consultation_id;
+        const latestId = consultations[0].id;
         setExpandedItems({ [latestId]: true });
       }
     } catch (error) {
