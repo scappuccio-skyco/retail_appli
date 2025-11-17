@@ -88,12 +88,24 @@ export default function SuperAdminDashboard() {
             </h1>
             <p className="text-purple-200">Tableau de bord d'administration de la plateforme</p>
           </div>
-          <button
-            onClick={() => window.location.href = '/'}
-            className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
-          >
-            Retour
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+              }}
+              className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-lg transition-all"
+            >
+              Déconnexion
+            </button>
+            <button
+              onClick={() => window.location.href = '/'}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
+            >
+              Retour
+            </button>
+          </div>
         </div>
       </div>
 
