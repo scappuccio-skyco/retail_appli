@@ -112,7 +112,6 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
     
     setIsGenerating(true);
     setRecommendation('');
-    setShowResult(false);
     
     try {
       const token = localStorage.getItem('token');
