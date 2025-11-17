@@ -89,7 +89,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Déclencher recommendation via useEffect pour éviter conflit DOM
+      // Pattern Ultra Simple - direct et propre
       setPendingRecommendation(response.data);
       setFormData({
         contexte: '',
@@ -102,7 +102,9 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     } catch (err) {
       console.error('Error creating conflict resolution:', err);
       toast.error('Erreur lors de la génération des recommandations');
+    } finally {
       setLoading(false);
+      setShowForm(false);
     }
   };
 
