@@ -6982,6 +6982,191 @@ async def get_relationship_history(
         logger.error(f"Error fetching relationship history: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
+# ===== SUPERADMIN ENDPOINTS =====
+
+async def get_super_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Middleware pour vérifier que l'utilisateur est super_admin"""
+    token = credentials.credentials
+    payload = decode_token(token)
+    user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.get('role') != 'super_admin':
+        raise HTTPException(status_code=403, detail="SuperAdmin access required")
+    
+    # Log d'audit
+    await db.admin_logs.insert_one({
+        "admin_id": user['id'],
+        "admin_email": user['email'],
+        "action": "superadmin_access",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "ip": "unknown"  # Peut être enrichi avec request.client.host
+    })
+    
+    return user
+
+@api_router.get("/superadmin/stats")
+async def get_superadmin_stats(current_admin: dict = Depends(get_super_admin)):
+    """Statistiques globales de la plateforme (métriques anonymisées)"""
+    try:
+        # Nombre de workspaces
+        total_workspaces = await db.workspaces.count_documents({})
+        active_workspaces = await db.workspaces.count_documents({"status": "active"})
+        
+        # Nombre d'utilisateurs
+        total_users = await db.users.count_documents({"role": {"$in": ["manager", "seller"]}})
+        active_users = await db.users.count_documents({
+            "role": {"$in": ["manager", "seller"]},
+            "status": "active"
+        })
+        total_managers = await db.users.count_documents({"role": "manager"})
+        total_sellers = await db.users.count_documents({"role": "seller", "status": "active"})
+        
+        # Statistiques d'utilisation IA (anonymisées)
+        total_diagnostics = await db.diagnostics.count_documents({})
+        total_debriefs = await db.debriefs.count_documents({})
+        total_evaluations = await db.evaluations.count_documents({})
+        
+        # Abonnements
+        subscriptions = await db.subscriptions.find({}, {"_id": 0}).to_list(1000)
+        total_revenue = sum(sub.get('amount', 0) for sub in subscriptions if sub.get('status') == 'active')
+        
+        # Activité récente (7 derniers jours)
+        seven_days_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        recent_signups = await db.users.count_documents({
+            "created_at": {"$gte": seven_days_ago},
+            "role": "manager"
+        })
+        
+        return {
+            "workspaces": {
+                "total": total_workspaces,
+                "active": active_workspaces
+            },
+            "users": {
+                "total": total_users,
+                "active": active_users,
+                "managers": total_managers,
+                "sellers": total_sellers
+            },
+            "usage": {
+                "diagnostics": total_diagnostics,
+                "analyses_ventes": total_debriefs,
+                "evaluations": total_evaluations
+            },
+            "revenue": {
+                "total_monthly": total_revenue,
+                "currency": "EUR"
+            },
+            "activity": {
+                "recent_signups_7d": recent_signups
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error fetching superadmin stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/superadmin/workspaces")
+async def get_all_workspaces(current_admin: dict = Depends(get_super_admin)):
+    """Liste tous les workspaces avec informations de base"""
+    try:
+        workspaces = await db.workspaces.find({}, {"_id": 0}).to_list(1000)
+        
+        result = []
+        for workspace in workspaces:
+            # Récupérer le manager
+            manager = await db.users.find_one({
+                "workspace_id": workspace['id'],
+                "role": "manager"
+            }, {"_id": 0, "password": 0})
+            
+            # Compter les vendeurs actifs
+            sellers_count = await db.users.count_documents({
+                "workspace_id": workspace['id'],
+                "role": "seller",
+                "status": "active"
+            })
+            
+            # Récupérer l'abonnement
+            subscription = await db.subscriptions.find_one({
+                "workspace_id": workspace['id']
+            }, {"_id": 0})
+            
+            result.append({
+                "id": workspace['id'],
+                "name": workspace['name'],
+                "status": workspace.get('status', 'active'),
+                "created_at": workspace.get('created_at'),
+                "manager": {
+                    "email": manager.get('email') if manager else None,
+                    "name": manager.get('name') if manager else None
+                },
+                "sellers_count": sellers_count,
+                "subscription": {
+                    "plan": subscription.get('plan_type') if subscription else 'trial',
+                    "status": subscription.get('status') if subscription else 'trial',
+                    "seats": subscription.get('seats') if subscription else 0,
+                    "end_date": subscription.get('end_date') if subscription else workspace.get('trial_end')
+                }
+            })
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching workspaces: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.patch("/superadmin/workspaces/{workspace_id}/status")
+async def update_workspace_status(
+    workspace_id: str,
+    status: str,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Activer/désactiver un workspace"""
+    try:
+        if status not in ['active', 'suspended', 'deleted']:
+            raise HTTPException(status_code=400, detail="Invalid status")
+        
+        result = await db.workspaces.update_one(
+            {"id": workspace_id},
+            {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Workspace not found")
+        
+        # Log d'audit
+        await db.admin_logs.insert_one({
+            "admin_id": current_admin['id'],
+            "action": "workspace_status_change",
+            "workspace_id": workspace_id,
+            "new_status": status,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {"success": True, "message": f"Workspace status updated to {status}"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating workspace status: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/superadmin/logs")
+async def get_admin_logs(
+    limit: int = 100,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Récupère les logs d'audit admin"""
+    try:
+        logs = await db.admin_logs.find(
+            {},
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(limit).to_list(limit)
+        
+        return logs
+    except Exception as e:
+        logger.error(f"Error fetching admin logs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Include router
 app.include_router(api_router)
 
