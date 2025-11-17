@@ -7017,6 +7017,39 @@ async def get_relationship_history(
         logger.error(f"Error fetching relationship history: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
+@api_router.delete("/manager/relationship-consultation/{consultation_id}")
+async def delete_relationship_consultation(
+    consultation_id: str,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Delete a relationship consultation. Manager can only delete their own consultations."""
+    try:
+        # Verify manager
+        token = credentials.credentials
+        payload = decode_token(token)
+        current_user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
+        if not current_user or current_user.get('role') != 'manager':
+            raise HTTPException(status_code=403, detail="Manager access only")
+        
+        manager_id = current_user['id']
+        
+        # Find and delete consultation (only if it belongs to this manager)
+        result = await db.relationship_consultations.delete_one({
+            "consultation_id": consultation_id,
+            "manager_id": manager_id
+        })
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Consultation not found or access denied")
+        
+        return {"status": "success", "message": "Consultation deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting consultation: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
 # ===== SUPERADMIN ENDPOINTS =====
 
 async def get_super_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
