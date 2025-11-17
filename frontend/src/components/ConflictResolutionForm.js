@@ -96,6 +96,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
       dispatch({ type: 'SET_AI_RECOMMENDATIONS', payload: state.pendingRecommendation });
       dispatch({ type: 'CLEAR_PENDING' });
       dispatch({ type: 'SET_LOADING_FALSE' });
+      dispatch({ type: 'HIDE_FORM' });
       toast.success('Recommandations générées avec succès');
     }
   }, [state.pendingRecommendation]);
