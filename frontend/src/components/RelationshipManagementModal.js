@@ -98,8 +98,12 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
       return;
     }
     
-    setIsGenerating(true);
+    // Clear previous recommendation first
     setRecommendation('');
+    
+    // Small delay before setting loading to avoid race condition
+    await new Promise(resolve => setTimeout(resolve, 50));
+    setIsGenerating(true);
     
     try {
       const token = localStorage.getItem('token');
@@ -116,17 +120,16 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
         }
       );
       
-      // Use setTimeout to avoid insertBefore error by deferring state update
-      setTimeout(() => {
-        setIsGenerating(false);
-        setRecommendation(response.data.recommendation);
-        toast.success('Recommandation générée avec succès !');
-        
-        // Refresh history if visible
-        if (activeMainTab === 'history') {
-          loadHistory(historyFilter !== 'all' ? historyFilter : null);
-        }
-      }, 0);
+      // Sequential state updates with delay
+      setIsGenerating(false);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      setRecommendation(response.data.recommendation);
+      toast.success('Recommandation générée avec succès !');
+      
+      // Refresh history if visible
+      if (activeMainTab === 'history') {
+        loadHistory(historyFilter !== 'all' ? historyFilter : null);
+      }
       
     } catch (error) {
       console.error('Error generating advice:', error);
