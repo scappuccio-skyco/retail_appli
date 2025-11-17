@@ -114,104 +114,105 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
           )}
 
           {aiAnalysis && !loading && (
-            <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 space-y-4">
-              {(() => {
-                const sections = aiAnalysis.split('##').filter(s => s.trim());
-                
-                return sections.map((section, sectionIdx) => {
-                  const lines = section.trim().split('\n');
-                  const title = lines[0].trim();
-                  const content = lines.slice(1).join('\n').trim();
+            <div className="space-y-4">
+              <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 space-y-4">
+                {(() => {
+                  const sections = aiAnalysis.split('##').filter(s => s.trim());
                   
-                  // Déterminer la couleur selon le type de section
-                  let colorScheme = {
-                    badge: 'bg-purple-100 text-purple-800',
-                    card: 'bg-purple-50 border-purple-200',
-                    icon: '💡',
-                    gradient: 'from-purple-500 to-indigo-600'
-                  };
-                  
-                  if (title.toLowerCase().includes('fort') || title.toLowerCase().includes('point') && title.toLowerCase().includes('positif')) {
-                    colorScheme = {
-                      badge: 'bg-green-100 text-green-800',
-                      card: 'bg-green-50 border-green-200',
-                      icon: '✅',
-                      gradient: 'from-green-500 to-emerald-600'
-                    };
-                  } else if (title.toLowerCase().includes('attention') || title.toLowerCase().includes('faible') || title.toLowerCase().includes('améliorer')) {
-                    colorScheme = {
-                      badge: 'bg-red-100 text-red-800',
-                      card: 'bg-red-50 border-red-200',
-                      icon: '⚠️',
-                      gradient: 'from-red-500 to-orange-600'
-                    };
-                  } else if (title.toLowerCase().includes('recommandation') || title.toLowerCase().includes('action')) {
-                    colorScheme = {
+                  return sections.map((section, sectionIdx) => {
+                    const lines = section.trim().split('\n');
+                    const title = lines[0].trim();
+                    const content = lines.slice(1).join('\n').trim();
+                    
+                    // Déterminer la couleur selon le type de section
+                    let colorScheme = {
                       badge: 'bg-purple-100 text-purple-800',
                       card: 'bg-purple-50 border-purple-200',
-                      icon: '🎯',
+                      icon: '💡',
                       gradient: 'from-purple-500 to-indigo-600'
                     };
-                  } else if (title.toLowerCase().includes('synthèse') || title.toLowerCase().includes('résumé')) {
-                    colorScheme = {
-                      badge: 'bg-blue-100 text-blue-800',
-                      card: 'bg-blue-50 border-blue-200',
-                      icon: '📊',
-                      gradient: 'from-blue-500 to-indigo-600'
-                    };
-                  }
-                  
-                  return (
-                    <div key={sectionIdx} className={`rounded-xl p-5 shadow-sm border-2 ${colorScheme.card}`}>
-                      {/* Badge titre */}
-                      <div className="mb-4">
-                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm ${colorScheme.badge}`}>
-                          <span>{colorScheme.icon}</span>
-                          {title}
-                        </span>
-                      </div>
-                      
-                      {/* Contenu */}
-                      <div className="space-y-3">
-                        {content.split('\n').map((line, lineIdx) => {
-                          const cleaned = line.trim();
-                          if (!cleaned) return null;
-                          
-                          // Liste à puces
-                          if (cleaned.startsWith('-')) {
-                            const text = cleaned.replace(/^[-•]\s*/, '');
-                            const parts = text.split(/(\*\*.*?\*\*)/g);
+                    
+                    if (title.toLowerCase().includes('fort') || title.toLowerCase().includes('point') && title.toLowerCase().includes('positif')) {
+                      colorScheme = {
+                        badge: 'bg-green-100 text-green-800',
+                        card: 'bg-green-50 border-green-200',
+                        icon: '✅',
+                        gradient: 'from-green-500 to-emerald-600'
+                      };
+                    } else if (title.toLowerCase().includes('attention') || title.toLowerCase().includes('faible') || title.toLowerCase().includes('améliorer')) {
+                      colorScheme = {
+                        badge: 'bg-red-100 text-red-800',
+                        card: 'bg-red-50 border-red-200',
+                        icon: '⚠️',
+                        gradient: 'from-red-500 to-orange-600'
+                      };
+                    } else if (title.toLowerCase().includes('recommandation') || title.toLowerCase().includes('action')) {
+                      colorScheme = {
+                        badge: 'bg-purple-100 text-purple-800',
+                        card: 'bg-purple-50 border-purple-200',
+                        icon: '🎯',
+                        gradient: 'from-purple-500 to-indigo-600'
+                      };
+                    } else if (title.toLowerCase().includes('synthèse') || title.toLowerCase().includes('résumé')) {
+                      colorScheme = {
+                        badge: 'bg-blue-100 text-blue-800',
+                        card: 'bg-blue-50 border-blue-200',
+                        icon: '📊',
+                        gradient: 'from-blue-500 to-indigo-600'
+                      };
+                    }
+                    
+                    return (
+                      <div key={sectionIdx} className={`rounded-xl p-5 shadow-sm border-2 ${colorScheme.card}`}>
+                        {/* Badge titre */}
+                        <div className="mb-4">
+                          <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm ${colorScheme.badge}`}>
+                            <span>{colorScheme.icon}</span>
+                            {title}
+                          </span>
+                        </div>
+                        
+                        {/* Contenu */}
+                        <div className="space-y-3">
+                          {content.split('\n').map((line, lineIdx) => {
+                            const cleaned = line.trim();
+                            if (!cleaned) return null;
                             
+                            // Liste à puces
+                            if (cleaned.startsWith('-')) {
+                              const text = cleaned.replace(/^[-•]\s*/, '');
+                              const parts = text.split(/(\*\*.*?\*\*)/g);
+                              
+                              return (
+                                <div key={lineIdx} className="flex gap-3 items-start bg-white rounded-lg p-3 shadow-sm">
+                                  <span className={`flex-shrink-0 w-7 h-7 bg-gradient-to-br ${colorScheme.gradient} text-white rounded-full flex items-center justify-center font-bold text-sm`}>
+                                    •
+                                  </span>
+                                  <p className="flex-1 text-gray-800">
+                                    {parts.map((part, i) => {
+                                      if (part.startsWith('**') && part.endsWith('**')) {
+                                        return <strong key={i} className="font-bold">{part.slice(2, -2)}</strong>;
+                                      }
+                                      return <span key={i}>{part}</span>;
+                                    })}
+                                  </p>
+                                </div>
+                              );
+                            }
+                            
+                            // Paragraphe normal
                             return (
-                              <div key={lineIdx} className="flex gap-3 items-start bg-white rounded-lg p-3 shadow-sm">
-                                <span className={`flex-shrink-0 w-7 h-7 bg-gradient-to-br ${colorScheme.gradient} text-white rounded-full flex items-center justify-center font-bold text-sm`}>
-                                  •
-                                </span>
-                                <p className="flex-1 text-gray-800">
-                                  {parts.map((part, i) => {
-                                    if (part.startsWith('**') && part.endsWith('**')) {
-                                      return <strong key={i} className="font-bold">{part.slice(2, -2)}</strong>;
-                                    }
-                                    return <span key={i}>{part}</span>;
-                                  })}
-                                </p>
-                              </div>
+                              <p key={lineIdx} className="text-gray-700 leading-relaxed">
+                                {cleaned}
+                              </p>
                             );
-                          }
-                          
-                          // Paragraphe normal
-                          return (
-                            <p key={lineIdx} className="text-gray-700 leading-relaxed">
-                              {cleaned}
-                            </p>
-                          );
-                        })}
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
+                    );
+                  });
+                })()}
+              </div>
 
               <div className="flex justify-center gap-3">
                 <button
