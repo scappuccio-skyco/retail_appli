@@ -1801,8 +1801,8 @@ async def reactivate_seller(seller_id: str, current_user: dict = Depends(get_cur
         "status": "active"
     })
     
-    # Récupérer l'abonnement pour voir les sièges disponibles
-    subscription = await db.subscriptions.find_one({"user_id": current_user['id']})
+    # Récupérer l'abonnement avec sync Stripe pour avoir les bonnes données
+    subscription = await get_user_subscription(current_user['id'])
     if subscription:
         seats = subscription.get('seats', 1)
         if active_sellers_count >= seats:
