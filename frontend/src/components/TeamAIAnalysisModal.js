@@ -15,6 +15,12 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
 
+  useEffect(() => {
+    if (activeTab === 'history') {
+      loadHistory();
+    }
+  }, [activeTab]);
+
   const loadHistory = async () => {
     setLoadingHistory(true);
     try {
