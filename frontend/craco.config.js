@@ -68,6 +68,37 @@ const webpackConfig = {
         webpackConfig.plugins.push(healthPluginInstance);
       }
 
+      // Performance optimizations
+      webpackConfig.optimization = {
+        ...webpackConfig.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            // Vendor libraries (node_modules)
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              priority: 10,
+              reuseExistingChunk: true,
+            },
+            // React and React-DOM in separate chunk
+            react: {
+              test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+              name: 'react-vendor',
+              priority: 20,
+            },
+            // Common code between pages
+            common: {
+              minChunks: 2,
+              priority: 5,
+              reuseExistingChunk: true,
+              enforce: true,
+            },
+          },
+        },
+        runtimeChunk: 'single', // Runtime code in separate file
+      };
+
       return webpackConfig;
     },
   },
