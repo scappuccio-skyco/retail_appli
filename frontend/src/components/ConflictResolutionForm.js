@@ -317,7 +317,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
               </label>
               <textarea
                 name="tentatives_precedentes"
-                value={state.formData.tentatives_precedentes}
+                value={formData.tentatives_precedentes}
                 onChange={handleChange}
                 placeholder="Qu'avez-vous déjà essayé pour résoudre cette situation ? (discussions, rappels, actions...)"
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#ffd871] focus:border-transparent resize-none"
