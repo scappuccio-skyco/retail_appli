@@ -166,7 +166,7 @@ const questions = [
     section: "🎨 Ton profil DISC",
     items: [
       {
-        id: 11,
+        id: 16,
         text: "En réunion d'équipe, tu préfères :",
         options: [
           "Prendre les devants et diriger la discussion vers des décisions concrètes",
@@ -176,7 +176,7 @@ const questions = [
         ]
       },
       {
-        id: 12,
+        id: 17,
         text: "Face à un changement important dans l'organisation, ta réaction naturelle est de :",
         options: [
           "Agir rapidement et prendre les choses en main",
@@ -186,7 +186,7 @@ const questions = [
         ]
       },
       {
-        id: 13,
+        id: 18,
         text: "Quand tu dois donner un feedback difficile à un collaborateur, tu :",
         options: [
           "Vas droit au but avec des faits et des attentes claires",
@@ -196,7 +196,7 @@ const questions = [
         ]
       },
       {
-        id: 14,
+        id: 19,
         text: "Dans ton travail quotidien, tu es plus à l'aise avec :",
         options: [
           "Les défis et les situations qui demandent des décisions rapides",
@@ -206,7 +206,7 @@ const questions = [
         ]
       },
       {
-        id: 15,
+        id: 20,
         text: "Un conflit éclate entre deux vendeurs. Ta première réaction est de :",
         options: [
           "Intervenir immédiatement et trancher pour rétablir l'ordre",
@@ -216,7 +216,7 @@ const questions = [
         ]
       },
       {
-        id: 16,
+        id: 21,
         text: "Quand tu fixes des objectifs à ton équipe, tu privilégies :",
         options: [
           "Des objectifs ambitieux qui poussent à se dépasser",
@@ -226,7 +226,7 @@ const questions = [
         ]
       },
       {
-        id: 17,
+        id: 22,
         text: "Si tu devais décrire ton style de communication, ce serait :",
         options: [
           "Direct et efficace, je vais à l'essentiel",
@@ -236,7 +236,7 @@ const questions = [
         ]
       },
       {
-        id: 18,
+        id: 23,
         text: "Face à une deadline serrée, tu as tendance à :",
         options: [
           "Accélérer le rythme et exiger des résultats rapides",
@@ -246,7 +246,7 @@ const questions = [
         ]
       },
       {
-        id: 19,
+        id: 24,
         text: "Quand tu dois gérer plusieurs urgences en même temps, tu :",
         options: [
           "Priorises rapidement et prends des décisions fermes",
@@ -256,7 +256,7 @@ const questions = [
         ]
       },
       {
-        id: 20,
+        id: 25,
         text: "Ton approche face à un nouveau projet ambitieux :",
         options: [
           "Je me lance immédiatement avec confiance",
@@ -266,7 +266,7 @@ const questions = [
         ]
       },
       {
-        id: 21,
+        id: 26,
         text: "Quand un membre de ton équipe fait une erreur importante :",
         options: [
           "J'interviens directement pour corriger et éviter que ça se reproduise",
@@ -276,7 +276,7 @@ const questions = [
         ]
       },
       {
-        id: 22,
+        id: 27,
         text: "Dans une négociation difficile avec ta hiérarchie, tu es :",
         options: [
           "Assertif et tu défends fermement les intérêts de ton équipe",
@@ -286,7 +286,7 @@ const questions = [
         ]
       },
       {
-        id: 23,
+        id: 28,
         text: "Ton style pour motiver ton équipe en période difficile :",
         options: [
           "Je fixe un cap clair et je montre l'exemple par l'action",
@@ -296,17 +296,7 @@ const questions = [
         ]
       },
       {
-        id: 24,
-        text: "Face à un conflit entre deux collaborateurs, ta première action :",
-        options: [
-          "Je tranche rapidement pour restaurer l'efficacité",
-          "J'organise une discussion ouverte pour rétablir le lien",
-          "J'écoute séparément chacun avant de proposer une médiation",
-          "J'analyse factuellement la situation avant de prendre position"
-        ]
-      },
-      {
-        id: 25,
+        id: 29,
         text: "Dans l'organisation de ton temps de travail, tu privilégies :",
         options: [
           "L'efficacité et l'action immédiate",
@@ -316,7 +306,7 @@ const questions = [
         ]
       },
       {
-        id: 26,
+        id: 30,
         text: "Quand tu dois implémenter un changement imposé par la direction :",
         options: [
           "Je l'applique rapidement sans tergiverser",
@@ -326,7 +316,7 @@ const questions = [
         ]
       },
       {
-        id: 27,
+        id: 31,
         text: "Ton rapport aux procédures et aux règles :",
         options: [
           "Je les adapte si ça permet d'être plus efficace",
@@ -336,27 +326,7 @@ const questions = [
         ]
       },
       {
-        id: 28,
-        text: "Dans une réunion d'équipe, tu as tendance à :",
-        options: [
-          "Diriger activement pour garder le cap et conclure rapidement",
-          "Animer avec dynamisme pour impliquer tout le monde",
-          "Faciliter les échanges en laissant chacun s'exprimer",
-          "Structurer la discussion avec un ordre du jour précis"
-        ]
-      },
-      {
-        id: 29,
-        text: "Face à un vendeur peu performant, tu :",
-        options: [
-          "Fixes des objectifs clairs et challenges pour le pousser",
-          "Encourages et valorises ses petites victoires pour le remotiver",
-          "Accompagnes patiemment en identifiant ses blocages",
-          "Analyses ses résultats pour cibler précisément les axes d'amélioration"
-        ]
-      },
-      {
-        id: 30,
+        id: 32,
         text: "Ton environnement de travail idéal comme manager :",
         options: [
           "Dynamique avec des défis constants à relever",
@@ -366,7 +336,7 @@ const questions = [
         ]
       },
       {
-        id: 31,
+        id: 33,
         text: "Quand tu recrutes un nouveau collaborateur, tu cherches avant tout :",
         options: [
           "Quelqu'un de déterminé qui obtient des résultats",
@@ -376,7 +346,7 @@ const questions = [
         ]
       },
       {
-        id: 32,
+        id: 34,
         text: "Dans ta gestion des priorités quotidiennes :",
         options: [
           "Je me concentre sur ce qui a le plus d'impact immédiat",
@@ -386,17 +356,7 @@ const questions = [
         ]
       },
       {
-        id: 33,
-        text: "Ton style de feedback vers ton équipe :",
-        options: [
-          "Direct et sans détour, j'appelle un chat un chat",
-          "Positif et encourageant, je valorise d'abord",
-          "Bienveillant et progressif, je prends des pincettes",
-          "Factuel et constructif, je m'appuie sur des exemples précis"
-        ]
-      },
-      {
-        id: 34,
+        id: 35,
         text: "Face à un échec collectif de ton équipe :",
         options: [
           "Je tourne vite la page et je fixe un nouvel objectif",
