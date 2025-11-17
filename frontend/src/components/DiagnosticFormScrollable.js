@@ -182,10 +182,10 @@ const questions = [
         text: "Qu'est-ce qui fait qu'un client devient fidèle selon toi ?",
         type: "choice",
         options: [
-          "La qualité du service et l'attention portée",
-          "Les prix compétitifs et les promotions",
+          "La rapidité du service et l'efficacité",
           "La relation personnelle créée avec lui",
-          "La qualité constante des produits"
+          "La qualité du service et l'attention portée",
+          "La qualité constante des produits et l'expertise"
         ]
       }
     ]
