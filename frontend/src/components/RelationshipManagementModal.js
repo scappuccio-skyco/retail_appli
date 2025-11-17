@@ -120,6 +120,7 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
     
     setIsGenerating(true);
     setRecommendation('');
+    setShowResult(false);
     
     try {
       const token = localStorage.getItem('token');
@@ -136,7 +137,7 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
         }
       );
       
-      // Déclencher recommendation via useEffect pour éviter conflit DOM (comme DebriefHistoryModal)
+      // Déclencher recommendation via useEffect - EXACTEMENT comme DebriefHistoryModal
       setPendingRecommendation(response.data.recommendation);
       
       // Refresh history if visible
@@ -144,10 +145,12 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
         loadHistory(historyFilter !== 'all' ? historyFilter : null);
       }
       
+      // PAS de setIsGenerating(false) ici - géré dans useEffect
+      
     } catch (error) {
       console.error('Error generating advice:', error);
       toast.error('Erreur lors de la génération des recommandations');
-      setIsGenerating(false);
+      setIsGenerating(false);  // Seulement dans le catch, comme DebriefHistoryModal
     }
   };
   
