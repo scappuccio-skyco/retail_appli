@@ -1065,8 +1065,8 @@ export default function ManagerDashboard({ user, onLogout }) {
             // FERMER LE MODAL IMMÉDIATEMENT (pattern correct)
             setShowRelationshipModal(false);
             
-            // Afficher loading toast
-            const loadingToast = toast.loading('🤖 Génération des recommandations IA...');
+            // Afficher barre de chargement
+            setGeneratingAIAdvice(true);
             
             try {
               // Faire l'appel API APRÈS fermeture du modal
@@ -1077,7 +1077,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                 { headers: { Authorization: `Bearer ${token}` } }
               );
               
-              toast.dismiss(loadingToast);
+              setGeneratingAIAdvice(false);
               toast.success('Recommandation générée avec succès !');
               
               // Rafraîchir les sellers
@@ -1090,7 +1090,7 @@ export default function ManagerDashboard({ user, onLogout }) {
               }, 500);
               
             } catch (error) {
-              toast.dismiss(loadingToast);
+              setGeneratingAIAdvice(false);
               console.error('Error generating advice:', error);
               toast.error('Erreur lors de la génération des recommandations');
             }
