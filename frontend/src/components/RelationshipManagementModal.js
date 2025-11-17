@@ -546,74 +546,116 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
                           )}
                         </div>
                         
-                        {/* Contenu détaillé quand ouvert */}
+                        {/* Contenu détaillé quand ouvert - Design inspiré du Défi IA */}
                         {isExpanded && (
-                          <div className="border-t-2 border-gray-200 bg-white">
+                          <div className="border-t-2 border-gray-200 bg-gradient-to-br from-orange-50 to-yellow-50">
                             {/* Situation complète */}
-                            <div className="p-4 bg-gray-50 border-b border-gray-200">
-                              <h5 className="font-bold text-gray-700 mb-2 flex items-center gap-2">
-                                📋 Situation décrite
-                              </h5>
-                              <p className="text-sm text-gray-700 leading-relaxed">
-                                {item.description}
-                              </p>
-                            </div>
+                            <div className="p-6">
+                              <div className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-orange-400 mb-6">
+                                <h5 className="font-bold text-gray-800 mb-3 flex items-center gap-2 text-base">
+                                  📋 Situation décrite
+                                </h5>
+                                <p className="text-gray-700 leading-relaxed">
+                                  {item.description}
+                                </p>
+                              </div>
                             
-                            {/* Recommandations améliorées */}
-                            <div className="p-4">
-                              <h5 className="font-bold text-purple-700 mb-3 flex items-center gap-2 text-lg">
-                                ✨ Recommandations IA
-                              </h5>
-                              <div className="space-y-3 text-sm text-gray-700 leading-relaxed">
-                                {item.recommendation.split('\n\n').map((section, idx) => {
-                                  const trimmed = section.trim();
-                                  if (!trimmed) return null;
+                              {/* Recommandations avec design amélioré */}
+                              <div className="space-y-4">
+                                {(() => {
+                                  const sections = item.recommendation.split('##').filter(s => s.trim());
                                   
-                                  // Titre de section (commence par ##)
-                                  if (trimmed.startsWith('##')) {
-                                    const title = trimmed.replace(/^##\s*/, '');
+                                  return sections.map((section, idx) => {
+                                    const lines = section.trim().split('\n');
+                                    const title = lines[0].trim();
+                                    const content = lines.slice(1).join('\n').trim();
+                                    
+                                    // Déterminer la couleur selon le type de section
+                                    let colorScheme = {
+                                      badge: 'bg-purple-100 text-purple-800',
+                                      card: 'bg-purple-50 border-purple-200',
+                                      icon: '💡'
+                                    };
+                                    
+                                    if (title.toLowerCase().includes('analyse')) {
+                                      colorScheme = {
+                                        badge: 'bg-blue-100 text-blue-800',
+                                        card: 'bg-blue-50 border-blue-200',
+                                        icon: '🔍'
+                                      };
+                                    } else if (title.toLowerCase().includes('conseil') || title.toLowerCase().includes('pratique')) {
+                                      colorScheme = {
+                                        badge: 'bg-green-100 text-green-800',
+                                        card: 'bg-green-50 border-green-200',
+                                        icon: '✅'
+                                      };
+                                    } else if (title.toLowerCase().includes('phrase') || title.toLowerCase().includes('communication')) {
+                                      colorScheme = {
+                                        badge: 'bg-amber-100 text-amber-800',
+                                        card: 'bg-amber-50 border-amber-200',
+                                        icon: '💬'
+                                      };
+                                    } else if (title.toLowerCase().includes('vigilance')) {
+                                      colorScheme = {
+                                        badge: 'bg-red-100 text-red-800',
+                                        card: 'bg-red-50 border-red-200',
+                                        icon: '⚠️'
+                                      };
+                                    }
+                                    
                                     return (
-                                      <h6 key={idx} className="font-bold text-purple-800 mt-4 mb-2 text-base flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                                        {title}
-                                      </h6>
-                                    );
-                                  }
-                                  
-                                  // Liste à puces
-                                  if (trimmed.includes('- ') || trimmed.includes('• ')) {
-                                    const lines = trimmed.split('\n');
-                                    return (
-                                      <ul key={idx} className="space-y-2 ml-2">
-                                        {lines.map((line, lineIdx) => {
-                                          const cleaned = line.trim();
-                                          if (cleaned.startsWith('-') || cleaned.startsWith('•')) {
+                                      <div key={idx} className={`rounded-xl p-5 shadow-sm border-2 ${colorScheme.card}`}>
+                                        {/* Badge titre */}
+                                        <div className="mb-4">
+                                          <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm ${colorScheme.badge}`}>
+                                            <span>{colorScheme.icon}</span>
+                                            {title}
+                                          </span>
+                                        </div>
+                                        
+                                        {/* Contenu */}
+                                        <div className="space-y-3">
+                                          {content.split('\n').map((line, lineIdx) => {
+                                            const cleaned = line.trim();
+                                            if (!cleaned) return null;
+                                            
+                                            // Liste numérotée (style défi IA)
+                                            if (cleaned.match(/^\d+[\.)]/)) {
+                                              const number = cleaned.match(/^(\d+)[\.)]/)[1];
+                                              const text = cleaned.replace(/^\d+[\.)]\s*/, '');
+                                              return (
+                                                <div key={lineIdx} className="flex gap-3 items-start bg-white rounded-lg p-3 shadow-sm">
+                                                  <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                                                    {number}
+                                                  </span>
+                                                  <p className="flex-1 text-gray-800">{text}</p>
+                                                </div>
+                                              );
+                                            }
+                                            
+                                            // Liste à puces
+                                            if (cleaned.startsWith('-') || cleaned.startsWith('•')) {
+                                              const text = cleaned.replace(/^[-•]\s*/, '');
+                                              return (
+                                                <div key={lineIdx} className="flex gap-3 items-start">
+                                                  <span className="text-purple-600 font-bold text-lg mt-0.5">•</span>
+                                                  <p className="flex-1 text-gray-700">{text}</p>
+                                                </div>
+                                              );
+                                            }
+                                            
+                                            // Paragraphe normal
                                             return (
-                                              <li key={lineIdx} className="flex gap-3 items-start">
-                                                <span className="text-purple-500 font-bold mt-0.5">•</span>
-                                                <span className="flex-1">{cleaned.replace(/^[-•]\s*/, '')}</span>
-                                              </li>
-                                            );
-                                          } else if (cleaned) {
-                                            return (
-                                              <p key={lineIdx} className="font-semibold text-gray-800 mb-1">
+                                              <p key={lineIdx} className="text-gray-700 leading-relaxed">
                                                 {cleaned}
                                               </p>
                                             );
-                                          }
-                                          return null;
-                                        })}
-                                      </ul>
+                                          })}
+                                        </div>
+                                      </div>
                                     );
-                                  }
-                                  
-                                  // Paragraphe normal
-                                  return (
-                                    <p key={idx} className="leading-relaxed">
-                                      {trimmed}
-                                    </p>
-                                  );
-                                })}
+                                  });
+                                })()}
                               </div>
                             </div>
                           </div>
