@@ -138,11 +138,10 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Batch all state updates together with reducer
-      dispatch({ type: 'SET_AI_RECOMMENDATIONS', payload: response.data });
+      // Déclencher recommendation via useEffect pour éviter conflit DOM
+      dispatch({ type: 'SET_PENDING_RECOMMENDATION', payload: response.data });
       dispatch({ type: 'RESET_FORM' });
       
-      toast.success('Recommandations générées avec succès');
     } catch (err) {
       console.error('Error creating conflict resolution:', err);
       toast.error('Erreur lors de la génération des recommandations');
