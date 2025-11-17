@@ -79,16 +79,7 @@ export default function RelationshipManagementModal({ onClose, sellers = [] }) {
     }
   }, [activeMainTab]);
   
-  // Version SIMPLE et DIRECTE - pas de tricks
-  useEffect(() => {
-    if (pendingRecommendation) {
-      // Tout en une fois, simple et direct
-      setRecommendation(pendingRecommendation);
-      setPendingRecommendation(null);
-      setIsGenerating(false);
-      toast.success('Recommandation générée avec succès !');
-    }
-  }, [pendingRecommendation]);
+  // Pattern Ultra Simple - Pas de useEffect compliqué
   
   // Close dropdown when clicking outside
   useEffect(() => {
