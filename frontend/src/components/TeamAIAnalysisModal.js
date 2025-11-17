@@ -8,7 +8,12 @@ const API = `${BACKEND_URL}/api`;
 
 export default function TeamAIAnalysisModal({ teamData, onClose }) {
   const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [analysisMetadata, setAnalysisMetadata] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('new'); // 'new' or 'history'
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [expandedItems, setExpandedItems] = useState({});
 
   const handleGenerateAnalysis = async () => {
     setLoading(true);
