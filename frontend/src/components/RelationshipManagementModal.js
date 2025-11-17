@@ -108,32 +108,15 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
       return;
     }
     
-    setIsGenerating(true);
-    
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API}/api/manager/relationship-advice`,
-        {
-          seller_id: selectedSeller,
-          advice_type: activeFormTab,
-          situation_type: situationType,
-          description: description
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-      
-      toast.success('Recommandation générée avec succès !');
-      
-      // Déclencher onSuccess via useEffect pour éviter conflit DOM (pattern DebriefHistoryModal)
-      setPendingSuccess(response.data);
-      
-    } catch (error) {
-      console.error('Error generating advice:', error);
-      toast.error('Erreur lors de la génération des recommandations');
-      setIsGenerating(false);
+    // IMPORTANT : Fermer le modal AVANT l'appel API (pattern correct)
+    // Le parent va faire l'appel API et rouvrir le modal
+    if (onSuccess) {
+      onSuccess({
+        seller_id: selectedSeller,
+        advice_type: activeFormTab,
+        situation_type: situationType,
+        description: description
+      });
     }
   };
   
