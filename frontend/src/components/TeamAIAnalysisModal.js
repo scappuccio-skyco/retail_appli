@@ -119,47 +119,69 @@ export default function TeamAIAnalysisModal({ teamData, onClose }) {
                 {(() => {
                   const sections = aiAnalysis.split('##').filter(s => s.trim());
                   
-                  return sections.map((section, sectionIdx) => {
-                    const lines = section.trim().split('\n');
-                    const title = lines[0].trim();
-                    const content = lines.slice(1).join('\n').trim();
-                    
-                    // Déterminer la couleur selon le type de section
-                    let colorScheme = {
+                  // Palette de couleurs variées selon la charte graphique
+                  const colorPalette = [
+                    {
+                      badge: 'bg-indigo-100 text-indigo-800',
+                      card: 'bg-indigo-50 border-indigo-200',
+                      icon: '📊',
+                      gradient: 'from-indigo-500 to-purple-600'
+                    },
+                    {
+                      badge: 'bg-green-100 text-green-800',
+                      card: 'bg-green-50 border-green-200',
+                      icon: '✅',
+                      gradient: 'from-green-500 to-emerald-600'
+                    },
+                    {
+                      badge: 'bg-orange-100 text-orange-800',
+                      card: 'bg-orange-50 border-orange-200',
+                      icon: '⚠️',
+                      gradient: 'from-orange-500 to-red-500'
+                    },
+                    {
                       badge: 'bg-purple-100 text-purple-800',
                       card: 'bg-purple-50 border-purple-200',
-                      icon: '💡',
+                      icon: '🎯',
                       gradient: 'from-purple-500 to-indigo-600'
-                    };
+                    },
+                    {
+                      badge: 'bg-teal-100 text-teal-800',
+                      card: 'bg-teal-50 border-teal-200',
+                      icon: '💡',
+                      gradient: 'from-teal-500 to-cyan-600'
+                    },
+                    {
+                      badge: 'bg-pink-100 text-pink-800',
+                      card: 'bg-pink-50 border-pink-200',
+                      icon: '🌟',
+                      gradient: 'from-pink-500 to-rose-600'
+                    }
+                  ];
+                  
+                  return sections.map((section, sectionIdx) => {
+                    const lines = section.trim().split('\n');
+                    // Supprimer les ** du titre
+                    const title = lines[0].trim().replace(/\*\*/g, '');
+                    const content = lines.slice(1).join('\n').trim();
                     
-                    if (title.toLowerCase().includes('fort') || title.toLowerCase().includes('point') && title.toLowerCase().includes('positif')) {
-                      colorScheme = {
-                        badge: 'bg-green-100 text-green-800',
-                        card: 'bg-green-50 border-green-200',
-                        icon: '✅',
-                        gradient: 'from-green-500 to-emerald-600'
-                      };
-                    } else if (title.toLowerCase().includes('attention') || title.toLowerCase().includes('faible') || title.toLowerCase().includes('améliorer')) {
-                      colorScheme = {
-                        badge: 'bg-red-100 text-red-800',
-                        card: 'bg-red-50 border-red-200',
-                        icon: '⚠️',
-                        gradient: 'from-red-500 to-orange-600'
-                      };
-                    } else if (title.toLowerCase().includes('recommandation') || title.toLowerCase().includes('action')) {
-                      colorScheme = {
-                        badge: 'bg-purple-100 text-purple-800',
-                        card: 'bg-purple-50 border-purple-200',
-                        icon: '🎯',
-                        gradient: 'from-purple-500 to-indigo-600'
-                      };
-                    } else if (title.toLowerCase().includes('synthèse') || title.toLowerCase().includes('résumé')) {
-                      colorScheme = {
-                        badge: 'bg-blue-100 text-blue-800',
-                        card: 'bg-blue-50 border-blue-200',
-                        icon: '📊',
-                        gradient: 'from-blue-500 to-indigo-600'
-                      };
+                    // Déterminer la couleur selon le type de section avec fallback sur rotation
+                    let colorScheme;
+                    const titleLower = title.toLowerCase();
+                    
+                    if (titleLower.includes('force') || titleLower.includes('positif') || titleLower.includes('réussite')) {
+                      colorScheme = colorPalette[1]; // Vert
+                    } else if (titleLower.includes('attention') || titleLower.includes('faible') || titleLower.includes('améliorer') || titleLower.includes('difficulté')) {
+                      colorScheme = colorPalette[2]; // Orange
+                    } else if (titleLower.includes('recommandation') || titleLower.includes('action') || titleLower.includes('priorité')) {
+                      colorScheme = colorPalette[3]; // Purple
+                    } else if (titleLower.includes('analyse') || titleLower.includes('synthèse') || titleLower.includes('résumé')) {
+                      colorScheme = colorPalette[0]; // Indigo
+                    } else if (titleLower.includes('opportunité') || titleLower.includes('potentiel') || titleLower.includes('développement')) {
+                      colorScheme = colorPalette[4]; // Teal
+                    } else {
+                      // Rotation des couleurs pour les autres sections
+                      colorScheme = colorPalette[sectionIdx % colorPalette.length];
                     }
                     
                     return (
