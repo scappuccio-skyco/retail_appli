@@ -164,7 +164,7 @@ const questions = [
           "Je lui fixe un rappel pour assurer son suivi",
           "Je lui propose de rejoindre le programme de fidélité",
           "Je lui donne des conseils d'utilisation personnalisés",
-          "Je lui remets un guide technique détaillé"
+          "Je lui explique précisément l'entretien et la garantie"
         ]
       },
       {
