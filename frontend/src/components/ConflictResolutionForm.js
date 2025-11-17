@@ -64,10 +64,9 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
   };
 
   const handleChange = (e) => {
-    dispatch({ 
-      type: 'UPDATE_FORM', 
-      field: e.target.name, 
-      value: e.target.value 
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
     });
   };
 
