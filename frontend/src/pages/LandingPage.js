@@ -398,6 +398,7 @@ export default function LandingPage() {
                   src="/dashboard-manager.png" 
                   alt="Dashboard Manager - Vue d'ensemble KPI"
                   className="w-full h-auto"
+                  loading="lazy"
                 />
               </div>
             </div>
