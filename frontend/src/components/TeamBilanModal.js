@@ -72,57 +72,79 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
             )}
           </div>
 
-          {/* Synthèse */}
-          <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-xl p-4 mb-4">
-            <p className="text-gray-800 font-medium">{bilan.synthese}</p>
-          </div>
-
-          {/* Points forts */}
-          <div className="bg-green-50 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-5 h-5 text-[#10B981]" />
-              <h3 className="font-bold text-green-900">💪 Points forts</h3>
+          {/* Design inspiré du Défi IA */}
+          <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 space-y-4">
+            
+            {/* Synthèse */}
+            <div className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-blue-500">
+              <div className="mb-3">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm bg-blue-100 text-blue-800">
+                  <span>📊</span>
+                  ANALYSE D'ÉQUIPE
+                </span>
+              </div>
+              <p className="text-gray-800 leading-relaxed">{bilan.synthese}</p>
             </div>
-            <ul className="space-y-2">
-              {bilan.points_forts && bilan.points_forts.map((point, idx) => (
-                <li key={`team-modal-forts-${idx}-${point.substring(0, 20)}`} className="flex items-start gap-2 text-green-800">
-                  <span className="text-[#10B981] mt-1">✓</span>
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          {/* Points d'attention */}
-          <div className="bg-orange-50 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="w-5 h-5 text-[#F97316]" />
-              <h3 className="font-bold text-orange-900">⚠️ Points d'attention</h3>
+            {/* Points forts */}
+            <div className="rounded-xl p-5 shadow-sm border-2 bg-green-50 border-green-200">
+              <div className="mb-4">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm bg-green-100 text-green-800">
+                  <span>✅</span>
+                  Points forts
+                </span>
+              </div>
+              <div className="space-y-3">
+                {bilan.points_forts && bilan.points_forts.map((point, idx) => (
+                  <div key={`team-modal-forts-${idx}-${point.substring(0, 20)}`} className="flex gap-3 items-start bg-white rounded-lg p-3 shadow-sm">
+                    <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                      {idx + 1}
+                    </span>
+                    <p className="flex-1 text-gray-800">{point}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <ul className="space-y-2">
-              {bilan.points_attention && bilan.points_attention.map((point, idx) => (
-                <li key={`team-modal-attention-${idx}-${point.substring(0, 20)}`} className="flex items-start gap-2 text-orange-800">
-                  <span className="text-[#F97316] mt-1">!</span>
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          {/* Actions prioritaires / Recommandations */}
-          <div className="bg-blue-50 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Target className="w-5 h-5 text-blue-600" />
-              <h3 className="font-bold text-blue-900">🎯 Recommandations</h3>
+            {/* Points d'attention */}
+            <div className="rounded-xl p-5 shadow-sm border-2 bg-red-50 border-red-200">
+              <div className="mb-4">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm bg-red-100 text-red-800">
+                  <span>⚠️</span>
+                  Points d'attention
+                </span>
+              </div>
+              <div className="space-y-3">
+                {bilan.points_attention && bilan.points_attention.map((point, idx) => (
+                  <div key={`team-modal-attention-${idx}-${point.substring(0, 20)}`} className="flex gap-3 items-start bg-white rounded-lg p-3 shadow-sm">
+                    <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-red-500 to-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                      !
+                    </span>
+                    <p className="flex-1 text-gray-800">{point}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <ul className="space-y-2">
-              {bilan.recommandations && bilan.recommandations.map((action, idx) => (
-                <li key={`team-modal-reco-${idx}-${action.substring(0, 20)}`} className="flex items-start gap-2 text-blue-800">
-                  <span className="text-blue-600 font-bold mt-1">{idx + 1}.</span>
-                  <span>{action}</span>
-                </li>
-              ))}
-            </ul>
+
+            {/* Recommandations */}
+            <div className="rounded-xl p-5 shadow-sm border-2 bg-purple-50 border-purple-200">
+              <div className="mb-4">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-sm bg-purple-100 text-purple-800">
+                  <span>🎯</span>
+                  Recommandations
+                </span>
+              </div>
+              <div className="space-y-3">
+                {bilan.recommandations && bilan.recommandations.map((action, idx) => (
+                  <div key={`team-modal-reco-${idx}-${action.substring(0, 20)}`} className="flex gap-3 items-start bg-white rounded-lg p-3 shadow-sm">
+                    <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                      {idx + 1}
+                    </span>
+                    <p className="flex-1 text-gray-800">{action}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Analyses détaillées par vendeur */}
