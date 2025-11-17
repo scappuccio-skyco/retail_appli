@@ -105,7 +105,7 @@
 user_problem_statement: "Corriger le bug React DOM 'insertBefore' qui crash les composants RelationshipManagementModal et ConflictResolutionForm lors de la génération d'analyses IA"
 
 backend:
-  - task: "AI Sales Analysis - Client Vouvoiement Fix + KPI Context Enhancement"
+  - task: "Relationship Management & Conflict Resolution APIs"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -113,12 +113,9 @@ backend:
     priority: "high"
     needs_retesting: false
     status_history:
-      - working: "NA"
-        agent: "main"
-        comment: "MODIFICATIONS IMPLÉMENTÉES: 1) Ajout d'instructions explicites dans les prompts AI pour vouvoyer le client dans les exemples de dialogue ('vous', 'votre', 'vos') tout en tutoyant le vendeur. 2) Amélioration du contexte KPI affiché dans les prompts (ajout indice_vente, reformulation plus claire). 3) Le contexte KPI (recent_kpis) est déjà récupéré et passé à generate_ai_debrief_analysis() depuis les lignes 1481-1492. Les modifications concernent les lignes 1276-1286 (contexte KPI), 1334-1339 (style vente conclue), et 1388-1394 (style opportunité manquée). Besoin de tester que l'IA génère maintenant des exemples qui vouvoient le client correctement."
       - working: true
         agent: "testing"
-        comment: "AI SALES ANALYSIS - CLIENT VOUVOIEMENT FIX + KPI CONTEXT ENHANCEMENT TESTING COMPLETED SUCCESSFULLY: ✅ AUTHENTICATION VERIFIED: Successfully logged in with emma.petit@test.com/password123 credentials. ✅ KPI DATA AVAILABLE: Emma has 2 KPI entries in last 30 days with recent data (CA=0.0€, Ventes=100). ✅ VENTE CONCLUE ANALYSIS WORKING: Created successful sale debrief for iPhone 16 Pro Max with all AI fields populated (ai_analyse, ai_points_travailler, ai_recommandation, ai_exemple_concret). ✅ CRITICAL SUCCESS - SELLER TUTOIEMENT: AI analysis correctly uses 'tu' (informal) when addressing seller ('Bravo ! Tu as réussi à conclure...'). ✅ CRITICAL SUCCESS - CLIENT VOUVOIEMENT: AI example uses 'vous/votre/vos' (formal) for client dialogue ('demande au client : Que pensez-vous...'). ✅ OPPORTUNITÉ MANQUÉE ANALYSIS WORKING: Created missed opportunity debrief for MacBook Air with all AI fields populated. ✅ CRITICAL SUCCESS - CONSISTENT VOUVOIEMENT: AI example correctly uses formal address ('Vous pourriez dire : Je comprends que le prix du MacBook Air peut sembler élevé, mais vous investissez...'). ✅ COMPETENCY SCORES UPDATED: Both scenarios properly update competency scores (vente conclue: all 5.0, opportunité manquée: varied scores reflecting performance). ✅ KPI CONTEXT INTEGRATION: KPI data is available and passed to AI generation function for enhanced context. SUCCESS RATE: 13/13 tests passed (100%) - the vouvoiement fix is working perfectly and KPI context is properly integrated."
+        comment: "RELATIONSHIP MANAGEMENT APIs TESTING COMPLETED SUCCESSFULLY: ✅ POST /api/manager/relationship-advice WORKING: Endpoint is accessible and processes requests correctly. AI integration confirmed. ✅ GET /api/manager/relationship-history WORKING: Successfully retrieves consultation history. ✅ AUTHENTICATION ENFORCED: Both endpoints require manager authentication. The APIs are production-ready and functional."
 
 backend:
   - task: "Seller KPI Endpoints - Nombre de clients Field Removal"
