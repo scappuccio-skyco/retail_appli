@@ -109,46 +109,51 @@ export default function SuperAdminDashboard() {
               {stats.workspaces.active}
             </div>
             <div className="text-sm text-purple-200">
-              sur {stats.workspaces.total} total
+              {stats.workspaces.total} total ({stats.workspaces.trial} en essai)
             </div>
           </div>
 
           <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
             <div className="flex items-center justify-between mb-4">
               <Users className="w-8 h-8 text-green-400" />
-              <span className="text-xs text-purple-200">Utilisateurs</span>
+              <span className="text-xs text-purple-200">Utilisateurs actifs</span>
             </div>
             <div className="text-3xl font-bold text-white mb-2">
-              {stats.users.active}
+              {stats.users.total_active}
             </div>
             <div className="text-sm text-purple-200">
-              {stats.users.managers} managers, {stats.users.sellers} vendeurs
+              {stats.users.active_managers} managers · {stats.users.active_sellers} vendeurs
             </div>
+            {stats.users.inactive > 0 && (
+              <div className="text-xs text-purple-300 mt-1">
+                +{stats.users.inactive} inactifs
+              </div>
+            )}
           </div>
 
           <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
             <div className="flex items-center justify-between mb-4">
               <Activity className="w-8 h-8 text-yellow-400" />
-              <span className="text-xs text-purple-200">Analyses IA</span>
+              <span className="text-xs text-purple-200">Opérations IA</span>
             </div>
             <div className="text-3xl font-bold text-white mb-2">
-              {stats.usage.analyses_ventes}
+              {stats.usage.total_ai_operations}
             </div>
             <div className="text-sm text-purple-200">
-              {stats.usage.diagnostics} diagnostics
+              {stats.usage.analyses_ventes} analyses · {stats.usage.diagnostics} diagnostics
             </div>
           </div>
 
           <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="w-8 h-8 text-purple-400" />
-              <span className="text-xs text-purple-200">Revenus</span>
+              <span className="text-xs text-purple-200">MRR</span>
             </div>
             <div className="text-3xl font-bold text-white mb-2">
-              {stats.revenue.total_monthly}€
+              {stats.revenue.mrr}€
             </div>
             <div className="text-sm text-purple-200">
-              MRR (Monthly Recurring Revenue)
+              {stats.revenue.active_subscriptions} payants · {stats.revenue.trial_subscriptions} essais
             </div>
           </div>
         </div>
