@@ -217,6 +217,20 @@ function AppContent() {
             )
           }
         />
+        
+        {/* SuperAdmin Dashboard - SuperAdmin Only */}
+        <Route
+          path="/superadmin"
+          element={
+            !user ? (
+              <Navigate to="/login" replace />
+            ) : user.role !== 'super_admin' ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <SuperAdminDashboard />
+            )
+          }
+        />
       </Routes>
     </>
   );
