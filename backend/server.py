@@ -6225,11 +6225,17 @@ async def get_subscription_history(current_user: dict = Depends(get_current_user
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers have subscription history")
     
-    history = await db.subscription_history.find(
-        {"user_id": current_user['id']}
-    ).sort("timestamp", -1).limit(20).to_list(length=None)
-    
-    return {"history": history}
+    try:
+        history = await db.subscription_history.find(
+            {"user_id": current_user['id']},
+            {"_id": 0}  # Exclure _id pour éviter erreur de sérialisation
+        ).sort("timestamp", -1).limit(20).to_list(20)
+        
+        return {"history": history if history else []}
+    except Exception as e:
+        logger.error(f"Error fetching subscription history: {str(e)}")
+        # Retourner un historique vide au lieu de planter
+        return {"history": []}
 
 @api_router.get("/ai-credits/status")
 async def get_ai_credits_status(current_user: dict = Depends(get_current_user)):
