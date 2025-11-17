@@ -7175,6 +7175,48 @@ async def update_workspace_status(
         logger.error(f"Error updating workspace status: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.patch("/superadmin/workspaces/{workspace_id}/plan")
+async def update_workspace_plan(
+    workspace_id: str,
+    plan_data: dict,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Changer le plan d'un workspace"""
+    try:
+        new_plan = plan_data.get('plan')
+        valid_plans = ['trial', 'starter', 'professional', 'enterprise']
+        
+        if new_plan not in valid_plans:
+            raise HTTPException(status_code=400, detail=f"Invalid plan. Must be one of: {valid_plans}")
+        
+        # Mettre à jour le workspace
+        await db.workspaces.update_one(
+            {"id": workspace_id},
+            {"$set": {"plan_type": new_plan, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        # Mettre à jour l'abonnement
+        await db.subscriptions.update_one(
+            {"workspace_id": workspace_id},
+            {"$set": {"plan_type": new_plan, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        # Log d'audit
+        await db.admin_logs.insert_one({
+            "admin_id": current_admin['id'],
+            "action": "workspace_plan_change",
+            "workspace_id": workspace_id,
+            "new_plan": new_plan,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {"success": True, "message": f"Plan changed to {new_plan}"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating workspace plan: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/superadmin/logs")
 async def get_admin_logs(
     limit: int = 100,
