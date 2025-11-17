@@ -133,7 +133,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
             </div>
             
             <button
-              onClick={() => dispatch({ type: 'SHOW_FORM' })}
+              onClick={() => setShowForm(true)}
               className="btn-primary px-8 py-4 text-lg font-semibold inline-flex items-center gap-3"
             >
               ➕ Nouvelle consultation de gestion de conflit
