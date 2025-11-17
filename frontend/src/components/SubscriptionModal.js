@@ -317,11 +317,24 @@ export default function SubscriptionModal({ isOpen, onClose }) {
         window.location.reload();
       }
     } catch (error) {
-      console.error('❌ Checkout error:', error);
-      const errorMessage = error.response?.data?.detail || 'Erreur lors de la création de la session de paiement';
-      toast.error(errorMessage, { duration: 5000 });
-      // Reload to refresh after a delay
-      setTimeout(() => window.location.reload(), 2000);
+      console.error('❌ Checkout error COMPLET:', {
+        message: error.message,
+        response: error.response,
+        responseData: error.response?.data,
+        responseStatus: error.response?.status,
+        stack: error.stack
+      });
+      
+      const errorMessage = error.response?.data?.detail || error.message || 'Erreur lors de la création de la session de paiement';
+      
+      // Afficher l'erreur détaillée dans un toast plus long
+      toast.error(`Erreur: ${errorMessage}`, { 
+        duration: 8000,
+        description: error.response?.status ? `Code HTTP: ${error.response.status}` : undefined
+      });
+      
+      // Ne pas recharger automatiquement pour permettre de voir l'erreur
+      // setTimeout(() => window.location.reload(), 2000);
     }
   };
 
