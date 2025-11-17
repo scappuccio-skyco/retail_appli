@@ -128,19 +128,14 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
         }
       );
       
-      // Pattern Ultra Simple - Direct comme TeamAIAnalysisModal
-      setRecommendation(response.data.recommendation);
       toast.success('Recommandation générée avec succès !');
       
-      // Refresh history if visible
-      if (activeMainTab === 'history') {
-        loadHistory(historyFilter !== 'all' ? historyFilter : null);
-      }
+      // Déclencher onSuccess via useEffect pour éviter conflit DOM (pattern DebriefHistoryModal)
+      setPendingSuccess(response.data);
       
     } catch (error) {
       console.error('Error generating advice:', error);
       toast.error('Erreur lors de la génération des recommandations');
-    } finally {
       setIsGenerating(false);
     }
   };
