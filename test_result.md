@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "1) Bug React DOM 'insertBefore' 2) UX improvements 3) Réduire temps génération AI 4) Dropdown filtre invisible 5) Suppression consultations 6) Barre de chargement pour génération IA"
+user_problem_statement: "1) Bug React DOM 'insertBefore' 2) UX improvements 3) AI optimization 4) Dropdowns fix 5) Delete feature 6) Loading bars 7) Design cohérent style 'Défi IA' pour toutes analyses IA"
 
 backend:
   - task: "Relationship Management & Conflict Resolution APIs"
