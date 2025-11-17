@@ -435,6 +435,7 @@ export default function LandingPage() {
                   src="/dashboard-vendeur.png" 
                   alt="Dashboard Vendeur - Mon Bilan Individuel"
                   className="w-full h-auto"
+                  loading="lazy"
                 />
               </div>
             </div>
