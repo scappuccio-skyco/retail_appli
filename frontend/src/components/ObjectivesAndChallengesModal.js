@@ -122,23 +122,27 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
                       <div className="flex items-start justify-between mb-3">
                         <h4 className="font-bold text-gray-800 text-base">{objective.title}</h4>
                         <div className="flex flex-col gap-1 items-end">
-                          {status === 'achieved' && (
+                          {objective.status === 'achieved' && (
                             <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
                               🎉 Atteint !
                             </span>
                           )}
-                          {status === 'failed' && (
+                          {objective.status === 'failed' && (
                             <span className="bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded-full">
                               ⚠️ Non atteint
                             </span>
                           )}
-                          {status === 'in_progress' && (
+                          {objective.status === 'active' && (
                             <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full">
                               ⏳ En cours
                             </span>
                           )}
-                          <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-1 rounded-full">
-                            👥 Équipe
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                            objective.data_entry_responsible === 'seller' 
+                              ? 'bg-cyan-100 text-cyan-700' 
+                              : 'bg-orange-100 text-orange-700'
+                          }`}>
+                            {objective.data_entry_responsible === 'seller' ? '🧑‍💼 Vendeur' : '👨‍💼 Manager'}
                           </span>
                         </div>
                       </div>
@@ -147,6 +151,33 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
                       <div className="flex items-center gap-1 text-xs text-gray-600 mb-3">
                         <Calendar className="w-3 h-3" />
                         {formatDate(objective.period_start)} - {formatDate(objective.period_end)}
+                      </div>
+
+                      {/* NEW SYSTEM - Objective Type */}
+                      <div className="mb-3 bg-white rounded-lg p-2 border border-purple-200">
+                        {objective.objective_type === 'kpi_standard' && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-gray-700">📊 KPI:</span>
+                            <span className="text-xs text-purple-700">
+                              {objective.kpi_name === 'ca' ? '💰 Chiffre d\'affaires' :
+                               objective.kpi_name === 'ventes' ? '🛍️ Nombre de ventes' :
+                               objective.kpi_name === 'articles' ? '📦 Nombre d\'articles' :
+                               objective.kpi_name}
+                            </span>
+                          </div>
+                        )}
+                        {objective.objective_type === 'product_focus' && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-gray-700">📦 Produit:</span>
+                            <span className="text-xs text-purple-700">{objective.product_name}</span>
+                          </div>
+                        )}
+                        {objective.objective_type === 'custom' && (
+                          <div>
+                            <span className="text-xs font-semibold text-gray-700">✨ Objectif personnalisé:</span>
+                            <p className="text-xs text-purple-700 mt-1">{objective.custom_description}</p>
+                          </div>
+                        )}
                       </div>
 
                       {/* Progress Bar */}
@@ -158,8 +189,8 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div 
                             className={`h-2 rounded-full transition-all ${
-                              status === 'achieved' ? 'bg-gradient-to-r from-green-400 to-green-500' :
-                              status === 'failed' ? 'bg-gradient-to-r from-red-400 to-red-500' :
+                              objective.status === 'achieved' ? 'bg-gradient-to-r from-green-400 to-green-500' :
+                              objective.status === 'failed' ? 'bg-gradient-to-r from-red-400 to-red-500' :
                               'bg-gradient-to-r from-purple-400 to-pink-400'
                             }`}
                             style={{ width: `${Math.min(100, progressPercentage)}%` }}
@@ -167,39 +198,66 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
                         </div>
                       </div>
 
-                      {/* Targets */}
-                      <div className="space-y-2">
-                        {objective.ca_target && (
-                          <div className="bg-white rounded-lg p-2 border border-purple-200">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold text-gray-700">💰 CA</span>
-                              <span className="text-sm font-bold text-purple-700">
-                                {(objective.progress_ca || 0).toLocaleString('fr-FR')}€ / {objective.ca_target.toLocaleString('fr-FR')}€
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        {objective.panier_moyen_target && (
-                          <div className="bg-white rounded-lg p-2 border border-purple-200">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold text-gray-700">🛒 Panier Moyen</span>
-                              <span className="text-sm font-bold text-purple-700">
-                                {(objective.progress_panier_moyen || 0).toFixed(2)}€ / {objective.panier_moyen_target.toFixed(2)}€
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        {objective.indice_vente_target && (
-                          <div className="bg-white rounded-lg p-2 border border-purple-200">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-semibold text-gray-700">📊 Indice de Vente</span>
-                              <span className="text-sm font-bold text-purple-700">
-                                {(objective.progress_indice_vente || 0).toFixed(2)} / {objective.indice_vente_target.toFixed(2)}
-                              </span>
-                            </div>
-                          </div>
-                        )}
+                      {/* Target and Current Value */}
+                      <div className="bg-white rounded-lg p-3 border border-purple-200 mb-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-semibold text-gray-700">🎯 Cible</span>
+                          <span className="text-sm font-bold text-purple-700">
+                            {objective.target_value?.toLocaleString('fr-FR')} {objective.unit || ''}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-gray-700">📊 Actuel</span>
+                          <span className="text-sm font-bold text-blue-700">
+                            {(objective.current_value || 0)?.toLocaleString('fr-FR')} {objective.unit || ''}
+                          </span>
+                        </div>
                       </div>
+
+                      {/* Progress Update - Only for sellers with seller responsibility */}
+                      {objective.data_entry_responsible === 'seller' && (
+                        <div className="mt-3">
+                          {updatingProgressObjectiveId === objective.id ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={progressValue}
+                                onChange={(e) => setProgressValue(e.target.value)}
+                                placeholder={`Nouvelle valeur (${objective.unit || ''})`}
+                                className="flex-1 p-2 border-2 border-cyan-300 rounded-lg focus:border-cyan-500 focus:outline-none text-sm"
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => handleUpdateProgress(objective.id)}
+                                className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold text-sm"
+                              >
+                                ✅
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setUpdatingProgressObjectiveId(null);
+                                  setProgressValue('');
+                                }}
+                                className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all text-sm"
+                              >
+                                ❌
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setUpdatingProgressObjectiveId(objective.id);
+                                setProgressValue(objective.current_value?.toString() || '0');
+                              }}
+                              className="w-full px-3 py-2 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition-all font-semibold text-sm flex items-center justify-center gap-2"
+                            >
+                              📝 Mettre à jour ma progression
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
