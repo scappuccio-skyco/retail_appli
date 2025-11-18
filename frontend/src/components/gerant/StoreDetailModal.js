@@ -75,6 +75,16 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
         <div className="border-b border-gray-200 px-6">
           <div className="flex gap-4">
             <button
+              onClick={() => setActiveTab('performance')}
+              className={`py-3 px-4 font-semibold border-b-2 transition-colors ${
+                activeTab === 'performance'
+                  ? 'border-purple-600 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              📊 Performance
+            </button>
+            <button
               onClick={() => setActiveTab('managers')}
               className={`py-3 px-4 font-semibold border-b-2 transition-colors ${
                 activeTab === 'managers'
