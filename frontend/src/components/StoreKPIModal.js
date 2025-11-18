@@ -285,8 +285,11 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
 
   useEffect(() => {
-    fetchKPIConfig();
-  }, []);
+    // Only fetch KPI config for Manager view, not for Gérant view
+    if (!storeId) {
+      fetchKPIConfig();
+    }
+  }, [storeId]);
 
   useEffect(() => {
     if (activeTab === 'daily') {
