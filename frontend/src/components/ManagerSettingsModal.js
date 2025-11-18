@@ -39,7 +39,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   // Selected KPIs for challenges
   const [selectedKPIsChallenge, setSelectedKPIsChallenge] = useState({});
 
-  // New objective form
+  // New objective form - NEW FLEXIBLE SYSTEM
   const [newObjective, setNewObjective] = useState({
     title: '',
     type: 'collective',
@@ -48,11 +48,14 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     visible_to_sellers: [],
     period_start: '',
     period_end: '',
-    kpi_targets: {} // Dynamic KPI targets
+    objective_type: 'kpi_standard', // 'kpi_standard' | 'product_focus' | 'custom'
+    kpi_name: 'ca', // For kpi_standard
+    product_name: '', // For product_focus
+    custom_description: '', // For custom
+    target_value: '',
+    data_entry_responsible: 'manager', // 'manager' | 'seller'
+    unit: '€' // Display unit
   });
-  
-  // Selected KPIs for the objective
-  const [selectedKPIs, setSelectedKPIs] = useState({});
   
   // Selected sellers for visibility
   const [selectedVisibleSellers, setSelectedVisibleSellers] = useState([]);
