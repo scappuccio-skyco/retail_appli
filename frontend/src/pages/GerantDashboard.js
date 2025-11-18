@@ -70,7 +70,9 @@ const GerantDashboard = ({ user, onLogout }) => {
     if (user) {
       fetchDashboardData();
     }
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+    // fetchDashboardData ne change pas, donc on peut ignorer l'avertissement
+    // eslint-disable-next-line
+  }, [user]);
 
   const handleLogoutClick = () => {
     if (onLogout) {
