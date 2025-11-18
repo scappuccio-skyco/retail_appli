@@ -105,6 +105,33 @@
 user_problem_statement: "REFONTE COMPLÈTE DU SYSTÈME D'OBJECTIFS - Découpler les objectifs des KPI généraux, permettre 3 types d'objectifs (KPI standard: CA/Ventes/Articles, Focus Produit: texte libre, Autre: personnalisé), ajouter toggles style 'Magasin' pour assigner la responsabilité de saisie (Manager/Vendeur)"
 
 backend:
+
+backend:
+  - task: "Nouveau Système d'Objectifs Flexibles - Backend"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "REFONTE BACKEND OBJECTIFS IMPLÉMENTÉE: ✅ NOUVEAUX MODÈLES: ManagerObjectives et ManagerObjectivesCreate mis à jour avec le système flexible (objective_type: kpi_standard/product_focus/custom, kpi_name, product_name, custom_description, target_value, data_entry_responsible: manager/seller, current_value, unit). ✅ VALIDATIONS: Ajout de validations strictes dans POST et PUT pour valider objective_type et data_entry_responsible. ✅ NOUVEL ENDPOINT: POST /api/manager/objectives/{id}/progress pour mettre à jour la progression avec gestion des permissions (manager ou seller selon data_entry_responsible). ✅ LOGIQUE MÉTIER: Calcul automatique du status (achieved/failed/active) basé sur current_value vs target_value. ✅ PRÊT POUR TESTS BACKEND."
+
+frontend:
+  - task: "Nouveau Système d'Objectifs Flexibles - Frontend"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/ManagerSettingsModal.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "REFONTE FRONTEND OBJECTIFS IMPLÉMENTÉE: ✅ FORMULAIRE SIMPLIFIÉ: Remplacement de la sélection multiple de KPI par un système à 3 types (dropdown: KPI Standard, Focus Produit, Autre). ✅ CHAMPS CONDITIONNELS: Affichage dynamique selon objective_type (dropdown KPI pour standard, input texte pour produit, textarea pour custom). ✅ TOGGLES STYLE 'MAGASIN': Implémentation exacte des toggles (🧑‍💼 Vendeur cyan / 👨‍💼 Manager orange) avec classes identiques à StoreKPIModal. ✅ VALEUR CIBLE + UNITÉ: Inputs séparés pour target_value et unit (auto-rempli pour KPI standards). ✅ AFFICHAGE LISTE: Nouveau design avec badge coloré pour data_entry_responsible, détails conditionnels selon objective_type, barre de progression unique basée sur current_value. ✅ STATE MANAGEMENT: Refonte complète du state newObjective, suppression de selectedKPIs, mise à jour de handleCreate/Update/Edit. ✅ CLEANUP: Suppression de getAvailableKPIs() et de l'ancien système de barres de progression multiples. ✅ PRÊT POUR TESTS FRONTEND."
+
   - task: "Relationship Management & Conflict Resolution APIs"
     implemented: true
     working: true
