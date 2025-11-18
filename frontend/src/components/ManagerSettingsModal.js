@@ -259,51 +259,57 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const handleCreateChallenge = async (e) => {
     e.preventDefault();
     try {
-      // Build challenge data with selected KPI targets
-      const challengeData = {
+      // Build data with new flexible system (same as objectives)
+      const cleanedData = {
         title: newChallenge.title,
-        description: newChallenge.description,
         type: newChallenge.type,
         visible: newChallenge.visible,
         start_date: newChallenge.start_date,
         end_date: newChallenge.end_date,
-        status: newChallenge.status
+        challenge_type: newChallenge.challenge_type,
+        target_value: parseFloat(newChallenge.target_value),
+        data_entry_responsible: newChallenge.data_entry_responsible,
+        unit: newChallenge.unit
       };
       
       // Add seller_id if individual type
       if (newChallenge.type === 'individual' && newChallenge.seller_id) {
-        challengeData.seller_id = newChallenge.seller_id;
+        cleanedData.seller_id = newChallenge.seller_id;
       }
       
       // Add visible_to_sellers if specific sellers selected
       if (newChallenge.visible && selectedVisibleSellersChallenge.length > 0) {
-        challengeData.visible_to_sellers = selectedVisibleSellersChallenge;
+        cleanedData.visible_to_sellers = selectedVisibleSellersChallenge;
       }
       
-      // Add selected KPI targets
-      Object.keys(selectedKPIsChallenge).forEach(kpiKey => {
-        if (selectedKPIsChallenge[kpiKey] && newChallenge.kpi_targets[kpiKey]) {
-          const targetKey = `${kpiKey}_target`;
-          challengeData[targetKey] = parseFloat(newChallenge.kpi_targets[kpiKey]);
-        }
-      });
+      // Add specific fields based on challenge_type
+      if (newChallenge.challenge_type === 'kpi_standard') {
+        cleanedData.kpi_name = newChallenge.kpi_name;
+      } else if (newChallenge.challenge_type === 'product_focus') {
+        cleanedData.product_name = newChallenge.product_name;
+      } else if (newChallenge.challenge_type === 'custom') {
+        cleanedData.custom_description = newChallenge.custom_description;
+      }
       
-      await axios.post(`${API}/manager/challenges`, challengeData, { headers });
+      await axios.post(`${API}/manager/challenges`, cleanedData, { headers });
       toast.success('Challenge créé avec succès');
       setNewChallenge({
         title: '',
-        description: '',
         type: 'collective',
         seller_id: '',
         visible: true,
         visible_to_sellers: [],
         start_date: '',
         end_date: '',
-        kpi_targets: {},
-        status: 'active'
+        challenge_type: 'kpi_standard',
+        kpi_name: 'ca',
+        product_name: '',
+        custom_description: '',
+        target_value: '',
+        data_entry_responsible: 'manager',
+        unit: '€'
       });
       setSelectedVisibleSellersChallenge([]);
-      setSelectedKPIsChallenge({});
       fetchData();
       if (onUpdate) onUpdate();
     } catch (err) {
