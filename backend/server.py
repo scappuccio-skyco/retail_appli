@@ -8051,7 +8051,8 @@ async def get_store_stats(store_id: str, current_user: dict = Depends(get_curren
         "today_ca": stats.get("total_ca", 0),
         "today_ventes": stats.get("total_ventes", 0),
         "today_articles": stats.get("total_articles", 0),
-        "week_ca": week_ca
+        "week_ca": week_ca,
+        "week_ventes": week_ventes
     }
 
 @api_router.get("/gerant/stores/{store_id}/managers")
