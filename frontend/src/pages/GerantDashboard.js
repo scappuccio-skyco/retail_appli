@@ -20,6 +20,18 @@ const GerantDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
+  // Modal states
+  const [showCreateStoreModal, setShowCreateStoreModal] = useState(false);
+  const [showStoreDetailModal, setShowStoreDetailModal] = useState(false);
+  const [showManagerTransferModal, setShowManagerTransferModal] = useState(false);
+  const [showSellerTransferModal, setShowSellerTransferModal] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  
+  // Selected items for modals
+  const [selectedStore, setSelectedStore] = useState(null);
+  const [selectedManager, setSelectedManager] = useState(null);
+  const [selectedSeller, setSelectedSeller] = useState(null);
+
   // Vérifier l'auth seulement au montage
   useEffect(() => {
     if (hasCheckedAuth) return;
