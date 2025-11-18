@@ -268,6 +268,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       // Build data with new flexible system (same as objectives)
       const cleanedData = {
         title: newChallenge.title,
+        description: newChallenge.description,
         type: newChallenge.type,
         visible: newChallenge.visible,
         start_date: newChallenge.start_date,
