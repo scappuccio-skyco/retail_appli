@@ -5478,6 +5478,22 @@ async def create_challenge(challenge_data: ChallengeCreate, current_user: dict =
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can create challenges")
     
+    # Validate challenge_type
+    if challenge_data.challenge_type not in ["kpi_standard", "product_focus", "custom"]:
+        raise HTTPException(status_code=400, detail="Invalid challenge_type")
+    
+    # Validate required fields based on challenge_type
+    if challenge_data.challenge_type == "kpi_standard" and not challenge_data.kpi_name:
+        raise HTTPException(status_code=400, detail="kpi_name is required for kpi_standard challenges")
+    elif challenge_data.challenge_type == "product_focus" and not challenge_data.product_name:
+        raise HTTPException(status_code=400, detail="product_name is required for product_focus challenges")
+    elif challenge_data.challenge_type == "custom" and not challenge_data.custom_description:
+        raise HTTPException(status_code=400, detail="custom_description is required for custom challenges")
+    
+    # Validate data_entry_responsible
+    if challenge_data.data_entry_responsible not in ["manager", "seller"]:
+        raise HTTPException(status_code=400, detail="data_entry_responsible must be 'manager' or 'seller'")
+    
     # Verify seller exists if individual challenge
     if challenge_data.type == "individual":
         if not challenge_data.seller_id:
@@ -5494,6 +5510,7 @@ async def create_challenge(challenge_data: ChallengeCreate, current_user: dict =
     
     doc = challenge.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
     if doc.get('completed_at'):
         doc['completed_at'] = doc['completed_at'].isoformat()
     
