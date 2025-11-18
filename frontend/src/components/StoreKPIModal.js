@@ -436,18 +436,20 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
             >
               📅 Vue au quotidien
             </button>
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
-                activeTab === 'overview'
-                  ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
-                  : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
-              }`}
-            >
-              📊 Historique
-            </button>
-            <button
-              onClick={() => setActiveTab('config')}
+            {!storeId && (
+              <>
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                    activeTab === 'overview'
+                      ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
+                      : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
+                  }`}
+                >
+                  📊 Historique
+                </button>
+                <button
+                  onClick={() => setActiveTab('config')}
               className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
                 activeTab === 'config'
                   ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
