@@ -753,16 +753,12 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           <label className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-200 cursor-pointer hover:bg-blue-100 transition-all">
                             <input
                               type="checkbox"
-                              checked={editingObjective ? editingObjective.visible !== false : newObjective.visible !== false}
+                              checked={newObjective.visible !== false}
                               onChange={(e) => {
                                 const isChecked = e.target.checked;
-                                if (editingObjective) {
-                                  setEditingObjective({ ...editingObjective, visible: isChecked });
-                                } else {
-                                  setNewObjective({ ...newObjective, visible: isChecked });
-                                  if (!isChecked) {
-                                    setSelectedVisibleSellers([]);
-                                  }
+                                setNewObjective({ ...newObjective, visible: isChecked });
+                                if (!isChecked) {
+                                  setSelectedVisibleSellers([]);
                                 }
                               }}
                               className="w-5 h-5 text-blue-600"
@@ -774,8 +770,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           </label>
                           
                           {/* Seller selection for visibility - only for collective objectives */}
-                          {(editingObjective ? editingObjective.visible !== false : newObjective.visible !== false) && 
-                           (editingObjective ? editingObjective.type : newObjective.type) === 'collective' && (
+                          {newObjective.visible !== false && newObjective.type === 'collective' && (
                             <div className="mt-3 p-4 bg-green-50 rounded-lg border-2 border-green-200">
                               <div className="flex items-center justify-between mb-3">
                                 <p className="text-sm font-semibold text-gray-800">👥 Sélectionner les vendeurs (optionnel)</p>
