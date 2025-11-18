@@ -673,9 +673,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                               <th className="px-2 py-1.5 text-left font-semibold text-gray-700">Vendeur</th>
                               <th className="px-2 py-1.5 text-right font-semibold text-gray-700">💰 CA</th>
                               <th className="px-2 py-1.5 text-right font-semibold text-gray-700">🛍️ Ventes</th>
-                              <th className="px-2 py-1.5 text-right font-semibold text-gray-700">👥 Clients</th>
                               <th className="px-2 py-1.5 text-right font-semibold text-gray-700">📦 Articles</th>
-                              <th className="px-2 py-1.5 text-right font-semibold text-gray-700">🚶 Prospects</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -697,20 +695,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                                   }
                                 </td>
                                 <td className="px-2 py-1.5 text-right text-gray-700">
-                                  {overviewData.kpi_config?.seller_track_clients 
-                                    ? (entry.nb_clients || 0)
-                                    : <span className="text-gray-400 italic">N/A</span>
-                                  }
-                                </td>
-                                <td className="px-2 py-1.5 text-right text-gray-700">
                                   {overviewData.kpi_config?.seller_track_articles 
                                     ? (entry.nb_articles || 0)
-                                    : <span className="text-gray-400 italic">N/A</span>
-                                  }
-                                </td>
-                                <td className="px-2 py-1.5 text-right text-gray-700">
-                                  {overviewData.kpi_config?.seller_track_prospects 
-                                    ? (entry.nb_prospects || 0)
                                     : <span className="text-gray-400 italic">N/A</span>
                                   }
                                 </td>
