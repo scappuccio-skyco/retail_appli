@@ -106,30 +106,59 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
             </div>
           ) : activeTab === 'managers' ? (
             <div className="space-y-3">
-              {managers.length === 0 ? (
+              {managers.length === 0 && pendingInvitations.filter(inv => inv.role === 'manager').length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Users className="w-12 h-12 mx-auto mb-2 text-gray-400" />
                   <p>Aucun manager dans ce magasin</p>
                 </div>
               ) : (
-                managers.map((manager) => (
-                  <div
-                    key={manager.id}
-                    className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200"
-                  >
-                    <div>
-                      <p className="font-semibold text-gray-800">{manager.name}</p>
-                      <p className="text-sm text-gray-600">{manager.email}</p>
-                    </div>
-                    <button
-                      onClick={() => onTransferManager(manager)}
-                      className="flex items-center gap-2 px-3 py-2 bg-white border-2 border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 transition-all text-sm font-semibold"
+                <>
+                  {/* Managers actifs */}
+                  {managers.map((manager) => (
+                    <div
+                      key={manager.id}
+                      className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200"
                     >
-                      <RefreshCw className="w-4 h-4" />
-                      Transférer
-                    </button>
-                  </div>
-                ))
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-gray-800">{manager.name}</p>
+                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                            ✓ Actif
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600">{manager.email}</p>
+                      </div>
+                      <button
+                        onClick={() => onTransferManager(manager)}
+                        className="flex items-center gap-2 px-3 py-2 bg-white border-2 border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 transition-all text-sm font-semibold"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        Transférer
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Invitations en attente pour managers */}
+                  {pendingInvitations.filter(inv => inv.role === 'manager').map((invitation) => (
+                    <div
+                      key={invitation.id}
+                      className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-gray-800">Manager en attente</p>
+                          <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
+                            📨 Invitation envoyée
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600">{invitation.email}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Envoyée le {new Date(invitation.created_at).toLocaleDateString('fr-FR')}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </>
               )}
             </div>
           ) : (
