@@ -158,7 +158,7 @@ old_backend:
         agent: "main"
         comment: "REFONTE BACKEND OBJECTIFS IMPLÉMENTÉE: ✅ NOUVEAUX MODÈLES: ManagerObjectives et ManagerObjectivesCreate mis à jour avec le système flexible (objective_type: kpi_standard/product_focus/custom, kpi_name, product_name, custom_description, target_value, data_entry_responsible: manager/seller, current_value, unit). ✅ VALIDATIONS: Ajout de validations strictes dans POST et PUT pour valider objective_type et data_entry_responsible. ✅ NOUVEL ENDPOINT: POST /api/manager/objectives/{id}/progress pour mettre à jour la progression avec gestion des permissions (manager ou seller selon data_entry_responsible). ✅ LOGIQUE MÉTIER: Calcul automatique du status (achieved/failed/active) basé sur current_value vs target_value. ✅ PRÊT POUR TESTS BACKEND."
 
-frontend:
+old_frontend:
   - task: "Nouveau Système d'Objectifs Flexibles - Frontend Manager"
     implemented: true
     working: "NA"
