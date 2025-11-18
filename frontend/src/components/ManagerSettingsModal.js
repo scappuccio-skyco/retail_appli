@@ -180,6 +180,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       setSelectedVisibleSellers([]);
       setNewObjective({
         title: '',
+        description: '',
         type: 'collective',
         seller_id: '',
         visible: true,
