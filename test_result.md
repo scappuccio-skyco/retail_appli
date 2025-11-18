@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "1) Bug React DOM 'insertBefore' 2) UX improvements 3) AI optimization 4) Dropdowns fix 5) Delete feature 6) Loading bars 7) Design cohérent style 'Défi IA' pour toutes analyses IA"
+user_problem_statement: "REFONTE COMPLÈTE DU SYSTÈME D'OBJECTIFS - Découpler les objectifs des KPI généraux, permettre 3 types d'objectifs (KPI standard: CA/Ventes/Articles, Focus Produit: texte libre, Autre: personnalisé), ajouter toggles style 'Magasin' pour assigner la responsabilité de saisie (Manager/Vendeur)"
 
 backend:
   - task: "Relationship Management & Conflict Resolution APIs"
