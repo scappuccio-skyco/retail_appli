@@ -18,7 +18,7 @@ const GerantDashboard = () => {
   const [globalStats, setGlobalStats] = useState(null);
   const [storesStats, setStoresStats] = useState({});
   const [loading, setLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const isInitializedRef = useRef(false);
 
   // Modal states
   const [showCreateStoreModal, setShowCreateStoreModal] = useState(false);
