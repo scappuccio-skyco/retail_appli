@@ -390,17 +390,22 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "2.5"
-  test_sequence: 15
+  version: "2.6"
+  test_sequence: 16
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Multi-Store Management API Endpoints"
+    - "Gerant Dashboard - Intégration Modaux"
+    - "Gerant Modals Components"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "main"
+    message: "IMPLÉMENTATION COMPLÈTE DES MODAUX GÉRANT: ✅ CONTEXTE: Le backend multi-store était déjà implémenté avec 10 endpoints API pour la gestion des magasins, managers et vendeurs. Les 5 composants modaux (CreateStoreModal, StoreDetailModal, ManagerTransferModal, SellerTransferModal, DeleteStoreConfirmation) étaient créés mais non intégrés. ✅ TRAVAIL RÉALISÉ: 1) Intégration complète dans GerantDashboard.js avec state management (8 états), 2) Implémentation de 4 handlers API avec gestion d'erreurs et toasts, 3) Connexion de tous les boutons et événements onClick, 4) Rendu conditionnel de tous les modaux avec props correctes, 5) Modal chaining (StoreDetailModal peut ouvrir les autres modaux). ✅ FONCTIONNALITÉS: Création de magasin (formulaire 5 champs), visualisation détails magasin (onglets managers/vendeurs), transfert manager (dropdown magasins), transfert vendeur (dropdown magasins + fetch managers dynamique), suppression magasin (processus 3 étapes avec confirmation par saisie du nom). ✅ UX: Toast notifications pour toutes les actions, refresh automatique après chaque opération, messages d'avertissement (vendeurs orphelins, validation suppression), loading states dans les modaux. ✅ DATA: Gérant existant dans la DB (gerant@skyco.fr, password: demo123), 3 magasins actifs (Paris, Lyon, Bordeaux) avec managers et vendeurs assignés. ✅ PRÊT POUR TESTS: Besoin de tester backend API endpoints d'abord (GET, POST, DELETE), puis frontend (login gérant, création magasin, transferts, suppression)."
   - agent: "main"
     message: "AI SALES ANALYSIS ENHANCEMENT - CLIENT VOUVOIEMENT + KPI CONTEXT COMPLETED: ✅ USER FEEDBACK: User reported that in AI examples where the seller should speak to the client, the AI was using 'tu' (informal) instead of 'vous' (formal). ✅ ROOT CAUSE: The AI prompts instructed to use 'tu' with the seller but didn't explicitly specify to use 'vous' when showing dialogue examples with the client. ✅ FIX IMPLEMENTED: Modified both prompts (vente conclue + opportunité manquée) in generate_ai_debrief_analysis() function (lines 1271-1443) to add explicit instructions: 'Dans les exemples de dialogue avec le CLIENT, utilise TOUJOURS le VOUVOIEMENT (vous, votre, vos)'. Also updated JSON format examples to remind the AI. ✅ KPI CONTEXT ENHANCED: Improved the KPI context display (lines 1276-1286) to show 'dernière saisie KPI' instead of 'du jour' and added 'indice_vente' field for more complete seller performance data. ✅ VERIFICATION: KPI data fetching logic (lines 1481-1485) already working correctly - fetches most recent KPI entry and passes to AI function. ✅ READY FOR TESTING: Need to test debrief creation (both vente conclue and opportunité manquée) to verify AI now correctly vouvoies the client in dialogue examples while still tutoyant the seller in analysis text."
   - agent: "testing"
