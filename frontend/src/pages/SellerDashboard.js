@@ -818,6 +818,14 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   🤖 Mon Coach IA
                 </button>
 
+                <button
+                  onClick={() => toggleFilter('showKPI')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    dashboardFilters.showKPI
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-sm'
+                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
+                  }`}
+                >
                   📊 Mes KPI
                 </button>
 
