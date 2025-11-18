@@ -128,6 +128,24 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     };
   }, [isSellerDropdownOpen]);
 
+  // Close challenge seller dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (challengeSellerDropdownRef.current && !challengeSellerDropdownRef.current.contains(event.target)) {
+        setIsChallengeSellerDropdownOpen(false);
+      }
+    };
+
+    if (isChallengeSellerDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isChallengeSellerDropdownOpen]);
+
+
   // Pré-remplir les champs lors de l'édition d'un objectif - NEW SYSTEM
   useEffect(() => {
     if (editingObjective) {
