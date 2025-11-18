@@ -635,8 +635,8 @@ export default function ManagerDashboard({ user, onLogout }) {
               <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
                 <Users className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-white text-center mb-2">
-                <span className="inline-flex items-center justify-center w-8 h-8 bg-yellow-400 rounded-full mr-2">👥</span>
+              <h3 className="text-2xl font-bold text-white text-center mb-2 flex items-center justify-center gap-2">
+                <Users className="w-7 h-7 text-yellow-400" />
                 Mon Équipe
               </h3>
               <p className="text-sm text-white opacity-90 text-center">
