@@ -338,7 +338,7 @@ const GerantDashboard = () => {
               <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-4">Aucun magasin pour le moment</p>
               <button
-                onClick={() => console.log('Créer magasin')}
+                onClick={() => setShowCreateStoreModal(true)}
                 className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
               >
                 Créer votre premier magasin
