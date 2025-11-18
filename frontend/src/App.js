@@ -74,6 +74,13 @@ function AppContent() {
     localStorage.setItem('token', token);
     setUser(userData);
     
+    // Redirection selon le rôle
+    if (userData.role === 'gerant') {
+      // Gérant → Dashboard Gérant
+      window.location.href = '/gerant-dashboard';
+      return;
+    }
+    
     // Check diagnostic for new sellers - ensure it completes before navigation
     if (userData.role === 'seller') {
       try {
