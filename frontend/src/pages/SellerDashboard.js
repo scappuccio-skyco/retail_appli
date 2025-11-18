@@ -857,8 +857,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </div>
             </div>
 
-              {/* Section Reordering */}
-              <div className="mt-6 pt-6 border-t-2 border-purple-100">
+            {/* Section Reordering */}
+            <div className="mt-6 pt-6 border-t-2 border-purple-100">
                 <p className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
                   <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
                   Réorganiser l'ordre des sections
