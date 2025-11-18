@@ -77,7 +77,8 @@ const GerantDashboard = () => {
 
   // Auth check et chargement des données au montage
   useEffect(() => {
-    if (isInitialized) return; // Empêcher la ré-exécution
+    if (isInitializedRef.current) return; // Empêcher la ré-exécution
+    isInitializedRef.current = true;
     
     const userData = localStorage.getItem('user');
     if (!userData) {
@@ -93,11 +94,10 @@ const GerantDashboard = () => {
     }
 
     setUser(parsedUser);
-    setIsInitialized(true);
     
     // Charger les données
     fetchDashboardData();
-  }, [isInitialized, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }); // Pas de dépendances - se lance à chaque render mais useRef empêche la ré-exécution
 
   const handleLogout = () => {
     localStorage.removeItem('token');
