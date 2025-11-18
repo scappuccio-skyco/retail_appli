@@ -990,8 +990,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           )}
         </div>
 
-        {/* Grid 2x2 for all cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Grid 3 columns for all cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         
         {/* Profile & Bilan - Visual Cards */}
             {/* Profile Card - Visual */}
