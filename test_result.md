@@ -102,11 +102,49 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "REFONTE COMPLÈTE DU SYSTÈME D'OBJECTIFS - Découpler les objectifs des KPI généraux, permettre 3 types d'objectifs (KPI standard: CA/Ventes/Articles, Focus Produit: texte libre, Autre: personnalisé), ajouter toggles style 'Magasin' pour assigner la responsabilité de saisie (Manager/Vendeur)"
+user_problem_statement: "IMPLÉMENTATION COMPLÈTE DES MODAUX GÉRANT - Intégrer tous les modaux de gestion multi-magasin dans le GerantDashboard (création magasin, détails magasin, transfert manager/vendeur, suppression magasin)"
 
 backend:
+  - task: "Multi-Store Management API Endpoints"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "ENDPOINTS BACKEND MULTI-STORE DÉJÀ IMPLÉMENTÉS: ✅ POST /api/gerant/stores - Créer magasin (StoreCreate avec name, location, address, phone, opening_hours). ✅ GET /api/gerant/stores - Liste des magasins du gérant. ✅ GET /api/gerant/stores/{store_id} - Détails magasin. ✅ DELETE /api/gerant/stores/{store_id} - Supprimer magasin (soft delete avec validation managers/sellers). ✅ GET /api/gerant/stores/{store_id}/managers - Managers d'un magasin. ✅ GET /api/gerant/stores/{store_id}/sellers - Vendeurs d'un magasin. ✅ POST /api/gerant/managers/{manager_id}/transfer - Transférer manager (ManagerTransfer avec new_store_id). ✅ POST /api/gerant/sellers/{seller_id}/transfer - Transférer vendeur (SellerTransfer avec new_store_id + new_manager_id). ✅ GET /api/gerant/dashboard/stats - Stats globales. ✅ GET /api/gerant/stores/{store_id}/stats - Stats par magasin. ✅ PRÊT POUR TESTS."
 
-backend:
+frontend:
+  - task: "Gerant Dashboard - Intégration Modaux"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/GerantDashboard.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "INTÉGRATION COMPLÈTE DES MODAUX GÉRANT: ✅ IMPORTS: Ajout de toast (sonner) et tous les modaux (CreateStoreModal, StoreDetailModal, ManagerTransferModal, SellerTransferModal, DeleteStoreConfirmation). ✅ STATE MANAGEMENT: Ajout de 8 états pour gérer l'ouverture/fermeture des modaux et les éléments sélectionnés (showCreateStoreModal, showStoreDetailModal, showManagerTransferModal, showSellerTransferModal, showDeleteConfirmation, selectedStore, selectedManager, selectedSeller). ✅ HANDLERS API: Implémentation de 4 fonctions avec appels API backend (handleCreateStore POST /api/gerant/stores, handleTransferManager POST /api/gerant/managers/{id}/transfer, handleTransferSeller POST /api/gerant/sellers/{id}/transfer, handleDeleteStore DELETE /api/gerant/stores/{id}). ✅ GESTION ERREURS: Try/catch dans chaque handler avec throw pour remonter au modal. ✅ TOAST NOTIFICATIONS: Toast success pour chaque action réussie, toast warning si vendeurs orphelins après transfert manager. ✅ REFRESH DATA: Appel fetchDashboardData() après chaque action pour rafraîchir l'UI. ✅ BOUTONS CONNECTÉS: Boutons 'Nouveau Magasin' (2 instances) et StoreCard onClick connectés aux modaux. ✅ MODALS RENDERING: Tous les 5 modaux rendus conditionnellement avec props correctes. ✅ MODAL CHAINING: StoreDetailModal peut ouvrir ManagerTransferModal, SellerTransferModal ou DeleteStoreConfirmation. ✅ PRÊT POUR TESTS FRONTEND."
+
+  - task: "Gerant Modals Components"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/gerant/*.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "MODAUX GÉRANT DÉJÀ IMPLÉMENTÉS: ✅ CreateStoreModal.js - Formulaire complet (name, location, address, phone, opening_hours), validation, loading state, error handling. ✅ StoreDetailModal.js - Onglets Managers/Vendeurs, liste avec boutons Transférer, bouton Supprimer magasin, bouton Actualiser, fetch des équipes via API. ✅ ManagerTransferModal.js - Dropdown magasins filtrés (actifs seulement, excluant magasin actuel), warning sur vendeurs orphelins, affichage magasin actuel/nouveau. ✅ SellerTransferModal.js - Dropdown magasins, fetch dynamique des managers du magasin sélectionné, dropdown managers, validation (magasin + manager requis), affichage confirmation. ✅ DeleteStoreConfirmation.js - Processus 3 étapes (conséquences, conditions, confirmation), saisie nom magasin pour valider, messages d'avertissement détaillés. ✅ StoreCard.js - Affichage stats (managers_count, sellers_count, today_ca), statut actif/inactif, hover effects. ✅ TOUS PRÊTS POUR TESTS."
+
+old_user_problem_statement_1: "REFONTE COMPLÈTE DU SYSTÈME D'OBJECTIFS - Découpler les objectifs des KPI généraux, permettre 3 types d'objectifs (KPI standard: CA/Ventes/Articles, Focus Produit: texte libre, Autre: personnalisé), ajouter toggles style 'Magasin' pour assigner la responsabilité de saisie (Manager/Vendeur)"
+
+old_backend:
   - task: "Nouveau Système d'Objectifs Flexibles - Backend"
     implemented: true
     working: "NA"
