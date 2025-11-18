@@ -198,6 +198,9 @@ async def get_manager_sellers(manager_id: str, current_user: dict = Depends(get_
 - `DeleteStoreConfirmation.js` - Validation stricte pour suppression
 - `StoreComparisonChart.js` - Comparaison inter-magasins
 - `RoleSwitcher.js` - Bouton pour switch Gérant/Manager
+- `ManagerTransferModal.js` - **NOUVEAU** : Transfert de manager entre boutiques
+- `ManagerListModal.js` - **NOUVEAU** : Liste de tous les managers avec actions
+- `TransferConfirmation.js` - **NOUVEAU** : Confirmation avec choix vendeurs
 
 ---
 
