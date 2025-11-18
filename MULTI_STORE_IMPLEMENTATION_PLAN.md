@@ -209,9 +209,11 @@ async def get_store_sellers_detailed(store_id: str, current_user: dict = Depends
 - `DeleteStoreConfirmation.js` - Validation stricte pour suppression
 - `StoreComparisonChart.js` - Comparaison inter-magasins
 - `RoleSwitcher.js` - Bouton pour switch Gérant/Manager
-- `ManagerTransferModal.js` - **NOUVEAU** : Transfert de manager entre boutiques
-- `ManagerListModal.js` - **NOUVEAU** : Liste de tous les managers avec actions
-- `TransferConfirmation.js` - **NOUVEAU** : Confirmation avec choix vendeurs
+- `ManagerTransferModal.js` - **NOUVEAU** : Transfert de manager entre boutiques (INDÉPENDANT)
+- `SellerTransferModal.js` - **NOUVEAU** : Transfert de vendeur entre boutiques (INDÉPENDANT)
+- `ManagerListModal.js` - **NOUVEAU** : Liste de tous les managers avec actions (transfert, voir détails)
+- `SellerListModal.js` - **NOUVEAU** : Liste de tous les vendeurs avec actions (transfert, voir détails)
+- `TeamManagementView.js` - **NOUVEAU** : Vue globale équipes (managers + vendeurs) avec drag & drop entre boutiques
 
 ---
 
