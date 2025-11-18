@@ -7652,6 +7652,403 @@ async def get_admin_logs(
         logger.error(f"Error fetching admin logs: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# ============================================
+# GERANT ENDPOINTS - Multi-Store Management
+# ============================================
+
+@api_router.post("/gerant/stores", response_model=Store)
+async def create_store(store_data: StoreCreate, current_user: dict = Depends(get_current_user)):
+    """Créer un nouveau magasin (réservé aux gérants)"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Créer le magasin
+    store = Store(
+        name=store_data.name,
+        location=store_data.location,
+        gerant_id=current_user['id'],
+        address=store_data.address,
+        phone=store_data.phone,
+        opening_hours=store_data.opening_hours
+    )
+    
+    await db.stores.insert_one(store.model_dump())
+    
+    return store
+
+@api_router.get("/gerant/stores")
+async def get_gerant_stores(current_user: dict = Depends(get_current_user)):
+    """Récupérer tous les magasins du gérant"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    stores = await db.stores.find(
+        {"gerant_id": current_user['id'], "active": True},
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    return stores
+
+@api_router.get("/gerant/stores/{store_id}")
+async def get_store_details(store_id: str, current_user: dict = Depends(get_current_user)):
+    """Récupérer les détails d'un magasin spécifique"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    store = await db.stores.find_one(
+        {"id": store_id, "gerant_id": current_user['id']},
+        {"_id": 0}
+    )
+    
+    if not store:
+        raise HTTPException(status_code=404, detail="Magasin non trouvé")
+    
+    return store
+
+@api_router.put("/gerant/stores/{store_id}")
+async def update_store(
+    store_id: str, 
+    store_update: StoreUpdate, 
+    current_user: dict = Depends(get_current_user)
+):
+    """Mettre à jour un magasin"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le magasin appartient au gérant
+    store = await db.stores.find_one({"id": store_id, "gerant_id": current_user['id']})
+    if not store:
+        raise HTTPException(status_code=404, detail="Magasin non trouvé")
+    
+    # Préparer les données de mise à jour
+    update_data = {k: v for k, v in store_update.model_dump().items() if v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    # Mettre à jour
+    await db.stores.update_one(
+        {"id": store_id},
+        {"$set": update_data}
+    )
+    
+    # Récupérer le magasin mis à jour
+    updated_store = await db.stores.find_one({"id": store_id}, {"_id": 0})
+    return updated_store
+
+@api_router.delete("/gerant/stores/{store_id}")
+async def delete_store(store_id: str, current_user: dict = Depends(get_current_user)):
+    """Supprimer un magasin (avec validation stricte)"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le magasin appartient au gérant
+    store = await db.stores.find_one({"id": store_id, "gerant_id": current_user['id']})
+    if not store:
+        raise HTTPException(status_code=404, detail="Magasin non trouvé")
+    
+    # Vérifier qu'il n'y a pas de managers assignés
+    managers_count = await db.users.count_documents({"store_id": store_id, "role": "manager"})
+    if managers_count > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Impossible de supprimer : {managers_count} manager(s) assigné(s)"
+        )
+    
+    # Vérifier qu'il n'y a pas de vendeurs assignés
+    sellers_count = await db.users.count_documents({"store_id": store_id, "role": "seller"})
+    if sellers_count > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Impossible de supprimer : {sellers_count} vendeur(s) assigné(s)"
+        )
+    
+    # Marquer comme inactif au lieu de supprimer (soft delete)
+    await db.stores.update_one(
+        {"id": store_id},
+        {"$set": {"active": False, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Magasin désactivé avec succès"}
+
+@api_router.get("/gerant/dashboard/stats")
+async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_user)):
+    """Récupérer les statistiques globales du gérant (tous magasins)"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Récupérer tous les magasins actifs
+    stores = await db.stores.find(
+        {"gerant_id": current_user['id'], "active": True},
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    store_ids = [store['id'] for store in stores]
+    
+    # Compter les managers
+    total_managers = await db.users.count_documents({
+        "gerant_id": current_user['id'],
+        "role": "manager"
+    })
+    
+    # Compter les vendeurs
+    total_sellers = await db.users.count_documents({
+        "gerant_id": current_user['id'],
+        "role": "seller"
+    })
+    
+    # Calculer le CA total (du jour)
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    pipeline = [
+        {
+            "$match": {
+                "gerant_id": current_user['id'],
+                "date": today
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_ca": {"$sum": "$ca"},
+                "total_ventes": {"$sum": "$ventes"},
+                "total_articles": {"$sum": "$articles"}
+            }
+        }
+    ]
+    
+    kpi_stats = await db.kpi_entries.aggregate(pipeline).to_list(length=1)
+    
+    if kpi_stats:
+        stats = kpi_stats[0]
+    else:
+        stats = {"total_ca": 0, "total_ventes": 0, "total_articles": 0}
+    
+    return {
+        "total_stores": len(stores),
+        "total_managers": total_managers,
+        "total_sellers": total_sellers,
+        "today_ca": stats.get("total_ca", 0),
+        "today_ventes": stats.get("total_ventes", 0),
+        "today_articles": stats.get("total_articles", 0),
+        "stores": stores
+    }
+
+@api_router.get("/gerant/stores/{store_id}/stats")
+async def get_store_stats(store_id: str, current_user: dict = Depends(get_current_user)):
+    """Récupérer les statistiques d'un magasin spécifique"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le magasin appartient au gérant
+    store = await db.stores.find_one({"id": store_id, "gerant_id": current_user['id']})
+    if not store:
+        raise HTTPException(status_code=404, detail="Magasin non trouvé")
+    
+    # Compter les managers
+    managers_count = await db.users.count_documents({"store_id": store_id, "role": "manager"})
+    
+    # Compter les vendeurs
+    sellers_count = await db.users.count_documents({"store_id": store_id, "role": "seller"})
+    
+    # Calculer le CA du jour
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    pipeline = [
+        {
+            "$match": {
+                "store_id": store_id,
+                "date": today
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_ca": {"$sum": "$ca"},
+                "total_ventes": {"$sum": "$ventes"},
+                "total_articles": {"$sum": "$articles"}
+            }
+        }
+    ]
+    
+    kpi_stats = await db.kpi_entries.aggregate(pipeline).to_list(length=1)
+    
+    if kpi_stats:
+        stats = kpi_stats[0]
+    else:
+        stats = {"total_ca": 0, "total_ventes": 0, "total_articles": 0}
+    
+    return {
+        "store": store,
+        "managers_count": managers_count,
+        "sellers_count": sellers_count,
+        "today_ca": stats.get("total_ca", 0),
+        "today_ventes": stats.get("total_ventes", 0),
+        "today_articles": stats.get("total_articles", 0)
+    }
+
+@api_router.get("/gerant/stores/{store_id}/managers")
+async def get_store_managers(store_id: str, current_user: dict = Depends(get_current_user)):
+    """Récupérer les managers d'un magasin"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    managers = await db.users.find(
+        {"store_id": store_id, "role": "manager"},
+        {"_id": 0, "password": 0}
+    ).to_list(length=None)
+    
+    return managers
+
+@api_router.get("/gerant/stores/{store_id}/sellers")
+async def get_store_sellers(store_id: str, current_user: dict = Depends(get_current_user)):
+    """Récupérer les vendeurs d'un magasin"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    sellers = await db.users.find(
+        {"store_id": store_id, "role": "seller"},
+        {"_id": 0, "password": 0}
+    ).to_list(length=None)
+    
+    return sellers
+
+@api_router.post("/gerant/stores/{store_id}/assign-manager")
+async def assign_manager_to_store(
+    store_id: str, 
+    assignment: ManagerAssignment,
+    current_user: dict = Depends(get_current_user)
+):
+    """Assigner un manager existant à un magasin"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le magasin existe et appartient au gérant
+    store = await db.stores.find_one({"id": store_id, "gerant_id": current_user['id']})
+    if not store:
+        raise HTTPException(status_code=404, detail="Magasin non trouvé")
+    
+    # Trouver le manager
+    manager = await db.users.find_one({"email": assignment.manager_email, "role": "manager"})
+    if not manager:
+        raise HTTPException(status_code=404, detail="Manager non trouvé")
+    
+    # Assigner le manager au magasin
+    await db.users.update_one(
+        {"id": manager['id']},
+        {"$set": {"store_id": store_id, "gerant_id": current_user['id']}}
+    )
+    
+    return {"message": f"Manager {manager['name']} assigné au magasin {store['name']}"}
+
+@api_router.post("/gerant/managers/{manager_id}/transfer")
+async def transfer_manager_to_store(
+    manager_id: str,
+    transfer: ManagerTransfer,
+    current_user: dict = Depends(get_current_user)
+):
+    """Transférer un manager vers un autre magasin (les vendeurs restent)"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le manager existe et appartient au gérant
+    manager = await db.users.find_one({"id": manager_id, "gerant_id": current_user['id'], "role": "manager"})
+    if not manager:
+        raise HTTPException(status_code=404, detail="Manager non trouvé")
+    
+    # Vérifier que le nouveau magasin existe
+    new_store = await db.stores.find_one({"id": transfer.new_store_id, "gerant_id": current_user['id']})
+    if not new_store:
+        raise HTTPException(status_code=404, detail="Nouveau magasin non trouvé")
+    
+    old_store_id = manager.get('store_id')
+    
+    # Transférer le manager
+    await db.users.update_one(
+        {"id": manager_id},
+        {"$set": {"store_id": transfer.new_store_id}}
+    )
+    
+    # Compter les vendeurs qui restent sans manager dans l'ancien magasin
+    orphan_sellers = await db.users.count_documents({
+        "manager_id": manager_id,
+        "store_id": old_store_id,
+        "role": "seller"
+    })
+    
+    return {
+        "message": f"Manager transféré avec succès",
+        "orphan_sellers_count": orphan_sellers,
+        "warning": f"{orphan_sellers} vendeur(s) restent dans l'ancien magasin sans manager" if orphan_sellers > 0 else None
+    }
+
+@api_router.post("/gerant/sellers/{seller_id}/transfer")
+async def transfer_seller_to_store(
+    seller_id: str,
+    transfer: SellerTransfer,
+    current_user: dict = Depends(get_current_user)
+):
+    """Transférer un vendeur vers un autre magasin avec nouveau manager"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le vendeur existe et appartient au gérant
+    seller = await db.users.find_one({"id": seller_id, "gerant_id": current_user['id'], "role": "seller"})
+    if not seller:
+        raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+    
+    # Vérifier que le nouveau magasin existe
+    new_store = await db.stores.find_one({"id": transfer.new_store_id, "gerant_id": current_user['id']})
+    if not new_store:
+        raise HTTPException(status_code=404, detail="Nouveau magasin non trouvé")
+    
+    # Vérifier que le nouveau manager existe et est bien dans le nouveau magasin
+    new_manager = await db.users.find_one({
+        "id": transfer.new_manager_id,
+        "store_id": transfer.new_store_id,
+        "role": "manager"
+    })
+    if not new_manager:
+        raise HTTPException(status_code=404, detail="Manager non trouvé dans ce magasin")
+    
+    # Transférer le vendeur
+    await db.users.update_one(
+        {"id": seller_id},
+        {"$set": {
+            "store_id": transfer.new_store_id,
+            "manager_id": transfer.new_manager_id
+        }}
+    )
+    
+    return {
+        "message": f"Vendeur transféré avec succès vers {new_store['name']}",
+        "new_manager": new_manager['name']
+    }
+
+@api_router.get("/gerant/managers")
+async def get_all_managers(current_user: dict = Depends(get_current_user)):
+    """Récupérer tous les managers du gérant"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    managers = await db.users.find(
+        {"gerant_id": current_user['id'], "role": "manager"},
+        {"_id": 0, "password": 0}
+    ).to_list(length=None)
+    
+    return managers
+
+@api_router.get("/gerant/sellers")
+async def get_all_sellers(current_user: dict = Depends(get_current_user)):
+    """Récupérer tous les vendeurs du gérant"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    sellers = await db.users.find(
+        {"gerant_id": current_user['id'], "role": "seller"},
+        {"_id": 0, "password": 0}
+    ).to_list(length=None)
+    
+    return sellers
+
 # Include router
 app.include_router(api_router)
 
