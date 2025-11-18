@@ -2887,10 +2887,14 @@ async def get_seller_requests(seller_id: str, current_user: dict = Depends(get_c
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can view requests")
     
-    # Verify seller belongs to manager
-    seller = await db.users.find_one({"id": seller_id, "manager_id": current_user['id']}, {"_id": 0})
+    # Verify seller belongs to this manager's store
+    seller = await db.users.find_one({
+        "id": seller_id,
+        "store_id": current_user.get('store_id'),
+        "role": "seller"
+    }, {"_id": 0})
     if not seller:
-        raise HTTPException(status_code=404, detail="Seller not in your team")
+        raise HTTPException(status_code=404, detail="Seller not in your store")
     
     requests = await db.manager_requests.find({
         "seller_id": seller_id,
