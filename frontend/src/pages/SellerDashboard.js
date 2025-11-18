@@ -388,6 +388,20 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         console.log('No diagnostic available yet');
       }
       
+      // Récupérer le nom du magasin si on a un store_id
+      if (user?.store_id) {
+        try {
+          const storeRes = await axios.get(`${API}/gerant/stores/${user.store_id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (storeRes.data?.name) {
+            setStoreName(storeRes.data.name);
+          }
+        } catch (err) {
+          console.error('Could not fetch store name:', err);
+        }
+      }
+      
       // Get KPI entries
       try {
         const kpiRes = await axios.get(`${API}/seller/kpi-entries`, { headers: { Authorization: `Bearer ${token}` } });
