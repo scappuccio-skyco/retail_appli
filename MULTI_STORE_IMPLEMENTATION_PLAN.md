@@ -299,6 +299,9 @@ const handleLogin = async () => {
 - [ ] Tester création magasin
 - [ ] Tester suppression magasin (avec validation)
 - [ ] Tester assignment manager
+- [ ] **Tester transfert manager entre boutiques**
+- [ ] **Tester transfert manager AVEC vendeurs**
+- [ ] **Tester transfert manager SANS vendeurs (vendeurs restent)**
 - [ ] Tester switch gérant/manager
 - [ ] Tester agrégation KPIs par magasin
 - [ ] Tester comparaison inter-magasins
