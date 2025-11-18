@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
 import { X, Award, Calendar, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'sonner';
 
-export default function ObjectivesAndChallengesModal({ objectives, challenges, onClose }) {
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
+
+export default function ObjectivesAndChallengesModal({ objectives, challenges, onClose, onUpdate }) {
   const [showInactive, setShowInactive] = useState(false);
+  const [updatingProgressObjectiveId, setUpdatingProgressObjectiveId] = useState(null);
+  const [progressValue, setProgressValue] = useState('');
   
   // Séparer les objectifs actifs et inactifs
   const activeObjectives = objectives?.filter(obj => {
@@ -14,6 +21,7 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
     const today = new Date().toISOString().split('T')[0];
     return obj.period_end <= today;
   }) || [];
+  
   const formatDate = (dateStr) => {
     if (!dateStr) return 'Date non définie';
     try {
@@ -29,17 +37,33 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
     }
   };
 
+  // NEW SYSTEM: Calculate progress using current_value and target_value
   const calculateProgress = (objective) => {
-    if (objective.ca_target && objective.progress_ca !== undefined) {
-      return (objective.progress_ca / objective.ca_target) * 100;
+    if (!objective.target_value || objective.target_value === 0) return 0;
+    return ((objective.current_value || 0) / objective.target_value) * 100;
+  };
+
+  const handleUpdateProgress = async (objectiveId) => {
+    if (!progressValue || progressValue === '') {
+      toast.error('Veuillez entrer une valeur');
+      return;
     }
-    if (objective.panier_moyen_target && objective.progress_panier_moyen !== undefined) {
-      return (objective.progress_panier_moyen / objective.panier_moyen_target) * 100;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API}/manager/objectives/${objectiveId}/progress`,
+        { current_value: parseFloat(progressValue) },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Progression mise à jour avec succès');
+      setUpdatingProgressObjectiveId(null);
+      setProgressValue('');
+      if (onUpdate) onUpdate();
+    } catch (err) {
+      console.error('Error updating progress:', err);
+      toast.error(err.response?.data?.detail || 'Erreur lors de la mise à jour de la progression');
     }
-    if (objective.indice_vente_target && objective.progress_indice_vente !== undefined) {
-      return (objective.progress_indice_vente / objective.indice_vente_target) * 100;
-    }
-    return 0;
   };
 
   const calculateChallengeProgress = (challenge) => {
