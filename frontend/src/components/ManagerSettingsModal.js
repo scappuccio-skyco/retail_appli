@@ -51,6 +51,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   // New objective form - NEW FLEXIBLE SYSTEM
   const [newObjective, setNewObjective] = useState({
     title: '',
+    description: '', // Description de l'objectif
     type: 'collective',
     seller_id: '',
     visible: true,
