@@ -670,9 +670,8 @@ export default function ManagerDashboard({ user, onLogout }) {
                 <Settings className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-white text-center mb-2">🎯 Objectifs</h3>
-              <p className="text-sm text-white opacity-90 text-center">Définir et suivre les objectifs</p>
-              <p className="text-xs text-white opacity-90 text-center font-semibold">Collectifs & Individuels</p>
-              <p className="text-xs text-white opacity-80 mt-2">Gérer les objectifs →</p>
+              <p className="text-sm text-white opacity-90 text-center">Définir et suivre des objectifs collectifs et/ou individuels</p>
+              <p className="text-xs text-white opacity-80 mt-3">Gérer les objectifs →</p>
             </div>
           </div>
         </div>
