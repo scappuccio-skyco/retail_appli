@@ -750,6 +750,7 @@ class Challenge(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     manager_id: str
     title: str
+    description: Optional[str] = None  # Description du challenge
     type: str  # "individual" or "collective"
     seller_id: Optional[str] = None  # Only for individual challenges
     visible: bool = True  # Visible by sellers
