@@ -1730,31 +1730,28 @@ async def get_sellers(current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can access this")
     
-    # Filter by workspace_id (new architecture) AND manager_id (backward compatibility)
-    filter_query = {
-        "$or": [
-            {"manager_id": current_user['id']},
-            {"workspace_id": current_user.get('workspace_id')}
-        ]
-    }
-    if current_user.get('workspace_id'):
-        # Prefer workspace_id if available
+    # Priority: store_id > workspace_id > manager_id
+    # A manager manages a store, so sellers in that store belong to this manager
+    if current_user.get('store_id'):
+        # Use store_id for filtering (most reliable for multi-store architecture)
+        filter_query = {
+            "store_id": current_user['store_id'],
+            "role": "seller",
+            "status": {"$nin": ["deleted", "inactive"]}
+        }
+    elif current_user.get('workspace_id'):
+        # Fallback to workspace_id if no store_id
         filter_query = {
             "workspace_id": current_user['workspace_id'], 
             "role": "seller",
-            "$and": [
-                {"status": {"$ne": "deleted"}},  # Exclure les vendeurs supprimés
-                {"status": {"$ne": "inactive"}}  # Exclure les vendeurs inactifs
-            ]
+            "status": {"$nin": ["deleted", "inactive"]}
         }
     else:
-        # Fallback to manager_id for old data
+        # Final fallback to manager_id for old data
         filter_query = {
             "manager_id": current_user['id'],
-            "$and": [
-                {"status": {"$ne": "deleted"}},  # Exclure les vendeurs supprimés
-                {"status": {"$ne": "inactive"}}  # Exclure les vendeurs inactifs
-            ]
+            "role": "seller",
+            "status": {"$nin": ["deleted", "inactive"]}
         }
     
     sellers = await db.users.find(filter_query, {"_id": 0, "password": 0}).to_list(1000)
