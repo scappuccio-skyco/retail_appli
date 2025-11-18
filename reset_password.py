@@ -11,7 +11,7 @@ async def reset_password():
     # Connexion MongoDB
     mongo_url = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
     client = AsyncIOMotorClient(mongo_url)
-    db = client['retail_performer']
+    db = client['retail_coach']
     
     # Email de l'utilisateur
     email = "y.legoff@skyco.fr"
