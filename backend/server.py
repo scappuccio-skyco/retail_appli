@@ -8115,27 +8115,48 @@ async def create_gerant_invitation(
     if not store:
         raise HTTPException(status_code=404, detail="Magasin non trouvé ou inactif")
     
-    # Si c'est un vendeur, vérifier que le manager existe
+    # Si c'est un vendeur, vérifier que le manager existe (actif ou en attente)
     manager_id = None
     manager_name = None
     if invite_data.role == 'seller':
         if not invite_data.manager_id:
             raise HTTPException(status_code=400, detail="Un manager est requis pour inviter un vendeur")
         
-        manager = await db.users.find_one(
-            {
-                "id": invite_data.manager_id,
-                "role": "manager",
-                "store_id": invite_data.store_id,
-                "gerant_id": current_user['id']
-            },
-            {"_id": 0}
-        )
-        if not manager:
-            raise HTTPException(status_code=404, detail="Manager non trouvé dans ce magasin")
-        
-        manager_id = manager['id']
-        manager_name = manager['name']
+        # Si manager_id commence par "pending_", c'est une invitation en attente
+        if invite_data.manager_id.startswith('pending_'):
+            # Vérifier que l'invitation de manager existe
+            pending_manager_id = invite_data.manager_id.replace('pending_', '')
+            pending_invite = await db.gerant_invitations.find_one(
+                {
+                    "id": pending_manager_id,
+                    "store_id": invite_data.store_id,
+                    "role": "manager",
+                    "status": "pending"
+                },
+                {"_id": 0}
+            )
+            if not pending_invite:
+                raise HTTPException(status_code=404, detail="Invitation de manager non trouvée")
+            
+            # Utiliser l'email du manager en attente
+            manager_id = None  # Sera assigné plus tard quand le manager accepte
+            manager_name = f"{pending_invite['email']} (en attente)"
+        else:
+            # Manager actif
+            manager = await db.users.find_one(
+                {
+                    "id": invite_data.manager_id,
+                    "role": "manager",
+                    "store_id": invite_data.store_id,
+                    "gerant_id": current_user['id']
+                },
+                {"_id": 0}
+            )
+            if not manager:
+                raise HTTPException(status_code=404, detail="Manager non trouvé dans ce magasin")
+            
+            manager_id = manager['id']
+            manager_name = manager['name']
     
     # Vérifier si l'email existe déjà
     existing_user = await db.users.find_one({"email": invite_data.email}, {"_id": 0})
