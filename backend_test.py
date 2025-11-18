@@ -7488,9 +7488,9 @@ def main():
     
     tester = RetailCoachAPITester()
     
-    # FOCUSED TEST: Seller KPI without 'Nombre de clients' field - REVIEW REQUEST
-    print("\n🎯 FOCUSED TEST: SELLER KPI ENDPOINTS WITHOUT 'NOMBRE DE CLIENTS' FIELD")
-    tester.test_seller_kpi_without_clients_field()
+    # PRIORITY TEST: Gérant Multi-Store Management Endpoints - REVIEW REQUEST
+    print("\n🎯 PRIORITY TEST: GÉRANT MULTI-STORE MANAGEMENT ENDPOINTS")
+    tester.test_gerant_multi_store_endpoints()
     
     # Print final summary
     tester.print_summary()
