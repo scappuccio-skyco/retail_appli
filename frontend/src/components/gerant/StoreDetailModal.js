@@ -118,7 +118,8 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
           ) : activeTab === 'performance' ? (
             <div className="h-full">
               <StoreKPIModal 
-                onClose={() => {}} 
+                onClose={() => console.log('Close not needed')} 
+                onSuccess={() => onRefresh()}
                 hideCloseButton={true}
                 storeId={store.id}
                 storeName={store.name}
