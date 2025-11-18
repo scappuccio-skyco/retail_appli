@@ -82,7 +82,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              👔 Managers ({managers.length})
+              👔 Managers ({managers.length + pendingInvitations.filter(inv => inv.role === 'manager').length})
             </button>
             <button
               onClick={() => setActiveTab('sellers')}
