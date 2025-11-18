@@ -667,7 +667,7 @@ export default function ManagerDashboard({ user, onLogout }) {
             <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/80 to-blue-900/80 group-hover:from-blue-900/70 group-hover:via-blue-800/70 group-hover:to-blue-900/70 transition-all"></div>
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
               <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
-                <Settings className="w-10 h-10 text-white" />
+                <Target className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-white text-center mb-2">🎯 Objectifs</h3>
               <p className="text-sm text-white opacity-90 text-center">Définir et suivre des objectifs collectifs et/ou individuels</p>
