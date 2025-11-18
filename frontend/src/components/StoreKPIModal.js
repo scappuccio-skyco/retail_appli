@@ -960,16 +960,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                     <span className="text-sm font-medium text-gray-700">📦 Articles</span>
                   </label>
                   
-                  <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={visibleCharts.clients}
-                      onChange={() => toggleChart('clients')}
-                      className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
-                    />
-                    <span className="text-sm font-medium text-gray-700">👥 Clients</span>
-                  </label>
-
                   <button
                     onClick={() => setVisibleCharts({
                       ca: true,
@@ -977,8 +967,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                       panierMoyen: true,
                       tauxTransformation: true,
                       indiceVente: true,
-                      articles: true,
-                      clients: true
+                      articles: true
                     })}
                     className="col-span-2 md:col-span-1 px-3 py-2 bg-orange-100 text-orange-700 text-sm font-medium rounded-lg hover:bg-orange-200 transition-colors"
                   >
