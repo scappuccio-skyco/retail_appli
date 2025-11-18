@@ -7839,7 +7839,10 @@ async def get_store_stats(store_id: str, current_user: dict = Depends(get_curren
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le magasin appartient au gérant
-    store = await db.stores.find_one({"id": store_id, "gerant_id": current_user['id']})
+    store = await db.stores.find_one(
+        {"id": store_id, "gerant_id": current_user['id']},
+        {"_id": 0}
+    )
     if not store:
         raise HTTPException(status_code=404, detail="Magasin non trouvé")
     
