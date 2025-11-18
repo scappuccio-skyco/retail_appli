@@ -101,7 +101,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         });
         
         // Transform data to match expected format
-        historicalArray = historyRes.data.data.map(entry => ({
+        // The API returns an array directly, not an object with data property
+        const rawData = Array.isArray(historyRes.data) ? historyRes.data : [];
+        historicalArray = rawData.map(entry => ({
           date: entry.date,
           seller_ca: entry.ca_journalier || 0,
           seller_ventes: entry.nb_ventes || 0,
