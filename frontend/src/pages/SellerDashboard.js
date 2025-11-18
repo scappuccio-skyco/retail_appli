@@ -858,61 +858,63 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             </div>
 
             {/* Section Reordering */}
-            <div className="mt-6 pt-6 border-t-2 border-purple-100">
-                <p className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
-                  Réorganiser l'ordre des sections
-                </p>
-                <div className="space-y-2">
-                  {sectionOrder.filter(id => id !== 'profile').map((sectionId, index) => {
-                    const sectionNames = {
-                      bilan: '📈 Bilan Individuel',
-                      objectives: '🎯 Objectifs & Challenges',
-                      competences: '🤖 Mon Coach IA',
-                      kpi: '📊 Mes KPI',
-                      debriefs: '📝 Analyse de Vente'
-                    };
-                    return (
-                      <div key={sectionId} className="flex items-center justify-between bg-white rounded-lg p-3 border border-gray-200 hover:border-purple-300 transition-all">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-bold text-gray-400">#{index + 1}</span>
-                          <span className="text-sm font-medium text-gray-700">{sectionNames[sectionId]}</span>
-                        </div>
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => moveSectionUp(sectionId)}
-                            disabled={index === 0}
-                            className={`p-1.5 rounded-lg transition-all ${
-                              index === 0
-                                ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
-                                : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
-                            }`}
-                            title="Monter"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => moveSectionDown(sectionId)}
-                            disabled={index === sectionOrder.filter(id => id !== 'profile').length - 1}
-                            className={`p-1.5 rounded-lg transition-all ${
-                              index === sectionOrder.filter(id => id !== 'profile').length - 1
-                                ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
-                                : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
-                            }`}
-                            title="Descendre"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-                        </div>
+            <div className="pt-6 border-t-2 border-purple-100">
+              <p className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
+                Réorganiser l'ordre des cartes
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {sectionOrder.filter(id => id !== 'profile').map((sectionId, index) => {
+                  const sectionNames = {
+                    bilan: '📈 Bilan',
+                    objectives: '🎯 Objectifs',
+                    competences: '🤖 Coach IA',
+                    kpi: '📊 KPI',
+                    debriefs: '📝 Analyse'
+                  };
+                  
+                  // Skip if section doesn't exist
+                  if (!sectionNames[sectionId]) return null;
+                  
+                  return (
+                    <div key={sectionId} className="inline-flex items-center gap-2 bg-white rounded-lg px-3 py-2 border-2 border-gray-200 hover:border-purple-300 transition-all shadow-sm">
+                      <span className="text-xs font-bold text-gray-400">#{index + 1}</span>
+                      <span className="text-sm font-semibold text-gray-800">{sectionNames[sectionId]}</span>
+                      <div className="flex gap-1 ml-1">
+                        <button
+                          onClick={() => moveSectionUp(sectionId)}
+                          disabled={index === 0}
+                          className={`p-1 rounded transition-all ${
+                            index === 0
+                              ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                              : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
+                          }`}
+                          title="Monter"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => moveSectionDown(sectionId)}
+                          disabled={index === sectionOrder.filter(id => id !== 'profile').length - 1}
+                          className={`p-1 rounded transition-all ${
+                            index === sectionOrder.filter(id => id !== 'profile').length - 1
+                              ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                              : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
+                          }`}
+                          title="Descendre"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
+            </div>
           </div>
         </div>
       )}
