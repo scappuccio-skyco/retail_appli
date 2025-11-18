@@ -229,7 +229,7 @@ const GerantDashboard = ({ user, onLogout }) => {
 
             <div className="flex gap-2">
               <button
-                onClick={handleLogout}
+                onClick={handleLogoutClick}
                 className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:shadow-md transition-all"
               >
                 <LogOut className="w-5 h-5" />
