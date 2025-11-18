@@ -107,7 +107,7 @@ user_problem_statement: "IMPLÉMENTATION COMPLÈTE DES MODAUX GÉRANT - Intégre
 backend:
   - task: "Multi-Store Management API Endpoints"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "critical"
@@ -119,6 +119,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "GÉRANT MULTI-STORE ENDPOINTS TESTING COMPLETED - SUCCESS RATE 73.7% (14/19 tests passed): ✅ AUTHENTICATION: Login gérant@skyco.fr successful with role validation. ✅ DASHBOARD STATS: GET /api/gerant/dashboard/stats returns correct fields (total_stores: 3, total_managers: 5, total_sellers: 23, today_ca: 5720€, stores array). ✅ STORE MANAGEMENT: GET /api/gerant/stores returns 3 active stores (Paris, Lyon, Bordeaux as expected). POST /api/gerant/stores creates store successfully. GET /api/gerant/stores/{id} retrieves details. GET managers/sellers endpoints work. DELETE store successful. ✅ PERSONNEL TRANSFERS: Manager transfer working with orphaned sellers warning. Seller transfer working with new manager assignment. ❌ CRITICAL ISSUE: GET /api/gerant/stores/{store_id}/stats returns 500 Internal Server Error due to MongoDB ObjectId serialization issue in backend code (line 7880 returns raw store object with ObjectId). ❌ Minor: Authentication tests expect 401 but get 403 (both indicate auth required). OVERALL: 9/10 core endpoints working, 1 critical serialization bug needs backend fix."
+      - working: true
+        agent: "main"
+        comment: "BUG OBJECTID CORRIGÉ: ✅ FIX APPLIQUÉ: Ajout de la projection {\"_id\": 0} à la ligne 7842 du fichier server.py dans l'appel db.stores.find_one() pour exclure le champ ObjectId non sérialisable. ✅ VALIDATION: Test curl sur GET /api/gerant/stores/{store_id}/stats retourne maintenant 200 OK avec JSON valide. ✅ BACKEND REDÉMARRÉ: Service backend redémarré avec succès. ✅ SCREENSHOT PRIS: Dashboard Gérant charge correctement avec les 3 magasins (Paris, Lyon, Bordeaux). ✅ RÉSULTAT FINAL: 10/10 endpoints backend multi-store fonctionnent correctement. Tous les endpoints sont prêts pour les tests frontend."
 
 frontend:
   - task: "Gerant Dashboard - Intégration Modaux"
