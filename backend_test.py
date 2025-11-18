@@ -3650,6 +3650,27 @@ class RetailCoachAPITester:
         print("\n🔍 Testing Gérant Multi-Store Management Endpoints (CRITICAL FEATURE)...")
         print("   TESTING ALL 10 ENDPOINTS FOR MULTI-STORE MANAGEMENT")
         
+        # First try to create a gérant account if it doesn't exist
+        gerant_registration_data = {
+            "name": "Gérant SkyCoach",
+            "email": "gerant@skyco.fr",
+            "password": "demo123",
+            "role": "gerant",
+            "workspace_name": "SkyCoach Multi-Store"
+        }
+        
+        print("   Attempting to create gérant account...")
+        success, reg_response = self.run_test(
+            "Create Gérant Account",
+            "POST",
+            "auth/register",
+            200,
+            data=gerant_registration_data
+        )
+        
+        if not success:
+            print("   ⚠️  Gérant account creation failed - account may already exist")
+        
         # Login as gérant with provided credentials
         gerant_credentials = {
             "email": "gerant@skyco.fr",
