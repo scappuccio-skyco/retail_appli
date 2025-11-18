@@ -605,7 +605,7 @@ export default function ManagerDashboard({ user, onLogout }) {
               alt="Mon Magasin"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-900/80 via-orange-800/80 to-orange-900/80 group-hover:from-orange-900/70 group-hover:via-orange-800/70 group-hover:to-orange-900/70 transition-all"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/80 via-orange-600/80 to-orange-500/80 group-hover:from-orange-500/70 group-hover:via-orange-600/70 group-hover:to-orange-500/70 transition-all"></div>
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
               <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
                 <BarChart3 className="w-10 h-10 text-white" />
