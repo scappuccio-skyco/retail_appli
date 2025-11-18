@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3 } from 'lucide-react';
+import { toast } from 'sonner';
 import StoreCard from '../components/gerant/StoreCard';
+import CreateStoreModal from '../components/gerant/CreateStoreModal';
+import StoreDetailModal from '../components/gerant/StoreDetailModal';
+import ManagerTransferModal from '../components/gerant/ManagerTransferModal';
+import SellerTransferModal from '../components/gerant/SellerTransferModal';
+import DeleteStoreConfirmation from '../components/gerant/DeleteStoreConfirmation';
 
 const GerantDashboard = () => {
   const navigate = useNavigate();
