@@ -408,14 +408,16 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 flex justify-between items-center rounded-t-2xl">
           <div className="flex items-center gap-3">
             <TrendingUp className="w-7 h-7 text-white" />
-            <h2 className="text-2xl font-bold text-white">🏪 Mon Magasin</h2>
+            <h2 className="text-2xl font-bold text-white">🏪 {storeName || 'Mon Magasin'}</h2>
           </div>
-          <button
-            onClick={onClose}
-            className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          {!hideCloseButton && (
+            <button
+              onClick={onClose}
+              className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          )}
         </div>
 
         {/* Tabs */}
