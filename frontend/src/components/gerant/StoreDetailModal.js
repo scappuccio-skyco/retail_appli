@@ -5,18 +5,19 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
   const [activeTab, setActiveTab] = useState('managers');
   const [managers, setManagers] = useState([]);
   const [sellers, setSellers] = useState([]);
+  const [pendingInvitations, setPendingInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
     fetchStoreTeam();
-  }, [store]);
+  }, [store]); // eslint-disable-line
 
   const fetchStoreTeam = async () => {
     try {
       const token = localStorage.getItem('token');
 
-      // Récupérer les managers
+      // Récupérer les managers actifs
       const managersResponse = await fetch(`${backendUrl}/api/gerant/stores/${store.id}/managers`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -25,13 +26,26 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
         setManagers(managersData);
       }
 
-      // Récupérer les vendeurs
+      // Récupérer les vendeurs actifs
       const sellersResponse = await fetch(`${backendUrl}/api/gerant/stores/${store.id}/sellers`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (sellersResponse.ok) {
         const sellersData = await sellersResponse.json();
         setSellers(sellersData);
+      }
+
+      // Récupérer toutes les invitations en attente
+      const invitationsResponse = await fetch(`${backendUrl}/api/gerant/invitations`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (invitationsResponse.ok) {
+        const allInvitations = await invitationsResponse.json();
+        // Filtrer les invitations pour ce magasin et status pending
+        const storeInvitations = allInvitations.filter(
+          inv => inv.store_id === store.id && inv.status === 'pending'
+        );
+        setPendingInvitations(storeInvitations);
       }
     } catch (error) {
       console.error('Erreur chargement équipe:', error);
