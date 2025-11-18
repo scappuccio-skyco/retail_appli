@@ -5071,6 +5071,67 @@ async def delete_manager_objectives(objective_id: str, current_user: dict = Depe
     
     return {"message": "Objectives deleted successfully", "id": objective_id}
 
+@api_router.post("/manager/objectives/{objective_id}/progress")
+async def update_objective_progress(
+    objective_id: str,
+    progress_data: ObjectiveProgressUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update progress for an objective - can be called by manager or seller based on data_entry_responsible"""
+    
+    # Get the objective
+    objective = await db.manager_objectives.find_one(
+        {"id": objective_id},
+        {"_id": 0}
+    )
+    
+    if not objective:
+        raise HTTPException(status_code=404, detail="Objective not found")
+    
+    # Check authorization based on data_entry_responsible
+    if objective['data_entry_responsible'] == 'manager':
+        # Only the manager who created the objective can update
+        if current_user['role'] != 'manager' or current_user['id'] != objective['manager_id']:
+            raise HTTPException(status_code=403, detail="Only the manager can update this objective's progress")
+    elif objective['data_entry_responsible'] == 'seller':
+        # Check if seller is authorized
+        if current_user['role'] == 'seller':
+            # For individual objectives, only the assigned seller can update
+            if objective['type'] == 'individual' and objective.get('seller_id') != current_user['id']:
+                raise HTTPException(status_code=403, detail="You are not authorized to update this objective")
+            # For collective objectives, check if seller is in visible_to_sellers or if it's visible to all
+            elif objective['type'] == 'collective':
+                visible_to_sellers = objective.get('visible_to_sellers', [])
+                if visible_to_sellers and current_user['id'] not in visible_to_sellers:
+                    raise HTTPException(status_code=403, detail="You are not authorized to update this objective")
+        elif current_user['role'] != 'manager' or current_user['id'] != objective['manager_id']:
+            raise HTTPException(status_code=403, detail="Only authorized sellers or the manager can update this objective's progress")
+    
+    # Update the progress
+    update_data = {
+        'current_value': progress_data.current_value,
+        'updated_at': datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Check if objective is achieved or failed
+    if progress_data.current_value >= objective['target_value']:
+        update_data['status'] = 'achieved'
+    elif datetime.now(timezone.utc).date() > datetime.fromisoformat(objective['period_end']).date():
+        update_data['status'] = 'failed'
+    else:
+        update_data['status'] = 'active'
+    
+    await db.manager_objectives.update_one(
+        {"id": objective_id},
+        {"$set": update_data}
+    )
+    
+    # Get updated objective
+    updated_objective = await db.manager_objectives.find_one({"id": objective_id}, {"_id": 0})
+    
+    return updated_objective
+
+
 @api_router.get("/manager/objectives/active")
 async def get_active_manager_objectives(current_user: dict = Depends(get_current_user)):
     """Get only active objectives for display in manager dashboard"""
