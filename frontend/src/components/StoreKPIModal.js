@@ -67,7 +67,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   const fetchOverviewData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/api/manager/store-kpi-overview?date=${overviewDate}`, {
+      const endpoint = storeId 
+        ? `${API}/api/gerant/stores/${storeId}/kpi-overview?date=${overviewDate}`
+        : `${API}/api/manager/store-kpi-overview?date=${overviewDate}`;
+      const res = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setOverviewData(res.data);
