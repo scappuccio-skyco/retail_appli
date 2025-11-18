@@ -8,6 +8,7 @@ import StoreDetailModal from '../components/gerant/StoreDetailModal';
 import ManagerTransferModal from '../components/gerant/ManagerTransferModal';
 import SellerTransferModal from '../components/gerant/SellerTransferModal';
 import DeleteStoreConfirmation from '../components/gerant/DeleteStoreConfirmation';
+import InviteStaffModal from '../components/gerant/InviteStaffModal';
 
 const GerantDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
