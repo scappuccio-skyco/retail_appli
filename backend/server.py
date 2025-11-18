@@ -4990,6 +4990,22 @@ async def create_manager_objectives(objectives_data: ManagerObjectivesCreate, cu
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can create objectives")
     
+    # Validate objective_type
+    if objectives_data.objective_type not in ["kpi_standard", "product_focus", "custom"]:
+        raise HTTPException(status_code=400, detail="Invalid objective_type")
+    
+    # Validate required fields based on objective_type
+    if objectives_data.objective_type == "kpi_standard" and not objectives_data.kpi_name:
+        raise HTTPException(status_code=400, detail="kpi_name is required for kpi_standard objectives")
+    elif objectives_data.objective_type == "product_focus" and not objectives_data.product_name:
+        raise HTTPException(status_code=400, detail="product_name is required for product_focus objectives")
+    elif objectives_data.objective_type == "custom" and not objectives_data.custom_description:
+        raise HTTPException(status_code=400, detail="custom_description is required for custom objectives")
+    
+    # Validate data_entry_responsible
+    if objectives_data.data_entry_responsible not in ["manager", "seller"]:
+        raise HTTPException(status_code=400, detail="data_entry_responsible must be 'manager' or 'seller'")
+    
     objectives = ManagerObjectives(
         manager_id=current_user['id'],
         **objectives_data.model_dump()
