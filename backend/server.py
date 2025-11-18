@@ -3066,8 +3066,12 @@ async def get_team_kpi_summary(current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can access team KPI summary")
     
-    # Get all sellers
-    sellers = await db.users.find({"manager_id": current_user['id']}, {"_id": 0}).to_list(1000)
+    # Get all sellers in this manager's store
+    sellers = await db.users.find({
+        "store_id": current_user.get('store_id'),
+        "role": "seller",
+        "status": {"$nin": ["deleted", "inactive"]}
+    }, {"_id": 0}).to_list(1000)
     
     summary = []
     for seller in sellers:
