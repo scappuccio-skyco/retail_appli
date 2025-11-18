@@ -1641,96 +1641,230 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           />
                         </div>
 
-                        {/* Dynamic KPI Selection - Compact Grid Layout */}
+                        {/* NEW FLEXIBLE CHALLENGE SYSTEM (same as objectives) */}
                         <div className="md:col-span-2">
                           <div className="mb-3">
                             <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                              <span className="text-lg">📊</span>
-                              Sélectionner les KPI à cibler
+                              <span className="text-lg">🎯</span>
+                              Type de challenge
                             </h4>
-                            <p className="text-xs text-gray-600 mb-3">Cochez les KPI et indiquez la valeur cible</p>
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            {getAvailableKPIs().map((kpi) => (
-                              <div key={kpi.key} className="border-2 border-gray-200 rounded-lg p-3 hover:border-yellow-300 transition-all">
-                                {/* Checkbox + Label */}
-                                <label className="flex items-center gap-2 cursor-pointer mb-2">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedKPIsChallenge[kpi.key] || false}
-                                    onChange={(e) => {
-                                      setSelectedKPIsChallenge({ ...selectedKPIsChallenge, [kpi.key]: e.target.checked });
-                                      if (!e.target.checked) {
-                                        if (editingChallenge) {
-                                          const newTargets = { ...editingChallenge.kpi_targets };
-                                          delete newTargets[kpi.key];
-                                          setEditingChallenge({ ...editingChallenge, kpi_targets: newTargets });
-                                        } else {
-                                          const newTargets = { ...newChallenge.kpi_targets };
-                                          delete newTargets[kpi.key];
-                                          setNewChallenge({ ...newChallenge, kpi_targets: newTargets });
-                                        }
-                                      }
-                                    }}
-                                    className="w-4 h-4 text-yellow-600"
-                                  />
-                                  <div className="flex items-center gap-1.5 flex-1">
-                                    <span className="text-base">{kpi.icon}</span>
-                                    <span className="font-semibold text-sm text-gray-800">{kpi.label}</span>
-                                    {kpi.calculated && (
-                                      <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Auto</span>
-                                    )}
-                                  </div>
-                                </label>
-                                
-                                {/* Value Input (inline when selected) */}
-                                {selectedKPIsChallenge[kpi.key] && (
-                                  <div className="animate-fadeIn">
-                                    <div className="flex items-center gap-2">
-                                      <input
-                                        type="number"
-                                        step={kpi.key.includes('taux') ? '0.1' : kpi.key.includes('moyen') || kpi.key.includes('indice') ? '0.01' : '1'}
-                                        value={editingChallenge 
-                                          ? (editingChallenge.kpi_targets?.[kpi.key] || '') 
-                                          : (newChallenge.kpi_targets[kpi.key] || '')}
-                                        onChange={(e) => {
-                                          if (editingChallenge) {
-                                            setEditingChallenge({
-                                              ...editingChallenge,
-                                              kpi_targets: {
-                                                ...(editingChallenge.kpi_targets || {}),
-                                                [kpi.key]: e.target.value
-                                              }
-                                            });
-                                          } else {
-                                            setNewChallenge({
-                                              ...newChallenge,
-                                              kpi_targets: {
-                                                ...newChallenge.kpi_targets,
-                                                [kpi.key]: e.target.value
-                                              }
-                                            });
-                                          }
-                                        }}
-                                        className="flex-1 p-2 text-sm border-2 border-gray-300 rounded-lg focus:border-yellow-400 focus:outline-none"
-                                        placeholder={`Ex: ${kpi.key === 'ca' ? '50000' : kpi.key === 'ventes' ? '200' : kpi.key === 'panier_moyen' ? '150' : '2.5'}`}
-                                        required
-                                      />
-                                      <span className="text-xs text-gray-500 whitespace-nowrap">{kpi.unit}</span>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
+                          {/* Challenge Type Selection - Horizontal Radio Buttons */}
+                          <div className="mb-4 flex flex-wrap gap-3">
+                            <label className={`flex items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                              newChallenge.challenge_type === 'kpi_standard'
+                                ? 'bg-yellow-50 border-yellow-500 shadow-md'
+                                : 'bg-white border-gray-300 hover:border-yellow-300'
+                            }`}>
+                              <input
+                                type="radio"
+                                name="challenge_type"
+                                value="kpi_standard"
+                                checked={newChallenge.challenge_type === 'kpi_standard'}
+                                onChange={(e) => {
+                                  const newType = e.target.value;
+                                  setNewChallenge({ 
+                                    ...newChallenge, 
+                                    challenge_type: newType,
+                                    unit: newChallenge.kpi_name === 'ca' ? '€' : 
+                                          newChallenge.kpi_name === 'ventes' ? 'ventes' :
+                                          newChallenge.kpi_name === 'articles' ? 'articles' : ''
+                                  });
+                                }}
+                                className="w-4 h-4 text-yellow-600"
+                              />
+                              <span className={`font-semibold ${
+                                newChallenge.challenge_type === 'kpi_standard' ? 'text-yellow-700' : 'text-gray-700'
+                              }`}>
+                                📊 KPI Standard
+                              </span>
+                            </label>
+
+                            <label className={`flex items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                              newChallenge.challenge_type === 'product_focus'
+                                ? 'bg-green-50 border-green-500 shadow-md'
+                                : 'bg-white border-gray-300 hover:border-green-300'
+                            }`}>
+                              <input
+                                type="radio"
+                                name="challenge_type"
+                                value="product_focus"
+                                checked={newChallenge.challenge_type === 'product_focus'}
+                                onChange={(e) => {
+                                  setNewChallenge({ 
+                                    ...newChallenge, 
+                                    challenge_type: e.target.value,
+                                    unit: ''
+                                  });
+                                }}
+                                className="w-4 h-4 text-green-600"
+                              />
+                              <span className={`font-semibold ${
+                                newChallenge.challenge_type === 'product_focus' ? 'text-green-700' : 'text-gray-700'
+                              }`}>
+                                📦 Focus Produit
+                              </span>
+                            </label>
+
+                            <label className={`flex items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                              newChallenge.challenge_type === 'custom'
+                                ? 'bg-purple-50 border-purple-500 shadow-md'
+                                : 'bg-white border-gray-300 hover:border-purple-300'
+                            }`}>
+                              <input
+                                type="radio"
+                                name="challenge_type"
+                                value="custom"
+                                checked={newChallenge.challenge_type === 'custom'}
+                                onChange={(e) => {
+                                  setNewChallenge({ 
+                                    ...newChallenge, 
+                                    challenge_type: e.target.value,
+                                    unit: ''
+                                  });
+                                }}
+                                className="w-4 h-4 text-purple-600"
+                              />
+                              <span className={`font-semibold ${
+                                newChallenge.challenge_type === 'custom' ? 'text-purple-700' : 'text-gray-700'
+                              }`}>
+                                ✨ Autre (personnalisé)
+                              </span>
+                            </label>
                           </div>
-                          
-                          {getAvailableKPIs().length === 0 && (
-                            <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 text-center">
-                              <p className="text-orange-700 font-semibold">⚠️ Aucun KPI configuré</p>
-                              <p className="text-sm text-[#F97316] mt-1">Veuillez d'abord configurer vos KPI dans "KPI Magasin"</p>
+
+                          {/* Conditional Fields Based on Challenge Type */}
+                          {newChallenge.challenge_type === 'kpi_standard' && (
+                            <div className="mb-4 bg-yellow-50 rounded-lg p-4 border-2 border-yellow-200">
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">KPI à cibler *</label>
+                              <select
+                                required
+                                value={newChallenge.kpi_name}
+                                onChange={(e) => {
+                                  const kpiName = e.target.value;
+                                  let unit = '';
+                                  if (kpiName === 'ca') unit = '€';
+                                  else if (kpiName === 'ventes') unit = 'ventes';
+                                  else if (kpiName === 'articles') unit = 'articles';
+                                  setNewChallenge({ ...newChallenge, kpi_name: kpiName, unit });
+                                }}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-yellow-400 focus:outline-none"
+                              >
+                                <option value="ca">💰 Chiffre d'affaires</option>
+                                <option value="ventes">🛍️ Nombre de ventes</option>
+                                <option value="articles">📦 Nombre d'articles</option>
+                              </select>
                             </div>
                           )}
+
+                          {newChallenge.challenge_type === 'product_focus' && (
+                            <div className="mb-4 bg-green-50 rounded-lg p-4 border-2 border-green-200">
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Nom du produit *</label>
+                              <input
+                                type="text"
+                                required
+                                value={newChallenge.product_name}
+                                onChange={(e) => setNewChallenge({ ...newChallenge, product_name: e.target.value })}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-green-400 focus:outline-none"
+                                placeholder="Ex: iPhone 15, Samsung Galaxy, MacBook Air..."
+                              />
+                              <p className="text-xs text-gray-600 mt-2">📦 Indiquez le produit sur lequel vous souhaitez vous concentrer</p>
+                            </div>
+                          )}
+
+                          {newChallenge.challenge_type === 'custom' && (
+                            <div className="mb-4 bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Description du challenge *</label>
+                              <textarea
+                                required
+                                rows="3"
+                                value={newChallenge.custom_description}
+                                onChange={(e) => setNewChallenge({ ...newChallenge, custom_description: e.target.value })}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                                placeholder="Ex: Améliorer la satisfaction client, Augmenter les ventes croisées..."
+                              />
+                              <p className="text-xs text-gray-600 mt-2">✨ Décrivez votre challenge personnalisé</p>
+                            </div>
+                          )}
+
+                          {/* Target Value */}
+                          <div className="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Valeur cible *</label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                required
+                                value={newChallenge.target_value}
+                                onChange={(e) => setNewChallenge({ ...newChallenge, target_value: e.target.value })}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-yellow-400 focus:outline-none"
+                                placeholder="Ex: 50000"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Unité (optionnel)</label>
+                              <input
+                                type="text"
+                                value={newChallenge.unit}
+                                onChange={(e) => setNewChallenge({ ...newChallenge, unit: e.target.value })}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-yellow-400 focus:outline-none"
+                                placeholder="€, ventes, %..."
+                              />
+                            </div>
+                          </div>
+
+                          {/* Data Entry Responsible - TOGGLES STYLE MAGASIN */}
+                          <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4 border-2 border-orange-200">
+                            <label className="block text-sm font-semibold text-gray-800 mb-3">
+                              📝 Qui saisit la progression ? *
+                            </label>
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setNewChallenge({ ...newChallenge, data_entry_responsible: 'seller' })}
+                                className={`w-12 h-8 rounded font-bold text-xs transition-all ${
+                                  newChallenge.data_entry_responsible === 'seller' 
+                                    ? 'bg-cyan-500 text-white shadow-lg' 
+                                    : 'bg-gray-200 text-gray-500'
+                                }`}
+                                title="Vendeur"
+                              >
+                                🧑‍💼
+                              </button>
+                              <span className={`text-sm font-medium ${
+                                newChallenge.data_entry_responsible === 'seller' ? 'text-cyan-700' : 'text-gray-500'
+                              }`}>
+                                Vendeur
+                              </span>
+                              
+                              <div className="mx-4 h-8 w-px bg-gray-300"></div>
+                              
+                              <button
+                                type="button"
+                                onClick={() => setNewChallenge({ ...newChallenge, data_entry_responsible: 'manager' })}
+                                className={`w-12 h-8 rounded font-bold text-xs transition-all ${
+                                  newChallenge.data_entry_responsible === 'manager' 
+                                    ? 'bg-orange-500 text-white shadow-lg' 
+                                    : 'bg-gray-200 text-gray-500'
+                                }`}
+                                title="Manager"
+                              >
+                                👨‍💼
+                              </button>
+                              <span className={`text-sm font-medium ${
+                                newChallenge.data_entry_responsible === 'manager' ? 'text-orange-700' : 'text-gray-500'
+                              }`}>
+                                Manager
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-3">
+                              {newChallenge.data_entry_responsible === 'seller' 
+                                ? '🧑‍💼 Le vendeur pourra saisir la progression de ce challenge'
+                                : '👨‍💼 Vous (manager) saisirez la progression de ce challenge'}
+                            </p>
+                          </div>
                         </div>
                       </div>
 
