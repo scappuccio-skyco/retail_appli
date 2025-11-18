@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Users, TrendingUp, UserPlus, RefreshCw, Trash2 } from 'lucide-react';
 
 const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller, onDeleteStore, onRefresh }) => {
-  const [activeTab, setActiveTab] = useState('managers');
+  const [activeTab, setActiveTab] = useState('performance');
   const [managers, setManagers] = useState([]);
   const [sellers, setSellers] = useState([]);
   const [pendingInvitations, setPendingInvitations] = useState([]);
