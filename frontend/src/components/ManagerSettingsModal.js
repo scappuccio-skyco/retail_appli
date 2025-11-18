@@ -415,33 +415,37 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const handleUpdateObjective = async (e) => {
     e.preventDefault();
     try {
-      // Clean data - remove empty strings and convert to numbers
+      // Build data with new flexible system from newObjective state (which contains editingObjective data)
       const cleanedData = {
-        title: editingObjective.title,
-        period_start: editingObjective.period_start,
-        period_end: editingObjective.period_end,
-        type: editingObjective.type,
-        visible: editingObjective.visible !== undefined ? editingObjective.visible : true
+        title: newObjective.title,
+        period_start: newObjective.period_start,
+        period_end: newObjective.period_end,
+        type: newObjective.type,
+        visible: newObjective.visible,
+        objective_type: newObjective.objective_type,
+        target_value: parseFloat(newObjective.target_value),
+        data_entry_responsible: newObjective.data_entry_responsible,
+        unit: newObjective.unit
       };
       
       // Ajouter seller_id si type individual
-      if (editingObjective.type === 'individual' && editingObjective.seller_id) {
-        cleanedData.seller_id = editingObjective.seller_id;
+      if (newObjective.type === 'individual' && newObjective.seller_id) {
+        cleanedData.seller_id = newObjective.seller_id;
       }
       
       // Ajouter visible_to_sellers si type collective
-      if (editingObjective.type === 'collective') {
+      if (newObjective.type === 'collective') {
         cleanedData.visible_to_sellers = selectedVisibleSellers;
       }
       
-      // Ajouter TOUS les KPI possibles s'ils sont présents
-      const possibleKPIs = ['ca', 'ventes', 'clients', 'articles', 'prospects', 'panier_moyen', 'indice_vente', 'taux_transformation'];
-      possibleKPIs.forEach(kpiKey => {
-        const targetKey = `${kpiKey}_target`;
-        if (editingObjective[targetKey] && editingObjective[targetKey] !== '') {
-          cleanedData[targetKey] = parseFloat(editingObjective[targetKey]);
-        }
-      });
+      // Add specific fields based on objective_type
+      if (newObjective.objective_type === 'kpi_standard') {
+        cleanedData.kpi_name = newObjective.kpi_name;
+      } else if (newObjective.objective_type === 'product_focus') {
+        cleanedData.product_name = newObjective.product_name;
+      } else if (newObjective.objective_type === 'custom') {
+        cleanedData.custom_description = newObjective.custom_description;
+      }
       
       await axios.put(`${API}/manager/objectives/${editingObjective.id}`, cleanedData, { headers });
       toast.success('Objectif modifié avec succès');
