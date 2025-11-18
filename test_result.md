@@ -107,15 +107,18 @@ user_problem_statement: "IMPLÉMENTATION COMPLÈTE DES MODAUX GÉRANT - Intégre
 backend:
   - task: "Multi-Store Management API Endpoints"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "ENDPOINTS BACKEND MULTI-STORE DÉJÀ IMPLÉMENTÉS: ✅ POST /api/gerant/stores - Créer magasin (StoreCreate avec name, location, address, phone, opening_hours). ✅ GET /api/gerant/stores - Liste des magasins du gérant. ✅ GET /api/gerant/stores/{store_id} - Détails magasin. ✅ DELETE /api/gerant/stores/{store_id} - Supprimer magasin (soft delete avec validation managers/sellers). ✅ GET /api/gerant/stores/{store_id}/managers - Managers d'un magasin. ✅ GET /api/gerant/stores/{store_id}/sellers - Vendeurs d'un magasin. ✅ POST /api/gerant/managers/{manager_id}/transfer - Transférer manager (ManagerTransfer avec new_store_id). ✅ POST /api/gerant/sellers/{seller_id}/transfer - Transférer vendeur (SellerTransfer avec new_store_id + new_manager_id). ✅ GET /api/gerant/dashboard/stats - Stats globales. ✅ GET /api/gerant/stores/{store_id}/stats - Stats par magasin. ✅ PRÊT POUR TESTS."
+      - working: false
+        agent: "testing"
+        comment: "GÉRANT MULTI-STORE ENDPOINTS TESTING COMPLETED - SUCCESS RATE 73.7% (14/19 tests passed): ✅ AUTHENTICATION: Login gérant@skyco.fr successful with role validation. ✅ DASHBOARD STATS: GET /api/gerant/dashboard/stats returns correct fields (total_stores: 3, total_managers: 5, total_sellers: 23, today_ca: 5720€, stores array). ✅ STORE MANAGEMENT: GET /api/gerant/stores returns 3 active stores (Paris, Lyon, Bordeaux as expected). POST /api/gerant/stores creates store successfully. GET /api/gerant/stores/{id} retrieves details. GET managers/sellers endpoints work. DELETE store successful. ✅ PERSONNEL TRANSFERS: Manager transfer working with orphaned sellers warning. Seller transfer working with new manager assignment. ❌ CRITICAL ISSUE: GET /api/gerant/stores/{store_id}/stats returns 500 Internal Server Error due to MongoDB ObjectId serialization issue in backend code (line 7880 returns raw store object with ObjectId). ❌ Minor: Authentication tests expect 401 but get 403 (both indicate auth required). OVERALL: 9/10 core endpoints working, 1 critical serialization bug needs backend fix."
 
 frontend:
   - task: "Gerant Dashboard - Intégration Modaux"
