@@ -325,7 +325,7 @@ const GerantDashboard = () => {
               Mes Magasins
             </h2>
             <button
-              onClick={() => console.log('Créer magasin')}
+              onClick={() => setShowCreateStoreModal(true)}
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
             >
               <Plus className="w-5 h-5" />
