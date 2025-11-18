@@ -72,12 +72,15 @@ const StoreCard = ({ store, stats, onClick }) => {
 
         {/* Week CA */}
         <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-gray-600">CA de la semaine</span>
             <span className="text-sm font-bold text-blue-600">
               {stats?.week_ca ? `${stats.week_ca.toLocaleString('fr-FR')} €` : '0 €'}
             </span>
           </div>
+          <p className="text-xs text-gray-500">
+            {stats?.week_ventes || 0} vente{stats?.week_ventes > 1 ? 's' : ''}
+          </p>
         </div>
       </div>
 
