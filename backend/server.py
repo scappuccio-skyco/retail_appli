@@ -204,6 +204,42 @@ class ManagerAssignment(BaseModel):
     """Modèle pour assigner un manager à un magasin"""
     manager_email: str
 
+
+# ============================================
+# GERANT INVITATION MODELS
+# ============================================
+
+class GerantInvitation(BaseModel):
+    """Modèle pour invitation envoyée par un Gérant"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    token: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: EmailStr
+    role: str  # "manager" ou "seller"
+    gerant_id: str
+    gerant_name: str
+    store_id: str  # Magasin de destination
+    store_name: str
+    manager_id: Optional[str] = None  # Seulement pour les vendeurs
+    manager_name: Optional[str] = None  # Seulement pour les vendeurs
+    status: str = "pending"  # pending, accepted, expired
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    expires_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc) + timedelta(days=7))
+
+class GerantInvitationCreate(BaseModel):
+    """Modèle pour créer une invitation Gérant"""
+    email: EmailStr
+    role: str  # "manager" ou "seller"
+    store_id: str
+    manager_id: Optional[str] = None  # Requis si role == "seller"
+
+class RegisterWithGerantInvite(BaseModel):
+    """Modèle pour s'enregistrer avec une invitation Gérant"""
+    name: str
+    email: EmailStr
+    password: str
+    invitation_token: str
+
 # ============================================
 # USER MODELS (Modified for Multi-Store)
 # ============================================
