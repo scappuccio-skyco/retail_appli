@@ -80,10 +80,14 @@ const GerantDashboard = ({ user, onLogout }) => {
     }
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
+  const handleLogoutClick = () => {
+    if (onLogout) {
+      onLogout();
+    } else {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/login');
+    }
   };
 
   const handleStoreClick = (store) => {
