@@ -22,6 +22,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   // New challenge form - NEW FLEXIBLE SYSTEM (same as objectives)
   const [newChallenge, setNewChallenge] = useState({
     title: '',
+    description: '', // Description du challenge
     type: 'collective',
     seller_id: '',
     visible: true,
