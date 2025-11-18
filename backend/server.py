@@ -156,14 +156,63 @@ def extract_subscription_period(stripe_subscription):
         return None, None
 
 # ===== MODELS =====
+# ============================================
+# STORE MODELS (Multi-Store Architecture)
+# ============================================
+
+class Store(BaseModel):
+    """Modèle pour un magasin/boutique"""
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # ex: "Skyco Paris Centre"
+    location: str  # ex: "75001 Paris"
+    gerant_id: str  # ID du gérant propriétaire
+    active: bool = True
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    opening_hours: Optional[str] = None
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class StoreCreate(BaseModel):
+    """Modèle pour créer un nouveau magasin"""
+    name: str
+    location: str
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    opening_hours: Optional[str] = None
+
+class StoreUpdate(BaseModel):
+    """Modèle pour mettre à jour un magasin"""
+    name: Optional[str] = None
+    location: Optional[str] = None
+    active: Optional[bool] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    opening_hours: Optional[str] = None
+
+# ============================================
+# USER MODELS (Modified for Multi-Store)
+# ============================================
+
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     email: EmailStr
-    role: str  # manager or seller
+    role: str  # "gerant" | "manager" | "seller"
     status: str = "active"  # active, inactive, deleted
-    manager_id: Optional[str] = None
+    
+    # Hiérarchie Multi-Store
+    gerant_id: Optional[str] = None  # null si role = gerant
+    store_id: Optional[str] = None   # ID du magasin d'affectation
+    manager_id: Optional[str] = None # null si role != seller
+    
+    # Double rôle pour gérant qui est aussi manager
+    is_also_manager: bool = False
+    managed_store_id: Optional[str] = None  # ID du magasin qu'il manage directement
+    
+    # Legacy (à garder pour compatibilité)
     workspace_id: Optional[str] = None  # ID du workspace (entreprise)
     deactivated_at: Optional[datetime] = None  # Date de désactivation
     deleted_at: Optional[datetime] = None  # Date de suppression
