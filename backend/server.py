@@ -7985,12 +7985,59 @@ async def get_store_stats(store_id: str, current_user: dict = Depends(get_curren
     managers_ventes = managers_stats[0].get("total_ventes", 0) if managers_stats else 0
     managers_articles = managers_stats[0].get("total_articles", 0) if managers_stats else 0
     
-    # Combine both
+    # Combine both for today
     stats = {
         "total_ca": sellers_ca + managers_ca,
         "total_ventes": sellers_ventes + managers_ventes,
         "total_articles": sellers_articles + managers_articles
     }
+    
+    # Calculate week CA (from Monday to today)
+    from datetime import timedelta
+    today_date = datetime.now(timezone.utc)
+    # Get Monday of current week (0 = Monday)
+    days_since_monday = today_date.weekday()
+    monday = (today_date - timedelta(days=days_since_monday)).strftime('%Y-%m-%d')
+    
+    # Get sellers KPIs for the week
+    sellers_week_pipeline = [
+        {
+            "$match": {
+                "store_id": store_id,
+                "date": {"$gte": monday, "$lte": today}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_ca": {"$sum": "$ca_journalier"}
+            }
+        }
+    ]
+    
+    sellers_week = await db.kpi_entries.aggregate(sellers_week_pipeline).to_list(length=1)
+    sellers_week_ca = sellers_week[0].get("total_ca", 0) if sellers_week else 0
+    
+    # Get managers KPIs for the week
+    managers_week_pipeline = [
+        {
+            "$match": {
+                "store_id": store_id,
+                "date": {"$gte": monday, "$lte": today}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_ca": {"$sum": "$ca_journalier"}
+            }
+        }
+    ]
+    
+    managers_week = await db.manager_kpis.aggregate(managers_week_pipeline).to_list(length=1)
+    managers_week_ca = managers_week[0].get("total_ca", 0) if managers_week else 0
+    
+    week_ca = sellers_week_ca + managers_week_ca
     
     return {
         "store": store,
@@ -7998,7 +8045,8 @@ async def get_store_stats(store_id: str, current_user: dict = Depends(get_curren
         "sellers_count": sellers_count,
         "today_ca": stats.get("total_ca", 0),
         "today_ventes": stats.get("total_ventes", 0),
-        "today_articles": stats.get("total_articles", 0)
+        "today_articles": stats.get("total_articles", 0),
+        "week_ca": week_ca
     }
 
 @api_router.get("/gerant/stores/{store_id}/managers")
