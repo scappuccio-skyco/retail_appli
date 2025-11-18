@@ -93,52 +93,70 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         else if (multiPeriod === '12months') days = 365;
       }
 
-      // Fetch all sellers data
-      const usersRes = await axios.get(`${API}/api/manager/sellers`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      const sellers = usersRes.data;
-      
-      // Fetch KPI entries for all sellers
-      const sellersDataPromises = sellers.map(seller =>
-        axios.get(`${API}/api/manager/kpi-entries/${seller.id}?days=${days}`, {
+      let historicalArray = [];
+
+      if (storeId) {
+        // Gérant: Fetch aggregated data for the store
+        const historyRes = await axios.get(`${API}/api/gerant/stores/${storeId}/kpi-history?days=${days}`, {
           headers: { Authorization: `Bearer ${token}` }
-        })
-      );
+        });
+        
+        // Transform data to match expected format
+        historicalArray = historyRes.data.data.map(entry => ({
+          date: entry.date,
+          seller_ca: entry.ca_journalier || 0,
+          seller_ventes: entry.nb_ventes || 0,
+          seller_clients: entry.nb_clients || 0,
+          seller_articles: entry.nb_articles || 0,
+          seller_prospects: entry.nb_prospects || 0
+        }));
+      } else {
+        // Manager: Fetch all sellers data
+        const usersRes = await axios.get(`${API}/api/manager/sellers`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const sellers = usersRes.data;
+        
+        // Fetch KPI entries for all sellers
+        const sellersDataPromises = sellers.map(seller =>
+          axios.get(`${API}/api/manager/kpi-entries/${seller.id}?days=${days}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        );
 
-      const sellersDataResponses = await Promise.all(sellersDataPromises);
-      
-      // Aggregate data by date
-      const dateMap = {};
-      
-      // Note: We don't have a manager KPI entries endpoint, so we'll work with seller data only
-      // Add sellers data
-      sellersDataResponses.forEach(response => {
-        if (response.data && Array.isArray(response.data)) {
-          response.data.forEach(entry => {
-            if (!dateMap[entry.date]) {
-              dateMap[entry.date] = {
-                date: entry.date,
-                seller_ca: 0,
-                seller_ventes: 0,
-                seller_clients: 0,
-                seller_articles: 0,
-                seller_prospects: 0
-              };
-            }
-            dateMap[entry.date].seller_ca += entry.ca_journalier || 0;
-            dateMap[entry.date].seller_ventes += entry.nb_ventes || 0;
-            dateMap[entry.date].seller_clients += entry.nb_clients || 0;
-            dateMap[entry.date].seller_articles += entry.nb_articles || 0;
-            dateMap[entry.date].seller_prospects += entry.nb_prospects || 0;
-          });
-        }
-      });
+        const sellersDataResponses = await Promise.all(sellersDataPromises);
+        
+        // Aggregate data by date
+        const dateMap = {};
+        
+        // Add sellers data
+        sellersDataResponses.forEach(response => {
+          if (response.data && Array.isArray(response.data)) {
+            response.data.forEach(entry => {
+              if (!dateMap[entry.date]) {
+                dateMap[entry.date] = {
+                  date: entry.date,
+                  seller_ca: 0,
+                  seller_ventes: 0,
+                  seller_clients: 0,
+                  seller_articles: 0,
+                  seller_prospects: 0
+                };
+              }
+              dateMap[entry.date].seller_ca += entry.ca_journalier || 0;
+              dateMap[entry.date].seller_ventes += entry.nb_ventes || 0;
+              dateMap[entry.date].seller_clients += entry.nb_clients || 0;
+              dateMap[entry.date].seller_articles += entry.nb_articles || 0;
+              dateMap[entry.date].seller_prospects += entry.nb_prospects || 0;
+            });
+          }
+        });
 
-      // Convert to array and sort by date
-      let historicalArray = Object.values(dateMap)
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+        // Convert to array and sort by date
+        historicalArray = Object.values(dateMap)
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
 
       // Aggregate data based on period
       let aggregatedData = [];
