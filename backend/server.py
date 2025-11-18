@@ -191,6 +191,19 @@ class StoreUpdate(BaseModel):
     phone: Optional[str] = None
     opening_hours: Optional[str] = None
 
+class ManagerTransfer(BaseModel):
+    """Modèle pour transférer un manager vers un autre magasin"""
+    new_store_id: str
+
+class SellerTransfer(BaseModel):
+    """Modèle pour transférer un vendeur vers un autre magasin"""
+    new_store_id: str
+    new_manager_id: str  # Nouveau manager dans le nouveau magasin
+
+class ManagerAssignment(BaseModel):
+    """Modèle pour assigner un manager à un magasin"""
+    manager_email: str
+
 # ============================================
 # USER MODELS (Modified for Multi-Store)
 # ============================================
