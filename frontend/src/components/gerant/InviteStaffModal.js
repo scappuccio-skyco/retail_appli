@@ -196,25 +196,60 @@ const InviteStaffModal = ({ onClose, onInvite, stores, selectedStoreId = null })
                 <UserPlus className="w-4 h-4" />
                 Manager responsable *
               </label>
-              {managers.length === 0 ? (
+              {managers.length === 0 && pendingManagerInvites.length === 0 ? (
                 <div className="p-3 bg-orange-50 border-2 border-orange-200 rounded-lg text-orange-700 text-sm">
                   ⚠️ Aucun manager dans ce magasin. Vous devez d'abord inviter un manager.
                 </div>
               ) : (
-                <select
-                  name="manager_id"
-                  value={formData.manager_id}
-                  onChange={handleChange}
-                  required
-                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="">Sélectionner un manager</option>
-                  {managers.map(manager => (
-                    <option key={manager.id} value={manager.id}>
-                      👔 {manager.name} ({manager.email})
-                    </option>
-                  ))}
-                </select>
+                <>
+                  <select
+                    name="manager_id"
+                    value={formData.manager_id}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const selectedOption = e.target.options[e.target.selectedIndex];
+                      const email = selectedOption.getAttribute('data-email');
+                      setFormData(prev => ({
+                        ...prev,
+                        manager_id: value,
+                        manager_email: email || ''
+                      }));
+                      setError('');
+                    }}
+                    required
+                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                  >
+                    <option value="">Sélectionner un manager</option>
+                    
+                    {/* Managers actifs */}
+                    {managers.length > 0 && (
+                      <optgroup label="✓ Managers Actifs">
+                        {managers.map(manager => (
+                          <option key={manager.id} value={manager.id} data-email={manager.email}>
+                            👔 {manager.name} ({manager.email})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    
+                    {/* Managers en attente */}
+                    {pendingManagerInvites.length > 0 && (
+                      <optgroup label="📨 Managers en Attente d'Acceptation">
+                        {pendingManagerInvites.map(invite => (
+                          <option key={invite.id} value={`pending_${invite.id}`} data-email={invite.email}>
+                            📨 {invite.email} (invitation envoyée)
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                  
+                  {formData.manager_id && formData.manager_id.startsWith('pending_') && (
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                      💡 Le vendeur sera automatiquement assigné à ce manager une fois qu'il accepte l'invitation.
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
