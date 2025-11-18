@@ -730,7 +730,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               <h1 className="text-3xl md:text-4xl font-bold text-[#1E40AF] mb-2">
                 Bonjour, {user.name}!
               </h1>
-              <p className="text-gray-600">Suivez vos performances et progressez chaque jour</p>
+              <p className="text-gray-600">
+                Suivez vos performances et progressez chaque jour
+                {storeName && <span className="ml-2 text-[#1E40AF] font-semibold">• 🏢 {storeName}</span>}
+              </p>
             </div>
           </div>
           <div className="flex gap-2">
