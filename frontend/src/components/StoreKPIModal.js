@@ -304,12 +304,21 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       });
       if (res.data) {
         let config = res.data;
-        // Set defaults if empty
+        
+        // Enforce mutual exclusivity: if both are true, prioritize seller
+        if (config.seller_track_ca && config.manager_track_ca) config.manager_track_ca = false;
+        if (config.seller_track_ventes && config.manager_track_ventes) config.manager_track_ventes = false;
+        if (config.seller_track_clients && config.manager_track_clients) config.manager_track_clients = false;
+        if (config.seller_track_articles && config.manager_track_articles) config.manager_track_articles = false;
+        if (config.seller_track_prospects && config.manager_track_prospects) config.manager_track_prospects = false;
+        
+        // Set defaults if both are false
         if (!config.seller_track_ca && !config.manager_track_ca) config.seller_track_ca = true;
         if (!config.seller_track_ventes && !config.manager_track_ventes) config.seller_track_ventes = true;
         if (!config.seller_track_clients && !config.manager_track_clients) config.seller_track_clients = true;
         if (!config.seller_track_articles && !config.manager_track_articles) config.seller_track_articles = true;
         if (!config.seller_track_prospects && !config.manager_track_prospects) config.seller_track_prospects = true;
+        
         setKpiConfig(config);
       }
     } catch (err) {
