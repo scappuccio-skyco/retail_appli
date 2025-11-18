@@ -415,6 +415,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       // Build data with new flexible system
       const cleanedData = {
         title: newObjective.title,
+        description: newObjective.description,
         type: newObjective.type,
         visible: newObjective.visible,
         period_start: newObjective.period_start,
