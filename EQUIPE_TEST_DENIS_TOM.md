@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://store-manager-61.preview.emergentagent.com
+https://gerant-dashboard.preview.emergentagent.com
 
 ### Manager
 ```
