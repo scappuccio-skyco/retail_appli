@@ -797,6 +797,20 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           />
                         </div>
 
+
+                        {/* Description de l'objectif */}
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Description (optionnel)</label>
+                          <textarea
+                            rows="2"
+                            value={newObjective.description}
+                            onChange={(e) => setNewObjective({ ...newObjective, description: e.target.value })}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none resize-none"
+                            placeholder="Décrivez brièvement cet objectif..."
+                          />
+                        </div>
+
+
                         {/* Type d'objectif */}
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Type d'objectif *</label>
