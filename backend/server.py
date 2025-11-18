@@ -8010,13 +8010,15 @@ async def get_store_stats(store_id: str, current_user: dict = Depends(get_curren
         {
             "$group": {
                 "_id": None,
-                "total_ca": {"$sum": "$ca_journalier"}
+                "total_ca": {"$sum": "$ca_journalier"},
+                "total_ventes": {"$sum": "$nb_ventes"}
             }
         }
     ]
     
     sellers_week = await db.kpi_entries.aggregate(sellers_week_pipeline).to_list(length=1)
     sellers_week_ca = sellers_week[0].get("total_ca", 0) if sellers_week else 0
+    sellers_week_ventes = sellers_week[0].get("total_ventes", 0) if sellers_week else 0
     
     # Get managers KPIs for the week
     managers_week_pipeline = [
@@ -8029,15 +8031,18 @@ async def get_store_stats(store_id: str, current_user: dict = Depends(get_curren
         {
             "$group": {
                 "_id": None,
-                "total_ca": {"$sum": "$ca_journalier"}
+                "total_ca": {"$sum": "$ca_journalier"},
+                "total_ventes": {"$sum": "$nb_ventes"}
             }
         }
     ]
     
     managers_week = await db.manager_kpis.aggregate(managers_week_pipeline).to_list(length=1)
     managers_week_ca = managers_week[0].get("total_ca", 0) if managers_week else 0
+    managers_week_ventes = managers_week[0].get("total_ventes", 0) if managers_week else 0
     
     week_ca = sellers_week_ca + managers_week_ca
+    week_ventes = sellers_week_ventes + managers_week_ventes
     
     return {
         "store": store,
