@@ -69,6 +69,8 @@ const GerantDashboard = () => {
 
   // Auth check et chargement des données au montage
   useEffect(() => {
+    if (isInitialized) return; // Empêcher la ré-exécution
+    
     const userData = localStorage.getItem('user');
     if (!userData) {
       navigate('/login');
@@ -83,10 +85,11 @@ const GerantDashboard = () => {
     }
 
     setUser(parsedUser);
+    setIsInitialized(true);
     
     // Charger les données
     fetchDashboardData();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isInitialized, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLogout = () => {
     localStorage.removeItem('token');
