@@ -762,7 +762,10 @@ export default function ManagerDashboard({ user, onLogout }) {
               <h1 className="text-3xl md:text-4xl font-bold text-[#1E40AF] mb-1">
                 Retail Performer AI
               </h1>
-              <p className="text-gray-600">Manager Dashboard - Bienvenue, {user.name}</p>
+              <p className="text-gray-600">
+                Manager Dashboard - Bienvenue, {user.name}
+                {storeName && <span className="ml-2 text-[#1E40AF] font-semibold">• 🏢 {storeName}</span>}
+              </p>
             </div>
           </div>
           <div className="flex gap-2 flex-wrap items-center">
