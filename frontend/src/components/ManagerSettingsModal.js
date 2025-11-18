@@ -153,6 +153,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       // Pré-remplir tous les champs de l'objectif
       setNewObjective({
         title: editingObjective.title || '',
+        description: editingObjective.description || '',
         type: editingObjective.type || 'collective',
         seller_id: editingObjective.seller_id || '',
         visible: editingObjective.visible !== false,
