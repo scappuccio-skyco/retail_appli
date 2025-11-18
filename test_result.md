@@ -145,6 +145,7 @@ frontend:
 old_user_problem_statement_1: "REFONTE COMPLÈTE DU SYSTÈME D'OBJECTIFS - Découpler les objectifs des KPI généraux, permettre 3 types d'objectifs (KPI standard: CA/Ventes/Articles, Focus Produit: texte libre, Autre: personnalisé), ajouter toggles style 'Magasin' pour assigner la responsabilité de saisie (Manager/Vendeur)"
 
 old_backend:
+old_backend:
   - task: "Nouveau Système d'Objectifs Flexibles - Backend"
     implemented: true
     working: "NA"
