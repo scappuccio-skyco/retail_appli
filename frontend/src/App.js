@@ -78,7 +78,7 @@ function AppContent() {
     // Redirection selon le rôle
     if (userData.role === 'gerant') {
       // Gérant → Dashboard Gérant
-      window.location.href = '/gerant-dashboard';
+      navigate('/gerant-dashboard');
       return;
     }
     
