@@ -449,6 +449,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       toast.success('Objectif créé avec succès');
       setNewObjective({
         title: '',
+        description: '',
         type: 'collective',
         seller_id: '',
         visible: true,
