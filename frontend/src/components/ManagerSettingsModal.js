@@ -732,124 +732,128 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           </div>
                         )}
 
-                        {/* Visibilité */}
+                        {/* Visibilité - Layout horizontal */}
                         <div className="md:col-span-2">
-                          <label className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-200 cursor-pointer hover:bg-blue-100 transition-all">
-                            <input
-                              type="checkbox"
-                              checked={newObjective.visible !== false}
-                              onChange={(e) => {
-                                const isChecked = e.target.checked;
-                                setNewObjective({ ...newObjective, visible: isChecked });
-                                if (!isChecked) {
-                                  setSelectedVisibleSellers([]);
-                                }
-                              }}
-                              className="w-5 h-5 text-blue-600"
-                            />
-                            <div>
-                              <p className="font-semibold text-gray-800">👁️ Visible par les vendeurs</p>
-                              <p className="text-xs text-gray-600">Si coché, les vendeurs pourront voir cet objectif dans leur dashboard</p>
-                            </div>
-                          </label>
-                          
-                          {/* Seller selection for visibility - only for collective objectives */}
-                          {newObjective.visible !== false && newObjective.type === 'collective' && (
-                            <div className="mt-3 p-4 bg-green-50 rounded-lg border-2 border-green-200">
-                              <div className="flex items-center justify-between mb-3">
-                                <p className="text-sm font-semibold text-gray-800">👥 Sélectionner les vendeurs (optionnel)</p>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (selectedVisibleSellers.length === sellers.length) {
-                                      setSelectedVisibleSellers([]);
-                                    } else {
-                                      setSelectedVisibleSellers(sellers.map(s => s.id));
-                                    }
-                                  }}
-                                  className="text-xs px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
-                                >
-                                  {selectedVisibleSellers.length === sellers.length ? 'Tout désélectionner' : 'Tout sélectionner'}
-                                </button>
+                          <div className="flex items-start gap-4">
+                            {/* Checkbox Visible */}
+                            <label className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-200 cursor-pointer hover:bg-blue-100 transition-all flex-shrink-0">
+                              <input
+                                type="checkbox"
+                                checked={newObjective.visible !== false}
+                                onChange={(e) => {
+                                  const isChecked = e.target.checked;
+                                  setNewObjective({ ...newObjective, visible: isChecked });
+                                  if (!isChecked) {
+                                    setSelectedVisibleSellers([]);
+                                    setIsSellerDropdownOpen(false);
+                                  }
+                                }}
+                                className="w-5 h-5 text-blue-600"
+                              />
+                              <div>
+                                <p className="font-semibold text-gray-800">👁️ Visible par les vendeurs</p>
+                                <p className="text-xs text-gray-600">Si coché, les vendeurs pourront voir cet objectif</p>
                               </div>
-                              <p className="text-xs text-gray-600 mb-3">
-                                Si aucun vendeur n'est sélectionné, tous les vendeurs verront cet objectif
-                              </p>
-                              
-                              {/* Custom Dropdown with Checkboxes */}
-                              <div className="relative" ref={sellerDropdownRef}>
-                                <button
-                                  type="button"
-                                  onClick={() => setIsSellerDropdownOpen(!isSellerDropdownOpen)}
-                                  className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-green-400 focus:outline-none bg-white text-left flex items-center justify-between hover:border-green-300 transition-all"
-                                >
-                                  <span className="text-gray-700">
-                                    {selectedVisibleSellers.length === 0 
-                                      ? 'Sélectionner les vendeurs...' 
-                                      : `${selectedVisibleSellers.length} vendeur${selectedVisibleSellers.length > 1 ? 's' : ''} sélectionné${selectedVisibleSellers.length > 1 ? 's' : ''}`
-                                    }
-                                  </span>
-                                  <svg 
-                                    className={`w-5 h-5 text-gray-500 transition-transform ${isSellerDropdownOpen ? 'rotate-180' : ''}`}
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    viewBox="0 0 24 24"
+                            </label>
+                            
+                            {/* Seller selection dropdown - only for collective objectives */}
+                            {newObjective.visible !== false && newObjective.type === 'collective' && (
+                              <div className="flex-1 p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                                <div className="flex items-center justify-between mb-3">
+                                  <p className="text-sm font-semibold text-gray-800">👥 Sélectionner les vendeurs (optionnel)</p>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (selectedVisibleSellers.length === sellers.length) {
+                                        setSelectedVisibleSellers([]);
+                                      } else {
+                                        setSelectedVisibleSellers(sellers.map(s => s.id));
+                                      }
+                                    }}
+                                    className="text-xs px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
                                   >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                  </svg>
-                                </button>
+                                    {selectedVisibleSellers.length === sellers.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+                                  </button>
+                                </div>
+                                <p className="text-xs text-gray-600 mb-3">
+                                  Si aucun vendeur n'est sélectionné, tous les vendeurs verront cet objectif
+                                </p>
                                 
-                                {isSellerDropdownOpen && (
-                                  <div className="absolute z-10 w-full mt-2 bg-white border-2 border-green-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                    {sellers.map((seller) => (
-                                      <label
-                                        key={seller.id}
-                                        className="flex items-center gap-3 p-3 hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0"
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          checked={selectedVisibleSellers.includes(seller.id)}
-                                          onChange={(e) => {
-                                            if (e.target.checked) {
-                                              setSelectedVisibleSellers([...selectedVisibleSellers, seller.id]);
-                                            } else {
-                                              setSelectedVisibleSellers(selectedVisibleSellers.filter(id => id !== seller.id));
-                                            }
-                                          }}
-                                          className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                        />
-                                        <span className="text-sm text-gray-700 font-medium">{seller.name}</span>
-                                      </label>
-                                    ))}
+                                {/* Custom Dropdown with Checkboxes */}
+                                <div className="relative" ref={sellerDropdownRef}>
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsSellerDropdownOpen(!isSellerDropdownOpen)}
+                                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-green-400 focus:outline-none bg-white text-left flex items-center justify-between hover:border-green-300 transition-all"
+                                  >
+                                    <span className="text-gray-700">
+                                      {selectedVisibleSellers.length === 0 
+                                        ? 'Sélectionner les vendeurs...' 
+                                        : `${selectedVisibleSellers.length} vendeur${selectedVisibleSellers.length > 1 ? 's' : ''} sélectionné${selectedVisibleSellers.length > 1 ? 's' : ''}`
+                                      }
+                                    </span>
+                                    <svg 
+                                      className={`w-5 h-5 text-gray-500 transition-transform ${isSellerDropdownOpen ? 'rotate-180' : ''}`}
+                                      fill="none" 
+                                      stroke="currentColor" 
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </button>
+                                  
+                                  {isSellerDropdownOpen && (
+                                    <div className="absolute z-10 w-full mt-2 bg-white border-2 border-green-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                      {sellers.map((seller) => (
+                                        <label
+                                          key={seller.id}
+                                          className="flex items-center gap-3 p-3 hover:bg-green-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0"
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={selectedVisibleSellers.includes(seller.id)}
+                                            onChange={(e) => {
+                                              if (e.target.checked) {
+                                                setSelectedVisibleSellers([...selectedVisibleSellers, seller.id]);
+                                              } else {
+                                                setSelectedVisibleSellers(selectedVisibleSellers.filter(id => id !== seller.id));
+                                              }
+                                            }}
+                                            className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                          />
+                                          <span className="text-sm text-gray-700 font-medium">{seller.name}</span>
+                                        </label>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Selected sellers badges */}
+                                {selectedVisibleSellers.length > 0 && (
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    {selectedVisibleSellers.map(sellerId => {
+                                      const seller = sellers.find(s => s.id === sellerId);
+                                      return seller ? (
+                                        <span 
+                                          key={sellerId}
+                                          className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full"
+                                        >
+                                          {seller.name}
+                                          <button
+                                            type="button"
+                                            onClick={() => setSelectedVisibleSellers(selectedVisibleSellers.filter(id => id !== sellerId))}
+                                            className="ml-1 hover:text-green-900 font-bold text-lg leading-none"
+                                          >
+                                            ×
+                                          </button>
+                                        </span>
+                                      ) : null;
+                                    })}
                                   </div>
                                 )}
                               </div>
-                              
-                              {/* Selected sellers badges */}
-                              {selectedVisibleSellers.length > 0 && (
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                  {selectedVisibleSellers.map(sellerId => {
-                                    const seller = sellers.find(s => s.id === sellerId);
-                                    return seller ? (
-                                      <span 
-                                        key={sellerId}
-                                        className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full"
-                                      >
-                                        {seller.name}
-                                        <button
-                                          type="button"
-                                          onClick={() => setSelectedVisibleSellers(selectedVisibleSellers.filter(id => id !== sellerId))}
-                                          className="ml-1 hover:text-green-900 font-bold text-lg leading-none"
-                                        >
-                                          ×
-                                        </button>
-                                      </span>
-                                    ) : null;
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
 
                         <div>
