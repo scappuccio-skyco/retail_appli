@@ -358,6 +358,74 @@ const GerantDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Modals */}
+      {showCreateStoreModal && (
+        <CreateStoreModal
+          onClose={() => setShowCreateStoreModal(false)}
+          onCreate={handleCreateStore}
+        />
+      )}
+
+      {showStoreDetailModal && selectedStore && (
+        <StoreDetailModal
+          store={selectedStore}
+          onClose={() => {
+            setShowStoreDetailModal(false);
+            setSelectedStore(null);
+          }}
+          onTransferManager={(manager) => {
+            setSelectedManager(manager);
+            setShowManagerTransferModal(true);
+          }}
+          onTransferSeller={(seller) => {
+            setSelectedSeller(seller);
+            setShowSellerTransferModal(true);
+          }}
+          onDeleteStore={(store) => {
+            setSelectedStore(store);
+            setShowDeleteConfirmation(true);
+          }}
+          onRefresh={fetchDashboardData}
+        />
+      )}
+
+      {showManagerTransferModal && selectedManager && (
+        <ManagerTransferModal
+          manager={selectedManager}
+          stores={stores}
+          currentStoreId={selectedStore?.id}
+          onClose={() => {
+            setShowManagerTransferModal(false);
+            setSelectedManager(null);
+          }}
+          onTransfer={handleTransferManager}
+        />
+      )}
+
+      {showSellerTransferModal && selectedSeller && (
+        <SellerTransferModal
+          seller={selectedSeller}
+          stores={stores}
+          currentStoreId={selectedStore?.id}
+          onClose={() => {
+            setShowSellerTransferModal(false);
+            setSelectedSeller(null);
+          }}
+          onTransfer={handleTransferSeller}
+        />
+      )}
+
+      {showDeleteConfirmation && selectedStore && (
+        <DeleteStoreConfirmation
+          store={selectedStore}
+          onClose={() => {
+            setShowDeleteConfirmation(false);
+            // Don't reset selectedStore here as StoreDetailModal might still need it
+          }}
+          onDelete={handleDeleteStore}
+        />
+      )}
     </div>
   );
 };
