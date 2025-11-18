@@ -18,7 +18,6 @@ const GerantDashboard = () => {
   const [globalStats, setGlobalStats] = useState(null);
   const [storesStats, setStoresStats] = useState({});
   const [loading, setLoading] = useState(true);
-  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
   // Modal states
   const [showCreateStoreModal, setShowCreateStoreModal] = useState(false);
@@ -32,7 +31,7 @@ const GerantDashboard = () => {
   const [selectedManager, setSelectedManager] = useState(null);
   const [selectedSeller, setSelectedSeller] = useState(null);
 
-  const fetchDashboardData = useCallback(async () => {
+  const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
 
@@ -65,9 +64,9 @@ const GerantDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [backendUrl]);
+  };
 
-  // Vérifier l'auth seulement au montage
+  // Auth check et chargement des données au montage
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (!userData) {
@@ -83,15 +82,10 @@ const GerantDashboard = () => {
     }
 
     setUser(parsedUser);
-    setHasCheckedAuth(true);
+    
+    // Charger les données
+    fetchDashboardData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Charger les données une seule fois après l'auth
-  useEffect(() => {
-    if (hasCheckedAuth) {
-      fetchDashboardData();
-    }
-  }, [hasCheckedAuth, fetchDashboardData]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
