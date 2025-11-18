@@ -313,43 +313,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   };
 
 
-  // Get available KPIs based on configuration
-  const getAvailableKPIs = () => {
-    if (!kpiConfig) return [];
-    
-    const kpis = [];
-    
-    // Basic KPIs
-    if (kpiConfig.track_ca) {
-      kpis.push({ key: 'ca', label: 'Chiffre d\'Affaires', unit: '€', icon: '💰' });
-    }
-    if (kpiConfig.track_ventes) {
-      kpis.push({ key: 'ventes', label: 'Nombre de Ventes', unit: 'ventes', icon: '🛍️' });
-    }
-    if (kpiConfig.track_clients) {
-      kpis.push({ key: 'clients', label: 'Nombre de Clients', unit: 'clients', icon: '👥' });
-    }
-    if (kpiConfig.track_articles) {
-      kpis.push({ key: 'articles', label: 'Nombre d\'Articles', unit: 'articles', icon: '📦' });
-    }
-    if (kpiConfig.track_prospects) {
-      kpis.push({ key: 'prospects', label: 'Prospects', unit: 'prospects', icon: '🎯' });
-    }
-    
-    // Calculated KPIs
-    if (kpiConfig.track_ca && kpiConfig.track_ventes) {
-      kpis.push({ key: 'panier_moyen', label: 'Panier Moyen', unit: '€', icon: '💳', calculated: true });
-    }
-    if (kpiConfig.track_articles && kpiConfig.track_ventes) {
-      kpis.push({ key: 'indice_vente', label: 'Indice de Vente', unit: 'articles/vente', icon: '📊', calculated: true });
-    }
-    if (kpiConfig.track_ventes && kpiConfig.track_prospects) {
-      kpis.push({ key: 'taux_transformation', label: 'Taux de Transformation', unit: '%', icon: '🎲', calculated: true });
-    }
-    
-    return kpis;
-  };
-
   const handleCreateObjective = async (e) => {
     e.preventDefault();
     try {
