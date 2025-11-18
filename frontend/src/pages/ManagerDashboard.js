@@ -695,7 +695,7 @@ export default function ManagerDashboard({ user, onLogout }) {
             <div className="absolute inset-0 bg-gradient-to-r from-green-600/80 via-emerald-600/80 to-green-600/80 group-hover:from-green-600/70 group-hover:via-emerald-600/70 group-hover:to-green-600/70 transition-all"></div>
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
               <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
-                <Settings className="w-10 h-10 text-white" />
+                <Award className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-white text-center mb-2">🏆 Challenges</h3>
               <p className="text-sm text-white opacity-90 text-center">Lancer des challenges collectifs et/ou individuels</p>
