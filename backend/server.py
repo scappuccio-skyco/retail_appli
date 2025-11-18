@@ -4652,9 +4652,10 @@ async def get_store_kpi_overview(
     if not date:
         date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     
-    # Get manager KPIs for the date
+    # Get manager KPIs for the date (filter by manager_id AND current store_id for accuracy after transfers)
     manager_kpi = await db.manager_kpis.find_one({
         "manager_id": current_user['id'],
+        "store_id": current_user.get('store_id'),
         "date": date
     }, {"_id": 0})
     
