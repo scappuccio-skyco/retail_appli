@@ -3040,10 +3040,14 @@ async def get_seller_kpi_entries(seller_id: str, days: int = 30, current_user: d
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can access seller KPI entries")
     
-    # Verify seller belongs to this manager
-    seller = await db.users.find_one({"id": seller_id}, {"_id": 0})
-    if not seller or seller.get('manager_id') != current_user['id']:
-        raise HTTPException(status_code=404, detail="Seller not in your team")
+    # Verify seller belongs to this manager's store
+    seller = await db.users.find_one({"id": seller_id, "role": "seller"}, {"_id": 0})
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not found")
+    
+    # Check if seller is in the same store as the manager
+    if seller.get('store_id') != current_user.get('store_id'):
+        raise HTTPException(status_code=403, detail="Seller not in your store")
     
     # Calculate date threshold
     from datetime import timedelta
