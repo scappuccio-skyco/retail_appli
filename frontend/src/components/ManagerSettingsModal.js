@@ -205,6 +205,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       // Pré-remplir tous les champs du challenge
       setNewChallenge({
         title: editingChallenge.title || '',
+        description: editingChallenge.description || '',
         type: editingChallenge.type || 'collective',
         seller_id: editingChallenge.seller_id || '',
         visible: editingChallenge.visible !== false,
