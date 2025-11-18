@@ -778,68 +778,84 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </div>
             </div>
 
-            {/* Filter Toggles - Simplified */}
-            <div>
-              <p className="text-sm font-bold text-purple-900 mb-3 flex items-center gap-2">
+            {/* Filter Toggles */}
+            <div className="mb-8">
+              <p className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
-                Afficher / Masquer les sections
+                Afficher/Masquer les cartes
               </p>
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="flex flex-wrap gap-2 justify-center">
                 <button
                   onClick={() => toggleFilter('showBilan')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
                     dashboardFilters.showBilan
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-sm'
-                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
+                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  📈 Bilan
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📈</span>
+                    <span className="text-sm font-semibold whitespace-nowrap">Bilan Individuel</span>
+                  </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showObjectives')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
                     dashboardFilters.showObjectives
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-sm'
-                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
+                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  🎯 Objectifs
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🎯</span>
+                    <span className="text-sm font-semibold whitespace-nowrap">Objectifs & Challenges</span>
+                  </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showCompetences')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
                     dashboardFilters.showCompetences
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-sm'
-                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
+                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  🤖 Mon Coach IA
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🤖</span>
+                    <span className="text-sm font-semibold whitespace-nowrap">Mon Coach IA</span>
+                  </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showKPI')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
                     dashboardFilters.showKPI
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-sm'
-                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
+                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  📊 Mes KPI
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📊</span>
+                    <span className="text-sm font-semibold whitespace-nowrap">Mes KPI</span>
+                  </div>
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showDebriefs')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
                     dashboardFilters.showDebriefs
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-sm'
-                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
+                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
+                      : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
-                  📝 Analyse de vente
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📝</span>
+                    <span className="text-sm font-semibold whitespace-nowrap">Analyse de vente</span>
+                  </div>
                 </button>
               </div>
+            </div>
 
               {/* Section Reordering */}
               <div className="mt-6 pt-6 border-t-2 border-purple-100">
