@@ -70,15 +70,15 @@ const StoreCard = ({ store, stats, onClick }) => {
           </p>
         </div>
 
-        {/* Contact Info */}
-        {store.phone && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-600">{store.phone}</p>
-            {store.opening_hours && (
-              <p className="text-xs text-gray-500 mt-1">{store.opening_hours}</p>
-            )}
+        {/* Week CA */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-600">CA de la semaine</span>
+            <span className="text-sm font-bold text-blue-600">
+              {stats?.week_ca ? `${stats.week_ca.toLocaleString('fr-FR')} €` : '0 €'}
+            </span>
           </div>
-        )}
+        </div>
       </div>
 
       <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
