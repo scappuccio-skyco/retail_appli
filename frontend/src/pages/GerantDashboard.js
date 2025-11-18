@@ -12,8 +12,12 @@ const GerantDashboard = () => {
   const [globalStats, setGlobalStats] = useState(null);
   const [storesStats, setStoresStats] = useState({});
   const [loading, setLoading] = useState(true);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
+  // Vérifier l'auth seulement au montage
   useEffect(() => {
+    if (hasCheckedAuth) return;
+    
     const userData = localStorage.getItem('user');
     if (!userData) {
       navigate('/login');
@@ -28,8 +32,15 @@ const GerantDashboard = () => {
       return;
     }
 
-    fetchDashboardData();
-  }, []);
+    setHasCheckedAuth(true);
+  }, [hasCheckedAuth, navigate]);
+
+  // Fetch data après authentification
+  useEffect(() => {
+    if (hasCheckedAuth && user) {
+      fetchDashboardData();
+    }
+  }, [hasCheckedAuth, user]);
 
   const fetchDashboardData = async () => {
     try {
