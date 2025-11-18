@@ -336,13 +336,25 @@ const handleLogin = async () => {
    - Vue Manager = magasin spécifique (managed_store_id)
    - Vue Gérant = tous les magasins
 
-3. **Performance** :
+3. **Transferts indépendants** :
+   - ⚠️ **IMPORTANT** : Manager et vendeurs bougent INDÉPENDAMMENT
+   - Transfert manager → vendeurs RESTENT dans leur boutique actuelle
+   - Transfert vendeur → doit choisir un nouveau manager dans la nouvelle boutique
+   - Historique KPIs conservé avec l'ancien store_id (traçabilité)
+
+4. **Gestion des vendeurs orphelins** :
+   - Si tous les managers d'une boutique sont transférés → alerter le gérant
+   - Proposer d'assigner les vendeurs restants à un manager d'une autre boutique
+   - Ou créer un nouveau manager pour cette boutique
+
+5. **Performance** :
    - Indexer store_id dans toutes les collections
    - Agrégation efficace pour stats globales
+   - Cache pour les stats de magasins (rafraîchir toutes les heures)
 
-4. **Permissions** :
-   - Gérant voit TOUS les magasins
-   - Manager voit SON magasin uniquement
+6. **Permissions** :
+   - Gérant voit TOUS les magasins et TOUS les utilisateurs
+   - Manager voit SON magasin uniquement et SES vendeurs uniquement
    - Vendeur voit SES données uniquement
 
 ---
