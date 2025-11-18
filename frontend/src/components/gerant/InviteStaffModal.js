@@ -263,7 +263,12 @@ const InviteStaffModal = ({ onClose, onInvite, stores, selectedStoreId = null })
                 <li>• Rôle : <span className="font-semibold">{formData.role === 'manager' ? '👔 Manager' : '👥 Vendeur'}</span></li>
                 <li>• Magasin : <span className="font-semibold">{selectedStore?.name}</span></li>
                 {formData.role === 'seller' && formData.manager_id && (
-                  <li>• Manager : <span className="font-semibold">{managers.find(m => m.id === formData.manager_id)?.name}</span></li>
+                  <li>• Manager : <span className="font-semibold">
+                    {formData.manager_id.startsWith('pending_')
+                      ? `📨 ${formData.manager_email} (en attente)`
+                      : managers.find(m => m.id === formData.manager_id)?.name
+                    }
+                  </span></li>
                 )}
               </ul>
             </div>
