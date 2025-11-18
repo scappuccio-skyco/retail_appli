@@ -98,6 +98,23 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     fetchData();
   }, []);
 
+  // Close seller dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sellerDropdownRef.current && !sellerDropdownRef.current.contains(event.target)) {
+        setIsSellerDropdownOpen(false);
+      }
+    };
+
+    if (isSellerDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSellerDropdownOpen]);
+
   // Pré-remplir les champs lors de l'édition d'un objectif - NEW SYSTEM
   useEffect(() => {
     if (editingObjective) {
