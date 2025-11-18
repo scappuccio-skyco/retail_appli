@@ -114,6 +114,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [storeKPIStats, setStoreKPIStats] = useState(null);
   const [autoShowRelationshipResult, setAutoShowRelationshipResult] = useState(false);
   const [generatingAIAdvice, setGeneratingAIAdvice] = useState(false);
+  const [storeName, setStoreName] = useState('');
   const [visibleDashboardCharts, setVisibleDashboardCharts] = useState({
     ca: true,
     ventesVsClients: true,
