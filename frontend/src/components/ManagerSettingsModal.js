@@ -463,6 +463,29 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     }
   };
 
+  const handleUpdateProgress = async (objectiveId) => {
+    if (!progressValue || progressValue === '') {
+      toast.error('Veuillez entrer une valeur');
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${API}/manager/objectives/${objectiveId}/progress`,
+        { current_value: parseFloat(progressValue) },
+        { headers }
+      );
+      toast.success('Progression mise à jour avec succès');
+      setUpdatingProgressObjectiveId(null);
+      setProgressValue('');
+      fetchData();
+      if (onUpdate) onUpdate();
+    } catch (err) {
+      console.error('Error updating progress:', err);
+      toast.error(err.response?.data?.detail || 'Erreur lors de la mise à jour de la progression');
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
