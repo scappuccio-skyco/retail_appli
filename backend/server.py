@@ -742,55 +742,58 @@ class ManagerObjectivesCreate(BaseModel):
 class ObjectiveProgressUpdate(BaseModel):
     current_value: float  # New progress value
 
-# ===== CHALLENGE MODELS =====
+# ===== CHALLENGE MODELS (NEW FLEXIBLE SYSTEM) =====
 class Challenge(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     manager_id: str
     title: str
-    description: Optional[str] = None
     type: str  # "individual" or "collective"
     seller_id: Optional[str] = None  # Only for individual challenges
     visible: bool = True  # Visible by sellers
     visible_to_sellers: Optional[List[str]] = None  # Specific seller IDs (empty = all sellers)
-    # Objectives
-    ca_target: Optional[float] = None
-    ventes_target: Optional[int] = None
-    indice_vente_target: Optional[float] = None
-    panier_moyen_target: Optional[float] = None
+    
+    # NEW FLEXIBLE CHALLENGE SYSTEM (same as objectives)
+    challenge_type: str  # "kpi_standard" | "product_focus" | "custom"
+    kpi_name: Optional[str] = None  # For kpi_standard: "ca", "ventes", "articles"
+    product_name: Optional[str] = None  # For product_focus: free text
+    custom_description: Optional[str] = None  # For custom: free text description
+    target_value: float  # Target value
+    data_entry_responsible: str  # "manager" | "seller"
+    current_value: float = 0.0  # Current progress value
+    unit: Optional[str] = None  # Unit for display (€, ventes, articles, etc.)
+    
     # Dates
     start_date: str  # Format: YYYY-MM-DD
     end_date: str  # Format: YYYY-MM-DD
     # Status
-    status: str = "active"  # active, completed, failed
-    # Progress (calculated)
-    progress_ca: float = 0
-    progress_ventes: int = 0
-    progress_indice_vente: float = 0
-    progress_panier_moyen: float = 0
+    status: str = "active"  # "active", "achieved", "failed"
     # Metadata
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
 
 class ChallengeCreate(BaseModel):
     title: str
-    description: Optional[str] = None
     type: str  # "individual" or "collective"
     seller_id: Optional[str] = None
     visible: bool = True  # Visible by sellers
     visible_to_sellers: Optional[List[str]] = None  # Specific seller IDs (empty = all sellers)
-    # Tous les KPI possibles
-    ca_target: Optional[float] = None
-    ventes_target: Optional[float] = None
-    clients_target: Optional[float] = None
-    articles_target: Optional[float] = None
-    prospects_target: Optional[float] = None
-    panier_moyen_target: Optional[float] = None
-    indice_vente_target: Optional[float] = None
-    taux_transformation_target: Optional[float] = None
+    
+    # NEW FLEXIBLE CHALLENGE SYSTEM
+    challenge_type: str  # "kpi_standard" | "product_focus" | "custom"
+    kpi_name: Optional[str] = None  # For kpi_standard: "ca", "ventes", "articles"
+    product_name: Optional[str] = None  # For product_focus: free text
+    custom_description: Optional[str] = None  # For custom: free text description
+    target_value: float  # Target value
+    data_entry_responsible: str  # "manager" | "seller"
+    unit: Optional[str] = None  # Unit for display
+    
     start_date: str
     end_date: str
-    status: Optional[str] = "active"
+
+class ChallengeProgressUpdate(BaseModel):
+    current_value: float  # New progress value
 
 # ===== AUTH HELPERS =====
 def hash_password(password: str) -> str:
