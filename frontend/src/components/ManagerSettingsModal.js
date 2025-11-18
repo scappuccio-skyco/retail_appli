@@ -479,6 +479,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       // Build data with new flexible system from newObjective state (which contains editingObjective data)
       const cleanedData = {
         title: newObjective.title,
+        description: newObjective.description,
         period_start: newObjective.period_start,
         period_end: newObjective.period_end,
         type: newObjective.type,
