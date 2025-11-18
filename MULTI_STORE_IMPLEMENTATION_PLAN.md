@@ -152,12 +152,26 @@ async def get_store_managers(store_id: str, current_user: dict = Depends(get_cur
 @api_router.get("/gerant/stores/{store_id}/sellers")
 async def get_store_sellers(store_id: str, current_user: dict = Depends(get_current_user))
 
-# --- MANAGERS ASSIGNMENT ---
+# --- MANAGERS ASSIGNMENT & TRANSFER ---
 @api_router.post("/gerant/stores/{store_id}/assign-manager")
 async def assign_manager_to_store(store_id: str, manager_email: str, current_user: dict = Depends(get_current_user))
 
 @api_router.post("/gerant/stores/{store_id}/remove-manager")
 async def remove_manager_from_store(store_id: str, manager_id: str, current_user: dict = Depends(get_current_user))
+
+@api_router.post("/gerant/managers/{manager_id}/transfer")
+async def transfer_manager_to_store(
+    manager_id: str, 
+    new_store_id: str, 
+    transfer_sellers: bool,  # True = vendeurs suivent, False = vendeurs restent
+    current_user: dict = Depends(get_current_user)
+)
+
+@api_router.get("/gerant/managers")
+async def get_all_managers(current_user: dict = Depends(get_current_user))
+
+@api_router.get("/gerant/managers/{manager_id}/sellers")
+async def get_manager_sellers(manager_id: str, current_user: dict = Depends(get_current_user))
 ```
 
 ---
