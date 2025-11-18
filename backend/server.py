@@ -3196,11 +3196,15 @@ async def generate_all_team_bilans(current_user: dict = Depends(get_current_user
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can generate team bilans")
     
-    # Get all sellers for this manager
-    sellers = await db.users.find({"manager_id": current_user['id'], "role": "seller"}, {"_id": 0}).to_list(1000)
+    # Get all sellers in this manager's store
+    sellers = await db.users.find({
+        "store_id": current_user.get('store_id'),
+        "role": "seller",
+        "status": {"$nin": ["deleted", "inactive"]}
+    }, {"_id": 0}).to_list(1000)
     
     if not sellers:
-        raise HTTPException(status_code=404, detail="No sellers in your team")
+        raise HTTPException(status_code=404, detail="No sellers in your store")
     
     # Get date range of all KPI data
     seller_ids = [s['id'] for s in sellers]
@@ -3461,11 +3465,15 @@ async def generate_team_bilan(
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can generate team bilan")
     
-    # Get all sellers for this manager
-    sellers = await db.users.find({"manager_id": current_user['id'], "role": "seller"}, {"_id": 0}).to_list(1000)
+    # Get all sellers in this manager's store
+    sellers = await db.users.find({
+        "store_id": current_user.get('store_id'),
+        "role": "seller",
+        "status": {"$nin": ["deleted", "inactive"]}
+    }, {"_id": 0}).to_list(1000)
     
     if not sellers:
-        raise HTTPException(status_code=404, detail="No sellers in your team")
+        raise HTTPException(status_code=404, detail="No sellers in your store")
     
     # Determine period
     if start_date and end_date:
