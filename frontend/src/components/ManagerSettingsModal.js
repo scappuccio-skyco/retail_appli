@@ -381,6 +381,30 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     }
   };
 
+  const handleUpdateChallengeProgress = async (challengeId) => {
+    if (!challengeProgressValue || challengeProgressValue === '') {
+      toast.error('Veuillez entrer une valeur');
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${API}/manager/challenges/${challengeId}/progress`,
+        { current_value: parseFloat(challengeProgressValue) },
+        { headers }
+      );
+      toast.success('Progression mise à jour avec succès');
+      setUpdatingProgressChallengeId(null);
+      setChallengeProgressValue('');
+      fetchData();
+      if (onUpdate) onUpdate();
+    } catch (err) {
+      console.error('Error updating challenge progress:', err);
+      toast.error(err.response?.data?.detail || 'Erreur lors de la mise à jour de la progression');
+    }
+  };
+
+
 
   const handleCreateObjective = async (e) => {
     e.preventDefault();
