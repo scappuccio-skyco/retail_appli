@@ -8313,6 +8313,133 @@ async def register_with_gerant_invite(invite_data: RegisterWithGerantInvite):
         }
     }
 
+
+# ============================================
+# GERANT STORE PERFORMANCE ENDPOINTS
+# ============================================
+
+@api_router.get("/gerant/stores/{store_id}/kpi-overview")
+async def get_gerant_store_kpi_overview(
+    store_id: str,
+    date: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get consolidated store KPI overview for a specific store (Gérant only)"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le magasin appartient au gérant
+    store = await db.stores.find_one(
+        {"id": store_id, "gerant_id": current_user['id'], "active": True},
+        {"_id": 0}
+    )
+    if not store:
+        raise HTTPException(status_code=404, detail="Magasin non trouvé")
+    
+    if not date:
+        date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    # Get all managers in this store
+    managers = await db.users.find({
+        "store_id": store_id,
+        "role": "manager",
+        "gerant_id": current_user['id']
+    }, {"_id": 0, "id": 1}).to_list(100)
+    
+    manager_ids = [m['id'] for m in managers]
+    
+    # Get all sellers in this store
+    sellers = await db.users.find({
+        "store_id": store_id,
+        "role": "seller",
+        "status": "active",
+        "gerant_id": current_user['id']
+    }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+    
+    seller_ids = [s['id'] for s in sellers]
+    
+    # Aggregate manager KPIs for the date
+    manager_kpis_list = []
+    if manager_ids:
+        manager_kpis_list = await db.manager_kpis.find({
+            "manager_id": {"$in": manager_ids},
+            "date": date
+        }, {"_id": 0}).to_list(100)
+    
+    # Aggregate seller KPI entries for the date
+    seller_entries = []
+    if seller_ids:
+        seller_entries = await db.kpi_entries.find({
+            "seller_id": {"$in": seller_ids},
+            "date": date
+        }, {"_id": 0}).to_list(100)
+    
+    # Enrich seller entries with names
+    for entry in seller_entries:
+        seller = next((s for s in sellers if s['id'] == entry['seller_id']), None)
+        if seller:
+            entry['seller_name'] = seller['name']
+    
+    # Aggregate totals from managers
+    managers_total = {
+        "ca_journalier": sum(kpi.get("ca_journalier", 0) for kpi in manager_kpis_list),
+        "nb_ventes": sum(kpi.get("nb_ventes", 0) for kpi in manager_kpis_list),
+        "nb_clients": sum(kpi.get("nb_clients", 0) for kpi in manager_kpis_list),
+        "nb_articles": sum(kpi.get("nb_articles", 0) for kpi in manager_kpis_list),
+        "nb_prospects": sum(kpi.get("nb_prospects", 0) for kpi in manager_kpis_list)
+    }
+    
+    # Aggregate totals from sellers
+    sellers_total = {
+        "ca_journalier": sum(entry.get("ca_journalier", 0) for entry in seller_entries),
+        "nb_ventes": sum(entry.get("nb_ventes", 0) for entry in seller_entries),
+        "nb_clients": sum(entry.get("nb_clients", 0) for entry in seller_entries),
+        "nb_articles": sum(entry.get("nb_articles", 0) for entry in seller_entries),
+        "nb_prospects": sum(entry.get("nb_prospects", 0) for entry in seller_entries),
+        "nb_sellers_reported": len(seller_entries)
+    }
+    
+    # Calculate store totals
+    total_ca = managers_total["ca_journalier"] + sellers_total["ca_journalier"]
+    total_ventes = managers_total["nb_ventes"] + sellers_total["nb_ventes"]
+    total_clients = managers_total["nb_clients"] + sellers_total["nb_clients"]
+    total_articles = managers_total["nb_articles"] + sellers_total["nb_articles"]
+    total_prospects = managers_total["nb_prospects"] + sellers_total["nb_prospects"]
+    
+    # Calculate derived KPIs
+    calculated_kpis = {
+        "panier_moyen": round(total_ca / total_ventes, 2) if total_ventes > 0 else None,
+        "taux_transformation": round((total_ventes / total_prospects) * 100, 2) if total_prospects > 0 else None,
+        "indice_vente": round(total_articles / total_ventes, 2) if total_ventes > 0 else None
+    }
+    
+    return {
+        "date": date,
+        "store": store,
+        "managers_data": managers_total,
+        "sellers_data": sellers_total,
+        "seller_entries": seller_entries,
+        "total_managers": len(managers),
+        "total_sellers": len(sellers),
+        "sellers_reported": len(seller_entries),
+        "calculated_kpis": calculated_kpis,
+        "totals": {
+            "ca": total_ca,
+            "ventes": total_ventes,
+            "clients": total_clients,
+            "articles": total_articles,
+            "prospects": total_prospects
+        },
+        "kpi_config": {
+            "seller_track_ca": True,
+            "seller_track_ventes": True,
+            "seller_track_clients": True,
+            "seller_track_articles": True,
+            "seller_track_prospects": True
+        }
+    }
+
+
 # Include router
 app.include_router(api_router)
 
