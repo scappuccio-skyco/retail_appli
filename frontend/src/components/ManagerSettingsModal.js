@@ -777,7 +777,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               </p>
                               
                               {/* Custom Dropdown with Checkboxes */}
-                              <div className="relative">
+                              <div className="relative" ref={sellerDropdownRef}>
                                 <button
                                   type="button"
                                   onClick={() => setIsSellerDropdownOpen(!isSellerDropdownOpen)}
