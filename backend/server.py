@@ -4086,6 +4086,22 @@ async def update_kpi_config(config_update: KPIConfigUpdate, current_user: dict =
         raise HTTPException(status_code=403, detail="Only managers can update KPI config")
     
     update_data = {k: v for k, v in config_update.model_dump().items() if v is not None}
+    
+    # Enforce mutual exclusivity: a KPI cannot be tracked by both seller AND manager
+    # If both are set to true for the same KPI, prioritize seller
+    kpi_pairs = [
+        ('seller_track_ca', 'manager_track_ca'),
+        ('seller_track_ventes', 'manager_track_ventes'),
+        ('seller_track_clients', 'manager_track_clients'),
+        ('seller_track_articles', 'manager_track_articles'),
+        ('seller_track_prospects', 'manager_track_prospects')
+    ]
+    
+    for seller_field, manager_field in kpi_pairs:
+        if update_data.get(seller_field) is True and update_data.get(manager_field) is True:
+            # Both cannot be true simultaneously - prioritize seller
+            update_data[manager_field] = False
+    
     update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
     
     result = await db.kpi_configs.update_one(
