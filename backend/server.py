@@ -3123,10 +3123,14 @@ async def get_seller_debriefs(seller_id: str, current_user: dict = Depends(get_c
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can access seller debriefs")
     
-    # Verify seller belongs to this manager
-    seller = await db.users.find_one({"id": seller_id}, {"_id": 0})
-    if not seller or seller.get('manager_id') != current_user['id']:
-        raise HTTPException(status_code=404, detail="Seller not in your team")
+    # Verify seller belongs to this manager's store
+    seller = await db.users.find_one({
+        "id": seller_id,
+        "store_id": current_user.get('store_id'),
+        "role": "seller"
+    }, {"_id": 0})
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not in your store")
     
     # Get all debriefs for this seller that are visible to manager
     debriefs = await db.debriefs.find(
@@ -3142,10 +3146,14 @@ async def get_seller_competences_history(seller_id: str, current_user: dict = De
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can access seller competences")
     
-    # Verify seller belongs to this manager
-    seller = await db.users.find_one({"id": seller_id}, {"_id": 0})
-    if not seller or seller.get('manager_id') != current_user['id']:
-        raise HTTPException(status_code=404, detail="Seller not in your team")
+    # Verify seller belongs to this manager's store
+    seller = await db.users.find_one({
+        "id": seller_id,
+        "store_id": current_user.get('store_id'),
+        "role": "seller"
+    }, {"_id": 0})
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not in your store")
     
     history = []
     
