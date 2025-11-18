@@ -353,13 +353,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const handleCreateObjective = async (e) => {
     e.preventDefault();
     try {
-      // Build cleaned data with selected KPI targets
+      // Build data with new flexible system
       const cleanedData = {
         title: newObjective.title,
         type: newObjective.type,
         visible: newObjective.visible,
         period_start: newObjective.period_start,
-        period_end: newObjective.period_end
+        period_end: newObjective.period_end,
+        objective_type: newObjective.objective_type,
+        target_value: parseFloat(newObjective.target_value),
+        data_entry_responsible: newObjective.data_entry_responsible,
+        unit: newObjective.unit
       };
       
       // Add seller_id if individual type
@@ -372,13 +376,14 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.visible_to_sellers = selectedVisibleSellers;
       }
       
-      // Add selected KPI targets
-      Object.keys(selectedKPIs).forEach(kpiKey => {
-        if (selectedKPIs[kpiKey] && newObjective.kpi_targets[kpiKey]) {
-          const targetKey = `${kpiKey}_target`;
-          cleanedData[targetKey] = parseFloat(newObjective.kpi_targets[kpiKey]);
-        }
-      });
+      // Add specific fields based on objective_type
+      if (newObjective.objective_type === 'kpi_standard') {
+        cleanedData.kpi_name = newObjective.kpi_name;
+      } else if (newObjective.objective_type === 'product_focus') {
+        cleanedData.product_name = newObjective.product_name;
+      } else if (newObjective.objective_type === 'custom') {
+        cleanedData.custom_description = newObjective.custom_description;
+      }
       
       await axios.post(`${API}/manager/objectives`, cleanedData, { headers });
       toast.success('Objectif créé avec succès');
@@ -390,9 +395,14 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         visible_to_sellers: [],
         period_start: '',
         period_end: '',
-        kpi_targets: {}
+        objective_type: 'kpi_standard',
+        kpi_name: 'ca',
+        product_name: '',
+        custom_description: '',
+        target_value: '',
+        data_entry_responsible: 'manager',
+        unit: '€'
       });
-      setSelectedKPIs({});
       setSelectedVisibleSellers([]);
       fetchData();
       if (onUpdate) onUpdate();
