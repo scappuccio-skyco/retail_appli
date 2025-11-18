@@ -8538,6 +8538,40 @@ async def get_gerant_store_kpi_history(
     # Convert to sorted list
     historical_data = sorted(date_map.values(), key=lambda x: x['date'])
     
+
+
+# ============================================
+# STORE INFO ENDPOINT (For all authenticated users)
+# ============================================
+
+@api_router.get("/stores/{store_id}/info")
+async def get_store_info(
+    store_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get basic store information (accessible by managers and sellers)"""
+    # Vérifier que l'utilisateur a accès à ce magasin
+    if current_user['role'] == 'gerant':
+        # Gérant peut accéder à tous ses magasins
+        store = await db.stores.find_one(
+            {"id": store_id, "gerant_id": current_user['id'], "active": True},
+            {"_id": 0, "id": 1, "name": 1, "location": 1, "address": 1}
+        )
+    else:
+        # Manager et Seller peuvent accéder uniquement à leur magasin
+        if current_user.get('store_id') != store_id:
+            raise HTTPException(status_code=403, detail="Accès non autorisé à ce magasin")
+        
+        store = await db.stores.find_one(
+            {"id": store_id, "active": True},
+            {"_id": 0, "id": 1, "name": 1, "location": 1, "address": 1}
+        )
+    
+    if not store:
+        raise HTTPException(status_code=404, detail="Magasin non trouvé")
+    
+    return store
+
     return {
         "store": store,
         "days": days,
