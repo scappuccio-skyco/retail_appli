@@ -571,26 +571,26 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                     {/* Manager data */}
                     <div className="bg-white rounded-lg p-3 border border-gray-200">
                       <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1.5">
-                        <span>👨‍💼</span> Données Manager
+                        <span>👨‍💼</span> Données Manager{storeId && 's'}
                       </h3>
-                      {Object.keys(overviewData.manager_data).length > 0 ? (
+                      {hasManagerData ? (
                         <div className="space-y-1.5">
-                          {overviewData.manager_data.ca_journalier > 0 && (
+                          {managerData.ca_journalier > 0 && (
                             <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                               <span className="text-xs text-gray-600">💰 CA Journalier</span>
-                              <span className="text-sm font-bold text-gray-800">{overviewData.manager_data.ca_journalier} €</span>
+                              <span className="text-sm font-bold text-gray-800">{managerData.ca_journalier} €</span>
                             </div>
                           )}
-                          {overviewData.manager_data.nb_ventes > 0 && (
+                          {managerData.nb_ventes > 0 && (
                             <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                               <span className="text-xs text-gray-600">🛍️ Ventes</span>
-                              <span className="text-sm font-bold text-gray-800">{overviewData.manager_data.nb_ventes}</span>
+                              <span className="text-sm font-bold text-gray-800">{managerData.nb_ventes}</span>
                             </div>
                           )}
-                          {overviewData.manager_data.nb_clients > 0 && (
+                          {managerData.nb_clients > 0 && (
                             <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                               <span className="text-xs text-gray-600">👥 Clients</span>
-                              <span className="text-sm font-bold text-gray-800">{overviewData.manager_data.nb_clients}</span>
+                              <span className="text-sm font-bold text-gray-800">{managerData.nb_clients}</span>
                             </div>
                           )}
                           {overviewData.manager_data.nb_articles > 0 && (
