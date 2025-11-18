@@ -3671,10 +3671,10 @@ class RetailCoachAPITester:
         if not success:
             print("   ⚠️  Gérant account creation failed - account may already exist")
         
-        # Login as gérant with provided credentials
+        # Login as gérant with correct credentials
         gerant_credentials = {
             "email": "gerant@skyco.fr",
-            "password": "demo123"
+            "password": "gerant123"
         }
         
         success, response = self.run_test(
