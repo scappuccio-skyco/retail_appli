@@ -4697,9 +4697,10 @@ async def get_store_kpi_overview(
         sellers_total["nb_articles"] += entry.get("nb_articles", 0)
         sellers_total["nb_prospects"] += entry.get("nb_prospects", 0)
     
-    # Get store prospects (separate collection)
+    # Get store prospects (separate collection) - filter by current store_id
     store_kpi = await db.store_kpis.find_one({
         "manager_id": current_user['id'],
+        "store_id": current_user.get('store_id'),
         "date": date
     }, {"_id": 0})
     
