@@ -818,32 +818,18 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   🤖 Mon Coach IA
                 </button>
 
-                <button
-                  onClick={() => toggleFilter('showKPI')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    dashboardFilters.showKPI
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-sm'
-                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">📊</span>
-                    <span className="text-xs font-semibold">KPI</span>
-                  </div>
+                  📊 Mes KPI
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showDebriefs')}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     dashboardFilters.showDebriefs
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-sm'
                       : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">📊</span>
-                    <span className="text-xs font-semibold">Analyse de vente</span>
-                  </div>
+                  📝 Analyse de vente
                 </button>
               </div>
 
