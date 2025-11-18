@@ -9,16 +9,14 @@ import ManagerTransferModal from '../components/gerant/ManagerTransferModal';
 import SellerTransferModal from '../components/gerant/SellerTransferModal';
 import DeleteStoreConfirmation from '../components/gerant/DeleteStoreConfirmation';
 
-const GerantDashboard = () => {
+const GerantDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
-  const [user, setUser] = useState(null);
   const [stores, setStores] = useState([]);
   const [globalStats, setGlobalStats] = useState(null);
   const [storesStats, setStoresStats] = useState({});
   const [loading, setLoading] = useState(true);
-  const isInitializedRef = useRef(false);
 
   // Modal states
   const [showCreateStoreModal, setShowCreateStoreModal] = useState(false);
