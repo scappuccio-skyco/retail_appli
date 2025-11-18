@@ -336,13 +336,22 @@ const GerantDashboard = ({ user, onLogout }) => {
               <Building2 className="w-6 h-6 text-purple-600" />
               Mes Magasins
             </h2>
-            <button
-              onClick={() => setShowCreateStoreModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
-            >
-              <Plus className="w-5 h-5" />
-              Nouveau Magasin
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowInviteStaffModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+              >
+                <Users className="w-5 h-5" />
+                Inviter du Personnel
+              </button>
+              <button
+                onClick={() => setShowCreateStoreModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                Nouveau Magasin
+              </button>
+            </div>
           </div>
 
           {stores.length === 0 ? (
