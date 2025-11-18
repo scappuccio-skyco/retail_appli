@@ -754,28 +754,53 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               <p className="text-xs text-gray-600 mb-3">
                                 Si aucun vendeur n'est sélectionné, tous les vendeurs verront cet objectif
                               </p>
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                              
+                              {/* Multi-select Dropdown */}
+                              <select
+                                multiple
+                                value={selectedVisibleSellers}
+                                onChange={(e) => {
+                                  const selected = Array.from(e.target.selectedOptions, option => option.value);
+                                  setSelectedVisibleSellers(selected);
+                                }}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-green-400 focus:outline-none bg-white"
+                                style={{ minHeight: '120px' }}
+                              >
                                 {sellers.map((seller) => (
-                                  <label
-                                    key={seller.id}
-                                    className="flex items-center gap-2 p-2 bg-white rounded border-2 border-gray-200 hover:border-green-400 cursor-pointer transition-all"
+                                  <option 
+                                    key={seller.id} 
+                                    value={seller.id}
+                                    className="p-2 hover:bg-green-100 cursor-pointer"
                                   >
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedVisibleSellers.includes(seller.id)}
-                                      onChange={(e) => {
-                                        if (e.target.checked) {
-                                          setSelectedVisibleSellers([...selectedVisibleSellers, seller.id]);
-                                        } else {
-                                          setSelectedVisibleSellers(selectedVisibleSellers.filter(id => id !== seller.id));
-                                        }
-                                      }}
-                                      className="w-4 h-4 text-[#10B981]"
-                                    />
-                                    <span className="text-sm text-gray-700">{seller.name}</span>
-                                  </label>
+                                    {seller.name}
+                                  </option>
                                 ))}
-                              </div>
+                              </select>
+                              <p className="text-xs text-gray-500 mt-2">
+                                💡 Maintenez Ctrl (Windows) ou Cmd (Mac) pour sélectionner plusieurs vendeurs
+                              </p>
+                              {selectedVisibleSellers.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {selectedVisibleSellers.map(sellerId => {
+                                    const seller = sellers.find(s => s.id === sellerId);
+                                    return seller ? (
+                                      <span 
+                                        key={sellerId}
+                                        className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full"
+                                      >
+                                        {seller.name}
+                                        <button
+                                          type="button"
+                                          onClick={() => setSelectedVisibleSellers(selectedVisibleSellers.filter(id => id !== sellerId))}
+                                          className="hover:text-green-900"
+                                        >
+                                          ×
+                                        </button>
+                                      </span>
+                                    ) : null;
+                                  })}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
