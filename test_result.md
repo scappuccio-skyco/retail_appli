@@ -120,7 +120,7 @@ backend:
         comment: "REFONTE BACKEND OBJECTIFS IMPLÉMENTÉE: ✅ NOUVEAUX MODÈLES: ManagerObjectives et ManagerObjectivesCreate mis à jour avec le système flexible (objective_type: kpi_standard/product_focus/custom, kpi_name, product_name, custom_description, target_value, data_entry_responsible: manager/seller, current_value, unit). ✅ VALIDATIONS: Ajout de validations strictes dans POST et PUT pour valider objective_type et data_entry_responsible. ✅ NOUVEL ENDPOINT: POST /api/manager/objectives/{id}/progress pour mettre à jour la progression avec gestion des permissions (manager ou seller selon data_entry_responsible). ✅ LOGIQUE MÉTIER: Calcul automatique du status (achieved/failed/active) basé sur current_value vs target_value. ✅ PRÊT POUR TESTS BACKEND."
 
 frontend:
-  - task: "Nouveau Système d'Objectifs Flexibles - Frontend"
+  - task: "Nouveau Système d'Objectifs Flexibles - Frontend Manager"
     implemented: true
     working: "NA"
     file: "/app/frontend/src/components/ManagerSettingsModal.js"
@@ -130,7 +130,19 @@ frontend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "REFONTE FRONTEND OBJECTIFS IMPLÉMENTÉE: ✅ FORMULAIRE SIMPLIFIÉ: Remplacement de la sélection multiple de KPI par un système à 3 types (dropdown: KPI Standard, Focus Produit, Autre). ✅ CHAMPS CONDITIONNELS: Affichage dynamique selon objective_type (dropdown KPI pour standard, input texte pour produit, textarea pour custom). ✅ TOGGLES STYLE 'MAGASIN': Implémentation exacte des toggles (🧑‍💼 Vendeur cyan / 👨‍💼 Manager orange) avec classes identiques à StoreKPIModal. ✅ VALEUR CIBLE + UNITÉ: Inputs séparés pour target_value et unit (auto-rempli pour KPI standards). ✅ AFFICHAGE LISTE: Nouveau design avec badge coloré pour data_entry_responsible, détails conditionnels selon objective_type, barre de progression unique basée sur current_value. ✅ STATE MANAGEMENT: Refonte complète du state newObjective, suppression de selectedKPIs, mise à jour de handleCreate/Update/Edit. ✅ CLEANUP: Suppression de getAvailableKPIs() et de l'ancien système de barres de progression multiples. ✅ PRÊT POUR TESTS FRONTEND."
+        comment: "REFONTE FRONTEND OBJECTIFS IMPLÉMENTÉE: ✅ FORMULAIRE SIMPLIFIÉ: Remplacement dropdown par radio buttons horizontaux (KPI Standard/Focus Produit/Autre). ✅ CHAMPS CONDITIONNELS: Affichage dynamique selon objective_type. ✅ TOGGLES STYLE 'MAGASIN': Implémentation exacte des toggles (🧑‍💼 Vendeur cyan / 👨‍💼 Manager orange). ✅ DROPDOWN MULTI-SELECT VENDEURS: Implémentation d'un dropdown personnalisé avec checkboxes, fermeture au clic extérieur (useRef + useEffect), badges affichés. ✅ LAYOUT HORIZONTAL: Checkbox 'Visible' et dropdown vendeurs côte à côte. ✅ SAISIE PROGRESSION MANAGER: Bouton 'Mettre à jour la progression' avec formulaire inline, appel API POST /api/manager/objectives/{id}/progress. ✅ STATE MANAGEMENT complet. ✅ PRÊT POUR TESTS FRONTEND."
+
+  - task: "Nouveau Système d'Objectifs - Frontend Vendeur"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/ObjectivesAndChallengesModal.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "REFONTE AFFICHAGE OBJECTIFS VENDEUR: ✅ MIGRATION NOUVEAU SYSTÈME: Remplacement de calculateProgress() pour utiliser current_value/target_value au lieu de l'ancien système. ✅ AFFICHAGE CORRECT STATUS: Utilisation de objective.status (achieved/failed/active) au lieu de status local calculé. ✅ BADGE RESPONSABLE: Affichage badge cyan (Vendeur) ou orange (Manager) selon data_entry_responsible. ✅ AFFICHAGE CONDITIONNEL TYPE: Display du type d'objectif (KPI Standard/Focus Produit/Personnalisé) avec détails. ✅ SAISIE PROGRESSION VENDEUR: Bouton 'Mettre à jour ma progression' avec formulaire inline (cyan), visible uniquement si data_entry_responsible === 'seller'. ✅ APPEL API: POST /api/manager/objectives/{id}/progress avec gestion erreurs. ✅ CALLBACK onUpdate: Ajout dans SellerDashboard.js pour rafraîchir les données. ✅ FIX BADGE 'ATTEINT': Correction du bug d'affichage incorrect du status. ✅ PRÊT POUR TESTS VENDEUR."
 
   - task: "Relationship Management & Conflict Resolution APIs"
     implemented: true
