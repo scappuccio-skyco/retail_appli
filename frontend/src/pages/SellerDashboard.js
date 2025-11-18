@@ -913,7 +913,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   })}
                 </div>
               </div>
-            </div>
           </div>
         </div>
       )}
