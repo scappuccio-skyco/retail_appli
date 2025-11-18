@@ -126,15 +126,18 @@ backend:
 frontend:
   - task: "Gerant Dashboard - Intégration Modaux"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/GerantDashboard.js"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "INTÉGRATION COMPLÈTE DES MODAUX GÉRANT: ✅ IMPORTS: Ajout de toast (sonner) et tous les modaux (CreateStoreModal, StoreDetailModal, ManagerTransferModal, SellerTransferModal, DeleteStoreConfirmation). ✅ STATE MANAGEMENT: Ajout de 8 états pour gérer l'ouverture/fermeture des modaux et les éléments sélectionnés (showCreateStoreModal, showStoreDetailModal, showManagerTransferModal, showSellerTransferModal, showDeleteConfirmation, selectedStore, selectedManager, selectedSeller). ✅ HANDLERS API: Implémentation de 4 fonctions avec appels API backend (handleCreateStore POST /api/gerant/stores, handleTransferManager POST /api/gerant/managers/{id}/transfer, handleTransferSeller POST /api/gerant/sellers/{id}/transfer, handleDeleteStore DELETE /api/gerant/stores/{id}). ✅ GESTION ERREURS: Try/catch dans chaque handler avec throw pour remonter au modal. ✅ TOAST NOTIFICATIONS: Toast success pour chaque action réussie, toast warning si vendeurs orphelins après transfert manager. ✅ REFRESH DATA: Appel fetchDashboardData() après chaque action pour rafraîchir l'UI. ✅ BOUTONS CONNECTÉS: Boutons 'Nouveau Magasin' (2 instances) et StoreCard onClick connectés aux modaux. ✅ MODALS RENDERING: Tous les 5 modaux rendus conditionnellement avec props correctes. ✅ MODAL CHAINING: StoreDetailModal peut ouvrir ManagerTransferModal, SellerTransferModal ou DeleteStoreConfirmation. ✅ PRÊT POUR TESTS FRONTEND."
+      - working: true
+        agent: "main"
+        comment: "BUG BOUCLE INFINIE CORRIGÉ: ❌ PROBLÈME: Boucle infinie 'Maximum update depth exceeded' empêchait le chargement du dashboard. ✅ ROOT CAUSE: GerantDashboard gérait son propre state user et auth check dans useEffect, créant des re-renders infinis. ManagerDashboard fonctionnait car il reçoit user comme prop d'App.js. ✅ SOLUTION: Refactorisation pour suivre le même pattern que ManagerDashboard - accepter user et onLogout comme props, supprimer auth check local, simplifier useEffect à un seul appel fetchDashboardData conditionné par user. ✅ CHANGEMENTS: 1) Signature fonction: export default function GerantDashboard({ user, onLogout }). 2) Supprimé state local user et isInitializedRef. 3) useEffect simplifié: if (user) fetchDashboardData(). 4) handleLogoutClick utilise prop onLogout. 5) App.js: changé window.location.href en navigate('/gerant-dashboard'). ✅ VALIDATION: Screenshot confirme dashboard charge avec 3 magasins (Paris, Lyon, Bordeaux), stats globales (5 managers, 23 vendeurs, 5720€ CA), aucune erreur console, 0 occurrence 'Maximum update depth'. ✅ DASHBOARD GÉRANT 100% FONCTIONNEL."
 
   - task: "Gerant Modals Components"
     implemented: true
