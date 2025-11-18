@@ -5600,6 +5600,67 @@ async def delete_challenge(challenge_id: str, current_user: dict = Depends(get_c
     
     return {"message": "Challenge deleted successfully", "id": challenge_id}
 
+@api_router.post("/manager/challenges/{challenge_id}/progress")
+async def update_challenge_progress(
+    challenge_id: str,
+    progress_data: ChallengeProgressUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update progress for a challenge - can be called by manager or seller based on data_entry_responsible"""
+    
+    # Get the challenge
+    challenge = await db.challenges.find_one(
+        {"id": challenge_id},
+        {"_id": 0}
+    )
+    
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    
+    # Check authorization based on data_entry_responsible
+    if challenge['data_entry_responsible'] == 'manager':
+        # Only the manager who created the challenge can update
+        if current_user['role'] != 'manager' or current_user['id'] != challenge['manager_id']:
+            raise HTTPException(status_code=403, detail="Only the manager can update this challenge's progress")
+    elif challenge['data_entry_responsible'] == 'seller':
+        # Check if seller is authorized
+        if current_user['role'] == 'seller':
+            # For individual challenges, only the assigned seller can update
+            if challenge['type'] == 'individual' and challenge.get('seller_id') != current_user['id']:
+                raise HTTPException(status_code=403, detail="You are not authorized to update this challenge")
+            # For collective challenges, check if seller is in visible_to_sellers or if it's visible to all
+            elif challenge['type'] == 'collective':
+                visible_to_sellers = challenge.get('visible_to_sellers', [])
+                if visible_to_sellers and current_user['id'] not in visible_to_sellers:
+                    raise HTTPException(status_code=403, detail="You are not authorized to update this challenge")
+        elif current_user['role'] != 'manager' or current_user['id'] != challenge['manager_id']:
+            raise HTTPException(status_code=403, detail="Only authorized sellers or the manager can update this challenge's progress")
+    
+    # Update the progress
+    update_data = {
+        'current_value': progress_data.current_value,
+        'updated_at': datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Check if challenge is achieved or failed
+    if progress_data.current_value >= challenge['target_value']:
+        update_data['status'] = 'achieved'
+        update_data['completed_at'] = datetime.now(timezone.utc).isoformat()
+    elif datetime.now(timezone.utc).date() > datetime.fromisoformat(challenge['end_date']).date():
+        update_data['status'] = 'failed'
+    else:
+        update_data['status'] = 'active'
+    
+    await db.challenges.update_one(
+        {"id": challenge_id},
+        {"$set": update_data}
+    )
+    
+    # Get updated challenge
+    updated_challenge = await db.challenges.find_one({"id": challenge_id}, {"_id": 0})
+    
+    return updated_challenge
+
 async def calculate_objective_progress(objective: dict, manager_id: str):
     """Calculate progress for an objective (team-wide)"""
     start_date = objective['period_start']
