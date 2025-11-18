@@ -5392,9 +5392,22 @@ async def get_active_seller_objectives(current_user: dict = Depends(get_current_
             if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
                 filtered_objectives.append(objective)
     
-    # Calculate progress for each objective
+    # NEW SYSTEM: No need to calculate progress, it's stored in current_value
+    # Ensure status field exists (for old objectives created before migration)
     for objective in filtered_objectives:
-        await calculate_objective_progress(objective, manager_id)
+        if 'status' not in objective or objective['status'] is None:
+            # Calculate status based on current_value and target_value
+            current_val = objective.get('current_value', 0)
+            target_val = objective.get('target_value', 1)
+            today_date = datetime.now(timezone.utc).date()
+            period_end_date = datetime.fromisoformat(objective['period_end']).date()
+            
+            if current_val >= target_val:
+                objective['status'] = 'achieved'
+            elif today_date > period_end_date:
+                objective['status'] = 'failed'
+            else:
+                objective['status'] = 'active'
     
     return filtered_objectives
 
