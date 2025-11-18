@@ -604,12 +604,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                               <span className="text-sm font-bold text-gray-800">{managerData.nb_ventes}</span>
                             </div>
                           )}
-                          {managerData.nb_clients > 0 && (
-                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                              <span className="text-xs text-gray-600">👥 Clients</span>
-                              <span className="text-sm font-bold text-gray-800">{managerData.nb_clients}</span>
-                            </div>
-                          )}
                           {managerData.nb_articles > 0 && (
                             <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                               <span className="text-xs text-gray-600">📦 Articles</span>
