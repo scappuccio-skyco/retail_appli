@@ -28,8 +28,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     panierMoyen: true,
     tauxTransformation: true,
     indiceVente: true,
-    articles: true,
-    clients: true
+    articles: true
   });
 
   const toggleChart = (chartKey) => {
