@@ -720,6 +720,14 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
           <div className="flex gap-2">
             <button
+              onClick={() => diagnostic ? setShowProfileModal(true) : setShowDiagnosticFormModal(true)}
+              className="flex items-center gap-2 px-6 py-2.5 bg-white border-2 border-pink-500 text-pink-600 font-semibold rounded-xl hover:bg-pink-50 hover:shadow-md transition-all"
+              title="Mon Profil de Vente"
+            >
+              <User className="w-5 h-5" />
+              <span className="hidden sm:inline">Profil</span>
+            </button>
+            <button
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-2 px-6 py-2.5 bg-white border-2 border-purple-500 text-purple-600 font-semibold rounded-xl hover:bg-purple-50 hover:shadow-md transition-all group"
               title="Personnaliser l'affichage du dashboard"
