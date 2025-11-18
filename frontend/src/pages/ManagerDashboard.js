@@ -473,6 +473,20 @@ export default function ManagerDashboard({ user, onLogout }) {
       ]);
       setSellers(sellersRes.data);
       setInvitations(invitesRes.data);
+      
+      // Récupérer le nom du magasin si on a un store_id
+      if (user?.store_id) {
+        try {
+          const storeRes = await axios.get(`${API}/gerant/stores/${user.store_id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (storeRes.data?.name) {
+            setStoreName(storeRes.data.name);
+          }
+        } catch (err) {
+          console.error('Could not fetch store name:', err);
+        }
+      }
     } catch (err) {
       toast.error('Erreur de chargement des données');
     } finally {
