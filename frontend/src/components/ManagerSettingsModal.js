@@ -833,11 +833,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           <input
                             type="date"
                             required
-                            value={editingObjective ? editingObjective.period_start : newObjective.period_start}
-                            onChange={(e) => editingObjective
-                              ? setEditingObjective({ ...editingObjective, period_start: e.target.value })
-                              : setNewObjective({ ...newObjective, period_start: e.target.value })
-                            }
+                            value={newObjective.period_start}
+                            onChange={(e) => setNewObjective({ ...newObjective, period_start: e.target.value })}
                             onFocus={(e) => {
                               // Ouvrir le calendrier au focus
                               try {
