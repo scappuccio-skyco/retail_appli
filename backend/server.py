@@ -8088,6 +8088,209 @@ async def get_all_sellers(current_user: dict = Depends(get_current_user)):
     
     return sellers
 
+
+# ============================================
+# GERANT INVITATIONS ENDPOINTS
+# ============================================
+
+@api_router.post("/gerant/invitations")
+async def create_gerant_invitation(
+    invite_data: GerantInvitationCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Créer une invitation pour un manager ou vendeur (Gérant seulement)"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Valider le rôle
+    if invite_data.role not in ['manager', 'seller']:
+        raise HTTPException(status_code=400, detail="Le rôle doit être 'manager' ou 'seller'")
+    
+    # Vérifier que le magasin existe et appartient au gérant
+    store = await db.stores.find_one(
+        {"id": invite_data.store_id, "gerant_id": current_user['id'], "active": True},
+        {"_id": 0}
+    )
+    if not store:
+        raise HTTPException(status_code=404, detail="Magasin non trouvé ou inactif")
+    
+    # Si c'est un vendeur, vérifier que le manager existe
+    manager_id = None
+    manager_name = None
+    if invite_data.role == 'seller':
+        if not invite_data.manager_id:
+            raise HTTPException(status_code=400, detail="Un manager est requis pour inviter un vendeur")
+        
+        manager = await db.users.find_one(
+            {
+                "id": invite_data.manager_id,
+                "role": "manager",
+                "store_id": invite_data.store_id,
+                "gerant_id": current_user['id']
+            },
+            {"_id": 0}
+        )
+        if not manager:
+            raise HTTPException(status_code=404, detail="Manager non trouvé dans ce magasin")
+        
+        manager_id = manager['id']
+        manager_name = manager['name']
+    
+    # Vérifier si l'email existe déjà
+    existing_user = await db.users.find_one({"email": invite_data.email}, {"_id": 0})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Un utilisateur avec cet email existe déjà")
+    
+    # Vérifier s'il y a déjà une invitation en attente
+    existing_invite = await db.gerant_invitations.find_one({
+        "email": invite_data.email,
+        "gerant_id": current_user['id'],
+        "status": "pending"
+    }, {"_id": 0})
+    
+    if existing_invite:
+        raise HTTPException(status_code=400, detail="Une invitation est déjà en attente pour cet email")
+    
+    # Créer l'invitation
+    invitation = GerantInvitation(
+        email=invite_data.email,
+        role=invite_data.role,
+        gerant_id=current_user['id'],
+        gerant_name=current_user['name'],
+        store_id=store['id'],
+        store_name=store['name'],
+        manager_id=manager_id,
+        manager_name=manager_name
+    )
+    
+    doc = invitation.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['expires_at'] = doc['expires_at'].isoformat()
+    
+    await db.gerant_invitations.insert_one(doc)
+    
+    return invitation
+
+@api_router.get("/gerant/invitations")
+async def get_gerant_invitations(current_user: dict = Depends(get_current_user)):
+    """Récupérer toutes les invitations du gérant"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    invitations = await db.gerant_invitations.find(
+        {"gerant_id": current_user['id']},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
+    
+    # Convertir les dates ISO
+    for inv in invitations:
+        if isinstance(inv.get('created_at'), str):
+            inv['created_at'] = datetime.fromisoformat(inv['created_at'])
+        if isinstance(inv.get('expires_at'), str):
+            inv['expires_at'] = datetime.fromisoformat(inv['expires_at'])
+    
+    return invitations
+
+@api_router.get("/invitations/gerant/verify/{token}")
+async def verify_gerant_invitation(token: str):
+    """Vérifier un token d'invitation Gérant"""
+    invitation = await db.gerant_invitations.find_one({"token": token}, {"_id": 0})
+    
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation non trouvée")
+    
+    # Convertir les dates
+    if isinstance(invitation.get('created_at'), str):
+        invitation['created_at'] = datetime.fromisoformat(invitation['created_at'])
+    if isinstance(invitation.get('expires_at'), str):
+        invitation['expires_at'] = datetime.fromisoformat(invitation['expires_at'])
+    
+    # Vérifier expiration
+    if invitation['expires_at'] < datetime.now(timezone.utc):
+        await db.gerant_invitations.update_one(
+            {"token": token},
+            {"$set": {"status": "expired"}}
+        )
+        raise HTTPException(status_code=400, detail="Cette invitation a expiré")
+    
+    if invitation['status'] != 'pending':
+        raise HTTPException(status_code=400, detail=f"Cette invitation n'est plus valide (statut: {invitation['status']})")
+    
+    return invitation
+
+@api_router.post("/auth/register-with-gerant-invite")
+async def register_with_gerant_invite(invite_data: RegisterWithGerantInvite):
+    """S'enregistrer avec une invitation Gérant"""
+    # Vérifier l'invitation
+    invitation = await db.gerant_invitations.find_one(
+        {"token": invite_data.invitation_token},
+        {"_id": 0}
+    )
+    
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation non trouvée")
+    
+    # Convertir dates
+    if isinstance(invitation.get('expires_at'), str):
+        invitation['expires_at'] = datetime.fromisoformat(invitation['expires_at'])
+    
+    # Vérifications
+    if invitation['expires_at'] < datetime.now(timezone.utc):
+        await db.gerant_invitations.update_one(
+            {"token": invite_data.invitation_token},
+            {"$set": {"status": "expired"}}
+        )
+        raise HTTPException(status_code=400, detail="Cette invitation a expiré")
+    
+    if invitation['status'] != 'pending':
+        raise HTTPException(status_code=400, detail="Cette invitation n'est plus valide")
+    
+    if invitation['email'] != invite_data.email:
+        raise HTTPException(status_code=400, detail="L'email ne correspond pas à l'invitation")
+    
+    # Vérifier que l'email n'existe pas déjà
+    existing_user = await db.users.find_one({"email": invite_data.email}, {"_id": 0})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email déjà enregistré")
+    
+    # Hasher le mot de passe
+    hashed_password = bcrypt.hashpw(invite_data.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+    # Créer l'utilisateur
+    user_obj = User(
+        name=invite_data.name,
+        email=invite_data.email,
+        password=hashed_password,
+        role=invitation['role'],
+        manager_id=invitation.get('manager_id'),
+        store_id=invitation['store_id'],
+        gerant_id=invitation['gerant_id']
+    )
+    
+    user_dict = user_obj.model_dump()
+    await db.users.insert_one(user_dict)
+    
+    # Marquer l'invitation comme acceptée
+    await db.gerant_invitations.update_one(
+        {"token": invite_data.invitation_token},
+        {"$set": {"status": "accepted"}}
+    )
+    
+    # Créer le token
+    token = create_token(user_obj.id, user_obj.email, user_obj.role)
+    
+    return {
+        "token": token,
+        "user": {
+            "id": user_obj.id,
+            "name": user_obj.name,
+            "email": user_obj.email,
+            "role": user_obj.role,
+            "store_id": user_obj.store_id,
+            "gerant_id": user_obj.gerant_id
+        }
+    }
+
 # Include router
 app.include_router(api_router)
 
