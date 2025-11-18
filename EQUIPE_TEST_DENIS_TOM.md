@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://retail-performer-3.preview.emergentagent.com
+https://sales-mentor-4.preview.emergentagent.com
 
 ### Manager
 ```
