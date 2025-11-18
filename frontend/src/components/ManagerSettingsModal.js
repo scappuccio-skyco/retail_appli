@@ -232,6 +232,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       setSelectedVisibleSellersChallenge([]);
       setNewChallenge({
         title: '',
+        description: '',
         type: 'collective',
         seller_id: '',
         visible: true,
