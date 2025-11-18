@@ -271,8 +271,8 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
                   <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
                 <div className="text-center px-2">
-                  <p className="text-xs font-semibold text-gray-700">Naviguer</p>
-                  <p className="text-xs text-gray-600">← Semaines →</p>
+                  <p className="text-xs font-semibold text-white">Naviguer</p>
+                  <p className="text-xs text-white opacity-90">← Semaines →</p>
                 </div>
                 <button
                   onClick={() => onWeekChange(currentWeekOffset + 1)}
