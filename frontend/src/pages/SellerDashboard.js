@@ -778,74 +778,51 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </div>
             </div>
 
-            {/* Filter Toggles */}
+            {/* Filter Toggles - Simplified */}
             <div>
-              <p className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
+              <p className="text-sm font-bold text-purple-900 mb-3 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
                 Afficher / Masquer les sections
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-                <button
-                  onClick={() => toggleFilter('showProfile')}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
-                    dashboardFilters.showProfile
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
-                      : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">👤</span>
-                    <span className="text-xs font-semibold">Profil</span>
-                  </div>
-                </button>
-
+              <div className="flex flex-wrap gap-2 mb-6">
                 <button
                   onClick={() => toggleFilter('showBilan')}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     dashboardFilters.showBilan
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-sm'
                       : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">📈</span>
-                    <span className="text-xs font-semibold">Bilan</span>
-                  </div>
+                  📈 Bilan
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showObjectives')}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     dashboardFilters.showObjectives
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-sm'
                       : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">🎯</span>
-                    <span className="text-xs font-semibold">Objectifs</span>
-                  </div>
+                  🎯 Objectifs
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showCompetences')}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     dashboardFilters.showCompetences
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-sm'
                       : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xl">🤖</span>
-                    <span className="text-xs font-semibold">Mon Coach IA</span>
-                  </div>
+                  🤖 Mon Coach IA
                 </button>
 
                 <button
                   onClick={() => toggleFilter('showKPI')}
-                  className={`px-4 py-3 rounded-xl font-medium transition-all transform hover:scale-105 ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     dashboardFilters.showKPI
-                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-md'
+                      ? 'bg-gradient-to-br from-green-400 to-green-500 text-white shadow-sm'
                       : 'bg-white border-2 border-gray-200 text-gray-600 hover:border-green-300'
                   }`}
                 >
