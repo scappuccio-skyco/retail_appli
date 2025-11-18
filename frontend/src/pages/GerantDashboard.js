@@ -84,10 +84,14 @@ const GerantDashboard = () => {
 
     setUser(parsedUser);
     setHasCheckedAuth(true);
-    
-    // Charger les données une seule fois après l'auth
-    fetchDashboardData();
-  }, [navigate, fetchDashboardData]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Charger les données une seule fois après l'auth
+  useEffect(() => {
+    if (hasCheckedAuth) {
+      fetchDashboardData();
+    }
+  }, [hasCheckedAuth, fetchDashboardData]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
