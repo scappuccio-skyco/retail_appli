@@ -85,7 +85,7 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
             {/* Localisation */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Localisation *
+                Ville & Code Postal *
               </label>
               <input
                 type="text"
@@ -101,7 +101,7 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
             {/* Adresse complète */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Adresse Complète
+                Adresse Complète (Rue et Numéro)
               </label>
               <input
                 type="text"
