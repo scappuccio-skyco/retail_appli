@@ -1271,7 +1271,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           objectives={activeObjectives}
           challenges={activeChallenges}
           onClose={() => setShowObjectivesModal(false)}
-          onUpdate={fetchData}
+          onUpdate={() => {
+            fetchActiveObjectives();
+            fetchActiveChallenges();
+          }}
         />
       )}
 
