@@ -1112,9 +1112,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   )}
 
                   {/* Articles & Clients Charts */}
-                  {(visibleCharts.articles || visibleCharts.clients) && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {visibleCharts.articles && (
+                  {visibleCharts.articles && (
+                  <div className="grid grid-cols-1 gap-6">
                     <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
                       <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                         📦 Articles Vendus
@@ -1137,32 +1136,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
-                    )}
-
-                    {visibleCharts.clients && (
-                    <div className="bg-white rounded-xl p-5 border-2 border-gray-200 shadow-sm">
-                      <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        👥 Clients Servis
-                      </h4>
-                      <ResponsiveContainer width="100%" height={250}>
-                        <LineChart data={historicalData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis 
-                            dataKey="date" 
-                            tick={{ fontSize: 9 }}
-                            interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : 0}
-                            angle={-45}
-                            textAnchor="end"
-                            height={60}
-                          />
-                          <YAxis tick={{ fontSize: 10 }} />
-                          <Tooltip />
-                          <Legend />
-                          <Line type="monotone" dataKey="total_clients" name="Clients" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 2 }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                    )}
                   </div>
                   )}
                 </div>
