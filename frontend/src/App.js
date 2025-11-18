@@ -6,6 +6,7 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import SellerDashboard from './pages/SellerDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
+import GerantDashboard from './pages/GerantDashboard';
 import ManagerSettings from './pages/ManagerSettings';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import DiagnosticForm from './components/DiagnosticFormScrollable';
