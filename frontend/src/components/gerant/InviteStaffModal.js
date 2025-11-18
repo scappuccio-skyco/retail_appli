@@ -285,7 +285,7 @@ const InviteStaffModal = ({ onClose, onInvite, stores, selectedStoreId = null })
             </button>
             <button
               type="submit"
-              disabled={loading || (formData.role === 'seller' && managers.length === 0)}
+              disabled={loading || (formData.role === 'seller' && managers.length === 0 && pendingManagerInvites.length === 0)}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Envoi...' : '📨 Envoyer l\'invitation'}
