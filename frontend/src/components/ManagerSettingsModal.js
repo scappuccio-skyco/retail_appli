@@ -1538,28 +1538,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           />
                         </div>
 
+                        {/* Description du challenge */}
                         <div className="md:col-span-2">
-                          <div className="flex items-center gap-2 mb-2">
-                            <label className="block text-sm font-semibold text-gray-700">Description</label>
-                            <div className="group relative">
-                              <div className="w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-blue-600 transition-all">
-                                ?
-                              </div>
-                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-blue-600 text-white text-sm rounded-lg shadow-2xl border-2 border-blue-400">
-                                <div className="font-semibold mb-1">💡 Conseil :</div>
-                                Expliquez les règles et l'objectif du challenge pour motiver vos équipes
-                              </div>
-                            </div>
-                          </div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Description (optionnel)</label>
                           <textarea
-                            value={editingChallenge ? editingChallenge.description : newChallenge.description}
-                            onChange={(e) => editingChallenge
-                              ? setEditingChallenge({ ...editingChallenge, description: e.target.value })
-                              : setNewChallenge({ ...newChallenge, description: e.target.value })
-                            }
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#ffd871] focus:outline-none"
-                            rows="3"
-                            placeholder="Description du challenge..."
+                            rows="2"
+                            value={newChallenge.description}
+                            onChange={(e) => setNewChallenge({ ...newChallenge, description: e.target.value })}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-yellow-400 focus:outline-none resize-none"
+                            placeholder="Décrivez brièvement ce challenge..."
                           />
                         </div>
 
