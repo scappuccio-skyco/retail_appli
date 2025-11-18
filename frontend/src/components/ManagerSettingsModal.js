@@ -705,11 +705,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           <input
                             type="text"
                             required
-                            value={editingObjective ? editingObjective.title : newObjective.title}
-                            onChange={(e) => editingObjective
-                              ? setEditingObjective({ ...editingObjective, title: e.target.value })
-                              : setNewObjective({ ...newObjective, title: e.target.value })
-                            }
+                            value={newObjective.title}
+                            onChange={(e) => setNewObjective({ ...newObjective, title: e.target.value })}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
                             placeholder="Ex: Objectifs Décembre 2025"
                           />
