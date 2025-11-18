@@ -8585,6 +8585,7 @@ async def get_gerant_store_kpi_history(
     # Convert to sorted list
     historical_data = sorted(date_map.values(), key=lambda x: x['date'])
     
+    return historical_data
 
 
 # ============================================
