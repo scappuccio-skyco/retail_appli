@@ -102,8 +102,116 @@ const GerantDashboard = () => {
   };
 
   const handleStoreClick = (store) => {
-    // TODO: Ouvrir modal détails magasin
-    console.log('Store clicked:', store);
+    setSelectedStore(store);
+    setShowStoreDetailModal(true);
+  };
+
+  const handleCreateStore = async (formData) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendUrl}/api/gerant/stores`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Erreur lors de la création');
+      }
+
+      toast.success('Magasin créé avec succès ! 🎉');
+      await fetchDashboardData();
+    } catch (error) {
+      console.error('Erreur création magasin:', error);
+      throw error;
+    }
+  };
+
+  const handleTransferManager = async (managerId, newStoreId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendUrl}/api/gerant/managers/${managerId}/transfer`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ new_store_id: newStoreId })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Erreur lors du transfert');
+      }
+
+      const result = await response.json();
+      
+      if (result.warning) {
+        toast.warning(result.warning);
+      } else {
+        toast.success('Manager transféré avec succès ! 🎉');
+      }
+      
+      await fetchDashboardData();
+    } catch (error) {
+      console.error('Erreur transfert manager:', error);
+      throw error;
+    }
+  };
+
+  const handleTransferSeller = async (sellerId, newStoreId, newManagerId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendUrl}/api/gerant/sellers/${sellerId}/transfer`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          new_store_id: newStoreId,
+          new_manager_id: newManagerId
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Erreur lors du transfert');
+      }
+
+      toast.success('Vendeur transféré avec succès ! 🎉');
+      await fetchDashboardData();
+    } catch (error) {
+      console.error('Erreur transfert vendeur:', error);
+      throw error;
+    }
+  };
+
+  const handleDeleteStore = async (storeId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendUrl}/api/gerant/stores/${storeId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Erreur lors de la suppression');
+      }
+
+      toast.success('Magasin supprimé avec succès');
+      await fetchDashboardData();
+    } catch (error) {
+      console.error('Erreur suppression magasin:', error);
+      throw error;
+    }
   };
 
   if (loading) {
