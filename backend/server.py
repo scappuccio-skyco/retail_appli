@@ -778,6 +778,7 @@ class Challenge(BaseModel):
 
 class ChallengeCreate(BaseModel):
     title: str
+    description: Optional[str] = None  # Description du challenge
     type: str  # "individual" or "collective"
     seller_id: Optional[str] = None
     visible: bool = True  # Visible by sellers
