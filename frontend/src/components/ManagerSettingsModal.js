@@ -1138,14 +1138,71 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     }).join(', ')}
                                   </div>
                                 )}
-                                <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-3">
-                                  {objective.ca_target && <span>💰 CA: {objective.ca_target.toLocaleString('fr-FR')}€</span>}
-                                  {objective.ventes_target && <span>📈 Ventes: {objective.ventes_target}</span>}
-                                  {objective.clients_target && <span>👥 Clients: {objective.clients_target}</span>}
-                                  {objective.articles_target && <span>📦 Articles: {objective.articles_target}</span>}
-                                  {objective.panier_moyen_target && <span>🛒 Panier Moyen: {objective.panier_moyen_target.toLocaleString('fr-FR')}€</span>}
-                                  {objective.indice_vente_target && <span>💎 Indice: {objective.indice_vente_target}</span>}
-                                  {objective.taux_transformation_target && <span>📊 Taux: {objective.taux_transformation_target}%</span>}
+                                
+                                {/* NEW OBJECTIVE SYSTEM DISPLAY */}
+                                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 mb-3">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      {objective.objective_type === 'kpi_standard' && (
+                                        <span className="text-sm font-semibold text-blue-700">
+                                          📊 KPI: {
+                                            objective.kpi_name === 'ca' ? '💰 Chiffre d\'affaires' :
+                                            objective.kpi_name === 'ventes' ? '🛍️ Nombre de ventes' :
+                                            objective.kpi_name === 'articles' ? '📦 Nombre d\'articles' :
+                                            objective.kpi_name
+                                          }
+                                        </span>
+                                      )}
+                                      {objective.objective_type === 'product_focus' && (
+                                        <span className="text-sm font-semibold text-green-700">
+                                          📦 Produit: {objective.product_name}
+                                        </span>
+                                      )}
+                                      {objective.objective_type === 'custom' && (
+                                        <span className="text-sm font-semibold text-purple-700">
+                                          ✨ Objectif personnalisé
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                                      objective.data_entry_responsible === 'seller' 
+                                        ? 'bg-cyan-500 text-white' 
+                                        : 'bg-orange-500 text-white'
+                                    }`}>
+                                      {objective.data_entry_responsible === 'seller' ? '🧑‍💼 Vendeur' : '👨‍💼 Manager'}
+                                    </span>
+                                  </div>
+                                  
+                                  {objective.objective_type === 'custom' && objective.custom_description && (
+                                    <p className="text-xs text-gray-600 mb-2">{objective.custom_description}</p>
+                                  )}
+                                  
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-semibold text-gray-700">
+                                      🎯 Cible: {objective.target_value?.toLocaleString('fr-FR')} {objective.unit || ''}
+                                    </span>
+                                    <span className="text-sm font-semibold text-gray-700">
+                                      📊 Actuel: {(objective.current_value || 0)?.toLocaleString('fr-FR')} {objective.unit || ''}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Progress Bar */}
+                                  <div className="mt-2">
+                                    <div className="w-full bg-gray-200 rounded-full h-3">
+                                      <div 
+                                        className={`h-3 rounded-full transition-all duration-300 ${
+                                          ((objective.current_value || 0) / objective.target_value) * 100 >= 75 ? 'bg-green-500' :
+                                          ((objective.current_value || 0) / objective.target_value) * 100 >= 50 ? 'bg-yellow-500' :
+                                          ((objective.current_value || 0) / objective.target_value) * 100 >= 25 ? 'bg-orange-500' :
+                                          'bg-red-500'
+                                        }`}
+                                        style={{ width: `${Math.min(Math.round(((objective.current_value || 0) / objective.target_value) * 100), 100)}%` }}
+                                      ></div>
+                                    </div>
+                                    <div className="text-xs text-gray-600 text-center mt-1">
+                                      {Math.min(Math.round(((objective.current_value || 0) / objective.target_value) * 100), 100)}% atteint
+                                    </div>
+                                  </div>
                                 </div>
                                 
                                 {/* Barres de progression par KPI */}
