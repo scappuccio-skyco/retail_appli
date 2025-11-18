@@ -736,7 +736,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                 </div>
               )}
             </div>
-          )}
+            );
+          })()}
 
           {activeTab === 'overview' && (
             <div className="space-y-6">
