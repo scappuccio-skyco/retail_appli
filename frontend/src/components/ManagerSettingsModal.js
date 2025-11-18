@@ -94,28 +94,25 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     fetchData();
   }, []);
 
-  // Pré-remplir les KPI et les champs lors de l'édition d'un objectif
+  // Pré-remplir les champs lors de l'édition d'un objectif - NEW SYSTEM
   useEffect(() => {
     if (editingObjective) {
-      // Pré-remplir les KPI sélectionnés en fonction des targets existantes
-      const kpisToSelect = {};
-      const kpiTargets = {};
-      
-      // Parcourir tous les KPI possibles
-      const possibleKPIs = ['ca', 'ventes', 'clients', 'articles', 'prospects', 'panier_moyen', 'indice_vente', 'taux_transformation'];
-      
-      possibleKPIs.forEach(kpiKey => {
-        const targetKey = `${kpiKey}_target`;
-        if (editingObjective[targetKey] !== undefined && editingObjective[targetKey] !== null && editingObjective[targetKey] !== '') {
-          kpisToSelect[kpiKey] = true;
-          kpiTargets[kpiKey] = editingObjective[targetKey];
-        }
-      });
-      
-      setSelectedKPIs(kpisToSelect);
+      // Pré-remplir tous les champs de l'objectif
       setNewObjective({
-        ...newObjective,
-        kpi_targets: kpiTargets
+        title: editingObjective.title || '',
+        type: editingObjective.type || 'collective',
+        seller_id: editingObjective.seller_id || '',
+        visible: editingObjective.visible !== false,
+        visible_to_sellers: editingObjective.visible_to_sellers || [],
+        period_start: editingObjective.period_start || '',
+        period_end: editingObjective.period_end || '',
+        objective_type: editingObjective.objective_type || 'kpi_standard',
+        kpi_name: editingObjective.kpi_name || 'ca',
+        product_name: editingObjective.product_name || '',
+        custom_description: editingObjective.custom_description || '',
+        target_value: editingObjective.target_value || '',
+        data_entry_responsible: editingObjective.data_entry_responsible || 'manager',
+        unit: editingObjective.unit || '€'
       });
       
       // Pré-remplir les vendeurs visibles pour les objectifs collectifs
@@ -126,7 +123,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       }
     } else {
       // Réinitialiser quand on quitte le mode édition
-      setSelectedKPIs({});
       setSelectedVisibleSellers([]);
       setNewObjective({
         title: '',
@@ -136,7 +132,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         visible_to_sellers: [],
         period_start: '',
         period_end: '',
-        kpi_targets: {}
+        objective_type: 'kpi_standard',
+        kpi_name: 'ca',
+        product_name: '',
+        custom_description: '',
+        target_value: '',
+        data_entry_responsible: 'manager',
+        unit: '€'
       });
     }
   }, [editingObjective]);
