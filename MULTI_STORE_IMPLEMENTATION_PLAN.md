@@ -311,10 +311,12 @@ const handleLogin = async () => {
 ### Tests
 - [ ] Tester création magasin
 - [ ] Tester suppression magasin (avec validation)
-- [ ] Tester assignment manager
-- [ ] **Tester transfert manager entre boutiques**
-- [ ] **Tester transfert manager AVEC vendeurs**
-- [ ] **Tester transfert manager SANS vendeurs (vendeurs restent)**
+- [ ] Tester assignment manager initial
+- [ ] **Tester transfert manager entre boutiques (vendeurs restent)**
+- [ ] **Tester transfert vendeur entre boutiques (changement de manager)**
+- [ ] **Tester transfert vendeur vers boutique avec plusieurs managers (choix du nouveau manager)**
+- [ ] Tester qu'un vendeur transféré garde ses KPIs historiques
+- [ ] Tester qu'un manager transféré garde ses objectifs/challenges
 - [ ] Tester switch gérant/manager
 - [ ] Tester agrégation KPIs par magasin
 - [ ] Tester comparaison inter-magasins
