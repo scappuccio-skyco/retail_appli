@@ -475,15 +475,13 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
         {/* Content */}
         <div className="p-6 max-h-[600px] overflow-y-auto">
-          {activeTab === 'daily' && (
+          {activeTab === 'daily' && (() => {
+            // Variables pour gérer les deux structures de données (manager vs gérant)
+            const managerData = overviewData?.manager_data || overviewData?.managers_data || {};
+            const hasManagerData = managerData && Object.keys(managerData).length > 0;
+            
+            return (
             <div className="max-w-5xl mx-auto">
-              {/* Variables pour gérer les deux structures de données (manager vs gérant) */}
-              {(() => {
-                const managerData = overviewData?.manager_data || overviewData?.managers_data || {};
-                const hasManagerData = managerData && Object.keys(managerData).length > 0;
-                
-                return null; // This is just for variable declaration
-              })()}
               {/* Date selector and AI Analysis button */}
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
