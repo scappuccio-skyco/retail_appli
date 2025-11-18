@@ -1481,11 +1481,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           <input
                             type="text"
                             required
-                            value={editingChallenge ? editingChallenge.title : newChallenge.title}
-                            onChange={(e) => editingChallenge 
-                              ? setEditingChallenge({ ...editingChallenge, title: e.target.value })
-                              : setNewChallenge({ ...newChallenge, title: e.target.value })
-                            }
+                            value={newChallenge.title}
+                            onChange={(e) => setNewChallenge({ ...newChallenge, title: e.target.value })}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#ffd871] focus:outline-none"
                             placeholder="Ex: Challenge Parfums"
                           />
