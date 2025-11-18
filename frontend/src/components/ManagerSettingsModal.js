@@ -19,25 +19,34 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const token = localStorage.getItem('token');
   const headers = { Authorization: `Bearer ${token}` };
   
-  // New challenge form
+  // New challenge form - NEW FLEXIBLE SYSTEM (same as objectives)
   const [newChallenge, setNewChallenge] = useState({
     title: '',
-    description: '',
     type: 'collective',
     seller_id: '',
     visible: true,
     visible_to_sellers: [],
     start_date: '',
     end_date: '',
-    kpi_targets: {}, // Dynamic KPI targets like objectives
-    status: 'active' // Default status
+    challenge_type: 'kpi_standard', // 'kpi_standard' | 'product_focus' | 'custom'
+    kpi_name: 'ca', // For kpi_standard
+    product_name: '', // For product_focus
+    custom_description: '', // For custom
+    target_value: '',
+    data_entry_responsible: 'manager', // 'manager' | 'seller'
+    unit: '€' // Display unit
   });
   
   // Selected sellers for challenge visibility
   const [selectedVisibleSellersChallenge, setSelectedVisibleSellersChallenge] = useState([]);
   
-  // Selected KPIs for challenges
-  const [selectedKPIsChallenge, setSelectedKPIsChallenge] = useState({});
+  // Dropdown state for challenge seller selection
+  const [isChallengeSellerDropdownOpen, setIsChallengeSellerDropdownOpen] = useState(false);
+  const challengeSellerDropdownRef = useRef(null);
+  
+  // Progress update state for challenges
+  const [updatingProgressChallengeId, setUpdatingProgressChallengeId] = useState(null);
+  const [challengeProgressValue, setChallengeProgressValue] = useState('');
 
   // New objective form - NEW FLEXIBLE SYSTEM
   const [newObjective, setNewObjective] = useState({
