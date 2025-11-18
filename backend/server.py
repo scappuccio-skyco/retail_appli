@@ -8440,6 +8440,114 @@ async def get_gerant_store_kpi_overview(
     }
 
 
+@api_router.get("/gerant/stores/{store_id}/kpi-history")
+async def get_gerant_store_kpi_history(
+    store_id: str,
+    days: int = 30,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get historical KPI data for a specific store (Gérant only)"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le magasin appartient au gérant
+    store = await db.stores.find_one(
+        {"id": store_id, "gerant_id": current_user['id'], "active": True},
+        {"_id": 0}
+    )
+    if not store:
+        raise HTTPException(status_code=404, detail="Magasin non trouvé")
+    
+    # Calculate date range
+    end_date = datetime.now(timezone.utc)
+    start_date = end_date - timedelta(days=days)
+    
+    # Get all managers in this store
+    managers = await db.users.find({
+        "store_id": store_id,
+        "role": "manager",
+        "gerant_id": current_user['id']
+    }, {"_id": 0, "id": 1}).to_list(100)
+    
+    manager_ids = [m['id'] for m in managers]
+    
+    # Get all sellers in this store
+    sellers = await db.users.find({
+        "store_id": store_id,
+        "role": "seller",
+        "gerant_id": current_user['id']
+    }, {"_id": 0, "id": 1}).to_list(100)
+    
+    seller_ids = [s['id'] for s in sellers]
+    
+    # Get manager KPIs for the period
+    manager_kpis = []
+    if manager_ids:
+        manager_kpis = await db.manager_kpis.find({
+            "manager_id": {"$in": manager_ids},
+            "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
+        }, {"_id": 0}).to_list(10000)
+    
+    # Get seller KPI entries for the period
+    seller_entries = []
+    if seller_ids:
+        seller_entries = await db.kpi_entries.find({
+            "seller_id": {"$in": seller_ids},
+            "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
+        }, {"_id": 0}).to_list(10000)
+    
+    # Aggregate data by date
+    date_map = {}
+    
+    # Add manager KPIs
+    for kpi in manager_kpis:
+        date = kpi['date']
+        if date not in date_map:
+            date_map[date] = {
+                "date": date,
+                "ca_journalier": 0,
+                "nb_ventes": 0,
+                "nb_clients": 0,
+                "nb_articles": 0,
+                "nb_prospects": 0
+            }
+        date_map[date]["ca_journalier"] += kpi.get("ca_journalier", 0)
+        date_map[date]["nb_ventes"] += kpi.get("nb_ventes", 0)
+        date_map[date]["nb_clients"] += kpi.get("nb_clients", 0)
+        date_map[date]["nb_articles"] += kpi.get("nb_articles", 0)
+        date_map[date]["nb_prospects"] += kpi.get("nb_prospects", 0)
+    
+    # Add seller entries
+    for entry in seller_entries:
+        date = entry['date']
+        if date not in date_map:
+            date_map[date] = {
+                "date": date,
+                "ca_journalier": 0,
+                "nb_ventes": 0,
+                "nb_clients": 0,
+                "nb_articles": 0,
+                "nb_prospects": 0
+            }
+        date_map[date]["ca_journalier"] += entry.get("ca_journalier", 0)
+        date_map[date]["nb_ventes"] += entry.get("nb_ventes", 0)
+        date_map[date]["nb_clients"] += entry.get("nb_clients", 0)
+        date_map[date]["nb_articles"] += entry.get("nb_articles", 0)
+        date_map[date]["nb_prospects"] += entry.get("nb_prospects", 0)
+    
+    # Convert to sorted list
+    historical_data = sorted(date_map.values(), key=lambda x: x['date'])
+    
+    return {
+        "store": store,
+        "days": days,
+        "start_date": start_date.strftime('%Y-%m-%d'),
+        "end_date": end_date.strftime('%Y-%m-%d'),
+        "data": historical_data
+    }
+
+
+
 # Include router
 app.include_router(api_router)
 
