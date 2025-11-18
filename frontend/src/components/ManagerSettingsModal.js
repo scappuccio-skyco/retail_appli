@@ -2153,16 +2153,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 <button
                                   onClick={() => {
                                     setEditingChallenge(challenge);
-                                    // Initialiser les KPIs sélectionnés
-                                    const kpisSelected = {};
-                                    if (challenge.kpi_targets) {
-                                      Object.keys(challenge.kpi_targets).forEach(key => {
-                                        if (challenge.kpi_targets[key]) {
-                                          kpisSelected[key] = true;
-                                        }
-                                      });
-                                    }
-                                    setSelectedKPIsChallenge(kpisSelected);
                                     
                                     // Scroll vers le formulaire de challenge
                                     setTimeout(() => {
