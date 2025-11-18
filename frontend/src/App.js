@@ -186,10 +186,26 @@ function AppContent() {
               <Navigate to="/login" replace />
             ) : user.role === 'super_admin' ? (
               <Navigate to="/superadmin" replace />
+            ) : user.role === 'gerant' ? (
+              <Navigate to="/gerant-dashboard" replace />
             ) : user.role === 'seller' ? (
               <SellerDashboard user={user} diagnostic={diagnostic} onLogout={handleLogout} />
             ) : (
               <ManagerDashboard user={user} onLogout={handleLogout} />
+            )
+          }
+        />
+        
+        {/* Gerant Dashboard - Gerant Only */}
+        <Route
+          path="/gerant-dashboard"
+          element={
+            !user ? (
+              <Navigate to="/login" replace />
+            ) : user.role !== 'gerant' ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <GerantDashboard user={user} onLogout={handleLogout} />
             )
           }
         />
