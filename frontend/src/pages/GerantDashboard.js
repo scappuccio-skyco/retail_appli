@@ -65,7 +65,29 @@ const GerantDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [backendUrl]);
+
+  // Vérifier l'auth seulement au montage
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (!userData) {
+      navigate('/login');
+      return;
+    }
+
+    const parsedUser = JSON.parse(userData);
+    
+    if (parsedUser.role !== 'gerant') {
+      navigate('/login');
+      return;
+    }
+
+    setUser(parsedUser);
+    setHasCheckedAuth(true);
+    
+    // Charger les données une seule fois après l'auth
+    fetchDashboardData();
+  }, [navigate, fetchDashboardData]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
