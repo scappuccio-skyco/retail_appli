@@ -3643,6 +3643,347 @@ class RetailCoachAPITester:
         print("   ✅ Application functions normally for Emma (emma.petit@test.com)")
         print("   ✅ track_clients properly disabled, track_ventes handles both concepts")
 
+    def test_gerant_multi_store_endpoints(self):
+        """Test Gérant Multi-Store Management Endpoints - CRITICAL FEATURE FROM REVIEW REQUEST"""
+        print("\n🔍 Testing Gérant Multi-Store Management Endpoints (CRITICAL FEATURE)...")
+        print("   TESTING ALL 10 ENDPOINTS FOR MULTI-STORE MANAGEMENT")
+        
+        # Login as gérant with provided credentials
+        gerant_credentials = {
+            "email": "gerant@skyco.fr",
+            "password": "demo123"
+        }
+        
+        success, response = self.run_test(
+            "Gérant Login - gerant@skyco.fr",
+            "POST",
+            "auth/login",
+            200,
+            data=gerant_credentials
+        )
+        
+        gerant_token = None
+        gerant_info = None
+        if success and 'token' in response:
+            gerant_token = response['token']
+            gerant_info = response['user']
+            print(f"   ✅ Logged in as gérant: {gerant_info.get('name')} ({gerant_info.get('email')})")
+            print(f"   ✅ Gérant ID: {gerant_info.get('id')}")
+            print(f"   ✅ Role: {gerant_info.get('role')}")
+            
+            if gerant_info.get('role') != 'gerant':
+                self.log_test("Gérant Role Validation", False, f"Expected role 'gerant', got '{gerant_info.get('role')}'")
+                return
+        else:
+            self.log_test("Gérant Multi-Store Setup", False, "Could not login with gerant@skyco.fr credentials")
+            return
+        
+        # PRIORITY 1: AUTHENTICATION & DASHBOARD ENDPOINTS
+        print("\n   📊 PRIORITY 1: AUTHENTICATION & DASHBOARD")
+        
+        # Test 1: GET /api/gerant/dashboard/stats - Global stats
+        success, dashboard_response = self.run_test(
+            "GET /api/gerant/dashboard/stats - Global Stats",
+            "GET",
+            "gerant/dashboard/stats",
+            200,
+            token=gerant_token
+        )
+        
+        if success:
+            # Verify required fields as per review request
+            required_stats = ['total_stores', 'total_managers', 'total_sellers', 'today_ca', 'stores']
+            missing_stats = []
+            
+            for field in required_stats:
+                if field not in dashboard_response:
+                    missing_stats.append(field)
+            
+            if missing_stats:
+                self.log_test("Dashboard Stats Fields Validation", False, f"Missing fields: {missing_stats}")
+            else:
+                self.log_test("Dashboard Stats Fields Validation", True)
+                print(f"   ✅ Total Stores: {dashboard_response.get('total_stores')}")
+                print(f"   ✅ Total Managers: {dashboard_response.get('total_managers')}")
+                print(f"   ✅ Total Sellers: {dashboard_response.get('total_sellers')}")
+                print(f"   ✅ Today CA: {dashboard_response.get('today_ca')}€")
+                print(f"   ✅ Stores Array: {len(dashboard_response.get('stores', []))} stores")
+        
+        # Test 2: GET /api/gerant/stores - List of active stores
+        success, stores_response = self.run_test(
+            "GET /api/gerant/stores - List Active Stores",
+            "GET",
+            "gerant/stores",
+            200,
+            token=gerant_token
+        )
+        
+        existing_stores = []
+        if success:
+            if isinstance(stores_response, list):
+                existing_stores = stores_response
+                print(f"   ✅ Retrieved {len(existing_stores)} active stores")
+                
+                # Should have Paris, Lyon, Bordeaux as per review request
+                store_names = [store.get('name', '') for store in existing_stores]
+                expected_stores = ['Paris', 'Lyon', 'Bordeaux']
+                
+                for expected in expected_stores:
+                    found = any(expected.lower() in name.lower() for name in store_names)
+                    if found:
+                        print(f"   ✅ Found expected store containing '{expected}'")
+                    else:
+                        print(f"   ⚠️  Expected store '{expected}' not found in: {store_names}")
+            else:
+                self.log_test("Stores List Response Format", False, "Response should be an array")
+        
+        # PRIORITY 2: STORE MANAGEMENT ENDPOINTS
+        print("\n   🏪 PRIORITY 2: STORE MANAGEMENT")
+        
+        # Test 3: POST /api/gerant/stores - Create new store
+        new_store_data = {
+            "name": "Test Magasin Marseille",
+            "location": "13001 Marseille",
+            "address": "1 rue Test",
+            "phone": "+33 4 91 00 00 00",
+            "opening_hours": "9h-19h"
+        }
+        
+        success, create_store_response = self.run_test(
+            "POST /api/gerant/stores - Create Store",
+            "POST",
+            "gerant/stores",
+            200,
+            data=new_store_data,
+            token=gerant_token
+        )
+        
+        created_store_id = None
+        if success:
+            created_store_id = create_store_response.get('id')
+            print(f"   ✅ Created store ID: {created_store_id}")
+            
+            # Verify all input fields are present
+            for field, expected_value in new_store_data.items():
+                if field in create_store_response and create_store_response[field] == expected_value:
+                    print(f"   ✅ {field}: {create_store_response[field]}")
+                else:
+                    self.log_test("Store Creation Field Validation", False, f"Field {field} not correct")
+        
+        # Test 4: GET /api/gerant/stores/{store_id} - Store details
+        if created_store_id:
+            success, store_details_response = self.run_test(
+                "GET /api/gerant/stores/{store_id} - Store Details",
+                "GET",
+                f"gerant/stores/{created_store_id}",
+                200,
+                token=gerant_token
+            )
+            
+            if success:
+                print(f"   ✅ Retrieved store details for: {store_details_response.get('name')}")
+        
+        # Test 5: GET /api/gerant/stores/{store_id}/stats - Store stats
+        if created_store_id:
+            success, store_stats_response = self.run_test(
+                "GET /api/gerant/stores/{store_id}/stats - Store Stats",
+                "GET",
+                f"gerant/stores/{created_store_id}/stats",
+                200,
+                token=gerant_token
+            )
+            
+            if success:
+                # Verify required stats fields
+                required_store_stats = ['managers_count', 'sellers_count', 'today_ca']
+                missing_store_stats = []
+                
+                for field in required_store_stats:
+                    if field not in store_stats_response:
+                        missing_store_stats.append(field)
+                
+                if missing_store_stats:
+                    self.log_test("Store Stats Fields Validation", False, f"Missing fields: {missing_store_stats}")
+                else:
+                    self.log_test("Store Stats Fields Validation", True)
+                    print(f"   ✅ Managers Count: {store_stats_response.get('managers_count')}")
+                    print(f"   ✅ Sellers Count: {store_stats_response.get('sellers_count')}")
+                    print(f"   ✅ Today CA: {store_stats_response.get('today_ca')}€")
+        
+        # Test 6: GET /api/gerant/stores/{store_id}/managers - Store managers
+        test_store_id = created_store_id or (existing_stores[0].get('id') if existing_stores else None)
+        if test_store_id:
+            success, managers_response = self.run_test(
+                "GET /api/gerant/stores/{store_id}/managers - Store Managers",
+                "GET",
+                f"gerant/stores/{test_store_id}/managers",
+                200,
+                token=gerant_token
+            )
+            
+            if success and isinstance(managers_response, list):
+                print(f"   ✅ Retrieved {len(managers_response)} managers for store")
+        
+        # Test 7: GET /api/gerant/stores/{store_id}/sellers - Store sellers
+        if test_store_id:
+            success, sellers_response = self.run_test(
+                "GET /api/gerant/stores/{store_id}/sellers - Store Sellers",
+                "GET",
+                f"gerant/stores/{test_store_id}/sellers",
+                200,
+                token=gerant_token
+            )
+            
+            if success and isinstance(sellers_response, list):
+                print(f"   ✅ Retrieved {len(sellers_response)} sellers for store")
+        
+        # PRIORITY 3: PERSONNEL TRANSFER ENDPOINTS
+        print("\n   🔄 PRIORITY 3: PERSONNEL TRANSFERS")
+        
+        # Get a manager and seller for transfer testing
+        manager_id = None
+        seller_id = None
+        source_store_id = None
+        target_store_id = None
+        
+        # Find stores with managers and sellers
+        for store in existing_stores:
+            store_id = store.get('id')
+            
+            # Get managers for this store
+            success, store_managers = self.run_test(
+                f"Get Managers for Store {store.get('name')}",
+                "GET",
+                f"gerant/stores/{store_id}/managers",
+                200,
+                token=gerant_token
+            )
+            
+            if success and isinstance(store_managers, list) and len(store_managers) > 0:
+                manager_id = store_managers[0].get('id')
+                source_store_id = store_id
+                print(f"   ✅ Found manager {manager_id} in store {store.get('name')}")
+                
+                # Get sellers for this store
+                success, store_sellers = self.run_test(
+                    f"Get Sellers for Store {store.get('name')}",
+                    "GET",
+                    f"gerant/stores/{store_id}/sellers",
+                    200,
+                    token=gerant_token
+                )
+                
+                if success and isinstance(store_sellers, list) and len(store_sellers) > 0:
+                    seller_id = store_sellers[0].get('id')
+                    print(f"   ✅ Found seller {seller_id} in store {store.get('name')}")
+                
+                break
+        
+        # Find a different store for transfer target
+        for store in existing_stores:
+            if store.get('id') != source_store_id:
+                target_store_id = store.get('id')
+                print(f"   ✅ Target store for transfer: {store.get('name')} ({target_store_id})")
+                break
+        
+        # Test 8: POST /api/gerant/managers/{manager_id}/transfer - Transfer manager
+        if manager_id and target_store_id:
+            transfer_manager_data = {
+                "new_store_id": target_store_id
+            }
+            
+            success, transfer_manager_response = self.run_test(
+                "POST /api/gerant/managers/{manager_id}/transfer - Transfer Manager",
+                "POST",
+                f"gerant/managers/{manager_id}/transfer",
+                200,
+                data=transfer_manager_data,
+                token=gerant_token
+            )
+            
+            if success:
+                print(f"   ✅ Manager transfer successful")
+                # Check for orphaned sellers warning
+                if 'warning' in transfer_manager_response:
+                    print(f"   ⚠️  Warning: {transfer_manager_response.get('warning')}")
+        else:
+            print("   ⚠️  Could not test manager transfer - no suitable manager/store found")
+        
+        # Test 9: POST /api/gerant/sellers/{seller_id}/transfer - Transfer seller
+        if seller_id and target_store_id and manager_id:
+            # Get a manager from the target store
+            success, target_managers = self.run_test(
+                "Get Target Store Managers for Seller Transfer",
+                "GET",
+                f"gerant/stores/{target_store_id}/managers",
+                200,
+                token=gerant_token
+            )
+            
+            target_manager_id = None
+            if success and isinstance(target_managers, list) and len(target_managers) > 0:
+                target_manager_id = target_managers[0].get('id')
+            
+            if target_manager_id:
+                transfer_seller_data = {
+                    "new_store_id": target_store_id,
+                    "new_manager_id": target_manager_id
+                }
+                
+                success, transfer_seller_response = self.run_test(
+                    "POST /api/gerant/sellers/{seller_id}/transfer - Transfer Seller",
+                    "POST",
+                    f"gerant/sellers/{seller_id}/transfer",
+                    200,
+                    data=transfer_seller_data,
+                    token=gerant_token
+                )
+                
+                if success:
+                    print(f"   ✅ Seller transfer successful")
+            else:
+                print("   ⚠️  Could not test seller transfer - no manager in target store")
+        else:
+            print("   ⚠️  Could not test seller transfer - missing seller/store/manager")
+        
+        # Test 10: DELETE /api/gerant/stores/{store_id} - Delete store
+        if created_store_id:
+            success, delete_response = self.run_test(
+                "DELETE /api/gerant/stores/{store_id} - Delete Store",
+                "DELETE",
+                f"gerant/stores/{created_store_id}",
+                200,
+                token=gerant_token
+            )
+            
+            if success:
+                print(f"   ✅ Store deletion successful (should work as no staff assigned)")
+            else:
+                # If it fails, it might be because staff was assigned
+                print(f"   ⚠️  Store deletion failed - may have staff assigned")
+        
+        # AUTHENTICATION TESTS
+        print("\n   🔒 TESTING AUTHENTICATION REQUIREMENTS")
+        
+        # Test endpoints without token
+        endpoints_to_test = [
+            ("gerant/dashboard/stats", "GET"),
+            ("gerant/stores", "GET"),
+            ("gerant/stores", "POST")
+        ]
+        
+        for endpoint, method in endpoints_to_test:
+            success, _ = self.run_test(
+                f"{method} /{endpoint} - No Authentication",
+                method,
+                endpoint,
+                401,  # Unauthorized
+                data=new_store_data if method == "POST" else None
+            )
+            
+            if success:
+                print(f"   ✅ {method} /{endpoint} correctly requires authentication")
+
     def print_summary(self):
         """Print test summary"""
         print(f"\n{'='*60}")
