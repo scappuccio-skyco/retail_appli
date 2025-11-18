@@ -321,32 +321,45 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const handleUpdateChallenge = async (e) => {
     e.preventDefault();
     try {
-      // Préparer les données avec conversion des kpi_targets
-      const challengeData = { ...editingChallenge };
+      // Build data with new flexible system from newChallenge state (which contains editingChallenge data)
+      const cleanedData = {
+        title: newChallenge.title,
+        start_date: newChallenge.start_date,
+        end_date: newChallenge.end_date,
+        type: newChallenge.type,
+        visible: newChallenge.visible,
+        challenge_type: newChallenge.challenge_type,
+        target_value: parseFloat(newChallenge.target_value),
+        data_entry_responsible: newChallenge.data_entry_responsible,
+        unit: newChallenge.unit
+      };
       
-      // Convertir kpi_targets en champs individuels - TOUS LES KPI
-      if (challengeData.kpi_targets) {
-        challengeData.ca_target = challengeData.kpi_targets.ca ? parseFloat(challengeData.kpi_targets.ca) : null;
-        challengeData.ventes_target = challengeData.kpi_targets.ventes ? parseInt(challengeData.kpi_targets.ventes) : null;
-        challengeData.clients_target = challengeData.kpi_targets.clients ? parseInt(challengeData.kpi_targets.clients) : null;
-        challengeData.articles_target = challengeData.kpi_targets.articles ? parseInt(challengeData.kpi_targets.articles) : null;
-        challengeData.prospects_target = challengeData.kpi_targets.prospects ? parseInt(challengeData.kpi_targets.prospects) : null;
-        challengeData.panier_moyen_target = challengeData.kpi_targets.panier_moyen ? parseFloat(challengeData.kpi_targets.panier_moyen) : null;
-        challengeData.indice_vente_target = challengeData.kpi_targets.indice_vente ? parseFloat(challengeData.kpi_targets.indice_vente) : null;
-        challengeData.taux_transformation_target = challengeData.kpi_targets.taux_transformation ? parseFloat(challengeData.kpi_targets.taux_transformation) : null;
-        delete challengeData.kpi_targets; // Supprimer l'objet temporaire
+      // Ajouter seller_id si type individual
+      if (newChallenge.type === 'individual' && newChallenge.seller_id) {
+        cleanedData.seller_id = newChallenge.seller_id;
       }
       
       // Ajouter visible_to_sellers si type collective
-      if (editingChallenge.type === 'collective') {
-        challengeData.visible_to_sellers = selectedVisibleSellersChallenge;
+      if (newChallenge.type === 'collective') {
+        cleanedData.visible_to_sellers = selectedVisibleSellersChallenge;
       }
       
-      await axios.put(`${API}/manager/challenges/${editingChallenge.id}`, challengeData, { headers });
+      // Add specific fields based on challenge_type
+      if (newChallenge.challenge_type === 'kpi_standard') {
+        cleanedData.kpi_name = newChallenge.kpi_name;
+      } else if (newChallenge.challenge_type === 'product_focus') {
+        cleanedData.product_name = newChallenge.product_name;
+      } else if (newChallenge.challenge_type === 'custom') {
+        cleanedData.custom_description = newChallenge.custom_description;
+      }
+      
+      await axios.put(`${API}/manager/challenges/${editingChallenge.id}`, cleanedData, { headers });
       toast.success('Challenge modifié avec succès');
       setEditingChallenge(null);
-      setSelectedKPIsChallenge({});
-      fetchData();
+      
+      // Forcer le rechargement des données
+      await fetchData();
+      
       if (onUpdate) onUpdate();
     } catch (err) {
       console.error('Error updating challenge:', err);
