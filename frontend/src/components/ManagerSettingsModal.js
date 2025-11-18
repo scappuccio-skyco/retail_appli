@@ -59,6 +59,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   
   // Selected sellers for visibility
   const [selectedVisibleSellers, setSelectedVisibleSellers] = useState([]);
+  
+  // Dropdown state for seller selection
+  const [isSellerDropdownOpen, setIsSellerDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
