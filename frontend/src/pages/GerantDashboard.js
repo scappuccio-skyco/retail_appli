@@ -25,6 +25,7 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [showManagerTransferModal, setShowManagerTransferModal] = useState(false);
   const [showSellerTransferModal, setShowSellerTransferModal] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [showInviteStaffModal, setShowInviteStaffModal] = useState(false);
   
   // Selected items for modals
   const [selectedStore, setSelectedStore] = useState(null);
