@@ -8,30 +8,48 @@ const InviteStaffModal = ({ onClose, onInvite, stores, selectedStoreId = null })
     email: '',
     role: 'manager',
     store_id: selectedStoreId || '',
-    manager_id: ''
+    manager_id: '',
+    manager_email: '' // Pour stocker l'email du manager en attente
   });
   
   const [managers, setManagers] = useState([]);
+  const [pendingManagerInvites, setPendingManagerInvites] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   // Charger les managers du magasin sélectionné (si vendeur)
   useEffect(() => {
     if (formData.role === 'seller' && formData.store_id) {
-      fetchManagers(formData.store_id);
+      fetchManagersAndInvites(formData.store_id);
     }
   }, [formData.role, formData.store_id]); // eslint-disable-line
 
-  const fetchManagers = async (storeId) => {
+  const fetchManagersAndInvites = async (storeId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${backendUrl}/api/gerant/stores/${storeId}/managers`, {
+      
+      // Récupérer les managers actifs
+      const managersResponse = await fetch(`${backendUrl}/api/gerant/stores/${storeId}/managers`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        setManagers(data);
+      if (managersResponse.ok) {
+        const managersData = await managersResponse.json();
+        setManagers(managersData);
+      }
+
+      // Récupérer les invitations en attente
+      const invitesResponse = await fetch(`${backendUrl}/api/gerant/invitations`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (invitesResponse.ok) {
+        const allInvites = await invitesResponse.json();
+        // Filtrer les invitations de managers en attente pour ce magasin
+        const pendingManagers = allInvites.filter(
+          inv => inv.store_id === storeId && inv.role === 'manager' && inv.status === 'pending'
+        );
+        setPendingManagerInvites(pendingManagers);
       }
     } catch (error) {
       console.error('Erreur chargement managers:', error);
