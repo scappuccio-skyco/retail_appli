@@ -32,35 +32,7 @@ const GerantDashboard = () => {
   const [selectedManager, setSelectedManager] = useState(null);
   const [selectedSeller, setSelectedSeller] = useState(null);
 
-  // Vérifier l'auth seulement au montage
-  useEffect(() => {
-    if (hasCheckedAuth) return;
-    
-    const userData = localStorage.getItem('user');
-    if (!userData) {
-      navigate('/login');
-      return;
-    }
-
-    const parsedUser = JSON.parse(userData);
-    setUser(parsedUser);
-
-    if (parsedUser.role !== 'gerant') {
-      navigate('/login');
-      return;
-    }
-
-    setHasCheckedAuth(true);
-  }, [hasCheckedAuth, navigate]);
-
-  // Fetch data après authentification
-  useEffect(() => {
-    if (hasCheckedAuth && user) {
-      fetchDashboardData();
-    }
-  }, [hasCheckedAuth, user]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
 
