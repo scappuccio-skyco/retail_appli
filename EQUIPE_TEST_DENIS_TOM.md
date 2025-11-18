@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://sales-mentor-4.preview.emergentagent.com
+https://kpi-manager-3.preview.emergentagent.com
 
 ### Manager
 ```
