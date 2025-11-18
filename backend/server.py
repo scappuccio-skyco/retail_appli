@@ -231,7 +231,8 @@ class GerantInvitationCreate(BaseModel):
     email: EmailStr
     role: str  # "manager" ou "seller"
     store_id: str
-    manager_id: Optional[str] = None  # Requis si role == "seller"
+    manager_id: Optional[str] = None  # Requis si role == "seller" (peut être pending_xxx)
+    manager_email: Optional[str] = None  # Email du manager si en attente
 
 class RegisterWithGerantInvite(BaseModel):
     """Modèle pour s'enregistrer avec une invitation Gérant"""
