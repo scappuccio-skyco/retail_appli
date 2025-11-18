@@ -596,7 +596,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         <div
           key="kpi"
           onClick={() => setShowStoreKPIModal(true)}
-          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
+          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-green-400"
           style={{ order: getSectionOrder('kpi') }}
         >
           <div className="relative h-56 overflow-hidden">
@@ -680,7 +680,7 @@ export default function ManagerDashboard({ user, onLogout }) {
             setSettingsModalType('challenges');
             setShowSettingsModal(true);
           }}
-          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
+          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-green-400"
           style={{ order: getSectionOrder('challenges') }}
         >
           <div className="relative h-56 overflow-hidden">
