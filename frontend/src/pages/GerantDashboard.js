@@ -447,6 +447,14 @@ const GerantDashboard = ({ user, onLogout }) => {
           onDelete={handleDeleteStore}
         />
       )}
+
+      {showInviteStaffModal && (
+        <InviteStaffModal
+          onClose={() => setShowInviteStaffModal(false)}
+          onInvite={handleInviteStaff}
+          stores={stores}
+        />
+      )}
     </div>
   );
 };
