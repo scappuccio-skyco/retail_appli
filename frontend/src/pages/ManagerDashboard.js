@@ -477,7 +477,7 @@ export default function ManagerDashboard({ user, onLogout }) {
       // Récupérer le nom du magasin si on a un store_id
       if (user?.store_id) {
         try {
-          const storeRes = await axios.get(`${API}/gerant/stores/${user.store_id}`, {
+          const storeRes = await axios.get(`${API}/stores/${user.store_id}/info`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (storeRes.data?.name) {
