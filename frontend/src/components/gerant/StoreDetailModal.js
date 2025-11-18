@@ -115,6 +115,15 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
               <p className="text-gray-600 mt-4">Chargement...</p>
             </div>
+          ) : activeTab === 'performance' ? (
+            <div className="h-full">
+              <StoreKPIModal 
+                onClose={() => {}} 
+                hideCloseButton={true}
+                storeId={store.id}
+                storeName={store.name}
+              />
+            </div>
           ) : activeTab === 'managers' ? (
             <div className="space-y-3">
               {managers.length === 0 && pendingInvitations.filter(inv => inv.role === 'manager').length === 0 ? (
