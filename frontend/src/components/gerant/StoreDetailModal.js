@@ -92,7 +92,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              👥 Vendeurs ({sellers.length})
+              👥 Vendeurs ({sellers.length + pendingInvitations.filter(inv => inv.role === 'seller').length})
             </button>
           </div>
         </div>
