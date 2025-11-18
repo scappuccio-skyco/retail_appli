@@ -7936,10 +7936,11 @@ async def get_store_stats(store_id: str, current_user: dict = Depends(get_curren
     # Compter les vendeurs
     sellers_count = await db.users.count_documents({"store_id": store_id, "role": "seller"})
     
-    # Calculer le CA du jour
+    # Calculer le CA du jour (sellers + managers)
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     
-    pipeline = [
+    # Get sellers KPIs
+    sellers_pipeline = [
         {
             "$match": {
                 "store_id": store_id,
@@ -7956,12 +7957,40 @@ async def get_store_stats(store_id: str, current_user: dict = Depends(get_curren
         }
     ]
     
-    kpi_stats = await db.kpi_entries.aggregate(pipeline).to_list(length=1)
+    sellers_stats = await db.kpi_entries.aggregate(sellers_pipeline).to_list(length=1)
+    sellers_ca = sellers_stats[0].get("total_ca", 0) if sellers_stats else 0
+    sellers_ventes = sellers_stats[0].get("total_ventes", 0) if sellers_stats else 0
+    sellers_articles = sellers_stats[0].get("total_articles", 0) if sellers_stats else 0
     
-    if kpi_stats:
-        stats = kpi_stats[0]
-    else:
-        stats = {"total_ca": 0, "total_ventes": 0, "total_articles": 0}
+    # Get managers KPIs
+    managers_pipeline = [
+        {
+            "$match": {
+                "store_id": store_id,
+                "date": today
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_ca": {"$sum": "$ca_journalier"},
+                "total_ventes": {"$sum": "$nb_ventes"},
+                "total_articles": {"$sum": "$nb_articles"}
+            }
+        }
+    ]
+    
+    managers_stats = await db.manager_kpis.aggregate(managers_pipeline).to_list(length=1)
+    managers_ca = managers_stats[0].get("total_ca", 0) if managers_stats else 0
+    managers_ventes = managers_stats[0].get("total_ventes", 0) if managers_stats else 0
+    managers_articles = managers_stats[0].get("total_articles", 0) if managers_stats else 0
+    
+    # Combine both
+    stats = {
+        "total_ca": sellers_ca + managers_ca,
+        "total_ventes": sellers_ventes + managers_ventes,
+        "total_articles": sellers_articles + managers_articles
+    }
     
     return {
         "store": store,
