@@ -379,3 +379,96 @@ const handleLogin = async () => {
 - C) Interface gérant d'abord pour visualiser
 
 **Je recommande l'ordre : A → B → C**
+
+---
+
+## 📋 Cas d'Usage Exemples
+
+### **Scénario 1 : Vue Gérant Classique**
+
+**Contexte :** Jean Dupont est gérant de 3 magasins Skyco
+
+1. **Connexion :** Jean se connecte avec `jean.dupont@skyco.fr`
+2. **Dashboard Gérant :** Il voit :
+   - Performance globale : CA total, nombre de ventes
+   - Ses 3 magasins avec leurs KPIs
+   - Classement des magasins
+3. **Vue Magasin :** Il clique sur "Skyco Paris Centre"
+   - Voit les 2 managers de ce magasin
+   - Voit les 8 vendeurs
+   - Voit les KPIs détaillés
+4. **Gestion :** Il peut :
+   - Créer un nouveau magasin
+   - Affecter un manager à un magasin
+   - Définir des objectifs par magasin
+
+---
+
+### **Scénario 2 : Transfert de Manager**
+
+**Contexte :** Le manager "Sophie Martin" doit être transféré de Paris à Lyon
+
+1. Jean (gérant) va dans "Gestion de l'équipe"
+2. Il sélectionne "Sophie Martin" (actuellement à Paris Centre)
+3. Il clique sur "Transférer vers une autre boutique"
+4. Il choisit "Skyco Lyon Part-Dieu"
+5. **Confirmation** :
+   ```
+   ⚠️ Transfert de Manager
+   
+   Sophie Martin sera transférée de :
+   📍 Skyco Paris Centre → 📍 Skyco Lyon Part-Dieu
+   
+   Ses 4 vendeurs RESTERONT à Paris Centre.
+   Vous devrez les réassigner à un autre manager.
+   
+   Continuer ?
+   [Annuler] [Confirmer le transfert]
+   ```
+6. Après confirmation :
+   - Sophie est transférée à Lyon
+   - Ses 4 vendeurs restent à Paris (sans manager assigné)
+   - Jean reçoit une alerte : "4 vendeurs à Paris sans manager"
+
+---
+
+### **Scénario 3 : Transfert de Vendeur**
+
+**Contexte :** Le vendeur "Thomas Roux" doit être transféré de Paris à Bordeaux
+
+1. Jean (gérant) va dans "Gestion de l'équipe"
+2. Il sélectionne "Thomas Roux" (actuellement à Paris, manager: Sophie)
+3. Il clique sur "Transférer vers une autre boutique"
+4. Il choisit "Skyco Bordeaux Mériadeck"
+5. **Choix du nouveau manager** :
+   ```
+   🔄 Transfert de Vendeur
+   
+   Thomas Roux sera transféré de :
+   📍 Skyco Paris Centre → 📍 Skyco Bordeaux Mériadeck
+   
+   Choisissez un manager à Bordeaux :
+   👤 Pierre Durand (6 vendeurs actuellement)
+   👤 Marie Lambert (4 vendeurs actuellement)
+   
+   [Annuler] [Confirmer]
+   ```
+6. Après confirmation :
+   - Thomas est transféré à Bordeaux
+   - Son nouveau manager est Pierre Durand
+   - Ses KPIs historiques restent visibles avec mention "Ex-Paris Centre"
+
+---
+
+### **Scénario 4 : Gérant avec Double Rôle**
+
+**Contexte :** Jean est gérant ET manager du magasin de Paris
+
+1. Jean se connecte
+2. **Switch de rôle visible** en haut à droite :
+   ```
+   [Vue Gérant 🏢] / [Vue Manager Paris 📍]
+   ```
+3. En "Vue Gérant" : Il voit tous les magasins
+4. En "Vue Manager Paris" : Il voit uniquement Paris (comme un manager normal)
+5. Il peut passer d'une vue à l'autre instantanément
