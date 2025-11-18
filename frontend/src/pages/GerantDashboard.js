@@ -33,16 +33,22 @@ const GerantDashboard = () => {
   const [selectedSeller, setSelectedSeller] = useState(null);
 
   const fetchDashboardData = async () => {
+    console.log('🔍 fetchDashboardData called');
     try {
       const token = localStorage.getItem('token');
+      console.log('🔑 Token:', token ? 'exists' : 'missing');
 
       // Récupérer les stats globales et la liste des magasins
+      console.log('📡 Fetching dashboard stats from:', `${backendUrl}/api/gerant/dashboard/stats`);
       const statsResponse = await fetch(`${backendUrl}/api/gerant/dashboard/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
+      console.log('📥 Stats response status:', statsResponse.status);
+
       if (statsResponse.ok) {
         const data = await statsResponse.json();
+        console.log('✅ Dashboard data received:', data);
         setGlobalStats(data);
         setStores(data.stores || []);
 
@@ -59,10 +65,12 @@ const GerantDashboard = () => {
           statsMap[data.stores[index].id] = stats;
         });
         setStoresStats(statsMap);
+        console.log('✅ All stores stats loaded');
       }
     } catch (error) {
-      console.error('Erreur chargement données:', error);
+      console.error('❌ Erreur chargement données:', error);
     } finally {
+      console.log('🏁 Setting loading to false');
       setLoading(false);
     }
   };
