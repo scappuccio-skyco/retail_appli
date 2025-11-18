@@ -302,6 +302,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       toast.success('Challenge créé avec succès');
       setNewChallenge({
         title: '',
+        description: '',
         type: 'collective',
         seller_id: '',
         visible: true,
