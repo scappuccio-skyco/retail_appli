@@ -905,97 +905,170 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           />
                         </div>
 
-                        {/* Dynamic KPI Selection - Compact Grid Layout */}
+                        {/* NEW FLEXIBLE OBJECTIVE SYSTEM */}
                         <div className="md:col-span-2">
                           <div className="mb-3">
                             <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                              <span className="text-lg">📊</span>
-                              Sélectionner les KPI à cibler
+                              <span className="text-lg">🎯</span>
+                              Type d'objectif
                             </h4>
-                            <p className="text-xs text-gray-600 mb-3">Cochez les KPI et indiquez la valeur cible</p>
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            {getAvailableKPIs().map((kpi) => (
-                              <div key={kpi.key} className="border-2 border-gray-200 rounded-lg p-3 hover:border-purple-300 transition-all">
-                                {/* Checkbox + Label */}
-                                <label className="flex items-center gap-2 cursor-pointer mb-2">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedKPIs[kpi.key] || false}
-                                    onChange={(e) => {
-                                      setSelectedKPIs({ ...selectedKPIs, [kpi.key]: e.target.checked });
-                                      if (!e.target.checked) {
-                                        if (editingObjective) {
-                                          // En mode édition : supprimer la propriété *_target
-                                          const targetKey = `${kpi.key}_target`;
-                                          const updated = { ...editingObjective };
-                                          delete updated[targetKey];
-                                          setEditingObjective(updated);
-                                        } else {
-                                          // En mode création : supprimer du kpi_targets
-                                          const newTargets = { ...newObjective.kpi_targets };
-                                          delete newTargets[kpi.key];
-                                          setNewObjective({ ...newObjective, kpi_targets: newTargets });
-                                        }
-                                      }
-                                    }}
-                                    className="w-4 h-4 text-purple-600"
-                                  />
-                                  <div className="flex items-center gap-1.5 flex-1">
-                                    <span className="text-base">{kpi.icon}</span>
-                                    <span className="font-semibold text-sm text-gray-800">{kpi.label}</span>
-                                    {kpi.calculated && (
-                                      <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">Auto</span>
-                                    )}
-                                  </div>
-                                </label>
-                                
-                                {/* Value Input (inline when selected) */}
-                                {selectedKPIs[kpi.key] && (
-                                  <div className="animate-fadeIn">
-                                    <div className="flex items-center gap-2">
-                                      <input
-                                        type="number"
-                                        step={kpi.key.includes('taux') ? '0.1' : kpi.key.includes('moyen') || kpi.key.includes('indice') ? '0.01' : '1'}
-                                        value={editingObjective ? (editingObjective[`${kpi.key}_target`] || '') : (newObjective.kpi_targets[kpi.key] || '')}
-                                        onChange={(e) => {
-                                          if (editingObjective) {
-                                            // En mode édition : mettre à jour la propriété *_target directement
-                                            const targetKey = `${kpi.key}_target`;
-                                            setEditingObjective({
-                                              ...editingObjective,
-                                              [targetKey]: e.target.value
-                                            });
-                                          } else {
-                                            // En mode création : mettre à jour kpi_targets
-                                            setNewObjective({
-                                              ...newObjective,
-                                              kpi_targets: {
-                                                ...newObjective.kpi_targets,
-                                                [kpi.key]: e.target.value
-                                              }
-                                            });
-                                          }
-                                        }}
-                                        className="flex-1 p-2 text-sm border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
-                                        placeholder={`Ex: ${kpi.key === 'ca' ? '50000' : kpi.key === 'ventes' ? '200' : kpi.key === 'panier_moyen' ? '150' : '2.5'}`}
-                                        required
-                                      />
-                                      <span className="text-xs text-gray-500 whitespace-nowrap">{kpi.unit}</span>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
+                          {/* Objective Type Selection */}
+                          <div className="mb-4">
+                            <select
+                              required
+                              value={newObjective.objective_type}
+                              onChange={(e) => {
+                                const newType = e.target.value;
+                                setNewObjective({ 
+                                  ...newObjective, 
+                                  objective_type: newType,
+                                  // Auto-set unit based on type
+                                  unit: newType === 'kpi_standard' && newObjective.kpi_name === 'ca' ? '€' : 
+                                        newType === 'kpi_standard' && newObjective.kpi_name === 'ventes' ? 'ventes' :
+                                        newType === 'kpi_standard' && newObjective.kpi_name === 'articles' ? 'articles' : ''
+                                });
+                              }}
+                              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                            >
+                              <option value="kpi_standard">📊 KPI Standard</option>
+                              <option value="product_focus">📦 Focus Produit</option>
+                              <option value="custom">✨ Autre (personnalisé)</option>
+                            </select>
                           </div>
-                          
-                          {getAvailableKPIs().length === 0 && (
-                            <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 text-center">
-                              <p className="text-orange-700 font-semibold">⚠️ Aucun KPI configuré</p>
-                              <p className="text-sm text-[#F97316] mt-1">Veuillez d'abord configurer vos KPI dans "KPI Magasin"</p>
+
+                          {/* Conditional Fields Based on Objective Type */}
+                          {newObjective.objective_type === 'kpi_standard' && (
+                            <div className="mb-4 bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">KPI à cibler *</label>
+                              <select
+                                required
+                                value={newObjective.kpi_name}
+                                onChange={(e) => {
+                                  const kpiName = e.target.value;
+                                  let unit = '';
+                                  if (kpiName === 'ca') unit = '€';
+                                  else if (kpiName === 'ventes') unit = 'ventes';
+                                  else if (kpiName === 'articles') unit = 'articles';
+                                  setNewObjective({ ...newObjective, kpi_name: kpiName, unit });
+                                }}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-400 focus:outline-none"
+                              >
+                                <option value="ca">💰 Chiffre d'affaires</option>
+                                <option value="ventes">🛍️ Nombre de ventes</option>
+                                <option value="articles">📦 Nombre d'articles</option>
+                              </select>
                             </div>
                           )}
+
+                          {newObjective.objective_type === 'product_focus' && (
+                            <div className="mb-4 bg-green-50 rounded-lg p-4 border-2 border-green-200">
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Nom du produit *</label>
+                              <input
+                                type="text"
+                                required
+                                value={newObjective.product_name}
+                                onChange={(e) => setNewObjective({ ...newObjective, product_name: e.target.value })}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-green-400 focus:outline-none"
+                                placeholder="Ex: iPhone 15, Samsung Galaxy, MacBook Air..."
+                              />
+                              <p className="text-xs text-gray-600 mt-2">📦 Indiquez le produit sur lequel vous souhaitez vous concentrer</p>
+                            </div>
+                          )}
+
+                          {newObjective.objective_type === 'custom' && (
+                            <div className="mb-4 bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Description de l'objectif *</label>
+                              <textarea
+                                required
+                                rows="3"
+                                value={newObjective.custom_description}
+                                onChange={(e) => setNewObjective({ ...newObjective, custom_description: e.target.value })}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                                placeholder="Ex: Améliorer la satisfaction client, Augmenter les ventes croisées..."
+                              />
+                              <p className="text-xs text-gray-600 mt-2">✨ Décrivez votre objectif personnalisé</p>
+                            </div>
+                          )}
+
+                          {/* Target Value */}
+                          <div className="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Valeur cible *</label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                required
+                                value={newObjective.target_value}
+                                onChange={(e) => setNewObjective({ ...newObjective, target_value: e.target.value })}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                                placeholder="Ex: 50000"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Unité (optionnel)</label>
+                              <input
+                                type="text"
+                                value={newObjective.unit}
+                                onChange={(e) => setNewObjective({ ...newObjective, unit: e.target.value })}
+                                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                                placeholder="€, ventes, %..."
+                              />
+                            </div>
+                          </div>
+
+                          {/* Data Entry Responsible - TOGGLES STYLE MAGASIN */}
+                          <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4 border-2 border-orange-200">
+                            <label className="block text-sm font-semibold text-gray-800 mb-3">
+                              📝 Qui saisit la progression ? *
+                            </label>
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setNewObjective({ ...newObjective, data_entry_responsible: 'seller' })}
+                                className={`w-12 h-8 rounded font-bold text-xs transition-all ${
+                                  newObjective.data_entry_responsible === 'seller' 
+                                    ? 'bg-cyan-500 text-white shadow-lg' 
+                                    : 'bg-gray-200 text-gray-500'
+                                }`}
+                                title="Vendeur"
+                              >
+                                🧑‍💼
+                              </button>
+                              <span className={`text-sm font-medium ${
+                                newObjective.data_entry_responsible === 'seller' ? 'text-cyan-700' : 'text-gray-500'
+                              }`}>
+                                Vendeur
+                              </span>
+                              
+                              <div className="mx-4 h-8 w-px bg-gray-300"></div>
+                              
+                              <button
+                                type="button"
+                                onClick={() => setNewObjective({ ...newObjective, data_entry_responsible: 'manager' })}
+                                className={`w-12 h-8 rounded font-bold text-xs transition-all ${
+                                  newObjective.data_entry_responsible === 'manager' 
+                                    ? 'bg-orange-500 text-white shadow-lg' 
+                                    : 'bg-gray-200 text-gray-500'
+                                }`}
+                                title="Manager"
+                              >
+                                👨‍💼
+                              </button>
+                              <span className={`text-sm font-medium ${
+                                newObjective.data_entry_responsible === 'manager' ? 'text-orange-700' : 'text-gray-500'
+                              }`}>
+                                Manager
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-3">
+                              {newObjective.data_entry_responsible === 'seller' 
+                                ? '🧑‍💼 Le vendeur pourra saisir la progression de cet objectif'
+                                : '👨‍💼 Vous (manager) saisirez la progression de cet objectif'}
+                            </p>
+                          </div>
                         </div>
                       </div>
 
