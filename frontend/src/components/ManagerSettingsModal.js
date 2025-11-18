@@ -716,14 +716,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Type d'objectif *</label>
                           <select
-                            value={editingObjective ? editingObjective.type : newObjective.type}
+                            value={newObjective.type}
                             onChange={(e) => {
                               const newType = e.target.value;
-                              if (editingObjective) {
-                                setEditingObjective({ ...editingObjective, type: newType, seller_id: newType === 'collective' ? '' : editingObjective.seller_id });
-                              } else {
-                                setNewObjective({ ...newObjective, type: newType, seller_id: newType === 'collective' ? '' : newObjective.seller_id });
-                              }
+                              setNewObjective({ ...newObjective, type: newType, seller_id: newType === 'collective' ? '' : newObjective.seller_id });
                             }}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
                           >
@@ -733,16 +729,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                         </div>
 
                         {/* Seller selection for individual objectives */}
-                        {(editingObjective ? editingObjective.type : newObjective.type) === 'individual' && (
+                        {newObjective.type === 'individual' && (
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Vendeur *</label>
                             <select
                               required
-                              value={editingObjective ? editingObjective.seller_id : newObjective.seller_id}
-                              onChange={(e) => editingObjective
-                                ? setEditingObjective({ ...editingObjective, seller_id: e.target.value })
-                                : setNewObjective({ ...newObjective, seller_id: e.target.value })
-                              }
+                              value={newObjective.seller_id}
+                              onChange={(e) => setNewObjective({ ...newObjective, seller_id: e.target.value })}
                               className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
                             >
                               <option value="">Sélectionner un vendeur</option>
