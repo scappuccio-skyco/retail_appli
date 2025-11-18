@@ -195,31 +195,26 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     }
   }, [editingObjective]);
 
-  // Pré-remplir les KPI lors de l'édition d'un challenge
-  // IMPORTANT : Se déclenche uniquement à l'ouverture, pas pendant la modification
+  // Pré-remplir les champs lors de l'édition d'un challenge - NEW SYSTEM
   useEffect(() => {
-    if (editingChallenge && editingChallenge.id) {
-      // Pré-remplir les KPI sélectionnés en fonction des targets existantes (comme pour les objectifs)
-      const kpisToSelect = {};
-      const kpiTargets = {};
-      
-      // Parcourir tous les KPI possibles
-      const possibleKPIs = ['ca', 'ventes', 'clients', 'articles', 'prospects', 'panier_moyen', 'indice_vente', 'taux_transformation'];
-      
-      possibleKPIs.forEach(kpiKey => {
-        const targetKey = `${kpiKey}_target`;
-        if (editingChallenge[targetKey] !== undefined && editingChallenge[targetKey] !== null && editingChallenge[targetKey] !== '') {
-          kpisToSelect[kpiKey] = true;
-          kpiTargets[kpiKey] = editingChallenge[targetKey];
-        }
+    if (editingChallenge) {
+      // Pré-remplir tous les champs du challenge
+      setNewChallenge({
+        title: editingChallenge.title || '',
+        type: editingChallenge.type || 'collective',
+        seller_id: editingChallenge.seller_id || '',
+        visible: editingChallenge.visible !== false,
+        visible_to_sellers: editingChallenge.visible_to_sellers || [],
+        start_date: editingChallenge.start_date || '',
+        end_date: editingChallenge.end_date || '',
+        challenge_type: editingChallenge.challenge_type || 'kpi_standard',
+        kpi_name: editingChallenge.kpi_name || 'ca',
+        product_name: editingChallenge.product_name || '',
+        custom_description: editingChallenge.custom_description || '',
+        target_value: editingChallenge.target_value || '',
+        data_entry_responsible: editingChallenge.data_entry_responsible || 'manager',
+        unit: editingChallenge.unit || '€'
       });
-      
-      setSelectedKPIsChallenge(kpisToSelect);
-      
-      // Mettre les kpi_targets pour l'affichage dans le formulaire
-      if (!editingChallenge.kpi_targets) {
-        editingChallenge.kpi_targets = kpiTargets;
-      }
       
       // Pré-remplir les vendeurs visibles pour les challenges collectifs
       if (editingChallenge.type === 'collective' && editingChallenge.visible_to_sellers && Array.isArray(editingChallenge.visible_to_sellers)) {
@@ -227,24 +222,27 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       } else {
         setSelectedVisibleSellersChallenge([]);
       }
-    } else if (!editingChallenge) {
+    } else {
       // Réinitialiser quand on quitte le mode édition
-      setSelectedKPIsChallenge({});
       setSelectedVisibleSellersChallenge([]);
       setNewChallenge({
         title: '',
-        description: '',
         type: 'collective',
         seller_id: '',
         visible: true,
         visible_to_sellers: [],
         start_date: '',
         end_date: '',
-        kpi_targets: {},
-        status: 'active'
+        challenge_type: 'kpi_standard',
+        kpi_name: 'ca',
+        product_name: '',
+        custom_description: '',
+        target_value: '',
+        data_entry_responsible: 'manager',
+        unit: '€'
       });
     }
-  }, [editingChallenge?.id]); // Dépendance sur l'ID uniquement, pas sur tout l'objet
+  }, [editingChallenge]);
 
   const handleKPIConfigUpdate = async (e) => {
     e.preventDefault();
