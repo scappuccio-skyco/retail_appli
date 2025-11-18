@@ -332,6 +332,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       // Build data with new flexible system from newChallenge state (which contains editingChallenge data)
       const cleanedData = {
         title: newChallenge.title,
+        description: newChallenge.description,
         start_date: newChallenge.start_date,
         end_date: newChallenge.end_date,
         type: newChallenge.type,
