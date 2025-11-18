@@ -648,15 +648,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                           </div>
                           
                           <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                            <span className="text-xs text-gray-600">👥 Clients</span>
-                            {overviewData.kpi_config?.seller_track_clients ? (
-                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_clients}</span>
-                            ) : (
-                              <span className="text-sm text-gray-400 italic">N/A</span>
-                            )}
-                          </div>
-                          
-                          <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                             <span className="text-xs text-gray-600">📦 Articles</span>
                             {overviewData.kpi_config?.seller_track_articles ? (
                               <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_articles}</span>
