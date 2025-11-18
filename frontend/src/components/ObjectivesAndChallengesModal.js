@@ -51,15 +51,26 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
+      const response = await axios.post(
         `${API}/manager/objectives/${objectiveId}/progress`,
         { current_value: parseFloat(progressValue) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log('✅ Progress updated, response:', response.data);
       toast.success('Progression mise à jour avec succès');
       setUpdatingProgressObjectiveId(null);
       setProgressValue('');
-      if (onUpdate) onUpdate();
+      
+      // Force modal to close and reopen to refresh data
+      if (onUpdate) {
+        await onUpdate();
+      }
+      
+      // Close modal temporarily to force refresh
+      onClose();
+      setTimeout(() => {
+        // This will be handled by parent component re-opening
+      }, 100);
     } catch (err) {
       console.error('Error updating progress:', err);
       toast.error(err.response?.data?.detail || 'Erreur lors de la mise à jour de la progression');
