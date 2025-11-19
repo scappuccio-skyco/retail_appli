@@ -66,11 +66,11 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
     setVisibleSellers(initialVisibleSellers);
   }, [sellers]);
 
-  // Fetch team data only when sellers change (not period)
+  // Fetch team data when sellers or period changes
   useEffect(() => {
-    console.log(`[TeamModal] 🔄 Fetching team data`);
+    console.log(`[TeamModal] 🔄 Fetching team data for period: ${periodFilter}`);
     fetchTeamData();
-  }, [sellers]);
+  }, [sellers, periodFilter]);
 
   // Prepare chart data when period changes
   useEffect(() => {
