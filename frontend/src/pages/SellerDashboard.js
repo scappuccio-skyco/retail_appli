@@ -1326,6 +1326,20 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         />
       )}
 
+      {/* Performance Modal (Combiné Bilan + KPI) */}
+      {showPerformanceModal && (
+        <PerformanceModal
+          isOpen={showPerformanceModal}
+          onClose={() => setShowPerformanceModal(false)}
+          bilanData={bilanIndividuel}
+          kpiEntries={kpiEntries}
+          user={user}
+          onDataUpdate={fetchData}
+          onRegenerate={regenerateBilan}
+          generatingBilan={generatingBilan}
+        />
+      )}
+
       {/* Bilan Individuel Modal */}
       {showBilanModal && bilanIndividuel && (
         <BilanIndividuelModal
