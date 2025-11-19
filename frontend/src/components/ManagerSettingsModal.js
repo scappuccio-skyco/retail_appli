@@ -1953,8 +1953,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 step="0.01"
                                 min="0"
                                 required
-                                value={newChallenge.target_value}
-                                onChange={(e) => setNewChallenge({ ...newChallenge, target_value: e.target.value })}
+                                value={editingChallenge ? editingChallenge.target_value : newChallenge.target_value}
+                                onChange={(e) => editingChallenge
+                                  ? setEditingChallenge({ ...editingChallenge, target_value: e.target.value })
+                                  : setNewChallenge({ ...newChallenge, target_value: e.target.value })
+                                }
                                 className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-yellow-400 focus:outline-none"
                                 placeholder="Ex: 50000"
                               />
@@ -1963,8 +1966,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               <label className="block text-sm font-semibold text-gray-700 mb-2">Unité (optionnel)</label>
                               <input
                                 type="text"
-                                value={newChallenge.unit}
-                                onChange={(e) => setNewChallenge({ ...newChallenge, unit: e.target.value })}
+                                value={editingChallenge ? editingChallenge.unit : newChallenge.unit}
+                                onChange={(e) => editingChallenge
+                                  ? setEditingChallenge({ ...editingChallenge, unit: e.target.value })
+                                  : setNewChallenge({ ...newChallenge, unit: e.target.value })
+                                }
                                 className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-yellow-400 focus:outline-none"
                                 placeholder="€, ventes, %..."
                               />
