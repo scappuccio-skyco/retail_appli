@@ -121,13 +121,12 @@ export default function CoachingModal({
     }
   };
 
-  const handleRefresh = async (competence = null) => {
+  const handleRefresh = async () => {
     setLoading(true);
-    setShowCompetenceSelector(false);
     try {
       const res = await axios.post(
         `${API}/seller/daily-challenge/refresh`,
-        { competence },
+        { competence: selectedCompetence },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -141,7 +140,6 @@ export default function CoachingModal({
       toast.error('Erreur lors de la génération du défi');
     } finally {
       setLoading(false);
-      setSelectedCompetence(null);
     }
   };
 
