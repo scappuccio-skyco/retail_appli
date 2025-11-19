@@ -479,6 +479,16 @@ const GerantDashboard = ({ user, onLogout }) => {
           stores={stores}
         />
       )}
+
+      {/* Subscription Modal */}
+      <SubscriptionModal 
+        isOpen={showSubscriptionModal}
+        onClose={() => {
+          setShowSubscriptionModal(false);
+          fetchSubscriptionInfo();
+        }}
+        subscriptionInfo={subscriptionInfo}
+      />
     </div>
   );
 };
