@@ -186,8 +186,8 @@ export default function PerformanceModal({
         <div className="flex-1 overflow-y-auto">
           {activeTab === 'bilan' && (
             <div>
-              {/* Header avec navigation semaines */}
-              <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-4 flex items-center justify-between">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-4">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-6 h-6 text-white" />
                   <div>
@@ -197,50 +197,52 @@ export default function PerformanceModal({
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* Boutons d'action avec navigation semaines */}
+              <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b">
+                <div className="flex gap-2">
+                  {onRegenerate && (
+                    <button
+                      onClick={onRegenerate}
+                      disabled={generatingBilan}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <TrendingUp className={`w-4 h-4 ${generatingBilan ? 'animate-spin' : ''}`} />
+                      {generatingBilan ? 'Génération...' : (bilanData?.synthese ? 'Regénérer le bilan' : 'Générer votre bilan')}
+                    </button>
+                  )}
+                  <button
+                    onClick={exportToPDF}
+                    disabled={exportingPDF}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <Download className={`w-4 h-4 ${exportingPDF ? 'animate-bounce' : ''}`} />
+                    {exportingPDF ? 'Export...' : 'Exporter PDF'}
+                  </button>
+                </div>
                 
-                {/* Navigation semaines */}
+                {/* Navigation semaines - déplacée à droite */}
                 {onWeekChange && (
-                  <div className="flex items-center gap-2 bg-white bg-opacity-20 rounded-lg px-2 py-1">
+                  <div className="flex items-center gap-2 bg-gray-200 rounded-lg px-3 py-2">
                     <button
                       onClick={() => onWeekChange(currentWeekOffset - 1)}
-                      className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded transition"
+                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition"
                       title="Semaine précédente"
                     >
                       <ChevronLeft className="w-4 h-4 text-white" />
                     </button>
-                    <span className="text-xs text-white px-2">Semaines</span>
+                    <span className="text-xs font-semibold text-gray-700 px-2">Semaines</span>
                     <button
                       onClick={() => onWeekChange(currentWeekOffset + 1)}
                       disabled={currentWeekOffset === 0}
-                      className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded transition disabled:opacity-30"
+                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition disabled:opacity-30 disabled:cursor-not-allowed"
                       title="Semaine suivante"
                     >
                       <ChevronRight className="w-4 h-4 text-white" />
                     </button>
                   </div>
                 )}
-              </div>
-
-              {/* Boutons d'action */}
-              <div className="flex gap-2 px-4 py-3 bg-gray-50 border-b">
-                {onRegenerate && (
-                  <button
-                    onClick={onRegenerate}
-                    disabled={generatingBilan}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
-                  >
-                    <TrendingUp className={`w-4 h-4 ${generatingBilan ? 'animate-spin' : ''}`} />
-                    {generatingBilan ? 'Génération...' : 'Regénérer le bilan'}
-                  </button>
-                )}
-                <button
-                  onClick={exportToPDF}
-                  disabled={exportingPDF}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
-                >
-                  <Download className={`w-4 h-4 ${exportingPDF ? 'animate-bounce' : ''}`} />
-                  {exportingPDF ? 'Export...' : 'Exporter PDF'}
-                </button>
               </div>
 
               {/* Contenu scrollable */}
