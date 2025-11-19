@@ -1040,7 +1040,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           >
             <div className="relative h-48 overflow-hidden">
               <img 
-                src="https://images.unsplash.com/photo-1758599543129-5269a8f29e68?w=800&h=400&fit=crop" 
+                src="https://images.unsplash.com/photo-1753161617988-c5f43e441621?w=800&h=400&fit=crop" 
                 alt="Objectifs et Challenges"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
