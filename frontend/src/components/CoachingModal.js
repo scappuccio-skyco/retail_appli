@@ -457,13 +457,13 @@ export default function CoachingModal({
                       if (onCreateDebrief) {
                         await onCreateDebrief();
                       }
-                      // Déplier automatiquement la nouvelle analyse
-                      if (newDebrief && newDebrief.id) {
-                        setExpandedDebriefs(prev => ({
-                          ...prev,
-                          [newDebrief.id]: true
-                        }));
-                      }
+                      // Attendre un peu que les debriefs soient rechargés
+                      setTimeout(() => {
+                        // Déplier la première analyse (la plus récente)
+                        if (debriefs && debriefs.length > 0) {
+                          setExpandedDebriefs({ [debriefs[0].id]: true });
+                        }
+                      }, 500);
                       // Passer automatiquement à l'onglet Historique
                       setAnalyseSubTab('historique');
                     }} 
@@ -477,13 +477,13 @@ export default function CoachingModal({
                       if (onCreateDebrief) {
                         await onCreateDebrief();
                       }
-                      // Déplier automatiquement la nouvelle analyse
-                      if (newDebrief && newDebrief.id) {
-                        setExpandedDebriefs(prev => ({
-                          ...prev,
-                          [newDebrief.id]: true
-                        }));
-                      }
+                      // Attendre un peu que les debriefs soient rechargés
+                      setTimeout(() => {
+                        // Déplier la première analyse (la plus récente)
+                        if (debriefs && debriefs.length > 0) {
+                          setExpandedDebriefs({ [debriefs[0].id]: true });
+                        }
+                      }, 500);
                       // Passer automatiquement à l'onglet Historique
                       setAnalyseSubTab('historique');
                     }} 
