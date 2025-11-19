@@ -1364,17 +1364,22 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                             <input
                               type="date"
                               value={customDateRange.end}
-                              onChange={(e) => {
+                              onChange={async (e) => {
                                 const newEnd = e.target.value;
-                                setCustomDateRange(prev => {
-                                  const updated = { ...prev, end: newEnd };
-                                  // Trigger fetch if both dates are now set
-                                  if (prev.start && newEnd) {
-                                    console.log('[TeamModal] Both dates set, will trigger fetch');
-                                    setPeriodFilter('custom');
-                                  }
-                                  return updated;
-                                });
+                                const newStart = customDateRange.start;
+                                
+                                setCustomDateRange(prev => ({ ...prev, end: newEnd }));
+                                
+                                // If both dates are set, trigger data refresh immediately
+                                if (newStart && newEnd) {
+                                  console.log('[TeamModal] 📅 Both dates set:', newStart, 'to', newEnd);
+                                  setPeriodFilter('custom');
+                                  // Wait a bit for state to update, then manually trigger fetch
+                                  setTimeout(() => {
+                                    console.log('[TeamModal] 🔄 Manually triggering fetch with custom dates');
+                                    fetchTeamData();
+                                  }, 100);
+                                }
                               }}
                               onFocus={(e) => {
                                 // Ouvrir le calendrier au focus
