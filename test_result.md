@@ -1382,10 +1382,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Daily Challenge Feedback System - Complete Challenge with Feedback"
-    - "Daily Challenge History API"
-    - "Daily Challenge Feedback UI"
-    - "ChallengeHistoryModal Component"
+    - "Seller KPI History Aggregation - Merge Manager and Seller Data"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
