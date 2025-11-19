@@ -548,16 +548,6 @@ export default function CoachingModal({
         />
       )}
 
-      {/* Modal Debrief Historique */}
-      {showDebriefHistoryModal && (
-        <DebriefHistoryModal
-          onClose={() => setShowDebriefHistoryModal(false)}
-          token={token}
-          onSuccess={() => {
-            setShowDebriefHistoryModal(false);
-          }}
-        />
-      )}
     </>
   );
 }
