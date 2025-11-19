@@ -1220,7 +1220,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                       ].map(period => (
                         <button
                           key={period.value}
-                          onClick={() => setPeriodFilter(period.value)}
+                          onClick={() => {
+                            setPeriodFilter(period.value);
+                            setShowCustomDatePicker(false);
+                          }}
                           className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
                             periodFilter === period.value
                               ? 'bg-[#1E40AF] text-white shadow-md'
@@ -1230,6 +1233,16 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                           {period.label}
                         </button>
                       ))}
+                      <button
+                        onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}
+                        className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                          periodFilter === 'custom'
+                            ? 'bg-purple-600 text-white shadow-md'
+                            : 'bg-white text-gray-700 hover:bg-cyan-100'
+                        }`}
+                      >
+                        📆 Personnalisée
+                      </button>
                     </div>
                   </div>
                 </div>
