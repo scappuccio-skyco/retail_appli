@@ -1337,7 +1337,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                     {/* Custom Date Picker - Second Location */}
                     {showCustomDatePicker && (
                       <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                           <div className="flex-1">
                             <label className="block text-xs font-semibold text-gray-700 mb-1">Date de début</label>
                             <input
