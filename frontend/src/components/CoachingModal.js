@@ -482,7 +482,7 @@ export default function CoachingModal({
                             <div className="p-6">
                               <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                  {debrief.type === 'vente_conclue' ? (
+                                  {debrief.vente_conclue ? (
                                     <CheckCircle className="w-6 h-6 text-white" />
                                   ) : (
                                     <XCircle className="w-6 h-6 text-white" />
@@ -491,7 +491,7 @@ export default function CoachingModal({
                                 <div className="flex-1">
                                   <div className="flex items-center justify-between mb-2">
                                     <h3 className="text-lg font-bold text-gray-800">
-                                      {debrief.type === 'vente_conclue' ? '✅ Vente conclue' : '❌ Opportunité manquée'}
+                                      {debrief.vente_conclue ? '✅ Vente conclue' : '❌ Opportunité manquée'}
                                     </h3>
                                     <button
                                       onClick={() => toggleDebrief(debrief.id)}
@@ -505,7 +505,7 @@ export default function CoachingModal({
                                     </button>
                                   </div>
                                   <p className="text-sm text-gray-600 mb-2">
-                                    {new Date(debrief.timestamp).toLocaleDateString('fr-FR', { 
+                                    {new Date(debrief.created_at).toLocaleDateString('fr-FR', { 
                                       day: 'numeric', 
                                       month: 'long', 
                                       year: 'numeric',
@@ -515,7 +515,7 @@ export default function CoachingModal({
                                   </p>
                                   {expandedDebriefs[debrief.id] && (
                                     <div className="bg-white rounded-lg p-4 border border-green-200 mt-2">
-                                      <p className="text-gray-700 whitespace-pre-wrap">{debrief.analysis || debrief.feedback}</p>
+                                      <p className="text-gray-700 whitespace-pre-wrap">{debrief.ai_analyse || debrief.analysis || debrief.feedback}</p>
                                     </div>
                                   )}
                                 </div>
