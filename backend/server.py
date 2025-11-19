@@ -3128,16 +3128,16 @@ async def get_my_kpi_entries(days: int = None, current_user: dict = Depends(get_
     # Also add manager entries for dates where seller has no entry
     for date, manager_entry in manager_entries_dict.items():
         if date not in processed_dates:
-            # Create an entry based on manager's data
+            # Create an entry based on manager's data (use 'or 0' to handle None values)
             merged_entry = {
                 'id': manager_entry.get('id'),
                 'seller_id': current_user['id'],
                 'date': date,
-                'ca_journalier': manager_entry.get('ca_journalier', 0),
-                'nb_ventes': manager_entry.get('nb_ventes', 0),
-                'nb_clients': manager_entry.get('nb_clients', 0),
-                'nb_articles': manager_entry.get('nb_articles', 0),
-                'nb_prospects': manager_entry.get('nb_prospects', 0),
+                'ca_journalier': manager_entry.get('ca_journalier') or 0,
+                'nb_ventes': manager_entry.get('nb_ventes') or 0,
+                'nb_clients': manager_entry.get('nb_clients') or 0,
+                'nb_articles': manager_entry.get('nb_articles') or 0,
+                'nb_prospects': manager_entry.get('nb_prospects') or 0,
                 'comment': None,
                 'created_at': manager_entry.get('created_at')
             }
