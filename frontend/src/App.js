@@ -158,7 +158,17 @@ function AppContent() {
 
   return (
     <>
-      <Toaster position="top-right" richColors />
+      <Toaster 
+        position="top-right" 
+        richColors 
+        toastOptions={{
+          style: {
+            padding: '12px 16px',
+            fontSize: '14px',
+            minHeight: '48px'
+          }
+        }}
+      />
       <Routes>
         {/* Landing Page - Public */}
         <Route
