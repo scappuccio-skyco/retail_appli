@@ -593,9 +593,12 @@ export default function CoachingModal({
                                         minute: '2-digit'
                                       })}
                                     </p>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                       <button
-                                        onClick={() => handleToggleVisibility(debrief.id, debrief.visible_to_manager)}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleToggleVisibility(debrief.id, debrief.visible_to_manager);
+                                        }}
                                         className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
                                           debrief.visible_to_manager 
                                             ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
@@ -616,7 +619,10 @@ export default function CoachingModal({
                                         )}
                                       </button>
                                       <button
-                                        onClick={() => handleDeleteDebrief(debrief.id)}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteDebrief(debrief.id);
+                                        }}
                                         className="p-1 hover:bg-red-100 rounded transition-colors"
                                         title="Supprimer l'analyse"
                                       >
