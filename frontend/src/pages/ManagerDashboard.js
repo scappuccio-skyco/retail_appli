@@ -771,22 +771,10 @@ export default function ManagerDashboard({ user, onLogout }) {
             )}
             <button
               onClick={() => setShowInviteModal(true)}
-              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm relative"
+              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
             >
               <UserPlus className="w-4 h-4" />
               Inviter
-              {subscriptionInfo && (() => {
-                // Use seats from subscription, fallback to plan_type
-                const seatsAvailable = subscriptionInfo.subscription?.seats || 
-                                      (subscriptionInfo.plan_type === 'professional' ? 15 : 5);
-                const activeSellersCount = sellers.filter(s => s.status === 'active').length;
-                const remainingInvites = seatsAvailable - activeSellersCount;
-                return remainingInvites > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-[#F97316] text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
-                    {remainingInvites}
-                  </span>
-                );
-              })()}
             </button>
             <button
               onClick={() => setShowFilters(!showFilters)}
