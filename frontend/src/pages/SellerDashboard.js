@@ -189,8 +189,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           id: 'daily-challenge',
           type: 'challenge',
           icon: '🎯',
-          title: dailyChallenge.title,
-          description: dailyChallenge.description,
+          title: '💪 Défi du jour : ' + dailyChallenge.title,
+          description: 'Clique pour relever ton défi quotidien et améliorer tes compétences !',
           priority: 'important'
         };
         newTasks = [challengeTask, ...newTasks];
