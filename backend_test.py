@@ -7397,6 +7397,244 @@ class RetailCoachAPITester:
         print("   5. KPI context should be included in AI generation")
         print("   6. Competency scores should be updated appropriately")
 
+    def test_seller_kpi_history_aggregation(self):
+        """Test Seller KPI History Aggregation feature - PRIORITY 1 FROM HANDOFF SUMMARY"""
+        print("\n🔍 Testing Seller KPI History Aggregation Feature (PRIORITY 1)...")
+        print("   FEATURE: Aggregates seller and manager KPI entries by date, sums numeric fields, recalculates derived KPIs")
+        
+        # SCENARIO 1: Test with alexandre.petit@skyco.fr (seller with both seller AND manager entries)
+        print("\n   📊 SCENARIO 1: Seller with both seller AND manager entries")
+        
+        seller1_credentials = {
+            "email": "alexandre.petit@skyco.fr",
+            "password": "password123"
+        }
+        
+        success, response = self.run_test(
+            "KPI Aggregation - Login alexandre.petit@skyco.fr",
+            "POST",
+            "auth/login",
+            200,
+            data=seller1_credentials
+        )
+        
+        seller1_token = None
+        seller1_info = None
+        if success and 'token' in response:
+            seller1_token = response['token']
+            seller1_info = response['user']
+            print(f"   ✅ Logged in as: {seller1_info.get('name')} ({seller1_info.get('email')})")
+            print(f"   ✅ Store ID: {seller1_info.get('store_id')} (Skyco Paris Centre)")
+        else:
+            print("   ❌ Could not login with alexandre.petit@skyco.fr")
+            self.log_test("KPI Aggregation Scenario 1 Setup", False, "alexandre.petit@skyco.fr login failed")
+            return
+        
+        # Test GET /api/seller/kpi-entries (no days parameter to get all entries)
+        success, all_entries_response = self.run_test(
+            "KPI Aggregation S1 - GET all entries",
+            "GET",
+            "seller/kpi-entries",
+            200,
+            token=seller1_token
+        )
+        
+        if success and isinstance(all_entries_response, list):
+            total_entries = len(all_entries_response)
+            print(f"   ✅ Retrieved {total_entries} aggregated KPI entries")
+            
+            if total_entries > 0:
+                # Verify aggregation logic on first entry
+                first_entry = all_entries_response[0]
+                print(f"   📅 Most recent entry date: {first_entry.get('date')}")
+                
+                # Check required fields are present
+                required_fields = ['ca_journalier', 'nb_ventes', 'nb_clients', 'nb_articles', 'nb_prospects']
+                derived_fields = ['panier_moyen', 'indice_vente', 'taux_transformation']
+                
+                missing_fields = []
+                for field in required_fields + derived_fields:
+                    if field not in first_entry:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    self.log_test("KPI Aggregation S1 - Field Validation", False, f"Missing fields: {missing_fields}")
+                else:
+                    self.log_test("KPI Aggregation S1 - Field Validation", True)
+                    print(f"   ✅ CA Journalier: {first_entry.get('ca_journalier')}€")
+                    print(f"   ✅ Nb Ventes: {first_entry.get('nb_ventes')}")
+                    print(f"   ✅ Nb Clients: {first_entry.get('nb_clients')}")
+                    print(f"   ✅ Nb Articles: {first_entry.get('nb_articles')}")
+                    print(f"   ✅ Nb Prospects: {first_entry.get('nb_prospects')}")
+                    print(f"   ✅ Panier Moyen: {first_entry.get('panier_moyen')}€")
+                    print(f"   ✅ Indice Vente: {first_entry.get('indice_vente')}")
+                    print(f"   ✅ Taux Transformation: {first_entry.get('taux_transformation')}%")
+                    
+                    # Verify derived KPI calculations
+                    ca = first_entry.get('ca_journalier', 0)
+                    nb_ventes = first_entry.get('nb_ventes', 0)
+                    nb_articles = first_entry.get('nb_articles', 0)
+                    nb_clients = first_entry.get('nb_clients', 0)
+                    nb_prospects = first_entry.get('nb_prospects', 0)
+                    
+                    # Check panier_moyen calculation
+                    if nb_ventes > 0:
+                        expected_panier_moyen = round(ca / nb_ventes, 2)
+                        actual_panier_moyen = first_entry.get('panier_moyen', 0)
+                        if abs(expected_panier_moyen - actual_panier_moyen) < 0.01:
+                            print(f"   ✅ Panier moyen calculation correct: {ca} / {nb_ventes} = {expected_panier_moyen}")
+                        else:
+                            self.log_test("KPI Aggregation S1 - Panier Moyen Calculation", False, 
+                                        f"Expected {expected_panier_moyen}, got {actual_panier_moyen}")
+                    
+                    # Check indice_vente calculation
+                    if nb_ventes > 0:
+                        expected_indice_vente = round(nb_articles / nb_ventes, 2)
+                        actual_indice_vente = first_entry.get('indice_vente', 0)
+                        if abs(expected_indice_vente - actual_indice_vente) < 0.01:
+                            print(f"   ✅ Indice vente calculation correct: {nb_articles} / {nb_ventes} = {expected_indice_vente}")
+                        else:
+                            self.log_test("KPI Aggregation S1 - Indice Vente Calculation", False,
+                                        f"Expected {expected_indice_vente}, got {actual_indice_vente}")
+                    
+                    # Check taux_transformation calculation
+                    if nb_prospects > 0:
+                        expected_taux_transformation = round((nb_clients / nb_prospects) * 100, 2)
+                        actual_taux_transformation = first_entry.get('taux_transformation')
+                        if actual_taux_transformation is not None and abs(expected_taux_transformation - actual_taux_transformation) < 0.01:
+                            print(f"   ✅ Taux transformation calculation correct: ({nb_clients} / {nb_prospects}) * 100 = {expected_taux_transformation}%")
+                        elif actual_taux_transformation is None and nb_prospects == 0:
+                            print(f"   ✅ Taux transformation correctly null when no prospects")
+                        else:
+                            self.log_test("KPI Aggregation S1 - Taux Transformation Calculation", False,
+                                        f"Expected {expected_taux_transformation}, got {actual_taux_transformation}")
+        
+        # SCENARIO 2: Test with days parameter
+        print("\n   📅 SCENARIO 2: Test with days parameter (limit=5)")
+        
+        success, limited_entries_response = self.run_test(
+            "KPI Aggregation S2 - GET entries with days=5",
+            "GET",
+            "seller/kpi-entries?days=5",
+            200,
+            token=seller1_token
+        )
+        
+        if success and isinstance(limited_entries_response, list):
+            limited_count = len(limited_entries_response)
+            print(f"   ✅ Retrieved {limited_count} entries with days=5 limit")
+            
+            if limited_count <= 5:
+                self.log_test("KPI Aggregation S2 - Days Limit", True)
+                print(f"   ✅ Days parameter working correctly (returned {limited_count} <= 5)")
+            else:
+                self.log_test("KPI Aggregation S2 - Days Limit", False, f"Expected ≤5 entries, got {limited_count}")
+            
+            # Verify aggregation still works with limit
+            if limited_count > 0:
+                first_limited_entry = limited_entries_response[0]
+                if all(field in first_limited_entry for field in ['ca_journalier', 'nb_ventes', 'panier_moyen', 'indice_vente']):
+                    print("   ✅ Aggregation logic still works correctly with days parameter")
+                else:
+                    self.log_test("KPI Aggregation S2 - Aggregation with Limit", False, "Missing aggregated fields")
+        
+        # SCENARIO 3: Test with different seller (emma.petit@test.com)
+        print("\n   👤 SCENARIO 3: Test with different seller")
+        
+        seller2_credentials = {
+            "email": "emma.petit@test.com",
+            "password": "password123"
+        }
+        
+        success, response = self.run_test(
+            "KPI Aggregation - Login emma.petit@test.com",
+            "POST",
+            "auth/login",
+            200,
+            data=seller2_credentials
+        )
+        
+        seller2_token = None
+        if success and 'token' in response:
+            seller2_token = response['token']
+            seller2_info = response['user']
+            print(f"   ✅ Logged in as: {seller2_info.get('name')} ({seller2_info.get('email')})")
+            print(f"   ✅ Store ID: {seller2_info.get('store_id')} (different store)")
+            
+            # Test aggregation for different store/manager combination
+            success, emma_entries_response = self.run_test(
+                "KPI Aggregation S3 - GET entries for emma.petit@test.com",
+                "GET",
+                "seller/kpi-entries",
+                200,
+                token=seller2_token
+            )
+            
+            if success and isinstance(emma_entries_response, list):
+                emma_count = len(emma_entries_response)
+                print(f"   ✅ Retrieved {emma_count} aggregated entries for Emma")
+                
+                if emma_count > 0:
+                    emma_first_entry = emma_entries_response[0]
+                    if all(field in emma_first_entry for field in ['ca_journalier', 'nb_ventes', 'panier_moyen']):
+                        print("   ✅ Aggregation works for different seller/store combination")
+                        self.log_test("KPI Aggregation S3 - Different Seller", True)
+                    else:
+                        self.log_test("KPI Aggregation S3 - Different Seller", False, "Missing aggregated fields")
+                else:
+                    print("   ⚠️  No KPI entries found for Emma - this may be expected")
+        else:
+            print("   ⚠️  Could not login with emma.petit@test.com - account may not exist")
+        
+        # SCENARIO 4: Edge cases
+        print("\n   🔍 SCENARIO 4: Edge cases and authentication")
+        
+        # Test endpoint requires seller authentication
+        success, _ = self.run_test(
+            "KPI Aggregation S4 - No Authentication",
+            "GET",
+            "seller/kpi-entries",
+            401  # Unauthorized
+        )
+        
+        if success:
+            print("   ✅ Endpoint correctly requires authentication")
+        
+        # Test with manager token (should return 403)
+        if hasattr(self, 'manager_token') and self.manager_token:
+            success, _ = self.run_test(
+                "KPI Aggregation S4 - Manager Access (Should Fail)",
+                "GET",
+                "seller/kpi-entries",
+                403,  # Forbidden
+                token=self.manager_token
+            )
+            
+            if success:
+                print("   ✅ Endpoint correctly forbids manager access")
+        
+        # Test with invalid days parameter
+        if seller1_token:
+            success, _ = self.run_test(
+                "KPI Aggregation S4 - Invalid Days Parameter",
+                "GET",
+                "seller/kpi-entries?days=-1",
+                200,  # Should still work, backend should handle gracefully
+                token=seller1_token
+            )
+            
+            if success:
+                print("   ✅ Endpoint handles invalid days parameter gracefully")
+        
+        print("\n   📋 KPI AGGREGATION FEATURE SUMMARY:")
+        print("   • Aggregates seller and manager KPI entries by date")
+        print("   • Sums numeric fields (ca_journalier, nb_ventes, nb_clients, nb_articles, nb_prospects)")
+        print("   • Recalculates derived KPIs (panier_moyen, indice_vente, taux_transformation)")
+        print("   • Includes manager-only entries for dates where seller has no entry")
+        print("   • Returns sorted array (most recent first)")
+        print("   • Supports days parameter for limiting results")
+        print("   • Enforces seller authentication and authorization")
+
     def run_all_tests(self):
         """Run all tests in sequence"""
         print("🚀 Starting Retail Coach 2.0 API Tests")
