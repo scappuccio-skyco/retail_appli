@@ -285,8 +285,8 @@ export default function ObjectivesModal({
                                         type="number"
                                         step="0.01"
                                         min="0"
-                                        placeholder="Valeur"
-                                        defaultValue={challenge.progress_ca || 0}
+                                        placeholder="Valeur en €"
+                                        value={challengeProgress.ca}
                                         onChange={(e) => {
                                           const val = parseFloat(e.target.value) || 0;
                                           setChallengeProgress(prev => ({ ...prev, ca: val }));
@@ -303,7 +303,7 @@ export default function ObjectivesModal({
                                         type="number"
                                         min="0"
                                         placeholder="Nombre"
-                                        defaultValue={challenge.progress_ventes || 0}
+                                        value={challengeProgress.ventes}
                                         onChange={(e) => {
                                           const val = parseInt(e.target.value) || 0;
                                           setChallengeProgress(prev => ({ ...prev, ventes: val }));
@@ -319,7 +319,7 @@ export default function ObjectivesModal({
                                         type="number"
                                         min="0"
                                         placeholder="Nombre"
-                                        defaultValue={challenge.progress_clients || 0}
+                                        value={challengeProgress.clients}
                                         onChange={(e) => {
                                           const val = parseInt(e.target.value) || 0;
                                           setChallengeProgress(prev => ({ ...prev, clients: val }));
