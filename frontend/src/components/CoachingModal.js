@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Award, MessageSquare, RefreshCw, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 import ChallengeHistoryModal from './ChallengeHistoryModal';
-import DebriefHistoryModal from './DebriefHistoryModal';
+import VenteConclueForm from './VenteConclueForm';
+import OpportuniteManqueeForm from './OpportuniteManqueeForm';
 import axios from 'axios';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
