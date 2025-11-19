@@ -68,12 +68,15 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
 
   // Fetch team data when sellers or period changes
   useEffect(() => {
-    console.log(`[TeamModal] 🔄 Fetching team data for period: ${periodFilter}`);
+    console.log(`[TeamModal] 🔄 Fetching team data for period: ${periodFilter}, custom dates: ${customDateRange.start} - ${customDateRange.end}`);
     // Only fetch if:
     // - Period is not custom, OR
     // - Period is custom AND both dates are set
-    if (periodFilter !== 'custom' || (customDateRange.start && customDateRange.end)) {
+    if (periodFilter !== 'custom' || (periodFilter === 'custom' && customDateRange.start && customDateRange.end)) {
+      console.log(`[TeamModal] ✅ Conditions met, calling fetchTeamData()`);
       fetchTeamData();
+    } else {
+      console.log(`[TeamModal] ⏸️ Waiting for both dates to be set`);
     }
   }, [sellers, periodFilter, customDateRange.start, customDateRange.end]);
 
