@@ -553,6 +553,7 @@ export default function CoachingModal({
                           <div 
                             key={debrief.id} 
                             data-debrief-card
+                            data-debrief-id={debrief.id}
                             className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200 cursor-pointer hover:shadow-lg transition-shadow"
                             onClick={() => toggleDebrief(debrief.id)}
                           >
