@@ -1143,16 +1143,6 @@ export default function ManagerDashboard({ user, onLogout }) {
         </div>
       )}
 
-      {/* Subscription Modal - Always mounted, controlled via props */}
-      <SubscriptionModal 
-        isOpen={showSubscriptionModal}
-        onClose={() => {
-          setShowSubscriptionModal(false);
-          // Refresh subscription data after modal closes
-          fetchSubscriptionInfo();
-        }} 
-      />
-
       {/* AI Generation Loading Overlay */}
       {generatingAIAdvice && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
