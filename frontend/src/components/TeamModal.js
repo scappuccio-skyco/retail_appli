@@ -422,6 +422,25 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
       } else if (periodFilter === 'all') {
         // Monthly aggregation for year
         chartArray = aggregateByMonth(chartArray, sellers);
+      } else if (periodFilter === 'custom') {
+        // Determine aggregation based on date range length
+        if (customDateRange.start && customDateRange.end) {
+          const start = new Date(customDateRange.start);
+          const end = new Date(customDateRange.end);
+          const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+          
+          if (daysDiff > 90) {
+            // Monthly aggregation for long periods
+            chartArray = aggregateByMonth(chartArray, sellers);
+          } else if (daysDiff > 30) {
+            // Bi-weekly aggregation for medium periods
+            chartArray = aggregateByBiWeek(chartArray, sellers);
+          } else if (daysDiff > 14) {
+            // Weekly aggregation for ~month periods
+            chartArray = aggregateByWeek(chartArray, sellers);
+          }
+          // Else keep daily data for short periods
+        }
       }
       
       setChartData(chartArray);
