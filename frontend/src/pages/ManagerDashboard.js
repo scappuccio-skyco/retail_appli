@@ -257,7 +257,6 @@ export default function ManagerDashboard({ user, onLogout }) {
         fetchActiveChallenges();
         fetchActiveObjectives();
         fetchStoreKPIStats();
-        fetchSubscriptionInfo();
       } else {
         toast.error('❌ Le paiement n\'a pas pu être confirmé. Contactez le support si le problème persiste.', {
           duration: 6000
