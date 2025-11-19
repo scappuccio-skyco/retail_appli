@@ -14,6 +14,12 @@ export default function ObjectivesModal({
   const [activeTab, setActiveTab] = useState('objectifs'); // 'objectifs' or 'challenges'
   const [updatingObjectiveId, setUpdatingObjectiveId] = useState(null);
   const [objectiveProgressValue, setObjectiveProgressValue] = useState('');
+  const [updatingChallengeId, setUpdatingChallengeId] = useState(null);
+  const [challengeProgress, setChallengeProgress] = useState({
+    ca: 0,
+    ventes: 0,
+    clients: 0
+  });
   
   const handleUpdateProgress = async (objectiveId) => {
     try {
