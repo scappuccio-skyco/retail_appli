@@ -226,6 +226,7 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
                       </div>
 
                       {/* Progress Update - Only for sellers with seller responsibility */}
+                      {console.log('Objective:', objective.title, 'Responsible:', objective.data_entry_responsible)}
                       {objective.data_entry_responsible === 'seller' && (
                         <div className="mt-3">
                           {updatingProgressObjectiveId === objective.id ? (
