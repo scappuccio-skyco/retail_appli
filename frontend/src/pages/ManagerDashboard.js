@@ -15,7 +15,6 @@ import SellerDetailView from '../components/SellerDetailView';
 import TeamModal from '../components/TeamModal';
 import ManagerSettingsModal from '../components/ManagerSettingsModal';
 import StoreKPIModal from '../components/StoreKPIModal';
-import SubscriptionModal from '../components/SubscriptionModal';
 import RelationshipManagementModal from '../components/RelationshipManagementModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
