@@ -122,24 +122,27 @@ export default function CoachingModal({
     }
   };
 
-  const handleRefresh = async () => {
+  const handleRefresh = async (competence = null) => {
     setLoading(true);
+    setShowCompetenceSelector(false);
     try {
       const res = await axios.post(
         `${API}/seller/daily-challenge/refresh`,
-        {},
+        { competence },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.success('✨ Nouveau défi généré !');
       
       if (onRefreshChallenge) {
         onRefreshChallenge(res.data);
       }
+      
+      toast.success('✨ Nouveau défi généré !');
     } catch (err) {
       console.error('Error refreshing challenge:', err);
-      toast.error('Erreur lors du rafraîchissement');
+      toast.error('Erreur lors de la génération du défi');
     } finally {
       setLoading(false);
+      setSelectedCompetence(null);
     }
   };
 
