@@ -80,6 +80,14 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
     }
   }, [periodFilter, visibleSellers, customDateRange]);
 
+  // Auto-fetch data when custom date range is complete
+  useEffect(() => {
+    if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
+      console.log(`[TeamModal] 🔄 Custom date range complete, fetching data...`);
+      fetchTeamData();
+    }
+  }, [customDateRange.start, customDateRange.end]);
+
   const fetchTeamData = async (sellersToUse = sellers) => {
     // Only set loading on initial fetch
     if (teamData.length === 0) {
