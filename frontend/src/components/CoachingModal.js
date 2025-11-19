@@ -547,26 +547,61 @@ export default function CoachingModal({
                                     <h3 className="text-lg font-bold text-gray-800">
                                       {debrief.vente_conclue ? '✅ Vente conclue' : '❌ Opportunité manquée'}
                                     </h3>
-                                    <button
-                                      onClick={() => toggleDebrief(debrief.id)}
-                                      className="p-1 hover:bg-white/50 rounded transition-colors"
-                                    >
-                                      {expandedDebriefs[debrief.id] ? (
-                                        <EyeOff className="w-4 h-4 text-gray-600" />
-                                      ) : (
-                                        <Eye className="w-4 h-4 text-gray-600" />
-                                      )}
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() => toggleDebrief(debrief.id)}
+                                        className="p-1 hover:bg-white/50 rounded transition-colors"
+                                        title={expandedDebriefs[debrief.id] ? "Masquer les détails" : "Voir les détails"}
+                                      >
+                                        {expandedDebriefs[debrief.id] ? (
+                                          <EyeOff className="w-4 h-4 text-gray-600" />
+                                        ) : (
+                                          <Eye className="w-4 h-4 text-gray-600" />
+                                        )}
+                                      </button>
+                                    </div>
                                   </div>
-                                  <p className="text-sm text-gray-600 mb-2">
-                                    {new Date(debrief.created_at).toLocaleDateString('fr-FR', { 
-                                      day: 'numeric', 
-                                      month: 'long', 
-                                      year: 'numeric',
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })}
-                                  </p>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className="text-sm text-gray-600">
+                                      {new Date(debrief.created_at).toLocaleDateString('fr-FR', { 
+                                        day: 'numeric', 
+                                        month: 'long', 
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() => handleToggleVisibility(debrief.id, debrief.visible_to_manager)}
+                                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all ${
+                                          debrief.visible_to_manager 
+                                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                        title={debrief.visible_to_manager ? "Partagé avec le manager" : "Privé"}
+                                      >
+                                        {debrief.visible_to_manager ? (
+                                          <>
+                                            <Share2 className="w-3 h-3" />
+                                            Partagé
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Lock className="w-3 h-3" />
+                                            Privé
+                                          </>
+                                        )}
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteDebrief(debrief.id)}
+                                        className="p-1 hover:bg-red-100 rounded transition-colors"
+                                        title="Supprimer l'analyse"
+                                      >
+                                        <Trash2 className="w-4 h-4 text-red-600" />
+                                      </button>
+                                    </div>
+                                  </div>
                                   {expandedDebriefs[debrief.id] && (
                                     <div className="bg-white rounded-lg p-4 border border-green-200 mt-2 space-y-3">
                                       <div>
