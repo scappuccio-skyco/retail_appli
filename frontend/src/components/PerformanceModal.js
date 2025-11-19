@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { X, TrendingUp, BarChart3 } from 'lucide-react';
-import BilanIndividuelModal from './BilanIndividuelModal';
-import KPIHistoryModal from './KPIHistoryModal';
 
 export default function PerformanceModal({ 
   isOpen, 
