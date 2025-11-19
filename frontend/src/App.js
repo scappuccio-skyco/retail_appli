@@ -165,7 +165,10 @@ function AppContent() {
           style: {
             padding: '12px 16px',
             fontSize: '14px',
-            minHeight: '48px'
+            minHeight: '48px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
           }
         }}
       />
