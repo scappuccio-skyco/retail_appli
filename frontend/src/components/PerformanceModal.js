@@ -26,6 +26,41 @@ export default function PerformanceModal({
   const [exportingPDF, setExportingPDF] = useState(false);
   const [wasGenerating, setWasGenerating] = useState(false);
 
+  // Fonction pour calculer le numéro de semaine ISO
+  const getWeekNumber = (date) => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  };
+
+  // Calculer le numéro de semaine et les dates pour le sélecteur
+  const weekInfo = useMemo(() => {
+    if (!bilanData?.periode) return null;
+    
+    // Parse la période (format: "17 nov. au 23 nov.")
+    const match = bilanData.periode.match(/(\d+)\s+(\w+)\.\s+au\s+(\d+)\s+(\w+)\./);
+    if (!match) return null;
+    
+    const [_, startDay, startMonth, endDay, endMonth] = match;
+    const currentYear = new Date().getFullYear();
+    
+    // Créer une date approximative pour calculer le numéro de semaine
+    const monthMap = {
+      'janv': 0, 'févr': 1, 'mars': 2, 'avr': 3, 'mai': 4, 'juin': 5,
+      'juil': 6, 'août': 7, 'sept': 8, 'oct': 9, 'nov': 10, 'déc': 11
+    };
+    
+    const startDate = new Date(currentYear, monthMap[startMonth], parseInt(startDay));
+    const weekNum = getWeekNumber(startDate);
+    
+    return {
+      weekNumber: weekNum,
+      dateRange: `${startDay} au ${endDay} ${endMonth}.`
+    };
+  }, [bilanData?.periode]);
+
   // Auto-scroll to bilan section when generation completes
   useEffect(() => {
     // Detect when generation just finished
