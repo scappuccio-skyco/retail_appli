@@ -1663,7 +1663,7 @@ async def get_debriefs(current_user: dict = Depends(get_current_user)):
 @api_router.patch("/debriefs/{debrief_id}/visibility")
 async def update_debrief_visibility(
     debrief_id: str,
-    visible_to_manager: bool,
+    visibility_data: dict,
     current_user: dict = Depends(get_current_user)
 ):
     """Update debrief visibility to manager"""
@@ -1674,6 +1674,8 @@ async def update_debrief_visibility(
     debrief = await db.debriefs.find_one({"id": debrief_id}, {"_id": 0})
     if not debrief or debrief.get('seller_id') != current_user['id']:
         raise HTTPException(status_code=404, detail="Debrief not found")
+    
+    visible_to_manager = visibility_data.get('visible_to_manager', False)
     
     # Update visibility
     await db.debriefs.update_one(
