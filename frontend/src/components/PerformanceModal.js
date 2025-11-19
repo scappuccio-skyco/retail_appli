@@ -256,15 +256,15 @@ export default function PerformanceModal({
           {activeTab === 'bilan' && (
             <div>
               {/* Header */}
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4">
+              <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-4">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-6 h-6 text-white" />
                   <div>
                     <p className="text-white font-bold text-lg">
-                      {weekInfo ? `Semaine ${weekInfo.weekNumber}` : 'Mon bilan Hebdomadaire'}
+                      {weekInfo ? `Mon Bilan Hebdomadaire - Semaine ${weekInfo.weekNumber}` : 'Mon Bilan Hebdomadaire'}
                     </p>
                     <p className="text-xs text-white opacity-90">
-                      📅 {bilanData?.periode || 'Semaine en cours'}
+                      📅 {bilanData?.periode || (currentWeekOffset === 0 ? 'Semaine actuelle' : bilanData?.periode)}
                     </p>
                   </div>
                 </div>
