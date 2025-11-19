@@ -173,7 +173,7 @@ export default function PerformanceModal({
               className={`flex-1 px-6 py-4 font-semibold transition-all border-b-2 ${
                 activeTab === 'bilan'
                   ? 'border-white bg-white/20 text-white'
-                  : 'border-transparent text-gray-600 hover:bg-gray-50'
+                  : 'border-transparent text-white/70 hover:bg-white/10'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
@@ -186,8 +186,8 @@ export default function PerformanceModal({
               onClick={() => setActiveTab('kpi')}
               className={`flex-1 px-6 py-4 font-semibold transition-all border-b-2 ${
                 activeTab === 'kpi'
-                  ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                  : 'border-transparent text-gray-600 hover:bg-gray-50'
+                  ? 'border-white bg-white/20 text-white'
+                  : 'border-transparent text-white/70 hover:bg-white/10'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
