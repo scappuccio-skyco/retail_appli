@@ -638,7 +638,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       
       if (res.data) {
         setBilanIndividuel(res.data);
-        toast.success('Bilan régénéré avec succès !');
+        toast.success('✨ Bravo ! Bilan régénéré avec succès');
       }
     } catch (err) {
       console.error('Error regenerating bilan:', err);
