@@ -36,8 +36,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
   const [teamData, setTeamData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAIAnalysisModal, setShowAIAnalysisModal] = useState(false);
-  const [periodFilter, setPeriodFilter] = useState('30'); // '7', '30', '90', 'all'
+  const [periodFilter, setPeriodFilter] = useState('30'); // '7', '30', '90', 'all', 'custom'
   const [showNiveauTooltip, setShowNiveauTooltip] = useState(false);
+  const [customDateRange, setCustomDateRange] = useState({ start: '', end: '' });
+  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
   const [chartData, setChartData] = useState([]);
   const [visibleMetrics, setVisibleMetrics] = useState({
     ca: true,
