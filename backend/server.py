@@ -5003,7 +5003,10 @@ async def get_daily_challenge(current_user: dict = Depends(get_current_user), fo
                     'comment': ch.get('feedback_comment')
                 })
         
-        if not diagnostic:
+        # Use force_competence if provided, otherwise use smart selection
+        if force_competence and force_competence in ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']:
+            selected_competence = force_competence
+        elif not diagnostic:
             # Default challenge if no diagnostic
             competences = ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']
             selected_competence = competences[datetime.now().day % len(competences)]
