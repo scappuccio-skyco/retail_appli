@@ -1391,7 +1391,15 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         isOpen={showCoachingModal}
         onClose={() => setShowCoachingModal(false)}
         dailyChallenge={dailyChallenge}
-        onRefreshChallenge={fetchDailyChallenge}
+        onRefreshChallenge={(newChallenge) => {
+          // Si on reçoit les nouvelles données, les utiliser directement
+          if (newChallenge) {
+            setDailyChallenge(newChallenge);
+          } else {
+            // Sinon, refetch
+            fetchDailyChallenge();
+          }
+        }}
         onCompleteChallenge={async () => {
           await fetchDailyChallenge();
         }}
