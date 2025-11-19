@@ -5570,10 +5570,10 @@ async def get_seller_kpi_config(current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can access this endpoint")
     
-    # Get seller's manager_id
+    # Get seller's store_id to find the current manager
     user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
-    if not user or not user.get('manager_id'):
-        # No manager, return default config (all enabled for seller)
+    if not user or not user.get('store_id'):
+        # No store, return default config (all enabled for seller)
         return {
             "track_ca": True,
             "track_ventes": True,
@@ -5582,7 +5582,23 @@ async def get_seller_kpi_config(current_user: dict = Depends(get_current_user)):
             "track_prospects": True
         }
     
-    manager_id = user['manager_id']
+    # Find the manager of this store
+    manager = await db.users.find_one({
+        "store_id": user['store_id'],
+        "role": "manager"
+    }, {"_id": 0, "id": 1})
+    
+    if not manager:
+        # No manager found for this store, return default
+        return {
+            "track_ca": True,
+            "track_ventes": True,
+            "track_clients": True,
+            "track_articles": True,
+            "track_prospects": True
+        }
+    
+    manager_id = manager['id']
     
     # Get manager's KPI config
     config = await db.kpi_configs.find_one({"manager_id": manager_id}, {"_id": 0})
