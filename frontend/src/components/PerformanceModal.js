@@ -353,7 +353,7 @@ export default function PerformanceModal({
                         </div>
                         
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                          {kpiConfig?.track_ca && (
+                          {chartData.some(d => d.CA !== undefined) && (
                             <div className="bg-blue-50 rounded-xl p-4">
                               <h4 className="text-sm font-semibold text-blue-900 mb-3">💰 Évolution du CA</h4>
                               <ResponsiveContainer width="100%" height={180}>
@@ -368,7 +368,7 @@ export default function PerformanceModal({
                             </div>
                           )}
                           
-                          {kpiConfig?.track_articles && (
+                          {chartData.some(d => d.Articles !== undefined) && (
                             <div className="bg-orange-50 rounded-xl p-4">
                               <h4 className="text-sm font-semibold text-orange-900 mb-3">📦 Évolution des Articles</h4>
                               <ResponsiveContainer width="100%" height={180}>
