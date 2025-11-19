@@ -1002,46 +1002,26 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         
         {/* Profile & Bilan - Visual Cards */}
             {/* Profile Card - Visual */}
-          {/* Mon Bilan & KPI Card (Fusionnée avec onglets) */}
+          {/* Mes Performances Card (Mon Bilan + Mes KPI) */}
           {(dashboardFilters.showBilan || dashboardFilters.showKPI) && (
-            <div className="glass-morphism rounded-2xl overflow-hidden border-2 border-gray-200">
-              {/* Onglets */}
-              <div className="flex border-b border-gray-200">
-                <button
-                  onClick={() => setShowBilanModal(true)}
-                  className="flex-1 px-4 py-4 text-center font-semibold transition-all hover:bg-blue-50 border-b-2 border-blue-500 bg-blue-50/50"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-blue-600" />
-                    <span className="text-blue-700">Mon Bilan</span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">KPI hebdomadaires</p>
-                </button>
-                <button
-                  onClick={() => setShowKPIHistoryModal(true)}
-                  className="flex-1 px-4 py-4 text-center font-semibold transition-all hover:bg-indigo-50 border-b-2 border-indigo-500 bg-indigo-50/50"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-indigo-600" />
-                    <span className="text-indigo-700">Mes KPI</span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">{kpiEntries.length} enregistré{kpiEntries.length > 1 ? 's' : ''}</p>
-                </button>
-              </div>
-              
-              {/* Image de fond */}
-              <div className="relative h-40">
+            <div 
+              onClick={() => setShowPerformanceModal(true)}
+              className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
+            >
+              <div className="relative h-48 overflow-hidden">
                 <img 
                   src="https://images.unsplash.com/photo-1608222351212-18fe0ec7b13b?w=800&h=400&fit=crop" 
-                  alt="Performance"
-                  className="w-full h-full object-cover"
+                  alt="Mes Performances"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/60 to-indigo-900/60"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-indigo-900/70 group-hover:from-blue-900/60 group-hover:to-indigo-900/60 transition-all"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center text-white">
-                    <div className="text-4xl mb-2">📊</div>
-                    <h3 className="text-xl font-bold">Mes Performances</h3>
-                    <p className="text-sm opacity-90 mt-1">Cliquez sur un onglet ci-dessus</p>
+                    <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                      <BarChart3 className="w-8 h-8" />
+                    </div>
+                    <h2 className="text-2xl font-bold">📊 Mes Performances</h2>
+                    <p className="text-sm mt-2 opacity-90">Mon Bilan • Mes KPI →</p>
                   </div>
                 </div>
               </div>
