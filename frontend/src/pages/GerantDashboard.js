@@ -27,11 +27,13 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [showSellerTransferModal, setShowSellerTransferModal] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showInviteStaffModal, setShowInviteStaffModal] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   
   // Selected items for modals
   const [selectedStore, setSelectedStore] = useState(null);
   const [selectedManager, setSelectedManager] = useState(null);
   const [selectedSeller, setSelectedSeller] = useState(null);
+  const [subscriptionInfo, setSubscriptionInfo] = useState(null);
 
   const fetchDashboardData = async () => {
     try {
