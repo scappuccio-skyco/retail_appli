@@ -32,6 +32,7 @@ export default function CoachingModal({
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState(null);
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
+  const [showChallengeAnalysis, setShowChallengeAnalysis] = useState(false);
 
   useEffect(() => {
     if (isOpen && activeTab === 'coach') {
