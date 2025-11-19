@@ -1006,7 +1006,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           {/* Mes Performances Card (Mon Bilan + Mes KPI) */}
           {(dashboardFilters.showBilan || dashboardFilters.showKPI) && (
             <div 
-              onClick={() => setShowBilanModal(true)}
+              onClick={() => setShowPerformanceModal(true)}
               className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
             >
               <div className="relative h-48 overflow-hidden">
