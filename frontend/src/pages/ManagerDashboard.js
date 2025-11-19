@@ -971,7 +971,6 @@ export default function ManagerDashboard({ user, onLogout }) {
           onClose={() => setShowInviteModal(false)}
           onSuccess={handleInviteSuccess}
           sellerCount={sellers.filter(s => s.status === 'active').length}
-          subscriptionInfo={subscriptionInfo}
         />
       )}
 
