@@ -1337,6 +1337,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           onDataUpdate={fetchData}
           onRegenerate={regenerateBilan}
           generatingBilan={generatingBilan}
+          onEditKPI={(entry) => {
+            setSelectedKpiEntry(entry);
+            setShowKPIEntryModal(true);
+            setShowPerformanceModal(false); // Ferme le modal Performance pour ouvrir l'édition
+          }}
         />
       )}
 
