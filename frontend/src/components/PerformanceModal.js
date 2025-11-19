@@ -155,14 +155,14 @@ export default function PerformanceModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header avec onglets */}
-        <div className="border-b border-gray-200">
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-800">📊 Mes Performances</h2>
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600">
+          <div className="flex items-center justify-between p-4">
+            <h2 className="text-2xl font-bold text-white">📊 Mes Performances</h2>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
             >
-              <X className="w-6 h-6" />
+              <X className="w-6 h-6 text-white" />
             </button>
           </div>
           
@@ -172,7 +172,7 @@ export default function PerformanceModal({
               onClick={() => setActiveTab('bilan')}
               className={`flex-1 px-6 py-4 font-semibold transition-all border-b-2 ${
                 activeTab === 'bilan'
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                  ? 'border-white bg-white/20 text-white'
                   : 'border-transparent text-gray-600 hover:bg-gray-50'
               }`}
             >
