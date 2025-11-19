@@ -5197,24 +5197,14 @@ async def refresh_daily_challenge(current_user: dict = Depends(get_current_user)
     
     today = datetime.now().strftime('%Y-%m-%d')
     
-    # Check if there's a completed challenge today
-    existing_completed = await db.daily_challenges.find_one({
+    # Always delete ALL uncompleted challenges for today
+    delete_result = await db.daily_challenges.delete_many({
         "seller_id": current_user['id'],
         "date": today,
-        "completed": True
+        "completed": False
     })
     
-    if existing_completed:
-        # Keep the completed one, just generate a new challenge
-        # The get_daily_challenge will create a new one
-        pass
-    else:
-        # Delete uncompleted challenge for today (if any)
-        await db.daily_challenges.delete_many({
-            "seller_id": current_user['id'],
-            "date": today,
-            "completed": False
-        })
+    print(f"Refresh: Deleted {delete_result.deleted_count} uncompleted challenges for {current_user['id']}")
     
     # Generate new one
     return await get_daily_challenge(current_user)
