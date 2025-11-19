@@ -501,16 +501,17 @@ export default function CoachingModal({
                         const firstAnalysis = document.querySelector('[data-debrief-card]');
                         if (firstAnalysis) {
                           const debriefId = firstAnalysis.getAttribute('data-debrief-id');
+                          console.log('Opening debrief:', debriefId);
                           if (debriefId) {
                             // Déplier la première analyse
-                            setExpandedDebriefs({ [debriefId]: true });
+                            setExpandedDebriefs(prev => ({ [debriefId]: true }));
                           }
                           // Scroller vers la première analyse
                           setTimeout(() => {
                             firstAnalysis.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                          }, 100);
+                          }, 200);
                         }
-                      }, 800);
+                      }, 1200);
                     }} 
                   />
                 )}
