@@ -103,10 +103,18 @@ export default function PerformanceModal({
                         <span className="text-sm text-gray-500">il y a {Math.floor(Math.random() * 30)} jours</span>
                       </div>
                       <div className="grid grid-cols-2 gap-4 text-sm">
-                        {entry.ca_journalier && <div>💰 CA: {entry.ca_journalier}€</div>}
-                        {entry.nb_ventes && <div>🛒 Ventes: {entry.nb_ventes}</div>}
-                        {entry.nb_articles && <div>📦 Articles: {entry.nb_articles}</div>}
-                        {entry.nb_prospects && <div>🚶 Prospects: {entry.nb_prospects}</div>}
+                        {entry.ca_journalier !== undefined && entry.ca_journalier !== null && (
+                          <div>💰 CA: {entry.ca_journalier}€</div>
+                        )}
+                        {entry.nb_ventes !== undefined && entry.nb_ventes !== null && (
+                          <div>🛒 Ventes: {entry.nb_ventes}</div>
+                        )}
+                        {entry.nb_articles !== undefined && entry.nb_articles !== null && (
+                          <div>📦 Articles: {entry.nb_articles}</div>
+                        )}
+                        {entry.nb_prospects !== undefined && entry.nb_prospects !== null && (
+                          <div>🚶 Prospects: {entry.nb_prospects}</div>
+                        )}
                       </div>
                     </div>
                   ))}
