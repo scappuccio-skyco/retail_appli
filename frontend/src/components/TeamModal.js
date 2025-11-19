@@ -676,7 +676,13 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                         </button>
                       ))}
                       <button
-                        onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}
+                        onClick={() => {
+                          setShowCustomDatePicker(!showCustomDatePicker);
+                          if (!showCustomDatePicker) {
+                            // Only set to custom when opening the picker
+                            setPeriodFilter('custom');
+                          }
+                        }}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                           periodFilter === 'custom'
                             ? 'bg-purple-600 text-white shadow-md'
