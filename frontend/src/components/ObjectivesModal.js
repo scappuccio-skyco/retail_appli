@@ -270,6 +270,100 @@ export default function ObjectivesModal({
                             <span>Récompense : {challenge.reward}</span>
                           </div>
                         )}
+                        
+                        {/* Bouton de mise à jour pour vendeur */}
+                        {challenge.data_entry_responsible === 'seller' && (
+                          <div className="mt-3">
+                            {updatingChallengeId === challenge.id ? (
+                              <div className="bg-white rounded-lg p-3 border-2 border-pink-300">
+                                <p className="text-sm font-semibold text-gray-700 mb-2">Mettre à jour ma progression :</p>
+                                <div className="space-y-2">
+                                  {challenge.ca_target && challenge.ca_target > 0 && (
+                                    <div className="flex items-center gap-2">
+                                      <label className="text-xs text-gray-600 w-24">💰 CA :</label>
+                                      <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        placeholder="Valeur"
+                                        defaultValue={challenge.progress_ca || 0}
+                                        onChange={(e) => {
+                                          const val = parseFloat(e.target.value) || 0;
+                                          setChallengeProgress(prev => ({ ...prev, ca: val }));
+                                        }}
+                                        className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                                      />
+                                      <span className="text-xs text-gray-500">€</span>
+                                    </div>
+                                  )}
+                                  {challenge.ventes_target && challenge.ventes_target > 0 && (
+                                    <div className="flex items-center gap-2">
+                                      <label className="text-xs text-gray-600 w-24">📈 Ventes :</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        placeholder="Nombre"
+                                        defaultValue={challenge.progress_ventes || 0}
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value) || 0;
+                                          setChallengeProgress(prev => ({ ...prev, ventes: val }));
+                                        }}
+                                        className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                                      />
+                                    </div>
+                                  )}
+                                  {challenge.clients_target && challenge.clients_target > 0 && (
+                                    <div className="flex items-center gap-2">
+                                      <label className="text-xs text-gray-600 w-24">👥 Clients :</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        placeholder="Nombre"
+                                        defaultValue={challenge.progress_clients || 0}
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value) || 0;
+                                          setChallengeProgress(prev => ({ ...prev, clients: val }));
+                                        }}
+                                        className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex gap-2 mt-3">
+                                  <button
+                                    onClick={() => handleUpdateChallengeProgress(challenge.id)}
+                                    className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold text-sm"
+                                  >
+                                    ✅ Valider
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setUpdatingChallengeId(null);
+                                      setChallengeProgress({ ca: 0, ventes: 0, clients: 0 });
+                                    }}
+                                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all text-sm"
+                                  >
+                                    ❌
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setUpdatingChallengeId(challenge.id);
+                                  setChallengeProgress({
+                                    ca: challenge.progress_ca || 0,
+                                    ventes: challenge.progress_ventes || 0,
+                                    clients: challenge.progress_clients || 0
+                                  });
+                                }}
+                                className="w-full px-4 py-2 bg-gradient-to-r from-pink-500 to-orange-500 text-white rounded-lg hover:from-pink-600 hover:to-orange-600 transition-all font-semibold flex items-center justify-center gap-2"
+                              >
+                                📝 Mettre à jour ma progression
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
