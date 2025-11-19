@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://gerant-dashboard.preview.emergentagent.com
+https://retail-insights-34.preview.emergentagent.com
 
 ### Manager
 ```
