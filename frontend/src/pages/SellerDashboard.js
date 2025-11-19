@@ -1010,7 +1010,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           {(dashboardFilters.showBilan || dashboardFilters.showKPI) && (
             <div 
               onClick={() => setShowPerformanceModal(true)}
-              className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
+              className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
             >
               <div className="relative h-48 overflow-hidden">
                 <img 
@@ -1018,10 +1018,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   alt="Mes Performances"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-indigo-900/70 group-hover:from-blue-900/60 group-hover:to-indigo-900/60 transition-all"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/80 via-orange-600/80 to-orange-500/80 group-hover:from-orange-500/70 group-hover:via-orange-600/70 group-hover:to-orange-500/70 transition-all"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center text-white">
-                    <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                    <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
                       <BarChart3 className="w-8 h-8" />
                     </div>
                     <h2 className="text-2xl font-bold">📊 Mes Performances</h2>
