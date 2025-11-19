@@ -524,9 +524,11 @@ export default function PerformanceModal({
                       </button>
                     </div>
                   )}
-                </>
+                </div>
               ) : (
-                <p className="text-gray-500">Aucun KPI enregistré pour le moment.</p>
+                <div className="px-6">
+                  <p className="text-gray-500">Aucun KPI enregistré pour le moment.</p>
+                </div>
               )}
             </div>
           )}
