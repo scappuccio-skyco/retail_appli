@@ -5190,8 +5190,11 @@ async def complete_daily_challenge(
     return challenge
 
 @api_router.post("/seller/daily-challenge/refresh")
-async def refresh_daily_challenge(current_user: dict = Depends(get_current_user)):
-    """Generate a new challenge for today"""
+async def refresh_daily_challenge(
+    refresh_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate a new challenge for today with optional competence selection"""
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can refresh challenges")
     
@@ -5206,8 +5209,11 @@ async def refresh_daily_challenge(current_user: dict = Depends(get_current_user)
     
     print(f"Refresh: Deleted {delete_result.deleted_count} uncompleted challenges for {current_user['id']}")
     
-    # Generate new one
-    return await get_daily_challenge(current_user)
+    # Get selected competence from request (optional)
+    selected_competence = refresh_data.get('competence', None)
+    
+    # Generate new one with optional competence
+    return await get_daily_challenge(current_user, force_competence=selected_competence)
 
 @api_router.get("/seller/daily-challenge/stats")
 async def get_daily_challenge_stats(current_user: dict = Depends(get_current_user)):
