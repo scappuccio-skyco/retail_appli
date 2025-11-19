@@ -13,6 +13,7 @@ export default function PerformanceModal({
   onEditKPI // Nouvelle prop pour gérer l'édition
 }) {
   const [activeTab, setActiveTab] = useState('bilan'); // 'bilan' or 'kpi'
+  const [displayedKpiCount, setDisplayedKpiCount] = useState(20); // Start with 20 entries
 
   if (!isOpen) return null;
 
