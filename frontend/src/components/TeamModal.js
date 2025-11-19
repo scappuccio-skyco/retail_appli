@@ -225,6 +225,12 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
       });
       
       setTeamData(sellersData);
+      
+      // Also refresh chart data after team data is updated
+      if (Object.keys(visibleSellers).length > 0) {
+        console.log('[TeamModal] 📈 Refreshing chart data after team data update');
+        prepareChartData();
+      }
     } catch (err) {
       console.error('Error fetching team data:', err);
       toast.error('Erreur lors du chargement des données d\'équipe');
