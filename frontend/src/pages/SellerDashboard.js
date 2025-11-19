@@ -1044,7 +1044,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 alt="Objectifs et Challenges"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/70 to-pink-900/70 group-hover:from-purple-900/60 group-hover:to-pink-900/60 transition-all"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 via-teal-800/70 to-green-800/70 group-hover:from-blue-900/60 group-hover:via-teal-800/60 group-hover:to-green-800/60 transition-all"></div>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center text-white px-4">
                   <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
