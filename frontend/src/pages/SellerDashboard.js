@@ -13,7 +13,6 @@ import KPIReporting from './KPIReporting';
 import SellerProfileModal from '../components/SellerProfileModal';
 import BilanIndividuelModal from '../components/BilanIndividuelModal';
 import PerformanceModal from '../components/PerformanceModal';
-import ObjectivesModal from '../components/ObjectivesModal';
 import DiagnosticFormScrollable from '../components/DiagnosticFormScrollable';
 import CompetencesExplicationModal from '../components/CompetencesExplicationModal';
 import ChallengeHistoryModal from '../components/ChallengeHistoryModal';
