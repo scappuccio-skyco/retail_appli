@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://retail-insights-34.preview.emergentagent.com
+https://store-analytics-5.preview.emergentagent.com
 
 ### Manager
 ```
