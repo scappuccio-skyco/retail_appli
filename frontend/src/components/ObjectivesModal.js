@@ -137,6 +137,51 @@ export default function ObjectivesModal({
                             </div>
                           </div>
                         )}
+                        
+                        {/* Bouton de mise à jour pour vendeur */}
+                        {objective.data_entry_responsible === 'seller' && (
+                          <div className="mt-3">
+                            {updatingObjectiveId === objective.id ? (
+                              <div className="bg-white rounded-lg p-3 border-2 border-cyan-300">
+                                <p className="text-sm font-semibold text-gray-700 mb-2">Mettre à jour ma progression :</p>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="number"
+                                    value={objectiveProgressValue}
+                                    onChange={(e) => setObjectiveProgressValue(e.target.value)}
+                                    placeholder="Nouvelle valeur"
+                                    className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                                  />
+                                  <button
+                                    onClick={() => handleUpdateProgress(objective.id)}
+                                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold"
+                                  >
+                                    ✅
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setUpdatingObjectiveId(null);
+                                      setObjectiveProgressValue('');
+                                    }}
+                                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all"
+                                  >
+                                    ❌
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setUpdatingObjectiveId(objective.id);
+                                  setObjectiveProgressValue(objective.current?.toString() || '0');
+                                }}
+                                className="w-full px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all font-semibold flex items-center justify-center gap-2"
+                              >
+                                📝 Mettre à jour ma progression
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
