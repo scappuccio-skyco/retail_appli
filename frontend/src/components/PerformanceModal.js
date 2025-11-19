@@ -24,17 +24,24 @@ export default function PerformanceModal({
   const contentRef = useRef(null);
   const bilanSectionRef = useRef(null);
   const [exportingPDF, setExportingPDF] = useState(false);
-  const [previousBilanState, setPreviousBilanState] = useState(null);
+  const [wasGenerating, setWasGenerating] = useState(false);
 
-  // Auto-scroll to bilan section when it's generated
+  // Auto-scroll to bilan section when generation completes
   useEffect(() => {
-    if (bilanData?.synthese && !previousBilanState && !generatingBilan && bilanSectionRef.current) {
+    // Detect when generation just finished
+    if (wasGenerating && !generatingBilan && bilanData?.synthese && bilanSectionRef.current) {
       setTimeout(() => {
         bilanSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 300);
     }
-    setPreviousBilanState(bilanData?.synthese);
-  }, [bilanData?.synthese, generatingBilan]);
+    
+    // Track generating state
+    if (generatingBilan) {
+      setWasGenerating(true);
+    } else if (wasGenerating) {
+      setWasGenerating(false);
+    }
+  }, [generatingBilan, bilanData?.synthese]);
 
   if (!isOpen) return null;
 
