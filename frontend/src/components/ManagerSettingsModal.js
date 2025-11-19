@@ -1891,19 +1891,21 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           </div>
 
                           {/* Conditional Fields Based on Challenge Type */}
-                          {newChallenge.challenge_type === 'kpi_standard' && (
+                          {(editingChallenge ? editingChallenge.challenge_type : newChallenge.challenge_type) === 'kpi_standard' && (
                             <div className="mb-4 bg-yellow-50 rounded-lg p-4 border-2 border-yellow-200">
                               <label className="block text-sm font-semibold text-gray-700 mb-2">KPI à cibler *</label>
                               <select
                                 required
-                                value={newChallenge.kpi_name}
+                                value={editingChallenge ? editingChallenge.kpi_name : newChallenge.kpi_name}
                                 onChange={(e) => {
                                   const kpiName = e.target.value;
                                   let unit = '';
                                   if (kpiName === 'ca') unit = '€';
                                   else if (kpiName === 'ventes') unit = 'ventes';
                                   else if (kpiName === 'articles') unit = 'articles';
-                                  setNewChallenge({ ...newChallenge, kpi_name: kpiName, unit });
+                                  editingChallenge
+                                    ? setEditingChallenge({ ...editingChallenge, kpi_name: kpiName, unit })
+                                    : setNewChallenge({ ...newChallenge, kpi_name: kpiName, unit });
                                 }}
                                 className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-yellow-400 focus:outline-none"
                               >
@@ -1914,14 +1916,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                             </div>
                           )}
 
-                          {newChallenge.challenge_type === 'product_focus' && (
+                          {(editingChallenge ? editingChallenge.challenge_type : newChallenge.challenge_type) === 'product_focus' && (
                             <div className="mb-4 bg-green-50 rounded-lg p-4 border-2 border-green-200">
                               <label className="block text-sm font-semibold text-gray-700 mb-2">Nom du produit *</label>
                               <input
                                 type="text"
                                 required
-                                value={newChallenge.product_name}
-                                onChange={(e) => setNewChallenge({ ...newChallenge, product_name: e.target.value })}
+                                value={editingChallenge ? editingChallenge.product_name : newChallenge.product_name}
+                                onChange={(e) => editingChallenge
+                                  ? setEditingChallenge({ ...editingChallenge, product_name: e.target.value })
+                                  : setNewChallenge({ ...newChallenge, product_name: e.target.value })
+                                }
                                 className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-green-400 focus:outline-none"
                                 placeholder="Ex: iPhone 15, Samsung Galaxy, MacBook Air..."
                               />
@@ -1929,14 +1934,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                             </div>
                           )}
 
-                          {newChallenge.challenge_type === 'custom' && (
+                          {(editingChallenge ? editingChallenge.challenge_type : newChallenge.challenge_type) === 'custom' && (
                             <div className="mb-4 bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
                               <label className="block text-sm font-semibold text-gray-700 mb-2">Description du challenge *</label>
                               <textarea
                                 required
                                 rows="3"
-                                value={newChallenge.custom_description}
-                                onChange={(e) => setNewChallenge({ ...newChallenge, custom_description: e.target.value })}
+                                value={editingChallenge ? editingChallenge.custom_description : newChallenge.custom_description}
+                                onChange={(e) => editingChallenge
+                                  ? setEditingChallenge({ ...editingChallenge, custom_description: e.target.value })
+                                  : setNewChallenge({ ...newChallenge, custom_description: e.target.value })
+                                }
                                 className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
                                 placeholder="Ex: Améliorer la satisfaction client, Augmenter les ventes croisées..."
                               />
