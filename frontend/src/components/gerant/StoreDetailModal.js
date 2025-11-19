@@ -10,10 +10,6 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
   const [loading, setLoading] = useState(true);
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
-  useEffect(() => {
-    fetchStoreTeam();
-  }, [store]); // eslint-disable-line
-
   const fetchStoreTeam = async () => {
     try {
       const token = localStorage.getItem('token');
