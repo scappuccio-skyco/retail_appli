@@ -692,7 +692,14 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                           <input
                             type="date"
                             value={customDateRange.start}
-                            onChange={(e) => setCustomDateRange({ ...customDateRange, start: e.target.value })}
+                            onChange={(e) => {
+                              const newStart = e.target.value;
+                              setCustomDateRange({ ...customDateRange, start: newStart });
+                              // Auto-apply if both dates are set
+                              if (newStart && customDateRange.end) {
+                                setPeriodFilter('custom');
+                              }
+                            }}
                             className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
                           />
                         </div>
@@ -701,23 +708,17 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                           <input
                             type="date"
                             value={customDateRange.end}
-                            onChange={(e) => setCustomDateRange({ ...customDateRange, end: e.target.value })}
+                            onChange={(e) => {
+                              const newEnd = e.target.value;
+                              setCustomDateRange({ ...customDateRange, end: newEnd });
+                              // Auto-apply if both dates are set
+                              if (customDateRange.start && newEnd) {
+                                setPeriodFilter('custom');
+                              }
+                            }}
                             className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
                           />
                         </div>
-                        <button
-                          onClick={() => {
-                            if (customDateRange.start && customDateRange.end) {
-                              setPeriodFilter('custom');
-                            } else {
-                              alert('Veuillez sélectionner une date de début et une date de fin');
-                            }
-                          }}
-                          disabled={!customDateRange.start || !customDateRange.end}
-                          className="mt-6 px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Appliquer
-                        </button>
                       </div>
                       {periodFilter === 'custom' && customDateRange.start && customDateRange.end && (
                         <p className="text-xs text-purple-700 mt-2">
