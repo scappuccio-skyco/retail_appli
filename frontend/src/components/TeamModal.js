@@ -609,28 +609,87 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
               {/* Period Filter */}
               {!showArchivedSellers && (
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-gray-700">📅 Période :</span>
-                  <div className="flex gap-2">
-                    {[
-                      { value: '7', label: '7 jours' },
-                      { value: '30', label: '30 jours' },
-                      { value: '90', label: '3 mois' },
-                      { value: 'all', label: 'Année' }
-                    ].map(option => (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-700">📅 Période :</span>
+                    <div className="flex gap-2">
+                      {[
+                        { value: '7', label: '7 jours' },
+                        { value: '30', label: '30 jours' },
+                        { value: '90', label: '3 mois' },
+                        { value: 'all', label: 'Année' }
+                      ].map(option => (
+                        <button
+                          key={option.value}
+                          onClick={() => {
+                            setPeriodFilter(option.value);
+                            setShowCustomDatePicker(false);
+                          }}
+                          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                            periodFilter === option.value
+                              ? 'bg-[#1E40AF] text-white shadow-md'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
                       <button
-                        key={option.value}
-                        onClick={() => setPeriodFilter(option.value)}
+                        onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
-                          periodFilter === option.value
-                            ? 'bg-[#1E40AF] text-white shadow-md'
+                          periodFilter === 'custom'
+                            ? 'bg-purple-600 text-white shadow-md'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >
-                        {option.label}
+                        📆 Personnalisée
                       </button>
-                    ))}
+                    </div>
                   </div>
+                  
+                  {/* Custom Date Picker */}
+                  {showCustomDatePicker && (
+                    <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">Date de début</label>
+                          <input
+                            type="date"
+                            value={customDateRange.start}
+                            onChange={(e) => setCustomDateRange({ ...customDateRange, start: e.target.value })}
+                            className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">Date de fin</label>
+                          <input
+                            type="date"
+                            value={customDateRange.end}
+                            onChange={(e) => setCustomDateRange({ ...customDateRange, end: e.target.value })}
+                            className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                          />
+                        </div>
+                        <button
+                          onClick={() => {
+                            if (customDateRange.start && customDateRange.end) {
+                              setPeriodFilter('custom');
+                            } else {
+                              alert('Veuillez sélectionner une date de début et une date de fin');
+                            }
+                          }}
+                          disabled={!customDateRange.start || !customDateRange.end}
+                          className="mt-6 px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Appliquer
+                        </button>
+                      </div>
+                      {periodFilter === 'custom' && customDateRange.start && customDateRange.end && (
+                        <p className="text-xs text-purple-700 mt-2">
+                          ✅ Période active : du {new Date(customDateRange.start).toLocaleDateString('fr-FR')} au {new Date(customDateRange.end).toLocaleDateString('fr-FR')}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               )}
