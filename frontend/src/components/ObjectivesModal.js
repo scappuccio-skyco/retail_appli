@@ -121,7 +121,7 @@ export default function ObjectivesModal({
           {activeTab === 'challenges' && (
             <div>
               {/* Bandeau coloré "Mes Challenges" */}
-              <div className="bg-gradient-to-r from-pink-600 to-pink-700 text-white px-8 py-6 mb-6">
+              <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-6 mb-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-bold">🏆 Mes Challenges</h3>
                   {activeChallenges.length > 0 && (
