@@ -318,25 +318,25 @@ export default function PerformanceModal({
                   <>
                     {/* KPI Summary */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                      {kpiConfig?.track_ca && bilanData.kpi_resume?.ca_total !== undefined && (
+                      {bilanData.kpi_resume?.ca_total !== undefined && (
                         <div className="bg-blue-50 rounded-lg p-3">
                           <p className="text-xs text-blue-600 mb-1">💰 CA</p>
                           <p className="text-lg font-bold text-blue-900">{bilanData.kpi_resume.ca_total.toFixed(0)}€</p>
                         </div>
                       )}
-                      {kpiConfig?.track_ventes && bilanData.kpi_resume?.ventes !== undefined && (
+                      {bilanData.kpi_resume?.ventes !== undefined && (
                         <div className="bg-green-50 rounded-lg p-3">
                           <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
                           <p className="text-lg font-bold text-green-900">{bilanData.kpi_resume.ventes}</p>
                         </div>
                       )}
-                      {kpiConfig?.track_articles && bilanData.kpi_resume?.articles !== undefined && (
+                      {bilanData.kpi_resume?.articles !== undefined && (
                         <div className="bg-orange-50 rounded-lg p-3">
                           <p className="text-xs text-orange-600 mb-1">📦 Articles</p>
                           <p className="text-lg font-bold text-orange-900">{bilanData.kpi_resume.articles}</p>
                         </div>
                       )}
-                      {kpiConfig?.track_ca && kpiConfig?.track_ventes && bilanData.kpi_resume?.panier_moyen !== undefined && (
+                      {bilanData.kpi_resume?.panier_moyen !== undefined && (
                         <div className="bg-indigo-50 rounded-lg p-3">
                           <p className="text-xs text-indigo-600 mb-1">💳 P. Moyen</p>
                           <p className="text-lg font-bold text-indigo-900">{bilanData.kpi_resume.panier_moyen.toFixed(0)}€</p>
