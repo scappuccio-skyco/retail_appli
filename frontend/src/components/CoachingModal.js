@@ -411,79 +411,128 @@ export default function CoachingModal({
             )}
 
             {activeTab === 'analyse' && (
-              <div className="p-6">
-                <div className="flex gap-3 mb-6">
-                  {onCreateDebrief && (
+              <div>
+                {/* Sous-onglets Analyse */}
+                <div className="border-b border-gray-200 bg-gray-50 px-6 pt-3">
+                  <div className="flex gap-2">
                     <button
-                      onClick={onCreateDebrief}
-                      className="flex-1 px-6 py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-teal-700 transition-all shadow-md"
+                      onClick={() => setAnalyseSubTab('conclue')}
+                      className={`px-4 py-2 font-medium transition-all rounded-t-lg text-sm ${
+                        analyseSubTab === 'conclue'
+                          ? 'bg-green-100 text-green-700 border-b-2 border-green-500'
+                          : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
+                      }`}
                     >
-                      ➕ Nouvelle analyse de vente
+                      <CheckCircle className="w-4 h-4 inline mr-1" />
+                      Vente conclue
                     </button>
-                  )}
-                  <button
-                    onClick={() => setShowDebriefHistoryModal(true)}
-                    className="px-6 py-4 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition-all"
-                  >
-                    📜 Historique
-                  </button>
+                    <button
+                      onClick={() => setAnalyseSubTab('manquee')}
+                      className={`px-4 py-2 font-medium transition-all rounded-t-lg text-sm ${
+                        analyseSubTab === 'manquee'
+                          ? 'bg-orange-100 text-orange-700 border-b-2 border-orange-500'
+                          : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      <XCircle className="w-4 h-4 inline mr-1" />
+                      Opportunité manquée
+                    </button>
+                    <button
+                      onClick={() => setAnalyseSubTab('historique')}
+                      className={`px-4 py-2 font-medium transition-all rounded-t-lg text-sm ${
+                        analyseSubTab === 'historique'
+                          ? 'bg-purple-100 text-purple-700 border-b-2 border-purple-500'
+                          : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      <MessageSquare className="w-4 h-4 inline mr-1" />
+                      Historique ({debriefs.length})
+                    </button>
+                  </div>
                 </div>
 
-                {debriefs.length > 0 ? (
-                  <div className="space-y-4">
-                    <p className="text-sm text-gray-600 mb-4">Dernières analyses ({Math.min(debriefs.length, 5)})</p>
-                    {debriefs.slice(0, 5).map((debrief) => (
-                      <div key={debrief.id} className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200">
-                        <div className="p-6">
-                          <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                              {debrief.type === 'vente_conclue' ? (
-                                <CheckCircle className="w-6 h-6 text-white" />
-                              ) : (
-                                <XCircle className="w-6 h-6 text-white" />
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-lg font-bold text-gray-800">
-                                  {debrief.type === 'vente_conclue' ? '✅ Vente conclue' : '❌ Opportunité manquée'}
-                                </h3>
-                                <button
-                                  onClick={() => toggleDebrief(debrief.id)}
-                                  className="p-1 hover:bg-white/50 rounded transition-colors"
-                                >
-                                  {expandedDebriefs[debrief.id] ? (
-                                    <EyeOff className="w-4 h-4 text-gray-600" />
+                {/* Contenu des sous-onglets */}
+                {analyseSubTab === 'conclue' && (
+                  <VenteConclueForm 
+                    token={token} 
+                    onSuccess={() => {
+                      if (onCreateDebrief) {
+                        onCreateDebrief();
+                      }
+                    }} 
+                  />
+                )}
+
+                {analyseSubTab === 'manquee' && (
+                  <OpportuniteManqueeForm 
+                    token={token} 
+                    onSuccess={() => {
+                      if (onCreateDebrief) {
+                        onCreateDebrief();
+                      }
+                    }} 
+                  />
+                )}
+
+                {analyseSubTab === 'historique' && (
+                  <div className="p-6">
+                    {debriefs.length > 0 ? (
+                      <div className="space-y-4">
+                        <p className="text-sm text-gray-600 mb-4">Toutes vos analyses ({debriefs.length})</p>
+                        {debriefs.map((debrief) => (
+                          <div key={debrief.id} className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200">
+                            <div className="p-6">
+                              <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                  {debrief.type === 'vente_conclue' ? (
+                                    <CheckCircle className="w-6 h-6 text-white" />
                                   ) : (
-                                    <Eye className="w-4 h-4 text-gray-600" />
+                                    <XCircle className="w-6 h-6 text-white" />
                                   )}
-                                </button>
-                              </div>
-                              <p className="text-sm text-gray-600 mb-2">
-                                {new Date(debrief.timestamp).toLocaleDateString('fr-FR', { 
-                                  day: 'numeric', 
-                                  month: 'long', 
-                                  year: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </p>
-                              {expandedDebriefs[debrief.id] && (
-                                <div className="bg-white rounded-lg p-4 border border-green-200 mt-2">
-                                  <p className="text-gray-700 whitespace-pre-wrap">{debrief.analysis || debrief.feedback}</p>
                                 </div>
-                              )}
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-lg font-bold text-gray-800">
+                                      {debrief.type === 'vente_conclue' ? '✅ Vente conclue' : '❌ Opportunité manquée'}
+                                    </h3>
+                                    <button
+                                      onClick={() => toggleDebrief(debrief.id)}
+                                      className="p-1 hover:bg-white/50 rounded transition-colors"
+                                    >
+                                      {expandedDebriefs[debrief.id] ? (
+                                        <EyeOff className="w-4 h-4 text-gray-600" />
+                                      ) : (
+                                        <Eye className="w-4 h-4 text-gray-600" />
+                                      )}
+                                    </button>
+                                  </div>
+                                  <p className="text-sm text-gray-600 mb-2">
+                                    {new Date(debrief.timestamp).toLocaleDateString('fr-FR', { 
+                                      day: 'numeric', 
+                                      month: 'long', 
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </p>
+                                  {expandedDebriefs[debrief.id] && (
+                                    <div className="bg-white rounded-lg p-4 border border-green-200 mt-2">
+                                      <p className="text-gray-700 whitespace-pre-wrap">{debrief.analysis || debrief.feedback}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                    <p className="text-lg font-semibold mb-2">Aucune analyse pour le moment</p>
-                    <p className="text-sm">Créez votre première analyse de vente pour recevoir un coaching personnalisé</p>
+                    ) : (
+                      <div className="text-center py-12 text-gray-500">
+                        <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                        <p className="text-lg font-semibold mb-2">Aucune analyse pour le moment</p>
+                        <p className="text-sm">Créez votre première analyse de vente pour recevoir un coaching personnalisé</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
