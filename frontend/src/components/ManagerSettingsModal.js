@@ -1809,7 +1809,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           {/* Challenge Type Selection - Horizontal Radio Buttons */}
                           <div className="mb-4 flex flex-wrap gap-3">
                             <label className={`flex items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                              newChallenge.challenge_type === 'kpi_standard'
+                              (editingChallenge ? editingChallenge.challenge_type : newChallenge.challenge_type) === 'kpi_standard'
                                 ? 'bg-yellow-50 border-yellow-500 shadow-md'
                                 : 'bg-white border-gray-300 hover:border-yellow-300'
                             }`}>
@@ -1817,28 +1817,28 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 type="radio"
                                 name="challenge_type"
                                 value="kpi_standard"
-                                checked={newChallenge.challenge_type === 'kpi_standard'}
+                                checked={(editingChallenge ? editingChallenge.challenge_type : newChallenge.challenge_type) === 'kpi_standard'}
                                 onChange={(e) => {
                                   const newType = e.target.value;
-                                  setNewChallenge({ 
-                                    ...newChallenge, 
-                                    challenge_type: newType,
-                                    unit: newChallenge.kpi_name === 'ca' ? '€' : 
-                                          newChallenge.kpi_name === 'ventes' ? 'ventes' :
-                                          newChallenge.kpi_name === 'articles' ? 'articles' : ''
-                                  });
+                                  const currentKpiName = editingChallenge ? editingChallenge.kpi_name : newChallenge.kpi_name;
+                                  const unit = currentKpiName === 'ca' ? '€' : 
+                                               currentKpiName === 'ventes' ? 'ventes' :
+                                               currentKpiName === 'articles' ? 'articles' : '';
+                                  editingChallenge
+                                    ? setEditingChallenge({ ...editingChallenge, challenge_type: newType, unit })
+                                    : setNewChallenge({ ...newChallenge, challenge_type: newType, unit });
                                 }}
                                 className="w-4 h-4 text-yellow-600"
                               />
                               <span className={`font-semibold ${
-                                newChallenge.challenge_type === 'kpi_standard' ? 'text-yellow-700' : 'text-gray-700'
+                                (editingChallenge ? editingChallenge.challenge_type : newChallenge.challenge_type) === 'kpi_standard' ? 'text-yellow-700' : 'text-gray-700'
                               }`}>
                                 📊 KPI Standard
                               </span>
                             </label>
 
                             <label className={`flex items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                              newChallenge.challenge_type === 'product_focus'
+                              (editingChallenge ? editingChallenge.challenge_type : newChallenge.challenge_type) === 'product_focus'
                                 ? 'bg-green-50 border-green-500 shadow-md'
                                 : 'bg-white border-gray-300 hover:border-green-300'
                             }`}>
@@ -1846,25 +1846,23 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 type="radio"
                                 name="challenge_type"
                                 value="product_focus"
-                                checked={newChallenge.challenge_type === 'product_focus'}
+                                checked={(editingChallenge ? editingChallenge.challenge_type : newChallenge.challenge_type) === 'product_focus'}
                                 onChange={(e) => {
-                                  setNewChallenge({ 
-                                    ...newChallenge, 
-                                    challenge_type: e.target.value,
-                                    unit: ''
-                                  });
+                                  editingChallenge
+                                    ? setEditingChallenge({ ...editingChallenge, challenge_type: e.target.value, unit: '' })
+                                    : setNewChallenge({ ...newChallenge, challenge_type: e.target.value, unit: '' });
                                 }}
                                 className="w-4 h-4 text-green-600"
                               />
                               <span className={`font-semibold ${
-                                newChallenge.challenge_type === 'product_focus' ? 'text-green-700' : 'text-gray-700'
+                                (editingChallenge ? editingChallenge.challenge_type : newChallenge.challenge_type) === 'product_focus' ? 'text-green-700' : 'text-gray-700'
                               }`}>
                                 📦 Focus Produit
                               </span>
                             </label>
 
                             <label className={`flex items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                              newChallenge.challenge_type === 'custom'
+                              (editingChallenge ? editingChallenge.challenge_type : newChallenge.challenge_type) === 'custom'
                                 ? 'bg-purple-50 border-purple-500 shadow-md'
                                 : 'bg-white border-gray-300 hover:border-purple-300'
                             }`}>
@@ -1872,18 +1870,16 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 type="radio"
                                 name="challenge_type"
                                 value="custom"
-                                checked={newChallenge.challenge_type === 'custom'}
+                                checked={(editingChallenge ? editingChallenge.challenge_type : newChallenge.challenge_type) === 'custom'}
                                 onChange={(e) => {
-                                  setNewChallenge({ 
-                                    ...newChallenge, 
-                                    challenge_type: e.target.value,
-                                    unit: ''
-                                  });
+                                  editingChallenge
+                                    ? setEditingChallenge({ ...editingChallenge, challenge_type: e.target.value, unit: '' })
+                                    : setNewChallenge({ ...newChallenge, challenge_type: e.target.value, unit: '' });
                                 }}
                                 className="w-4 h-4 text-purple-600"
                               />
                               <span className={`font-semibold ${
-                                newChallenge.challenge_type === 'custom' ? 'text-purple-700' : 'text-gray-700'
+                                (editingChallenge ? editingChallenge.challenge_type : newChallenge.challenge_type) === 'custom' ? 'text-purple-700' : 'text-gray-700'
                               }`}>
                                 ✨ Autre (personnalisé)
                               </span>
