@@ -283,7 +283,7 @@ export default function PerformanceModal({
                       <ChevronLeft className="w-4 h-4 text-white" />
                     </button>
                     <span className="text-xs font-semibold text-gray-700 px-2 min-w-[180px] text-center">
-                      {bilanData?.periode ? `Semaine du ${bilanData.periode}` : (currentWeekOffset === 0 ? 'Semaine actuelle' : 'Semaines')}
+                      {bilanData?.periode || (currentWeekOffset === 0 ? 'Semaine actuelle' : 'Semaines')}
                     </span>
                     <button
                       onClick={() => onWeekChange(currentWeekOffset + 1)}
