@@ -495,20 +495,22 @@ export default function CoachingModal({
                       }
                       // Passer automatiquement à l'onglet Historique
                       setAnalyseSubTab('historique');
-                      // Attendre un peu que les debriefs soient rechargés et que le DOM soit mis à jour
+                      // Attendre que le DOM soit mis à jour avec la nouvelle liste
                       setTimeout(() => {
-                        // Déplier la première analyse (la plus récente)
-                        if (debriefs && debriefs.length > 0) {
-                          setExpandedDebriefs({ [debriefs[0].id]: true });
-                        }
-                        // Scroller vers la première analyse
-                        setTimeout(() => {
-                          const firstAnalysis = document.querySelector('[data-debrief-card]');
-                          if (firstAnalysis) {
-                            firstAnalysis.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        // Récupérer le premier élément dans le DOM (la plus récente analyse)
+                        const firstAnalysis = document.querySelector('[data-debrief-card]');
+                        if (firstAnalysis) {
+                          const debriefId = firstAnalysis.getAttribute('data-debrief-id');
+                          if (debriefId) {
+                            // Déplier la première analyse
+                            setExpandedDebriefs({ [debriefId]: true });
                           }
-                        }, 100);
-                      }, 500);
+                          // Scroller vers la première analyse
+                          setTimeout(() => {
+                            firstAnalysis.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }, 100);
+                        }
+                      }, 800);
                     }} 
                   />
                 )}
@@ -522,20 +524,22 @@ export default function CoachingModal({
                       }
                       // Passer automatiquement à l'onglet Historique
                       setAnalyseSubTab('historique');
-                      // Attendre un peu que les debriefs soient rechargés et que le DOM soit mis à jour
+                      // Attendre que le DOM soit mis à jour avec la nouvelle liste
                       setTimeout(() => {
-                        // Déplier la première analyse (la plus récente)
-                        if (debriefs && debriefs.length > 0) {
-                          setExpandedDebriefs({ [debriefs[0].id]: true });
-                        }
-                        // Scroller vers la première analyse
-                        setTimeout(() => {
-                          const firstAnalysis = document.querySelector('[data-debrief-card]');
-                          if (firstAnalysis) {
-                            firstAnalysis.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        // Récupérer le premier élément dans le DOM (la plus récente analyse)
+                        const firstAnalysis = document.querySelector('[data-debrief-card]');
+                        if (firstAnalysis) {
+                          const debriefId = firstAnalysis.getAttribute('data-debrief-id');
+                          if (debriefId) {
+                            // Déplier la première analyse
+                            setExpandedDebriefs({ [debriefId]: true });
                           }
-                        }, 100);
-                      }, 500);
+                          // Scroller vers la première analyse
+                          setTimeout(() => {
+                            firstAnalysis.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }, 100);
+                        }
+                      }, 800);
                     }} 
                   />
                 )}
