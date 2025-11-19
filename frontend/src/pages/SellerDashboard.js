@@ -111,6 +111,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   // New states for modals
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showBilanModal, setShowBilanModal] = useState(false);
+  const [showPerformanceModal, setShowPerformanceModal] = useState(false);
   const [showDiagnosticFormModal, setShowDiagnosticFormModal] = useState(false);
   const [showCompetencesModal, setShowCompetencesModal] = useState(false);
   // States for Bilan Individuel
