@@ -2223,6 +2223,113 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     </div>
                                   ) : null;
                                 })()}
+                                
+                                {/* Progress Update Button - Only for manager-responsible challenges */}
+                                {challenge.data_entry_responsible === 'manager' && (
+                                  <div className="mt-3">
+                                    {updatingProgressChallengeId === challenge.id ? (
+                                      <div className="bg-white rounded-lg p-3 border-2 border-orange-300">
+                                        <p className="text-sm font-semibold text-gray-700 mb-2">Mettre à jour la progression :</p>
+                                        <div className="space-y-2">
+                                          {challenge.ca_target && challenge.ca_target > 0 && (
+                                            <div className="flex items-center gap-2">
+                                              <label className="text-xs text-gray-600 w-24">💰 CA :</label>
+                                              <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                placeholder="Valeur actuelle"
+                                                defaultValue={challenge.progress_ca || 0}
+                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                                                onBlur={(e) => {
+                                                  const val = parseFloat(e.target.value) || 0;
+                                                  challenge.progress_ca = val;
+                                                }}
+                                              />
+                                              <span className="text-xs text-gray-500">€</span>
+                                            </div>
+                                          )}
+                                          {challenge.ventes_target && challenge.ventes_target > 0 && (
+                                            <div className="flex items-center gap-2">
+                                              <label className="text-xs text-gray-600 w-24">📈 Ventes :</label>
+                                              <input
+                                                type="number"
+                                                min="0"
+                                                placeholder="Nombre"
+                                                defaultValue={challenge.progress_ventes || 0}
+                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                                                onBlur={(e) => {
+                                                  const val = parseInt(e.target.value) || 0;
+                                                  challenge.progress_ventes = val;
+                                                }}
+                                              />
+                                            </div>
+                                          )}
+                                          {challenge.clients_target && challenge.clients_target > 0 && (
+                                            <div className="flex items-center gap-2">
+                                              <label className="text-xs text-gray-600 w-24">👥 Clients :</label>
+                                              <input
+                                                type="number"
+                                                min="0"
+                                                placeholder="Nombre"
+                                                defaultValue={challenge.progress_clients || 0}
+                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                                                onBlur={(e) => {
+                                                  const val = parseInt(e.target.value) || 0;
+                                                  challenge.progress_clients = val;
+                                                }}
+                                              />
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className="flex gap-2 mt-3">
+                                          <button
+                                            onClick={async () => {
+                                              try {
+                                                await axios.post(
+                                                  `${API}/manager/challenges/${challenge.id}/progress`,
+                                                  {
+                                                    progress_ca: challenge.progress_ca,
+                                                    progress_ventes: challenge.progress_ventes,
+                                                    progress_clients: challenge.progress_clients
+                                                  },
+                                                  { headers }
+                                                );
+                                                toast.success('Progression du challenge mise à jour');
+                                                setUpdatingProgressChallengeId(null);
+                                                fetchData();
+                                                if (onUpdate) onUpdate();
+                                              } catch (err) {
+                                                console.error('Error:', err);
+                                                toast.error('Erreur lors de la mise à jour');
+                                              }
+                                            }}
+                                            className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold text-sm"
+                                          >
+                                            ✅ Valider
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setUpdatingProgressChallengeId(null);
+                                            }}
+                                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all text-sm"
+                                          >
+                                            ❌
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() => {
+                                          setUpdatingProgressChallengeId(challenge.id);
+                                        }}
+                                        className="w-full px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-semibold flex items-center justify-center gap-2"
+                                      >
+                                        📝 Mettre à jour la progression
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                               <div className="flex gap-2 ml-4">
                                 <button
