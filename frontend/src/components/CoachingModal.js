@@ -493,15 +493,22 @@ export default function CoachingModal({
                       if (onCreateDebrief) {
                         await onCreateDebrief();
                       }
-                      // Attendre un peu que les debriefs soient rechargés
+                      // Passer automatiquement à l'onglet Historique
+                      setAnalyseSubTab('historique');
+                      // Attendre un peu que les debriefs soient rechargés et que le DOM soit mis à jour
                       setTimeout(() => {
                         // Déplier la première analyse (la plus récente)
                         if (debriefs && debriefs.length > 0) {
                           setExpandedDebriefs({ [debriefs[0].id]: true });
                         }
+                        // Scroller vers la première analyse
+                        setTimeout(() => {
+                          const firstAnalysis = document.querySelector('[data-debrief-card]');
+                          if (firstAnalysis) {
+                            firstAnalysis.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }, 100);
                       }, 500);
-                      // Passer automatiquement à l'onglet Historique
-                      setAnalyseSubTab('historique');
                     }} 
                   />
                 )}
@@ -513,15 +520,22 @@ export default function CoachingModal({
                       if (onCreateDebrief) {
                         await onCreateDebrief();
                       }
-                      // Attendre un peu que les debriefs soient rechargés
+                      // Passer automatiquement à l'onglet Historique
+                      setAnalyseSubTab('historique');
+                      // Attendre un peu que les debriefs soient rechargés et que le DOM soit mis à jour
                       setTimeout(() => {
                         // Déplier la première analyse (la plus récente)
                         if (debriefs && debriefs.length > 0) {
                           setExpandedDebriefs({ [debriefs[0].id]: true });
                         }
+                        // Scroller vers la première analyse
+                        setTimeout(() => {
+                          const firstAnalysis = document.querySelector('[data-debrief-card]');
+                          if (firstAnalysis) {
+                            firstAnalysis.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }, 100);
                       }, 500);
-                      // Passer automatiquement à l'onglet Historique
-                      setAnalyseSubTab('historique');
                     }} 
                   />
                 )}
