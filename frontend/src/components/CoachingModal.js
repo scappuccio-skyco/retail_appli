@@ -351,6 +351,65 @@ export default function CoachingModal({
                           </div>
                         )}
 
+                        {/* Competence Selector */}
+                        {showCompetenceSelector && (
+                          <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border-2 border-purple-200">
+                            <h3 className="text-sm font-bold text-purple-800 mb-3">
+                              🎯 Choisis une compétence à travailler :
+                            </h3>
+                            <div className="grid grid-cols-2 gap-2 mb-3">
+                              <button
+                                onClick={() => handleRefresh('accueil')}
+                                disabled={loading}
+                                className="bg-white hover:bg-blue-50 text-gray-700 font-semibold py-2 px-3 rounded-lg border-2 border-blue-200 transition-all disabled:opacity-50 text-sm"
+                              >
+                                👋 Accueil
+                              </button>
+                              <button
+                                onClick={() => handleRefresh('decouverte')}
+                                disabled={loading}
+                                className="bg-white hover:bg-green-50 text-gray-700 font-semibold py-2 px-3 rounded-lg border-2 border-green-200 transition-all disabled:opacity-50 text-sm"
+                              >
+                                🔍 Découverte
+                              </button>
+                              <button
+                                onClick={() => handleRefresh('argumentation')}
+                                disabled={loading}
+                                className="bg-white hover:bg-orange-50 text-gray-700 font-semibold py-2 px-3 rounded-lg border-2 border-orange-200 transition-all disabled:opacity-50 text-sm"
+                              >
+                                💬 Argumentation
+                              </button>
+                              <button
+                                onClick={() => handleRefresh('closing')}
+                                disabled={loading}
+                                className="bg-white hover:bg-red-50 text-gray-700 font-semibold py-2 px-3 rounded-lg border-2 border-red-200 transition-all disabled:opacity-50 text-sm"
+                              >
+                                ✅ Closing
+                              </button>
+                              <button
+                                onClick={() => handleRefresh('fidelisation')}
+                                disabled={loading}
+                                className="bg-white hover:bg-purple-50 text-gray-700 font-semibold py-2 px-3 rounded-lg border-2 border-purple-200 transition-all disabled:opacity-50 text-sm"
+                              >
+                                💎 Fidélisation
+                              </button>
+                              <button
+                                onClick={() => handleRefresh(null)}
+                                disabled={loading}
+                                className="bg-gradient-to-r from-purple-100 to-indigo-100 hover:from-purple-200 hover:to-indigo-200 text-purple-800 font-bold py-2 px-3 rounded-lg border-2 border-purple-300 transition-all disabled:opacity-50 text-sm"
+                              >
+                                🎲 Aléatoire
+                              </button>
+                            </div>
+                            <button
+                              onClick={() => setShowCompetenceSelector(false)}
+                              className="w-full text-center text-xs text-gray-500 hover:text-gray-700 py-1"
+                            >
+                              Annuler
+                            </button>
+                          </div>
+                        )}
+
                         {/* Actions */}
                         {!dailyChallenge.completed ? (
                           !showFeedbackForm ? (
