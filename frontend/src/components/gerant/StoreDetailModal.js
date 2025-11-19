@@ -24,7 +24,11 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
       });
       if (managersResponse.ok) {
         const managersData = await managersResponse.json();
-        setManagers(managersData);
+        console.log('Managers chargés:', managersData);
+        setManagers(managersData || []);
+      } else {
+        console.error('Erreur chargement managers:', managersResponse.status);
+        setManagers([]);
       }
 
       // Récupérer les vendeurs actifs
@@ -33,7 +37,11 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
       });
       if (sellersResponse.ok) {
         const sellersData = await sellersResponse.json();
-        setSellers(sellersData);
+        console.log('Vendeurs chargés:', sellersData);
+        setSellers(sellersData || []);
+      } else {
+        console.error('Erreur chargement vendeurs:', sellersResponse.status);
+        setSellers([]);
       }
 
       // Récupérer toutes les invitations en attente
