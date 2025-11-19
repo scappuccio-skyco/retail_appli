@@ -1391,15 +1391,21 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         isOpen={showCoachingModal}
         onClose={() => setShowCoachingModal(false)}
         dailyChallenge={dailyChallenge}
+        onRefreshChallenge={fetchDailyChallenge}
         onCompleteChallenge={async () => {
           await markChallengeAsCompleted();
           setShowCoachingModal(false);
+        }}
+        onOpenChallengeHistory={() => {
+          setShowCoachingModal(false);
+          setShowChallengeHistoryModal(true);
         }}
         debriefs={debriefs}
         onCreateDebrief={() => {
           setShowCoachingModal(false);
           setShowDebriefModal(true);
         }}
+        token={localStorage.getItem('token')}
       />
     </div>
   );
