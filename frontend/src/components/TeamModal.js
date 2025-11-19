@@ -78,7 +78,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
     if (Object.keys(visibleSellers).length > 0) {
       prepareChartData();
     }
-  }, [periodFilter, visibleSellers]);
+  }, [periodFilter, visibleSellers, customDateRange]);
 
   const fetchTeamData = async (sellersToUse = sellers) => {
     // Only set loading on initial fetch
