@@ -458,7 +458,7 @@ export default function PerformanceModal({
           {activeTab === 'kpi' && (
             <div>
               {/* Bandeau coloré "Historique de mes KPI" avec plus de hauteur */}
-              <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-6 py-6 -mx-6 mb-6">
+              <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-8 py-6 mb-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-bold">📊 Historique de mes KPI</h3>
                   {kpiEntries && kpiEntries.length > 0 && (
