@@ -989,9 +989,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               ))}
             </div>
           ) : (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 text-center border-2 border-green-200">
-              <div className="text-4xl mb-2">🎉</div>
-              <h3 className="text-lg font-bold text-green-800 mb-1">Bravo !</h3>
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 text-center border-2 border-green-200">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-3xl">🎉</span>
+                <h3 className="text-lg font-bold text-green-800">Bravo !</h3>
+              </div>
               <p className="text-green-700 text-sm">Tu as rempli toutes tes tâches du jour !</p>
               <p className="text-[#10B981] text-xs mt-1">Continue comme ça, tu es au top ! 💪</p>
             </div>
