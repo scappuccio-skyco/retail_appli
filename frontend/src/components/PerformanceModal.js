@@ -203,19 +203,6 @@ export default function PerformanceModal({
         <div className="flex-1 overflow-y-auto">
           {activeTab === 'bilan' && (
             <div>
-              {/* Header */}
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-6 h-6 text-white" />
-                  <div>
-                    <p className="text-white font-bold text-lg">Mon Bilan Hebdomadaire</p>
-                    <p className="text-xs text-white opacity-90">
-                      📅 {currentWeekOffset === 0 ? 'Semaine actuelle' : bilanData?.periode}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               {/* Boutons d'action avec navigation semaines */}
               <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b">
                 <div className="flex gap-2">
