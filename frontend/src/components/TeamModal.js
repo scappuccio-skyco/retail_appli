@@ -719,12 +719,21 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                           <input
                             type="date"
                             value={customDateRange.start}
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               const newStart = e.target.value;
+                              const currentEnd = customDateRange.end;
+                              
                               setCustomDateRange(prev => ({ ...prev, start: newStart }));
-                              // Auto-apply if both dates are set
-                              if (newStart && customDateRange.end) {
+                              
+                              // If both dates are set, trigger data refresh immediately
+                              if (newStart && currentEnd) {
+                                console.log('[TeamModal] 📅 Both dates set:', newStart, 'to', currentEnd);
                                 setPeriodFilter('custom');
+                                // Wait a bit for state to update, then manually trigger fetch
+                                setTimeout(() => {
+                                  console.log('[TeamModal] 🔄 Manually triggering fetch with custom dates');
+                                  fetchTeamData();
+                                }, 100);
                               }
                             }}
                             onFocus={(e) => {
