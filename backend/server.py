@@ -6304,8 +6304,8 @@ async def add_ai_credits(user_id: str, credits_to_add: int, reason: str = "purch
 @api_router.get("/subscription/status")
 async def get_subscription_status(current_user: dict = Depends(get_current_user)):
     """Get current user's subscription status - using Workspace architecture"""
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers have subscriptions")
+    if current_user['role'] not in ['manager', 'gerant']:
+        raise HTTPException(status_code=403, detail="Only managers and gérants have subscriptions")
     
     # Get workspace
     workspace = await get_user_workspace(current_user['id'])
