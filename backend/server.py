@@ -6434,7 +6434,7 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
     subscription_info = {
         "id": workspace['id'],
         "workspace_id": workspace['id'],
-        "workspace_name": workspace['name'],
+        "workspace_name": workspace.get('name', 'Mon Espace'),
         "status": workspace.get('subscription_status', 'trial'),  # Default to 'trial' if not set
         "plan": plan,  # Determined based on quantity
         "stripe_customer_id": workspace.get('stripe_customer_id'),
