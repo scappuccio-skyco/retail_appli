@@ -9,7 +9,8 @@ export default function PerformanceModal({
   user,
   onDataUpdate,
   onRegenerate,
-  generatingBilan
+  generatingBilan,
+  onEditKPI // Nouvelle prop pour gérer l'édition
 }) {
   const [activeTab, setActiveTab] = useState('bilan'); // 'bilan' or 'kpi'
 
