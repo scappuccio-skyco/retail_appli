@@ -702,7 +702,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                             value={customDateRange.start}
                             onChange={(e) => {
                               const newStart = e.target.value;
-                              setCustomDateRange({ ...customDateRange, start: newStart });
+                              setCustomDateRange(prev => ({ ...prev, start: newStart }));
                               // Auto-apply if both dates are set
                               if (newStart && customDateRange.end) {
                                 setPeriodFilter('custom');
@@ -718,7 +718,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                             value={customDateRange.end}
                             onChange={(e) => {
                               const newEnd = e.target.value;
-                              setCustomDateRange({ ...customDateRange, end: newEnd });
+                              setCustomDateRange(prev => ({ ...prev, end: newEnd }));
                               // Auto-apply if both dates are set
                               if (customDateRange.start && newEnd) {
                                 setPeriodFilter('custom');
