@@ -31,7 +31,7 @@ export default function ObjectivesModal({
             onClick={() => setActiveTab('objectifs')}
             className={`flex-1 px-6 py-4 font-semibold transition-all ${
               activeTab === 'objectifs'
-                ? 'text-purple-600 border-b-2 border-purple-600 bg-white'
+                ? 'text-blue-600 border-b-2 border-blue-600 bg-white'
                 : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
             }`}
           >
@@ -42,7 +42,7 @@ export default function ObjectivesModal({
             onClick={() => setActiveTab('challenges')}
             className={`flex-1 px-6 py-4 font-semibold transition-all ${
               activeTab === 'challenges'
-                ? 'text-pink-600 border-b-2 border-pink-600 bg-white'
+                ? 'text-green-600 border-b-2 border-green-600 bg-white'
                 : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
             }`}
           >
