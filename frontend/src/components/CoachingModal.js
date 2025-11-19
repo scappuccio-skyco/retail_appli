@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Award, MessageSquare, RefreshCw, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
+import { X, Award, MessageSquare, RefreshCw, Eye, EyeOff, CheckCircle, XCircle, Trash2, Share2, Lock } from 'lucide-react';
 import ChallengeHistoryModal from './ChallengeHistoryModal';
 import VenteConclueForm from './VenteConclueForm';
 import OpportuniteManqueeForm from './OpportuniteManqueeForm';
