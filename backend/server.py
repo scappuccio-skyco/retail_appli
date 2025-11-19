@@ -3087,21 +3087,21 @@ async def get_my_kpi_entries(days: int = None, current_user: dict = Depends(get_
         if date in manager_entries_dict:
             manager_entry = manager_entries_dict[date]
             
-            # Sum up the numeric KPI fields
+            # Sum up the numeric KPI fields (use 'or 0' to handle None values)
             merged_entry['ca_journalier'] = (
-                seller_entry.get('ca_journalier', 0) + manager_entry.get('ca_journalier', 0)
+                (seller_entry.get('ca_journalier') or 0) + (manager_entry.get('ca_journalier') or 0)
             )
             merged_entry['nb_ventes'] = (
-                seller_entry.get('nb_ventes', 0) + manager_entry.get('nb_ventes', 0)
+                (seller_entry.get('nb_ventes') or 0) + (manager_entry.get('nb_ventes') or 0)
             )
             merged_entry['nb_clients'] = (
-                seller_entry.get('nb_clients', 0) + manager_entry.get('nb_clients', 0)
+                (seller_entry.get('nb_clients') or 0) + (manager_entry.get('nb_clients') or 0)
             )
             merged_entry['nb_articles'] = (
-                seller_entry.get('nb_articles', 0) + manager_entry.get('nb_articles', 0)
+                (seller_entry.get('nb_articles') or 0) + (manager_entry.get('nb_articles') or 0)
             )
             merged_entry['nb_prospects'] = (
-                seller_entry.get('nb_prospects', 0) + manager_entry.get('nb_prospects', 0)
+                (seller_entry.get('nb_prospects') or 0) + (manager_entry.get('nb_prospects') or 0)
             )
             
             # Recalculate derived KPIs based on aggregated data
