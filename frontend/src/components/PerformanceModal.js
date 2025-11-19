@@ -411,15 +411,16 @@ export default function PerformanceModal({
                       </div>
                     )}
 
-                    {!bilanData.synthese && (
-                      <div className="text-center py-8 text-gray-500">
-                        <p className="mb-4">Aucune analyse IA disponible pour cette semaine</p>
+                    {!bilanData.synthese && !generatingBilan && (
+                      <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                        <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-600 mb-4">Aucune analyse IA disponible pour cette semaine</p>
                         {onRegenerate && (
                           <button
                             onClick={onRegenerate}
-                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
                           >
-                            Générer l'analyse IA
+                            ✨ Générer l'analyse IA
                           </button>
                         )}
                       </div>
