@@ -167,37 +167,35 @@ export default function PerformanceModal({
           </div>
           
           {/* Onglets */}
-          <div className="flex">
-            <button
-              onClick={() => setActiveTab('bilan')}
-              className={`flex-1 px-6 py-4 font-semibold transition-all border-b-2 ${
-                activeTab === 'bilan'
-                  ? 'border-white bg-white/20 text-white'
-                  : 'border-transparent text-white/70 hover:bg-white/10'
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                <span>Mon Bilan</span>
-              </div>
-              <p className="text-xs mt-1 opacity-75">KPI hebdomadaires</p>
-            </button>
-            <button
-              onClick={() => setActiveTab('kpi')}
-              className={`flex-1 px-6 py-4 font-semibold transition-all border-b-2 ${
-                activeTab === 'kpi'
-                  ? 'border-white bg-white/20 text-white'
-                  : 'border-transparent text-white/70 hover:bg-white/10'
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                <span>Mes KPI</span>
-              </div>
-              <p className="text-xs mt-1 opacity-75">
-                {kpiEntries?.length || 0} enregistré{kpiEntries?.length > 1 ? 's' : ''}
-              </p>
-            </button>
+          <div className="border-b border-gray-200 bg-gray-50 pt-2">
+            <div className="flex gap-1 px-6">
+              <button
+                onClick={() => setActiveTab('bilan')}
+                className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                  activeTab === 'bilan'
+                    ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
+                    : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  <span>Mon bilan Hebdomadaire</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('kpi')}
+                className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                  activeTab === 'kpi'
+                    ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
+                    : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Mes KPI • {kpiEntries?.length || 0}</span>
+                </div>
+              </button>
+            </div>
           </div>
         </div>
 
