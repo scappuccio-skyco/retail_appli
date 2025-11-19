@@ -1399,7 +1399,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Seller KPI History Aggregation - Merge Manager and Seller Data"
+    - "Multi-Store Management API Endpoints"
+    - "Gerant Dashboard - Intégration Modaux"
+    - "Gerant Modals Components"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
