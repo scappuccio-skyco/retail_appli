@@ -5057,7 +5057,7 @@ Les 3 exemples doivent être :
 - Des cas pratiques variés avec dialogues ou situations réelles PROFESSIONNELLES
 - Utilisables directement par le vendeur (TOUJOURS vouvoyer le client)
 - Couvrir différentes approches ou contextes
-- IMPORTANT : Utiliser un ton professionnel, pas de familiarité (éviter "Salut", "Hey", etc.), vouvoyer systématiquement le client
+- IMPORTANT : Utiliser un ton professionnel, pas de familiarité (éviter "Salut", "Hey", etc.), vouvoyer systématiquement le client"""
 
         chat = LlmChat(
             api_key=api_key,
