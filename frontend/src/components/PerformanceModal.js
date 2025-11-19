@@ -238,7 +238,7 @@ export default function PerformanceModal({
               >
                 <div className="flex items-center justify-center gap-2">
                   <BarChart3 className="w-5 h-5" />
-                  <span>Mes KPI • {kpiEntries?.length || 0}</span>
+                  <span>Historique des KPI ({kpiEntries?.length || 0})</span>
                 </div>
               </button>
             </div>
