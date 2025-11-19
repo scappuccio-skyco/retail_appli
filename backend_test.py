@@ -7752,9 +7752,9 @@ def main():
     
     tester = RetailCoachAPITester()
     
-    # PRIORITY TEST: Gérant Multi-Store Management Endpoints - REVIEW REQUEST
-    print("\n🎯 PRIORITY TEST: GÉRANT MULTI-STORE MANAGEMENT ENDPOINTS")
-    tester.test_gerant_multi_store_endpoints()
+    # PRIORITY TEST: Seller KPI History Aggregation - REVIEW REQUEST
+    print("\n🎯 PRIORITY TEST: SELLER KPI HISTORY AGGREGATION")
+    tester.test_seller_kpi_history_aggregation()
     
     # Print final summary
     tester.print_summary()
