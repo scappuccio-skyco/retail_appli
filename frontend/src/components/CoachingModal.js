@@ -243,6 +243,25 @@ export default function CoachingModal({
               <div>
                 {dailyChallenge ? (
                   <div>
+                    {/* Competence Dropdown */}
+                    <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 border-b-2 border-purple-100">
+                      <label className="block text-xs text-gray-700 font-semibold mb-2">
+                        🎯 Compétence à travailler :
+                      </label>
+                      <select
+                        value={selectedCompetence || ''}
+                        onChange={(e) => setSelectedCompetence(e.target.value || null)}
+                        className="w-full px-4 py-2 bg-white border-2 border-purple-200 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer hover:border-purple-300"
+                      >
+                        <option value="">🎲 Aléatoire (Recommandé)</option>
+                        <option value="accueil">👋 Accueil</option>
+                        <option value="decouverte">🔍 Découverte</option>
+                        <option value="argumentation">💬 Argumentation</option>
+                        <option value="closing">✅ Closing</option>
+                        <option value="fidelisation">💎 Fidélisation</option>
+                      </select>
+                    </div>
+
                     {/* Statistics Section */}
                     {stats && (
                       <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 border-b-2 border-purple-100">
