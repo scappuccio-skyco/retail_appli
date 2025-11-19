@@ -514,8 +514,35 @@ export default function CoachingModal({
                                     })}
                                   </p>
                                   {expandedDebriefs[debrief.id] && (
-                                    <div className="bg-white rounded-lg p-4 border border-green-200 mt-2">
-                                      <p className="text-gray-700 whitespace-pre-wrap">{debrief.ai_analyse || debrief.analysis || debrief.feedback}</p>
+                                    <div className="bg-white rounded-lg p-4 border border-green-200 mt-2 space-y-3">
+                                      <div>
+                                        <p className="text-xs font-semibold text-gray-500 mb-1">📦 Produit</p>
+                                        <p className="text-sm text-gray-700">{debrief.produit}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-xs font-semibold text-gray-500 mb-1">👤 Type de client</p>
+                                        <p className="text-sm text-gray-700">{debrief.type_client}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-xs font-semibold text-gray-500 mb-1">✨ Moments clés</p>
+                                        <p className="text-sm text-gray-700">{debrief.moment_perte_client}</p>
+                                      </div>
+                                      <div className="pt-3 border-t border-gray-200">
+                                        <p className="text-xs font-semibold text-purple-600 mb-2">🤖 Analyse du Coach IA</p>
+                                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{debrief.ai_analyse || debrief.analysis || debrief.feedback}</p>
+                                      </div>
+                                      {debrief.ai_recommandation && (
+                                        <div className="bg-blue-50 rounded p-3">
+                                          <p className="text-xs font-semibold text-blue-700 mb-1">💡 Recommandation</p>
+                                          <p className="text-sm text-gray-700">{debrief.ai_recommandation}</p>
+                                        </div>
+                                      )}
+                                      {debrief.ai_exemple_concret && (
+                                        <div className="bg-green-50 rounded p-3">
+                                          <p className="text-xs font-semibold text-green-700 mb-1">📝 Exemple concret</p>
+                                          <p className="text-sm text-gray-700">{debrief.ai_exemple_concret}</p>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
                                 </div>
