@@ -183,28 +183,221 @@ export default function PerformanceModal({
         </div>
 
         {/* Contenu du modal selon l'onglet actif */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === 'bilan' && bilanData && (
-            <div className="prose max-w-none">
-              <h3 className="text-xl font-bold mb-4">Mon Bilan Hebdomadaire</h3>
-              <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                <p className="text-gray-700">{bilanData.bilan_text || "Aucun bilan disponible"}</p>
-              </div>
-              {generatingBilan && (
-                <div className="text-center text-gray-500">
-                  <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                  Génération en cours...
+        <div className="flex-1 overflow-y-auto">
+          {activeTab === 'bilan' && (
+            <div>
+              {/* Header avec navigation semaines */}
+              <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-6 h-6 text-white" />
+                  <div>
+                    <p className="text-white font-bold text-lg">Mon Bilan Hebdomadaire</p>
+                    <p className="text-xs text-white opacity-90">
+                      📅 {currentWeekOffset === 0 ? 'Semaine actuelle' : bilanData?.periode}
+                    </p>
+                  </div>
                 </div>
-              )}
-              {onRegenerate && (
+                
+                {/* Navigation semaines */}
+                {onWeekChange && (
+                  <div className="flex items-center gap-2 bg-white bg-opacity-20 rounded-lg px-2 py-1">
+                    <button
+                      onClick={() => onWeekChange(currentWeekOffset - 1)}
+                      className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded transition"
+                      title="Semaine précédente"
+                    >
+                      <ChevronLeft className="w-4 h-4 text-white" />
+                    </button>
+                    <span className="text-xs text-white px-2">Semaines</span>
+                    <button
+                      onClick={() => onWeekChange(currentWeekOffset + 1)}
+                      disabled={currentWeekOffset === 0}
+                      className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded transition disabled:opacity-30"
+                      title="Semaine suivante"
+                    >
+                      <ChevronRight className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Boutons d'action */}
+              <div className="flex gap-2 px-4 py-3 bg-gray-50 border-b">
+                {onRegenerate && (
+                  <button
+                    onClick={onRegenerate}
+                    disabled={generatingBilan}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <TrendingUp className={`w-4 h-4 ${generatingBilan ? 'animate-spin' : ''}`} />
+                    {generatingBilan ? 'Génération...' : 'Regénérer le bilan'}
+                  </button>
+                )}
                 <button
-                  onClick={onRegenerate}
-                  disabled={generatingBilan}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  onClick={exportToPDF}
+                  disabled={exportingPDF}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
                 >
-                  Régénérer le bilan
+                  <Download className={`w-4 h-4 ${exportingPDF ? 'animate-bounce' : ''}`} />
+                  {exportingPDF ? 'Export...' : 'Exporter PDF'}
                 </button>
-              )}
+              </div>
+
+              {/* Contenu scrollable */}
+              <div ref={contentRef} data-pdf-content className="p-6">
+                {bilanData ? (
+                  <>
+                    {/* KPI Summary */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                      {kpiConfig?.track_ca && bilanData.kpi_resume?.ca_total !== undefined && (
+                        <div className="bg-blue-50 rounded-lg p-3">
+                          <p className="text-xs text-blue-600 mb-1">💰 CA</p>
+                          <p className="text-lg font-bold text-blue-900">{bilanData.kpi_resume.ca_total.toFixed(0)}€</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_ventes && bilanData.kpi_resume?.ventes !== undefined && (
+                        <div className="bg-green-50 rounded-lg p-3">
+                          <p className="text-xs text-green-600 mb-1">🛒 Ventes</p>
+                          <p className="text-lg font-bold text-green-900">{bilanData.kpi_resume.ventes}</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_articles && bilanData.kpi_resume?.articles !== undefined && (
+                        <div className="bg-orange-50 rounded-lg p-3">
+                          <p className="text-xs text-orange-600 mb-1">📦 Articles</p>
+                          <p className="text-lg font-bold text-orange-900">{bilanData.kpi_resume.articles}</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_ca && kpiConfig?.track_ventes && bilanData.kpi_resume?.panier_moyen !== undefined && (
+                        <div className="bg-indigo-50 rounded-lg p-3">
+                          <p className="text-xs text-indigo-600 mb-1">💳 P. Moyen</p>
+                          <p className="text-lg font-bold text-indigo-900">{bilanData.kpi_resume.panier_moyen.toFixed(0)}€</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Charts */}
+                    {chartData && chartData.length > 0 && (
+                      <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-4">
+                          <BarChart3 className="w-5 h-5 text-blue-600" />
+                          <h3 className="font-bold text-gray-800">📊 Évolution de la semaine</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {kpiConfig?.track_ca && (
+                            <div className="bg-blue-50 rounded-xl p-4">
+                              <h4 className="text-sm font-semibold text-blue-900 mb-3">💰 Évolution du CA</h4>
+                              <ResponsiveContainer width="100%" height={180}>
+                                <LineChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#1e40af' }} stroke="#3b82f6" />
+                                  <YAxis tick={{ fontSize: 11, fill: '#1e40af' }} stroke="#3b82f6" />
+                                  <Tooltip contentStyle={{ backgroundColor: '#eff6ff', border: '2px solid #3b82f6', borderRadius: '8px' }} />
+                                  <Line type="monotone" dataKey="CA" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#1e40af', r: 4 }} />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            </div>
+                          )}
+                          
+                          {kpiConfig?.track_articles && (
+                            <div className="bg-orange-50 rounded-xl p-4">
+                              <h4 className="text-sm font-semibold text-orange-900 mb-3">📦 Évolution des Articles</h4>
+                              <ResponsiveContainer width="100%" height={180}>
+                                <BarChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#fed7aa" />
+                                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9a3412' }} stroke="#f97316" />
+                                  <YAxis tick={{ fontSize: 11, fill: '#9a3412' }} stroke="#f97316" />
+                                  <Tooltip contentStyle={{ backgroundColor: '#ffedd5', border: '2px solid #f97316', borderRadius: '8px' }} />
+                                  <Bar dataKey="Articles" fill="#f97316" radius={[8, 8, 0, 0]} />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Analyse IA */}
+                    {bilanData.synthese && (
+                      <div className="space-y-4">
+                        <div className="bg-blue-50 rounded-xl p-4 border-l-4 border-blue-500">
+                          <div className="flex items-start gap-2 mb-2">
+                            <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <h3 className="font-bold text-blue-900">💡 Synthèse de la semaine</h3>
+                          </div>
+                          <p className="text-gray-700 leading-relaxed">{bilanData.synthese}</p>
+                        </div>
+
+                        {bilanData.points_forts && bilanData.points_forts.length > 0 && (
+                          <div className="bg-green-50 rounded-xl p-4 border-l-4 border-green-500">
+                            <div className="flex items-center gap-2 mb-3">
+                              <TrendingUp className="w-5 h-5 text-green-600" />
+                              <h3 className="font-bold text-green-900">👍 Tes points forts</h3>
+                            </div>
+                            <ul className="space-y-2">
+                              {bilanData.points_forts.map((point, idx) => (
+                                <li key={idx} className="flex items-start gap-2">
+                                  <span className="text-green-600 mt-1">✓</span>
+                                  <span className="text-gray-700">{point}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {bilanData.points_attention && bilanData.points_attention.length > 0 && (
+                          <div className="bg-orange-50 rounded-xl p-4 border-l-4 border-orange-500">
+                            <div className="flex items-center gap-2 mb-3">
+                              <AlertTriangle className="w-5 h-5 text-orange-600" />
+                              <h3 className="font-bold text-orange-900">⚠️ Points à améliorer</h3>
+                            </div>
+                            <ul className="space-y-2">
+                              {bilanData.points_attention.map((point, idx) => (
+                                <li key={idx} className="flex items-start gap-2">
+                                  <span className="text-orange-600 mt-1">!</span>
+                                  <span className="text-gray-700">{point}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {bilanData.recommandations && bilanData.recommandations.length > 0 && (
+                          <div className="bg-indigo-50 rounded-xl p-4 border-l-4 border-indigo-500">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Target className="w-5 h-5 text-indigo-600" />
+                              <h3 className="font-bold text-indigo-900">🎯 Recommandations personnalisées</h3>
+                            </div>
+                            <ol className="space-y-2 list-decimal list-inside">
+                              {bilanData.recommandations.map((reco, idx) => (
+                                <li key={idx} className="text-gray-700">{reco}</li>
+                              ))}
+                            </ol>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {!bilanData.synthese && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p className="mb-4">Aucune analyse IA disponible pour cette semaine</p>
+                        {onRegenerate && (
+                          <button
+                            onClick={onRegenerate}
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                          >
+                            Générer l'analyse IA
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>Aucun bilan disponible</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
           
