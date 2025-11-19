@@ -1683,6 +1683,26 @@ async def update_debrief_visibility(
     
     return {"success": True, "visible_to_manager": visible_to_manager}
 
+@api_router.delete("/debriefs/{debrief_id}")
+async def delete_debrief(
+    debrief_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a debrief"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can delete their debriefs")
+    
+    # Verify debrief belongs to current user
+    debrief = await db.debriefs.find_one({"id": debrief_id}, {"_id": 0})
+    if not debrief or debrief.get('seller_id') != current_user['id']:
+        raise HTTPException(status_code=404, detail="Debrief not found")
+    
+    # Delete debrief
+    await db.debriefs.delete_one({"id": debrief_id})
+    
+    return {"success": True, "message": "Debrief deleted"}
+
+
 @api_router.get("/competences/history")
 async def get_competences_history(current_user: dict = Depends(get_current_user)):
     """Get competence scores history (diagnostic + all debriefs)"""
