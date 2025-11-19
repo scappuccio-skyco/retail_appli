@@ -48,6 +48,31 @@ export default function ObjectivesModal({
     }
   };
 
+  const handleUpdateChallengeProgress = async (challengeId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API}/api/manager/challenges/${challengeId}/progress`,
+        {
+          progress_ca: challengeProgress.ca,
+          progress_ventes: challengeProgress.ventes,
+          progress_clients: challengeProgress.clients
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success('Progression du challenge mise à jour !');
+      setUpdatingChallengeId(null);
+      setChallengeProgress({ ca: 0, ventes: 0, clients: 0 });
+      
+      // Rafraîchir la page pour voir les changements
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating challenge progress:', error);
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
