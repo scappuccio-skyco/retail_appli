@@ -572,9 +572,11 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
 
 
   // Calculate team totals
-  const teamTotalCA = teamData.reduce((sum, s) => sum + s.monthlyCA, 0);
-  const teamTotalVentes = teamData.reduce((sum, s) => sum + s.monthlyVentes, 0);
+  const teamTotalCA = teamData.reduce((sum, s) => sum + (s.monthlyCA || 0), 0);
+  const teamTotalVentes = teamData.reduce((sum, s) => sum + (s.monthlyVentes || 0), 0);
   const sellersWithKPI = teamData.filter(s => s.hasKpiToday).length;
+  
+  console.log('[TeamModal] 📊 Team totals:', { teamTotalCA, teamTotalVentes, teamDataLength: teamData.length });
 
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
