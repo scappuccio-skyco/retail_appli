@@ -238,6 +238,47 @@ export default function PerformanceModal({
         <div className="flex-1 overflow-y-auto">
           {activeTab === 'bilan' && (
             <div>
+              {/* Bandeau blanc avec résumé KPI */}
+              <div className="bg-white border-b-2 border-gray-200 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="w-6 h-6 text-orange-500" />
+                    <div>
+                      <p className="text-gray-800 font-bold text-lg">
+                        {weekInfo ? `Semaine ${weekInfo.weekNumber}` : 'Mon bilan Hebdomadaire'}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        📅 {bilanData?.periode || 'Semaine en cours'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Résumé des KPI de la semaine */}
+                  {bilanData?.kpi_resume && (
+                    <div className="flex gap-4">
+                      {kpiConfig?.track_ca && bilanData.kpi_resume?.ca_total !== undefined && (
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500">💰 CA</p>
+                          <p className="text-lg font-bold text-gray-800">{bilanData.kpi_resume.ca_total.toLocaleString('fr-FR')} €</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_nb_ventes && bilanData.kpi_resume?.nb_ventes_total !== undefined && (
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500">🛍️ Ventes</p>
+                          <p className="text-lg font-bold text-gray-800">{bilanData.kpi_resume.nb_ventes_total}</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_panier_moyen && bilanData.kpi_resume?.panier_moyen !== undefined && (
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500">🛒 Panier moy.</p>
+                          <p className="text-lg font-bold text-gray-800">{bilanData.kpi_resume.panier_moyen.toFixed(2)} €</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
               {/* Boutons d'action avec navigation semaines */}
               <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b">
                 <div className="flex gap-2">
