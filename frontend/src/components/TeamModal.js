@@ -146,6 +146,11 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
           const monthlyVentes = kpiEntries.reduce((sum, entry) => sum + (entry.nb_ventes || 0), 0);
           const panierMoyen = monthlyVentes > 0 ? monthlyCA / monthlyVentes : 0;
           
+          // Debug: show a sample entry
+          if (kpiEntries.length > 0) {
+            console.log(`[TeamModal] 📋 ${seller.name} SAMPLE ENTRY:`, kpiEntries[0]);
+          }
+          
           console.log(`[TeamModal] 💰 ${seller.name} CALCULATED => CA: ${monthlyCA.toFixed(2)} €, Ventes: ${monthlyVentes}`);
 
           // Get competences scores
