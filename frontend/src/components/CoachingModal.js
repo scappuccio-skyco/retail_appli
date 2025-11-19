@@ -287,7 +287,7 @@ export default function CoachingModal({
                         </button>
                         {dailyChallenge.completed ? (
                           <button
-                            onClick={handleRefresh}
+                            onClick={() => setShowCompetenceSelector(!showCompetenceSelector)}
                             disabled={loading}
                             className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                           >
@@ -296,7 +296,7 @@ export default function CoachingModal({
                           </button>
                         ) : (
                           <button
-                            onClick={handleRefresh}
+                            onClick={() => setShowCompetenceSelector(!showCompetenceSelector)}
                             disabled={loading}
                             className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                           >
