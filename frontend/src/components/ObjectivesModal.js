@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { X, Target, Trophy } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'sonner';
+
+const API = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function ObjectivesModal({ 
   isOpen, 
@@ -8,6 +12,35 @@ export default function ObjectivesModal({
   activeChallenges = []
 }) {
   const [activeTab, setActiveTab] = useState('objectifs'); // 'objectifs' or 'challenges'
+  const [updatingObjectiveId, setUpdatingObjectiveId] = useState(null);
+  const [objectiveProgressValue, setObjectiveProgressValue] = useState('');
+  
+  const handleUpdateProgress = async (objectiveId) => {
+    try {
+      const value = parseFloat(objectiveProgressValue);
+      if (isNaN(value) || value < 0) {
+        toast.error('Veuillez entrer une valeur valide');
+        return;
+      }
+      
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API}/api/manager/objectives/${objectiveId}/progress`,
+        { current_value: value },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success('Progression mise à jour !');
+      setUpdatingObjectiveId(null);
+      setObjectiveProgressValue('');
+      
+      // Rafraîchir la page pour voir les changements
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
 
   if (!isOpen) return null;
 
