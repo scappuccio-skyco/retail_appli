@@ -259,19 +259,25 @@ export default function PerformanceModal({
                       {kpiConfig?.track_ca && bilanData.kpi_resume?.ca_total !== undefined && (
                         <div className="text-center">
                           <p className="text-xs text-gray-500">💰 CA</p>
-                          <p className="text-lg font-bold text-gray-800">{bilanData.kpi_resume.ca_total.toLocaleString('fr-FR')} €</p>
+                          <p className="text-lg font-bold text-gray-800">{bilanData.kpi_resume.ca_total.toFixed(0)} €</p>
                         </div>
                       )}
-                      {kpiConfig?.track_nb_ventes && bilanData.kpi_resume?.nb_ventes_total !== undefined && (
+                      {kpiConfig?.track_ventes && bilanData.kpi_resume?.ventes !== undefined && (
                         <div className="text-center">
                           <p className="text-xs text-gray-500">🛍️ Ventes</p>
-                          <p className="text-lg font-bold text-gray-800">{bilanData.kpi_resume.nb_ventes_total}</p>
+                          <p className="text-lg font-bold text-gray-800">{bilanData.kpi_resume.ventes}</p>
                         </div>
                       )}
-                      {kpiConfig?.track_panier_moyen && bilanData.kpi_resume?.panier_moyen !== undefined && (
+                      {kpiConfig?.track_articles && bilanData.kpi_resume?.articles !== undefined && (
                         <div className="text-center">
-                          <p className="text-xs text-gray-500">🛒 Panier moy.</p>
-                          <p className="text-lg font-bold text-gray-800">{bilanData.kpi_resume.panier_moyen.toFixed(2)} €</p>
+                          <p className="text-xs text-gray-500">📦 Articles</p>
+                          <p className="text-lg font-bold text-gray-800">{bilanData.kpi_resume.articles}</p>
+                        </div>
+                      )}
+                      {kpiConfig?.track_ca && kpiConfig?.track_ventes && bilanData.kpi_resume?.panier_moyen !== undefined && (
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500">💳 P. Moyen</p>
+                          <p className="text-lg font-bold text-gray-800">{bilanData.kpi_resume.panier_moyen.toFixed(0)} €</p>
                         </div>
                       )}
                     </div>
