@@ -148,6 +148,42 @@ export default function CoachingModal({
     }));
   };
 
+  const handleDeleteDebrief = async (debriefId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette analyse ?')) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`${API}/debriefs/${debriefId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Analyse supprimée');
+      if (onCreateDebrief) {
+        await onCreateDebrief();
+      }
+    } catch (err) {
+      console.error('Error deleting debrief:', err);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  const handleToggleVisibility = async (debriefId, currentVisibility) => {
+    try {
+      await axios.patch(
+        `${API}/debriefs/${debriefId}/visibility`,
+        { visible_to_manager: !currentVisibility },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(!currentVisibility ? 'Partagé avec le manager' : 'Partagé uniquement avec moi');
+      if (onCreateDebrief) {
+        await onCreateDebrief();
+      }
+    } catch (err) {
+      console.error('Error updating visibility:', err);
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
