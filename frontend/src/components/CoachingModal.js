@@ -568,7 +568,10 @@ export default function CoachingModal({
                                     </h3>
                                     <div className="flex items-center gap-2">
                                       <button
-                                        onClick={() => toggleDebrief(debrief.id)}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleDebrief(debrief.id);
+                                        }}
                                         className="p-1 hover:bg-white/50 rounded transition-colors"
                                         title={expandedDebriefs[debrief.id] ? "Masquer les détails" : "Voir les détails"}
                                       >
