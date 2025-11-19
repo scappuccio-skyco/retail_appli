@@ -1327,14 +1327,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       )}
 
       {/* Objectifs et Challenges Modal */}
-      {showObjectivesModal && (
-        <ObjectivesModal
-          isOpen={showObjectivesModal}
-          onClose={() => setShowObjectivesModal(false)}
-          activeObjectives={activeObjectives}
-          activeChallenges={activeChallenges}
-        />
-      )}
+      {/* ObjectivesModal removed - using ObjectivesAndChallengesModal instead */}
 
       {/* Bilan Individuel Modal */}
       {showBilanModal && bilanIndividuel && (
