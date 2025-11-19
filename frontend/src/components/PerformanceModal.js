@@ -37,13 +37,10 @@ export default function PerformanceModal({
 
   // Calculer le numéro de semaine et les dates pour le sélecteur
   const weekInfo = useMemo(() => {
-    console.log('[PerformanceModal] bilanData.periode:', bilanData?.periode);
-    
     if (!bilanData?.periode) {
       // Si pas de période, calculer depuis la semaine actuelle
       const now = new Date();
       const weekNum = getWeekNumber(now);
-      console.log('[PerformanceModal] Using current week:', weekNum);
       return { weekNumber: weekNum, dateRange: null };
     }
     
@@ -52,7 +49,6 @@ export default function PerformanceModal({
     let match = bilanData.periode.match(/(\d+)[\/\s]+(\w+)[\.\s]+au\s+(\d+)[\/\s]+(\w+)[\.]?/i);
     
     if (!match) {
-      console.log('[PerformanceModal] Could not parse periode, using current week');
       const now = new Date();
       return { weekNumber: getWeekNumber(now), dateRange: bilanData.periode };
     }
@@ -69,8 +65,6 @@ export default function PerformanceModal({
     const monthIndex = monthMap[startMonth] !== undefined ? monthMap[startMonth] : parseInt(startMonth) - 1;
     const startDate = new Date(currentYear, monthIndex, parseInt(startDay));
     const weekNum = getWeekNumber(startDate);
-    
-    console.log('[PerformanceModal] Calculated week number:', weekNum, 'for date:', startDate);
     
     return {
       weekNumber: weekNum,
