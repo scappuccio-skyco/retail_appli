@@ -271,6 +271,11 @@ export default function PerformanceModal({
                   </div>
                   
                   {/* Résumé des KPI de la semaine */}
+                  {(() => {
+                    console.log('[PerformanceModal] bilanData.kpi_resume:', bilanData?.kpi_resume);
+                    console.log('[PerformanceModal] kpiConfig:', kpiConfig);
+                    return null;
+                  })()}
                   {bilanData?.kpi_resume && (
                     <div className="flex gap-4">
                       {kpiConfig?.track_ca && bilanData.kpi_resume?.ca_total !== undefined && (
