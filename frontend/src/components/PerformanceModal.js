@@ -98,33 +98,43 @@ export default function PerformanceModal({
               <p className="text-sm text-gray-500 mb-4">💡 Cliquez sur une entrée pour la modifier</p>
               {kpiEntries && kpiEntries.length > 0 ? (
                 <div className="space-y-4">
-                  {kpiEntries.slice(0, 10).map((entry, index) => (
-                    <div 
-                      key={index} 
-                      onClick={() => {
-                        if (onEditKPI) {
-                          onEditKPI(entry);
-                        } else {
-                          alert('Modification KPI non disponible');
-                        }
-                      }}
-                      className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
-                    >
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-semibold text-gray-800">{entry.date}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-500">il y a {Math.floor(Math.random() * 30)} jours</span>
-                          <span className="text-xs text-blue-600 font-medium">✏️ Modifier</span>
+                  {kpiEntries.slice(0, 10).map((entry, index) => {
+                    // Calculate days difference
+                    const entryDate = new Date(entry.date);
+                    const today = new Date();
+                    const diffTime = today - entryDate;
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    return (
+                      <div 
+                        key={index} 
+                        onClick={() => {
+                          if (onEditKPI) {
+                            onEditKPI(entry);
+                          } else {
+                            alert('Modification KPI non disponible');
+                          }
+                        }}
+                        className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-semibold text-gray-800">{entry.date}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500">
+                              il y a {diffDays === 0 ? "aujourd'hui" : `${diffDays} jour${diffDays > 1 ? 's' : ''}`}
+                            </span>
+                            <span className="text-xs text-blue-600 font-medium">✏️ Modifier</span>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>💰 CA: {entry.ca_journalier || 0}€</div>
+                          <div>🛒 Ventes: {entry.nb_ventes || 0}</div>
+                          <div>📦 Articles: {entry.nb_articles || 0}</div>
+                          <div>🚶 Prospects: {entry.nb_prospects || 0}</div>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>💰 CA: {entry.ca_journalier || 0}€</div>
-                        <div>🛒 Ventes: {entry.nb_ventes || 0}</div>
-                        <div>📦 Articles: {entry.nb_articles || 0}</div>
-                        <div>🚶 Prospects: {entry.nb_prospects || 0}</div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-gray-500">Aucun KPI enregistré pour le moment.</p>
