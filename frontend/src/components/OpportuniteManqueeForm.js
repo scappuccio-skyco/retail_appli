@@ -73,14 +73,15 @@ export default function OpportuniteManqueeForm({ token, onSuccess }) {
         : formManquee.raisons_echec.join(', ');
 
       const res = await axios.post(
-        `${API}/seller/debrief`,
+        `${API}/debriefs`,
         {
-          type: 'opportunite_manquee',
+          vente_conclue: false,
           visible_to_manager: formManquee.visible_to_manager,
           produit: formManquee.produit,
           type_client: formManquee.type_client,
-          moment_perte: moment,
+          situation_vente: formManquee.description_vente,
           description_vente: formManquee.description_vente,
+          moment_perte_client: moment,
           raisons_echec: raisons,
           amelioration_pensee: formManquee.amelioration_pensee
         },
