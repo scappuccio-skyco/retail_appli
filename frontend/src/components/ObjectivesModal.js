@@ -20,6 +20,7 @@ export default function ObjectivesModal({
     ventes: 0,
     clients: 0
   });
+  const [challengeCurrentValue, setChallengeCurrentValue] = useState('');
   
   const handleUpdateProgress = async (objectiveId) => {
     try {
