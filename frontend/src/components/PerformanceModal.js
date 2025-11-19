@@ -331,9 +331,28 @@ export default function PerformanceModal({
                       </div>
                     )}
 
+                    {/* Animation de génération */}
+                    {generatingBilan && (
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border-2 border-blue-200">
+                        <div className="flex flex-col items-center justify-center space-y-4">
+                          <div className="relative">
+                            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                            <Sparkles className="w-8 h-8 text-blue-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                          </div>
+                          <div className="text-center">
+                            <h3 className="text-lg font-bold text-blue-900 mb-2">✨ Génération de votre bilan en cours...</h3>
+                            <p className="text-sm text-gray-600 mb-4">L'IA analyse vos performances de la semaine</p>
+                            <div className="w-64 bg-gray-200 rounded-full h-2 overflow-hidden">
+                              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full animate-pulse" style={{width: '100%'}}></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Analyse IA */}
-                    {bilanData.synthese && (
-                      <div className="space-y-4">
+                    {bilanData.synthese && !generatingBilan && (
+                      <div ref={bilanSectionRef} className="space-y-4">
                         <div className="bg-blue-50 rounded-xl p-4 border-l-4 border-blue-500">
                           <div className="flex items-start gap-2 mb-2">
                             <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
