@@ -711,7 +711,18 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                                 setPeriodFilter('custom');
                               }
                             }}
-                            className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                            onFocus={(e) => {
+                              // Ouvrir le calendrier au focus
+                              try {
+                                if (typeof e.target.showPicker === 'function') {
+                                  e.target.showPicker();
+                                }
+                              } catch (error) {
+                                // showPicker n'est pas supporté par ce navigateur
+                                console.log('showPicker not supported');
+                              }
+                            }}
+                            className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none cursor-pointer"
                           />
                         </div>
                         <div className="flex-1">
