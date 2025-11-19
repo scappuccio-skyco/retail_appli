@@ -37,11 +37,25 @@ export default function PerformanceModal({
 
   // Calculer le numéro de semaine et les dates pour le sélecteur
   const weekInfo = useMemo(() => {
-    if (!bilanData?.periode) return null;
+    console.log('[PerformanceModal] bilanData.periode:', bilanData?.periode);
     
-    // Parse la période (format: "17 nov. au 23 nov.")
-    const match = bilanData.periode.match(/(\d+)\s+(\w+)\.\s+au\s+(\d+)\s+(\w+)\./);
-    if (!match) return null;
+    if (!bilanData?.periode) {
+      // Si pas de période, calculer depuis la semaine actuelle
+      const now = new Date();
+      const weekNum = getWeekNumber(now);
+      console.log('[PerformanceModal] Using current week:', weekNum);
+      return { weekNumber: weekNum, dateRange: null };
+    }
+    
+    // Parse la période - plusieurs formats possibles
+    // Format 1: "17 nov. au 23 nov." ou "10/11/25 au 16/11/25"
+    let match = bilanData.periode.match(/(\d+)[\/\s]+(\w+)[\.\s]+au\s+(\d+)[\/\s]+(\w+)[\.]?/i);
+    
+    if (!match) {
+      console.log('[PerformanceModal] Could not parse periode, using current week');
+      const now = new Date();
+      return { weekNumber: getWeekNumber(now), dateRange: bilanData.periode };
+    }
     
     const [_, startDay, startMonth, endDay, endMonth] = match;
     const currentYear = new Date().getFullYear();
@@ -52,8 +66,11 @@ export default function PerformanceModal({
       'juil': 6, 'août': 7, 'sept': 8, 'oct': 9, 'nov': 10, 'déc': 11
     };
     
-    const startDate = new Date(currentYear, monthMap[startMonth], parseInt(startDay));
+    const monthIndex = monthMap[startMonth] !== undefined ? monthMap[startMonth] : parseInt(startMonth) - 1;
+    const startDate = new Date(currentYear, monthIndex, parseInt(startDay));
     const weekNum = getWeekNumber(startDate);
+    
+    console.log('[PerformanceModal] Calculated week number:', weekNum, 'for date:', startDate);
     
     return {
       weekNumber: weekNum,
