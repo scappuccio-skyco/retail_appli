@@ -457,17 +457,22 @@ export default function PerformanceModal({
           
           {activeTab === 'kpi' && (
             <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Historique de mes KPI</h3>
-                {kpiEntries && kpiEntries.length > 0 && (
-                  <span className="text-sm text-gray-500">
-                    Affichage de {Math.min(displayedKpiCount, kpiEntries.length)} sur {kpiEntries.length} entrées
-                  </span>
-                )}
+              {/* Bandeau coloré "Historique de mes KPI" */}
+              <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white p-4 -mx-6 -mt-6 mb-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-bold">📊 Historique de mes KPI</h3>
+                  {kpiEntries && kpiEntries.length > 0 && (
+                    <span className="text-sm text-indigo-100">
+                      Affichage de {Math.min(displayedKpiCount, kpiEntries.length)} sur {kpiEntries.length} entrées
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-indigo-100 mt-2">💡 Cliquez sur une entrée pour la modifier</p>
               </div>
-              <p className="text-sm text-gray-500 mb-4">💡 Cliquez sur une entrée pour la modifier</p>
+              
+              {/* Contenu avec padding */}
               {kpiEntries && kpiEntries.length > 0 ? (
-                <>
+                <div className="px-6">
                   <div className="space-y-4">
                     {kpiEntries.slice(0, displayedKpiCount).map((entry, index) => {
                       // Calculate days difference
