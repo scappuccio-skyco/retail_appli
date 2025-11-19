@@ -1401,9 +1401,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           setShowChallengeHistoryModal(true);
         }}
         debriefs={debriefs}
-        onCreateDebrief={() => {
-          setShowCoachingModal(false);
-          setShowDebriefModal(true);
+        onCreateDebrief={async () => {
+          await fetchDebriefs();
         }}
         token={localStorage.getItem('token')}
       />
