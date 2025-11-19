@@ -94,17 +94,27 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
       // Fetch data for each seller
       const sellersDataPromises = sellersToUse.map(async (seller) => {
         try {
-          const daysParam = periodFilter === 'all' ? '365' : periodFilter;
-          console.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with days=${daysParam}`);
+          const daysParam = periodFilter === 'all' ? '365' : (periodFilter === 'custom' ? '0' : periodFilter);
+          
+          // Build API params
+          let apiParams = { _t: Date.now() };
+          let kpiUrl = `${API}/manager/kpi-entries/${seller.id}?days=${daysParam}`;
+          
+          if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
+            kpiUrl = `${API}/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}`;
+            console.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with custom dates: ${customDateRange.start} to ${customDateRange.end}`);
+          } else {
+            console.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with days=${daysParam}`);
+          }
           
           const [statsRes, kpiRes, diagRes] = await Promise.all([
             axios.get(`${API}/manager/seller/${seller.id}/stats`, { 
               headers: { Authorization: `Bearer ${token}` },
-              params: { _t: Date.now() } // Cache buster
+              params: apiParams
             }),
-            axios.get(`${API}/manager/kpi-entries/${seller.id}?days=${daysParam}`, { 
+            axios.get(kpiUrl, { 
               headers: { Authorization: `Bearer ${token}` },
-              params: { _t: Date.now() } // Cache buster
+              params: apiParams
             }),
             axios.get(`${API}/manager/seller/${seller.id}/diagnostic`, { 
               headers: { Authorization: `Bearer ${token}` },
