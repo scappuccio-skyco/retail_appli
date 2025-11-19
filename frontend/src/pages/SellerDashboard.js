@@ -1111,8 +1111,6 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
-        {/* Mes KPI Card - Now merged with Bilan card above */}
-
         {/* Analyse de vente Card */}
         {dashboardFilters.showDebriefs && (
           <div 
