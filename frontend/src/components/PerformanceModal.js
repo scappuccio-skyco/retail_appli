@@ -102,8 +102,10 @@ export default function PerformanceModal({
                     <div 
                       key={index} 
                       onClick={() => {
-                        if (window.confirm(`Voulez-vous modifier les KPI du ${entry.date} ?\n\n⚠️ Cette fonctionnalité nécessite l'ouverture d'un modal d'édition.`)) {
-                          alert('Fonctionnalité en cours d\'implémentation. Pour le moment, veuillez contacter votre manager pour modifier des KPI passés.');
+                        if (onEditKPI) {
+                          onEditKPI(entry);
+                        } else {
+                          alert('Modification KPI non disponible');
                         }
                       }}
                       className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
