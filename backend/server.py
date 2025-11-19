@@ -4948,7 +4948,7 @@ async def get_store_kpi_overview(
 
 # ===== DAILY CHALLENGE ENDPOINTS =====
 @api_router.get("/seller/daily-challenge")
-async def get_daily_challenge(current_user: dict = Depends(get_current_user)):
+async def get_daily_challenge(current_user: dict = Depends(get_current_user), force_competence: str = None):
     """Get or generate daily challenge for seller"""
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can access daily challenges")
