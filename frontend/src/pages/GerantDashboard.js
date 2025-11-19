@@ -269,6 +269,13 @@ const GerantDashboard = ({ user, onLogout }) => {
 
             <div className="flex gap-2">
               <button
+                onClick={() => setShowSubscriptionModal(true)}
+                className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Mon abonnement</span>
+              </button>
+              <button
                 onClick={handleLogoutClick}
                 className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:shadow-md transition-all"
               >
