@@ -74,10 +74,24 @@ const GerantDashboard = ({ user, onLogout }) => {
   useEffect(() => {
     if (user) {
       fetchDashboardData();
+      fetchSubscriptionInfo();
     }
     // fetchDashboardData ne change pas, donc on peut ignorer l'avertissement
     // eslint-disable-next-line
   }, [user]);
+
+  const fetchSubscriptionInfo = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${backendUrl}/api/subscription/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setSubscriptionInfo(data);
+    } catch (err) {
+      console.error('Error fetching subscription:', err);
+    }
+  };
 
   const handleLogoutClick = () => {
     if (onLogout) {
