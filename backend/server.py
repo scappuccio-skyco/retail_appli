@@ -3170,7 +3170,13 @@ async def get_my_kpi_entries(days: int = None, current_user: dict = Depends(get_
 
 # Manager: Get KPI entries for a seller
 @api_router.get("/manager/kpi-entries/{seller_id}")
-async def get_seller_kpi_entries(seller_id: str, days: int = 30, current_user: dict = Depends(get_current_user)):
+async def get_seller_kpi_entries(
+    seller_id: str, 
+    days: int = 30, 
+    start_date: str = None, 
+    end_date: str = None, 
+    current_user: dict = Depends(get_current_user)
+):
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can access seller KPI entries")
     
@@ -3183,15 +3189,24 @@ async def get_seller_kpi_entries(seller_id: str, days: int = 30, current_user: d
     if seller.get('store_id') != current_user.get('store_id'):
         raise HTTPException(status_code=403, detail="Seller not in your store")
     
-    # Calculate date threshold
-    from datetime import timedelta
-    date_threshold = (datetime.now(timezone.utc) - timedelta(days=days)).strftime('%Y-%m-%d')
-    
-    entries = await db.kpi_entries.find(
-        {
+    # Build date query based on parameters
+    if start_date and end_date:
+        # Use custom date range
+        date_query = {
+            "seller_id": seller_id,
+            "date": {"$gte": start_date, "$lte": end_date}
+        }
+    else:
+        # Use days parameter
+        from datetime import timedelta
+        date_threshold = (datetime.now(timezone.utc) - timedelta(days=days)).strftime('%Y-%m-%d')
+        date_query = {
             "seller_id": seller_id,
             "date": {"$gte": date_threshold}
-        },
+        }
+    
+    entries = await db.kpi_entries.find(
+        date_query,
         {"_id": 0}
     ).sort("date", -1).to_list(1000)
     
