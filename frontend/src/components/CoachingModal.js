@@ -25,7 +25,6 @@ export default function CoachingModal({
   const [activeTab, setActiveTab] = useState(initialTab);
   const [analyseSubTab, setAnalyseSubTab] = useState('conclue'); // 'conclue', 'manquee', 'historique'
   const [showChallengeHistoryModal, setShowChallengeHistoryModal] = useState(false);
-  const [showDebriefHistoryModal, setShowDebriefHistoryModal] = useState(false);
   
   // Challenge states
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
