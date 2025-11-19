@@ -124,6 +124,18 @@ backend:
         comment: "BUG OBJECTID CORRIGÉ: ✅ FIX APPLIQUÉ: Ajout de la projection {\"_id\": 0} à la ligne 7842 du fichier server.py dans l'appel db.stores.find_one() pour exclure le champ ObjectId non sérialisable. ✅ VALIDATION: Test curl sur GET /api/gerant/stores/{store_id}/stats retourne maintenant 200 OK avec JSON valide. ✅ BACKEND REDÉMARRÉ: Service backend redémarré avec succès. ✅ SCREENSHOT PRIS: Dashboard Gérant charge correctement avec les 3 magasins (Paris, Lyon, Bordeaux). ✅ RÉSULTAT FINAL: 10/10 endpoints backend multi-store fonctionnent correctement. Tous les endpoints sont prêts pour les tests frontend."
 
 frontend:
+  - task: "Manager TeamModal - Period Selector Functionality"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/TeamModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "MON ÉQUIPE MODAL PERIOD SELECTOR TESTING COMPLETED SUCCESSFULLY - 100% FUNCTIONALITY VERIFIED: ✅ AUTHENTICATION: Manager login y.legoff@skyco.fr/password123 successful. ✅ MODAL ACCESS: 'Mon Équipe' card opens TeamModal with proper layout. ✅ PERIOD FUNCTIONALITY: 1) Default 30 days (94,198€ CA, 539 ventes), 2) 7 days switch (24,301€ CA, 94 ventes - correctly smaller), 3) 3 months switch (267,526€ CA, 1,727 ventes - correctly larger), 4) Custom date picker functional with native calendar, 5) Custom dates (2024-11-01 to 2024-11-15) auto-applied without Apply button, 6) Data updates automatically after 3-4 seconds. ✅ DUAL SELECTOR SYNCHRONIZATION: Found 2 'Personnalisée' buttons (top/bottom), both synchronized using same state variables. ✅ DATA VALIDATION: Performance Globale values change correctly with period selection, individual seller data updates, period labels update properly. ✅ UI/UX: Modal scrollable, charts visible, period buttons highlight when selected. All period selector functionality working perfectly and production-ready."
+
   - task: "Gerant Dashboard - Intégration Modaux"
     implemented: true
     working: true
