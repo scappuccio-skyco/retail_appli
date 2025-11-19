@@ -546,7 +546,12 @@ export default function CoachingModal({
                       <div className="space-y-4">
                         <p className="text-sm text-gray-600 mb-4">Toutes vos analyses ({debriefs.length})</p>
                         {debriefs.map((debrief) => (
-                          <div key={debrief.id} className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200">
+                          <div 
+                            key={debrief.id} 
+                            data-debrief-card
+                            className="bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200 cursor-pointer hover:shadow-lg transition-shadow"
+                            onClick={() => toggleDebrief(debrief.id)}
+                          >
                             <div className="p-6">
                               <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
