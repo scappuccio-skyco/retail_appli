@@ -965,8 +965,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                     } else if (task.type === 'kpi') {
                       setShowKPIModal(true);
                     } else if (task.type === 'challenge') {
-                      // Open daily challenge modal
-                      setShowDailyChallengeModal(true);
+                      // Open coaching modal
+                      setShowCoachingModal(true);
                     } else {
                       setSelectedTask(task);
                       setShowTaskModal(true);
