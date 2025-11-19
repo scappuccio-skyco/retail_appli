@@ -1066,57 +1066,27 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
-        {/* Mon Coach IA Card */}
-        {dashboardFilters.showCompetences && dailyChallenge && (
+        {/* Coaching & Analyse Card (Fusion Coach IA + Analyse de vente) */}
+        {(dashboardFilters.showCompetences || dashboardFilters.showDebriefs) && (
           <div 
-            onClick={() => setShowDailyChallengeModal(true)}
-            className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 ${
-              dailyChallenge.completed 
-                ? 'border-green-400' 
-                : 'border-transparent hover:border-[#ffd871]'
-            }`}
+            onClick={() => setShowCoachingModal(true)}
+            className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-purple-400"
           >
             <div className="relative h-48 overflow-hidden">
               <img 
                 src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop" 
-                alt="Mon Coach IA"
+                alt="Coaching & Analyse"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/70 via-indigo-900/70 to-blue-900/70 group-hover:from-purple-900/60 group-hover:via-indigo-900/60 group-hover:to-blue-900/60 transition-all"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/70 via-indigo-800/70 to-teal-800/70 group-hover:from-purple-900/60 group-hover:via-indigo-800/60 group-hover:to-teal-800/60 transition-all"></div>
               
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center text-white px-4">
                   <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
                     <Award className="w-8 h-8" />
                   </div>
-                  <h2 className="text-2xl font-bold">🤖 Mon Coach IA</h2>
-                  <p className="text-sm mt-2 opacity-90">Prêt à relever une mission ?</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Analyse de vente Card */}
-        {dashboardFilters.showDebriefs && (
-          <div 
-            onClick={() => setShowDebriefHistoryModal(true)}
-            className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
-          >
-            <div className="relative h-48 overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1746021375306-9dec0f637732?w=800&h=400&fit=crop" 
-                alt="Analyse de vente"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-green-900/70 to-teal-900/70 group-hover:from-green-900/60 group-hover:to-teal-900/60 transition-all"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center text-white">
-                  <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
-                    <MessageSquare className="w-8 h-8" />
-                  </div>
-                  <h2 className="text-2xl font-bold">📊 Analyse de vente</h2>
-                  <p className="text-sm mt-2 opacity-90">Reçois un coaching immédiat pour progresser →</p>
+                  <h2 className="text-2xl font-bold">🎯 Coaching & Analyse</h2>
+                  <p className="text-sm mt-2 opacity-90">Coach IA • Analyse de vente →</p>
                 </div>
               </div>
             </div>
