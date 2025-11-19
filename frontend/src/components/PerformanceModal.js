@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
-import { X, TrendingUp, BarChart3 } from 'lucide-react';
+import React, { useState, useMemo, useRef } from 'react';
+import { X, TrendingUp, BarChart3, ChevronLeft, ChevronRight, Download, Sparkles, AlertTriangle, Target } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { unstable_batchedUpdates } from 'react-dom';
 
 export default function PerformanceModal({ 
   isOpen, 
@@ -10,12 +14,123 @@ export default function PerformanceModal({
   onDataUpdate,
   onRegenerate,
   generatingBilan,
-  onEditKPI // Nouvelle prop pour gérer l'édition
+  onEditKPI,
+  kpiConfig,
+  currentWeekOffset,
+  onWeekChange
 }) {
   const [activeTab, setActiveTab] = useState('bilan'); // 'bilan' or 'kpi'
   const [displayedKpiCount, setDisplayedKpiCount] = useState(20); // Start with 20 entries
+  const contentRef = useRef(null);
+  const [exportingPDF, setExportingPDF] = useState(false);
 
   if (!isOpen) return null;
+
+  // Prepare chart data from KPI entries for current week
+  const chartData = useMemo(() => {
+    if (!kpiEntries || kpiEntries.length === 0) return [];
+    
+    const now = new Date();
+    const offsetDays = (currentWeekOffset || 0) * 7;
+    const monday = new Date(now);
+    monday.setDate(monday.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1) + offsetDays);
+    monday.setHours(0, 0, 0, 0);
+    
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    
+    const weekEntries = kpiEntries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= monday && entryDate <= sunday;
+    });
+    
+    const sortedEntries = weekEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    return sortedEntries.map(entry => ({
+      date: new Date(entry.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
+      CA: entry.ca_journalier || 0,
+      Ventes: entry.nb_ventes || 0,
+      Articles: entry.nb_articles || 0,
+      'Panier Moyen': entry.ca_journalier && entry.nb_ventes ? (entry.ca_journalier / entry.nb_ventes).toFixed(2) : 0
+    }));
+  }, [kpiEntries, currentWeekOffset]);
+
+  // Export to PDF function
+  const exportToPDF = async () => {
+    if (!contentRef.current || !document.body.contains(contentRef.current)) {
+      console.error('Content ref not available');
+      return;
+    }
+    
+    unstable_batchedUpdates(() => {
+      setExportingPDF(true);
+    });
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      const canvas = await html2canvas(contentRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png', 0.95);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const margin = 8;
+      
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const contentWidth = pdfWidth - (2 * margin);
+      const ratio = contentWidth / imgWidth;
+      const contentHeight = imgHeight * ratio;
+      
+      if (contentHeight <= pdfHeight - 20) {
+        pdf.addImage(imgData, 'PNG', margin, margin, contentWidth, contentHeight);
+      } else {
+        let remainingHeight = contentHeight;
+        let currentY = 0;
+        let pageNum = 0;
+        
+        while (remainingHeight > 0) {
+          if (pageNum > 0) pdf.addPage();
+          
+          const sliceHeight = Math.min(pdfHeight - 20, remainingHeight);
+          const sy = (currentY / contentHeight) * imgHeight;
+          const sh = (sliceHeight / contentHeight) * imgHeight;
+          
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = imgWidth;
+          tempCanvas.height = sh;
+          const tempCtx = tempCanvas.getContext('2d');
+          tempCtx.drawImage(canvas, 0, sy, imgWidth, sh, 0, 0, imgWidth, sh);
+          
+          const sliceImgData = tempCanvas.toDataURL('image/png', 1.0);
+          pdf.addImage(sliceImgData, 'PNG', margin, margin, contentWidth, sliceHeight);
+          
+          currentY += sliceHeight;
+          remainingHeight -= sliceHeight;
+          pageNum++;
+        }
+      }
+      
+      const fileName = `bilan_${bilanData?.periode || 'actuel'}.pdf`.replace(/\s+/g, '_');
+      pdf.save(fileName);
+      
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
+      alert('Erreur lors de l\'export PDF');
+    } finally {
+      unstable_batchedUpdates(() => {
+        setExportingPDF(false);
+      });
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
