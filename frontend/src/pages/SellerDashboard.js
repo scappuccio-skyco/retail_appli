@@ -1385,6 +1385,22 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         </div>
       )}
+
+      {/* Coaching & Analyse Modal */}
+      <CoachingModal
+        isOpen={showCoachingModal}
+        onClose={() => setShowCoachingModal(false)}
+        dailyChallenge={dailyChallenge}
+        onCompleteChallenge={async () => {
+          await markChallengeAsCompleted();
+          setShowCoachingModal(false);
+        }}
+        debriefs={debriefs}
+        onCreateDebrief={() => {
+          setShowCoachingModal(false);
+          setShowDebriefModal(true);
+        }}
+      />
     </div>
   );
 }
