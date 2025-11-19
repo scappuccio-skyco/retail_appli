@@ -318,8 +318,8 @@ export default function PerformanceModal({
                     >
                       <ChevronLeft className="w-4 h-4 text-white" />
                     </button>
-                    <span className="text-xs font-semibold text-gray-700 px-2 min-w-[80px] text-center">
-                      {currentWeekOffset === 0 ? 'Actuelle' : `S-${Math.abs(currentWeekOffset)}`}
+                    <span className="text-xs font-semibold text-gray-700 px-2 min-w-[100px] text-center">
+                      {weekInfo ? `Semaine ${weekInfo.weekNumber}` : (currentWeekOffset === 0 ? 'Actuelle' : 'Semaines')}
                     </span>
                     <button
                       onClick={() => onWeekChange(currentWeekOffset + 1)}
