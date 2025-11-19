@@ -56,7 +56,7 @@ export default function ObjectivesModal({
           {activeTab === 'objectifs' && (
             <div>
               {/* Bandeau coloré "Mes Objectifs" */}
-              <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-8 py-6 mb-6">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-6 mb-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-bold">🎯 Mes Objectifs</h3>
                   {activeObjectives.length > 0 && (
