@@ -136,11 +136,22 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
   // Fetch data whenever modal opens
   useEffect(() => {
     if (isOpen) {
-      fetchSubscriptionStatus();
-      fetchSellerCount();
+      // If subscription info is provided as prop (from GerantDashboard), use it
+      if (propSubscriptionInfo) {
+        setSubscriptionInfo(propSubscriptionInfo);
+        setLoading(false);
+        // Still fetch seller count from API for used_seats
+        if (propSubscriptionInfo.subscription) {
+          setSellerCount(propSubscriptionInfo.subscription.used_seats || 0);
+        }
+      } else {
+        // Otherwise fetch from API (ManagerDashboard)
+        fetchSubscriptionStatus();
+        fetchSellerCount();
+      }
       fetchSubscriptionHistory();
     }
-  }, [isOpen]);
+  }, [isOpen, propSubscriptionInfo]);
 
   // Removed complex summary modal logic - using simple alert instead
 
