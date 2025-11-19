@@ -331,21 +331,34 @@ export default function PerformanceModal({
                       </div>
                     )}
 
-                    {/* Animation de génération */}
+                    {/* Animation de génération élaborée */}
                     {generatingBilan && (
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border-2 border-blue-200">
-                        <div className="flex flex-col items-center justify-center space-y-4">
-                          <div className="relative">
-                            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                            <Sparkles className="w-8 h-8 text-blue-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                      <div className="bg-white rounded-2xl p-8 max-w-md mx-auto shadow-2xl border-2 border-blue-200">
+                        <div className="text-center mb-6">
+                          <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center animate-pulse">
+                            <Sparkles className="w-10 h-10 text-white" />
                           </div>
-                          <div className="text-center">
-                            <h3 className="text-lg font-bold text-blue-900 mb-2">✨ Génération de votre bilan en cours...</h3>
-                            <p className="text-sm text-gray-600 mb-4">L'IA analyse vos performances de la semaine</p>
-                            <div className="w-64 bg-gray-200 rounded-full h-2 overflow-hidden">
-                              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full animate-pulse" style={{width: '100%'}}></div>
-                            </div>
-                          </div>
+                          <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                            Analyse en cours...
+                          </h3>
+                          <p className="text-gray-600">
+                            L'IA analyse vos performances de la semaine et prépare votre bilan personnalisé
+                          </p>
+                        </div>
+                        
+                        {/* Progress Bar */}
+                        <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className="absolute inset-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500" 
+                            style={{
+                              animation: 'progress-slide 2s ease-in-out infinite',
+                              backgroundSize: '200% 100%'
+                            }}
+                          ></div>
+                        </div>
+                        
+                        <div className="mt-4 text-center text-sm text-gray-500">
+                          <p>⏱️ Temps estimé : 30-60 secondes</p>
                         </div>
                       </div>
                     )}
