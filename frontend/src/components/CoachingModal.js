@@ -453,10 +453,12 @@ export default function CoachingModal({
                 {analyseSubTab === 'conclue' && (
                   <VenteConclueForm 
                     token={token} 
-                    onSuccess={() => {
+                    onSuccess={async () => {
                       if (onCreateDebrief) {
-                        onCreateDebrief();
+                        await onCreateDebrief();
                       }
+                      // Passer automatiquement à l'onglet Historique
+                      setAnalyseSubTab('historique');
                     }} 
                   />
                 )}
@@ -464,10 +466,12 @@ export default function CoachingModal({
                 {analyseSubTab === 'manquee' && (
                   <OpportuniteManqueeForm 
                     token={token} 
-                    onSuccess={() => {
+                    onSuccess={async () => {
                       if (onCreateDebrief) {
-                        onCreateDebrief();
+                        await onCreateDebrief();
                       }
+                      // Passer automatiquement à l'onglet Historique
+                      setAnalyseSubTab('historique');
                     }} 
                   />
                 )}
