@@ -1388,6 +1388,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
       {/* Coaching & Analyse Modal */}
       <CoachingModal
+        key={dailyChallenge?.id || 'no-challenge'}
         isOpen={showCoachingModal}
         onClose={() => setShowCoachingModal(false)}
         dailyChallenge={dailyChallenge}
