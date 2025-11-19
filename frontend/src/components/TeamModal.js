@@ -798,7 +798,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                       periodFilter === '7' ? '7 jours' :
                       periodFilter === '30' ? '30 jours' :
                       periodFilter === '90' ? '3 mois' :
-                      'l\'année'
+                      periodFilter === 'custom' && customDateRange.start && customDateRange.end ? 
+                        'période personnalisée' :
+                      periodFilter === 'all' ? 'l\'année' :
+                      'la période sélectionnée'
                     }
                   </div>
                 </div>
