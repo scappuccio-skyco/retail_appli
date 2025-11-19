@@ -73,14 +73,15 @@ export default function VenteConclueForm({ token, onSuccess }) {
         : formConclue.raisons_echec.join(', ');
 
       const res = await axios.post(
-        `${API}/seller/debrief`,
+        `${API}/debriefs`,
         {
-          type: 'vente_conclue',
+          vente_conclue: true,
           visible_to_manager: formConclue.visible_to_manager,
           produit: formConclue.produit,
           type_client: formConclue.type_client,
-          moment_perte: moment,
+          situation_vente: formConclue.description_vente,
           description_vente: formConclue.description_vente,
+          moment_perte_client: moment,
           raisons_echec: raisons,
           amelioration_pensee: formConclue.amelioration_pensee
         },
