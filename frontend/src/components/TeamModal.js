@@ -1358,11 +1358,15 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                               value={customDateRange.end}
                               onChange={(e) => {
                                 const newEnd = e.target.value;
-                                setCustomDateRange(prev => ({ ...prev, end: newEnd }));
-                                // Auto-apply if both dates are set
-                                if (customDateRange.start && newEnd) {
-                                  setPeriodFilter('custom');
-                                }
+                                setCustomDateRange(prev => {
+                                  const updated = { ...prev, end: newEnd };
+                                  // Trigger fetch if both dates are now set
+                                  if (prev.start && newEnd) {
+                                    console.log('[TeamModal] Both dates set, will trigger fetch');
+                                    setPeriodFilter('custom');
+                                  }
+                                  return updated;
+                                });
                               }}
                               onFocus={(e) => {
                                 // Ouvrir le calendrier au focus
