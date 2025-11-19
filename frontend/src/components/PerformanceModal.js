@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { X, TrendingUp, BarChart3, ChevronLeft, ChevronRight, Download, Sparkles, AlertTriangle, Target } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import jsPDF from 'jspdf';
@@ -22,7 +22,19 @@ export default function PerformanceModal({
   const [activeTab, setActiveTab] = useState('bilan'); // 'bilan' or 'kpi'
   const [displayedKpiCount, setDisplayedKpiCount] = useState(20); // Start with 20 entries
   const contentRef = useRef(null);
+  const bilanSectionRef = useRef(null);
   const [exportingPDF, setExportingPDF] = useState(false);
+  const [previousBilanState, setPreviousBilanState] = useState(null);
+
+  // Auto-scroll to bilan section when it's generated
+  useEffect(() => {
+    if (bilanData?.synthese && !previousBilanState && !generatingBilan && bilanSectionRef.current) {
+      setTimeout(() => {
+        bilanSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+    }
+    setPreviousBilanState(bilanData?.synthese);
+  }, [bilanData?.synthese, generatingBilan]);
 
   if (!isOpen) return null;
 
