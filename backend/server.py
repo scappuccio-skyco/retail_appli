@@ -5037,12 +5037,12 @@ Profil du vendeur :
 Format de réponse (JSON strict) :
 {{
   "title": "Nom court du défi (max 35 caractères)",
-  "description": "Description concrète du défi à réaliser aujourd'hui (2 phrases maximum, tutoiement)",
+  "description": "Description concrète du défi à réaliser aujourd'hui (2 phrases maximum, vouvoiement professionnel)",
   "pedagogical_tip": "Rappel ou technique concrète (1 phrase courte)",
   "examples": [
-    "Premier exemple concret avec dialogue ou situation réelle (1-2 phrases)",
-    "Deuxième exemple différent et complémentaire (1-2 phrases)",
-    "Troisième exemple pour varier les approches (1-2 phrases)"
+    "Premier exemple concret avec dialogue ou situation réelle (1-2 phrases, vouvoiement)",
+    "Deuxième exemple différent et complémentaire (1-2 phrases, vouvoiement)",
+    "Troisième exemple pour varier les approches (1-2 phrases, vouvoiement)"
   ],
   "reason": "Pourquoi ce défi pour ce vendeur (1 phrase courte, lien avec son profil)"
 }}
@@ -5054,9 +5054,10 @@ Le défi doit être :
 - Adapté au profil du vendeur et à ses retours précédents
 
 Les 3 exemples doivent être :
-- Des cas pratiques variés avec dialogues ou situations réelles
-- Utilisables directement par le vendeur
-- Couvrir différentes approches ou contextes"""
+- Des cas pratiques variés avec dialogues ou situations réelles PROFESSIONNELLES
+- Utilisables directement par le vendeur (TOUJOURS vouvoyer le client)
+- Couvrir différentes approches ou contextes
+- IMPORTANT : Utiliser un ton professionnel, pas de familiarité (éviter "Salut", "Hey", etc.), vouvoyer systématiquement le client
 
         chat = LlmChat(
             api_key=api_key,
