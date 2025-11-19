@@ -32,7 +32,6 @@ export default function CoachingModal({
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState(null);
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
-  const [showCompetenceSelector, setShowCompetenceSelector] = useState(false);
   const [selectedCompetence, setSelectedCompetence] = useState(null);
 
   useEffect(() => {
