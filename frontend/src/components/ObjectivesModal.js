@@ -49,22 +49,40 @@ export default function ObjectivesModal({
     }
   };
 
-  const handleUpdateChallengeProgress = async (challengeId) => {
+  const handleUpdateChallengeProgress = async (challengeId, challengeType) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        `${API}/api/manager/challenges/${challengeId}/progress`,
-        {
-          progress_ca: challengeProgress.ca,
-          progress_ventes: challengeProgress.ventes,
-          progress_clients: challengeProgress.clients
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      
+      // Pour les challenges de type kpi_standard, envoyer current_value
+      if (challengeType === 'kpi_standard') {
+        const value = parseFloat(challengeCurrentValue);
+        if (isNaN(value) || value < 0) {
+          toast.error('Veuillez entrer une valeur valide');
+          return;
+        }
+        
+        await axios.post(
+          `${API}/api/manager/challenges/${challengeId}/progress`,
+          { current_value: value },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else {
+        // Pour les autres challenges, envoyer progress_ca, progress_ventes, etc.
+        await axios.post(
+          `${API}/api/manager/challenges/${challengeId}/progress`,
+          {
+            progress_ca: challengeProgress.ca,
+            progress_ventes: challengeProgress.ventes,
+            progress_clients: challengeProgress.clients
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
       
       toast.success('Progression du challenge mise à jour !');
       setUpdatingChallengeId(null);
       setChallengeProgress({ ca: 0, ventes: 0, clients: 0 });
+      setChallengeCurrentValue('');
       
       // Rafraîchir la page pour voir les changements
       window.location.reload();
