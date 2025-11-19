@@ -1335,6 +1335,12 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           bilanData={bilanIndividuel}
           kpiEntries={kpiEntries}
           user={user}
+          kpiConfig={kpiConfig}
+          currentWeekOffset={currentWeekOffset}
+          onWeekChange={(offset) => {
+            setCurrentWeekOffset(offset);
+            fetchBilanIndividuel(offset);
+          }}
           onDataUpdate={fetchData}
           onRegenerate={regenerateBilan}
           generatingBilan={generatingBilan}
