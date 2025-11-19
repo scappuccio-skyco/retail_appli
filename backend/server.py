@@ -3020,24 +3020,153 @@ async def create_kpi_entry(entry_data: KPIEntryCreate, current_user: dict = Depe
 # Seller: Get my KPI entries
 @api_router.get("/seller/kpi-entries")
 async def get_my_kpi_entries(days: int = None, current_user: dict = Depends(get_current_user)):
+    """
+    Get seller KPI entries with aggregated data from both seller and manager.
+    For each date, combines data entered by the seller with data entered by the manager.
+    """
     if current_user['role'] != 'seller':
         raise HTTPException(status_code=403, detail="Only sellers can access their KPI entries")
     
-    # If days is specified, filter by date range
+    # Get seller info to find their manager
+    seller = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    if not seller:
+        raise HTTPException(status_code=404, detail="Seller not found")
+    
+    store_id = seller.get('store_id')
+    if not store_id:
+        raise HTTPException(status_code=400, detail="Seller not assigned to a store")
+    
+    # Get manager of this store
+    manager = await db.users.find_one({"store_id": store_id, "role": "manager"}, {"_id": 0})
+    
+    # Fetch seller's KPI entries
     if days:
-        entries = await db.kpi_entries.find(
+        seller_entries = await db.kpi_entries.find(
             {"seller_id": current_user['id']},
             {"_id": 0}
         ).sort("date", -1).limit(days).to_list(days)
     else:
-        # Return all entries (no limit)
         cursor = db.kpi_entries.find(
             {"seller_id": current_user['id']},
             {"_id": 0}
         ).sort("date", -1)
-        entries = await cursor.to_list(length=None)  # Get ALL entries without limit
+        seller_entries = await cursor.to_list(length=None)
     
-    return entries
+    # Fetch manager's KPI entries if manager exists
+    manager_entries_dict = {}
+    if manager:
+        manager_id = manager.get('id')
+        if days:
+            manager_entries = await db.manager_kpis.find(
+                {"manager_id": manager_id},
+                {"_id": 0}
+            ).sort("date", -1).limit(days).to_list(days)
+        else:
+            cursor = db.manager_kpis.find(
+                {"manager_id": manager_id},
+                {"_id": 0}
+            ).sort("date", -1)
+            manager_entries = await cursor.to_list(length=None)
+        
+        # Create a dictionary with date as key for quick lookup
+        manager_entries_dict = {entry['date']: entry for entry in manager_entries}
+    
+    # Aggregate data: merge seller and manager entries by date
+    aggregated_entries = []
+    processed_dates = set()
+    
+    # First, process all seller entries and merge with manager data
+    for seller_entry in seller_entries:
+        date = seller_entry['date']
+        processed_dates.add(date)
+        
+        # Start with seller's data
+        merged_entry = seller_entry.copy()
+        
+        # Merge with manager's data for the same date if it exists
+        if date in manager_entries_dict:
+            manager_entry = manager_entries_dict[date]
+            
+            # Sum up the numeric KPI fields
+            merged_entry['ca_journalier'] = (
+                seller_entry.get('ca_journalier', 0) + manager_entry.get('ca_journalier', 0)
+            )
+            merged_entry['nb_ventes'] = (
+                seller_entry.get('nb_ventes', 0) + manager_entry.get('nb_ventes', 0)
+            )
+            merged_entry['nb_clients'] = (
+                seller_entry.get('nb_clients', 0) + manager_entry.get('nb_clients', 0)
+            )
+            merged_entry['nb_articles'] = (
+                seller_entry.get('nb_articles', 0) + manager_entry.get('nb_articles', 0)
+            )
+            merged_entry['nb_prospects'] = (
+                seller_entry.get('nb_prospects', 0) + manager_entry.get('nb_prospects', 0)
+            )
+            
+            # Recalculate derived KPIs based on aggregated data
+            if merged_entry['nb_ventes'] > 0:
+                merged_entry['panier_moyen'] = round(
+                    merged_entry['ca_journalier'] / merged_entry['nb_ventes'], 2
+                )
+                merged_entry['indice_vente'] = round(
+                    merged_entry['nb_articles'] / merged_entry['nb_ventes'], 2
+                )
+            else:
+                merged_entry['panier_moyen'] = 0
+                merged_entry['indice_vente'] = 0
+            
+            if merged_entry['nb_prospects'] > 0:
+                merged_entry['taux_transformation'] = round(
+                    (merged_entry['nb_clients'] / merged_entry['nb_prospects']) * 100, 2
+                )
+            else:
+                merged_entry['taux_transformation'] = None
+        
+        aggregated_entries.append(merged_entry)
+    
+    # Also add manager entries for dates where seller has no entry
+    for date, manager_entry in manager_entries_dict.items():
+        if date not in processed_dates:
+            # Create an entry based on manager's data
+            merged_entry = {
+                'id': manager_entry.get('id'),
+                'seller_id': current_user['id'],
+                'date': date,
+                'ca_journalier': manager_entry.get('ca_journalier', 0),
+                'nb_ventes': manager_entry.get('nb_ventes', 0),
+                'nb_clients': manager_entry.get('nb_clients', 0),
+                'nb_articles': manager_entry.get('nb_articles', 0),
+                'nb_prospects': manager_entry.get('nb_prospects', 0),
+                'comment': None,
+                'created_at': manager_entry.get('created_at')
+            }
+            
+            # Calculate derived KPIs
+            if merged_entry['nb_ventes'] > 0:
+                merged_entry['panier_moyen'] = round(
+                    merged_entry['ca_journalier'] / merged_entry['nb_ventes'], 2
+                )
+                merged_entry['indice_vente'] = round(
+                    merged_entry['nb_articles'] / merged_entry['nb_ventes'], 2
+                )
+            else:
+                merged_entry['panier_moyen'] = 0
+                merged_entry['indice_vente'] = 0
+            
+            if merged_entry['nb_prospects'] > 0:
+                merged_entry['taux_transformation'] = round(
+                    (merged_entry['nb_clients'] / merged_entry['nb_prospects']) * 100, 2
+                )
+            else:
+                merged_entry['taux_transformation'] = None
+            
+            aggregated_entries.append(merged_entry)
+    
+    # Sort by date (most recent first)
+    aggregated_entries.sort(key=lambda x: x['date'], reverse=True)
+    
+    return aggregated_entries
 
 # Manager: Get KPI entries for a seller
 @api_router.get("/manager/kpi-entries/{seller_id}")
