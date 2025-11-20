@@ -181,44 +181,47 @@ export default function ObjectivesModal({
 
         {/* Onglets */}
         <div className="border-b border-gray-200 bg-gray-50 pt-2">
-          <div className="flex gap-1 px-6">
+          <div className="flex gap-0.5 px-2 md:px-6">
             <button
               onClick={() => setActiveTab('objectifs')}
-              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+              className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg ${
                 activeTab === 'objectifs'
                   ? 'bg-blue-300 text-gray-800 shadow-md border-b-4 border-blue-500'
                   : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
               }`}
             >
-              <div className="flex items-center justify-center gap-2">
-                <Target className="w-5 h-5" />
-                <span>Mes Objectifs ({activeObjectives.length})</span>
+              <div className="flex items-center justify-center gap-1">
+                <Target className="w-4 h-4" />
+                <span className="hidden sm:inline">Objectifs ({activeObjectives.length})</span>
+                <span className="sm:hidden">Obj. ({activeObjectives.length})</span>
               </div>
             </button>
             <button
               onClick={() => setActiveTab('challenges')}
-              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+              className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg ${
                 activeTab === 'challenges'
                   ? 'bg-green-300 text-gray-800 shadow-md border-b-4 border-green-500'
                   : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
               }`}
             >
-              <div className="flex items-center justify-center gap-2">
-                <Trophy className="w-5 h-5" />
-                <span>Mes Challenges ({activeChallenges.length})</span>
+              <div className="flex items-center justify-center gap-1">
+                <Trophy className="w-4 h-4" />
+                <span className="hidden sm:inline">Challenges ({activeChallenges.length})</span>
+                <span className="sm:hidden">Chal. ({activeChallenges.length})</span>
               </div>
             </button>
             <button
               onClick={() => setActiveTab('historique')}
-              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+              className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg ${
                 activeTab === 'historique'
                   ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
                   : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
               }`}
             >
-              <div className="flex items-center justify-center gap-2">
-                <History className="w-5 h-5" />
-                <span>Historique</span>
+              <div className="flex items-center justify-center gap-1">
+                <History className="w-4 h-4" />
+                <span className="hidden sm:inline">Historique</span>
+                <span className="sm:hidden">Hist.</span>
               </div>
             </button>
           </div>
