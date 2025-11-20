@@ -282,7 +282,7 @@ export default function OpportuniteManqueeForm({ token, onSuccess }) {
       <button
         onClick={handleSubmit}
         disabled={loading}
-        className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white font-bold py-3 px-6 rounded-lg hover:from-orange-700 hover:to-red-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+        className="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white font-bold py-3 px-6 rounded-lg hover:from-green-700 hover:to-teal-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
       >
         <XCircle className="w-5 h-5" />
         {loading ? 'Création en cours...' : 'Créer l\'analyse'}
