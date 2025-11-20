@@ -565,6 +565,172 @@ export default function PerformanceModal({
               )}
             </div>
           )}
+
+          {/* Onglet Saisie KPI */}
+          {activeTab === 'saisie' && (
+            <div className="px-6 py-6">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 mb-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                  <Edit3 className="w-5 h-5 text-blue-600" />
+                  Saisir mes données quotidiennes
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Remplissez vos KPI du jour. Vous pourrez les modifier à tout moment depuis l'onglet "Historique".
+                </p>
+              </div>
+
+              {/* Formulaire de saisie */}
+              <div className="bg-white rounded-xl p-6 border-2 border-gray-200 shadow-sm">
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target);
+                  const data = {
+                    date: formData.get('date'),
+                    ca_journalier: parseFloat(formData.get('ca_journalier')) || 0,
+                    nb_ventes: parseInt(formData.get('nb_ventes')) || 0,
+                    nb_articles: parseInt(formData.get('nb_articles')) || 0,
+                    nb_prospects: parseInt(formData.get('nb_prospects')) || 0,
+                    nb_clients: parseInt(formData.get('nb_clients')) || 0
+                  };
+                  
+                  if (onEditKPI) {
+                    onEditKPI(data);
+                  }
+                }} className="space-y-6">
+                  {/* Sélecteur de date */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      📅 Date
+                    </label>
+                    <input
+                      type="date"
+                      name="date"
+                      defaultValue={new Date().toISOString().split('T')[0]}
+                      max={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800 font-medium"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Sélectionnez le jour pour lequel vous souhaitez saisir vos données</p>
+                  </div>
+
+                  {/* KPIs en grille */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* CA */}
+                    {kpiConfig?.track_ca && (
+                      <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
+                        <label className="block text-sm font-semibold text-orange-900 mb-2">
+                          💰 Chiffre d'Affaires (€)
+                        </label>
+                        <input
+                          type="number"
+                          name="ca_journalier"
+                          step="0.01"
+                          min="0"
+                          placeholder="Ex: 1250.50"
+                          className="w-full px-4 py-2 border-2 border-orange-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                        />
+                      </div>
+                    )}
+
+                    {/* Ventes */}
+                    {kpiConfig?.track_ventes && (
+                      <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
+                        <label className="block text-sm font-semibold text-green-900 mb-2">
+                          🛒 Nombre de Ventes
+                        </label>
+                        <input
+                          type="number"
+                          name="nb_ventes"
+                          min="0"
+                          placeholder="Ex: 15"
+                          className="w-full px-4 py-2 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none"
+                        />
+                      </div>
+                    )}
+
+                    {/* Articles */}
+                    {kpiConfig?.track_articles && (
+                      <div className="bg-yellow-50 rounded-lg p-4 border-2 border-yellow-200">
+                        <label className="block text-sm font-semibold text-yellow-900 mb-2">
+                          📦 Nombre d'Articles
+                        </label>
+                        <input
+                          type="number"
+                          name="nb_articles"
+                          min="0"
+                          placeholder="Ex: 45"
+                          className="w-full px-4 py-2 border-2 border-yellow-300 rounded-lg focus:border-yellow-500 focus:outline-none"
+                        />
+                      </div>
+                    )}
+
+                    {/* Clients */}
+                    {kpiConfig?.track_clients && (
+                      <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                        <label className="block text-sm font-semibold text-blue-900 mb-2">
+                          👥 Nombre de Clients
+                        </label>
+                        <input
+                          type="number"
+                          name="nb_clients"
+                          min="0"
+                          placeholder="Ex: 12"
+                          className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                        />
+                      </div>
+                    )}
+
+                    {/* Prospects */}
+                    {kpiConfig?.track_prospects && (
+                      <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
+                        <label className="block text-sm font-semibold text-purple-900 mb-2">
+                          🚶 Nombre de Prospects
+                        </label>
+                        <input
+                          type="number"
+                          name="nb_prospects"
+                          min="0"
+                          placeholder="Ex: 30"
+                          className="w-full px-4 py-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Boutons d'action */}
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="submit"
+                      className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                    >
+                      💾 Enregistrer mes données
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('kpi')}
+                      className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-all"
+                    >
+                      📊 Voir l'historique
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Aide et conseils */}
+              <div className="mt-6 bg-amber-50 rounded-lg p-4 border-l-4 border-amber-400">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-amber-900 mb-1">💡 Conseil</p>
+                    <p className="text-sm text-amber-800">
+                      Remplissez vos données quotidiennement pour un suivi précis de vos performances. 
+                      Vous pouvez modifier vos saisies depuis l'onglet "Historique" en cliquant sur une entrée.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
