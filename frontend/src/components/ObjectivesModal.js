@@ -248,17 +248,9 @@ export default function ObjectivesModal({
 
           {activeTab === 'challenges' && (
             <div>
-              {/* Bandeau coloré "Mes Challenges" */}
-              <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-6 mb-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold">🏆 Mes Challenges</h3>
-                  {activeChallenges.length > 0 && (
-                    <span className="text-sm text-pink-100">
-                      {activeChallenges.length} challenge{activeChallenges.length > 1 ? 's' : ''} en cours
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-pink-100 mt-2">Relevez vos défis et dépassez-vous chaque jour</p>
+              {/* Bandeau fin "Mes Challenges" */}
+              <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3">
+                <p className="text-sm">Relevez vos défis et dépassez-vous chaque jour</p>
               </div>
 
               {/* Contenu avec padding */}
