@@ -1401,45 +1401,47 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h4 className="font-bold text-gray-800 text-lg">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+                                  <h4 className="font-bold text-gray-800 text-base sm:text-lg">
                                     🎯 {objective.title}
                                   </h4>
-                                  {/* Type badge */}
-                                  <span className={`text-xs font-semibold px-2 py-1 rounded ${
-                                    objective.type === 'collective' 
-                                      ? 'bg-blue-100 text-blue-700' 
-                                      : 'bg-orange-100 text-orange-700'
-                                  }`}>
-                                    {objective.type === 'collective' ? '👥 Collectif' : (
-                                      objective.seller_id ? 
-                                        `👤 ${sellers.find(s => s.id === objective.seller_id)?.name || 'Individuel'}` 
-                                        : '👤 Individuel'
-                                    )}
-                                  </span>
-                                  {/* Visibility badge */}
-                                  <span className={`text-xs font-semibold px-2 py-1 rounded ${
-                                    objective.visible === false
-                                      ? 'bg-gray-100 text-gray-600' 
-                                      : 'bg-green-100 text-green-700'
-                                  }`}>
-                                    {objective.visible === false ? '🔒 Non visible' : 
-                                      objective.visible_to_sellers && objective.visible_to_sellers.length > 0
-                                        ? `👁️ ${objective.visible_to_sellers.length} vendeur${objective.visible_to_sellers.length > 1 ? 's' : ''}`
-                                        : '👁️ Tous les vendeurs'
-                                    }
-                                  </span>
-                                  {/* Status badge */}
-                                  <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                                    objective.status === 'achieved'
-                                      ? 'bg-green-500 text-white shadow-lg' 
-                                      : objective.status === 'failed'
-                                      ? 'bg-red-500 text-white shadow-lg'
-                                      : 'bg-yellow-400 text-gray-800 shadow-md'
-                                  }`}>
-                                    {objective.status === 'achieved' ? '✅ Réussi' : 
-                                      objective.status === 'failed' ? '❌ Raté' : '⏳ En cours'}
-                                  </span>
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    {/* Type badge */}
+                                    <span className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${
+                                      objective.type === 'collective' 
+                                        ? 'bg-blue-100 text-blue-700' 
+                                        : 'bg-orange-100 text-orange-700'
+                                    }`}>
+                                      {objective.type === 'collective' ? '👥 Collectif' : (
+                                        objective.seller_id ? 
+                                          `👤 ${sellers.find(s => s.id === objective.seller_id)?.name || 'Individuel'}` 
+                                          : '👤 Individuel'
+                                      )}
+                                    </span>
+                                    {/* Visibility badge */}
+                                    <span className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${
+                                      objective.visible === false
+                                        ? 'bg-gray-100 text-gray-600' 
+                                        : 'bg-green-100 text-green-700'
+                                    }`}>
+                                      {objective.visible === false ? '🔒 Non visible' : 
+                                        objective.visible_to_sellers && objective.visible_to_sellers.length > 0
+                                          ? `👁️ ${objective.visible_to_sellers.length} vendeur${objective.visible_to_sellers.length > 1 ? 's' : ''}`
+                                          : '👁️ Tous'
+                                      }
+                                    </span>
+                                    {/* Status badge */}
+                                    <span className={`text-xs font-bold px-2 sm:px-3 py-1 rounded-full whitespace-nowrap ${
+                                      objective.status === 'achieved'
+                                        ? 'bg-green-500 text-white shadow-lg' 
+                                        : objective.status === 'failed'
+                                        ? 'bg-red-500 text-white shadow-lg'
+                                        : 'bg-yellow-400 text-gray-800 shadow-md'
+                                    }`}>
+                                      {objective.status === 'achieved' ? '✅ Réussi' : 
+                                        objective.status === 'failed' ? '❌ Raté' : '⏳ En cours'}
+                                    </span>
+                                  </div>
                                 </div>
                                 <div className="text-sm text-gray-600 mb-2">
                                   📅 Période: {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
