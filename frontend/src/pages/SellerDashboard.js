@@ -806,16 +806,16 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
                 <button
-                  onClick={() => toggleFilter('showBilan')}
+                  onClick={() => toggleFilter('showPerformances')}
                   className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
-                    dashboardFilters.showBilan
+                    dashboardFilters.showPerformances
                       ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
                       : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-lg">📈</span>
-                    <span className="text-sm font-semibold whitespace-nowrap">Bilan Individuel</span>
+                    <span className="text-sm font-semibold whitespace-nowrap">Mes Performances</span>
                   </div>
                 </button>
 
@@ -834,44 +834,16 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 </button>
 
                 <button
-                  onClick={() => toggleFilter('showCompetences')}
+                  onClick={() => toggleFilter('showCoaching')}
                   className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
-                    dashboardFilters.showCompetences
+                    dashboardFilters.showCoaching
                       ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
                       : 'bg-gray-50 border-gray-300 text-gray-500'
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🤖</span>
-                    <span className="text-sm font-semibold whitespace-nowrap">Mon Coach IA</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => toggleFilter('showKPI')}
-                  className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
-                    dashboardFilters.showKPI
-                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">📊</span>
-                    <span className="text-sm font-semibold whitespace-nowrap">Mes KPI</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => toggleFilter('showDebriefs')}
-                  className={`px-3 py-2 rounded-lg font-medium transition-all border-2 ${
-                    dashboardFilters.showDebriefs
-                      ? 'bg-green-50 border-green-500 text-green-700 shadow-md'
-                      : 'bg-gray-50 border-gray-300 text-gray-500'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">📝</span>
-                    <span className="text-sm font-semibold whitespace-nowrap">Analyse de vente</span>
+                    <span className="text-sm font-semibold whitespace-nowrap">Mon coach IA</span>
                   </div>
                 </button>
               </div>
