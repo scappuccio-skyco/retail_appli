@@ -176,7 +176,7 @@ export default function PerformanceModal({
       console.log('✅ Réponse API:', response.data);
 
       // Afficher le message de succès
-      setSaveMessage({ type: 'success', text: '✅ Vos chiffres ont été enregistrés avec succès !' });
+      setSaveMessage({ type: 'success', text: editingEntry ? '✅ Modifications enregistrées avec succès !' : '✅ Vos chiffres ont été enregistrés avec succès !' });
       
       // Rafraîchir les données
       if (onDataUpdate) {
@@ -187,6 +187,7 @@ export default function PerformanceModal({
       setTimeout(() => {
         setActiveTab('kpi');
         setSaveMessage(null);
+        setEditingEntry(null);
       }, 1500);
       
     } catch (error) {
