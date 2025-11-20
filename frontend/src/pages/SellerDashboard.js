@@ -956,7 +956,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                         setShowDiagnosticModal(true);
                       }
                     } else if (task.type === 'kpi') {
-                      setShowKPIModal(true);
+                      setInitialTab('saisie');
+                      setShowPerformanceModal(true);
                     } else if (task.type === 'challenge') {
                       // Open coaching modal
                       setShowCoachingModal(true);
