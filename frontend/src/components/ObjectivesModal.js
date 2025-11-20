@@ -350,17 +350,18 @@ export default function ObjectivesModal({
                             {updatingObjectiveId === objective.id ? (
                               <div className="bg-white rounded-lg p-3 border-2 border-cyan-300">
                                 <p className="text-sm font-semibold text-gray-700 mb-2">Mettre à jour ma progression :</p>
-                                <div className="flex gap-2">
+                                <div className="flex gap-1.5">
                                   <input
                                     type="number"
                                     value={objectiveProgressValue}
                                     onChange={(e) => setObjectiveProgressValue(e.target.value)}
                                     placeholder="Nouvelle valeur"
-                                    className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                                    className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm min-w-0"
                                   />
                                   <button
                                     onClick={() => handleUpdateProgress(objective.id)}
-                                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold"
+                                    className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold flex-shrink-0"
+                                    title="Valider"
                                   >
                                     ✅
                                   </button>
@@ -369,7 +370,8 @@ export default function ObjectivesModal({
                                       setUpdatingObjectiveId(null);
                                       setObjectiveProgressValue('');
                                     }}
-                                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all"
+                                    className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all flex-shrink-0"
+                                    title="Annuler"
                                   >
                                     ❌
                                   </button>
