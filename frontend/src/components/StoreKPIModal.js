@@ -250,7 +250,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
             monthMap[monthKey].count++;
           });
           
-          aggregatedData = Object.values(monthMap);
+          aggregatedData = Object.values(monthMap).sort((a, b) => a.date.localeCompare(b.date));
         }
       } else {
         // For week and month views, keep daily data
