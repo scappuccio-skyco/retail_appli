@@ -217,28 +217,28 @@ export default function PerformanceModal({
             <div className="flex gap-1 px-6">
               <button
                 onClick={() => setActiveTab('bilan')}
-                className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                className={`px-4 py-2 text-sm font-semibold transition-all rounded-t-lg ${
                   activeTab === 'bilan'
                     ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
                     : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
-                  <span>Mon bilan Hebdomadaire</span>
+                <div className="flex items-center justify-center gap-1.5">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>Mon bilan</span>
                 </div>
               </button>
               <button
                 onClick={() => setActiveTab('kpi')}
-                className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                className={`px-4 py-2 text-sm font-semibold transition-all rounded-t-lg ${
                   activeTab === 'kpi'
                     ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
                     : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <BarChart3 className="w-5 h-5" />
-                  <span>Historique des KPI ({kpiEntries?.length || 0})</span>
+                <div className="flex items-center justify-center gap-1.5">
+                  <BarChart3 className="w-4 h-4" />
+                  <span>Historique ({kpiEntries?.length || 0})</span>
                 </div>
               </button>
             </div>
