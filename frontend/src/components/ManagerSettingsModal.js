@@ -2535,18 +2535,18 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                         {/* Challenge with target_value (kpi_standard, product_focus) */}
                                         {challenge.target_value && !challenge.ca_target && !challenge.ventes_target ? (
                                           <div className="space-y-2">
-                                            <div className="flex items-center gap-1 sm:gap-2">
+                                            <div>
                                               <input
                                                 type="number"
                                                 step="0.01"
                                                 min="0"
-                                                placeholder={`Valeur (${challenge.unit || ''})`}
+                                                placeholder={`Valeur`}
                                                 defaultValue={challenge.current_value || 0}
                                                 onChange={(e) => setChallengeProgressValue(e.target.value)}
-                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
+                                                className="w-full p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                               />
                                               {challenge.unit && (
-                                                <span className="text-xs text-gray-500 whitespace-nowrap">{challenge.unit}</span>
+                                                <p className="text-xs text-gray-500 mt-1">Unité : {challenge.unit}</p>
                                               )}
                                             </div>
                                             {challenge.target_value && (
