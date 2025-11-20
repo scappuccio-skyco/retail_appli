@@ -1069,7 +1069,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               <div className="w-5 h-5 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-purple-600 transition-all">
                                 ?
                               </div>
-                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-72 p-3 bg-purple-600 text-white text-sm rounded-lg shadow-2xl border-2 border-purple-400">
+                              <div className="invisible group-hover:visible absolute left-0 sm:left-auto sm:right-0 top-7 z-10 w-64 sm:w-72 p-3 bg-purple-600 text-white text-sm rounded-lg shadow-2xl border-2 border-purple-400">
                                 <div className="font-semibold mb-1">📅 Début de période :</div>
                                 Date de début pour la mesure des objectifs (ex: 1er du mois)
                               </div>
