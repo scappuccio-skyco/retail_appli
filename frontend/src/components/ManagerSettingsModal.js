@@ -591,24 +591,70 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
           </button>
         </div>
 
-        {/* Tabs - Only show the tab corresponding to modalType */}
-        <div className="flex border-b border-gray-200 bg-gray-50 px-6">
-          {modalType === 'objectives' && (
-            <button
-              onClick={() => setActiveTab('objectives')}
-              className="px-6 py-4 font-semibold transition-all border-b-4 border-[#1E40AF] text-gray-800"
-            >
-              🎯 Objectifs
-            </button>
-          )}
-          {modalType === 'challenges' && (
-            <button
-              onClick={() => setActiveTab('challenges')}
-              className="px-6 py-4 font-semibold transition-all border-b-4 border-[#1E40AF] text-gray-800"
-            >
-              🏆 Challenges
-            </button>
-          )}
+        {/* Tabs - Main level tabs */}
+        <div className="border-b border-gray-200 bg-gray-50 pt-2">
+          <div className="flex gap-1 px-6">
+            {modalType === 'objectives' && (
+              <>
+                <button
+                  onClick={() => setActiveTab('create_objective')}
+                  className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                    activeTab === 'create_objective'
+                      ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
+                      : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    <span>Nouvel objectif</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('active_objectives')}
+                  className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                    activeTab === 'active_objectives'
+                      ? 'bg-blue-300 text-gray-800 shadow-md border-b-4 border-blue-500'
+                      : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Target className="w-5 h-5" />
+                    <span>Objectifs en cours ({objectives.filter(obj => {
+                      const today = new Date().toISOString().split('T')[0];
+                      return obj.period_end >= today && obj.status !== 'achieved';
+                    }).length})</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('completed_objectives')}
+                  className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                    activeTab === 'completed_objectives'
+                      ? 'bg-green-300 text-gray-800 shadow-md border-b-4 border-green-500'
+                      : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Trophy className="w-5 h-5" />
+                    <span>Objectifs terminés ({objectives.filter(obj => {
+                      const today = new Date().toISOString().split('T')[0];
+                      return obj.period_end < today || obj.status === 'achieved';
+                    }).length})</span>
+                  </div>
+                </button>
+              </>
+            )}
+            {modalType === 'challenges' && (
+              <button
+                onClick={() => setActiveTab('challenges')}
+                className="px-6 py-3 font-semibold transition-all rounded-t-lg bg-green-300 text-gray-800 shadow-md border-b-4 border-green-500"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Trophy className="w-5 h-5" />
+                  <span>🏆 Challenges</span>
+                </div>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Content */}
