@@ -345,7 +345,7 @@ export default function ObjectivesModal({
                               <button
                                 onClick={() => {
                                   setUpdatingObjectiveId(objective.id);
-                                  setObjectiveProgressValue(objective.current?.toString() || '0');
+                                  setObjectiveProgressValue(objective.current_value?.toString() || '0');
                                 }}
                                 className="w-full px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all font-semibold flex items-center justify-center gap-2"
                               >
