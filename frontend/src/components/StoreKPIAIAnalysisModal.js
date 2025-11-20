@@ -135,44 +135,75 @@ export default function StoreKPIAIAnalysisModal({
 
           {aiAnalysis && !loading && (
             <div className="space-y-4">
-              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-6 border-2 border-indigo-200">
-                <div className="space-y-3">
-                  {aiAnalysis.split('\n').map((line, idx) => {
-                    if (line.startsWith('## ')) {
-                      return (
-                        <h4 key={`title-${idx}`} className="text-base font-bold text-indigo-900 mt-4 mb-2 flex items-center gap-2">
-                          <span className="w-1 h-5 bg-indigo-600 rounded"></span>
-                          {line.replace('## ', '')}
-                        </h4>
-                      );
+              {(() => {
+                const sections = [];
+                let currentSection = null;
+                const colors = [
+                  { bg: 'bg-blue-50', border: 'border-blue-200', title: 'bg-blue-500', text: 'text-blue-900' },
+                  { bg: 'bg-green-50', border: 'border-green-200', title: 'bg-green-500', text: 'text-green-900' },
+                  { bg: 'bg-orange-50', border: 'border-orange-200', title: 'bg-orange-500', text: 'text-orange-900' },
+                  { bg: 'bg-purple-50', border: 'border-purple-200', title: 'bg-purple-500', text: 'text-purple-900' },
+                  { bg: 'bg-pink-50', border: 'border-pink-200', title: 'bg-pink-500', text: 'text-pink-900' }
+                ];
+                let colorIndex = 0;
+
+                aiAnalysis.split('\n').forEach((line) => {
+                  if (line.startsWith('## ')) {
+                    if (currentSection) {
+                      sections.push(currentSection);
                     }
-                    if (line.startsWith('- ')) {
-                      const content = line.replace('- ', '');
-                      const parts = content.split(/(\*\*.*?\*\*)/g);
-                      return (
-                        <div key={`item-${idx}`} className="flex gap-2 text-sm text-gray-700 leading-relaxed ml-2">
-                          <span className="text-indigo-600 mt-1">•</span>
-                          <span>
-                            {parts.map((part, i) => {
-                              if (part.startsWith('**') && part.endsWith('**')) {
-                                return <strong key={`bold-${i}`} className="text-gray-900 font-semibold">{part.slice(2, -2)}</strong>;
-                              }
-                              return <span key={`text-${i}`}>{part}</span>;
-                            })}
-                          </span>
-                        </div>
-                      );
-                    }
-                    if (line.trim() === '') {
-                      return <div key={`space-${idx}`} className="h-2"></div>;
-                    }
-                    if (line.trim()) {
-                      return <p key={`para-${idx}`} className="text-sm text-gray-700">{line}</p>;
-                    }
-                    return null;
-                  })}
-                </div>
-              </div>
+                    currentSection = {
+                      title: line.replace('## ', ''),
+                      content: [],
+                      color: colors[colorIndex % colors.length]
+                    };
+                    colorIndex++;
+                  } else if (currentSection) {
+                    currentSection.content.push(line);
+                  }
+                });
+
+                if (currentSection) {
+                  sections.push(currentSection);
+                }
+
+                return sections.map((section, sIdx) => (
+                  <div key={`section-${sIdx}`} className={`${section.color.bg} rounded-xl border-2 ${section.color.border} overflow-hidden shadow-sm`}>
+                    <div className={`${section.color.title} text-white px-4 py-3`}>
+                      <h3 className="text-base sm:text-lg font-bold">{section.title}</h3>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      {section.content.map((line, idx) => {
+                        if (line.startsWith('- ')) {
+                          const content = line.replace('- ', '');
+                          const parts = content.split(/(\*\*.*?\*\*)/g);
+                          return (
+                            <div key={`item-${idx}`} className="flex gap-2 text-sm leading-relaxed">
+                              <span className={`${section.color.text} mt-1 font-bold`}>•</span>
+                              <span className="text-gray-700">
+                                {parts.map((part, i) => {
+                                  if (part.startsWith('**') && part.endsWith('**')) {
+                                    return <strong key={`bold-${i}`} className="text-gray-900 font-semibold">{part.slice(2, -2)}</strong>;
+                                  }
+                                  return <span key={`text-${i}`}>{part}</span>;
+                                })}
+                              </span>
+                            </div>
+                          );
+                        }
+                        if (line.trim() === '') {
+                          return <div key={`space-${idx}`} className="h-1"></div>;
+                        }
+                        if (line.trim()) {
+                          return <p key={`para-${idx}`} className="text-sm text-gray-700 leading-relaxed">{line}</p>;
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
 
               <div className="flex justify-center gap-3">
                 <button
