@@ -219,7 +219,6 @@ export default function StoreKPIAIAnalysisModal({
                 </button>
               </div>
             </div>
-            </div>
           )}
         </div>
       </div>
