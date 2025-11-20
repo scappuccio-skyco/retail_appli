@@ -202,21 +202,22 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
         
         {/* Main Tabs */}
         <div className="border-b border-gray-200 bg-gray-50">
-          <div className="flex gap-2 px-6 pt-2">
+          <div className="flex flex-wrap gap-2 px-3 sm:px-6 pt-2">
             <button
               onClick={() => {
                 setActiveMainTab('form');
                 setActiveFormTab('relationnel');
                 resetForm();
               }}
-              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+              className={`px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold transition-all rounded-t-lg ${
                 activeMainTab === 'form' && activeFormTab === 'relationnel'
                   ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
                   : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
               }`}
             >
-              <MessageCircle className="w-4 h-4 inline mr-2" />
-              Gestion relationnelle
+              <MessageCircle className="w-4 h-4 inline mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Gestion relationnelle</span>
+              <span className="sm:hidden">Relationnel</span>
             </button>
             <button
               onClick={() => {
@@ -224,24 +225,25 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
                 setActiveFormTab('conflit');
                 resetForm();
               }}
-              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+              className={`px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold transition-all rounded-t-lg ${
                 activeMainTab === 'form' && activeFormTab === 'conflit'
                   ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
                   : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
               }`}
             >
-              <AlertTriangle className="w-4 h-4 inline mr-2" />
-              Gestion de conflit
+              <AlertTriangle className="w-4 h-4 inline mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Gestion de conflit</span>
+              <span className="sm:hidden">Conflit</span>
             </button>
             <button
               onClick={() => setActiveMainTab('history')}
-              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+              className={`px-3 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold transition-all rounded-t-lg ${
                 activeMainTab === 'history'
                   ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
                   : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
               }`}
             >
-              <Calendar className="w-4 h-4 inline mr-2" />
+              <Calendar className="w-4 h-4 inline mr-1 sm:mr-2" />
               Historique
             </button>
           </div>
