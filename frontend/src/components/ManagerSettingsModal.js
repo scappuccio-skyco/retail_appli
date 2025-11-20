@@ -1694,10 +1694,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                 </div>
               )}
 
-              {/* Challenges Tab */}
-              {activeTab === 'challenges' && (
+              {/* Nouveau challenge Tab */}
+              {activeTab === 'create_challenge' && (
                 <div className="space-y-6">
-                  {/* Create/Edit Challenge Form */}
                   <div id="challenge-form-section" className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-300">
                     <h3 className="text-xl font-bold text-gray-800 mb-4">
                       {editingChallenge ? '✏️ Modifier le Challenge' : '➕ Créer un Challenge'}
