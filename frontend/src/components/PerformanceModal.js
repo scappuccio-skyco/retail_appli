@@ -761,10 +761,13 @@ export default function PerformanceModal({
               <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6 border-2 border-orange-200 mb-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
                   <Edit3 className="w-5 h-5 text-orange-600" />
-                  Saisir mes chiffres du jour
+                  {editingEntry ? 'Modifier mes chiffres' : 'Saisir mes chiffres du jour'}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Renseignez vos données quotidiennes. Vous pourrez les corriger à tout moment depuis l'onglet "Historique".
+                  {editingEntry 
+                    ? `Modification des données du ${formatDate(editingEntry.date)}`
+                    : 'Renseignez vos données quotidiennes. Vous pourrez les corriger à tout moment depuis l\'onglet "Historique".'
+                  }
                 </p>
               </div>
 
