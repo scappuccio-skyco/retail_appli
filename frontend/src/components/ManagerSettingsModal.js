@@ -2536,7 +2536,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 <button
                                   onClick={() => {
                                     setEditingChallenge(challenge);
-                                    
+                                    // Basculer vers l'onglet "Nouveau challenge"
+                                    setActiveTab('create_challenge');
                                     // Scroll vers le formulaire de challenge
                                     setTimeout(() => {
                                       const challengeSection = document.querySelector('#challenge-form-section');
