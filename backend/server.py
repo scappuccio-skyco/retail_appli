@@ -5325,16 +5325,18 @@ async def create_manager_objectives(objectives_data: ManagerObjectivesCreate, cu
     if objectives_data.data_entry_responsible not in ["manager", "seller"]:
         raise HTTPException(status_code=400, detail="data_entry_responsible must be 'manager' or 'seller'")
     
+    # Get the data and force status to active
+    objectives_dict = objectives_data.model_dump()
+    objectives_dict['status'] = 'active'  # Force status to active on creation
+    
     objectives = ManagerObjectives(
         manager_id=current_user['id'],
-        **objectives_data.model_dump()
+        **objectives_dict
     )
     
     doc = objectives.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     doc['updated_at'] = doc['updated_at'].isoformat()
-    # Force status to active on creation
-    doc['status'] = 'active'
     
     await db.manager_objectives.insert_one(doc)
     
