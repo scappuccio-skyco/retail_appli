@@ -4728,12 +4728,6 @@ Format : Markdown simple et structuré.
         user_message = UserMessage(text=context)
         response = await chat.send_message(user_message)
         
-        # Calculer la période d'analyse (basée sur les données de l'équipe)
-        from datetime import timedelta
-        today = datetime.now(timezone.utc)
-        period_start = (today - timedelta(days=30)).strftime('%Y-%m-%d')
-        period_end = today.strftime('%Y-%m-%d')
-        
         # Sauvegarder l'analyse dans la base de données
         analysis_id = str(uuid.uuid4())
         analysis_record = {
