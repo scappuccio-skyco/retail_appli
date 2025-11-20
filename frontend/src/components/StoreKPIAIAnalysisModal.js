@@ -95,16 +95,16 @@ export default function StoreKPIAIAnalysisModal({
 
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-4 sm:p-6 text-white">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">{getTitle()}</h2>
+            <h2 className="text-lg sm:text-2xl font-bold">{getTitle()}</h2>
             <button
               onClick={onClose}
               className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
         </div>
