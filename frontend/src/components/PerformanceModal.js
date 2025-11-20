@@ -613,10 +613,10 @@ export default function PerformanceModal({
                     <p className="text-xs text-gray-500 mt-1">Sélectionnez le jour pour lequel vous souhaitez saisir vos données</p>
                   </div>
 
-                  {/* KPIs en grille */}
+                  {/* KPIs en grille - Configuration identique au manager */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* CA */}
-                    {kpiConfig?.track_ca && (
+                    {/* CA - Toujours affiché si configuré par le manager */}
+                    {(kpiConfig?.seller_track_ca || kpiConfig?.track_ca) && (
                       <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
                         <label className="block text-sm font-semibold text-orange-900 mb-2">
                           💰 Chiffre d'Affaires (€)
@@ -632,8 +632,8 @@ export default function PerformanceModal({
                       </div>
                     )}
 
-                    {/* Ventes */}
-                    {kpiConfig?.track_ventes && (
+                    {/* Ventes - Toujours affiché si configuré */}
+                    {(kpiConfig?.seller_track_ventes || kpiConfig?.track_ventes) && (
                       <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
                         <label className="block text-sm font-semibold text-green-900 mb-2">
                           🛒 Nombre de Ventes
@@ -648,24 +648,8 @@ export default function PerformanceModal({
                       </div>
                     )}
 
-                    {/* Articles */}
-                    {kpiConfig?.track_articles && (
-                      <div className="bg-yellow-50 rounded-lg p-4 border-2 border-yellow-200">
-                        <label className="block text-sm font-semibold text-yellow-900 mb-2">
-                          📦 Nombre d'Articles
-                        </label>
-                        <input
-                          type="number"
-                          name="nb_articles"
-                          min="0"
-                          placeholder="Ex: 45"
-                          className="w-full px-4 py-2 border-2 border-yellow-300 rounded-lg focus:border-yellow-500 focus:outline-none"
-                        />
-                      </div>
-                    )}
-
-                    {/* Clients */}
-                    {kpiConfig?.track_clients && (
+                    {/* Clients - Toujours affiché si configuré */}
+                    {(kpiConfig?.seller_track_clients || kpiConfig?.track_clients) && (
                       <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
                         <label className="block text-sm font-semibold text-blue-900 mb-2">
                           👥 Nombre de Clients
@@ -680,8 +664,8 @@ export default function PerformanceModal({
                       </div>
                     )}
 
-                    {/* Prospects */}
-                    {kpiConfig?.track_prospects && (
+                    {/* Prospects - Toujours affiché si configuré */}
+                    {(kpiConfig?.seller_track_prospects || kpiConfig?.track_prospects) && (
                       <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
                         <label className="block text-sm font-semibold text-purple-900 mb-2">
                           🚶 Nombre de Prospects
