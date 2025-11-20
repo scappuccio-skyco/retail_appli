@@ -264,10 +264,44 @@ export default function ObjectivesModal({
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs font-semibold text-gray-500 mb-1">🎯 KPI</p>
-                              <p className="text-gray-800 capitalize">{objective.kpi_name || 'N/A'}</p>
+                              <p className="text-xs font-semibold text-gray-500 mb-1">🎯 Type</p>
+                              {objective.objective_type === 'kpi_standard' && (
+                                <p className="text-gray-800 capitalize">
+                                  {objective.kpi_name === 'ca' ? '💰 Chiffre d\'affaires' :
+                                   objective.kpi_name === 'ventes' ? '🛍️ Nombre de ventes' :
+                                   objective.kpi_name === 'articles' ? '📦 Nombre d\'articles' :
+                                   objective.kpi_name || 'N/A'}
+                                </p>
+                              )}
+                              {objective.objective_type === 'product_focus' && (
+                                <p className="text-gray-800">📦 Focus Produit</p>
+                              )}
+                              {objective.objective_type === 'custom' && (
+                                <p className="text-gray-800">✨ Personnalisé</p>
+                              )}
                             </div>
                           </div>
+                          
+                          {/* Afficher les détails du produit pour product_focus */}
+                          {objective.objective_type === 'product_focus' && objective.product_name && (
+                            <div className="pt-2 border-t border-gray-200">
+                              <p className="text-xs font-semibold text-gray-500 mb-1">📦 Produit ciblé</p>
+                              <p className="text-gray-800 font-semibold">{objective.product_name}</p>
+                              {objective.target_value && (
+                                <p className="text-xs text-gray-600 mt-1">
+                                  Objectif : {objective.target_value} {objective.unit || ''}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Afficher la description pour custom */}
+                          {objective.objective_type === 'custom' && objective.custom_description && (
+                            <div className="pt-2 border-t border-gray-200">
+                              <p className="text-xs font-semibold text-gray-500 mb-1">✨ Description</p>
+                              <p className="text-xs text-gray-700">{objective.custom_description}</p>
+                            </div>
+                          )}
                         </div>
                         
                         {/* Barre de progression */}
