@@ -4,10 +4,13 @@ import stripe
 from motor.motor_asyncio import AsyncIOMotorClient
 import asyncio
 
-# Configuration
-STRIPE_API_KEY = "sk_test_51SS2RMIVM4C8dIGvbPPqorZcnu61WxTJvnXlm1XkQj3lzEpcMaWGRrL1mDoGWdqOPH5UxUdYhX69MZyo9c5wYbvm00s9cyYn63"
-MONGO_URL = "mongodb://localhost:27017"
-DB_NAME = "retail_coach"
+# Configuration - Load from environment variables
+STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', '')
+MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+DB_NAME = os.environ.get('DB_NAME', 'retail_coach')
+
+if not STRIPE_API_KEY:
+    raise ValueError("STRIPE_API_KEY environment variable is required")
 
 stripe.api_key = STRIPE_API_KEY
 
