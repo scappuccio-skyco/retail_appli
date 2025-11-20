@@ -684,31 +684,31 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                         <table className="w-full text-xs">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th className="px-2 py-1.5 text-left font-semibold text-gray-700">Vendeur</th>
-                              <th className="px-2 py-1.5 text-right font-semibold text-gray-700">💰 CA</th>
-                              <th className="px-2 py-1.5 text-right font-semibold text-gray-700">🛍️ Ventes</th>
-                              <th className="px-2 py-1.5 text-right font-semibold text-gray-700">📦 Articles</th>
+                              <th className="px-1 py-1.5 text-left font-semibold text-gray-700">Vendeur</th>
+                              <th className="px-4 py-1.5 text-center font-semibold text-gray-700">💰 CA</th>
+                              <th className="px-3 py-1.5 text-center font-semibold text-gray-700">🛍️ Ventes</th>
+                              <th className="px-3 py-1.5 text-center font-semibold text-gray-700">📦 Articles</th>
                             </tr>
                           </thead>
                           <tbody>
                             {overviewData.seller_entries.map((entry, idx) => (
                               <tr key={`store-kpi-seller-${entry.seller_id || entry.seller_name}-${idx}`} className="border-t border-gray-100">
-                                <td className="px-2 py-1.5 text-gray-800 font-medium">
+                                <td className="px-1 py-1.5 text-gray-800 font-medium">
                                   {entry.seller_name || `Vendeur ${idx + 1}`}
                                 </td>
-                                <td className="px-2 py-1.5 text-right text-gray-700">
+                                <td className="px-4 py-1.5 text-center text-gray-700 whitespace-nowrap">
                                   {overviewData.kpi_config?.seller_track_ca 
                                     ? `${entry.ca_journalier?.toFixed(2) || 0} €`
                                     : <span className="text-gray-400 italic">N/A</span>
                                   }
                                 </td>
-                                <td className="px-2 py-1.5 text-right text-gray-700">
+                                <td className="px-3 py-1.5 text-center text-gray-700 whitespace-nowrap">
                                   {overviewData.kpi_config?.seller_track_ventes 
                                     ? (entry.nb_ventes || 0)
                                     : <span className="text-gray-400 italic">N/A</span>
                                   }
                                 </td>
-                                <td className="px-2 py-1.5 text-right text-gray-700">
+                                <td className="px-3 py-1.5 text-center text-gray-700 whitespace-nowrap">
                                   {overviewData.kpi_config?.seller_track_articles 
                                     ? (entry.nb_articles || 0)
                                     : <span className="text-gray-400 italic">N/A</span>
