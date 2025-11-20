@@ -903,9 +903,9 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                             </div>
                           </div>
                         </th>
-                        <th className="px-2 sm:px-4 py-3 text-left font-semibold text-gray-700 text-xs sm:text-sm">Point Fort</th>
-                        <th className="px-2 sm:px-4 py-3 text-left font-semibold text-gray-700 text-xs sm:text-sm">À Améliorer</th>
-                        <th className="px-2 sm:px-4 py-3 text-center font-semibold text-gray-700">Action</th>
+                        <th className="px-1 sm:px-4 py-3 text-left font-semibold text-gray-700 text-xs sm:text-sm">Point Fort</th>
+                        <th className="px-1 sm:px-4 py-3 text-left font-semibold text-gray-700 text-xs sm:text-sm">À Améliorer</th>
+                        <th className="px-1 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs sm:text-sm">Action</th>
                       </tr>
                     </thead>
                     <tbody>
