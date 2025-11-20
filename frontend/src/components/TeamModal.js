@@ -873,13 +873,13 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                   <table className="w-full text-xs">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-2 sm:px-4 py-3 text-left font-semibold text-gray-700 text-xs sm:text-sm">Vendeur</th>
-                        <th className="px-3 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs sm:text-sm">
+                        <th className="px-1 sm:px-4 py-3 text-left font-semibold text-gray-700 text-xs">Vendeur</th>
+                        <th className="px-4 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs">
                           CA {periodFilter === '7' ? '7j' : periodFilter === '30' ? '30j' : periodFilter === '90' ? '3m' : periodFilter === 'custom' ? 'Période' : 'An'}
                         </th>
-                        <th className="px-2 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs sm:text-sm">Ventes</th>
-                        <th className="px-3 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs sm:text-sm">PM</th>
-                        <th className="px-1 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs sm:text-sm">
+                        <th className="px-3 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs">Ventes</th>
+                        <th className="px-4 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs">PM</th>
+                        <th className="px-0 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs">
                           <div className="flex items-center justify-center gap-1">
                             <span>Niveau</span>
                             <div className="relative">
