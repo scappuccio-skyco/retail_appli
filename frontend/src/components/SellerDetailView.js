@@ -575,6 +575,26 @@ export default function SellerDetailView({ seller, onBack }) {
                   </p>
                 </div>
                 )}
+                {kpiConfig && kpiConfig.track_ca && kpiConfig.track_ventes && kpiConfig.track_articles && (
+                <div className="bg-amber-50 rounded-xl p-4">
+                  <p className="text-sm text-amber-600 mb-2">💎 Indice Vente</p>
+                  <p className="text-2xl font-bold text-amber-900">
+                    {(() => {
+                      const filteredEntries = kpiFilter === '7j' 
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+                        : kpiFilter === '30j'
+                        ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+                        : kpiEntries;
+                      const totalArticles = filteredEntries.reduce((sum, e) => sum + (e.nb_articles || 0), 0);
+                      const totalVentes = filteredEntries.reduce((sum, e) => sum + (e.nb_ventes || 0), 0);
+                      return totalVentes > 0
+                        ? (totalArticles / totalVentes).toFixed(2)
+                        : '0.00';
+                    })()}
+                  </p>
+                  <p className="text-xs text-amber-700 mt-1">articles/vente</p>
+                </div>
+                )}
               </div>
 
               {/* Graphiques - Affichés selon les filtres ET la configuration du manager */}
