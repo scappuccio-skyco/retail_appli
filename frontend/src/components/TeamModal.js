@@ -905,7 +905,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                                 onMouseLeave={() => setShowNiveauTooltip(false)}
                               />
                               {showNiveauTooltip && (
-                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-50 w-72 p-4 bg-gray-900 text-white text-xs rounded-lg shadow-2xl">
+                                <div className="fixed left-1/2 -translate-x-1/2 top-32 z-[9999] w-72 p-4 bg-gray-900 text-white text-xs rounded-lg shadow-2xl">
                                   <div className="space-y-2">
                                     <div className="font-semibold text-sm mb-3 text-center border-b border-gray-700 pb-2">Les 4 Niveaux</div>
                                     <div><span className="font-bold text-green-300">⚡ Nouveau Talent:</span> Découvre le terrain, teste, apprend les bases</div>
