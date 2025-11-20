@@ -754,15 +754,26 @@ export default function CoachingModal({
                               </div>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-12 text-gray-500">
-                        <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                        <p className="text-lg font-semibold mb-2">Aucune analyse pour le moment</p>
-                        <p className="text-sm">Créez votre première analyse de vente pour recevoir un coaching personnalisé</p>
-                      </div>
-                    )}
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-12 text-gray-500">
+                            <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                            <p className="text-lg font-semibold mb-2">
+                              {historyFilter === 'all' && 'Aucune analyse pour le moment'}
+                              {historyFilter === 'conclue' && 'Aucune vente conclue'}
+                              {historyFilter === 'manquee' && 'Aucune opportunité manquée'}
+                            </p>
+                            <p className="text-sm">
+                              {historyFilter === 'all' 
+                                ? 'Créez votre première analyse de vente pour recevoir un coaching personnalisé'
+                                : 'Aucune analyse de ce type pour le moment'
+                              }
+                            </p>
+                          </div>
+                        );
+                      })()}
+                    </div>
                   </div>
                 )}
               </div>
