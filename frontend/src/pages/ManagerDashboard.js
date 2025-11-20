@@ -741,11 +741,11 @@ export default function ManagerDashboard({ user, onLogout }) {
           <div className="flex items-center gap-4">
             <img src="/logo-retail-performer-blue.png" alt="Retail Performer AI" className="h-14 object-contain" />
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-[#1E40AF] mb-1">
+              <h1 className="text-2xl md:text-4xl font-bold text-[#1E40AF] mb-1">
                 Retail Performer AI
               </h1>
               <p className="text-gray-600">
-                Bienvenue,<br />{user.name}
+                Bienvenue, {user.name}
                 {storeName && (
                   <span className="inline-flex items-center gap-1 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap">
                     • 🏢 {storeName}
@@ -754,7 +754,7 @@ export default function ManagerDashboard({ user, onLogout }) {
               </p>
             </div>
           </div>
-          <div className="flex gap-2 flex-wrap items-center">
+          <div className="flex gap-2 flex-wrap items-center justify-center md:justify-start w-full md:w-auto">
             {managerDiagnostic && (
               <button
                 onClick={() => setShowManagerProfileModal(true)}
