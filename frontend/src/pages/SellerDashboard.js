@@ -794,7 +794,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-2 border border-purple-200">
                   <div className="w-2 h-2 bg-[#10B981] rounded-full animate-pulse"></div>
                   <span className="text-sm font-semibold text-gray-700">
-                    {Object.values(dashboardFilters).filter(v => v === true).length} sections actives
+                    {['showPerformances', 'showObjectives', 'showCoaching'].filter(key => dashboardFilters[key] === true).length} cartes actives
                   </span>
                 </div>
                 
