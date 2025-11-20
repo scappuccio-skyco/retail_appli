@@ -2744,10 +2744,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                         ? 'bg-green-600 text-white'
                                         : 'bg-red-600 text-white'
                                     }`}>
-                                      {challenge.status === 'achieved' ? '✅ Atteint' : '❌ Non atteint'}
+                                      {challenge.status === 'achieved' ? '✅' : '❌'} <span className="hidden sm:inline">{challenge.status === 'achieved' ? 'Atteint' : 'Non atteint'}</span>
                                     </span>
                                     <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">
-                                      {challenge.type === 'collective' ? '👥 Équipe' : '👤 Individuel'}
+                                      {challenge.type === 'collective' ? '👥' : '👤'} <span className="hidden sm:inline">{challenge.type === 'collective' ? 'Équipe' : 'Individuel'}</span>
                                     </span>
                                   </div>
                                   {challenge.description && (
