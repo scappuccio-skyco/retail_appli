@@ -538,7 +538,6 @@ export default function PerformanceModal({
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>💰 CA: {entry.ca_journalier || 0}€</div>
                             <div>🛒 Ventes: {entry.nb_ventes || 0}</div>
-                            <div>📦 Articles: {entry.nb_articles || 0}</div>
                             <div>🚶 Prospects: {entry.nb_prospects || 0}</div>
                           </div>
                         </div>
