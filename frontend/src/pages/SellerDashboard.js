@@ -789,12 +789,25 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 </div>
               </div>
               
-              {/* Quick stats */}
-              <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-2 border border-purple-200">
-                <div className="w-2 h-2 bg-[#10B981] rounded-full animate-pulse"></div>
-                <span className="text-sm font-semibold text-gray-700">
-                  {Object.values(dashboardFilters).filter(v => v === true).length} sections actives
-                </span>
+              <div className="flex items-center gap-3">
+                {/* Quick stats */}
+                <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-2 border border-purple-200">
+                  <div className="w-2 h-2 bg-[#10B981] rounded-full animate-pulse"></div>
+                  <span className="text-sm font-semibold text-gray-700">
+                    {Object.values(dashboardFilters).filter(v => v === true).length} sections actives
+                  </span>
+                </div>
+                
+                {/* Close button */}
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
+                >
+                  <span>Fermer</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
             </div>
 
