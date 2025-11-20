@@ -568,6 +568,15 @@ export default function PerformanceModal({
                       const diffTime = today - entryDate;
                       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                       
+                      // Format date to DD/MM/YYYY
+                      const formatDate = (dateString) => {
+                        const date = new Date(dateString);
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const year = date.getFullYear();
+                        return `${day}/${month}/${year}`;
+                      };
+                      
                       return (
                         <div 
                           key={index} 
@@ -581,7 +590,7 @@ export default function PerformanceModal({
                           className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
                         >
                           <div className="flex justify-between items-center mb-2">
-                            <span className="font-semibold text-gray-800">{entry.date}</span>
+                            <span className="font-semibold text-gray-800">{formatDate(entry.date)}</span>
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-gray-500">
                                 il y a {diffDays === 0 ? "aujourd'hui" : `${diffDays} jour${diffDays > 1 ? 's' : ''}`}
