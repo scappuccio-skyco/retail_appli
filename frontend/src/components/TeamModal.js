@@ -48,6 +48,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
   });
   const [visibleSellers, setVisibleSellers] = useState({});
   const [isUpdatingCharts, setIsUpdatingCharts] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [displayedSellerCount, setDisplayedSellerCount] = useState(5);
   const [hoveredButton, setHoveredButton] = useState(null); // Pour les tooltips des boutons d'action
