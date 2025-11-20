@@ -2742,8 +2742,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   : 'bg-red-50 border-red-200'
                               }`}
                             >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
+                              <div>
+                                <div>
                                   <div className="flex items-center gap-2 mb-2">
                                     <h4 className="font-bold text-gray-800">{challenge.title}</h4>
                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
