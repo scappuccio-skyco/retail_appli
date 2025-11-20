@@ -1664,10 +1664,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                           ? 'bg-green-600 text-white'
                                           : 'bg-red-600 text-white'
                                       }`}>
-                                        {objective.status === 'achieved' ? '✅ Atteint' : '❌ Non atteint'}
+                                        {objective.status === 'achieved' ? '✅' : '❌'} <span className="hidden sm:inline">{objective.status === 'achieved' ? 'Atteint' : 'Non atteint'}</span>
                                       </span>
                                       <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">
-                                        {objective.type === 'collective' ? '👥 Équipe' : '👤 Individuel'}
+                                        {objective.type === 'collective' ? '👥' : '👤'} <span className="hidden sm:inline">{objective.type === 'collective' ? 'Équipe' : 'Individuel'}</span>
                                       </span>
                                     </div>
                                     {objective.description && (
