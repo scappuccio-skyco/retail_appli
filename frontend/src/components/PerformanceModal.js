@@ -256,21 +256,19 @@ export default function PerformanceModal({
                     <button
                       onClick={onRegenerate}
                       disabled={generatingBilan}
-                      className="px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
                     >
                       <TrendingUp className={`w-4 h-4 ${generatingBilan ? 'animate-spin' : ''}`} />
-                      <span className="hidden sm:inline">{generatingBilan ? 'Génération...' : (bilanData?.synthese ? 'Regénérer' : 'Générer')}</span>
-                      <span className="sm:hidden">{generatingBilan ? '...' : '🔄'}</span>
+                      <span>{generatingBilan ? 'Génération...' : (bilanData?.synthese ? 'Regénérer' : 'Générer')}</span>
                     </button>
                   )}
                   <button
                     onClick={exportToPDF}
                     disabled={exportingPDF}
-                    className="px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
                   >
                     <Download className={`w-4 h-4 ${exportingPDF ? 'animate-bounce' : ''}`} />
-                    <span className="hidden sm:inline">{exportingPDF ? 'Export...' : 'Exporter PDF'}</span>
-                    <span className="sm:hidden">PDF</span>
+                    <span>{exportingPDF ? 'Export...' : 'PDF'}</span>
                   </button>
                 </div>
                 
