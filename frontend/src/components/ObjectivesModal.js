@@ -152,7 +152,7 @@ export default function ObjectivesModal({
               </div>
 
               {/* Contenu avec padding */}
-              <div className="px-6 pb-6">
+              <div className="px-6 py-6">
                 {activeObjectives.length > 0 ? (
                   <div className="space-y-4">
                     {activeObjectives.map((objective, index) => (
@@ -254,7 +254,7 @@ export default function ObjectivesModal({
               </div>
 
               {/* Contenu avec padding */}
-              <div className="px-6 pb-6">
+              <div className="px-6 py-6">
                 {activeChallenges.length > 0 ? (
                   <div className="space-y-4">
                     {activeChallenges.map((challenge, index) => (
