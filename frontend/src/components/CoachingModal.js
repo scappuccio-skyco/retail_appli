@@ -210,30 +210,30 @@ export default function CoachingModal({
 
           {/* Onglets */}
           <div className="border-b border-gray-200 bg-gray-50 pt-2">
-            <div className="flex gap-1 px-6">
+            <div className="flex gap-0.5 px-2 md:px-6">
               <button
                 onClick={() => setActiveTab('coach')}
-                className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                className={`px-3 md:px-4 py-2 text-sm md:text-base font-semibold transition-all rounded-t-lg ${
                   activeTab === 'coach'
                     ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
                     : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <Award className="w-5 h-5" />
+                <div className="flex items-center justify-center gap-1.5">
+                  <Award className="w-4 h-4" />
                   <span>Mon défi du jour</span>
                 </div>
               </button>
               <button
                 onClick={() => setActiveTab('analyse')}
-                className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                className={`px-3 md:px-4 py-2 text-sm md:text-base font-semibold transition-all rounded-t-lg ${
                   activeTab === 'analyse'
                     ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
                     : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
                 }`}
               >
-                <div className="flex items-center justify-center gap-2">
-                  <MessageSquare className="w-5 h-5" />
+                <div className="flex items-center justify-center gap-1.5">
+                  <MessageSquare className="w-4 h-4" />
                   <span>Analyser mes ventes</span>
                 </div>
               </button>
