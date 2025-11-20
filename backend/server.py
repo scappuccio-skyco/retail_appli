@@ -3875,13 +3875,14 @@ Profil de vente :
             created_at=datetime.now(timezone.utc)
         )
     
-    prompt = f"""Tu es un coach en vente retail. Analyse les performances INDIVIDUELLES de ce vendeur pour la semaine et génère un bilan personnalisé et STRICTEMENT individuel (aucune comparaison avec d'autres vendeurs).
+    prompt = f"""Tu es un coach en vente retail. Analyse les performances INDIVIDUELLES de ce vendeur pour la semaine et génère un bilan personnalisé avec une approche CONSTRUCTIVE et POSITIVE.
 
 {seller_context}
 
 {kpi_context}
 
 Jours actifs : {jours_actifs} jours avec des KPIs saisis
+{team_context}
 
 IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou après. Format exact :
 {{
@@ -3892,7 +3893,13 @@ IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou a
 }}
 
 Consignes CRITIQUES :
-- Analyse STRICTEMENT INDIVIDUELLE (ne mentionne JAMAIS d'autres vendeurs, l'équipe ou de comparaisons)
+- Analyse INDIVIDUELLE avec contexte d'équipe ANONYME et CONSTRUCTIF
+- Si des données d'équipe sont fournies, utilise-les comme RÉFÉRENCES POSITIVES et MOTIVANTES
+- Ne mentionne JAMAIS d'autres vendeurs nommément ou de classements explicites
+- Approche : "L'équipe réalise X en moyenne" plutôt que "Tu es Xème"
+- Si le vendeur est au-dessus de la moyenne : VALORISE et ENCOURAGE à maintenir
+- Si le vendeur est en-dessous de la moyenne : MOTIVE vers un objectif atteignable sans démotiver
+- Formule toujours de manière POSITIVE : "Tu peux progresser vers X" plutôt que "Tu es en retard"
 - Sois précis avec les chiffres du vendeur (utilise UNIQUEMENT ses données)
 - NE PARLE QUE DES INDICATEURS FOURNIS CI-DESSUS dans la liste des KPIs
 - Si un indicateur n'est PAS listé ci-dessus (ex: clients, articles), c'est parce qu'il N'EST PAS SUIVI par le manager - NE LE MENTIONNE PAS DU TOUT
