@@ -337,6 +337,38 @@ export default function ObjectivesModal({
                           </div>
                         </div>
                         
+                        {/* Informations détaillées */}
+                        <div className="bg-white rounded-lg p-3 mb-3 space-y-2">
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <p className="text-xs font-semibold text-gray-500 mb-1">📅 Période</p>
+                              <p className="text-gray-800">
+                                {new Date(challenge.start_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })} - {new Date(challenge.end_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-gray-500 mb-1">🎯 KPI</p>
+                              <p className="text-gray-800 capitalize">{challenge.kpi_name || challenge.challenge_type || 'N/A'}</p>
+                            </div>
+                          </div>
+                          
+                          {/* Progression actuelle pour kpi_standard */}
+                          {challenge.challenge_type === 'kpi_standard' && challenge.target_value && (
+                            <div className="pt-2 border-t border-gray-200">
+                              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                                <span>Progression</span>
+                                <span className="font-semibold">{challenge.current_value || 0} / {challenge.target_value} {challenge.unit || ''}</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-gradient-to-r from-pink-600 to-orange-600 h-2 rounded-full transition-all"
+                                  style={{ width: `${Math.min(((challenge.current_value || 0) / challenge.target_value) * 100, 100)}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
                         {/* Récompense ou statut */}
                         {challenge.reward && (
                           <div className="mt-2 flex items-center text-sm text-orange-600">
