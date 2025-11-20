@@ -620,46 +620,61 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Tabs: Actifs / Archivés */}
-              <div className="flex gap-2 border-b border-gray-200 mb-6">
-                <button
-                  onClick={() => setShowArchivedSellers(false)}
-                  className={`px-4 py-2 font-medium transition-colors ${
-                    !showArchivedSellers
-                      ? 'text-cyan-600 border-b-2 border-cyan-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    Vendeurs actifs
-                  </div>
-                </button>
+              {/* Tabs: Actifs / Archivés + Bouton Rafraîchir */}
+              <div className="flex justify-between items-center border-b border-gray-200 mb-6">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowArchivedSellers(false)}
+                    className={`px-4 py-2 font-medium transition-colors ${
+                      !showArchivedSellers
+                        ? 'text-cyan-600 border-b-2 border-cyan-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Vendeurs actifs
+                    </div>
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setShowArchivedSellers(true);
+                      // Charger les vendeurs archivés
+                      try {
+                        const token = localStorage.getItem('token');
+                        const response = await axios.get(`${API}/manager/sellers/archived`, {
+                          headers: { Authorization: `Bearer ${token}` }
+                        });
+                        setArchivedSellers(response.data);
+                      } catch (error) {
+                        console.error('Error fetching archived sellers:', error);
+                        toast.error('Erreur lors du chargement des vendeurs archivés');
+                      }
+                    }}
+                    className={`px-4 py-2 font-medium transition-colors ${
+                      showArchivedSellers
+                        ? 'text-orange-600 border-b-2 border-orange-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Archive className="w-4 h-4" />
+                      Vendeurs archivés
+                    </div>
+                  </button>
+                </div>
                 <button
                   onClick={async () => {
-                    setShowArchivedSellers(true);
-                    // Charger les vendeurs archivés
-                    try {
-                      const token = localStorage.getItem('token');
-                      const response = await axios.get(`${API}/manager/sellers/archived`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                      });
-                      setArchivedSellers(response.data);
-                    } catch (error) {
-                      console.error('Error fetching archived sellers:', error);
-                      toast.error('Erreur lors du chargement des vendeurs archivés');
-                    }
+                    setIsUpdating(true);
+                    await fetchTeamData(sellers);
+                    setIsUpdating(false);
+                    toast.success('Données actualisées !');
                   }}
-                  className={`px-4 py-2 font-medium transition-colors ${
-                    showArchivedSellers
-                      ? 'text-orange-600 border-b-2 border-orange-600'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  disabled={isUpdating}
+                  className="px-3 py-1.5 text-sm bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-all disabled:opacity-50 flex items-center gap-2"
                 >
-                  <div className="flex items-center gap-2">
-                    <Archive className="w-4 h-4" />
-                    Vendeurs archivés
-                  </div>
+                  <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
+                  Actualiser
                 </button>
               </div>
 
