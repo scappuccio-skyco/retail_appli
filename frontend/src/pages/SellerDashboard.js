@@ -425,7 +425,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             id: 'daily-kpi',
             type: 'kpi',
             icon: '📊',
-            title: 'Saisir les KPI du jour',
+            title: 'Saisir mes chiffres du jour',
             description: 'Renseigne ton chiffre d\'affaires, nombre de ventes et clients du jour',
             priority: 'normal'
           };
