@@ -173,6 +173,19 @@ export default function ObjectivesModal({
                 <span>Mes Challenges ({activeChallenges.length})</span>
               </div>
             </button>
+            <button
+              onClick={() => setActiveTab('historique')}
+              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                activeTab === 'historique'
+                  ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
+                  : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <History className="w-5 h-5" />
+                <span>Historique</span>
+              </div>
+            </button>
           </div>
         </div>
 
