@@ -7,8 +7,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalType = 'objectives' }) {
-  const [activeTab, setActiveTab] = useState(modalType); // 'objectives', 'challenges'
-  const [objectivesSubTab, setObjectivesSubTab] = useState('create'); // 'create', 'active', 'completed'
+  const [activeTab, setActiveTab] = useState(modalType === 'objectives' ? 'create_objective' : 'challenges'); // 'create_objective', 'active_objectives', 'completed_objectives', 'challenges'
   const [kpiConfig, setKpiConfig] = useState(null);
   const [objectives, setObjectives] = useState([]);
   const [challenges, setChallenges] = useState([]);
