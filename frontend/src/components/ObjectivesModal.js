@@ -250,6 +250,30 @@ export default function ObjectivesModal({
                             </div>
                           </div>
                         )}
+
+                        {/* Historique des progressions */}
+                        {objective.progress_history && objective.progress_history.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-purple-200">
+                            <details className="group">
+                              <summary className="cursor-pointer text-xs font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1">
+                                📊 Historique des progressions ({objective.progress_history.length})
+                                <span className="text-xs">▼</span>
+                              </summary>
+                              <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+                                {[...objective.progress_history].reverse().map((entry, idx) => (
+                                  <div key={idx} className="flex items-center justify-between text-xs bg-purple-50 rounded px-2 py-1">
+                                    <span className="text-gray-600">
+                                      {new Date(entry.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                    <span className="font-semibold text-purple-700">
+                                      {entry.value} {objective.unit || ''}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </details>
+                          </div>
+                        )}
                         
                         {/* Bouton de mise à jour pour vendeur */}
                         {objective.data_entry_responsible === 'seller' && (
