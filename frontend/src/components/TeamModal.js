@@ -963,13 +963,13 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                               {seller.niveau}
                             </span>
                           </td>
-                          <td className="px-1 sm:px-4 py-3">
-                            <span className="text-green-700 font-medium text-xs sm:text-sm">{seller.bestCompetence.name}</span>
+                          <td className="px-0 sm:px-4 py-3">
+                            <span className="text-green-700 font-medium text-xs">{seller.bestCompetence.name}</span>
                           </td>
-                          <td className="px-1 sm:px-4 py-3">
-                            <span className="text-orange-700 font-medium text-xs sm:text-sm">{seller.worstCompetence.name}</span>
+                          <td className="px-0 sm:px-4 py-3">
+                            <span className="text-orange-700 font-medium text-xs">{seller.worstCompetence.name}</span>
                           </td>
-                          <td className="px-1 sm:px-4 py-3 text-xs sm:text-sm">
+                          <td className="px-0 sm:px-4 py-3 text-xs">
                             <div className="flex items-center gap-2 justify-center">
                               <button
                                 onClick={() => onViewSellerDetail(seller)}
