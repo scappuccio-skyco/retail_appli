@@ -25,6 +25,8 @@ export default function PerformanceModal({
   const bilanSectionRef = useRef(null);
   const [exportingPDF, setExportingPDF] = useState(false);
   const [wasGenerating, setWasGenerating] = useState(false);
+  const [savingKPI, setSavingKPI] = useState(false);
+  const [saveMessage, setSaveMessage] = useState(null);
 
   // Fonction pour calculer le numéro de semaine ISO
   const getWeekNumber = (date) => {
