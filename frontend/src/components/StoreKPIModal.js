@@ -822,50 +822,52 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
               {/* Multi Period View */}
               {viewMode === 'multi' && (
-                <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
-                    <h3 className="text-lg font-bold text-orange-900">📊 Sélectionner une période</h3>
-                    <button
-                      onClick={() => setShowOverviewAIModal(true)}
-                      disabled={!historicalData.length || historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0)}
-                      className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
-                      title={historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0) ? "Aucune donnée disponible pour cette période" : ""}
-                    >
-                      🤖 Analyse IA
-                    </button>
+                <div className="space-y-3">
+                  <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
+                    <h3 className="text-lg font-bold text-orange-900 mb-3">📊 Sélectionner une période</h3>
+                    <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                      <button
+                        onClick={() => setMultiPeriod('3months')}
+                        className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${
+                          multiPeriod === '3months'
+                            ? 'bg-orange-600 text-white shadow-lg scale-105'
+                            : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-orange-400 hover:scale-105'
+                        }`}
+                      >
+                        3 mois
+                      </button>
+                      <button
+                        onClick={() => setMultiPeriod('6months')}
+                        className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${
+                          multiPeriod === '6months'
+                            ? 'bg-orange-600 text-white shadow-lg scale-105'
+                            : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-orange-400 hover:scale-105'
+                        }`}
+                      >
+                        6 mois
+                      </button>
+                      <button
+                        onClick={() => setMultiPeriod('12months')}
+                        className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${
+                          multiPeriod === '12months'
+                            ? 'bg-orange-600 text-white shadow-lg scale-105'
+                            : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-orange-400 hover:scale-105'
+                        }`}
+                      >
+                        12 mois
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      onClick={() => setMultiPeriod('3months')}
-                      className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                        multiPeriod === '3months'
-                          ? 'bg-orange-600 text-white shadow-lg scale-105'
-                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-orange-400 hover:scale-105'
-                      }`}
-                    >
-                      3 derniers mois
-                    </button>
-                    <button
-                      onClick={() => setMultiPeriod('6months')}
-                      className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                        multiPeriod === '6months'
-                          ? 'bg-orange-600 text-white shadow-lg scale-105'
-                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-orange-400 hover:scale-105'
-                      }`}
-                    >
-                      6 derniers mois
-                    </button>
-                    <button
-                      onClick={() => setMultiPeriod('12months')}
-                      className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                        multiPeriod === '12months'
-                          ? 'bg-orange-600 text-white shadow-lg scale-105'
-                          : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-orange-400 hover:scale-105'
-                      }`}
-                    >
-                      12 derniers mois
-                    </button>
-                  </div>
+                  
+                  {/* Bouton Analyse IA séparé */}
+                  <button
+                    onClick={() => setShowOverviewAIModal(true)}
+                    disabled={!historicalData.length || historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0)}
+                    className="w-full px-5 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    title={historicalData.every(d => d.total_ca === 0 && d.total_ventes === 0) ? "Aucune donnée disponible pour cette période" : ""}
+                  >
+                    🤖 Lancer l'Analyse IA de la période
+                  </button>
                 </div>
               )}
 
