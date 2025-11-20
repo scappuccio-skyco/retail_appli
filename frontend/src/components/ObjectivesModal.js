@@ -391,6 +391,30 @@ export default function ObjectivesModal({
                               </div>
                             </div>
                           )}
+
+                          {/* Historique des progressions pour challenges */}
+                          {challenge.progress_history && challenge.progress_history.length > 0 && (
+                            <div className="pt-2 border-t border-gray-200 mt-2">
+                              <details className="group">
+                                <summary className="cursor-pointer text-xs font-semibold text-pink-600 hover:text-pink-700 flex items-center gap-1">
+                                  📊 Historique des progressions ({challenge.progress_history.length})
+                                  <span className="text-xs">▼</span>
+                                </summary>
+                                <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+                                  {[...challenge.progress_history].reverse().map((entry, idx) => (
+                                    <div key={idx} className="flex items-center justify-between text-xs bg-pink-50 rounded px-2 py-1">
+                                      <span className="text-gray-600">
+                                        {new Date(entry.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                      </span>
+                                      <span className="font-semibold text-pink-700">
+                                        {entry.value} {challenge.unit || ''}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </details>
+                            </div>
+                          )}
                         </div>
                         
                         {/* Récompense ou statut */}
