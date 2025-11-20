@@ -783,7 +783,9 @@ export default function SellerDetailView({ seller, onBack }) {
                           : kpiEntries;
                         return filteredEntries.map(e => ({
                           date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-                          IndiceVente: e.indice_vente || 0
+                          IndiceVente: e.indice_vente !== undefined && e.indice_vente !== null 
+                            ? e.indice_vente 
+                            : (e.nb_ventes > 0 ? (e.nb_articles / e.nb_ventes) : 0)
                         }));
                       })()}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
@@ -791,7 +793,7 @@ export default function SellerDetailView({ seller, onBack }) {
                         <YAxis tick={{ fill: '#475569', fontSize: 11 }} />
                         <Tooltip 
                           contentStyle={{ backgroundColor: '#fff', border: '2px solid #f97316', borderRadius: '8px' }}
-                          formatter={(value) => `${value.toFixed(2)}€`}
+                          formatter={(value) => `${value.toFixed(2)}`}
                         />
                         <Line type="monotone" dataKey="IndiceVente" stroke="#f97316" strokeWidth={2} dot={{ r: 3 }} />
                       </LineChart>
