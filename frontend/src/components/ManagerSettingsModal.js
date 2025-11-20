@@ -2242,16 +2242,26 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                       </div>
                     </form>
                   </div>
+                </div>
+              )}
 
-                  {/* Challenges List */}
+              {/* Challenges en cours Tab */}
+              {activeTab === 'active_challenges' && (
+                <div className="space-y-6">
                   <div className="bg-white rounded-xl p-6 border-2 border-gray-200">
-                    <h3 className="text-xl font-bold text-gray-800 mb-4">📋 Liste des Challenges</h3>
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">📋 Challenges en cours</h3>
                     
-                    {challenges.length === 0 ? (
-                      <p className="text-center text-gray-500 py-8">Aucun challenge créé pour le moment</p>
-                    ) : (
-                      <div className="space-y-3">
-                        {challenges.map((challenge) => (
+                    {(() => {
+                      const today = new Date().toISOString().split('T')[0];
+                      const activeChallenges = challenges.filter(chall => {
+                        return chall.end_date >= today && chall.status !== 'achieved';
+                      });
+                      
+                      return activeChallenges.length === 0 ? (
+                        <p className="text-center text-gray-500 py-8">Aucun challenge en cours</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {activeChallenges.map((challenge) => (
                           <div
                             key={challenge.id}
                             className="bg-gray-50 rounded-lg p-4 border-2 border-gray-200 hover:border-[#ffd871] transition-all"
