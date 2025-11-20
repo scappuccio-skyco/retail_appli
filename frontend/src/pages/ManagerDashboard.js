@@ -793,9 +793,10 @@ export default function ManagerDashboard({ user, onLogout }) {
               data-testid="logout-button"
               onClick={onLogout}
               className="px-3 py-2 flex items-center gap-1.5 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 hover:shadow-lg transition-all text-sm"
+              title="Déconnexion"
             >
               <LogOut className="w-4 h-4" />
-              Déconnexion
+              <span className="hidden sm:inline">Déconnexion</span>
             </button>
           </div>
         </div>
