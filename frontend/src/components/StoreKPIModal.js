@@ -1314,7 +1314,16 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                         required
                         value={managerKPIData.date}
                         onChange={(e) => setManagerKPIData({ ...managerKPIData, date: e.target.value })}
-                        className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                        onClick={(e) => {
+                          try {
+                            if (typeof e.target.showPicker === 'function') {
+                              e.target.showPicker();
+                            }
+                          } catch (error) {
+                            console.log('showPicker not supported');
+                          }
+                        }}
+                        className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer"
                       />
                     </div>
 
