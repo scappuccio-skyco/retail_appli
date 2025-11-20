@@ -97,41 +97,49 @@ export default function ObjectivesModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-        {/* Header avec bouton fermer */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-800">🎯 Objectifs et Challenges</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <X className="w-6 h-6 text-gray-500" />
-          </button>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-white">🎯 Objectifs et Challenges</h2>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+          </div>
         </div>
 
         {/* Onglets */}
-        <div className="flex border-b bg-gray-50">
-          <button
-            onClick={() => setActiveTab('objectifs')}
-            className={`flex-1 px-6 py-4 font-semibold transition-all ${
-              activeTab === 'objectifs'
-                ? 'text-blue-600 border-b-2 border-blue-600 bg-white'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-            }`}
-          >
-            <Target className="w-5 h-5 inline-block mr-2" />
-            Mes Objectifs ({activeObjectives.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('challenges')}
-            className={`flex-1 px-6 py-4 font-semibold transition-all ${
-              activeTab === 'challenges'
-                ? 'text-green-600 border-b-2 border-green-600 bg-white'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-            }`}
-          >
-            <Trophy className="w-5 h-5 inline-block mr-2" />
-            Mes Challenges ({activeChallenges.length})
-          </button>
+        <div className="border-b border-gray-200 bg-gray-50 pt-2">
+          <div className="flex gap-1 px-6">
+            <button
+              onClick={() => setActiveTab('objectifs')}
+              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                activeTab === 'objectifs'
+                  ? 'bg-blue-300 text-gray-800 shadow-md border-b-4 border-blue-500'
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Target className="w-5 h-5" />
+                <span>Mes Objectifs ({activeObjectives.length})</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('challenges')}
+              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                activeTab === 'challenges'
+                  ? 'bg-green-300 text-gray-800 shadow-md border-b-4 border-green-500'
+                  : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <Trophy className="w-5 h-5" />
+                <span>Mes Challenges ({activeChallenges.length})</span>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Contenu du modal selon l'onglet actif */}
