@@ -5977,9 +5977,13 @@ async def create_challenge(challenge_data: ChallengeCreate, current_user: dict =
         if not seller:
             raise HTTPException(status_code=404, detail="Seller not found in your team")
     
+    # Get the data and force status to active
+    challenge_dict = challenge_data.model_dump()
+    challenge_dict['status'] = 'active'  # Force status to active on creation
+    
     challenge = Challenge(
         manager_id=current_user['id'],
-        **challenge_data.model_dump()
+        **challenge_dict
     )
     
     doc = challenge.model_dump()
@@ -5987,8 +5991,6 @@ async def create_challenge(challenge_data: ChallengeCreate, current_user: dict =
     doc['updated_at'] = doc['updated_at'].isoformat()
     if doc.get('completed_at'):
         doc['completed_at'] = doc['completed_at'].isoformat()
-    # Force status to active on creation
-    doc['status'] = 'active'
     
     await db.challenges.insert_one(doc)
     
