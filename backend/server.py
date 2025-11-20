@@ -3785,6 +3785,73 @@ Profil de vente :
     # Count days with KPI entries in the period
     jours_actifs = len(kpi_entries)
     
+    # ===== TEAM COMPARISON DATA (Option A - Constructive) =====
+    team_context = ""
+    if seller_user and seller_user.get('manager_id'):
+        # Get all sellers from the same team (same manager)
+        team_sellers = await db.users.find({
+            "manager_id": seller_user['manager_id'],
+            "role": "seller"
+        }, {"_id": 0, "id": 1}).to_list(100)
+        
+        team_seller_ids = [s['id'] for s in team_sellers]
+        
+        # Get KPIs for all team members for the same period
+        team_kpi_entries = await db.kpi_entries.find({
+            "seller_id": {"$in": team_seller_ids},
+            "date": {
+                "$gte": start_date.strftime('%Y-%m-%d'),
+                "$lte": end_date.strftime('%Y-%m-%d')
+            }
+        }, {"_id": 0}).to_list(10000)
+        
+        if len(team_kpi_entries) > 0 and len(team_seller_ids) > 1:
+            # Group KPIs by seller
+            seller_totals = {}
+            for entry in team_kpi_entries:
+                sid = entry['seller_id']
+                if sid not in seller_totals:
+                    seller_totals[sid] = {'ca': 0, 'ventes': 0, 'articles': 0}
+                seller_totals[sid]['ca'] += entry.get('ca_journalier', 0)
+                seller_totals[sid]['ventes'] += entry.get('nb_ventes', 0)
+                seller_totals[sid]['articles'] += entry.get('nb_articles', 0)
+            
+            # Calculate team averages
+            active_sellers = len(seller_totals)
+            if active_sellers > 1:  # Only compare if there are other sellers
+                team_ca_avg = sum(s['ca'] for s in seller_totals.values()) / active_sellers
+                team_ventes_avg = sum(s['ventes'] for s in seller_totals.values()) / active_sellers
+                team_articles_avg = sum(s['articles'] for s in seller_totals.values()) / active_sellers
+                
+                # Calculate team derived KPIs
+                team_panier_moyen_avg = team_ca_avg / team_ventes_avg if team_ventes_avg > 0 else None
+                team_indice_vente_avg = team_articles_avg / team_ventes_avg if team_ventes_avg > 0 else None
+                
+                # Build team comparison context
+                team_lines = [f"\nDonnées de référence de l'équipe ({active_sellers} vendeurs actifs) :"]
+                
+                if kpi_config.get('track_ca') and team_ca_avg > 0:
+                    ecart_ca = ((total_ca - team_ca_avg) / team_ca_avg * 100) if team_ca_avg > 0 else 0
+                    team_lines.append(f"- CA moyen de l'équipe : {team_ca_avg:.2f}€ (ton écart : {ecart_ca:+.1f}%)")
+                
+                if kpi_config.get('track_ventes') and team_ventes_avg > 0:
+                    ecart_ventes = ((total_ventes - team_ventes_avg) / team_ventes_avg * 100) if team_ventes_avg > 0 else 0
+                    team_lines.append(f"- Ventes moyennes de l'équipe : {team_ventes_avg:.1f} (ton écart : {ecart_ventes:+.1f}%)")
+                
+                if kpi_config.get('track_articles') and team_articles_avg > 0:
+                    ecart_articles = ((total_articles - team_articles_avg) / team_articles_avg * 100) if team_articles_avg > 0 else 0
+                    team_lines.append(f"- Articles moyens de l'équipe : {team_articles_avg:.1f} (ton écart : {ecart_articles:+.1f}%)")
+                
+                if panier_moyen is not None and team_panier_moyen_avg is not None and team_panier_moyen_avg > 0:
+                    ecart_pm = ((panier_moyen - team_panier_moyen_avg) / team_panier_moyen_avg * 100)
+                    team_lines.append(f"- Panier moyen de l'équipe : {team_panier_moyen_avg:.2f}€ (ton écart : {ecart_pm:+.1f}%)")
+                
+                if indice_vente is not None and team_indice_vente_avg is not None and team_indice_vente_avg > 0:
+                    ecart_iv = ((indice_vente - team_indice_vente_avg) / team_indice_vente_avg * 100)
+                    team_lines.append(f"- Indice de vente moyen de l'équipe : {team_indice_vente_avg:.2f} (ton écart : {ecart_iv:+.1f}%)")
+                
+                team_context = "\n".join(team_lines)
+    
     # Check if we have enough data
     if jours_actifs == 0:
         # No KPI data for this period
