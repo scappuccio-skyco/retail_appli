@@ -814,12 +814,18 @@ export default function PerformanceModal({
                     <input
                       type="date"
                       name="date"
-                      defaultValue={new Date().toISOString().split('T')[0]}
+                      defaultValue={editingEntry?.date || new Date().toISOString().split('T')[0]}
                       max={new Date().toISOString().split('T')[0]}
                       className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800 font-medium"
                       required
+                      readOnly={!!editingEntry}
                     />
-                    <p className="text-xs text-gray-500 mt-1">Sélectionnez le jour pour lequel vous souhaitez saisir vos données</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {editingEntry 
+                        ? 'La date ne peut pas être modifiée'
+                        : 'Sélectionnez le jour pour lequel vous souhaitez saisir vos données'
+                      }
+                    </p>
                   </div>
 
                   {/* KPIs en grille - Configuration identique au manager */}
