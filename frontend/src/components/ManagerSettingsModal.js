@@ -646,15 +646,53 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
               </>
             )}
             {modalType === 'challenges' && (
-              <button
-                onClick={() => setActiveTab('challenges')}
-                className="px-6 py-3 font-semibold transition-all rounded-t-lg bg-green-300 text-gray-800 shadow-md border-b-4 border-green-500"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <Trophy className="w-5 h-5" />
-                  <span>🏆 Challenges</span>
-                </div>
-              </button>
+              <>
+                <button
+                  onClick={() => setActiveTab('create_challenge')}
+                  className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                    activeTab === 'create_challenge'
+                      ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
+                      : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    <span>Nouveau challenge</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('active_challenges')}
+                  className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                    activeTab === 'active_challenges'
+                      ? 'bg-blue-300 text-gray-800 shadow-md border-b-4 border-blue-500'
+                      : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Target className="w-5 h-5" />
+                    <span>Challenges en cours ({challenges.filter(chall => {
+                      const today = new Date().toISOString().split('T')[0];
+                      return chall.end_date >= today && chall.status !== 'achieved';
+                    }).length})</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('completed_challenges')}
+                  className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                    activeTab === 'completed_challenges'
+                      ? 'bg-green-300 text-gray-800 shadow-md border-b-4 border-green-500'
+                      : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Trophy className="w-5 h-5" />
+                    <span>Challenges terminés ({challenges.filter(chall => {
+                      const today = new Date().toISOString().split('T')[0];
+                      return chall.end_date < today || chall.status === 'achieved';
+                    }).length})</span>
+                  </div>
+                </button>
+              </>
             )}
           </div>
         </div>
