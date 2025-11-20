@@ -1458,15 +1458,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 
                                 {/* NEW OBJECTIVE SYSTEM DISPLAY */}
                                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 mb-3">
-                                  <div className="flex items-center justify-between mb-2">
+                                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                                     <div className="flex-1">
                                       {objective.objective_type === 'kpi_standard' && (
                                         <div>
-                                          <span className="text-sm font-semibold text-blue-700">
+                                          <span className="text-xs sm:text-sm font-semibold text-blue-700">
                                             📊 KPI: {
-                                              objective.kpi_name === 'ca' ? '💰 Chiffre d\'affaires' :
-                                              objective.kpi_name === 'ventes' ? '🛍️ Nombre de ventes' :
-                                              objective.kpi_name === 'articles' ? '📦 Nombre d\'articles' :
+                                              objective.kpi_name === 'ca' ? '💰 CA' :
+                                              objective.kpi_name === 'ventes' ? '🛍️ Ventes' :
+                                              objective.kpi_name === 'articles' ? '📦 Articles' :
                                               objective.kpi_name
                                             }
                                           </span>
@@ -1474,10 +1474,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       )}
                                       {objective.objective_type === 'product_focus' && (
                                         <div>
-                                          <span className="text-sm font-semibold text-green-700 block mb-1">
+                                          <span className="text-xs sm:text-sm font-semibold text-green-700 block mb-1">
                                             📦 Focus Produit
                                           </span>
-                                          <div className="bg-white rounded px-3 py-2 mt-1">
+                                          <div className="bg-white rounded px-2 sm:px-3 py-2 mt-1">
                                             <p className="text-xs text-gray-600">Produit ciblé :</p>
                                             <p className="text-sm font-bold text-gray-800">{objective.product_name}</p>
                                             <p className="text-xs text-gray-600 mt-1">
@@ -1488,7 +1488,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       )}
                                       {objective.objective_type === 'custom' && (
                                         <div>
-                                          <span className="text-sm font-semibold text-purple-700">
+                                          <span className="text-xs sm:text-sm font-semibold text-purple-700">
                                             ✨ Objectif personnalisé
                                           </span>
                                           {objective.custom_description && (
@@ -1497,7 +1497,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                         </div>
                                       )}
                                     </div>
-                                    <span className={`text-xs font-bold px-3 py-1 rounded-full ml-2 ${
+                                    <span className={`text-xs font-bold px-2 sm:px-3 py-1 rounded-full whitespace-nowrap self-start sm:self-center ${
                                       objective.data_entry_responsible === 'seller' 
                                         ? 'bg-cyan-500 text-white' 
                                         : 'bg-orange-500 text-white'
@@ -1508,11 +1508,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   
                                   {/* Progress info - Only for KPI Standard and Custom */}
                                   {(objective.objective_type === 'kpi_standard' || objective.objective_type === 'custom') && (
-                                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-200">
-                                      <span className="text-sm font-semibold text-gray-700">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-2 pt-2 border-t border-gray-200">
+                                      <span className="text-xs sm:text-sm font-semibold text-gray-700">
                                         🎯 Cible: {objective.target_value?.toLocaleString('fr-FR')} {objective.unit || ''}
                                       </span>
-                                      <span className="text-sm font-semibold text-gray-700">
+                                      <span className="text-xs sm:text-sm font-semibold text-gray-700">
                                         📊 Actuel: {(objective.current_value || 0)?.toLocaleString('fr-FR')} {objective.unit || ''}
                                       </span>
                                     </div>
@@ -1522,8 +1522,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   {objective.objective_type === 'product_focus' && (
                                     <div className="mt-2 pt-2 border-t border-gray-200">
                                       <div className="flex items-center justify-between">
-                                        <span className="text-sm font-semibold text-gray-700">
-                                          📊 Progression actuelle: {(objective.current_value || 0)?.toLocaleString('fr-FR')} {objective.unit || ''}
+                                        <span className="text-xs sm:text-sm font-semibold text-gray-700">
+                                          📊 Progression: {(objective.current_value || 0)?.toLocaleString('fr-FR')} {objective.unit || ''}
                                         </span>
                                       </div>
                                     </div>
