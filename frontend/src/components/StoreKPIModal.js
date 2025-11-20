@@ -192,7 +192,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
             weekMap[weekKey].count++;
           });
           
-          aggregatedData = Object.values(weekMap);
+          aggregatedData = Object.values(weekMap).sort((a, b) => a.date.localeCompare(b.date));
         } else if (multiPeriod === '6months') {
           // Group by 2 weeks (bi-weekly)
           const biWeekMap = {};
