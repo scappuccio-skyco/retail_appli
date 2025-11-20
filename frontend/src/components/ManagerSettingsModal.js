@@ -2558,9 +2558,103 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               </div>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              )}
+
+              {/* Challenges terminés Tab */}
+              {activeTab === 'completed_challenges' && (
+                <div className="space-y-6">
+                  <div className="bg-white rounded-xl p-6 border-2 border-gray-200">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">🏆 Challenges terminés</h3>
+                    
+                    {(() => {
+                      const today = new Date().toISOString().split('T')[0];
+                      const completedChallenges = challenges.filter(chall => {
+                        return chall.end_date < today || chall.status === 'achieved';
+                      });
+                      
+                      return completedChallenges.length === 0 ? (
+                        <p className="text-center text-gray-500 py-8">Aucun challenge terminé</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {completedChallenges.map((challenge) => (
+                            <div
+                              key={challenge.id}
+                              className={`rounded-lg p-4 border-2 transition-all ${
+                                challenge.status === 'achieved'
+                                  ? 'bg-green-50 border-green-200'
+                                  : 'bg-red-50 border-red-200'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <h4 className="font-bold text-gray-800">{challenge.title}</h4>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                      challenge.status === 'achieved'
+                                        ? 'bg-green-600 text-white'
+                                        : 'bg-red-600 text-white'
+                                    }`}>
+                                      {challenge.status === 'achieved' ? '✅ Atteint' : '❌ Non atteint'}
+                                    </span>
+                                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">
+                                      {challenge.type === 'collective' ? '👥 Équipe' : '👤 Individuel'}
+                                    </span>
+                                  </div>
+                                  {challenge.description && (
+                                    <p className="text-sm text-gray-600 mb-2">{challenge.description}</p>
+                                  )}
+                                  
+                                  {/* Details */}
+                                  <div className="grid grid-cols-2 gap-3 text-sm mt-3 bg-white rounded p-3">
+                                    <div>
+                                      <p className="text-xs font-semibold text-gray-500">📅 Période</p>
+                                      <p className="text-gray-800">
+                                        {new Date(challenge.start_date).toLocaleDateString('fr-FR')} - {new Date(challenge.end_date).toLocaleDateString('fr-FR')}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold text-gray-500">🎯 KPI</p>
+                                      <p className="text-gray-800 capitalize">{challenge.kpi_name || challenge.challenge_type || 'N/A'}</p>
+                                    </div>
+                                    <div className="col-span-2">
+                                      <p className="text-xs font-semibold text-gray-500">Progression finale</p>
+                                      <p className="text-gray-800 font-bold">
+                                        {challenge.current_value || 0} / {challenge.target_value} {challenge.unit || ''}
+                                      </p>
+                                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                        <div 
+                                          className={`h-2 rounded-full transition-all ${
+                                            challenge.status === 'achieved'
+                                              ? 'bg-green-600'
+                                              : 'bg-red-600'
+                                          }`}
+                                          style={{ width: `${Math.min(((challenge.current_value || 0) / challenge.target_value) * 100, 100)}%` }}
+                                        ></div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="ml-4">
+                                  <button
+                                    onClick={() => handleDeleteChallenge(challenge.id)}
+                                    className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded transition-all"
+                                    title="Supprimer"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               )}
