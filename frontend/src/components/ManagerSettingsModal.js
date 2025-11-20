@@ -2636,17 +2636,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                     { headers }
                                                   );
                                                 }
-                                                toast.success('Progression du challenge mise à jour');
+                                                toast.success('Progression mise à jour');
                                                 setUpdatingProgressChallengeId(null);
                                                 setChallengeProgressValue('');
                                                 fetchData();
                                                 if (onUpdate) onUpdate();
                                               } catch (err) {
                                                 console.error('Error:', err);
-                                                toast.error('Erreur lors de la mise à jour');
+                                                toast.error('Erreur');
                                               }
                                             }}
-                                            className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold text-sm"
+                                            className="flex-1 px-2 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold text-xs sm:text-sm"
                                           >
                                             ✅ Valider
                                           </button>
@@ -2654,7 +2654,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                             onClick={() => {
                                               setUpdatingProgressChallengeId(null);
                                             }}
-                                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all text-sm"
+                                            className="px-2 sm:px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all text-xs sm:text-sm"
                                           >
                                             ❌
                                           </button>
