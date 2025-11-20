@@ -613,10 +613,12 @@ export default function SellerDetailView({ seller, onBack }) {
                           : kpiFilter === '30j'
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
                           : kpiEntries;
-                        return filteredEntries.map(e => ({
-                          date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-                          CA: e.ca_journalier || 0
-                        }));
+                        return filteredEntries
+                          .sort((a, b) => new Date(a.date) - new Date(b.date))
+                          .map(e => ({
+                            date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
+                            CA: e.ca_journalier || 0
+                          }));
                       })()}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
                         <XAxis dataKey="date" tick={{ fill: '#475569', fontSize: 11 }} />
