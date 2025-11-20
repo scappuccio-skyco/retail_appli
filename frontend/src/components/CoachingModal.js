@@ -569,11 +569,70 @@ export default function CoachingModal({
                 )}
 
                 {analyseSubTab === 'historique' && (
-                  <div className="p-6">
-                    {debriefs.length > 0 ? (
-                      <div className="space-y-4">
-                        <p className="text-sm text-gray-600 mb-4">Toutes vos analyses ({debriefs.length})</p>
-                        {debriefs.map((debrief) => (
+                  <div>
+                    {/* Filtres */}
+                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <Filter className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm font-semibold text-gray-700">Filtrer par type :</span>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setHistoryFilter('all')}
+                            className={`px-3 py-1.5 text-sm rounded-lg transition-all ${
+                              historyFilter === 'all'
+                                ? 'bg-purple-600 text-white shadow-md'
+                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                            }`}
+                          >
+                            Tous
+                          </button>
+                          <button
+                            onClick={() => setHistoryFilter('conclue')}
+                            className={`px-3 py-1.5 text-sm rounded-lg transition-all flex items-center gap-1 ${
+                              historyFilter === 'conclue'
+                                ? 'bg-green-600 text-white shadow-md'
+                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                            }`}
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            Ventes conclues
+                          </button>
+                          <button
+                            onClick={() => setHistoryFilter('manquee')}
+                            className={`px-3 py-1.5 text-sm rounded-lg transition-all flex items-center gap-1 ${
+                              historyFilter === 'manquee'
+                                ? 'bg-orange-600 text-white shadow-md'
+                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                            }`}
+                          >
+                            <XCircle className="w-4 h-4" />
+                            Opportunités manquées
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-6">
+                      {(() => {
+                        // Filter debriefs based on selected filter
+                        const filteredDebriefs = debriefs.filter(debrief => {
+                          if (historyFilter === 'all') return true;
+                          if (historyFilter === 'conclue') return debrief.vente_conclue === true;
+                          if (historyFilter === 'manquee') return debrief.vente_conclue === false;
+                          return true;
+                        });
+                        
+                        return filteredDebriefs.length > 0 ? (
+                          <div className="space-y-4">
+                            <p className="text-sm text-gray-600 mb-4">
+                              {historyFilter === 'all' && `Toutes vos analyses (${filteredDebriefs.length})`}
+                              {historyFilter === 'conclue' && `Ventes conclues (${filteredDebriefs.length})`}
+                              {historyFilter === 'manquee' && `Opportunités manquées (${filteredDebriefs.length})`}
+                            </p>
+                            {filteredDebriefs.map((debrief) => (
                           <div 
                             key={debrief.id} 
                             data-debrief-card
