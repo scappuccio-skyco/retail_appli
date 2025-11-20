@@ -1294,8 +1294,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                 <div className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg p-3 border border-cyan-200">
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-700 font-medium">📅 Période :</span>
-                      <div className="flex gap-2">
+                      <span className="text-sm text-gray-700 font-medium">
+                        📅 <span className="hidden md:inline">Période :</span>
+                      </span>
+                      <div className="flex flex-wrap gap-2">
                         {[
                           { value: '7', label: '7 jours' },
                           { value: '30', label: '30 jours' },
@@ -1308,7 +1310,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                               setPeriodFilter(period.value);
                               setShowCustomDatePicker(false);
                             }}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                            className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                               periodFilter === period.value
                                 ? 'bg-[#1E40AF] text-white shadow-md'
                                 : 'bg-white text-gray-700 hover:bg-cyan-100'
@@ -1325,7 +1327,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                               setPeriodFilter('custom');
                             }
                           }}
-                          className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                          className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                             periodFilter === 'custom'
                               ? 'bg-purple-600 text-white shadow-md'
                               : 'bg-white text-gray-700 hover:bg-cyan-100'
