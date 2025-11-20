@@ -30,6 +30,100 @@ export default function PerformanceModal({
   const [wasGenerating, setWasGenerating] = useState(false);
   const [savingKPI, setSavingKPI] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [warnings, setWarnings] = useState([]);
+  const [pendingKPIData, setPendingKPIData] = useState(null);
+
+  // Fonction pour calculer les moyennes des KPI historiques
+  const calculateAverages = () => {
+    if (!kpiEntries || kpiEntries.length === 0) return null;
+    
+    const totals = kpiEntries.reduce((acc, entry) => ({
+      ca: acc.ca + (entry.ca_journalier || 0),
+      ventes: acc.ventes + (entry.nb_ventes || 0),
+      articles: acc.articles + (entry.nb_articles || 0),
+      prospects: acc.prospects + (entry.nb_prospects || 0)
+    }), { ca: 0, ventes: 0, articles: 0, prospects: 0 });
+    
+    return {
+      avgCA: totals.ca / kpiEntries.length,
+      avgVentes: totals.ventes / kpiEntries.length,
+      avgArticles: totals.articles / kpiEntries.length,
+      avgProspects: totals.prospects / kpiEntries.length
+    };
+  };
+
+  // Fonction pour vérifier les anomalies
+  const checkAnomalies = (data) => {
+    const averages = calculateAverages();
+    if (!averages || !kpiEntries || kpiEntries.length < 5) {
+      // Pas assez de données pour comparer
+      return [];
+    }
+    
+    const detectedWarnings = [];
+    const THRESHOLD_HIGH = 1.5; // 150% de la moyenne
+    const THRESHOLD_LOW = 0.5;  // 50% de la moyenne
+    
+    // Vérifier CA
+    if (data.ca_journalier > 0 && averages.avgCA > 0) {
+      if (data.ca_journalier > averages.avgCA * THRESHOLD_HIGH) {
+        detectedWarnings.push({
+          kpi: 'Chiffre d\'affaires',
+          value: `${data.ca_journalier.toFixed(2)}€`,
+          average: `${averages.avgCA.toFixed(2)}€`,
+          percentage: ((data.ca_journalier / averages.avgCA - 1) * 100).toFixed(0)
+        });
+      } else if (data.ca_journalier < averages.avgCA * THRESHOLD_LOW) {
+        detectedWarnings.push({
+          kpi: 'Chiffre d\'affaires',
+          value: `${data.ca_journalier.toFixed(2)}€`,
+          average: `${averages.avgCA.toFixed(2)}€`,
+          percentage: ((data.ca_journalier / averages.avgCA - 1) * 100).toFixed(0)
+        });
+      }
+    }
+    
+    // Vérifier Ventes
+    if (data.nb_ventes > 0 && averages.avgVentes > 0) {
+      if (data.nb_ventes > averages.avgVentes * THRESHOLD_HIGH) {
+        detectedWarnings.push({
+          kpi: 'Nombre de ventes',
+          value: data.nb_ventes,
+          average: Math.round(averages.avgVentes),
+          percentage: ((data.nb_ventes / averages.avgVentes - 1) * 100).toFixed(0)
+        });
+      } else if (data.nb_ventes < averages.avgVentes * THRESHOLD_LOW) {
+        detectedWarnings.push({
+          kpi: 'Nombre de ventes',
+          value: data.nb_ventes,
+          average: Math.round(averages.avgVentes),
+          percentage: ((data.nb_ventes / averages.avgVentes - 1) * 100).toFixed(0)
+        });
+      }
+    }
+    
+    // Vérifier Prospects
+    if (data.nb_prospects > 0 && averages.avgProspects > 0) {
+      if (data.nb_prospects > averages.avgProspects * THRESHOLD_HIGH) {
+        detectedWarnings.push({
+          kpi: 'Nombre de prospects',
+          value: data.nb_prospects,
+          average: Math.round(averages.avgProspects),
+          percentage: ((data.nb_prospects / averages.avgProspects - 1) * 100).toFixed(0)
+        });
+      } else if (data.nb_prospects < averages.avgProspects * THRESHOLD_LOW) {
+        detectedWarnings.push({
+          kpi: 'Nombre de prospects',
+          value: data.nb_prospects,
+          average: Math.round(averages.avgProspects),
+          percentage: ((data.nb_prospects / averages.avgProspects - 1) * 100).toFixed(0)
+        });
+      }
+    }
+    
+    return detectedWarnings;
+  };
 
   // Fonction pour sauvegarder directement les KPI sans ouvrir de modal
   const handleDirectSaveKPI = async (data) => {
