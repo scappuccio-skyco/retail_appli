@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export default function TeamAIAnalysisModal({ teamData, onClose }) {
+export default function TeamAIAnalysisModal({ teamData, periodFilter, customDateRange, onClose }) {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [analysisMetadata, setAnalysisMetadata] = useState(null);
   const [loading, setLoading] = useState(false);
