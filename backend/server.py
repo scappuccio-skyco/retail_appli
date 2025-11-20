@@ -5730,6 +5730,131 @@ async def get_active_seller_objectives(current_user: dict = Depends(get_current_
     
     return filtered_objectives
 
+
+@api_router.get("/seller/objectives/history")
+async def get_seller_objectives_history(current_user: dict = Depends(get_current_user)):
+    """Get completed objectives (past period_end date) for seller"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access objectives")
+    
+    # Get manager
+    user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    if not user or not user.get('manager_id'):
+        return []
+    
+    manager_id = user['manager_id']
+    seller_id = current_user['id']
+    today = datetime.now(timezone.utc).date().isoformat()
+    
+    # Get completed objectives (period_end < today)
+    objectives = await db.manager_objectives.find(
+        {
+            "manager_id": manager_id,
+            "period_end": {"$lt": today},  # Only objectives that have ended
+            "visible": True
+        },
+        {"_id": 0}
+    ).sort("period_end", -1).to_list(100)  # Most recent first
+    
+    # Filter objectives based on visibility rules
+    filtered_objectives = []
+    for objective in objectives:
+        obj_type = objective.get('type', 'collective')
+        
+        # Individual objectives: only show if it's for this seller
+        if obj_type == 'individual':
+            if objective.get('seller_id') == seller_id:
+                filtered_objectives.append(objective)
+        # Collective objectives: check visible_to_sellers list
+        else:
+            visible_to = objective.get('visible_to_sellers', [])
+            if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
+                filtered_objectives.append(objective)
+    
+    # Calculate achievement status for each objective
+    for objective in filtered_objectives:
+        current_val = objective.get('current_value', 0)
+        target_val = objective.get('target_value', 1)
+        
+        if current_val >= target_val:
+            objective['achieved'] = True
+        else:
+            objective['achieved'] = False
+    
+    return filtered_objectives
+
+@api_router.get("/seller/challenges/history")
+async def get_seller_challenges_history(current_user: dict = Depends(get_current_user)):
+    """Get completed challenges (past end_date) for seller"""
+    if current_user['role'] != 'seller':
+        raise HTTPException(status_code=403, detail="Only sellers can access challenges")
+    
+    # Get manager
+    user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    if not user or not user.get('manager_id'):
+        return []
+    
+    manager_id = user['manager_id']
+    seller_id = current_user['id']
+    today = datetime.now(timezone.utc).date().isoformat()
+    
+    # Get completed challenges (end_date < today)
+    challenges = await db.challenges.find(
+        {
+            "manager_id": manager_id,
+            "end_date": {"$lt": today},  # Only challenges that have ended
+            "visible": True
+        },
+        {"_id": 0}
+    ).sort("end_date", -1).to_list(100)  # Most recent first
+    
+    # Filter challenges based on visibility rules
+    filtered_challenges = []
+    for challenge in challenges:
+        chall_type = challenge.get('type', 'collective')
+        
+        # Individual challenges: only show if it's for this seller
+        if chall_type == 'individual':
+            if challenge.get('seller_id') == seller_id:
+                filtered_challenges.append(challenge)
+        # Collective challenges: check visible_to_sellers list
+        else:
+            visible_to = challenge.get('visible_to_sellers', [])
+            if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
+                filtered_challenges.append(challenge)
+    
+    # Calculate achievement status for each challenge
+    for challenge in filtered_challenges:
+        # For kpi_standard challenges
+        if challenge.get('challenge_type') == 'kpi_standard':
+            current_val = challenge.get('current_value', 0)
+            target_val = challenge.get('target_value', 1)
+            challenge['achieved'] = current_val >= target_val
+        else:
+            # For multi-target challenges, check each target
+            achieved_count = 0
+            total_targets = 0
+            
+            if challenge.get('ca_target'):
+                total_targets += 1
+                if challenge.get('progress_ca', 0) >= challenge['ca_target']:
+                    achieved_count += 1
+            
+            if challenge.get('ventes_target'):
+                total_targets += 1
+                if challenge.get('progress_ventes', 0) >= challenge['ventes_target']:
+                    achieved_count += 1
+            
+            if challenge.get('clients_target'):
+                total_targets += 1
+                if challenge.get('progress_clients', 0) >= challenge['clients_target']:
+                    achieved_count += 1
+            
+            # Challenge is achieved if all targets are met
+            challenge['achieved'] = (achieved_count == total_targets) if total_targets > 0 else False
+    
+    return filtered_challenges
+
 # Endpoint for seller to get their manager's KPI config
 @api_router.get("/seller/kpi-config")
 async def get_seller_kpi_config(current_user: dict = Depends(get_current_user)):
