@@ -2529,24 +2529,24 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 {challenge.data_entry_responsible === 'manager' && (
                                   <div className="mt-3">
                                     {updatingProgressChallengeId === challenge.id ? (
-                                      <div className="bg-white rounded-lg p-3 border-2 border-orange-300">
-                                        <p className="text-sm font-semibold text-gray-700 mb-2">Mettre à jour la progression :</p>
+                                      <div className="bg-white rounded-lg p-2 sm:p-3 border-2 border-orange-300">
+                                        <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">Mettre à jour la progression :</p>
                                         
                                         {/* Challenge with target_value (kpi_standard, product_focus) */}
                                         {challenge.target_value && !challenge.ca_target && !challenge.ventes_target ? (
                                           <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1 sm:gap-2">
                                               <input
                                                 type="number"
                                                 step="0.01"
                                                 min="0"
-                                                placeholder={`Valeur actuelle (${challenge.unit || ''})`}
+                                                placeholder={`Valeur (${challenge.unit || ''})`}
                                                 defaultValue={challenge.current_value || 0}
                                                 onChange={(e) => setChallengeProgressValue(e.target.value)}
-                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                               />
                                               {challenge.unit && (
-                                                <span className="text-xs text-gray-500">{challenge.unit}</span>
+                                                <span className="text-xs text-gray-500 whitespace-nowrap">{challenge.unit}</span>
                                               )}
                                             </div>
                                             {challenge.target_value && (
@@ -2559,15 +2559,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                           /* Challenge with multiple targets */
                                           <div className="space-y-2">
                                             {challenge.ca_target && challenge.ca_target > 0 && (
-                                            <div className="flex items-center gap-2">
-                                              <label className="text-xs text-gray-600 w-24">💰 CA :</label>
+                                            <div className="flex items-center gap-1 sm:gap-2">
+                                              <label className="text-xs text-gray-600 w-16 sm:w-24 flex-shrink-0">💰 CA :</label>
                                               <input
                                                 type="number"
                                                 step="0.01"
                                                 min="0"
-                                                placeholder="Valeur actuelle"
+                                                placeholder="Valeur"
                                                 defaultValue={challenge.progress_ca || 0}
-                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                                 onBlur={(e) => {
                                                   const val = parseFloat(e.target.value) || 0;
                                                   challenge.progress_ca = val;
@@ -2577,14 +2577,14 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                             </div>
                                           )}
                                           {challenge.ventes_target && challenge.ventes_target > 0 && (
-                                            <div className="flex items-center gap-2">
-                                              <label className="text-xs text-gray-600 w-24">📈 Ventes :</label>
+                                            <div className="flex items-center gap-1 sm:gap-2">
+                                              <label className="text-xs text-gray-600 w-16 sm:w-24 flex-shrink-0">📈 Ventes :</label>
                                               <input
                                                 type="number"
                                                 min="0"
                                                 placeholder="Nombre"
                                                 defaultValue={challenge.progress_ventes || 0}
-                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                                 onBlur={(e) => {
                                                   const val = parseInt(e.target.value) || 0;
                                                   challenge.progress_ventes = val;
@@ -2593,14 +2593,14 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                             </div>
                                           )}
                                           {challenge.clients_target && challenge.clients_target > 0 && (
-                                            <div className="flex items-center gap-2">
-                                              <label className="text-xs text-gray-600 w-24">👥 Clients :</label>
+                                            <div className="flex items-center gap-1 sm:gap-2">
+                                              <label className="text-xs text-gray-600 w-16 sm:w-24 flex-shrink-0">👥 Clients :</label>
                                               <input
                                                 type="number"
                                                 min="0"
                                                 placeholder="Nombre"
                                                 defaultValue={challenge.progress_clients || 0}
-                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                                 onBlur={(e) => {
                                                   const val = parseInt(e.target.value) || 0;
                                                   challenge.progress_clients = val;
