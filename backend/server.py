@@ -4694,19 +4694,22 @@ VENDEURS :
 CONSIGNES :
 - NE MENTIONNE PAS la complétion KPI (saisie des données) - c'est un sujet administratif, pas commercial
 - Concentre-toi sur les PERFORMANCES COMMERCIALES et la DYNAMIQUE D'ÉQUIPE
-- Fournis des recommandations MOTIVANTES et CONSTRUCTIVES
+- **IMPORTANT : Mentionne SYSTÉMATIQUEMENT les données chiffrées (CA, nombre de ventes, panier moyen) pour chaque vendeur dans ton analyse**
+- Fournis des recommandations MOTIVANTES et CONSTRUCTIVES basées sur les chiffres
 - Identifie les leviers de motivation individuels et collectifs
-- Sois concis et actionnable (3 sections, 2-3 points par section)
+- Sois concis et actionnable (3 sections, 2-4 points par section)
 
 Fournis l'analyse en 3 parties :
 
 ## ANALYSE D'ÉQUIPE
-- Forces collectives et dynamique positive
-- Points d'amélioration ou déséquilibres à corriger
+- Commence par rappeler les chiffres clés de l'équipe sur la période (CA total, nombre de ventes, panier moyen)
+- Forces collectives et dynamique positive (avec données chiffrées à l'appui)
+- Points d'amélioration ou déséquilibres à corriger (écarts de performance chiffrés)
 - Opportunités de développement
 
 ## ACTIONS PAR VENDEUR
-- Recommandations personnalisées pour chaque vendeur
+- Pour CHAQUE vendeur, mentionne ses résultats chiffrés (CA, ventes, PM) puis donne des recommandations personnalisées
+- Format : "**[Nom]** (CA: XXX€, XX ventes, PM: XXX€) : [analyse et recommandations]"
 - Focus sur développement des compétences et motivation
 - Actions concrètes et bienveillantes
 
