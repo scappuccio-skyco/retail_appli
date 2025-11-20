@@ -4593,6 +4593,7 @@ async def create_or_update_manager_kpi(
         # Create new
         new_kpi = ManagerKPI(
             manager_id=current_user['id'],
+            store_id=current_user.get('store_id'),
             date=manager_kpi_data.date,
             ca_journalier=manager_kpi_data.ca_journalier,
             nb_ventes=manager_kpi_data.nb_ventes,
