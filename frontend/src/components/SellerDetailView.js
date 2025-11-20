@@ -641,7 +641,9 @@ export default function SellerDetailView({ seller, onBack }) {
                           : kpiFilter === '30j'
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
                           : kpiEntries;
-                        return filteredEntries.map(e => ({
+                        return filteredEntries
+                          .sort((a, b) => new Date(a.date) - new Date(b.date))
+                          .map(e => ({
                           date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
                           Ventes: e.nb_ventes || 0
                         }));
@@ -667,7 +669,9 @@ export default function SellerDetailView({ seller, onBack }) {
                           : kpiFilter === '30j'
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
                           : kpiEntries;
-                        return filteredEntries.map(e => ({
+                        return filteredEntries
+                          .sort((a, b) => new Date(a.date) - new Date(b.date))
+                          .map(e => ({
                           date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
                           Clients: e.nb_clients || 0
                         }));
@@ -693,7 +697,9 @@ export default function SellerDetailView({ seller, onBack }) {
                           : kpiFilter === '30j'
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
                           : kpiEntries;
-                        return filteredEntries.map(e => ({
+                        return filteredEntries
+                          .sort((a, b) => new Date(a.date) - new Date(b.date))
+                          .map(e => ({
                           date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
                           Articles: e.nb_articles || 0
                         }));
@@ -719,7 +725,9 @@ export default function SellerDetailView({ seller, onBack }) {
                           : kpiFilter === '30j'
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
                           : kpiEntries;
-                        return filteredEntries.map(e => ({
+                        return filteredEntries
+                          .sort((a, b) => new Date(a.date) - new Date(b.date))
+                          .map(e => ({
                           date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
                           Ventes: e.nb_ventes || 0,
                           Clients: e.nb_clients || 0
@@ -748,7 +756,9 @@ export default function SellerDetailView({ seller, onBack }) {
                           : kpiFilter === '30j'
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
                           : kpiEntries;
-                        return filteredEntries.map(e => ({
+                        return filteredEntries
+                          .sort((a, b) => new Date(a.date) - new Date(b.date))
+                          .map(e => ({
                           date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
                           PanierMoyen: (e.nb_ventes > 0) ? (e.ca_journalier / e.nb_ventes) : 0
                         }));
@@ -777,7 +787,9 @@ export default function SellerDetailView({ seller, onBack }) {
                           : kpiFilter === '30j'
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
                           : kpiEntries;
-                        return filteredEntries.map(e => ({
+                        return filteredEntries
+                          .sort((a, b) => new Date(a.date) - new Date(b.date))
+                          .map(e => ({
                           date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
                           TauxTransfo: e.taux_transformation || 0
                         }));
@@ -806,7 +818,9 @@ export default function SellerDetailView({ seller, onBack }) {
                           : kpiFilter === '30j'
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
                           : kpiEntries;
-                        return filteredEntries.map(e => ({
+                        return filteredEntries
+                          .sort((a, b) => new Date(a.date) - new Date(b.date))
+                          .map(e => ({
                           date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
                           IndiceVente: e.indice_vente !== undefined && e.indice_vente !== null 
                             ? e.indice_vente 
