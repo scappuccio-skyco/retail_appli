@@ -885,6 +885,18 @@ export default function PerformanceModal({
 
                   {/* Boutons d'action */}
                   <div className="flex gap-3 pt-4">
+                    {editingEntry && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingEntry(null);
+                          setActiveTab('kpi');
+                        }}
+                        className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-all"
+                      >
+                        ❌ Annuler
+                      </button>
+                    )}
                     <button
                       type="submit"
                       disabled={savingKPI}
@@ -894,15 +906,22 @@ export default function PerformanceModal({
                           : 'hover:from-orange-700 hover:to-amber-700'
                       }`}
                     >
-                      {savingKPI ? '⏳ Enregistrement...' : '💾 Enregistrer mes chiffres'}
+                      {savingKPI 
+                        ? '⏳ Enregistrement...' 
+                        : editingEntry 
+                        ? '💾 Enregistrer les modifications' 
+                        : '💾 Enregistrer mes chiffres'
+                      }
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('kpi')}
-                      className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-all"
-                    >
-                      📊 Voir l'historique
-                    </button>
+                    {!editingEntry && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('kpi')}
+                        className="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition-all"
+                      >
+                        📊 Voir l'historique
+                      </button>
+                    )}
                   </div>
                 </form>
               </div>
