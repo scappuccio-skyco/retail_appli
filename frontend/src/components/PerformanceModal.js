@@ -646,22 +646,6 @@ export default function PerformanceModal({
                       </div>
                     )}
 
-                    {/* Clients - Toujours affiché si configuré */}
-                    {(kpiConfig?.seller_track_clients || kpiConfig?.track_clients) && (
-                      <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
-                        <label className="block text-sm font-semibold text-blue-900 mb-2">
-                          👥 Nombre de Clients
-                        </label>
-                        <input
-                          type="number"
-                          name="nb_clients"
-                          min="0"
-                          placeholder="Ex: 12"
-                          className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                        />
-                      </div>
-                    )}
-
                     {/* Prospects - Toujours affiché si configuré */}
                     {(kpiConfig?.seller_track_prospects || kpiConfig?.track_prospects) && (
                       <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
