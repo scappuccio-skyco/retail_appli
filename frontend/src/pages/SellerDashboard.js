@@ -1001,7 +1001,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           )}
 
         {/* Objectives and Challenges Card */}
-        {(dashboardFilters.showObjectives || dashboardFilters.showChallenges) && (
+        {dashboardFilters.showObjectives && (
           <div 
             onClick={() => setShowObjectivesModal(true)}
             className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
