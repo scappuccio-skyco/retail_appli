@@ -251,7 +251,7 @@ export default function PerformanceModal({
               >
                 <div className="flex items-center justify-center gap-1.5">
                   <Edit3 className="w-4 h-4" />
-                  <span>Saisie KPI</span>
+                  <span>Saisir mes chiffres</span>
                 </div>
               </button>
             </div>
