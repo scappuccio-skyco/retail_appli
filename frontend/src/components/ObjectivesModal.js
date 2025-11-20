@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Target, Trophy } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Target, Trophy, History, Filter } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -11,7 +11,7 @@ export default function ObjectivesModal({
   activeObjectives = [],
   activeChallenges = []
 }) {
-  const [activeTab, setActiveTab] = useState('objectifs'); // 'objectifs' or 'challenges'
+  const [activeTab, setActiveTab] = useState('objectifs'); // 'objectifs', 'challenges', or 'historique'
   const [updatingObjectiveId, setUpdatingObjectiveId] = useState(null);
   const [objectiveProgressValue, setObjectiveProgressValue] = useState('');
   const [updatingChallengeId, setUpdatingChallengeId] = useState(null);
@@ -21,6 +21,40 @@ export default function ObjectivesModal({
     clients: 0
   });
   const [challengeCurrentValue, setChallengeCurrentValue] = useState('');
+  
+  // Historique states
+  const [historyObjectives, setHistoryObjectives] = useState([]);
+  const [historyChallenges, setHistoryChallenges] = useState([]);
+  const [historyTypeFilter, setHistoryTypeFilter] = useState('all'); // 'all', 'objectifs', 'challenges'
+  const [historyStatusFilter, setHistoryStatusFilter] = useState('all'); // 'all', 'achieved', 'not_achieved'
+  
+  // Fetch history when tab changes to historique
+  useEffect(() => {
+    if (activeTab === 'historique' && isOpen) {
+      fetchHistory();
+    }
+  }, [activeTab, isOpen]);
+  
+  const fetchHistory = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Fetch objectives history
+      const objRes = await axios.get(`${API}/api/seller/objectives/history`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setHistoryObjectives(objRes.data);
+      
+      // Fetch challenges history
+      const challRes = await axios.get(`${API}/api/seller/challenges/history`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setHistoryChallenges(challRes.data);
+    } catch (err) {
+      console.error('Error fetching history:', err);
+      toast.error('Erreur lors du chargement de l\'historique');
+    }
+  };
   
   const handleUpdateProgress = async (objectiveId) => {
     try {
