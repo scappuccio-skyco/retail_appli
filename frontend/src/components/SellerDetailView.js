@@ -265,33 +265,36 @@ export default function SellerDetailView({ seller, onBack }) {
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('competences')}
-            className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
+            className={`flex-1 py-3 px-2 sm:px-6 rounded-xl font-semibold transition-all text-sm sm:text-base ${
               activeTab === 'competences'
                 ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
-            📊 Compétences
+            <span className="sm:hidden">📊</span>
+            <span className="hidden sm:inline">📊 Compétences</span>
           </button>
           <button
             onClick={() => setActiveTab('kpi')}
-            className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
+            className={`flex-1 py-3 px-2 sm:px-6 rounded-xl font-semibold transition-all text-sm sm:text-base ${
               activeTab === 'kpi'
                 ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
-            💰 KPI
+            <span className="sm:hidden">💰</span>
+            <span className="hidden sm:inline">💰 KPI</span>
           </button>
           <button
             onClick={() => setActiveTab('debriefs')}
-            className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
+            className={`flex-1 py-3 px-2 sm:px-6 rounded-xl font-semibold transition-all text-sm sm:text-base ${
               activeTab === 'debriefs'
                 ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-lg'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
-            📝 Analyses des ventes
+            <span className="sm:hidden">📝</span>
+            <span className="hidden sm:inline">📝 Analyses des ventes</span>
           </button>
         </div>
       </div>
