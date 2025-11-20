@@ -456,10 +456,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
         {/* Tabs */}
         <div className="border-b border-gray-200 bg-gray-50 pt-2">
-          <div className="flex gap-0.5 px-2 md:px-6 overflow-x-auto">
+          <div className="flex gap-0.5 px-1 md:px-6 overflow-x-auto">
             <button
               onClick={() => setActiveTab('daily')}
-              className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap ${
+              className={`px-1.5 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'daily'
                   ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
                   : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
@@ -469,7 +469,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
             </button>
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap ${
+              className={`px-1.5 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap flex-shrink-0 ${
                 activeTab === 'overview'
                   ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
                   : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
@@ -481,7 +481,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               <>
                 <button
                   onClick={() => setActiveTab('config')}
-                  className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap ${
+                  className={`px-1.5 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap flex-shrink-0 ${
                     activeTab === 'config'
                       ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
                       : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
@@ -491,7 +491,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                 </button>
                 <button
                   onClick={() => setActiveTab('prospects')}
-                  className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap ${
+                  className={`px-1.5 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap flex-shrink-0 ${
                     activeTab === 'prospects'
                   ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
                   : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
