@@ -815,62 +815,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                 </form>
               )}
 
-              {/* Objectives Tab */}
-              {activeTab === 'objectives' && (
+              {/* Nouvel objectif Tab */}
+              {activeTab === 'create_objective' && (
                 <div className="space-y-6">
-                  {/* Sub-tabs for Objectives */}
-                  <div className="border-b border-gray-200 bg-gray-50 pt-2">
-                    <div className="flex gap-1 px-6">
-                      <button
-                        onClick={() => setObjectivesSubTab('create')}
-                        className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
-                          objectivesSubTab === 'create'
-                            ? 'bg-purple-300 text-gray-800 shadow-md border-b-4 border-purple-500'
-                            : 'text-gray-600 hover:text-purple-600 hover:bg-gray-100'
-                        }`}
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <Plus className="w-5 h-5" />
-                          <span>Nouvel objectif</span>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => setObjectivesSubTab('active')}
-                        className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
-                          objectivesSubTab === 'active'
-                            ? 'bg-blue-300 text-gray-800 shadow-md border-b-4 border-blue-500'
-                            : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
-                        }`}
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <Target className="w-5 h-5" />
-                          <span>Objectifs en cours ({objectives.filter(obj => {
-                            const today = new Date().toISOString().split('T')[0];
-                            return obj.period_end >= today && obj.status !== 'achieved';
-                          }).length})</span>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => setObjectivesSubTab('completed')}
-                        className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
-                          objectivesSubTab === 'completed'
-                            ? 'bg-green-300 text-gray-800 shadow-md border-b-4 border-green-500'
-                            : 'text-gray-600 hover:text-green-600 hover:bg-gray-100'
-                        }`}
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <Trophy className="w-5 h-5" />
-                          <span>Objectifs terminés ({objectives.filter(obj => {
-                            const today = new Date().toISOString().split('T')[0];
-                            return obj.period_end < today || obj.status === 'achieved';
-                          }).length})</span>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Nouvel objectif Tab */}
-                  {objectivesSubTab === 'create' && (
                     <div id="objective-form-section" className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-300">
                       <h3 className="text-xl font-bold text-gray-800 mb-4">
                         {editingObjective ? '✏️ Modifier l\'Objectif' : '➕ Créer un Objectif'}
