@@ -8,6 +8,7 @@ const API = `${BACKEND_URL}/api`;
 
 export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalType = 'objectives' }) {
   const [activeTab, setActiveTab] = useState(modalType); // 'objectives', 'challenges'
+  const [objectivesSubTab, setObjectivesSubTab] = useState('create'); // 'create', 'active', 'completed'
   const [kpiConfig, setKpiConfig] = useState(null);
   const [objectives, setObjectives] = useState([]);
   const [challenges, setChallenges] = useState([]);
