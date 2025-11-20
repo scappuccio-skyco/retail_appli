@@ -1551,32 +1551,39 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   {objective.data_entry_responsible === 'manager' && (
                                     <div className="mt-3">
                                       {updatingProgressObjectiveId === objective.id ? (
-                                        <div className="flex items-center gap-1 sm:gap-2">
-                                          <input
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={progressValue}
-                                            onChange={(e) => setProgressValue(e.target.value)}
-                                            placeholder={`Valeur (${objective.unit || ''})`}
-                                            className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
-                                            autoFocus
-                                          />
-                                          <button
-                                            onClick={() => handleUpdateProgress(objective.id)}
-                                            className="px-2 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold text-xs sm:text-sm whitespace-nowrap"
-                                          >
-                                            ✅ Valider
-                                          </button>
-                                          <button
-                                            onClick={() => {
-                                              setUpdatingProgressObjectiveId(null);
-                                              setProgressValue('');
-                                            }}
-                                            className="px-2 sm:px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all text-xs sm:text-sm"
-                                          >
-                                            ❌
-                                          </button>
+                                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                          <div className="flex items-center gap-2 flex-1">
+                                            <input
+                                              type="number"
+                                              step="0.01"
+                                              min="0"
+                                              value={progressValue}
+                                              onChange={(e) => setProgressValue(e.target.value)}
+                                              placeholder={`Valeur`}
+                                              className="w-24 sm:flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
+                                              autoFocus
+                                            />
+                                            {objective.unit && (
+                                              <span className="text-xs text-gray-500 whitespace-nowrap">{objective.unit}</span>
+                                            )}
+                                          </div>
+                                          <div className="flex gap-2">
+                                            <button
+                                              onClick={() => handleUpdateProgress(objective.id)}
+                                              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold text-xs sm:text-sm whitespace-nowrap"
+                                            >
+                                              ✅ Valider
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                setUpdatingProgressObjectiveId(null);
+                                                setProgressValue('');
+                                              }}
+                                              className="px-3 sm:px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all text-xs sm:text-sm"
+                                            >
+                                              ❌
+                                            </button>
+                                          </div>
                                         </div>
                                       ) : (
                                         <button
