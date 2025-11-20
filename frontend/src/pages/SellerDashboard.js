@@ -1076,7 +1076,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
             <div className="relative h-48 overflow-hidden">
               <img 
                 src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop" 
-                alt="Coaching & Analyse"
+                alt="Mon coach IA"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-purple-900/70 via-indigo-800/70 to-teal-800/70 group-hover:from-purple-900/60 group-hover:via-indigo-800/60 group-hover:to-teal-800/60 transition-all"></div>
