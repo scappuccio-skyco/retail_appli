@@ -2332,7 +2332,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       challenge.status === 'completed'
                                         ? 'bg-green-500 text-white shadow-lg' 
                                         : challenge.status === 'failed'
-                                        ? 'bg-red-500 text-white shadow-lg'
+                                        ? 'bg-white sm:bg-red-500 text-red-700 sm:text-white border-2 border-red-500 shadow-lg'
                                         : 'bg-yellow-400 text-gray-800 shadow-md'
                                     }`}>
                                       {challenge.status === 'completed' ? '✅ Réussi' : 
