@@ -2508,22 +2508,37 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                               />
                                             </div>
                                           )}
-                                        </div>
+                                          </div>
+                                        )}
+                                        
                                         <div className="flex gap-2 mt-3">
                                           <button
                                             onClick={async () => {
                                               try {
-                                                await axios.post(
-                                                  `${API}/manager/challenges/${challenge.id}/progress`,
-                                                  {
-                                                    progress_ca: challenge.progress_ca,
-                                                    progress_ventes: challenge.progress_ventes,
-                                                    progress_clients: challenge.progress_clients
-                                                  },
-                                                  { headers }
-                                                );
+                                                // For challenges with target_value (kpi_standard, product_focus)
+                                                if (challenge.target_value && !challenge.ca_target && !challenge.ventes_target) {
+                                                  await axios.post(
+                                                    `${API}/manager/challenges/${challenge.id}/progress`,
+                                                    {
+                                                      current_value: parseFloat(challengeProgressValue) || challenge.current_value || 0
+                                                    },
+                                                    { headers }
+                                                  );
+                                                } else {
+                                                  // For challenges with multiple targets
+                                                  await axios.post(
+                                                    `${API}/manager/challenges/${challenge.id}/progress`,
+                                                    {
+                                                      progress_ca: challenge.progress_ca,
+                                                      progress_ventes: challenge.progress_ventes,
+                                                      progress_clients: challenge.progress_clients
+                                                    },
+                                                    { headers }
+                                                  );
+                                                }
                                                 toast.success('Progression du challenge mise à jour');
                                                 setUpdatingProgressChallengeId(null);
+                                                setChallengeProgressValue('');
                                                 fetchData();
                                                 if (onUpdate) onUpdate();
                                               } catch (err) {
