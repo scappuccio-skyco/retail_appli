@@ -128,6 +128,23 @@ export default function PerformanceModal({
   // Fonction pour sauvegarder directement les KPI sans ouvrir de modal
   const handleDirectSaveKPI = async (data) => {
     console.log('🚀 handleDirectSaveKPI appelé avec:', data);
+    
+    // Vérifier les anomalies
+    const detectedWarnings = checkAnomalies(data);
+    if (detectedWarnings.length > 0) {
+      // Afficher la modal d'avertissement
+      setWarnings(detectedWarnings);
+      setPendingKPIData(data);
+      setShowWarningModal(true);
+      return;
+    }
+
+    // Pas d'anomalie, sauvegarder directement
+    await saveKPIData(data);
+  };
+
+  // Fonction pour sauvegarder les données (après validation ou confirmation)
+  const saveKPIData = async (data) => {
     setSavingKPI(true);
     setSaveMessage(null);
     
