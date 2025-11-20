@@ -1066,23 +1066,37 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                     <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                       📈 Taux de Transformation (%)
                     </h4>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={historicalData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="date" 
-                          tick={{ fontSize: 10 }}
-                          interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : 0}
-                          angle={-45}
-                          textAnchor="end"
-                          height={70}
-                        />
-                        <YAxis tick={{ fontSize: 12 }} />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="taux_transformation" name="Taux (%)" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    {historicalData.some(d => d.total_prospects > 0) ? (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={historicalData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fontSize: 10 }}
+                            interval={viewMode === 'week' ? 0 : viewMode === 'month' ? 2 : 0}
+                            angle={-45}
+                            textAnchor="end"
+                            height={70}
+                          />
+                          <YAxis tick={{ fontSize: 12 }} />
+                          <Tooltip />
+                          <Legend />
+                          <Line type="monotone" dataKey="taux_transformation" name="Taux (%)" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 3 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-[300px] flex flex-col items-center justify-center text-center p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
+                        <div className="text-4xl mb-3">📊</div>
+                        <p className="text-gray-700 font-semibold mb-2">Données de prospects manquantes</p>
+                        <p className="text-sm text-gray-600 max-w-md">
+                          Le taux de transformation nécessite le suivi du nombre de prospects. 
+                          Activez le KPI "Prospects" dans la configuration et demandez à vos vendeurs de le renseigner quotidiennement.
+                        </p>
+                        <div className="mt-4 text-xs text-purple-700 bg-purple-100 px-4 py-2 rounded-lg">
+                          💡 Taux = (Ventes ÷ Prospects) × 100
+                        </div>
+                      </div>
+                    )}
                   </div>
                   )}
 
