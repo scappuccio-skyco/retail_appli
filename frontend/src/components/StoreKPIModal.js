@@ -456,20 +456,20 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
         {/* Tabs */}
         <div className="border-b border-gray-200 bg-gray-50 pt-2">
-          <div className="flex gap-1 px-6">
+          <div className="flex gap-0.5 px-2 md:px-6 overflow-x-auto">
             <button
               onClick={() => setActiveTab('daily')}
-              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+              className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap ${
                 activeTab === 'daily'
                   ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
                   : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
               }`}
             >
-              📅 Vue au quotidien
+              📅 Quotidien
             </button>
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+              className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap ${
                 activeTab === 'overview'
                   ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
                   : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
@@ -481,23 +481,23 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               <>
                 <button
                   onClick={() => setActiveTab('config')}
-                  className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                  className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap ${
                     activeTab === 'config'
                       ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
                       : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
                   }`}
                 >
-                  ⚙️ Configuration KPI
+                  ⚙️ Config KPI
                 </button>
                 <button
                   onClick={() => setActiveTab('prospects')}
-                  className={`px-6 py-3 font-semibold transition-all rounded-t-lg ${
+                  className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap ${
                     activeTab === 'prospects'
                   ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
                   : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
                   }`}
                 >
-                  👨‍💼 Saisie KPI Manager
+                  👨‍💼 Saisie KPI
                 </button>
               </>
             )}
