@@ -858,11 +858,9 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               <div className="flex flex-wrap gap-2 justify-center">
                 {sectionOrder.filter(id => id !== 'profile').map((sectionId, index) => {
                   const sectionNames = {
-                    bilan: '📈 Bilan',
-                    objectives: '🎯 Objectifs',
-                    competences: '🤖 Coach IA',
-                    kpi: '📊 KPI',
-                    debriefs: '📝 Analyse'
+                    performances: '📈 Mes Performances',
+                    objectives: '🎯 Objectifs & Challenges',
+                    coaching: '🤖 Mon coach IA'
                   };
                   
                   // Skip if section doesn't exist
