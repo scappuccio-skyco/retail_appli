@@ -2431,8 +2431,34 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     {updatingProgressChallengeId === challenge.id ? (
                                       <div className="bg-white rounded-lg p-3 border-2 border-orange-300">
                                         <p className="text-sm font-semibold text-gray-700 mb-2">Mettre à jour la progression :</p>
-                                        <div className="space-y-2">
-                                          {challenge.ca_target && challenge.ca_target > 0 && (
+                                        
+                                        {/* Challenge with target_value (kpi_standard, product_focus) */}
+                                        {challenge.target_value && !challenge.ca_target && !challenge.ventes_target ? (
+                                          <div className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                              <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                placeholder={`Valeur actuelle (${challenge.unit || ''})`}
+                                                defaultValue={challenge.current_value || 0}
+                                                onChange={(e) => setChallengeProgressValue(e.target.value)}
+                                                className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                                              />
+                                              {challenge.unit && (
+                                                <span className="text-xs text-gray-500">{challenge.unit}</span>
+                                              )}
+                                            </div>
+                                            {challenge.target_value && (
+                                              <p className="text-xs text-gray-500">
+                                                Objectif : {challenge.target_value} {challenge.unit || ''}
+                                              </p>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          /* Challenge with multiple targets */
+                                          <div className="space-y-2">
+                                            {challenge.ca_target && challenge.ca_target > 0 && (
                                             <div className="flex items-center gap-2">
                                               <label className="text-xs text-gray-600 w-24">💰 CA :</label>
                                               <input
