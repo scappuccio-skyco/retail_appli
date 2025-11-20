@@ -1819,11 +1819,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           </div>
                         )}
 
-                        {/* Visibilité - Layout horizontal (same as objectives) */}
+                        {/* Visibilité - Layout responsive */}
                         <div className="md:col-span-2">
-                          <div className="flex items-start gap-4">
+                          <div className="flex flex-col sm:flex-row items-start gap-4">
                             {/* Checkbox Visible */}
-                            <label className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-200 cursor-pointer hover:bg-blue-100 transition-all flex-shrink-0">
+                            <label className="flex items-center gap-3 p-3 sm:p-4 bg-blue-50 rounded-lg border-2 border-blue-200 cursor-pointer hover:bg-blue-100 transition-all flex-shrink-0 w-full sm:w-auto">
                               <input
                                 type="checkbox"
                                 checked={newChallenge.visible !== false}
@@ -1835,19 +1835,19 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     setIsChallengeSellerDropdownOpen(false);
                                   }
                                 }}
-                                className="w-5 h-5 text-blue-600"
+                                className="w-5 h-5 text-blue-600 flex-shrink-0"
                               />
                               <div>
-                                <p className="font-semibold text-gray-800">👁️ Visible par les vendeurs</p>
+                                <p className="font-semibold text-gray-800 text-sm sm:text-base">👁️ Visible par les vendeurs</p>
                                 <p className="text-xs text-gray-600">Si coché, les vendeurs pourront voir ce challenge</p>
                               </div>
                             </label>
                             
                             {/* Seller selection dropdown - only for collective challenges */}
                             {newChallenge.visible !== false && newChallenge.type === 'collective' && (
-                              <div className="flex-1 p-4 bg-green-50 rounded-lg border-2 border-green-200">
-                                <div className="flex items-center justify-between mb-3">
-                                  <p className="text-sm font-semibold text-gray-800">👥 Sélectionner les vendeurs (optionnel)</p>
+                              <div className="flex-1 w-full p-3 sm:p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
+                                  <p className="text-xs sm:text-sm font-semibold text-gray-800">👥 Sélectionner les vendeurs (optionnel)</p>
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -1857,7 +1857,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                         setSelectedVisibleSellersChallenge(sellers.map(s => s.id));
                                       }
                                     }}
-                                    className="text-xs px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
+                                    className="text-xs px-2 sm:px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all whitespace-nowrap"
                                   >
                                     {selectedVisibleSellersChallenge.length === sellers.length ? 'Tout désélectionner' : 'Tout sélectionner'}
                                   </button>
