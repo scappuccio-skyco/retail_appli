@@ -110,8 +110,8 @@ export default function ObjectivesModal({
       setUpdatingObjectiveId(null);
       setObjectiveProgressValue('');
       
-      // Rafraîchir la page pour voir les changements
-      window.location.reload();
+      // Rafraîchir les données sans recharger la page
+      await refreshActiveData();
     } catch (error) {
       console.error('Error updating progress:', error);
       toast.error('Erreur lors de la mise à jour');
