@@ -5985,6 +5985,8 @@ async def create_challenge(challenge_data: ChallengeCreate, current_user: dict =
     doc['updated_at'] = doc['updated_at'].isoformat()
     if doc.get('completed_at'):
         doc['completed_at'] = doc['completed_at'].isoformat()
+    # Force status to active on creation
+    doc['status'] = 'active'
     
     await db.challenges.insert_one(doc)
     
