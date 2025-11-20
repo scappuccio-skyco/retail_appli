@@ -588,9 +588,7 @@ export default function PerformanceModal({
                     date: formData.get('date'),
                     ca_journalier: parseFloat(formData.get('ca_journalier')) || 0,
                     nb_ventes: parseInt(formData.get('nb_ventes')) || 0,
-                    nb_articles: parseInt(formData.get('nb_articles')) || 0,
-                    nb_prospects: parseInt(formData.get('nb_prospects')) || 0,
-                    nb_clients: parseInt(formData.get('nb_clients')) || 0
+                    nb_prospects: parseInt(formData.get('nb_prospects')) || 0
                   };
                   
                   if (onEditKPI) {
