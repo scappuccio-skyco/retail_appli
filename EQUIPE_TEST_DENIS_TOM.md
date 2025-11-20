@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://kpi-tracker-pro.preview.emergentagent.com
+https://retail-dashboard-39.preview.emergentagent.com
 
 ### Manager
 ```
