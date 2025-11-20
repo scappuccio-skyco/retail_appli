@@ -140,13 +140,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     const saved = localStorage.getItem('seller_dashboard_filters');
     return saved ? JSON.parse(saved) : {
       showProfile: true,
-      showCompetences: true,
-      showObjectives: true,
-      showChallenges: true,
-      showKPI: true,
-      showDebriefs: true,
-      showBilan: true,
-      periodFilter: 'all' // 'today', 'week', 'month', 'all', 'custom'
+      showPerformances: true, // Carte "Mes Performances" (ancien Bilan)
+      showObjectives: true,   // Carte "Objectifs & Challenges"
+      showCoaching: true,     // Carte "Mon coach IA" (fusion Coach IA + Analyse de vente)
+      periodFilter: 'all'     // 'today', 'week', 'month', 'all', 'custom'
     };
   });
   const [showFilters, setShowFilters] = useState(false);
