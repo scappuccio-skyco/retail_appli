@@ -693,11 +693,9 @@ export default function PerformanceModal({
                         <div 
                           key={index} 
                           onClick={() => {
-                            if (onEditKPI) {
-                              onEditKPI(entry);
-                            } else {
-                              alert('Modification KPI non disponible');
-                            }
+                            // Charger les données dans le formulaire de saisie
+                            setEditingEntry(entry);
+                            setActiveTab('saisie');
                           }}
                           className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
                         >
