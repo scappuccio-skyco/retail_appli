@@ -1335,10 +1335,12 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                       </div>
                     </form>
                   </div>
-                  )}
+                </div>
+              )}
 
-                  {/* Objectifs en cours Tab */}
-                  {objectivesSubTab === 'active' && (
+              {/* Objectifs en cours Tab */}
+              {activeTab === 'active_objectives' && (
+                <div className="space-y-6">
                     <div className="bg-white rounded-xl p-6 border-2 border-gray-200">
                       <h3 className="text-xl font-bold text-gray-800 mb-4">📋 Objectifs en cours</h3>
                       
