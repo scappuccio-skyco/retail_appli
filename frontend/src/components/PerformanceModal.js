@@ -241,6 +241,19 @@ export default function PerformanceModal({
                   <span>Historique ({kpiEntries?.length || 0})</span>
                 </div>
               </button>
+              <button
+                onClick={() => setActiveTab('saisie')}
+                className={`px-4 py-2 text-sm font-semibold transition-all rounded-t-lg ${
+                  activeTab === 'saisie'
+                    ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
+                    : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-1.5">
+                  <Edit3 className="w-4 h-4" />
+                  <span>Saisie KPI</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
