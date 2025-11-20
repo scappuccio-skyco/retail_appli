@@ -4568,6 +4568,7 @@ async def create_or_update_manager_kpi(
     if existing:
         # Update existing
         update_data = {
+            "store_id": current_user.get('store_id'),
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
         if manager_kpi_data.ca_journalier is not None:
