@@ -3837,7 +3837,7 @@ Profil de vente :
                 team_indice_vente_avg = team_articles_avg / team_ventes_avg if team_ventes_avg > 0 else None
                 
                 # Build team comparison context
-                team_lines = [f"\nDonnées de référence de l'équipe ({active_sellers} vendeurs actifs) :"]
+                team_lines = [f"\nDonnées de référence de l'équipe ({active_sellers} vendeurs avec données saisies sur cette période) :"]
                 
                 if kpi_config.get('track_ca') and team_ca_avg > 0:
                     ecart_ca = ((total_ca - team_ca_avg) / team_ca_avg * 100) if team_ca_avg > 0 else 0
