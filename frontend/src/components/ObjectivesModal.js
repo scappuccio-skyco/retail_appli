@@ -440,10 +440,45 @@ export default function ObjectivesModal({
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs font-semibold text-gray-500 mb-1">🎯 KPI</p>
-                              <p className="text-gray-800 capitalize">{challenge.kpi_name || challenge.challenge_type || 'N/A'}</p>
+                              <p className="text-xs font-semibold text-gray-500 mb-1">🎯 Type</p>
+                              {challenge.challenge_type === 'kpi_standard' && (
+                                <p className="text-gray-800 capitalize">
+                                  {challenge.kpi_name === 'ca' ? '💰 Chiffre d\'affaires' :
+                                   challenge.kpi_name === 'ventes' ? '🛍️ Nombre de ventes' :
+                                   challenge.kpi_name === 'articles' ? '📦 Nombre d\'articles' :
+                                   challenge.kpi_name || 'N/A'}
+                                </p>
+                              )}
+                              {challenge.challenge_type === 'product_focus' && (
+                                <p className="text-gray-800">📦 Focus Produit</p>
+                              )}
+                              {challenge.challenge_type === 'custom' && (
+                                <p className="text-gray-800">✨ Personnalisé</p>
+                              )}
                             </div>
                           </div>
+                          
+                          {/* Afficher les détails du produit pour product_focus */}
+                          {challenge.challenge_type === 'product_focus' && challenge.product_name && (
+                            <div className="pt-2 border-t border-gray-200">
+                              <p className="text-xs font-semibold text-gray-500 mb-1">📦 Produit ciblé</p>
+                              <p className="text-gray-800 font-semibold">{challenge.product_name}</p>
+                              {challenge.target_value && (
+                                <p className="text-xs text-gray-600 mt-1">
+                                  Objectif : {challenge.target_value} {challenge.unit || ''}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Afficher la description pour custom */}
+                          {challenge.challenge_type === 'custom' && challenge.custom_description && (
+                            <div className="pt-2 border-t border-gray-200">
+                              <p className="text-xs font-semibold text-gray-500 mb-1">✨ Description</p>
+                              <p className="text-xs text-gray-700">{challenge.custom_description}</p>
+                            </div>
+                          )}
+                        </div>
                           
                           {/* Progression actuelle pour kpi_standard */}
                           {challenge.challenge_type === 'kpi_standard' && challenge.target_value && (
