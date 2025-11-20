@@ -3816,12 +3816,21 @@ Profil de vente :
                 seller_totals[sid]['ventes'] += entry.get('nb_ventes', 0)
                 seller_totals[sid]['articles'] += entry.get('nb_articles', 0)
             
-            # Calculate team averages
-            active_sellers = len(seller_totals)
-            if active_sellers > 1:  # Only compare if there are other sellers
-                team_ca_avg = sum(s['ca'] for s in seller_totals.values()) / active_sellers
-                team_ventes_avg = sum(s['ventes'] for s in seller_totals.values()) / active_sellers
-                team_articles_avg = sum(s['articles'] for s in seller_totals.values()) / active_sellers
+            # Filter out sellers with no real data (all zeros or very low values)
+            # Only include sellers who have actually entered meaningful data
+            active_sellers_data = []
+            for sid, totals in seller_totals.items():
+                # Consider a seller as "active with data" if they have any significant values
+                # CA > 0 OR ventes > 0 OR articles > 0
+                if totals['ca'] > 0 or totals['ventes'] > 0 or totals['articles'] > 0:
+                    active_sellers_data.append(totals)
+            
+            # Calculate team averages ONLY from sellers with real data
+            active_sellers = len(active_sellers_data)
+            if active_sellers > 1:  # Only compare if there are other sellers with data
+                team_ca_avg = sum(s['ca'] for s in active_sellers_data) / active_sellers
+                team_ventes_avg = sum(s['ventes'] for s in active_sellers_data) / active_sellers
+                team_articles_avg = sum(s['articles'] for s in active_sellers_data) / active_sellers
                 
                 # Calculate team derived KPIs
                 team_panier_moyen_avg = team_ca_avg / team_ventes_avg if team_ventes_avg > 0 else None
