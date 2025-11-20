@@ -1662,7 +1662,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                                         objective.status === 'achieved'
                                           ? 'bg-green-600 text-white'
-                                          : 'bg-red-600 text-white'
+                                          : 'bg-white sm:bg-red-600 text-red-700 sm:text-white border-2 border-red-600'
                                       }`}>
                                         {objective.status === 'achieved' ? '✅' : '❌'} <span className="hidden sm:inline">{objective.status === 'achieved' ? 'Atteint' : 'Non atteint'}</span>
                                       </span>
