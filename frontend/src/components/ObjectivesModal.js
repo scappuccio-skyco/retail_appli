@@ -146,17 +146,9 @@ export default function ObjectivesModal({
         <div className="flex-1 overflow-y-auto">
           {activeTab === 'objectifs' && (
             <div>
-              {/* Bandeau coloré "Mes Objectifs" */}
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-6 mb-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold">🎯 Mes Objectifs</h3>
-                  {activeObjectives.length > 0 && (
-                    <span className="text-sm text-purple-100">
-                      {activeObjectives.length} objectif{activeObjectives.length > 1 ? 's' : ''} actif{activeObjectives.length > 1 ? 's' : ''}
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-purple-100 mt-2">Suivez vos objectifs et progressez vers vos cibles</p>
+              {/* Bandeau fin "Mes Objectifs" */}
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3">
+                <p className="text-sm">Suivez vos objectifs et progressez vers vos cibles</p>
               </div>
 
               {/* Contenu avec padding */}
