@@ -2296,8 +2296,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                             key={challenge.id}
                             className="bg-gray-50 rounded-lg p-4 border-2 border-gray-200 hover:border-[#ffd871] transition-all"
                           >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
+                            <div>
+                              <div>
                                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
                                   <h4 className="font-bold text-gray-800 text-base sm:text-lg">
                                     🏆 {challenge.title}
