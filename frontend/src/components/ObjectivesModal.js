@@ -616,10 +616,11 @@ export default function ObjectivesModal({
                                   </div>
                                 )}
                                 
-                                <div className="flex gap-2 mt-3">
+                                <div className="flex gap-1.5 mt-3">
                                   <button
                                     onClick={() => handleUpdateChallengeProgress(challenge.id, challenge.challenge_type)}
-                                    className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold text-sm"
+                                    className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all font-semibold text-sm"
+                                    title="Valider"
                                   >
                                     ✅ Valider
                                   </button>
@@ -629,7 +630,8 @@ export default function ObjectivesModal({
                                       setChallengeProgress({ ca: 0, ventes: 0, clients: 0 });
                                       setChallengeCurrentValue('');
                                     }}
-                                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all text-sm"
+                                    className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all text-sm flex-shrink-0"
+                                    title="Annuler"
                                   >
                                     ❌
                                   </button>
