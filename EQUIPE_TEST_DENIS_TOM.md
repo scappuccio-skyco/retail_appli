@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://retail-dashboard-39.preview.emergentagent.com
+https://seller-dashboard-pro.preview.emergentagent.com
 
 ### Manager
 ```
