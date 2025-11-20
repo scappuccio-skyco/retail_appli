@@ -741,9 +741,14 @@ export default function PerformanceModal({
                   <div className="flex gap-3 pt-4">
                     <button
                       type="submit"
-                      className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white font-semibold rounded-lg hover:from-orange-700 hover:to-amber-700 transition-all shadow-md hover:shadow-lg"
+                      disabled={savingKPI}
+                      className={`flex-1 px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white font-semibold rounded-lg transition-all shadow-md hover:shadow-lg ${
+                        savingKPI 
+                          ? 'opacity-50 cursor-not-allowed' 
+                          : 'hover:from-orange-700 hover:to-amber-700'
+                      }`}
                     >
-                      💾 Enregistrer mes chiffres
+                      {savingKPI ? '⏳ Enregistrement...' : '💾 Enregistrer mes chiffres'}
                     </button>
                     <button
                       type="button"
