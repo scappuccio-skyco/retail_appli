@@ -711,12 +711,9 @@ export default function PerformanceModal({
                         >
                           <div className="flex justify-between items-center mb-2">
                             <span className="font-semibold text-gray-800">{formatDate(entry.date)}</span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-gray-500">
-                                il y a {diffDays === 0 ? "aujourd'hui" : `${diffDays} jour${diffDays > 1 ? 's' : ''}`}
-                              </span>
-                              <span className="text-xs text-blue-600 font-medium">✏️ Modifier</span>
-                            </div>
+                            <span className="text-xs text-blue-600 font-medium">
+                              ✏️ Cliquer pour modifier
+                            </span>
                           </div>
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             {/* Affichage dynamique selon les données effectivement saisies */}
