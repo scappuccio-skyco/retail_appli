@@ -5378,8 +5378,9 @@ async def update_manager_objectives(
     update_data = objectives_data.model_dump()
     update_data['manager_id'] = current_user['id']
     update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
-    # Preserve current_value from existing objective
+    # Preserve current_value and status from existing objective
     update_data['current_value'] = existing_objectives.get('current_value', 0.0)
+    update_data['status'] = existing_objectives.get('status', 'active')
     
     await db.manager_objectives.update_one(
         {"id": objective_id},
