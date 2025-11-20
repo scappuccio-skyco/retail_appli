@@ -4,6 +4,9 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, L
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { unstable_batchedUpdates } from 'react-dom';
+import axios from 'axios';
+
+const API = process.env.REACT_APP_BACKEND_URL;
 
 export default function PerformanceModal({ 
   isOpen, 
