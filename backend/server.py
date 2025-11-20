@@ -5687,7 +5687,7 @@ async def get_active_seller_objectives(current_user: dict = Depends(get_current_
     objectives = await db.manager_objectives.find(
         {
             "manager_id": manager_id,
-            "period_end": {"$gt": today},  # Only objectives that haven't ended yet (strict >)
+            "period_end": {"$gte": today},  # Include objectives ending today
             "visible": True  # Only visible objectives
         },
         {"_id": 0}
