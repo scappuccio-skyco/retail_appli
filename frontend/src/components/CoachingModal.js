@@ -234,7 +234,7 @@ export default function CoachingModal({
               >
                 <div className="flex items-center justify-center gap-2">
                   <MessageSquare className="w-5 h-5" />
-                  <span>Analyser mes ventes • {debriefs.length}</span>
+                  <span>Analyser mes ventes</span>
                 </div>
               </button>
             </div>
