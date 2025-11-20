@@ -2694,10 +2694,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 </button>
                                 <button
                                   onClick={() => handleDeleteChallenge(challenge.id, challenge.title)}
-                                  className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded transition-all"
+                                  className="bg-white text-red-700 hover:text-white hover:bg-red-600 p-2.5 rounded-lg border-2 border-red-400 transition-all shadow-md"
                                   title="Supprimer"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="w-5 h-5 stroke-[2.5]" />
                                 </button>
                               </div>
                             </div>
