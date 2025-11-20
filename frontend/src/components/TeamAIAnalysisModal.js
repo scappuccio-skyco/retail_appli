@@ -85,9 +85,21 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
         }))
       };
 
+      // Préparer les paramètres de période
+      const requestBody = {
+        team_data: teamContext,
+        period_filter: periodFilter || '30'
+      };
+
+      // Ajouter les dates personnalisées si nécessaire
+      if (periodFilter === 'custom' && customDateRange?.start && customDateRange?.end) {
+        requestBody.start_date = customDateRange.start;
+        requestBody.end_date = customDateRange.end;
+      }
+
       const res = await axios.post(
         `${API}/manager/analyze-team`,
-        { team_data: teamContext },
+        requestBody,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
