@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 class ManagerDashboardTester:
-    def __init__(self, base_url="https://kpi-tracker-pro.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://retail-dashboard-39.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
