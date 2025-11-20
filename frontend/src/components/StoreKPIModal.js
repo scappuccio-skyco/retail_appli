@@ -128,6 +128,16 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
         const sellersDataResponses = await Promise.all(sellersDataPromises);
         
+        // Fetch manager's KPI data
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - days);
+        
+        const managerKpiRes = await axios.get(
+          `${API}/api/manager/manager-kpi?start_date=${startDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`,
+          { headers: { Authorization: `Bearer ${token}` }}
+        );
+        
         // Aggregate data by date
         const dateMap = {};
         
@@ -153,6 +163,28 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
             });
           }
         });
+        
+        // Add manager's data
+        if (managerKpiRes.data && Array.isArray(managerKpiRes.data)) {
+          managerKpiRes.data.forEach(entry => {
+            if (!dateMap[entry.date]) {
+              dateMap[entry.date] = {
+                date: entry.date,
+                seller_ca: 0,
+                seller_ventes: 0,
+                seller_clients: 0,
+                seller_articles: 0,
+                seller_prospects: 0
+              };
+            }
+            // Add manager's data to the aggregated data
+            dateMap[entry.date].seller_ca += entry.ca_journalier || 0;
+            dateMap[entry.date].seller_ventes += entry.nb_ventes || 0;
+            dateMap[entry.date].seller_clients += entry.nb_clients || 0;
+            dateMap[entry.date].seller_articles += entry.nb_articles || 0;
+            dateMap[entry.date].seller_prospects += entry.nb_prospects || 0;
+          });
+        }
 
         // Convert to array and sort by date
         historicalArray = Object.values(dateMap)
