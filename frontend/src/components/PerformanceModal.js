@@ -643,6 +643,17 @@ export default function PerformanceModal({
                 </p>
               </div>
 
+              {/* Message de feedback */}
+              {saveMessage && (
+                <div className={`mb-4 p-4 rounded-lg border-2 ${
+                  saveMessage.type === 'success' 
+                    ? 'bg-green-50 border-green-400 text-green-800' 
+                    : 'bg-red-50 border-red-400 text-red-800'
+                }`}>
+                  <p className="font-semibold">{saveMessage.text}</p>
+                </div>
+              )}
+
               {/* Formulaire de saisie */}
               <div className="bg-white rounded-xl p-6 border-2 border-gray-200 shadow-sm">
                 <form onSubmit={(e) => {
@@ -655,9 +666,8 @@ export default function PerformanceModal({
                     nb_prospects: parseInt(formData.get('nb_prospects')) || 0
                   };
                   
-                  if (onEditKPI) {
-                    onEditKPI(data);
-                  }
+                  // Sauvegarde directe sans ouvrir de modal
+                  handleDirectSaveKPI(data);
                 }} className="space-y-6">
                   {/* Sélecteur de date */}
                   <div>
