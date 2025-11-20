@@ -1084,7 +1084,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center text-white px-4">
                   <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
-                    <Award className="w-8 h-8" />
+                    <Sparkles className="w-8 h-8" />
                   </div>
                   <h2 className="text-2xl font-bold">🤖 Mon coach IA</h2>
                   <p className="text-sm mt-2 opacity-90">Créer mes défis & Analyser mes ventes →</p>
