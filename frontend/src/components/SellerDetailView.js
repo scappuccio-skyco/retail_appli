@@ -566,9 +566,11 @@ export default function SellerDetailView({ seller, onBack }) {
                         : kpiFilter === '30j'
                         ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
                         : kpiEntries;
-                      return filteredEntries.length > 0
-                        ? (filteredEntries.reduce((sum, e) => sum + (e.panier_moyen || 0), 0) / filteredEntries.length).toFixed(2)
-                        : 0;
+                      const totalCA = filteredEntries.reduce((sum, e) => sum + (e.ca_journalier || 0), 0);
+                      const totalVentes = filteredEntries.reduce((sum, e) => sum + (e.nb_ventes || 0), 0);
+                      return totalVentes > 0
+                        ? (totalCA / totalVentes).toFixed(2)
+                        : '0.00';
                     })()}€
                   </p>
                 </div>
