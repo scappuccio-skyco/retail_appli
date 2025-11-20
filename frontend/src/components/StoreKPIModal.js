@@ -547,27 +547,32 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               {overviewData ? (
                 <div className="space-y-4">
                   {/* Summary cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 border border-orange-200">
-                      <div className="text-xs text-orange-700 font-semibold mb-0.5">👥 Vendeurs</div>
-                      <div className="text-2xl font-bold text-orange-900">
-                        {overviewData.sellers_reported} / {overviewData.total_sellers}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
+                      <div className="text-xs text-purple-700 font-semibold mb-0.5">💰 CA Réalisé</div>
+                      <div className="text-2xl font-bold text-purple-900">
+                        {overviewData.totals?.ca !== null 
+                          ? `${overviewData.totals.ca.toFixed(2)} €`
+                          : '0 €'
+                        }
                       </div>
-                      <div className="text-xs text-[#F97316] mt-0.5">ont saisi leurs KPIs</div>
+                      <div className="text-xs text-purple-600 mt-0.5">
+                        {overviewData.sellers_reported} / {overviewData.total_sellers} vendeurs
+                      </div>
                     </div>
 
                     <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
-                      <div className="text-xs text-green-700 font-semibold mb-0.5">💰 Panier Moyen</div>
+                      <div className="text-xs text-green-700 font-semibold mb-0.5">🛍️ Nombre de Ventes</div>
                       <div className="text-2xl font-bold text-green-900">
-                        {overviewData.calculated_kpis?.panier_moyen !== null 
-                          ? `${overviewData.calculated_kpis.panier_moyen} €`
-                          : 'N/A'
+                        {overviewData.totals?.ventes !== null 
+                          ? overviewData.totals.ventes
+                          : '0'
                         }
                       </div>
                       <div className="text-xs text-[#10B981] mt-0.5">
                         {overviewData.calculated_kpis?.panier_moyen !== null 
-                          ? 'CA / Ventes'
-                          : 'Données manquantes'
+                          ? `PM: ${overviewData.calculated_kpis.panier_moyen} €`
+                          : 'Panier Moyen: N/A'
                         }
                       </div>
                     </div>
