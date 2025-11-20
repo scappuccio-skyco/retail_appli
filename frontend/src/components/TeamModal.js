@@ -945,10 +945,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                               </div>
                             </div>
                           </td>
-                          <td className="px-3 sm:px-4 py-3 text-center text-gray-700 font-medium text-xs sm:text-sm">{formatNumber(seller.monthlyCA)} €</td>
-                          <td className="px-2 sm:px-4 py-3 text-center text-gray-700 text-xs sm:text-sm">{formatNumber(seller.monthlyVentes)}</td>
-                          <td className="px-3 sm:px-4 py-3 text-center text-gray-700 text-xs sm:text-sm">{formatNumber(seller.panierMoyen)} €</td>
-                          <td className="px-1 sm:px-4 py-3 text-center text-xs sm:text-sm">
+                          <td className="px-4 sm:px-4 py-3 text-center text-gray-700 font-medium text-xs whitespace-nowrap">{formatNumber(seller.monthlyCA)} €</td>
+                          <td className="px-3 sm:px-4 py-3 text-center text-gray-700 text-xs whitespace-nowrap">{formatNumber(seller.monthlyVentes)}</td>
+                          <td className="px-4 sm:px-4 py-3 text-center text-gray-700 text-xs whitespace-nowrap">{formatNumber(seller.panierMoyen)} €</td>
+                          <td className="px-0 sm:px-4 py-3 text-center text-xs">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
                               (seller.niveau === 'Maître du Jeu' || seller.niveau === 'Expert') ? 'bg-red-100 text-red-800' :
                               (seller.niveau === 'Ambassadeur' || seller.niveau === 'Confirmé') ? 'bg-orange-100 text-orange-800' :
