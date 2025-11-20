@@ -1185,8 +1185,8 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                 {!isUpdatingCharts && (
                 <>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-gray-800">📊 Comparaison des Performances</h3>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-3">
+                    <h3 className="text-base sm:text-lg font-bold text-gray-800">📊 Comparaison des Performances</h3>
                     
                     {/* Metric Filters */}
                     <div className="flex gap-2">
@@ -1225,7 +1225,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
 
                   {/* Seller Filters */}
                   <div className="flex items-start gap-2">
-                    <span className="text-sm text-gray-600 font-medium mt-1.5">Vendeurs :</span>
+                    <span className="text-xs sm:text-sm text-gray-600 font-medium mt-1.5">Vendeurs :</span>
                     <div className="flex flex-wrap gap-2">
                       {teamData
                         .filter(seller => 
