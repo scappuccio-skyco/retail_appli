@@ -883,7 +883,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                   const validOrder = sectionOrder.filter(id => availableSections.includes(id) && id !== 'profile');
                   
                   // Add any missing sections at the end
-                  const missingSection = availableSections.filter(id => !validOrder.includes(id));
+                  const missingSections = availableSections.filter(id => !validOrder.includes(id));
                   const finalOrder = [...validOrder, ...missingSections];
                   
                   return finalOrder.map((sectionId, index) => {
