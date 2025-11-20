@@ -1289,7 +1289,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       {showPerformanceModal && (
         <PerformanceModal
           isOpen={showPerformanceModal}
-          onClose={() => setShowPerformanceModal(false)}
+          onClose={() => {
+            setShowPerformanceModal(false);
+            setInitialTab('bilan');
+          }}
           bilanData={bilanIndividuel}
           kpiEntries={kpiEntries}
           user={user}
@@ -1302,6 +1305,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           onDataUpdate={fetchData}
           onRegenerate={regenerateBilan}
           generatingBilan={generatingBilan}
+          initialTab={initialTab}
           onEditKPI={(entry) => {
             setEditingKPI(entry);
             setShowKPIModal(true);
