@@ -666,10 +666,12 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
               {/* Period Filter */}
               {!showArchivedSellers && (
               <div className="flex items-center justify-between mb-4">
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 w-full">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-gray-700">📅 Période :</span>
-                    <div className="flex gap-2">
+                    <span className="text-sm font-semibold text-gray-700">
+                      📅 <span className="hidden md:inline">Période :</span>
+                    </span>
+                    <div className="flex flex-wrap gap-2">
                       {[
                         { value: '7', label: '7 jours' },
                         { value: '30', label: '30 jours' },
