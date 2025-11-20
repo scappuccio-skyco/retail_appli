@@ -219,17 +219,33 @@ export default function ObjectivesModal({
                           </div>
                         </div>
                         
+                        {/* Informations détaillées */}
+                        <div className="bg-white rounded-lg p-3 mb-3 space-y-2">
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <p className="text-xs font-semibold text-gray-500 mb-1">📅 Période</p>
+                              <p className="text-gray-800">
+                                {new Date(objective.period_start).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })} - {new Date(objective.period_end).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-gray-500 mb-1">🎯 KPI</p>
+                              <p className="text-gray-800 capitalize">{objective.kpi_name || 'N/A'}</p>
+                            </div>
+                          </div>
+                        </div>
+                        
                         {/* Barre de progression */}
-                        {objective.target && (
+                        {objective.target_value && (
                           <div className="mt-3">
                             <div className="flex justify-between text-xs text-gray-600 mb-1">
                               <span>Progression</span>
-                              <span>{objective.current || 0} / {objective.target}</span>
+                              <span className="font-semibold">{objective.current_value || 0} / {objective.target_value} {objective.unit || ''}</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
                               <div 
                                 className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all"
-                                style={{ width: `${Math.min(((objective.current || 0) / objective.target) * 100, 100)}%` }}
+                                style={{ width: `${Math.min(((objective.current_value || 0) / objective.target_value) * 100, 100)}%` }}
                               ></div>
                             </div>
                           </div>
