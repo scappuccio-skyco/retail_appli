@@ -1567,6 +1567,8 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
       {showAIAnalysisModal && (
         <TeamAIAnalysisModal
           teamData={teamData}
+          periodFilter={periodFilter}
+          customDateRange={customDateRange}
           onClose={() => setShowAIAnalysisModal(false)}
         />
       )}
