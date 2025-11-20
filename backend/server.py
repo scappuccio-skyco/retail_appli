@@ -5580,7 +5580,7 @@ async def get_active_seller_challenges(current_user: dict = Depends(get_current_
         {
             "manager_id": manager_id,
             "status": "active",
-            "end_date": {"$gt": today},  # Only challenges that haven't ended yet (strict >)
+            "end_date": {"$gte": today},  # Include challenges ending today
             "visible": True  # Only visible challenges
         },
         {"_id": 0}
