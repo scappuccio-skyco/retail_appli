@@ -945,10 +945,10 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                               </div>
                             </div>
                           </td>
-                          <td className="px-2 sm:px-4 py-3 text-right text-gray-700 font-medium">{formatNumber(seller.monthlyCA)} €</td>
-                          <td className="px-1 sm:px-4 py-3 text-right text-gray-700">{formatNumber(seller.monthlyVentes)}</td>
-                          <td className="px-1 sm:px-4 py-3 text-right text-gray-700">{formatNumber(seller.panierMoyen)} €</td>
-                          <td className="px-2 sm:px-4 py-3 text-center">
+                          <td className="px-2 sm:px-4 py-3 text-right text-gray-700 font-medium text-xs sm:text-sm">{formatNumber(seller.monthlyCA)} €</td>
+                          <td className="px-2 sm:px-4 py-3 text-right text-gray-700 text-xs sm:text-sm">{formatNumber(seller.monthlyVentes)}</td>
+                          <td className="px-2 sm:px-4 py-3 text-right text-gray-700 text-xs sm:text-sm">{formatNumber(seller.panierMoyen)} €</td>
+                          <td className="px-1 sm:px-4 py-3 text-center text-xs sm:text-sm">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
                               (seller.niveau === 'Maître du Jeu' || seller.niveau === 'Expert') ? 'bg-red-100 text-red-800' :
                               (seller.niveau === 'Ambassadeur' || seller.niveau === 'Confirmé') ? 'bg-orange-100 text-orange-800' :
