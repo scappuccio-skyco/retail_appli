@@ -685,9 +685,9 @@ export default function PerformanceModal({
                   <div className="flex gap-3 pt-4">
                     <button
                       type="submit"
-                      className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                      className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white font-semibold rounded-lg hover:from-orange-700 hover:to-amber-700 transition-all shadow-md hover:shadow-lg"
                     >
-                      💾 Enregistrer mes données
+                      💾 Enregistrer mes chiffres
                     </button>
                     <button
                       type="button"
@@ -701,14 +701,14 @@ export default function PerformanceModal({
               </div>
 
               {/* Aide et conseils */}
-              <div className="mt-6 bg-amber-50 rounded-lg p-4 border-l-4 border-amber-400">
+              <div className="mt-6 bg-orange-50 rounded-lg p-4 border-l-4 border-orange-400">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <Sparkles className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-semibold text-amber-900 mb-1">💡 Conseil</p>
-                    <p className="text-sm text-amber-800">
-                      Remplissez vos données quotidiennement pour un suivi précis de vos performances. 
-                      Vous pouvez modifier vos saisies depuis l'onglet "Historique" en cliquant sur une entrée.
+                    <p className="text-sm font-semibold text-orange-900 mb-1">💡 Astuce</p>
+                    <p className="text-sm text-orange-800">
+                      Saisissez vos chiffres chaque jour pour suivre vos progrès ! 
+                      Pour corriger une saisie, allez dans l'onglet "Historique" et cliquez sur la journée à modifier.
                     </p>
                   </div>
                 </div>
