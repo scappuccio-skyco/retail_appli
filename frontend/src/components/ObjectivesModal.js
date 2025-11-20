@@ -8,9 +8,19 @@ const API = process.env.REACT_APP_BACKEND_URL || '';
 export default function ObjectivesModal({ 
   isOpen, 
   onClose,
-  activeObjectives = [],
-  activeChallenges = []
+  activeObjectives: initialObjectives = [],
+  activeChallenges: initialChallenges = [],
+  onUpdate
 }) {
+  // Local state for objectives and challenges
+  const [activeObjectives, setActiveObjectives] = useState(initialObjectives);
+  const [activeChallenges, setActiveChallenges] = useState(initialChallenges);
+  
+  // Update local state when props change
+  useEffect(() => {
+    setActiveObjectives(initialObjectives);
+    setActiveChallenges(initialChallenges);
+  }, [initialObjectives, initialChallenges]);
   const [activeTab, setActiveTab] = useState('objectifs'); // 'objectifs', 'challenges', or 'historique'
   const [updatingObjectiveId, setUpdatingObjectiveId] = useState(null);
   const [objectiveProgressValue, setObjectiveProgressValue] = useState('');
