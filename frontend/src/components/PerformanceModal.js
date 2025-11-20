@@ -841,6 +841,7 @@ export default function PerformanceModal({
                           name="ca_journalier"
                           step="0.01"
                           min="0"
+                          defaultValue={editingEntry?.ca_journalier || ''}
                           placeholder="Ex: 1250.50"
                           className="w-full px-4 py-2 border-2 border-orange-300 rounded-lg focus:border-orange-500 focus:outline-none"
                         />
@@ -857,6 +858,7 @@ export default function PerformanceModal({
                           type="number"
                           name="nb_ventes"
                           min="0"
+                          defaultValue={editingEntry?.nb_ventes || ''}
                           placeholder="Ex: 15"
                           className="w-full px-4 py-2 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none"
                         />
@@ -873,6 +875,7 @@ export default function PerformanceModal({
                           type="number"
                           name="nb_prospects"
                           min="0"
+                          defaultValue={editingEntry?.nb_prospects || ''}
                           placeholder="Ex: 30"
                           className="w-full px-4 py-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none"
                         />
