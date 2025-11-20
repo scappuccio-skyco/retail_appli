@@ -745,8 +745,12 @@ export default function ManagerDashboard({ user, onLogout }) {
                 Retail Performer AI
               </h1>
               <p className="text-gray-600">
-                Manager Dashboard - Bienvenue, {user.name}
-                {storeName && <span className="ml-2 text-[#1E40AF] font-semibold">• 🏢 {storeName}</span>}
+                Bienvenue,<br />{user.name}
+                {storeName && (
+                  <span className="inline-flex items-center gap-1 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap">
+                    • 🏢 {storeName}
+                  </span>
+                )}
               </p>
             </div>
           </div>
