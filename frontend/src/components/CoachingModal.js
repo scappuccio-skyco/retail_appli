@@ -221,7 +221,7 @@ export default function CoachingModal({
               >
                 <div className="flex items-center justify-center gap-2">
                   <Award className="w-5 h-5" />
-                  <span>Mon Coach IA</span>
+                  <span>Mon défi du jour</span>
                 </div>
               </button>
               <button
@@ -234,7 +234,7 @@ export default function CoachingModal({
               >
                 <div className="flex items-center justify-center gap-2">
                   <MessageSquare className="w-5 h-5" />
-                  <span>Analyse de vente • {debriefs.length}</span>
+                  <span>Analyser mes ventes • {debriefs.length}</span>
                 </div>
               </button>
             </div>
