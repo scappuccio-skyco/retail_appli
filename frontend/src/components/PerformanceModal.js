@@ -31,6 +31,49 @@ export default function PerformanceModal({
   const [savingKPI, setSavingKPI] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
 
+  // Fonction pour sauvegarder directement les KPI sans ouvrir de modal
+  const handleDirectSaveKPI = async (data) => {
+    setSavingKPI(true);
+    setSaveMessage(null);
+    
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Non authentifié');
+      }
+
+      // Envoyer les données à l'API
+      await axios.post(
+        `${API}/seller/kpi-entry`,
+        data,
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+
+      // Afficher le message de succès
+      setSaveMessage({ type: 'success', text: '✅ Vos chiffres ont été enregistrés avec succès !' });
+      
+      // Rafraîchir les données
+      if (onDataUpdate) {
+        await onDataUpdate();
+      }
+      
+      // Basculer vers l'onglet historique après 1 seconde
+      setTimeout(() => {
+        setActiveTab('kpi');
+        setSaveMessage(null);
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      setSaveMessage({ 
+        type: 'error', 
+        text: '❌ Erreur lors de la sauvegarde. Veuillez réessayer.' 
+      });
+    } finally {
+      setSavingKPI(false);
+    }
+  };
+
   // Fonction pour calculer le numéro de semaine ISO
   const getWeekNumber = (date) => {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
