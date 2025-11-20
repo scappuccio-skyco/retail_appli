@@ -1774,7 +1774,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                               <div className="w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold cursor-help hover:bg-blue-600 transition-all">
                                 ?
                               </div>
-                              <div className="invisible group-hover:visible absolute left-0 top-7 z-10 w-80 p-3 bg-blue-600 text-white text-sm rounded-lg shadow-2xl border-2 border-blue-400">
+                              <div className="invisible group-hover:visible absolute left-0 sm:left-auto sm:right-0 top-7 z-10 w-72 sm:w-80 p-3 bg-blue-600 text-white text-sm rounded-lg shadow-2xl border-2 border-blue-400">
                                 <div className="font-semibold mb-2">🎯 Différence entre les types :</div>
                                 <div className="space-y-2">
                                   <div><strong>🏆 Collectif :</strong> Toute l'équipe travaille ensemble vers l'objectif commun</div>
