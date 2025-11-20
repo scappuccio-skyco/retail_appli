@@ -33,6 +33,7 @@ export default function PerformanceModal({
 
   // Fonction pour sauvegarder directement les KPI sans ouvrir de modal
   const handleDirectSaveKPI = async (data) => {
+    console.log('🚀 handleDirectSaveKPI appelé avec:', data);
     setSavingKPI(true);
     setSaveMessage(null);
     
@@ -42,12 +43,16 @@ export default function PerformanceModal({
         throw new Error('Non authentifié');
       }
 
+      console.log('📤 Envoi des données à l\'API:', `${API}/api/seller/kpi-entry`);
+      
       // Envoyer les données à l'API
-      await axios.post(
-        `${API}/seller/kpi-entry`,
+      const response = await axios.post(
+        `${API}/api/seller/kpi-entry`,
         data,
         { headers: { Authorization: `Bearer ${token}` }}
       );
+
+      console.log('✅ Réponse API:', response.data);
 
       // Afficher le message de succès
       setSaveMessage({ type: 'success', text: '✅ Vos chiffres ont été enregistrés avec succès !' });
@@ -64,10 +69,11 @@ export default function PerformanceModal({
       }, 1500);
       
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
+      console.error('❌ Erreur complète:', error);
+      console.error('❌ Réponse erreur:', error.response?.data);
       setSaveMessage({ 
         type: 'error', 
-        text: '❌ Erreur lors de la sauvegarde. Veuillez réessayer.' 
+        text: `❌ Erreur: ${error.response?.data?.detail || error.message || 'Veuillez réessayer.'}` 
       });
     } finally {
       setSavingKPI(false);
