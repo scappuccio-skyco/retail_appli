@@ -873,20 +873,13 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                   <table className="w-full text-xs">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-2 sm:px-4 py-3 text-left font-semibold text-gray-700">Vendeur</th>
-                        <th className="px-2 sm:px-4 py-3 text-right font-semibold text-gray-700">
-                          <span className="hidden sm:inline">CA {periodFilter === '7' ? '7j' : periodFilter === '30' ? '30j' : periodFilter === '90' ? '3m' : periodFilter === 'custom' ? 'Période' : 'An'}</span>
-                          <span className="sm:hidden">CA</span>
+                        <th className="px-2 sm:px-4 py-3 text-left font-semibold text-gray-700 text-xs sm:text-sm">Vendeur</th>
+                        <th className="px-2 sm:px-4 py-3 text-right font-semibold text-gray-700 text-xs sm:text-sm">
+                          CA {periodFilter === '7' ? '7j' : periodFilter === '30' ? '30j' : periodFilter === '90' ? '3m' : periodFilter === 'custom' ? 'Période' : 'An'}
                         </th>
-                        <th className="px-1 sm:px-4 py-3 text-right font-semibold text-gray-700">
-                          <span className="hidden sm:inline">Ventes</span>
-                          <span className="sm:hidden">Vte</span>
-                        </th>
-                        <th className="px-1 sm:px-4 py-3 text-right font-semibold text-gray-700">
-                          <span className="hidden sm:inline">Panier Moy.</span>
-                          <span className="sm:hidden">PM</span>
-                        </th>
-                        <th className="px-2 sm:px-4 py-3 text-center font-semibold text-gray-700">
+                        <th className="px-2 sm:px-4 py-3 text-right font-semibold text-gray-700 text-xs sm:text-sm">Ventes</th>
+                        <th className="px-2 sm:px-4 py-3 text-right font-semibold text-gray-700 text-xs sm:text-sm">PM</th>
+                        <th className="px-1 sm:px-4 py-3 text-center font-semibold text-gray-700 text-xs sm:text-sm">
                           <div className="flex items-center justify-center gap-1">
                             <span>Niveau</span>
                             <div className="relative">
