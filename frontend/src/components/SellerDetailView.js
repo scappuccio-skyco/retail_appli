@@ -725,7 +725,7 @@ export default function SellerDetailView({ seller, onBack }) {
                           : kpiEntries;
                         return filteredEntries.map(e => ({
                           date: new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-                          PanierMoyen: e.panier_moyen || 0
+                          PanierMoyen: (e.nb_ventes > 0) ? (e.ca_journalier / e.nb_ventes) : 0
                         }));
                       })()}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
