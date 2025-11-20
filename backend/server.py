@@ -4642,6 +4642,31 @@ async def analyze_team(
         start_date = request_data.get("start_date")
         end_date = request_data.get("end_date")
         
+        # Calculer la période d'analyse
+        from datetime import timedelta
+        today = datetime.now(timezone.utc)
+        
+        if period_filter == 'custom' and start_date and end_date:
+            period_start = start_date
+            period_end = end_date
+            period_label = f"du {start_date} au {end_date}"
+        elif period_filter == 'all':
+            period_start = (today - timedelta(days=365)).strftime('%Y-%m-%d')
+            period_end = today.strftime('%Y-%m-%d')
+            period_label = "sur l'année"
+        elif period_filter == '90':
+            period_start = (today - timedelta(days=90)).strftime('%Y-%m-%d')
+            period_end = today.strftime('%Y-%m-%d')
+            period_label = "sur 3 mois"
+        elif period_filter == '7':
+            period_start = (today - timedelta(days=7)).strftime('%Y-%m-%d')
+            period_end = today.strftime('%Y-%m-%d')
+            period_label = "sur 7 jours"
+        else:  # default '30'
+            period_start = (today - timedelta(days=30)).strftime('%Y-%m-%d')
+            period_end = today.strftime('%Y-%m-%d')
+            period_label = "sur 30 jours"
+        
         # Build context with team data
         sellers_summary = []
         for seller in team_data.get('sellers_details', []):
@@ -4655,6 +4680,8 @@ async def analyze_team(
 Tu es un expert en management retail et coaching d'équipe. Analyse cette équipe de boutique physique et fournis des recommandations managériales pour MOTIVER et DÉVELOPPER l'équipe.
 
 CONTEXTE : Boutique physique avec flux naturel de clients. Focus sur performance commerciale ET dynamique d'équipe.
+
+PÉRIODE D'ANALYSE : {period_label}
 
 ÉQUIPE :
 - Taille : {team_data.get('total_sellers', 0)} vendeurs
