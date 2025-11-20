@@ -33,6 +33,9 @@ export default function CoachingModal({
   const [stats, setStats] = useState(null);
   const [expandedDebriefs, setExpandedDebriefs] = useState({});
   const [selectedCompetence, setSelectedCompetence] = useState(null);
+  
+  // Filter state for historique
+  const [historyFilter, setHistoryFilter] = useState('all'); // 'all', 'conclue', 'manquee'
 
   useEffect(() => {
     if (isOpen && activeTab === 'coach') {
