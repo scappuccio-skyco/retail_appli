@@ -510,7 +510,7 @@ export default function SellerDetailView({ seller, onBack }) {
           {kpiEntries.length > 0 ? (
             <>
               {/* KPI Cards - Only show configured KPIs */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
                 {kpiConfig && kpiConfig.track_ca && (
                 <div className="bg-blue-50 rounded-xl p-4">
                   <p className="text-sm text-blue-600 mb-2">💰 CA Total</p>
