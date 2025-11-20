@@ -738,7 +738,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center md:justify-start w-full md:w-auto">
             <button
               onClick={() => diagnostic ? setShowProfileModal(true) : setShowDiagnosticFormModal(true)}
               className="flex items-center gap-2 px-6 py-2.5 bg-white border-2 border-pink-500 text-pink-600 font-semibold rounded-xl hover:bg-pink-50 hover:shadow-md transition-all"
