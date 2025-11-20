@@ -6042,8 +6042,9 @@ async def update_challenge(
     update_data = challenge_data.model_dump()
     update_data['manager_id'] = current_user['id']
     update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
-    # Preserve current_value from existing challenge
+    # Preserve current_value and status from existing challenge
     update_data['current_value'] = existing_challenge.get('current_value', 0.0)
+    update_data['status'] = existing_challenge.get('status', 'active')
     
     await db.challenges.update_one(
         {"id": challenge_id},
