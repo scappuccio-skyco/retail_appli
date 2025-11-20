@@ -1343,16 +1343,24 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                       </div>
                     </form>
                   </div>
+                  )}
 
-                  {/* Objectives List */}
-                  <div className="bg-white rounded-xl p-6 border-2 border-gray-200">
-                    <h3 className="text-xl font-bold text-gray-800 mb-4">📋 Liste des Objectifs</h3>
-                    
-                    {objectives.length === 0 ? (
-                      <p className="text-center text-gray-500 py-8">Aucun objectif créé pour le moment</p>
-                    ) : (
-                      <div className="space-y-3">
-                        {objectives.map((objective) => (
+                  {/* Objectifs en cours Tab */}
+                  {objectivesSubTab === 'active' && (
+                    <div className="bg-white rounded-xl p-6 border-2 border-gray-200">
+                      <h3 className="text-xl font-bold text-gray-800 mb-4">📋 Objectifs en cours</h3>
+                      
+                      {(() => {
+                        const today = new Date().toISOString().split('T')[0];
+                        const activeObjectives = objectives.filter(obj => {
+                          return obj.period_end >= today && obj.status !== 'achieved';
+                        });
+                        
+                        return activeObjectives.length === 0 ? (
+                          <p className="text-center text-gray-500 py-8">Aucun objectif en cours</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {activeObjectives.map((objective) => (
                           <div
                             key={objective.id}
                             className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200 hover:border-purple-400 transition-all"
