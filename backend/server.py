@@ -6105,6 +6105,14 @@ async def update_challenge_progress(
         elif current_user['role'] != 'manager' or current_user['id'] != challenge['manager_id']:
             raise HTTPException(status_code=403, detail="Only authorized sellers or the manager can update this challenge's progress")
     
+    # Create progress entry for history
+    progress_entry = {
+        'value': progress_data.current_value,
+        'date': datetime.now(timezone.utc).isoformat(),
+        'updated_by': current_user['id'],
+        'updated_by_name': current_user.get('name', 'Unknown')
+    }
+    
     # Update the progress
     update_data = {
         'current_value': progress_data.current_value,
@@ -6120,9 +6128,13 @@ async def update_challenge_progress(
     else:
         update_data['status'] = 'active'
     
+    # Update challenge and add to progress history
     await db.challenges.update_one(
         {"id": challenge_id},
-        {"$set": update_data}
+        {
+            "$set": update_data,
+            "$push": {"progress_history": progress_entry}
+        }
     )
     
     # Get updated challenge
