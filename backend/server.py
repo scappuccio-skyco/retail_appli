@@ -2117,7 +2117,8 @@ async def get_seller_stats(seller_id: str, current_user: dict = Depends(get_curr
     return {
         "seller": seller,
         "evaluations": evals,
-        "avg_radar_scores": avg_radar
+        "avg_radar_scores": avg_radar,
+        "diagnostic": {"level": diagnostic.get('level')} if diagnostic else None
     }
 
 @api_router.get("/manager/seller/{seller_id}/diagnostic")
