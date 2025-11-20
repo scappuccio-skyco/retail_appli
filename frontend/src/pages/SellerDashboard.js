@@ -975,7 +975,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         {/* Profile & Bilan - Visual Cards */}
             {/* Profile Card - Visual */}
           {/* Mes Performances Card (Mon Bilan + Mes KPI) */}
-          {(dashboardFilters.showBilan || dashboardFilters.showKPI) && (
+          {dashboardFilters.showPerformances && (
             <div 
               onClick={() => setShowPerformanceModal(true)}
               className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
