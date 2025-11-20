@@ -1399,8 +1399,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                             key={objective.id}
                             className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200 hover:border-purple-400 transition-all"
                           >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
+                            <div>
+                              <div>
                                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
                                   <h4 className="font-bold text-gray-800 text-base sm:text-lg">
                                     🎯 {objective.title}
