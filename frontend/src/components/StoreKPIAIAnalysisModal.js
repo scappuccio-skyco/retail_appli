@@ -203,12 +203,11 @@ export default function StoreKPIAIAnalysisModal({
                   </div>
                 ));
               })()}
-            </div>
 
-              <div className="flex justify-center gap-3">
+              <div className="flex justify-center gap-3 mt-4">
                 <button
                   onClick={handleGenerateAnalysis}
-                  className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-lg hover:shadow-lg transition-all"
+                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg hover:shadow-lg transition-all"
                 >
                   🔄 Régénérer l'analyse
                 </button>
@@ -219,6 +218,7 @@ export default function StoreKPIAIAnalysisModal({
                   Fermer
                 </button>
               </div>
+            </div>
             </div>
           )}
         </div>
