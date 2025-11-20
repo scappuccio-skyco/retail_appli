@@ -1,6 +1,6 @@
 import React, { useState, useEffect, startTransition } from 'react';
 import axios from 'axios';
-import { X, Users, TrendingUp, Target, Award, AlertCircle, Info, PauseCircle, PlayCircle, Trash2, Archive } from 'lucide-react';
+import { X, Users, TrendingUp, Target, Award, AlertCircle, Info, PauseCircle, PlayCircle, Trash2, Archive, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import TeamAIAnalysisModal from './TeamAIAnalysisModal';
 import ConfirmActionModal from './ConfirmActionModal';
