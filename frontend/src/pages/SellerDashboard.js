@@ -1035,7 +1035,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         )}
 
         {/* Coaching & Analyse Card (Fusion Coach IA + Analyse de vente) */}
-        {(dashboardFilters.showCompetences || dashboardFilters.showDebriefs) && (
+        {dashboardFilters.showCoaching && (
           <div 
             onClick={() => setShowCoachingModal(true)}
             className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-purple-400"
