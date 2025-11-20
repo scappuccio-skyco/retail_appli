@@ -2351,14 +2351,84 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 {challenge.description && (
                                   <p className="text-sm text-gray-600 mb-2">{challenge.description}</p>
                                 )}
-                                <div className="flex flex-wrap gap-3 text-sm text-gray-600 mb-3">
-                                  {challenge.ca_target && <span>💰 CA: {challenge.ca_target.toLocaleString('fr-FR')}€</span>}
-                                  {challenge.ventes_target && <span>📈 Ventes: {challenge.ventes_target}</span>}
-                                  {challenge.clients_target && <span>👥 Clients: {challenge.clients_target}</span>}
-                                  {challenge.articles_target && <span>📦 Articles: {challenge.articles_target}</span>}
-                                  {challenge.panier_moyen_target && <span>🛒 Panier Moyen: {challenge.panier_moyen_target.toLocaleString('fr-FR')}€</span>}
-                                  {challenge.indice_vente_target && <span>💎 Indice: {challenge.indice_vente_target}</span>}
-                                  {challenge.taux_transformation_target && <span>📊 Taux: {challenge.taux_transformation_target}%</span>}
+                                
+                                {/* Display challenge details based on type */}
+                                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-3 mb-3">
+                                  {/* KPI Standard challenges */}
+                                  {challenge.challenge_type === 'kpi_standard' && (
+                                    <div>
+                                      <span className="text-sm font-semibold text-blue-700 block mb-2">
+                                        📊 KPI: {
+                                          challenge.kpi_name === 'ca' ? '💰 Chiffre d\'affaires' :
+                                          challenge.kpi_name === 'ventes' ? '🛍️ Nombre de ventes' :
+                                          challenge.kpi_name === 'articles' ? '📦 Nombre d\'articles' :
+                                          challenge.kpi_name
+                                        }
+                                      </span>
+                                      {challenge.target_value && (
+                                        <div className="text-sm">
+                                          <span className="text-gray-700">Objectif : </span>
+                                          <span className="font-bold text-blue-700">{challenge.target_value.toLocaleString('fr-FR')} {challenge.unit || ''}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {/* Product Focus challenges */}
+                                  {challenge.challenge_type === 'product_focus' && (
+                                    <div>
+                                      <span className="text-sm font-semibold text-green-700 block mb-2">📦 Focus Produit</span>
+                                      <div className="bg-white rounded px-3 py-2">
+                                        <p className="text-xs text-gray-600">Produit ciblé :</p>
+                                        <p className="text-sm font-bold text-gray-800">{challenge.product_name}</p>
+                                        {challenge.target_value && (
+                                          <p className="text-xs text-gray-600 mt-1">
+                                            Objectif : <span className="font-semibold text-green-700">{challenge.target_value.toLocaleString('fr-FR')} {challenge.unit || ''}</span>
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Custom challenges */}
+                                  {challenge.challenge_type === 'custom' && (
+                                    <div>
+                                      <span className="text-sm font-semibold text-purple-700 block mb-2">✨ Challenge personnalisé</span>
+                                      {challenge.custom_description && (
+                                        <p className="text-xs text-gray-600">{challenge.custom_description}</p>
+                                      )}
+                                      {challenge.target_value && (
+                                        <div className="text-sm mt-2">
+                                          <span className="text-gray-700">Objectif : </span>
+                                          <span className="font-bold text-purple-700">{challenge.target_value.toLocaleString('fr-FR')} {challenge.unit || ''}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {/* Old format challenges (with multiple targets) */}
+                                  {!challenge.challenge_type && (
+                                    <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                                      {challenge.ca_target && <span>💰 CA: {challenge.ca_target.toLocaleString('fr-FR')}€</span>}
+                                      {challenge.ventes_target && <span>📈 Ventes: {challenge.ventes_target}</span>}
+                                      {challenge.clients_target && <span>👥 Clients: {challenge.clients_target}</span>}
+                                      {challenge.articles_target && <span>📦 Articles: {challenge.articles_target}</span>}
+                                      {challenge.panier_moyen_target && <span>🛒 Panier Moyen: {challenge.panier_moyen_target.toLocaleString('fr-FR')}€</span>}
+                                      {challenge.indice_vente_target && <span>💎 Indice: {challenge.indice_vente_target}</span>}
+                                      {challenge.taux_transformation_target && <span>📊 Taux: {challenge.taux_transformation_target}%</span>}
+                                    </div>
+                                  )}
+                                  
+                                  {/* Responsible indicator */}
+                                  <div className="mt-2 pt-2 border-t border-gray-200">
+                                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                                      challenge.data_entry_responsible === 'seller' 
+                                        ? 'bg-cyan-500 text-white' 
+                                        : 'bg-orange-500 text-white'
+                                    }`}>
+                                      {challenge.data_entry_responsible === 'seller' ? '🧑‍💼 Saisie Vendeur' : '👨‍💼 Saisie Manager'}
+                                    </span>
+                                  </div>
                                 </div>
                                 
                                 {/* Barres de progression par KPI */}
