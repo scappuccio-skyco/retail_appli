@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://team-tracker-140.preview.emergentagent.com
+https://kpi-tracker-pro.preview.emergentagent.com
 
 ### Manager
 ```
