@@ -521,7 +521,16 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                     type="date"
                     value={overviewDate}
                     onChange={(e) => setOverviewDate(e.target.value)}
-                    className="px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                    onClick={(e) => {
+                      try {
+                        if (typeof e.target.showPicker === 'function') {
+                          e.target.showPicker();
+                        }
+                      } catch (error) {
+                        console.log('showPicker not supported');
+                      }
+                    }}
+                    className="px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer"
                   />
                 </div>
                 
