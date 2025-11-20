@@ -102,6 +102,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showKPIHistoryModal, setShowKPIHistoryModal] = useState(false);
   const [selectedKpiEntry, setSelectedKpiEntry] = useState(null);
   const [editingKPI, setEditingKPI] = useState(null);
+  const [initialTab, setInitialTab] = useState('bilan');
   const [showKPIReporting, setShowKPIReporting] = useState(false);
   const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
