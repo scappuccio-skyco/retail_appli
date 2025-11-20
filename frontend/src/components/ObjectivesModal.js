@@ -192,8 +192,7 @@ export default function ObjectivesModal({
             >
               <div className="flex items-center justify-center gap-1">
                 <Target className="w-4 h-4" />
-                <span className="hidden sm:inline">Objectifs ({activeObjectives.length})</span>
-                <span className="sm:hidden">Obj. ({activeObjectives.length})</span>
+                <span>Objectifs ({activeObjectives.length})</span>
               </div>
             </button>
             <button
@@ -206,8 +205,7 @@ export default function ObjectivesModal({
             >
               <div className="flex items-center justify-center gap-1">
                 <Trophy className="w-4 h-4" />
-                <span className="hidden sm:inline">Challenges ({activeChallenges.length})</span>
-                <span className="sm:hidden">Chal. ({activeChallenges.length})</span>
+                <span>Challenges ({activeChallenges.length})</span>
               </div>
             </button>
             <button
