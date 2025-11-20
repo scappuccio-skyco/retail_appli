@@ -2127,10 +2127,14 @@ async def get_seller_diagnostic(seller_id: str, current_user: dict = Depends(get
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can access this")
     
-    # Verify seller belongs to manager
-    seller = await db.users.find_one({"id": seller_id, "manager_id": current_user['id']}, {"_id": 0})
+    # Verify seller belongs to manager's store
+    seller = await db.users.find_one({
+        "id": seller_id,
+        "store_id": current_user.get('store_id'),
+        "role": "seller"
+    }, {"_id": 0})
     if not seller:
-        raise HTTPException(status_code=404, detail="Seller not found")
+        raise HTTPException(status_code=404, detail="Seller not found in your store")
     
     # Get diagnostic (include level and style for team table display)
     diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0, "seller_id": 1, "level": 1, "style": 1, "created_at": 1})
