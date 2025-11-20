@@ -569,13 +569,13 @@ export default function PerformanceModal({
           {/* Onglet Saisie KPI */}
           {activeTab === 'saisie' && (
             <div className="px-6 py-6">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 mb-6">
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6 border-2 border-orange-200 mb-6">
                 <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-                  <Edit3 className="w-5 h-5 text-blue-600" />
-                  Saisir mes données quotidiennes
+                  <Edit3 className="w-5 h-5 text-orange-600" />
+                  Saisir mes chiffres du jour
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Remplissez vos KPI du jour. Vous pourrez les modifier à tout moment depuis l'onglet "Historique".
+                  Renseignez vos données quotidiennes. Vous pourrez les corriger à tout moment depuis l'onglet "Historique".
                 </p>
               </div>
 
