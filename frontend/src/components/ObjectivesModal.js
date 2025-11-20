@@ -478,7 +478,6 @@ export default function ObjectivesModal({
                               <p className="text-xs text-gray-700">{challenge.custom_description}</p>
                             </div>
                           )}
-                        </div>
                           
                           {/* Progression actuelle pour kpi_standard */}
                           {challenge.challenge_type === 'kpi_standard' && challenge.target_value && (
