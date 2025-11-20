@@ -153,8 +153,8 @@ export default function ObjectivesModal({
       setChallengeProgress({ ca: 0, ventes: 0, clients: 0 });
       setChallengeCurrentValue('');
       
-      // Rafraîchir la page pour voir les changements
-      window.location.reload();
+      // Rafraîchir les données sans recharger la page
+      await refreshActiveData();
     } catch (error) {
       console.error('Error updating challenge progress:', error);
       toast.error('Erreur lors de la mise à jour');
