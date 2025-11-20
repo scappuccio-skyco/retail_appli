@@ -45,6 +45,13 @@ export default function PerformanceModal({
   const [pendingKPIData, setPendingKPIData] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
 
+  // Synchroniser l'onglet actif avec initialTab quand il change
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
   // Fonction pour calculer les moyennes des KPI historiques
   const calculateAverages = () => {
     if (!kpiEntries || kpiEntries.length === 0) return null;
