@@ -250,45 +250,47 @@ export default function PerformanceModal({
           {activeTab === 'bilan' && (
             <div>
               {/* Boutons d'action avec navigation semaines */}
-              <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b">
-                <div className="flex gap-2">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-4 py-3 bg-gray-50 border-b">
+                <div className="flex flex-wrap gap-2">
                   {onRegenerate && (
                     <button
                       onClick={onRegenerate}
                       disabled={generatingBilan}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+                      className="px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
                     >
                       <TrendingUp className={`w-4 h-4 ${generatingBilan ? 'animate-spin' : ''}`} />
-                      {generatingBilan ? 'Génération...' : (bilanData?.synthese ? 'Regénérer le bilan' : 'Générer votre bilan')}
+                      <span className="hidden sm:inline">{generatingBilan ? 'Génération...' : (bilanData?.synthese ? 'Regénérer' : 'Générer')}</span>
+                      <span className="sm:hidden">{generatingBilan ? '...' : '🔄'}</span>
                     </button>
                   )}
                   <button
                     onClick={exportToPDF}
                     disabled={exportingPDF}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+                    className="px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition flex items-center gap-2 disabled:opacity-50"
                   >
                     <Download className={`w-4 h-4 ${exportingPDF ? 'animate-bounce' : ''}`} />
-                    {exportingPDF ? 'Export...' : 'Exporter PDF'}
+                    <span className="hidden sm:inline">{exportingPDF ? 'Export...' : 'Exporter PDF'}</span>
+                    <span className="sm:hidden">PDF</span>
                   </button>
                 </div>
                 
-                {/* Navigation semaines - déplacée à droite */}
+                {/* Navigation semaines - responsive */}
                 {onWeekChange && (
-                  <div className="flex items-center gap-2 bg-gray-200 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-1 bg-gray-200 rounded-lg px-2 py-2 w-full md:w-auto justify-center">
                     <button
                       onClick={() => onWeekChange(currentWeekOffset - 1)}
-                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition"
+                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition flex-shrink-0"
                       title="Semaine précédente"
                     >
                       <ChevronLeft className="w-4 h-4 text-white" />
                     </button>
-                    <span className="text-xs font-semibold text-gray-700 px-2 min-w-[180px] text-center">
-                      {bilanData?.periode || (currentWeekOffset === 0 ? 'Semaine actuelle' : 'Semaines')}
+                    <span className="text-xs font-semibold text-gray-700 px-1 min-w-0 text-center flex-1 truncate">
+                      {bilanData?.periode || (currentWeekOffset === 0 ? 'Sem. actuelle' : 'Semaines')}
                     </span>
                     <button
                       onClick={() => onWeekChange(currentWeekOffset + 1)}
                       disabled={currentWeekOffset === 0}
-                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded transition disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
                       title="Semaine suivante"
                     >
                       <ChevronRight className="w-4 h-4 text-white" />
