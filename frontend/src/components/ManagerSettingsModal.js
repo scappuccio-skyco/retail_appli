@@ -1569,6 +1569,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 <button
                                   onClick={() => {
                                     setEditingObjective(objective);
+                                    // Basculer vers l'onglet "Nouvel objectif"
+                                    setActiveTab('create_objective');
                                     // Scroll vers le formulaire d'objectif
                                     setTimeout(() => {
                                       const objectiveSection = document.querySelector('#objective-form-section');
