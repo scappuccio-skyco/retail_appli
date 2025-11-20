@@ -4638,6 +4638,9 @@ async def analyze_team(
         load_dotenv()
         
         team_data = request_data.get("team_data", {})
+        period_filter = request_data.get("period_filter", "30")
+        start_date = request_data.get("start_date")
+        end_date = request_data.get("end_date")
         
         # Build context with team data
         sellers_summary = []
