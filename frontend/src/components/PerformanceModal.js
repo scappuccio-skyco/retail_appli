@@ -33,6 +33,7 @@ export default function PerformanceModal({
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warnings, setWarnings] = useState([]);
   const [pendingKPIData, setPendingKPIData] = useState(null);
+  const [editingEntry, setEditingEntry] = useState(null);
 
   // Fonction pour calculer les moyennes des KPI historiques
   const calculateAverages = () => {
