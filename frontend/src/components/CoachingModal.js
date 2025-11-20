@@ -198,7 +198,7 @@ export default function CoachingModal({
           {/* Header */}
           <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-white">🎯 Coaching & Analyse</h2>
+              <h2 className="text-2xl font-bold text-white">🤖 Mon coach IA</h2>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
