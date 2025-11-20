@@ -869,15 +869,24 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
                 Réorganiser l'ordre des cartes
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
-                {sectionOrder.filter(id => id !== 'profile').map((sectionId, index) => {
+                {(() => {
                   const sectionNames = {
                     performances: '📈 Mes Performances',
                     objectives: '🎯 Objectifs & Challenges',
                     coaching: '🤖 Mon coach IA'
                   };
                   
-                  // Skip if section doesn't exist
-                  if (!sectionNames[sectionId]) return null;
+                  // Get all available sections
+                  const availableSections = Object.keys(sectionNames);
+                  
+                  // Filter sectionOrder to only include valid sections
+                  const validOrder = sectionOrder.filter(id => availableSections.includes(id) && id !== 'profile');
+                  
+                  // Add any missing sections at the end
+                  const missingSection = availableSections.filter(id => !validOrder.includes(id));
+                  const finalOrder = [...validOrder, ...missingSections];
+                  
+                  return finalOrder.map((sectionId, index) => {
                   
                   return (
                     <div key={sectionId} className="inline-flex items-center gap-2 bg-white rounded-lg px-3 py-2 border-2 border-gray-200 hover:border-purple-300 transition-all shadow-sm">
