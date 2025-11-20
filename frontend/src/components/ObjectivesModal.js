@@ -66,6 +66,31 @@ export default function ObjectivesModal({
     }
   };
   
+  const refreshActiveData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Fetch active objectives
+      const objRes = await axios.get(`${API}/api/seller/objectives/active`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setActiveObjectives(objRes.data);
+      
+      // Fetch active challenges
+      const challRes = await axios.get(`${API}/api/seller/challenges/active`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setActiveChallenges(challRes.data);
+      
+      // Also call parent's onUpdate if provided
+      if (onUpdate) {
+        onUpdate();
+      }
+    } catch (err) {
+      console.error('Error refreshing data:', err);
+    }
+  };
+  
   const handleUpdateProgress = async (objectiveId) => {
     try {
       const value = parseFloat(objectiveProgressValue);
