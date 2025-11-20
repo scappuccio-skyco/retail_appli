@@ -675,7 +675,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                   className="px-3 py-1.5 text-sm bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-all disabled:opacity-50 flex items-center gap-2"
                 >
                   <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
-                  Actualiser
+                  <span className="hidden sm:inline">Actualiser</span>
                 </button>
               </div>
 
