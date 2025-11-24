@@ -14,7 +14,7 @@ const StoreCard = ({ store, stats, badge, onClick }) => {
         </div>
         {/* Badge de performance */}
         {badge && (
-          <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold shadow-lg bg-${badge.color}-500 text-white`}>
+          <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold shadow-lg ${badge.bgClass} text-white`}>
             {badge.icon} {badge.label}
           </div>
         )}
