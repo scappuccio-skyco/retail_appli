@@ -483,21 +483,25 @@ const GerantDashboard = ({ user, onLogout }) => {
               <p className="text-gray-600 mb-4">Aucun magasin pour le moment</p>
               <button
                 onClick={() => setShowCreateStoreModal(true)}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
               >
                 Créer votre premier magasin
               </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {stores.map((store) => (
-                <StoreCard
-                  key={store.id}
-                  store={store}
-                  stats={storesStats[store.id]}
-                  onClick={() => handleStoreClick(store)}
-                />
-              ))}
+              {stores.map((store) => {
+                const badge = getPerformanceBadge(store);
+                return (
+                  <StoreCard
+                    key={store.id}
+                    store={store}
+                    stats={storesStats[store.id]}
+                    badge={badge}
+                    onClick={() => handleStoreClick(store)}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
