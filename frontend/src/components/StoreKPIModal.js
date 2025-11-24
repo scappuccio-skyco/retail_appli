@@ -731,22 +731,13 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                                   {entry.seller_name || `Vendeur ${idx + 1}`}
                                 </td>
                                 <td className="px-4 py-1.5 text-center text-gray-700 whitespace-nowrap">
-                                  {overviewData.kpi_config?.seller_track_ca 
-                                    ? `${entry.ca_journalier?.toFixed(2) || 0} €`
-                                    : <span className="text-gray-400 italic">N/A</span>
-                                  }
+                                  {entry.ca_journalier?.toFixed(2) || '0.00'} €
                                 </td>
                                 <td className="px-3 py-1.5 text-center text-gray-700 whitespace-nowrap">
-                                  {overviewData.kpi_config?.seller_track_ventes 
-                                    ? (entry.nb_ventes || 0)
-                                    : <span className="text-gray-400 italic">N/A</span>
-                                  }
+                                  {entry.nb_ventes || 0}
                                 </td>
                                 <td className="px-3 py-1.5 text-center text-gray-700 whitespace-nowrap">
-                                  {overviewData.kpi_config?.seller_track_articles 
-                                    ? (entry.nb_articles || 0)
-                                    : <span className="text-gray-400 italic">N/A</span>
-                                  }
+                                  {entry.nb_articles || 0}
                                 </td>
                               </tr>
                             ))}
