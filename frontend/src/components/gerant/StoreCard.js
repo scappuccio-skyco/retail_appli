@@ -6,12 +6,12 @@ const StoreCard = ({ store, stats, badge, sparklineData, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
+      className="glass-morphism rounded-xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
     >
-      <div className="relative h-32 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 overflow-hidden">
+      <div className="relative h-24 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <Building2 className="w-16 h-16 text-white opacity-80" />
+          <Building2 className="w-12 h-12 text-white opacity-80" />
         </div>
         {/* Badge de performance */}
         {badge && (
