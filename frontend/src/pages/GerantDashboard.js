@@ -279,13 +279,33 @@ const GerantDashboard = ({ user, onLogout }) => {
     
     // Badge basé sur performance relative ET évolution
     if (relativePerformance > 20 || storeData.weekEvolution > 15) {
-      return { type: 'excellent', color: 'green', icon: '🔥', label: 'Excellent' };
+      return { 
+        type: 'excellent', 
+        bgClass: 'bg-green-500', 
+        icon: '🔥', 
+        label: 'Excellent' 
+      };
     } else if (relativePerformance > 0 || storeData.weekEvolution > 5) {
-      return { type: 'good', color: 'blue', icon: '👍', label: 'Bon' };
+      return { 
+        type: 'good', 
+        bgClass: 'bg-blue-500', 
+        icon: '👍', 
+        label: 'Bon' 
+      };
     } else if (relativePerformance > -20 && storeData.weekEvolution > -10) {
-      return { type: 'average', color: 'orange', icon: '⚡', label: 'Moyen' };
+      return { 
+        type: 'average', 
+        bgClass: 'bg-orange-500', 
+        icon: '⚡', 
+        label: 'Moyen' 
+      };
     } else {
-      return { type: 'weak', color: 'red', icon: '⚠️', label: 'À améliorer' };
+      return { 
+        type: 'weak', 
+        bgClass: 'bg-red-500', 
+        icon: '⚠️', 
+        label: 'À améliorer' 
+      };
     }
   };
 
