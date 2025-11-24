@@ -9370,14 +9370,6 @@ async def get_store_info(
     
     return store
 
-    return {
-        "store": store,
-        "days": days,
-        "start_date": start_date.strftime('%Y-%m-%d'),
-        "end_date": end_date.strftime('%Y-%m-%d'),
-        "data": historical_data
-    }
-
 
 
 
