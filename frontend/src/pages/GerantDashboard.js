@@ -472,6 +472,55 @@ const GerantDashboard = ({ user, onLogout }) => {
           </div>
         </div>
 
+        {/* Navigation Semaine */}
+        <div className="mb-8">
+          <div className="glass-morphism rounded-xl p-4 border-2 border-blue-200">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setWeekOffset(weekOffset - 1)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all"
+              >
+                <span>◀</span>
+                <span className="hidden sm:inline">Semaine précédente</span>
+              </button>
+              
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-1">📅 Période analysée</p>
+                <p className="text-lg font-bold text-gray-800">
+                  {formatWeekPeriod(weekOffset)}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Semaine {getWeekNumber(getWeekDates(weekOffset).start)}
+                </p>
+              </div>
+              
+              <button
+                onClick={() => setWeekOffset(weekOffset + 1)}
+                disabled={weekOffset >= 0}
+                className={`flex items-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all ${
+                  weekOffset >= 0 
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
+                <span className="hidden sm:inline">Semaine suivante</span>
+                <span>▶</span>
+              </button>
+            </div>
+            
+            {weekOffset !== 0 && (
+              <div className="mt-3 text-center">
+                <button
+                  onClick={() => setWeekOffset(0)}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-semibold underline"
+                >
+                  ↻ Revenir à la semaine actuelle
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Classement des Magasins */}
         {rankedStores.length > 0 && (
           <div className="mb-8">
