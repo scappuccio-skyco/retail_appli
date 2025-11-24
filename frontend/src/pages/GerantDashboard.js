@@ -646,15 +646,15 @@ const GerantDashboard = ({ user, onLogout }) => {
                       <div className="flex items-center gap-4">
                         <div className="text-right">
                           <p className="text-lg font-bold text-gray-800">
-                            {storeData.weekCA.toLocaleString('fr-FR')} €
+                            {storeData.periodCA.toLocaleString('fr-FR')} €
                           </p>
-                          <p className="text-xs text-gray-500">{storeData.weekVentes} ventes</p>
+                          <p className="text-xs text-gray-500">{storeData.periodVentes} ventes</p>
                         </div>
-                        {storeData.weekEvolution !== 0 && (
+                        {storeData.periodEvolution !== 0 && (
                           <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${
-                            storeData.weekEvolution > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                            storeData.periodEvolution > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                           }`}>
-                            {storeData.weekEvolution > 0 ? '↗' : '↘'} {Math.abs(storeData.weekEvolution).toFixed(0)}%
+                            {storeData.periodEvolution > 0 ? '↗' : '↘'} {Math.abs(storeData.periodEvolution).toFixed(0)}%
                           </div>
                         )}
                         {badge && (
