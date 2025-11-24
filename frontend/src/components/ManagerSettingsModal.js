@@ -599,6 +599,19 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
             {modalType === 'objectives' && (
               <>
                 <button
+                  onClick={() => setActiveTab('kpi_config')}
+                  className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg ${
+                    activeTab === 'kpi_config'
+                      ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
+                      : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    <Settings className="w-4 h-4" />
+                    <span>Config KPI</span>
+                  </div>
+                </button>
+                <button
                   onClick={() => setActiveTab('create_objective')}
                   className={`px-2 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg ${
                     activeTab === 'create_objective'
