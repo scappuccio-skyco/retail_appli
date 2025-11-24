@@ -78,7 +78,7 @@ const StoreCard = ({ store, stats, badge, sparklineData, onClick }) => {
         </div>
 
         {/* Period CA */}
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-3 pt-3 border-t border-gray-200">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-gray-600">Dernière semaine complète</span>
             <span className="text-sm font-bold text-orange-600">
