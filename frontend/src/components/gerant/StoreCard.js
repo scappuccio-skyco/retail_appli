@@ -67,34 +67,34 @@ const StoreCard = ({ store, stats, badge, sparklineData, onClick }) => {
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3">
           <div className="flex items-center gap-2 mb-1">
             <TrendingUp className="w-4 h-4 text-green-600" />
-            <span className="text-xs text-gray-600">CA Aujourd'hui</span>
+            <span className="text-xs text-gray-600">CA du Mois</span>
           </div>
           <p className="text-2xl font-bold text-green-600">
-            {stats?.today_ca ? `${stats.today_ca.toLocaleString('fr-FR')} €` : '0 €'}
+            {stats?.month_ca ? `${stats.month_ca.toLocaleString('fr-FR')} €` : '0 €'}
           </p>
           <p className="text-xs text-gray-600 mt-1">
-            {stats?.today_ventes || 0} vente{stats?.today_ventes > 1 ? 's' : ''}
+            {stats?.month_ventes || 0} vente{stats?.month_ventes > 1 ? 's' : ''}
           </p>
         </div>
 
-        {/* Week CA */}
+        {/* Period CA */}
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-gray-600">CA de la semaine</span>
+            <span className="text-xs text-gray-600">Dernière semaine complète</span>
             <span className="text-sm font-bold text-orange-600">
-              {stats?.week_ca ? `${stats.week_ca.toLocaleString('fr-FR')} €` : '0 €'}
+              {stats?.period_ca ? `${stats.period_ca.toLocaleString('fr-FR')} €` : '0 €'}
             </span>
           </div>
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs text-gray-500">
-              {stats?.week_ventes || 0} vente{stats?.week_ventes > 1 ? 's' : ''}
+              {stats?.period_ventes || 0} vente{stats?.period_ventes > 1 ? 's' : ''}
             </p>
-            {stats?.prev_week_ca > 0 && stats?.week_ca !== undefined && (
+            {stats?.prev_period_ca > 0 && stats?.period_ca !== undefined && (
               <div className={`flex items-center gap-1 text-xs font-semibold ${
-                stats.week_ca >= stats.prev_week_ca ? 'text-green-600' : 'text-red-600'
+                stats.period_ca >= stats.prev_period_ca ? 'text-green-600' : 'text-red-600'
               }`}>
-                {stats.week_ca >= stats.prev_week_ca ? '↗' : '↘'}
-                {Math.abs(((stats.week_ca - stats.prev_week_ca) / stats.prev_week_ca) * 100).toFixed(0)}%
+                {stats.period_ca >= stats.prev_period_ca ? '↗' : '↘'}
+                {Math.abs(((stats.period_ca - stats.prev_period_ca) / stats.prev_period_ca) * 100).toFixed(0)}%
               </div>
             )}
           </div>
