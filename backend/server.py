@@ -8547,7 +8547,7 @@ async def get_store_stats(
         {
             "$match": {
                 "store_id": store_id,
-                "date": {"$gte": monday, "$lte": today}
+                "date": {"$gte": monday, "$lte": sunday}
             }
         },
         {
