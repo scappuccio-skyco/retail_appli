@@ -9380,6 +9380,420 @@ async def get_store_info(
 
 
 
+
+# ============================================================================
+# API INTEGRATION SYSTEM
+# ============================================================================
+
+import secrets
+import hashlib
+
+# Pydantic models for API Integration
+class APIKeyCreate(BaseModel):
+    name: str
+    permissions: List[str] = ["write:kpi", "read:stats"]
+    expires_days: Optional[int] = None
+
+class APIKeyResponse(BaseModel):
+    id: str
+    name: str
+    key: str  # Only shown once at creation
+    permissions: List[str]
+    active: bool
+    created_at: str
+    last_used_at: Optional[str]
+    expires_at: Optional[str]
+
+class KPIEntryIntegration(BaseModel):
+    seller_id: Optional[str] = None
+    manager_id: Optional[str] = None
+    ca_journalier: float
+    nb_ventes: int
+    nb_articles: int
+    prospects: Optional[int] = 0
+    timestamp: Optional[str] = None
+
+class KPISyncRequest(BaseModel):
+    store_id: str
+    date: str  # Format: YYYY-MM-DD
+    kpi_entries: List[KPIEntryIntegration]
+    source: str = "external_api"  # Identifier la source
+
+# Generate secure API key
+def generate_api_key() -> str:
+    """Generate a secure API key with prefix"""
+    random_part = secrets.token_urlsafe(32)
+    return f"rp_live_{random_part}"
+
+# Middleware: Verify API Key
+async def verify_api_key_integration(request: Request):
+    """Verify API key from header"""
+    api_key = request.headers.get('X-API-Key') or request.headers.get('Authorization', '').replace('Bearer ', '')
+    
+    if not api_key:
+        raise HTTPException(status_code=401, detail="API Key missing. Include X-API-Key header.")
+    
+    # Find API key in database
+    key_record = await db.api_keys.find_one({
+        "key": api_key,
+        "active": True
+    }, {"_id": 0})
+    
+    if not key_record:
+        raise HTTPException(status_code=401, detail="Invalid or inactive API Key")
+    
+    # Check expiration
+    if key_record.get('expires_at'):
+        expires_at = datetime.fromisoformat(key_record['expires_at'])
+        if datetime.now(timezone.utc) > expires_at:
+            raise HTTPException(status_code=401, detail="API Key expired")
+    
+    # Update last_used_at
+    await db.api_keys.update_one(
+        {"key": api_key},
+        {"$set": {"last_used_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return key_record
+
+# Endpoints: API Keys Management (for authenticated users)
+
+@api_router.post("/manager/api-keys", response_model=APIKeyResponse)
+async def create_api_key(
+    key_data: APIKeyCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new API key for integrations"""
+    if current_user['role'] not in ['manager', 'gerant']:
+        raise HTTPException(status_code=403, detail="Only managers and gerants can create API keys")
+    
+    # Generate unique key
+    api_key = generate_api_key()
+    
+    # Calculate expiration
+    expires_at = None
+    if key_data.expires_days:
+        expires_at = (datetime.now(timezone.utc) + timedelta(days=key_data.expires_days)).isoformat()
+    
+    # Create record
+    key_id = str(uuid.uuid4())
+    key_record = {
+        "id": key_id,
+        "user_id": current_user['id'],
+        "store_id": current_user.get('store_id'),
+        "gerant_id": current_user.get('id') if current_user['role'] == 'gerant' else None,
+        "key": api_key,
+        "name": key_data.name,
+        "permissions": key_data.permissions,
+        "active": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "last_used_at": None,
+        "expires_at": expires_at
+    }
+    
+    await db.api_keys.insert_one(key_record)
+    
+    return APIKeyResponse(
+        id=key_id,
+        name=key_data.name,
+        key=api_key,  # Only shown at creation
+        permissions=key_data.permissions,
+        active=True,
+        created_at=key_record["created_at"],
+        last_used_at=None,
+        expires_at=expires_at
+    )
+
+@api_router.get("/manager/api-keys")
+async def list_api_keys(current_user: dict = Depends(get_current_user)):
+    """List all API keys for current user"""
+    if current_user['role'] not in ['manager', 'gerant']:
+        raise HTTPException(status_code=403, detail="Only managers and gerants can list API keys")
+    
+    # Find keys
+    query = {"user_id": current_user['id']}
+    keys = await db.api_keys.find(query, {"_id": 0, "key": 0}).to_list(100)  # Don't return the actual key
+    
+    return {"api_keys": keys}
+
+@api_router.delete("/manager/api-keys/{key_id}")
+async def delete_api_key(
+    key_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete (deactivate) an API key"""
+    if current_user['role'] not in ['manager', 'gerant']:
+        raise HTTPException(status_code=403, detail="Only managers and gerants can delete API keys")
+    
+    # Verify ownership
+    key = await db.api_keys.find_one({"id": key_id, "user_id": current_user['id']})
+    if not key:
+        raise HTTPException(status_code=404, detail="API key not found")
+    
+    # Deactivate instead of delete (for audit)
+    await db.api_keys.update_one(
+        {"id": key_id},
+        {"$set": {"active": False, "deleted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "API key deactivated successfully"}
+
+@api_router.post("/manager/api-keys/{key_id}/regenerate", response_model=APIKeyResponse)
+async def regenerate_api_key(
+    key_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Regenerate an API key (creates new key, deactivates old)"""
+    if current_user['role'] not in ['manager', 'gerant']:
+        raise HTTPException(status_code=403, detail="Only managers and gerants can regenerate API keys")
+    
+    # Find old key
+    old_key = await db.api_keys.find_one({"id": key_id, "user_id": current_user['id']})
+    if not old_key:
+        raise HTTPException(status_code=404, detail="API key not found")
+    
+    # Deactivate old key
+    await db.api_keys.update_one(
+        {"id": key_id},
+        {"$set": {"active": False, "regenerated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Create new key with same settings
+    new_api_key = generate_api_key()
+    new_key_id = str(uuid.uuid4())
+    
+    new_key_record = {
+        "id": new_key_id,
+        "user_id": current_user['id'],
+        "store_id": old_key.get('store_id'),
+        "gerant_id": old_key.get('gerant_id'),
+        "key": new_api_key,
+        "name": old_key['name'],
+        "permissions": old_key['permissions'],
+        "active": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "last_used_at": None,
+        "expires_at": old_key.get('expires_at'),
+        "previous_key_id": key_id
+    }
+    
+    await db.api_keys.insert_one(new_key_record)
+    
+    return APIKeyResponse(
+        id=new_key_id,
+        name=new_key_record["name"],
+        key=new_api_key,
+        permissions=new_key_record["permissions"],
+        active=True,
+        created_at=new_key_record["created_at"],
+        last_used_at=None,
+        expires_at=new_key_record.get("expires_at")
+    )
+
+# Integration Endpoints (authenticated via API Key)
+
+@api_router.post("/v1/integrations/kpi/sync")
+async def sync_kpi_integration(
+    data: KPISyncRequest,
+    api_key_data: dict = Depends(verify_api_key_integration)
+):
+    """
+    Sync KPI data from external systems (POS, ERP, etc.)
+    Requires API Key authentication via X-API-Key header
+    """
+    # Verify permissions
+    if "write:kpi" not in api_key_data.get('permissions', []):
+        raise HTTPException(status_code=403, detail="Insufficient permissions. Requires 'write:kpi'")
+    
+    # Verify store access
+    store = await db.stores.find_one({"id": data.store_id, "active": True})
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+    
+    # Verify API key has access to this store
+    if api_key_data.get('store_id') and api_key_data['store_id'] != data.store_id:
+        # Check if gerant owns this store
+        if api_key_data.get('gerant_id'):
+            if store.get('gerant_id') != api_key_data['gerant_id']:
+                raise HTTPException(status_code=403, detail="API key does not have access to this store")
+        else:
+            raise HTTPException(status_code=403, detail="API key does not have access to this store")
+    
+    entries_created = 0
+    entries_updated = 0
+    errors = []
+    
+    for entry in data.kpi_entries:
+        try:
+            # Determine if this is for a seller or manager
+            if entry.seller_id:
+                # Verify seller exists and belongs to store
+                seller = await db.users.find_one({
+                    "id": entry.seller_id,
+                    "role": "seller",
+                    "store_id": data.store_id
+                })
+                if not seller:
+                    errors.append(f"Seller {entry.seller_id} not found in store {data.store_id}")
+                    continue
+                
+                # Check if entry already exists
+                existing = await db.kpi_entries.find_one({
+                    "seller_id": entry.seller_id,
+                    "date": data.date,
+                    "source": data.source
+                })
+                
+                if existing:
+                    # Update existing entry
+                    await db.kpi_entries.update_one(
+                        {"seller_id": entry.seller_id, "date": data.date, "source": data.source},
+                        {"$set": {
+                            "ca_journalier": entry.ca_journalier,
+                            "nb_ventes": entry.nb_ventes,
+                            "nb_articles": entry.nb_articles,
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }}
+                    )
+                    entries_updated += 1
+                else:
+                    # Create new entry
+                    kpi_entry = {
+                        "id": str(uuid.uuid4()),
+                        "seller_id": entry.seller_id,
+                        "store_id": data.store_id,
+                        "date": data.date,
+                        "ca_journalier": entry.ca_journalier,
+                        "nb_ventes": entry.nb_ventes,
+                        "nb_articles": entry.nb_articles,
+                        "source": data.source,
+                        "created_at": entry.timestamp or datetime.now(timezone.utc).isoformat()
+                    }
+                    await db.kpi_entries.insert_one(kpi_entry)
+                    entries_created += 1
+                    
+            elif entry.manager_id:
+                # Similar logic for manager KPIs
+                manager = await db.users.find_one({
+                    "id": entry.manager_id,
+                    "role": "manager",
+                    "store_id": data.store_id
+                })
+                if not manager:
+                    errors.append(f"Manager {entry.manager_id} not found in store {data.store_id}")
+                    continue
+                
+                existing = await db.manager_kpis.find_one({
+                    "manager_id": entry.manager_id,
+                    "date": data.date,
+                    "source": data.source
+                })
+                
+                if existing:
+                    await db.manager_kpis.update_one(
+                        {"manager_id": entry.manager_id, "date": data.date, "source": data.source},
+                        {"$set": {
+                            "ca_journalier": entry.ca_journalier,
+                            "nb_ventes": entry.nb_ventes,
+                            "prospects": entry.prospects or 0,
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }}
+                    )
+                    entries_updated += 1
+                else:
+                    manager_kpi = {
+                        "id": str(uuid.uuid4()),
+                        "manager_id": entry.manager_id,
+                        "store_id": data.store_id,
+                        "date": data.date,
+                        "ca_journalier": entry.ca_journalier,
+                        "nb_ventes": entry.nb_ventes,
+                        "prospects": entry.prospects or 0,
+                        "source": data.source,
+                        "created_at": entry.timestamp or datetime.now(timezone.utc).isoformat()
+                    }
+                    await db.manager_kpis.insert_one(manager_kpi)
+                    entries_created += 1
+            else:
+                errors.append("Entry must have either seller_id or manager_id")
+                
+        except Exception as e:
+            errors.append(f"Error processing entry: {str(e)}")
+    
+    return {
+        "status": "success" if entries_created + entries_updated > 0 else "partial_success",
+        "entries_created": entries_created,
+        "entries_updated": entries_updated,
+        "errors": errors if errors else None,
+        "message": f"Synchronized {entries_created + entries_updated} KPI entries"
+    }
+
+@api_router.get("/v1/integrations/stats")
+async def get_integration_stats(
+    store_id: str,
+    start_date: str,
+    end_date: str,
+    api_key_data: dict = Depends(verify_api_key_integration)
+):
+    """
+    Get store statistics for a date range
+    Requires API Key with 'read:stats' permission
+    """
+    # Verify permissions
+    if "read:stats" not in api_key_data.get('permissions', []):
+        raise HTTPException(status_code=403, detail="Insufficient permissions. Requires 'read:stats'")
+    
+    # Verify store access
+    store = await db.stores.find_one({"id": store_id, "active": True}, {"_id": 0})
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+    
+    # Aggregate KPI data
+    pipeline = [
+        {
+            "$match": {
+                "store_id": store_id,
+                "date": {"$gte": start_date, "$lte": end_date}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_ca": {"$sum": "$ca_journalier"},
+                "total_ventes": {"$sum": "$nb_ventes"},
+                "total_articles": {"$sum": "$nb_articles"}
+            }
+        }
+    ]
+    
+    seller_stats = await db.kpi_entries.aggregate(pipeline).to_list(1)
+    manager_stats = await db.manager_kpis.aggregate(pipeline).to_list(1)
+    
+    total_ca = (seller_stats[0].get("total_ca", 0) if seller_stats else 0) + \
+               (manager_stats[0].get("total_ca", 0) if manager_stats else 0)
+    total_ventes = (seller_stats[0].get("total_ventes", 0) if seller_stats else 0) + \
+                   (manager_stats[0].get("total_ventes", 0) if manager_stats else 0)
+    total_articles = (seller_stats[0].get("total_articles", 0) if seller_stats else 0) + \
+                     (manager_stats[0].get("total_articles", 0) if manager_stats else 0)
+    
+    avg_basket = total_ca / total_ventes if total_ventes > 0 else 0
+    
+    return {
+        "store_id": store_id,
+        "store_name": store.get("name"),
+        "period": {
+            "start": start_date,
+            "end": end_date
+        },
+        "metrics": {
+            "total_ca": round(total_ca, 2),
+            "total_ventes": total_ventes,
+            "total_articles": total_articles,
+            "average_basket": round(avg_basket, 2)
+        }
+    }
+
+
 # Include router
 app.include_router(api_router)
 
