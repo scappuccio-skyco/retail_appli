@@ -367,7 +367,7 @@ const GerantDashboard = ({ user, onLogout }) => {
   };
 
   // Classement des magasins par CA
-  const rankedStores = getStorePerformanceData().sort((a, b) => b.weekCA - a.weekCA);
+  const rankedStores = getStorePerformanceData().sort((a, b) => b.periodCA - a.periodCA);
   
   // Calculer les badges de performance
   const getPerformanceBadge = (store) => {
