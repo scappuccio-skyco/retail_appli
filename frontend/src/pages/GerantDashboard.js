@@ -122,6 +122,29 @@ const GerantDashboard = ({ user, onLogout }) => {
     return 0;
   };
 
+  // Fonction pour récupérer les stats des cartes (toujours semaine -1)
+  const fetchStoreCardsData = async (storesList) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Pour les cartes, toujours afficher la dernière semaine complète (week, offset=-1)
+      const storesStatsPromises = storesList.map(store =>
+        fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=week&period_offset=-1`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).then(res => res.json())
+      );
+      
+      const storesStatsArray = await Promise.all(storesStatsPromises);
+      const statsMap = {};
+      storesStatsArray.forEach((stats, index) => {
+        statsMap[storesList[index].id] = stats;
+      });
+      setStoresStats(statsMap);
+    } catch (err) {
+      console.error('Error fetching store cards data:', err);
+    }
+  };
+
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -136,19 +159,10 @@ const GerantDashboard = ({ user, onLogout }) => {
         setGlobalStats(data);
         setStores(data.stores || []);
 
-        // Récupérer les stats détaillées de chaque magasin avec period_type et period_offset
-        const storesStatsPromises = data.stores.map(store =>
-          fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=${periodType}&period_offset=${periodOffset}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }).then(res => res.json())
-        );
-
-        const storesStatsData = await Promise.all(storesStatsPromises);
-        const statsMap = {};
-        storesStatsData.forEach((stats, index) => {
-          statsMap[data.stores[index].id] = stats;
-        });
-        setStoresStats(statsMap);
+        // Pour les cartes, toujours utiliser semaine -1
+        if (data.stores && data.stores.length > 0) {
+          await fetchStoreCardsData(data.stores);
+        }
       }
     } catch (error) {
       console.error('Erreur chargement données:', error);
