@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://data-entry-flow.preview.emergentagent.com
+https://retail-dashboard-40.preview.emergentagent.com
 
 ### Manager
 ```
