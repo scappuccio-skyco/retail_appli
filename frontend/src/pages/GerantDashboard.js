@@ -422,6 +422,32 @@ const GerantDashboard = ({ user, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-orange-50 to-white">
+      {/* CSS pour animation de glissement */}
+      <style>{`
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-slideIn {
+          animation: slideIn 0.5s ease-out;
+        }
+        
+        .ranking-item {
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .ranking-item:hover {
+          transform: translateX(4px);
+        }
+      `}</style>
+      
       {/* Header */}
       <div className="bg-white shadow-md border-b-4 border-orange-500">
         <div className="max-w-7xl mx-auto px-6 py-4">
