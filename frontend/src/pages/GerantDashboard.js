@@ -20,9 +20,9 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [storesStats, setStoresStats] = useState({});
   const [loading, setLoading] = useState(true);
   
-  // Week navigation state
-  // Par défaut, afficher la semaine dernière (complète) car la semaine en cours peut ne pas avoir de données
-  const [weekOffset, setWeekOffset] = useState(-1); // 0 = current week, -1 = last week, etc.
+  // Period selection state
+  const [periodType, setPeriodType] = useState('week'); // 'week', 'month', 'year'
+  const [periodOffset, setPeriodOffset] = useState(-1); // -1 = période dernière complète
 
   // Modal states
   const [showCreateStoreModal, setShowCreateStoreModal] = useState(false);
