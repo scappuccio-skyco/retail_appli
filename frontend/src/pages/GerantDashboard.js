@@ -167,13 +167,13 @@ const GerantDashboard = ({ user, onLogout }) => {
     // eslint-disable-next-line
   }, [user]);
 
-  // Recharger les stats quand weekOffset change
+  // Recharger les stats quand periodType ou periodOffset change
   useEffect(() => {
     if (user && stores.length > 0) {
       fetchDashboardData();
     }
     // eslint-disable-next-line
-  }, [weekOffset]);
+  }, [periodType, periodOffset]);
 
   const fetchSubscriptionInfo = async () => {
     try {
