@@ -455,16 +455,16 @@ const GerantDashboard = ({ user, onLogout }) => {
               </div>
             </div>
 
-            {/* CA Total Aujourd'hui */}
+            {/* CA Cumulé du Mois */}
             <div className="glass-morphism rounded-xl p-6 border-2 border-green-200">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">CA Aujourd'hui</p>
+                  <p className="text-sm text-gray-600">CA du Mois</p>
                   <p className="text-2xl font-bold text-gray-800">
-                    {globalStats?.today_ca ? `${globalStats.today_ca.toLocaleString('fr-FR')} €` : '0 €'}
+                    {globalStats?.month_ca ? `${globalStats.month_ca.toLocaleString('fr-FR')} €` : '0 €'}
                   </p>
                 </div>
               </div>
