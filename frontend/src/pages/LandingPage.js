@@ -395,7 +395,7 @@ export default function LandingPage() {
               </div>
               <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-[#1E40AF]/20">
                 <img 
-                  src="/dashboard-manager.png" 
+                  src="https://customer-assets.emergentagent.com/job_data-entry-flow/artifacts/5z9e54uo_image.png" 
                   alt="Dashboard Manager - Vue d'ensemble KPI"
                   className="w-full h-auto"
                   loading="lazy"
