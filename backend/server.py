@@ -6323,35 +6323,60 @@ async def calculate_objective_progress(objective: dict, manager_id: str):
     objective['progress_panier_moyen'] = panier_moyen
     objective['progress_indice_vente'] = indice_vente
     
-    # Determine status
+    # Determine status based on objective_type
     today = datetime.now(timezone.utc).date().isoformat()
-    if today > end_date:
-        # Period is over - check if objective is met
-        objective_met = True
-        if objective.get('ca_target') and total_ca < objective['ca_target']:
-            objective_met = False
-        if objective.get('panier_moyen_target') and panier_moyen < objective['panier_moyen_target']:
-            objective_met = False
-        if objective.get('indice_vente_target') and indice_vente < objective['indice_vente_target']:
-            objective_met = False
+    
+    # For kpi_standard objectives, compare the relevant KPI with target_value
+    if objective.get('objective_type') == 'kpi_standard' and objective.get('kpi_name'):
+        kpi_name = objective['kpi_name']
+        target = objective.get('target_value', 0)
         
-        objective['status'] = 'achieved' if objective_met else 'failed'
-    else:
-        # Period is ongoing - check if target is already reached
-        objective_met = True
-        if objective.get('ca_target') and total_ca < objective['ca_target']:
-            objective_met = False
-        if objective.get('panier_moyen_target') and panier_moyen < objective['panier_moyen_target']:
-            objective_met = False
-        if objective.get('indice_vente_target') and indice_vente < objective['indice_vente_target']:
-            objective_met = False
+        # Map KPI names to their calculated values
+        current_kpi_value = 0
+        if kpi_name == 'ca':
+            current_kpi_value = total_ca
+        elif kpi_name == 'ventes':
+            current_kpi_value = total_ventes
+        elif kpi_name == 'articles':
+            current_kpi_value = total_articles
+        elif kpi_name == 'panier_moyen':
+            current_kpi_value = panier_moyen
+        elif kpi_name == 'indice_vente':
+            current_kpi_value = indice_vente
         
-        # Only mark as 'achieved' if target is reached AND period is still ongoing
-        # Otherwise keep as 'active' or 'in_progress'
-        if objective_met:
-            objective['status'] = 'achieved'
+        objective_met = current_kpi_value >= target
+        
+        if today > end_date:
+            # Period is over
+            objective['status'] = 'achieved' if objective_met else 'failed'
         else:
-            objective['status'] = 'active' if objective.get('status') == 'active' else 'in_progress'
+            # Period is ongoing
+            objective['status'] = 'achieved' if objective_met else 'active'
+    
+    else:
+        # For other objective types (legacy logic with ca_target, etc.)
+        if today > end_date:
+            # Period is over - check if objective is met
+            objective_met = True
+            if objective.get('ca_target') and total_ca < objective['ca_target']:
+                objective_met = False
+            if objective.get('panier_moyen_target') and panier_moyen < objective['panier_moyen_target']:
+                objective_met = False
+            if objective.get('indice_vente_target') and indice_vente < objective['indice_vente_target']:
+                objective_met = False
+            
+            objective['status'] = 'achieved' if objective_met else 'failed'
+        else:
+            # Period is ongoing - check if already achieved
+            objective_met = True
+            if objective.get('ca_target') and total_ca < objective['ca_target']:
+                objective_met = False
+            if objective.get('panier_moyen_target') and panier_moyen < objective['panier_moyen_target']:
+                objective_met = False
+            if objective.get('indice_vente_target') and indice_vente < objective['indice_vente_target']:
+                objective_met = False
+            
+            objective['status'] = 'achieved' if objective_met else 'in_progress'
     
     # Sauvegarder les valeurs de progression en base de données
     await db.manager_objectives.update_one(
