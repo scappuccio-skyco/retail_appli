@@ -1394,6 +1394,30 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       {Math.min(Math.round(((objective.current_value || 0) / objective.target_value) * 100), 100)}% atteint
                                     </div>
                                   </div>
+
+                                  {/* Informations de dernière mise à jour */}
+                                  {objective.updated_at && (
+                                    <div className="mt-2 text-xs text-gray-500 flex items-center gap-2">
+                                      <span>📅 Dernière mise à jour :</span>
+                                      <span className="font-semibold">
+                                        {new Date(objective.updated_at).toLocaleDateString('fr-FR', {
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                      </span>
+                                      {objective.updated_by_name && (
+                                        <>
+                                          <span>par</span>
+                                          <span className="font-semibold text-blue-600">
+                                            {objective.updated_by_name}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
                                   
                                   {/* Progress Update Button - Only for responsible user */}
                                   {objective.data_entry_responsible === 'manager' && (
