@@ -8607,18 +8607,27 @@ async def get_store_stats(
         }
     ]
     
-    managers_week = await db.manager_kpis.aggregate(managers_week_pipeline).to_list(length=1)
-    managers_week_ca = managers_week[0].get("total_ca", 0) if managers_week else 0
-    managers_week_ventes = managers_week[0].get("total_ventes", 0) if managers_week else 0
+    managers_period = await db.manager_kpis.aggregate(managers_period_pipeline).to_list(length=1)
+    managers_period_ca = managers_period[0].get("total_ca", 0) if managers_period else 0
+    managers_period_ventes = managers_period[0].get("total_ventes", 0) if managers_period else 0
     
-    week_ca = sellers_week_ca + managers_week_ca
-    week_ventes = sellers_week_ventes + managers_week_ventes
+    period_ca = sellers_period_ca + managers_period_ca
+    period_ventes = sellers_period_ventes + managers_period_ventes
     
-    # Calculate previous week CA for evolution
-    prev_monday = target_monday - timedelta(weeks=1)
-    prev_sunday = prev_monday + timedelta(days=6)
-    prev_monday_str = prev_monday.strftime('%Y-%m-%d')
-    prev_sunday_str = prev_sunday.strftime('%Y-%m-%d')
+    # Calculate previous period CA for evolution
+    if period_type == 'week':
+        prev_start_date = target_monday - timedelta(weeks=1)
+        prev_end_date = prev_start_date + timedelta(days=6)
+    elif period_type == 'month':
+        prev_start_date = period_start_date.replace(day=1) - timedelta(days=1)
+        prev_start_date = prev_start_date.replace(day=1)
+        prev_end_date = period_start_date - timedelta(days=1)
+    elif period_type == 'year':
+        prev_start_date = datetime(target_year - 1, 1, 1, tzinfo=timezone.utc)
+        prev_end_date = datetime(target_year - 1, 12, 31, tzinfo=timezone.utc)
+    
+    prev_period_start = prev_start_date.strftime('%Y-%m-%d')
+    prev_period_end = prev_end_date.strftime('%Y-%m-%d')
     
     # Get sellers KPIs for previous week
     sellers_prev_week = await db.kpi_entries.aggregate([
