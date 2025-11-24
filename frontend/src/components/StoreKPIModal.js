@@ -691,29 +691,17 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                         <div className="space-y-1.5">
                           <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                             <span className="text-xs text-gray-600">💰 CA Journalier</span>
-                            {overviewData.kpi_config?.seller_track_ca ? (
-                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.ca_journalier.toFixed(2)} €</span>
-                            ) : (
-                              <span className="text-sm text-gray-400 italic">N/A</span>
-                            )}
+                            <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.ca_journalier?.toFixed(2) || '0.00'} €</span>
                           </div>
                           
                           <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                             <span className="text-xs text-gray-600">🛍️ Ventes</span>
-                            {overviewData.kpi_config?.seller_track_ventes ? (
-                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_ventes}</span>
-                            ) : (
-                              <span className="text-sm text-gray-400 italic">N/A</span>
-                            )}
+                            <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_ventes || 0}</span>
                           </div>
                           
                           <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
                             <span className="text-xs text-gray-600">📦 Articles</span>
-                            {overviewData.kpi_config?.seller_track_articles ? (
-                              <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_articles}</span>
-                            ) : (
-                              <span className="text-sm text-gray-400 italic">N/A</span>
-                            )}
+                            <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_articles || 0}</span>
                           </div>
                         </div>
                       ) : (
