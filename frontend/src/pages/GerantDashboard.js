@@ -378,14 +378,14 @@ const GerantDashboard = ({ user, onLogout }) => {
     }
   };
 
-  // Calculer les performances pour la période sélectionnée
+  // Calculer les performances pour la période sélectionnée (utilise rankingStats)
   const getStorePerformanceData = () => {
     if (!stores || stores.length === 0) return [];
 
     const { start: periodStart, end: periodEnd } = getPeriodDates(periodType, periodOffset);
 
     return stores.map(store => {
-      const stats = storesStats[store.id] || {};
+      const stats = rankingStats[store.id] || {};
       
       const periodCA = stats.period_ca || 0;
       const prevPeriodCA = stats.prev_period_ca || 0;
