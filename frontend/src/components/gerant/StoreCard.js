@@ -15,16 +15,16 @@ const StoreCard = ({ store, stats, badge, sparklineData, onClick }) => {
         </div>
         {/* Badge de performance */}
         {badge && (
-          <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold shadow-lg ${badge.bgClass} text-white`}>
+          <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-bold shadow-lg ${badge.bgClass} text-white`}>
             {badge.icon} {badge.label}
           </div>
         )}
       </div>
 
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-3">
           <div>
-            <h3 className="text-xl font-bold text-gray-800 mb-1">{store.name}</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-1">{store.name}</h3>
             <div className="flex items-center gap-1 text-sm text-gray-600">
               <MapPin className="w-4 h-4" />
               <span>{store.location}</span>
