@@ -4168,10 +4168,8 @@ Réponds UNIQUEMENT avec un objet JSON valide :
 - Professionnel, empathique et constructif
 - Personnalisé (mentionne explicitement les profils manager/vendeur)
 - Orienté solution et action
-- Langage managérial retail
-- Maximum 15 lignes au total
-- Orienté solution et action
-- Langage managérial retail
+- Langage managérial retail clair et accessible
+- Évite les acronymes sans explication (ex: si tu utilises un acronyme, explique-le entre parenthèses)
 - Maximum 15 lignes au total
 """
 
