@@ -207,6 +207,14 @@ const GerantDashboard = ({ user, onLogout }) => {
     // eslint-disable-next-line
   }, [user]);
 
+  // Recharger uniquement les stats du classement quand la période change
+  useEffect(() => {
+    if (user && stores.length > 0) {
+      fetchRankingData(stores);
+    }
+    // eslint-disable-next-line
+  }, [periodType, periodOffset]);
+
   const fetchSubscriptionInfo = async () => {
     try {
       const token = localStorage.getItem('token');
