@@ -8629,12 +8629,12 @@ async def get_store_stats(
     prev_period_start = prev_start_date.strftime('%Y-%m-%d')
     prev_period_end = prev_end_date.strftime('%Y-%m-%d')
     
-    # Get sellers KPIs for previous week
-    sellers_prev_week = await db.kpi_entries.aggregate([
+    # Get sellers KPIs for previous period
+    sellers_prev_period = await db.kpi_entries.aggregate([
         {
             "$match": {
                 "store_id": store_id,
-                "date": {"$gte": prev_monday_str, "$lte": prev_sunday_str}
+                "date": {"$gte": prev_period_start, "$lte": prev_period_end}
             }
         },
         {
@@ -8645,12 +8645,12 @@ async def get_store_stats(
         }
     ]).to_list(length=1)
     
-    # Get managers KPIs for previous week
-    managers_prev_week = await db.manager_kpis.aggregate([
+    # Get managers KPIs for previous period
+    managers_prev_period = await db.manager_kpis.aggregate([
         {
             "$match": {
                 "store_id": store_id,
-                "date": {"$gte": prev_monday_str, "$lte": prev_sunday_str}
+                "date": {"$gte": prev_period_start, "$lte": prev_period_end}
             }
         },
         {
@@ -8661,8 +8661,8 @@ async def get_store_stats(
         }
     ]).to_list(length=1)
     
-    prev_week_ca = (sellers_prev_week[0].get("total_ca", 0) if sellers_prev_week else 0) + \
-                   (managers_prev_week[0].get("total_ca", 0) if managers_prev_week else 0)
+    prev_period_ca = (sellers_prev_period[0].get("total_ca", 0) if sellers_prev_period else 0) + \
+                     (managers_prev_period[0].get("total_ca", 0) if managers_prev_period else 0)
     
     return {
         "store": store,
