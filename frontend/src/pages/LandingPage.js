@@ -432,7 +432,7 @@ export default function LandingPage() {
               </div>
               <div className="md:order-1 rounded-2xl overflow-hidden shadow-2xl border-2 border-[#1E40AF]/20">
                 <img 
-                  src="/dashboard-vendeur.png" 
+                  src="https://customer-assets.emergentagent.com/job_data-entry-flow/artifacts/0z33pd4m_image.png" 
                   alt="Dashboard Vendeur - Mon Bilan Individuel"
                   className="w-full h-auto"
                   loading="lazy"
