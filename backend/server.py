@@ -8569,12 +8569,12 @@ async def get_store_stats(
     else:
         raise HTTPException(status_code=400, detail="Invalid period_type")
     
-    # Get sellers KPIs for the week
-    sellers_week_pipeline = [
+    # Get sellers KPIs for the period
+    sellers_period_pipeline = [
         {
             "$match": {
                 "store_id": store_id,
-                "date": {"$gte": monday, "$lte": sunday}
+                "date": {"$gte": period_start, "$lte": period_end}
             }
         },
         {
