@@ -619,12 +619,24 @@ const GerantDashboard = ({ user, onLogout }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {stores.map((store) => {
                 const badge = getPerformanceBadge(store);
+                const stats = storesStats[store.id];
+                
+                // Générer données sparkline (4 dernières semaines)
+                // Pour le moment, données simulées - à remplacer par vraies données
+                const sparklineData = stats ? [
+                  (stats.week_ca || 0) * 0.7,
+                  (stats.week_ca || 0) * 0.85,
+                  (stats.week_ca || 0) * 0.95,
+                  (stats.week_ca || 0)
+                ] : [];
+                
                 return (
                   <StoreCard
                     key={store.id}
                     store={store}
-                    stats={storesStats[store.id]}
+                    stats={stats}
                     badge={badge}
+                    sparklineData={sparklineData}
                     onClick={() => handleStoreClick(store)}
                   />
                 );
