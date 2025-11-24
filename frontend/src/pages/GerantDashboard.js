@@ -344,10 +344,10 @@ const GerantDashboard = ({ user, onLogout }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Magasins */}
-            <div className="glass-morphism rounded-xl p-6 border-2 border-purple-200">
+            <div className="glass-morphism rounded-xl p-6 border-2 border-orange-200">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-purple-600" />
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-6 h-6 text-orange-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Magasins</p>
@@ -370,10 +370,10 @@ const GerantDashboard = ({ user, onLogout }) => {
             </div>
 
             {/* Total Vendeurs */}
-            <div className="glass-morphism rounded-xl p-6 border-2 border-pink-200">
+            <div className="glass-morphism rounded-xl p-6 border-2 border-indigo-200">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-pink-600" />
+                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-indigo-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Vendeurs</p>
@@ -398,6 +398,59 @@ const GerantDashboard = ({ user, onLogout }) => {
             </div>
           </div>
         </div>
+
+        {/* Classement des Magasins */}
+        {rankedStores.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-orange-600" />
+              🏆 Classement de la Semaine
+            </h2>
+            <div className="glass-morphism rounded-xl p-6 border-2 border-orange-200">
+              <div className="space-y-3">
+                {rankedStores.slice(0, 5).map((storeData, index) => {
+                  const badge = getPerformanceBadge(storeData);
+                  const rankEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                  
+                  return (
+                    <div
+                      key={storeData.id}
+                      className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="text-2xl font-bold w-12 text-center">{rankEmoji}</span>
+                        <div>
+                          <p className="font-bold text-gray-800">{storeData.name}</p>
+                          <p className="text-sm text-gray-600">{storeData.location}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-gray-800">
+                            {storeData.weekCA.toLocaleString('fr-FR')} €
+                          </p>
+                          <p className="text-xs text-gray-500">{storeData.weekVentes} ventes</p>
+                        </div>
+                        {storeData.weekEvolution !== 0 && (
+                          <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${
+                            storeData.weekEvolution > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {storeData.weekEvolution > 0 ? '↗' : '↘'} {Math.abs(storeData.weekEvolution).toFixed(0)}%
+                          </div>
+                        )}
+                        {badge && (
+                          <div className={`px-3 py-1 rounded-full text-xs font-semibold bg-${badge.color}-100 text-${badge.color}-700`}>
+                            {badge.icon} {badge.label}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Mes Magasins */}
         <div className="mb-8">
