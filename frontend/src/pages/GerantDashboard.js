@@ -572,7 +572,9 @@ const GerantDashboard = ({ user, onLogout }) => {
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all"
               >
                 <span>◀</span>
-                <span className="hidden sm:inline">Semaine précédente</span>
+                <span className="hidden sm:inline">
+                  {periodType === 'week' ? 'Semaine' : periodType === 'month' ? 'Mois' : 'Année'} précédent{periodType === 'week' || periodType === 'month' ? 'e' : ''}
+                </span>
               </button>
               
               <div className="text-center">
