@@ -43,33 +43,33 @@ const StoreCard = ({ store, stats, badge, sparklineData, onClick }) => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-3">
-          <div className="bg-blue-50 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <Users className="w-4 h-4 text-blue-600" />
+          <div className="bg-blue-50 rounded-lg p-2">
+            <div className="flex items-center gap-1 mb-1">
+              <Users className="w-3 h-3 text-blue-600" />
               <span className="text-xs text-gray-600">Managers</span>
             </div>
-            <p className="text-2xl font-bold text-blue-600">
+            <p className="text-xl font-bold text-blue-600">
               {stats?.managers_count || 0}
             </p>
           </div>
 
-          <div className="bg-purple-50 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-1">
-              <Users className="w-4 h-4 text-purple-600" />
+          <div className="bg-purple-50 rounded-lg p-2">
+            <div className="flex items-center gap-1 mb-1">
+              <Users className="w-3 h-3 text-purple-600" />
               <span className="text-xs text-gray-600">Vendeurs</span>
             </div>
-            <p className="text-2xl font-bold text-purple-600">
+            <p className="text-xl font-bold text-purple-600">
               {stats?.sellers_count || 0}
             </p>
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3">
-          <div className="flex items-center gap-2 mb-1">
-            <TrendingUp className="w-4 h-4 text-green-600" />
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-2">
+          <div className="flex items-center gap-1 mb-1">
+            <TrendingUp className="w-3 h-3 text-green-600" />
             <span className="text-xs text-gray-600">CA du Mois</span>
           </div>
-          <p className="text-2xl font-bold text-green-600">
+          <p className="text-xl font-bold text-green-600">
             {stats?.month_ca ? `${stats.month_ca.toLocaleString('fr-FR')} €` : '0 €'}
           </p>
           <p className="text-xs text-gray-600 mt-1">
