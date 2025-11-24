@@ -6502,6 +6502,13 @@ async def calculate_challenge_progress(challenge: dict, seller_id: str = None):
                 "progress_indice_vente": indice_vente
             }}
         )
+    
+    # Extract last update info from progress_history if available (for challenges)
+    if challenge.get('progress_history') and len(challenge['progress_history']) > 0:
+        last_update = challenge['progress_history'][-1]
+        challenge['updated_by'] = last_update.get('updated_by')
+        challenge['updated_by_name'] = last_update.get('updated_by_name')
+        challenge['updated_at'] = last_update.get('date', challenge.get('updated_at'))
 
 
 
