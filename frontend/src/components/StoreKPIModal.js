@@ -1457,22 +1457,22 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                         disabled={loading}
                         className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
                       >
-                        {loading ? 'Enregistrement...' : '💾 Enregistrer KPI'}
+                        {loading ? 'Enregistrement...' : '💾 Enregistrer les données'}
                       </button>
                     </div>
                   </form>
                 </>
               ) : (
-                // Message d'instruction quand aucun KPI manager n'est activé
+                // Message d'instruction quand aucune donnée manager n'est activée
                 <div className="flex flex-col items-center justify-center py-6 px-6">
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border-2 border-blue-200 max-w-md">
                     <div className="text-center mb-4">
                       <div className="inline-flex items-center justify-center w-14 h-14 bg-yellow-100 rounded-full mb-3">
                         <span className="text-3xl">📋</span>
                       </div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-1">Aucun KPI à saisir</h3>
+                      <h3 className="text-lg font-bold text-gray-800 mb-1">Aucune donnée à saisir</h3>
                       <p className="text-sm text-gray-600">
-                        Vous n'avez activé aucun KPI pour la saisie Manager.
+                        Vous n'avez activé aucune donnée pour la saisie Manager.
                       </p>
                     </div>
                     
