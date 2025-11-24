@@ -1752,29 +1752,17 @@ async def get_sellers(current_user: dict = Depends(get_current_user)):
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers can access this")
     
-    # Priority: store_id > workspace_id > manager_id
-    # A manager manages a store, so sellers in that store belong to this manager
+    # Filter by manager_id to get only sellers of this specific manager
+    # Also filter by store_id if available for additional consistency
+    filter_query = {
+        "manager_id": current_user['id'],
+        "role": "seller",
+        "status": {"$nin": ["deleted", "inactive"]}
+    }
+    
+    # Add store_id filter if available for additional validation
     if current_user.get('store_id'):
-        # Use store_id for filtering (most reliable for multi-store architecture)
-        filter_query = {
-            "store_id": current_user['store_id'],
-            "role": "seller",
-            "status": {"$nin": ["deleted", "inactive"]}
-        }
-    elif current_user.get('workspace_id'):
-        # Fallback to workspace_id if no store_id
-        filter_query = {
-            "workspace_id": current_user['workspace_id'], 
-            "role": "seller",
-            "status": {"$nin": ["deleted", "inactive"]}
-        }
-    else:
-        # Final fallback to manager_id for old data
-        filter_query = {
-            "manager_id": current_user['id'],
-            "role": "seller",
-            "status": {"$nin": ["deleted", "inactive"]}
-        }
+        filter_query["store_id"] = current_user['store_id']
     
     sellers = await db.users.find(filter_query, {"_id": 0, "password": 0}).to_list(1000)
     
