@@ -623,7 +623,7 @@ const GerantDashboard = ({ user, onLogout }) => {
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
               <TrendingUp className="w-6 h-6 text-orange-600" />
-              🏆 Classement de la Semaine
+              🏆 Classement de la {periodType === 'week' ? 'Semaine' : periodType === 'month' ? 'Mois' : "l'Année"}
             </h2>
             <div className="glass-morphism rounded-xl p-6 border-2 border-orange-200">
               <div className="space-y-3">
