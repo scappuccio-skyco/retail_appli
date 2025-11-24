@@ -288,12 +288,18 @@ const GerantDashboard = ({ user, onLogout }) => {
     }
   };
 
-  // Calculer les performances relatives et badges pour chaque magasin
+  // Calculer les performances pour la semaine sélectionnée
   const getStorePerformanceData = () => {
     if (!stores || stores.length === 0) return [];
 
+    const { start: weekStart, end: weekEnd } = getWeekDates(weekOffset);
+    const { start: prevWeekStart, end: prevWeekEnd } = getWeekDates(weekOffset - 1);
+
     return stores.map(store => {
       const stats = storesStats[store.id] || {};
+      
+      // Pour l'instant, on utilise les stats existantes
+      // TODO: Filtrer les KPI entries par date de semaine
       const weekCA = stats.week_ca || 0;
       const prevWeekCA = stats.prev_week_ca || 0;
       const weekVentes = stats.week_ventes || 0;
@@ -306,7 +312,9 @@ const GerantDashboard = ({ user, onLogout }) => {
         stats,
         weekCA,
         weekVentes,
-        weekEvolution
+        weekEvolution,
+        weekStart,
+        weekEnd
       };
     });
   };
