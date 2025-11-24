@@ -146,6 +146,29 @@ const GerantDashboard = ({ user, onLogout }) => {
     }
   };
 
+  // Fonction pour récupérer les stats du classement (période sélectionnée)
+  const fetchRankingData = async (storesList) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Pour le classement, utiliser la période sélectionnée
+      const rankingStatsPromises = storesList.map(store =>
+        fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=${periodType}&period_offset=${periodOffset}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).then(res => res.json())
+      );
+      
+      const rankingStatsArray = await Promise.all(rankingStatsPromises);
+      const statsMap = {};
+      rankingStatsArray.forEach((stats, index) => {
+        statsMap[storesList[index].id] = stats;
+      });
+      setRankingStats(statsMap);
+    } catch (err) {
+      console.error('Error fetching ranking data:', err);
+    }
+  };
+
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
