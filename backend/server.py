@@ -8451,10 +8451,11 @@ async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_us
 @api_router.get("/gerant/stores/{store_id}/stats")
 async def get_store_stats(
     store_id: str, 
-    week_offset: int = 0,
+    period_type: str = 'week',  # 'week', 'month', 'year'
+    period_offset: int = 0,
     current_user: dict = Depends(get_current_user)
 ):
-    """Récupérer les statistiques d'un magasin spécifique pour une semaine donnée"""
+    """Récupérer les statistiques d'un magasin spécifique pour une période donnée"""
     if current_user['role'] != 'gerant':
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
