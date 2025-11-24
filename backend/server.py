@@ -6378,6 +6378,13 @@ async def calculate_objective_progress(objective: dict, manager_id: str):
             
             objective['status'] = 'achieved' if objective_met else 'in_progress'
     
+    # Extract last update info from progress_history if available
+    if objective.get('progress_history') and len(objective['progress_history']) > 0:
+        last_update = objective['progress_history'][-1]
+        objective['updated_by'] = last_update.get('updated_by')
+        objective['updated_by_name'] = last_update.get('updated_by_name')
+        objective['updated_at'] = last_update.get('date', objective.get('updated_at'))
+    
     # Sauvegarder les valeurs de progression en base de données
     await db.manager_objectives.update_one(
         {"id": objective['id']},
