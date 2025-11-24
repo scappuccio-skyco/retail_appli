@@ -762,9 +762,6 @@ export default function PerformanceModal({
                             {entry.nb_ventes !== undefined && entry.nb_ventes !== null && (
                               <div>🛒 Ventes: {entry.nb_ventes}</div>
                             )}
-                            {entry.nb_clients !== undefined && entry.nb_clients !== null && (
-                              <div>👥 Clients: {entry.nb_clients}</div>
-                            )}
                             {entry.nb_articles !== undefined && entry.nb_articles !== null && (
                               <div>📦 Articles: {entry.nb_articles}</div>
                             )}
@@ -772,7 +769,7 @@ export default function PerformanceModal({
                               <div>🚶 Prospects: {entry.nb_prospects}</div>
                             )}
                             {/* Message si aucune donnée */}
-                            {!entry.ca_journalier && !entry.nb_ventes && !entry.nb_clients && !entry.nb_articles && !entry.nb_prospects && (
+                            {!entry.ca_journalier && !entry.nb_ventes && !entry.nb_articles && !entry.nb_prospects && (
                               <div className="col-span-2 text-gray-500 italic">Aucune donnée saisie</div>
                             )}
                           </div>
