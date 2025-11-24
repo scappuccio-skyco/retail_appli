@@ -106,13 +106,20 @@ const GerantDashboard = ({ user, onLogout }) => {
     return '';
   };
 
-  // Helper: Obtenir le numéro de semaine ISO
-  const getWeekNumber = (date) => {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  // Helper: Obtenir le numéro de période
+  const getPeriodNumber = (type, date) => {
+    if (type === 'week') {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    } else if (type === 'month') {
+      return date.getMonth() + 1;
+    } else if (type === 'year') {
+      return date.getFullYear();
+    }
+    return 0;
   };
 
   const fetchDashboardData = async () => {
