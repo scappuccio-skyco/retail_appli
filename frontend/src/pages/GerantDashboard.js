@@ -627,14 +627,34 @@ const GerantDashboard = ({ user, onLogout }) => {
             </h2>
             <div className="glass-morphism rounded-xl p-6 border-2 border-orange-200">
               <div className="space-y-3">
-                {rankedStores.slice(0, 5).map((storeData, index) => {
+                {rankedStores.slice(0, 10).map((storeData, index) => {
                   const badge = getPerformanceBadge(storeData);
-                  const rankEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+                  
+                  // Icônes pour tous les rangs
+                  const getRankIcon = (rank) => {
+                    if (rank === 0) return '🥇';
+                    if (rank === 1) return '🥈';
+                    if (rank === 2) return '🥉';
+                    if (rank === 3) return '🏅';
+                    if (rank === 4) return '⭐';
+                    if (rank === 5) return '✨';
+                    if (rank === 6) return '💫';
+                    if (rank === 7) return '🌟';
+                    if (rank === 8) return '⚡';
+                    if (rank === 9) return '🔹';
+                    return `${rank + 1}.`;
+                  };
+                  
+                  const rankEmoji = getRankIcon(index);
                   
                   return (
                     <div
                       key={storeData.id}
-                      className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all"
+                      style={{ 
+                        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                        transform: `translateY(${index * 0}px)`
+                      }}
+                      className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all animate-slideIn"
                     >
                       <div className="flex items-center gap-4">
                         <span className="text-2xl font-bold w-12 text-center">{rankEmoji}</span>
