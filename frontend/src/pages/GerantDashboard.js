@@ -677,10 +677,10 @@ const GerantDashboard = ({ user, onLogout }) => {
                     <div
                       key={storeData.id}
                       style={{ 
-                        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                        transform: `translateY(${index * 0}px)`
+                        animationDelay: `${index * 0.1}s`,
+                        animationFillMode: 'both'
                       }}
-                      className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all animate-slideIn"
+                      className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md ranking-item animate-slideIn"
                     >
                       <div className="flex items-center gap-4">
                         <span className="text-2xl font-bold w-12 text-center">{rankEmoji}</span>
