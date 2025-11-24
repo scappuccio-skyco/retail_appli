@@ -8407,14 +8407,17 @@ async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_us
         "role": "seller"
     })
     
-    # Calculer le CA total (du jour)
-    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    # Calculer le CA cumulé du mois en cours
+    now = datetime.now(timezone.utc)
+    first_day_of_month = now.replace(day=1).strftime('%Y-%m-%d')
+    today = now.strftime('%Y-%m-%d')
     
+    # Agréger le CA de tous les magasins pour le mois en cours
     pipeline = [
         {
             "$match": {
                 "gerant_id": current_user['id'],
-                "date": today
+                "date": {"$gte": first_day_of_month, "$lte": today}
             }
         },
         {
@@ -8438,9 +8441,9 @@ async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_us
         "total_stores": len(stores),
         "total_managers": total_managers,
         "total_sellers": total_sellers,
-        "today_ca": stats.get("total_ca", 0),
-        "today_ventes": stats.get("total_ventes", 0),
-        "today_articles": stats.get("total_articles", 0),
+        "month_ca": stats.get("total_ca", 0),
+        "month_ventes": stats.get("total_ventes", 0),
+        "month_articles": stats.get("total_articles", 0),
         "stores": stores
     }
 
