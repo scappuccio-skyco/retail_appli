@@ -456,7 +456,7 @@ const GerantDashboard = ({ user, onLogout }) => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              <Building2 className="w-6 h-6 text-purple-600" />
+              <Building2 className="w-6 h-6 text-orange-600" />
               Mes Magasins
             </h2>
             <div className="flex gap-3">
@@ -469,7 +469,7 @@ const GerantDashboard = ({ user, onLogout }) => {
               </button>
               <button
                 onClick={() => setShowCreateStoreModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
               >
                 <Plus className="w-5 h-5" />
                 Nouveau Magasin
