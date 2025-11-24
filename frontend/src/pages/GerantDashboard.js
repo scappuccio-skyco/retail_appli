@@ -580,28 +580,32 @@ const GerantDashboard = ({ user, onLogout }) => {
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-1">📅 Période analysée</p>
                 <p className="text-lg font-bold text-gray-800">
-                  {formatWeekPeriod(weekOffset)}
+                  {formatPeriod(periodType, periodOffset)}
                 </p>
-                <p className="text-xs text-gray-500">
-                  Semaine {getWeekNumber(getWeekDates(weekOffset).start)}
-                </p>
+                {periodType === 'week' && (
+                  <p className="text-xs text-gray-500">
+                    Semaine {getPeriodNumber('week', getPeriodDates('week', periodOffset).start)}
+                  </p>
+                )}
               </div>
               
               <button
-                onClick={() => setWeekOffset(weekOffset + 1)}
-                disabled={weekOffset >= 0}
+                onClick={() => setPeriodOffset(periodOffset + 1)}
+                disabled={periodOffset >= 0}
                 className={`flex items-center gap-2 px-4 py-2 font-semibold rounded-lg transition-all ${
-                  weekOffset >= 0 
+                  periodOffset >= 0 
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
                 }`}
               >
-                <span className="hidden sm:inline">Semaine suivante</span>
+                <span className="hidden sm:inline">
+                  {periodType === 'week' ? 'Semaine' : periodType === 'month' ? 'Mois' : 'Année'} suivant{periodType === 'week' || periodType === 'month' ? 'e' : ''}
+                </span>
                 <span>▶</span>
               </button>
             </div>
             
-            {weekOffset !== 0 && (
+            {periodOffset !== 0 && (
               <div className="mt-3 text-center">
                 <button
                   onClick={() => setWeekOffset(0)}
