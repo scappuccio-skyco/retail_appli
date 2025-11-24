@@ -338,33 +338,30 @@ const GerantDashboard = ({ user, onLogout }) => {
     }
   };
 
-  // Calculer les performances pour la semaine sélectionnée
+  // Calculer les performances pour la période sélectionnée
   const getStorePerformanceData = () => {
     if (!stores || stores.length === 0) return [];
 
-    const { start: weekStart, end: weekEnd } = getWeekDates(weekOffset);
-    const { start: prevWeekStart, end: prevWeekEnd } = getWeekDates(weekOffset - 1);
+    const { start: periodStart, end: periodEnd } = getPeriodDates(periodType, periodOffset);
 
     return stores.map(store => {
       const stats = storesStats[store.id] || {};
       
-      // Pour l'instant, on utilise les stats existantes
-      // TODO: Filtrer les KPI entries par date de semaine
-      const weekCA = stats.week_ca || 0;
-      const prevWeekCA = stats.prev_week_ca || 0;
-      const weekVentes = stats.week_ventes || 0;
+      const periodCA = stats.period_ca || 0;
+      const prevPeriodCA = stats.prev_period_ca || 0;
+      const periodVentes = stats.period_ventes || 0;
       
-      // Calcul évolution vs semaine précédente
-      const weekEvolution = prevWeekCA > 0 ? ((weekCA - prevWeekCA) / prevWeekCA) * 100 : 0;
+      // Calcul évolution vs période précédente
+      const periodEvolution = prevPeriodCA > 0 ? ((periodCA - prevPeriodCA) / prevPeriodCA) * 100 : 0;
       
       return {
         ...store,
         stats,
-        weekCA,
-        weekVentes,
-        weekEvolution,
-        weekStart,
-        weekEnd
+        periodCA,
+        periodVentes,
+        periodEvolution,
+        periodStart,
+        periodEnd
       };
     });
   };
