@@ -8586,12 +8586,12 @@ async def get_store_stats(
         }
     ]
     
-    sellers_week = await db.kpi_entries.aggregate(sellers_week_pipeline).to_list(length=1)
-    sellers_week_ca = sellers_week[0].get("total_ca", 0) if sellers_week else 0
-    sellers_week_ventes = sellers_week[0].get("total_ventes", 0) if sellers_week else 0
+    sellers_period = await db.kpi_entries.aggregate(sellers_period_pipeline).to_list(length=1)
+    sellers_period_ca = sellers_period[0].get("total_ca", 0) if sellers_period else 0
+    sellers_period_ventes = sellers_period[0].get("total_ventes", 0) if sellers_period else 0
     
-    # Get managers KPIs for the week
-    managers_week_pipeline = [
+    # Get managers KPIs for the period
+    managers_period_pipeline = [
         {
             "$match": {
                 "store_id": store_id,
