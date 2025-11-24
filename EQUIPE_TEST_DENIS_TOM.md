@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://seller-dashboard-pro.preview.emergentagent.com
+https://data-entry-flow.preview.emergentagent.com
 
 ### Manager
 ```
