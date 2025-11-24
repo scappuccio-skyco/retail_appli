@@ -79,20 +79,31 @@ const GerantDashboard = ({ user, onLogout }) => {
     return { start: now, end: now };
   };
 
-  // Helper: Formater la période de la semaine
-  const formatWeekPeriod = (offset = 0) => {
-    const { start, end } = getWeekDates(offset);
-    const formatDate = (date) => {
-      const day = date.getDate();
-      const month = date.toLocaleDateString('fr-FR', { month: 'short' });
-      return `${day} ${month}`;
-    };
+  // Helper: Formater la période selon le type
+  const formatPeriod = (type = 'week', offset = 0) => {
+    const { start, end } = getPeriodDates(type, offset);
     
-    if (offset === 0) {
-      return `Semaine actuelle (${formatDate(start)} - ${formatDate(end)})`;
-    } else {
-      return `Semaine du ${formatDate(start)} au ${formatDate(end)}`;
+    if (type === 'week') {
+      const formatDate = (date) => {
+        const day = date.getDate();
+        const month = date.toLocaleDateString('fr-FR', { month: 'short' });
+        return `${day} ${month}`;
+      };
+      
+      if (offset === 0) {
+        return `Semaine actuelle (${formatDate(start)} - ${formatDate(end)})`;
+      } else {
+        return `Semaine du ${formatDate(start)} au ${formatDate(end)}`;
+      }
+    } else if (type === 'month') {
+      const monthName = start.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+      return offset === 0 ? `Mois actuel (${monthName})` : monthName.charAt(0).toUpperCase() + monthName.slice(1);
+    } else if (type === 'year') {
+      const year = start.getFullYear();
+      return offset === 0 ? `Année actuelle (${year})` : `Année ${year}`;
     }
+    
+    return '';
   };
 
   // Helper: Obtenir le numéro de semaine ISO
