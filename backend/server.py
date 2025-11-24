@@ -8671,9 +8671,9 @@ async def get_store_stats(
         "today_ca": stats.get("total_ca", 0),
         "today_ventes": stats.get("total_ventes", 0),
         "today_articles": stats.get("total_articles", 0),
-        "week_ca": week_ca,
-        "week_ventes": week_ventes,
-        "prev_week_ca": prev_week_ca
+        "period_ca": period_ca,
+        "period_ventes": period_ventes,
+        "prev_period_ca": prev_period_ca
     }
 
 @api_router.get("/gerant/stores/{store_id}/managers")
