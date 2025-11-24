@@ -519,7 +519,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                       : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
                   }`}
                 >
-                  ⚙️ Config KPI
+                  ⚙️ Config des données
                 </button>
                 <button
                   onClick={() => setActiveTab('prospects')}
@@ -529,7 +529,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
                   }`}
                 >
-                  👨‍💼 Saisie KPI
+                  👨‍💼 Saisie des données
                 </button>
               </>
             )}
