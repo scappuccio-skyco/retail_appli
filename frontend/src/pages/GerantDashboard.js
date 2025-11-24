@@ -136,9 +136,9 @@ const GerantDashboard = ({ user, onLogout }) => {
         setGlobalStats(data);
         setStores(data.stores || []);
 
-        // Récupérer les stats détaillées de chaque magasin avec week_offset
+        // Récupérer les stats détaillées de chaque magasin avec period_type et period_offset
         const storesStatsPromises = data.stores.map(store =>
-          fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?week_offset=${weekOffset}`, {
+          fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=${periodType}&period_offset=${periodOffset}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           }).then(res => res.json())
         );
