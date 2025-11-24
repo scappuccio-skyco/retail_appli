@@ -80,13 +80,23 @@ const StoreCard = ({ store, stats, badge, onClick }) => {
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-gray-600">CA de la semaine</span>
-            <span className="text-sm font-bold text-blue-600">
+            <span className="text-sm font-bold text-orange-600">
               {stats?.week_ca ? `${stats.week_ca.toLocaleString('fr-FR')} €` : '0 €'}
             </span>
           </div>
-          <p className="text-xs text-gray-500">
-            {stats?.week_ventes || 0} vente{stats?.week_ventes > 1 ? 's' : ''}
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500">
+              {stats?.week_ventes || 0} vente{stats?.week_ventes > 1 ? 's' : ''}
+            </p>
+            {stats?.prev_week_ca > 0 && stats?.week_ca !== undefined && (
+              <div className={`flex items-center gap-1 text-xs font-semibold ${
+                stats.week_ca >= stats.prev_week_ca ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {stats.week_ca >= stats.prev_week_ca ? '↗' : '↘'}
+                {Math.abs(((stats.week_ca - stats.prev_week_ca) / stats.prev_week_ca) * 100).toFixed(0)}%
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
