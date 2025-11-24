@@ -790,7 +790,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                     </p>
                     
                     <div className="space-y-3">
-                      {kpiConfig.track_ca && kpiConfig.track_ventes ? (
+                      {kpiConfig.seller_track_ca && kpiConfig.seller_track_ventes ? (
                         <div className="bg-white rounded-lg p-4 border-l-4 border-indigo-500 shadow-sm">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
