@@ -729,8 +729,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                       <label className="flex items-center gap-3 p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 cursor-pointer transition-all">
                         <input
                           type="checkbox"
-                          checked={kpiConfig.track_ca}
-                          onChange={(e) => setKpiConfig({ ...kpiConfig, track_ca: e.target.checked })}
+                          checked={kpiConfig.seller_track_ca || false}
+                          onChange={(e) => setKpiConfig({ ...kpiConfig, seller_track_ca: e.target.checked })}
                           className="w-5 h-5 text-blue-600"
                         />
                         <div>
@@ -742,8 +742,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                       <label className="flex items-center gap-3 p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 cursor-pointer transition-all">
                         <input
                           type="checkbox"
-                          checked={kpiConfig.track_ventes}
-                          onChange={(e) => setKpiConfig({ ...kpiConfig, track_ventes: e.target.checked })}
+                          checked={kpiConfig.seller_track_ventes || false}
+                          onChange={(e) => setKpiConfig({ ...kpiConfig, seller_track_ventes: e.target.checked })}
                           className="w-5 h-5 text-blue-600"
                         />
                         <div>
@@ -755,13 +755,26 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                       <label className="flex items-center gap-3 p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 cursor-pointer transition-all">
                         <input
                           type="checkbox"
-                          checked={kpiConfig.track_articles}
-                          onChange={(e) => setKpiConfig({ ...kpiConfig, track_articles: e.target.checked })}
+                          checked={kpiConfig.seller_track_articles || false}
+                          onChange={(e) => setKpiConfig({ ...kpiConfig, seller_track_articles: e.target.checked })}
                           className="w-5 h-5 text-blue-600"
                         />
                         <div>
                           <p className="font-semibold text-gray-800">📦 Nombre d'Articles</p>
                           <p className="text-xs text-gray-500">Articles vendus</p>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-3 p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 cursor-pointer transition-all">
+                        <input
+                          type="checkbox"
+                          checked={kpiConfig.seller_track_prospects || false}
+                          onChange={(e) => setKpiConfig({ ...kpiConfig, seller_track_prospects: e.target.checked })}
+                          className="w-5 h-5 text-blue-600"
+                        />
+                        <div>
+                          <p className="font-semibold text-gray-800">🚶 Nombre de Prospects</p>
+                          <p className="text-xs text-gray-500">Prospects rencontrés</p>
                         </div>
                       </label>
                     </div>
