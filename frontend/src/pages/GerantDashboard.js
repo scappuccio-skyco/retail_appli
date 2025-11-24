@@ -608,10 +608,10 @@ const GerantDashboard = ({ user, onLogout }) => {
             {periodOffset !== 0 && (
               <div className="mt-3 text-center">
                 <button
-                  onClick={() => setWeekOffset(0)}
+                  onClick={() => setPeriodOffset(0)}
                   className="text-sm text-blue-600 hover:text-blue-700 font-semibold underline"
                 >
-                  ↻ Revenir à la semaine actuelle
+                  ↻ Revenir à la {periodType === 'week' ? 'semaine' : periodType === 'month' ? 'mois' : 'année'} actuel{periodType === 'week' || periodType === 'month' ? 'le' : 'le'}
                 </button>
               </div>
             )}
