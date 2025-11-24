@@ -1,17 +1,23 @@
 import React from 'react';
 import { Building2, Users, TrendingUp, MapPin } from 'lucide-react';
 
-const StoreCard = ({ store, stats, onClick }) => {
+const StoreCard = ({ store, stats, badge, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-[#ffd871]"
+      className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
     >
-      <div className="relative h-32 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 overflow-hidden">
+      <div className="relative h-32 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <Building2 className="w-16 h-16 text-white opacity-80" />
         </div>
+        {/* Badge de performance */}
+        {badge && (
+          <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold shadow-lg bg-${badge.color}-500 text-white`}>
+            {badge.icon} {badge.label}
+          </div>
+        )}
       </div>
 
       <div className="p-6">
