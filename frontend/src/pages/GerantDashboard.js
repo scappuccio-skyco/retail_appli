@@ -243,11 +243,57 @@ const GerantDashboard = ({ user, onLogout }) => {
     }
   };
 
+  // Calculer les performances relatives et badges pour chaque magasin
+  const getStorePerformanceData = () => {
+    if (!stores || stores.length === 0) return [];
+
+    return stores.map(store => {
+      const stats = storesStats[store.id] || {};
+      const weekCA = stats.week_ca || 0;
+      const prevWeekCA = stats.prev_week_ca || 0;
+      const weekVentes = stats.week_ventes || 0;
+      
+      // Calcul évolution vs semaine précédente
+      const weekEvolution = prevWeekCA > 0 ? ((weekCA - prevWeekCA) / prevWeekCA) * 100 : 0;
+      
+      return {
+        ...store,
+        stats,
+        weekCA,
+        weekVentes,
+        weekEvolution
+      };
+    });
+  };
+
+  // Classement des magasins par CA
+  const rankedStores = getStorePerformanceData().sort((a, b) => b.weekCA - a.weekCA);
+  
+  // Calculer les badges de performance
+  const getPerformanceBadge = (store) => {
+    const storeData = rankedStores.find(s => s.id === store.id);
+    if (!storeData) return null;
+
+    const avgCA = rankedStores.reduce((sum, s) => sum + s.weekCA, 0) / rankedStores.length;
+    const relativePerformance = avgCA > 0 ? ((storeData.weekCA - avgCA) / avgCA) * 100 : 0;
+    
+    // Badge basé sur performance relative ET évolution
+    if (relativePerformance > 20 || storeData.weekEvolution > 15) {
+      return { type: 'excellent', color: 'green', icon: '🔥', label: 'Excellent' };
+    } else if (relativePerformance > 0 || storeData.weekEvolution > 5) {
+      return { type: 'good', color: 'blue', icon: '👍', label: 'Bon' };
+    } else if (relativePerformance > -20 && storeData.weekEvolution > -10) {
+      return { type: 'average', color: 'orange', icon: '⚡', label: 'Moyen' };
+    } else {
+      return { type: 'weak', color: 'red', icon: '⚠️', label: 'À améliorer' };
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-orange-50 to-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Chargement...</p>
         </div>
       </div>
@@ -255,9 +301,9 @@ const GerantDashboard = ({ user, onLogout }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-orange-50 to-white">
       {/* Header */}
-      <div className="bg-white shadow-md border-b-4 border-purple-500">
+      <div className="bg-white shadow-md border-b-4 border-orange-500">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
