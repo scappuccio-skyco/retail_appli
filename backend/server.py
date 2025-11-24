@@ -8529,19 +8529,45 @@ async def get_store_stats(
         "total_articles": sellers_articles + managers_articles
     }
     
-    # Calculate week CA based on week_offset
+    # Calculate period dates based on period_type and period_offset
     from datetime import timedelta
     today_date = datetime.now(timezone.utc)
-    # Get Monday of current week (0 = Monday)
-    days_since_monday = today_date.weekday()
-    current_monday = today_date - timedelta(days=days_since_monday)
     
-    # Apply week offset
-    target_monday = current_monday + timedelta(weeks=week_offset)
-    target_sunday = target_monday + timedelta(days=6)
-    
-    monday = target_monday.strftime('%Y-%m-%d')
-    sunday = target_sunday.strftime('%Y-%m-%d')
+    if period_type == 'week':
+        # Get Monday of current week (0 = Monday)
+        days_since_monday = today_date.weekday()
+        current_monday = today_date - timedelta(days=days_since_monday)
+        
+        # Apply period offset
+        target_monday = current_monday + timedelta(weeks=period_offset)
+        target_sunday = target_monday + timedelta(days=6)
+        
+        period_start = target_monday.strftime('%Y-%m-%d')
+        period_end = target_sunday.strftime('%Y-%m-%d')
+    elif period_type == 'month':
+        # Calculate target month
+        target_month = today_date.replace(day=1) + timedelta(days=32 * period_offset)
+        target_month = target_month.replace(day=1)
+        
+        # First day of month
+        period_start_date = target_month.replace(day=1)
+        
+        # Last day of month
+        next_month = target_month.replace(day=28) + timedelta(days=4)
+        period_end_date = next_month.replace(day=1) - timedelta(days=1)
+        
+        period_start = period_start_date.strftime('%Y-%m-%d')
+        period_end = period_end_date.strftime('%Y-%m-%d')
+    elif period_type == 'year':
+        # Calculate target year
+        target_year = today_date.year + period_offset
+        period_start_date = datetime(target_year, 1, 1, tzinfo=timezone.utc)
+        period_end_date = datetime(target_year, 12, 31, tzinfo=timezone.utc)
+        
+        period_start = period_start_date.strftime('%Y-%m-%d')
+        period_end = period_end_date.strftime('%Y-%m-%d')
+    else:
+        raise HTTPException(status_code=400, detail="Invalid period_type")
     
     # Get sellers KPIs for the week
     sellers_week_pipeline = [
