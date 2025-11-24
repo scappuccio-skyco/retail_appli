@@ -374,11 +374,11 @@ const GerantDashboard = ({ user, onLogout }) => {
     const storeData = rankedStores.find(s => s.id === store.id);
     if (!storeData) return null;
 
-    const avgCA = rankedStores.reduce((sum, s) => sum + s.weekCA, 0) / rankedStores.length;
-    const relativePerformance = avgCA > 0 ? ((storeData.weekCA - avgCA) / avgCA) * 100 : 0;
+    const avgCA = rankedStores.reduce((sum, s) => sum + s.periodCA, 0) / rankedStores.length;
+    const relativePerformance = avgCA > 0 ? ((storeData.periodCA - avgCA) / avgCA) * 100 : 0;
     
     // Badge basé sur performance relative ET évolution
-    if (relativePerformance > 20 || storeData.weekEvolution > 15) {
+    if (relativePerformance > 20 || storeData.periodEvolution > 15) {
       return { 
         type: 'excellent', 
         bgClass: 'bg-green-500', 
