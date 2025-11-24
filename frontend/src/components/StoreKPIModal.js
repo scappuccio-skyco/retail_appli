@@ -1177,7 +1177,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
             <div className="space-y-4">
               <div className="bg-orange-500 rounded-xl p-3 border-2 border-orange-600">
                 <p className="text-sm text-white font-bold">
-                  💡 <strong>Configuration des KPI :</strong> Choisissez qui remplit chaque KPI. Vendeurs (Bleu) ou Manager (orange) ou aucun des deux (gris).
+                  💡 <strong>Configuration des données :</strong> Choisissez qui remplit chaque donnée. Vendeurs (Bleu) ou Manager (orange) ou aucun des deux (gris).
                 </p>
               </div>
 
