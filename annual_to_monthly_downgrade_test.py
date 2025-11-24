@@ -14,7 +14,7 @@ import sys
 from datetime import datetime
 
 class AnnualToMonthlyDowngradeTest:
-    def __init__(self, base_url="https://seller-dashboard-pro.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://data-entry-flow.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.manager_token = None
         self.manager_user = None
@@ -173,7 +173,7 @@ class AnnualToMonthlyDowngradeTest:
             "plan": "professional",
             "quantity": 8,
             "billing_period": "annual",
-            "origin_url": "https://seller-dashboard-pro.preview.emergentagent.com/dashboard"
+            "origin_url": "https://data-entry-flow.preview.emergentagent.com/dashboard"
         }
         
         print(f"   Creating annual subscription first...")
@@ -217,7 +217,7 @@ class AnnualToMonthlyDowngradeTest:
             "plan": "professional",
             "quantity": 8,
             "billing_period": "monthly",
-            "origin_url": "https://seller-dashboard-pro.preview.emergentagent.com/dashboard"
+            "origin_url": "https://data-entry-flow.preview.emergentagent.com/dashboard"
         }
         
         print(f"   Attempting to downgrade from annual to monthly billing...")
