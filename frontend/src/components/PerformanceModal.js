@@ -301,6 +301,7 @@ export default function PerformanceModal({
       CA: entry.ca_journalier || 0,
       Ventes: entry.nb_ventes || 0,
       Articles: entry.nb_articles || 0,
+      Prospects: entry.nb_prospects || 0,
       'Panier Moyen': entry.ca_journalier && entry.nb_ventes ? (entry.ca_journalier / entry.nb_ventes).toFixed(2) : 0
     }));
   }, [kpiEntries, currentWeekOffset]);
