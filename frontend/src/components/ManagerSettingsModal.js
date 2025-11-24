@@ -717,7 +717,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
           ) : (
             <>
               {/* KPI Configuration Tab */}
-              {activeTab === 'kpi_deleted' && kpiConfig && (
+              {activeTab === 'kpi_config' && kpiConfig && (
                 <form onSubmit={handleKPIConfigUpdate} className="space-y-6">
                   <div className="bg-blue-50 rounded-xl p-6 border-2 border-blue-200">
                     <h3 className="text-xl font-bold text-gray-800 mb-4">📈 KPI à suivre</h3>
