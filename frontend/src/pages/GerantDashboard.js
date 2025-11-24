@@ -186,6 +186,8 @@ const GerantDashboard = ({ user, onLogout }) => {
         // Pour les cartes, toujours utiliser semaine -1
         if (data.stores && data.stores.length > 0) {
           await fetchStoreCardsData(data.stores);
+          // Pour le classement, utiliser la période sélectionnée
+          await fetchRankingData(data.stores);
         }
       }
     } catch (error) {
