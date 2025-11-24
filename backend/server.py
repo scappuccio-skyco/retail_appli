@@ -8528,12 +8528,19 @@ async def get_store_stats(
         "total_articles": sellers_articles + managers_articles
     }
     
-    # Calculate week CA (from Monday to today)
+    # Calculate week CA based on week_offset
     from datetime import timedelta
     today_date = datetime.now(timezone.utc)
     # Get Monday of current week (0 = Monday)
     days_since_monday = today_date.weekday()
-    monday = (today_date - timedelta(days=days_since_monday)).strftime('%Y-%m-%d')
+    current_monday = today_date - timedelta(days=days_since_monday)
+    
+    # Apply week offset
+    target_monday = current_monday + timedelta(weeks=week_offset)
+    target_sunday = target_monday + timedelta(days=6)
+    
+    monday = target_monday.strftime('%Y-%m-%d')
+    sunday = target_sunday.strftime('%Y-%m-%d')
     
     # Get sellers KPIs for the week
     sellers_week_pipeline = [
