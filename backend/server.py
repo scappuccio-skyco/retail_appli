@@ -8587,6 +8587,47 @@ async def get_store_stats(
     week_ca = sellers_week_ca + managers_week_ca
     week_ventes = sellers_week_ventes + managers_week_ventes
     
+    # Calculate previous week CA for evolution
+    prev_monday = target_monday - timedelta(weeks=1)
+    prev_sunday = prev_monday + timedelta(days=6)
+    prev_monday_str = prev_monday.strftime('%Y-%m-%d')
+    prev_sunday_str = prev_sunday.strftime('%Y-%m-%d')
+    
+    # Get sellers KPIs for previous week
+    sellers_prev_week = await db.kpi_entries.aggregate([
+        {
+            "$match": {
+                "store_id": store_id,
+                "date": {"$gte": prev_monday_str, "$lte": prev_sunday_str}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_ca": {"$sum": "$ca_journalier"}
+            }
+        }
+    ]).to_list(length=1)
+    
+    # Get managers KPIs for previous week
+    managers_prev_week = await db.manager_kpis.aggregate([
+        {
+            "$match": {
+                "store_id": store_id,
+                "date": {"$gte": prev_monday_str, "$lte": prev_sunday_str}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_ca": {"$sum": "$ca_journalier"}
+            }
+        }
+    ]).to_list(length=1)
+    
+    prev_week_ca = (sellers_prev_week[0].get("total_ca", 0) if sellers_prev_week else 0) + \
+                   (managers_prev_week[0].get("total_ca", 0) if managers_prev_week else 0)
+    
     return {
         "store": store,
         "managers_count": managers_count,
@@ -8595,7 +8636,8 @@ async def get_store_stats(
         "today_ventes": stats.get("total_ventes", 0),
         "today_articles": stats.get("total_articles", 0),
         "week_ca": week_ca,
-        "week_ventes": week_ventes
+        "week_ventes": week_ventes,
+        "prev_week_ca": prev_week_ca
     }
 
 @api_router.get("/gerant/stores/{store_id}/managers")
