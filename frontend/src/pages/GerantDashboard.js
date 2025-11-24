@@ -19,6 +19,9 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [globalStats, setGlobalStats] = useState(null);
   const [storesStats, setStoresStats] = useState({});
   const [loading, setLoading] = useState(true);
+  
+  // Week navigation state
+  const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = last week, etc.
 
   // Modal states
   const [showCreateStoreModal, setShowCreateStoreModal] = useState(false);
