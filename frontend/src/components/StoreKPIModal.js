@@ -1481,8 +1481,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                         💡 <strong>Pour commencer la saisie :</strong>
                       </p>
                       <ol className="text-xs text-gray-600 space-y-1.5 list-decimal list-inside">
-                        <li>Rendez-vous dans l'onglet <strong className="text-orange-700">⚙️ Configuration KPI</strong></li>
-                        <li>Activez les KPIs (bouton orange 👨‍💼)</li>
+                        <li>Rendez-vous dans l'onglet <strong className="text-orange-700">⚙️ Config des données</strong></li>
+                        <li>Activez les données (bouton orange 👨‍💼)</li>
                         <li>Revenez dans cet onglet pour saisir vos données</li>
                       </ol>
                     </div>
@@ -1492,7 +1492,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                       className="w-full px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2"
                     >
                       <span>⚙️</span>
-                      Aller à la Configuration KPI
+                      Aller à la Config des données
                     </button>
                   </div>
                 </div>
