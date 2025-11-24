@@ -338,7 +338,7 @@ const GerantDashboard = ({ user, onLogout }) => {
         {/* Stats Globales */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-purple-600" />
+            <BarChart3 className="w-6 h-6 text-orange-600" />
             Vue d'Ensemble
           </h2>
 
