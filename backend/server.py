@@ -6326,7 +6326,7 @@ async def calculate_objective_progress(objective: dict, manager_id: str):
     # Determine status
     today = datetime.now(timezone.utc).date().isoformat()
     if today > end_date:
-        # Check if objective is met
+        # Period is over - check if objective is met
         objective_met = True
         if objective.get('ca_target') and total_ca < objective['ca_target']:
             objective_met = False
@@ -6337,7 +6337,7 @@ async def calculate_objective_progress(objective: dict, manager_id: str):
         
         objective['status'] = 'achieved' if objective_met else 'failed'
     else:
-        # Check if already achieved
+        # Period is ongoing - check if target is already reached
         objective_met = True
         if objective.get('ca_target') and total_ca < objective['ca_target']:
             objective_met = False
@@ -6346,7 +6346,12 @@ async def calculate_objective_progress(objective: dict, manager_id: str):
         if objective.get('indice_vente_target') and indice_vente < objective['indice_vente_target']:
             objective_met = False
         
-        objective['status'] = 'achieved' if objective_met else 'in_progress'
+        # Only mark as 'achieved' if target is reached AND period is still ongoing
+        # Otherwise keep as 'active' or 'in_progress'
+        if objective_met:
+            objective['status'] = 'achieved'
+        else:
+            objective['status'] = 'active' if objective.get('status') == 'active' else 'in_progress'
     
     # Sauvegarder les valeurs de progression en base de données
     await db.manager_objectives.update_one(
