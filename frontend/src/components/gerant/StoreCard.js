@@ -85,7 +85,7 @@ const StoreCard = ({ store, stats, badge, sparklineData, onClick }) => {
               {stats?.week_ca ? `${stats.week_ca.toLocaleString('fr-FR')} €` : '0 €'}
             </span>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-2">
             <p className="text-xs text-gray-500">
               {stats?.week_ventes || 0} vente{stats?.week_ventes > 1 ? 's' : ''}
             </p>
@@ -98,6 +98,23 @@ const StoreCard = ({ store, stats, badge, sparklineData, onClick }) => {
               </div>
             )}
           </div>
+          
+          {/* Sparkline - Évolution 4 dernières semaines */}
+          {sparklineData && sparklineData.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-gray-500">Tendance (4 semaines)</span>
+              </div>
+              <div className="flex justify-center">
+                <Sparkline 
+                  data={sparklineData} 
+                  width={120} 
+                  height={30} 
+                  color="#f97316" 
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
