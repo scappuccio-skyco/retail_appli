@@ -1,7 +1,8 @@
 import React from 'react';
 import { Building2, Users, TrendingUp, MapPin } from 'lucide-react';
+import Sparkline from './Sparkline';
 
-const StoreCard = ({ store, stats, badge, onClick }) => {
+const StoreCard = ({ store, stats, badge, sparklineData, onClick }) => {
   return (
     <div
       onClick={onClick}
