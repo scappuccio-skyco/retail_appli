@@ -8664,6 +8664,50 @@ async def get_store_stats(
     prev_period_ca = (sellers_prev_period[0].get("total_ca", 0) if sellers_prev_period else 0) + \
                      (managers_prev_period[0].get("total_ca", 0) if managers_prev_period else 0)
     
+    # Calculate month CA (current month)
+    now = datetime.now(timezone.utc)
+    first_day_of_month = now.replace(day=1).strftime('%Y-%m-%d')
+    today_str = now.strftime('%Y-%m-%d')
+    
+    # Get sellers KPIs for current month
+    sellers_month = await db.kpi_entries.aggregate([
+        {
+            "$match": {
+                "store_id": store_id,
+                "date": {"$gte": first_day_of_month, "$lte": today_str}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_ca": {"$sum": "$ca_journalier"},
+                "total_ventes": {"$sum": "$nb_ventes"}
+            }
+        }
+    ]).to_list(length=1)
+    
+    # Get managers KPIs for current month
+    managers_month = await db.manager_kpis.aggregate([
+        {
+            "$match": {
+                "store_id": store_id,
+                "date": {"$gte": first_day_of_month, "$lte": today_str}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_ca": {"$sum": "$ca_journalier"},
+                "total_ventes": {"$sum": "$nb_ventes"}
+            }
+        }
+    ]).to_list(length=1)
+    
+    month_ca = (sellers_month[0].get("total_ca", 0) if sellers_month else 0) + \
+               (managers_month[0].get("total_ca", 0) if managers_month else 0)
+    month_ventes = (sellers_month[0].get("total_ventes", 0) if sellers_month else 0) + \
+                   (managers_month[0].get("total_ventes", 0) if managers_month else 0)
+    
     return {
         "store": store,
         "managers_count": managers_count,
@@ -8671,6 +8715,8 @@ async def get_store_stats(
         "today_ca": stats.get("total_ca", 0),
         "today_ventes": stats.get("total_ventes", 0),
         "today_articles": stats.get("total_articles", 0),
+        "month_ca": month_ca,
+        "month_ventes": month_ventes,
         "period_ca": period_ca,
         "period_ventes": period_ventes,
         "prev_period_ca": prev_period_ca
