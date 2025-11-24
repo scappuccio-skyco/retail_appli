@@ -5422,6 +5422,10 @@ async def get_manager_objectives(current_user: dict = Depends(get_current_user))
         {"_id": 0}
     ).sort("created_at", -1).to_list(10)
     
+    # Calculate progress and enrich with updated_by info for each objective
+    for objective in objectives:
+        await calculate_objective_progress(objective, current_user['id'])
+    
     return objectives
 
 @api_router.post("/manager/objectives")
