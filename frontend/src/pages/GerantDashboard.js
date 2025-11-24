@@ -38,6 +38,48 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [selectedSeller, setSelectedSeller] = useState(null);
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
 
+  // Helper: Calculer les dates de début et fin de semaine
+  const getWeekDates = (offset = 0) => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const diff = currentDay === 0 ? -6 : 1 - currentDay; // Lundi = début de semaine
+    
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + diff + (offset * 7));
+    monday.setHours(0, 0, 0, 0);
+    
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    
+    return { start: monday, end: sunday };
+  };
+
+  // Helper: Formater la période de la semaine
+  const formatWeekPeriod = (offset = 0) => {
+    const { start, end } = getWeekDates(offset);
+    const formatDate = (date) => {
+      const day = date.getDate();
+      const month = date.toLocaleDateString('fr-FR', { month: 'short' });
+      return `${day} ${month}`;
+    };
+    
+    if (offset === 0) {
+      return `Semaine actuelle (${formatDate(start)} - ${formatDate(end)})`;
+    } else {
+      return `Semaine du ${formatDate(start)} au ${formatDate(end)}`;
+    }
+  };
+
+  // Helper: Obtenir le numéro de semaine ISO
+  const getWeekNumber = (date) => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  };
+
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
