@@ -385,14 +385,14 @@ const GerantDashboard = ({ user, onLogout }) => {
         icon: '🔥', 
         label: 'Excellent' 
       };
-    } else if (relativePerformance > 0 || storeData.weekEvolution > 5) {
+    } else if (relativePerformance > 0 || storeData.periodEvolution > 5) {
       return { 
         type: 'good', 
         bgClass: 'bg-blue-500', 
         icon: '👍', 
         label: 'Bon' 
       };
-    } else if (relativePerformance > -20 && storeData.weekEvolution > -10) {
+    } else if (relativePerformance > -20 && storeData.periodEvolution > -10) {
       return { 
         type: 'average', 
         bgClass: 'bg-orange-500', 
