@@ -1341,7 +1341,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                 <>
                   <div className="bg-orange-500 rounded-xl p-4 border-2 border-orange-600 mb-6">
                     <p className="text-sm text-white font-bold">
-                      💡 <strong>Saisie KPI Manager :</strong> Remplissez les KPIs que vous avez configurés pour le manager.
+                      💡 <strong>Saisie des données Manager :</strong> Remplissez les données que vous avez configurées pour le manager.
                     </p>
                   </div>
 
