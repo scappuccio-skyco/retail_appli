@@ -519,12 +519,56 @@ const GerantDashboard = ({ user, onLogout }) => {
           </div>
         </div>
 
-        {/* Navigation Semaine */}
+        {/* Sélecteur de Type de Période */}
+        <div className="mb-8">
+          <div className="glass-morphism rounded-xl p-4 border-2 border-blue-200">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              {/* Sélecteur de période */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-700">Type d'analyse :</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setPeriodType('week'); setPeriodOffset(-1); }}
+                    className={`px-4 py-2 font-semibold rounded-lg transition-all ${
+                      periodType === 'week'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    Semaine
+                  </button>
+                  <button
+                    onClick={() => { setPeriodType('month'); setPeriodOffset(-1); }}
+                    className={`px-4 py-2 font-semibold rounded-lg transition-all ${
+                      periodType === 'month'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    Mois
+                  </button>
+                  <button
+                    onClick={() => { setPeriodType('year'); setPeriodOffset(0); }}
+                    className={`px-4 py-2 font-semibold rounded-lg transition-all ${
+                      periodType === 'year'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    Année
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation de Période */}
         <div className="mb-8">
           <div className="glass-morphism rounded-xl p-4 border-2 border-blue-200">
             <div className="flex items-center justify-between">
               <button
-                onClick={() => setWeekOffset(weekOffset - 1)}
+                onClick={() => setPeriodOffset(periodOffset - 1)}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all"
               >
                 <span>◀</span>
