@@ -459,7 +459,12 @@ const GerantDashboard = ({ user, onLogout }) => {
                           </div>
                         )}
                         {badge && (
-                          <div className={`px-3 py-1 rounded-full text-xs font-semibold bg-${badge.color}-100 text-${badge.color}-700`}>
+                          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            badge.type === 'excellent' ? 'bg-green-100 text-green-700' :
+                            badge.type === 'good' ? 'bg-blue-100 text-blue-700' :
+                            badge.type === 'average' ? 'bg-orange-100 text-orange-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
                             {badge.icon} {badge.label}
                           </div>
                         )}
