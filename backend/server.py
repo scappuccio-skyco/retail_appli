@@ -8413,19 +8413,20 @@ async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_us
     today = now.strftime('%Y-%m-%d')
     
     # Agréger le CA de tous les magasins pour le mois en cours
+    # Note: kpi_entries n'a pas de gerant_id, on utilise store_id
     pipeline = [
         {
             "$match": {
-                "gerant_id": current_user['id'],
+                "store_id": {"$in": store_ids},
                 "date": {"$gte": first_day_of_month, "$lte": today}
             }
         },
         {
             "$group": {
                 "_id": None,
-                "total_ca": {"$sum": "$ca"},
-                "total_ventes": {"$sum": "$ventes"},
-                "total_articles": {"$sum": "$articles"}
+                "total_ca": {"$sum": "$ca_journalier"},
+                "total_ventes": {"$sum": "$nb_ventes"},
+                "total_articles": {"$sum": "$nb_articles"}
             }
         }
     ]
