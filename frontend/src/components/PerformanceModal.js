@@ -550,6 +550,21 @@ export default function PerformanceModal({
                             </div>
                           )}
                           
+                          {chartData.some(d => d.Ventes !== undefined) && (
+                            <div className="bg-green-50 rounded-xl p-4">
+                              <h4 className="text-sm font-semibold text-green-900 mb-3">🛒 Évolution des Ventes</h4>
+                              <ResponsiveContainer width="100%" height={180}>
+                                <BarChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#d1fae5" />
+                                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#065f46' }} stroke="#10b981" />
+                                  <YAxis tick={{ fontSize: 11, fill: '#065f46' }} stroke="#10b981" />
+                                  <Tooltip contentStyle={{ backgroundColor: '#d1fae5', border: '2px solid #10b981', borderRadius: '8px' }} />
+                                  <Bar dataKey="Ventes" fill="#10b981" radius={[8, 8, 0, 0]} />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          )}
+                          
                           {chartData.some(d => d.Articles !== undefined) && (
                             <div className="bg-orange-50 rounded-xl p-4">
                               <h4 className="text-sm font-semibold text-orange-900 mb-3">📦 Évolution des Articles</h4>
@@ -561,6 +576,21 @@ export default function PerformanceModal({
                                   <Tooltip contentStyle={{ backgroundColor: '#ffedd5', border: '2px solid #f97316', borderRadius: '8px' }} />
                                   <Bar dataKey="Articles" fill="#f97316" radius={[8, 8, 0, 0]} />
                                 </BarChart>
+                              </ResponsiveContainer>
+                            </div>
+                          )}
+                          
+                          {chartData.some(d => d.Prospects !== undefined) && (
+                            <div className="bg-purple-50 rounded-xl p-4">
+                              <h4 className="text-sm font-semibold text-purple-900 mb-3">🚶 Évolution des Prospects</h4>
+                              <ResponsiveContainer width="100%" height={180}>
+                                <LineChart data={chartData}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#e9d5ff" />
+                                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#581c87' }} stroke="#a855f7" />
+                                  <YAxis tick={{ fontSize: 11, fill: '#581c87' }} stroke="#a855f7" />
+                                  <Tooltip contentStyle={{ backgroundColor: '#f3e8ff', border: '2px solid #a855f7', borderRadius: '8px' }} />
+                                  <Line type="monotone" dataKey="Prospects" stroke="#a855f7" strokeWidth={3} dot={{ fill: '#7c3aed', r: 4 }} />
+                                </LineChart>
                               </ResponsiveContainer>
                             </div>
                           )}
