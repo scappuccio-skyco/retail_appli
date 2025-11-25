@@ -28,6 +28,25 @@ db = client[os.environ['DB_NAME']]
 
 # JWT Configuration
 JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key')
+
+# ============================================================================
+# CONFIDENTIALITÉ : Anonymisation pour IA
+# ============================================================================
+
+def anonymize_name_for_ai(full_name: str) -> str:
+    """
+    Anonymise le nom complet en gardant uniquement le prénom.
+    Exemples:
+    - "Marie Dupont" -> "Marie"
+    - "Jean-Pierre Martin" -> "Jean-Pierre"
+    - "Sophie" -> "Sophie"
+    """
+    if not full_name:
+        return "Vendeur"
+    
+    # Garder uniquement le prénom (premier mot/groupe avant espace)
+    first_name = full_name.strip().split()[0] if full_name.strip() else "Vendeur"
+    return first_name
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION = 24  # hours
 
