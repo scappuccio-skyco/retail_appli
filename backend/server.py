@@ -4696,11 +4696,13 @@ async def analyze_team(
             period_end = today.strftime('%Y-%m-%d')
             period_label = "sur 30 jours"
         
-        # Build context with team data
+        # Build context with team data (avec anonymisation des noms de famille)
         sellers_summary = []
         for seller in team_data.get('sellers_details', []):
+            # Anonymiser le nom : garder uniquement le prénom
+            anonymous_name = anonymize_name_for_ai(seller['name'])
             sellers_summary.append(
-                f"- {seller['name']}: CA {seller['ca']:.0f}€, {seller['ventes']} ventes, "
+                f"- {anonymous_name}: CA {seller['ca']:.0f}€, {seller['ventes']} ventes, "
                 f"PM {seller['panier_moyen']:.2f}€, Compétences {seller['avg_competence']:.1f}/10 "
                 f"(Fort: {seller['best_skill']}, Faible: {seller['worst_skill']})"
             )
