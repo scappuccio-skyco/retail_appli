@@ -7900,11 +7900,11 @@ Tu dois fournir des conseils personnalisés basés sur les profils de personnali
 **Description :** {request.description}
 
 ## Contexte Manager
-**Nom :** {current_user.get('first_name', '')} {current_user.get('last_name', '')}
+**Prénom :** {current_user.get('first_name', 'Manager')}
 **Profil de personnalité :** {json.dumps(manager_diagnostic.get('profile', {}), ensure_ascii=False) if manager_diagnostic else 'Non disponible'}
 
 ## Contexte Vendeur
-**Nom :** {seller.get('first_name', '')} {seller.get('last_name', '')}
+**Prénom :** {seller.get('first_name', 'Vendeur')}
 **Statut :** {seller.get('status', 'actif')}
 **Profil de personnalité :** {json.dumps(seller_diagnostic.get('profile', {}), ensure_ascii=False) if seller_diagnostic else 'Non disponible'}
 
