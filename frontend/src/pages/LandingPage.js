@@ -762,7 +762,11 @@ export default function LandingPage() {
               },
               {
                 question: "Mes données sont-elles sécurisées ?",
-                answer: "Oui, toutes vos données sont hébergées en France, chiffrées et conformes au RGPD. Nous ne partageons jamais vos données avec des tiers."
+                answer: "Oui, toutes vos données sont hébergées en France, chiffrées et conformes au RGPD. Nous ne partageons jamais vos données avec des tiers. Pour l'IA de coaching, seuls les prénoms sont transmis (les noms de famille sont automatiquement anonymisés). De plus, OpenAI ne conserve aucune donnée après traitement (politique Zero-Retention)."
+              },
+              {
+                question: "L'IA conserve-t-elle mes données commerciales ?",
+                answer: "Non. Les analyses IA utilisent uniquement les prénoms (pas les noms complets) et OpenAI ne stocke aucune donnée. Toutes les informations transmises sont automatiquement supprimées après traitement. Vos chiffres d'affaires et performances restent 100% confidentiels et ne sont jamais utilisés pour entraîner l'IA."
               },
               {
                 question: "Faut-il installer un logiciel ?",
