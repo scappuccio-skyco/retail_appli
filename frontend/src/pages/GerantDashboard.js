@@ -566,12 +566,16 @@ const GerantDashboard = ({ user, onLogout }) => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Stats Globales */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-orange-600" />
-            Vue d'Ensemble
-          </h2>
+        {activeView === 'api' ? (
+          <APIKeysManagement />
+        ) : (
+          <>
+            {/* Stats Globales */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <BarChart3 className="w-6 h-6 text-orange-600" />
+                Vue d'Ensemble
+              </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Magasins */}
