@@ -3,13 +3,15 @@ import { Copy, Eye, EyeOff, Plus, Trash2, RefreshCw, AlertCircle, CheckCircle } 
 
 const APIKeysManagement = () => {
   const [apiKeys, setApiKeys] = useState([]);
+  const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newKeyData, setNewKeyData] = useState({
     name: '',
     permissions: ['write:kpi', 'read:stats'],
-    expires_days: null
+    expires_days: null,
+    store_ids: null  // null = all stores
   });
   const [createdKey, setCreatedKey] = useState(null);
   const [visibleKeys, setVisibleKeys] = useState({});
