@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://retail-dashboard-40.preview.emergentagent.com
+https://bugfix-retail.preview.emergentagent.com
 
 ### Manager
 ```
