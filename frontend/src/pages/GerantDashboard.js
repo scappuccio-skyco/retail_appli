@@ -876,6 +876,8 @@ const GerantDashboard = ({ user, onLogout }) => {
             </div>
           )}
         </div>
+          </>
+        )}
       </div>
 
       {/* Modals */}
