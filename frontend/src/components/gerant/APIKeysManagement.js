@@ -356,6 +356,52 @@ const APIKeysManagement = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Accès aux magasins
+                </label>
+                <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                  <label className="flex items-center gap-2 p-2 hover:bg-white rounded transition-colors">
+                    <input
+                      type="radio"
+                      checked={newKeyData.store_ids === null}
+                      onChange={() => setNewKeyData({ ...newKeyData, store_ids: null })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-semibold text-blue-700">🌐 Tous les magasins</span>
+                  </label>
+                  <div className="border-t border-gray-300 my-2"></div>
+                  {stores.map(store => (
+                    <label key={store.id} className="flex items-center gap-2 p-2 hover:bg-white rounded transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={Array.isArray(newKeyData.store_ids) && newKeyData.store_ids.includes(store.id)}
+                        onChange={(e) => {
+                          const currentIds = Array.isArray(newKeyData.store_ids) ? newKeyData.store_ids : [];
+                          if (e.target.checked) {
+                            setNewKeyData({
+                              ...newKeyData,
+                              store_ids: [...currentIds, store.id]
+                            });
+                          } else {
+                            const newIds = currentIds.filter(id => id !== store.id);
+                            setNewKeyData({
+                              ...newKeyData,
+                              store_ids: newIds.length > 0 ? newIds : null
+                            });
+                          }
+                        }}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm text-gray-700">{store.name}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Sélectionnez "Tous les magasins" ou choisissez des magasins spécifiques
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Permissions
                 </label>
                 <div className="space-y-2">
