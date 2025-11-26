@@ -444,10 +444,10 @@ const APIKeysManagement = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Permissions
+                  Autorisations <span className="text-red-500">*</span>
                 </label>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2">
+                <div className="space-y-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={newKeyData.permissions.includes('write:kpi')}
@@ -464,11 +464,19 @@ const APIKeysManagement = () => {
                           });
                         }
                       }}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-0.5 cursor-pointer"
                     />
-                    <span className="text-sm text-gray-700">Écriture KPI (write:kpi)</span>
+                    <div className="flex-1">
+                      <span className="text-sm font-semibold text-gray-900 block">📝 Écriture des KPI</span>
+                      <span className="text-xs text-gray-600 block mt-0.5">
+                        Permet d'<strong>envoyer</strong> les données de ventes quotidiennes (CA, nombre de ventes, articles vendus) depuis vos systèmes externes (caisse, ERP)
+                      </span>
+                    </div>
                   </label>
-                  <label className="flex items-center gap-2">
+                  
+                  <div className="border-t border-blue-200"></div>
+                  
+                  <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={newKeyData.permissions.includes('read:stats')}
@@ -485,11 +493,22 @@ const APIKeysManagement = () => {
                           });
                         }
                       }}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-0.5 cursor-pointer"
                     />
-                    <span className="text-sm text-gray-700">Lecture statistiques (read:stats)</span>
+                    <div className="flex-1">
+                      <span className="text-sm font-semibold text-gray-900 block">📊 Lecture des statistiques</span>
+                      <span className="text-xs text-gray-600 block mt-0.5">
+                        Permet de <strong>récupérer</strong> les statistiques et rapports (performances vendeurs, objectifs, classements) pour les afficher dans vos outils externes
+                      </span>
+                    </div>
                   </label>
                 </div>
+                <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  Cochez au moins une autorisation
+                </p>
               </div>
             </div>
 
