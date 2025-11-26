@@ -223,8 +223,8 @@ const APIKeysManagement = () => {
         </div>
       )}
 
-      {/* Create Button */}
-      <div className="mb-6">
+      {/* Create Button & Filters */}
+      <div className="mb-6 flex items-center justify-between">
         <button
           onClick={() => setShowCreateModal(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-semibold transition-colors shadow-sm"
@@ -232,6 +232,25 @@ const APIKeysManagement = () => {
           <Plus className="h-5 w-5" />
           Créer une nouvelle clé API
         </button>
+        
+        {apiKeys.filter(k => !k.active).length > 0 && (
+          <button
+            onClick={() => setShowInactive(!showInactive)}
+            className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            {showInactive ? (
+              <>
+                <EyeOff className="h-4 w-4" />
+                Masquer les clés désactivées ({apiKeys.filter(k => !k.active).length})
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4" />
+                Afficher les clés désactivées ({apiKeys.filter(k => !k.active).length})
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* API Keys List */}
