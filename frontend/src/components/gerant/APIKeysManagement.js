@@ -302,15 +302,49 @@ const APIKeysManagement = () => {
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                {key.permissions.map((perm) => (
-                  <span
-                    key={perm}
-                    className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium"
-                  >
-                    {perm}
-                  </span>
-                ))}
+              <div className="mt-4 space-y-3">
+                {/* Permissions */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Permissions</p>
+                  <div className="flex flex-wrap gap-2">
+                    {key.permissions.map((perm) => (
+                      <span
+                        key={perm}
+                        className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium"
+                      >
+                        {perm}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Store Access */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Accès magasins</p>
+                  {key.store_ids === null || key.store_ids === undefined ? (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
+                      🌐 Tous les magasins
+                    </span>
+                  ) : key.store_ids.length === 0 ? (
+                    <span className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-xs font-medium">
+                      Aucun magasin
+                    </span>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {key.store_ids.map((storeId) => {
+                        const store = stores.find(s => s.id === storeId);
+                        return (
+                          <span
+                            key={storeId}
+                            className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-medium"
+                          >
+                            {store ? store.name : storeId}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))
