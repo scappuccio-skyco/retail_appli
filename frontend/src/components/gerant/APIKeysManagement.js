@@ -396,7 +396,7 @@ const APIKeysManagement = () => {
             <div className="p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Créer une nouvelle clé API</h2>
             
-            <div className="space-y-4 mb-6">
+              <div className="space-y-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nom de la clé <span className="text-red-500">*</span>
