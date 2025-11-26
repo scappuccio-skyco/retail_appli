@@ -9605,7 +9605,8 @@ async def regenerate_api_key(
         active=True,
         created_at=new_key_record["created_at"],
         last_used_at=None,
-        expires_at=new_key_record.get("expires_at")
+        expires_at=new_key_record.get("expires_at"),
+        store_ids=new_key_record.get("store_ids")
     )
 
 # Integration Endpoints (authenticated via API Key)
