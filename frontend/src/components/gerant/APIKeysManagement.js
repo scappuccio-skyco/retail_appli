@@ -579,20 +579,21 @@ const APIKeysManagement = () => {
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={createAPIKey}
-                disabled={!newKeyData.name.trim()}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium transition-colors"
-              >
-                Créer la clé
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={createAPIKey}
+                  disabled={!newKeyData.name.trim()}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium transition-colors"
+                >
+                  Créer la clé
+                </button>
+              </div>
             </div>
           </div>
         </div>
