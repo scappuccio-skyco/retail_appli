@@ -9587,6 +9587,7 @@ async def regenerate_api_key(
         "key": new_api_key,
         "name": old_key['name'],
         "permissions": old_key['permissions'],
+        "store_ids": old_key.get('store_ids'),  # Preserve store access
         "active": True,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "last_used_at": None,
