@@ -9406,6 +9406,7 @@ class APIKeyCreate(BaseModel):
     name: str
     permissions: List[str] = ["write:kpi", "read:stats"]
     expires_days: Optional[int] = None
+    store_ids: Optional[List[str]] = None  # None = all stores, [] = no stores, [id1, id2] = specific stores
 
 class APIKeyResponse(BaseModel):
     id: str
@@ -9416,6 +9417,7 @@ class APIKeyResponse(BaseModel):
     created_at: str
     last_used_at: Optional[str]
     expires_at: Optional[str]
+    store_ids: Optional[List[str]] = None
 
 class KPIEntryIntegration(BaseModel):
     seller_id: Optional[str] = None
