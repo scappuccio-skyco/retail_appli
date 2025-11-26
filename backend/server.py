@@ -9517,7 +9517,8 @@ async def create_api_key(
         active=True,
         created_at=key_record["created_at"],
         last_used_at=None,
-        expires_at=expires_at
+        expires_at=expires_at,
+        store_ids=key_data.store_ids
     )
 
 @api_router.get("/manager/api-keys")
