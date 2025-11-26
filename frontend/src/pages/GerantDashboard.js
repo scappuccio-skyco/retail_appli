@@ -22,6 +22,9 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [rankingStats, setRankingStats] = useState({}); // Pour le classement (période sélectionnée)
   const [loading, setLoading] = useState(true);
   
+  // View state
+  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' ou 'api'
+  
   // Period selection state
   const [periodType, setPeriodType] = useState('week'); // 'week', 'month', 'year'
   const [periodOffset, setPeriodOffset] = useState(-1); // -1 = période dernière complète
