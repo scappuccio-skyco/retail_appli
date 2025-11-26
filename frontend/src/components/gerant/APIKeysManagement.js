@@ -19,6 +19,7 @@ const APIKeysManagement = () => {
 
   useEffect(() => {
     fetchAPIKeys();
+    fetchStores();
   }, []);
 
   const fetchAPIKeys = async () => {
