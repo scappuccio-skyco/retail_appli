@@ -428,85 +428,143 @@ const APIKeysManagement = () => {
                 </p>
               </div>
 
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Accès aux magasins <span className="text-red-500">*</span>
                 </label>
-                <div className="border border-gray-300 rounded-lg bg-gray-50">
-                  {/* Option: Tous les magasins */}
-                  <label className="flex items-center gap-3 p-4 hover:bg-blue-50 cursor-pointer border-b border-gray-200">
-                    <input
-                      type="radio"
-                      name="store-access"
-                      checked={newKeyData.store_ids === null}
-                      onChange={() => setNewKeyData({ ...newKeyData, store_ids: null })}
-                      className="h-5 w-5 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
+                
+                {/* Dropdown Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowStoreDropdown(!showStoreDropdown)}
+                  className="w-full px-4 py-3 text-left bg-white border border-gray-300 rounded-lg hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                >
+                  <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <span className="text-base font-semibold text-blue-700 block">🌐 Tous les magasins</span>
-                      <span className="text-xs text-gray-600 block mt-0.5">
-                        Accès à l'ensemble de vos {stores.length} magasin{stores.length > 1 ? 's' : ''}
-                      </span>
-                    </div>
-                  </label>
-
-                  {/* Option: Magasins spécifiques */}
-                  <div className="p-4">
-                    <p className="text-sm font-semibold text-gray-700 mb-3">
-                      Ou sélectionnez un ou plusieurs magasins :
-                    </p>
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-                      {stores.length === 0 ? (
-                        <p className="text-sm text-gray-500 italic">Chargement des magasins...</p>
+                      {newKeyData.store_ids === null ? (
+                        <div>
+                          <span className="text-base font-semibold text-blue-700">🌐 Tous les magasins</span>
+                          <span className="text-xs text-gray-500 block mt-0.5">
+                            Accès à l'ensemble de vos {stores.length} magasin{stores.length > 1 ? 's' : ''}
+                          </span>
+                        </div>
                       ) : (
-                        stores.map(store => (
-                          <label key={store.id} className="flex items-center gap-3 p-3 hover:bg-white border border-transparent hover:border-purple-200 rounded-lg transition-all cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={Array.isArray(newKeyData.store_ids) && newKeyData.store_ids.includes(store.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  // Add this store to selection
-                                  const currentIds = Array.isArray(newKeyData.store_ids) ? newKeyData.store_ids : [];
-                                  setNewKeyData({
-                                    ...newKeyData,
-                                    store_ids: [...currentIds, store.id]
-                                  });
-                                } else {
-                                  // Remove this store from selection
-                                  const currentIds = Array.isArray(newKeyData.store_ids) ? newKeyData.store_ids : [];
-                                  const newIds = currentIds.filter(id => id !== store.id);
-                                  // If no stores left, reset to null (all stores)
-                                  setNewKeyData({
-                                    ...newKeyData,
-                                    store_ids: newIds.length > 0 ? newIds : null
-                                  });
-                                }
-                              }}
-                              className="h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer flex-shrink-0"
-                            />
-                            <div className="flex-1">
-                              <span className="text-sm font-medium text-gray-900 block">{store.name}</span>
-                              {store.location && (
-                                <span className="text-xs text-gray-500">{store.location}</span>
-                              )}
-                            </div>
-                          </label>
-                        ))
+                        <div>
+                          <span className="text-base font-semibold text-purple-700">
+                            {newKeyData.store_ids.length} magasin{newKeyData.store_ids.length > 1 ? 's' : ''} sélectionné{newKeyData.store_ids.length > 1 ? 's' : ''}
+                          </span>
+                          <span className="text-xs text-gray-500 block mt-0.5">
+                            {newKeyData.store_ids.map(id => {
+                              const store = stores.find(s => s.id === id);
+                              return store ? store.name : id;
+                            }).join(', ')}
+                          </span>
+                        </div>
                       )}
                     </div>
+                    <svg 
+                      className={`w-5 h-5 text-gray-400 transition-transform ${showStoreDropdown ? 'rotate-180' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </button>
+
+                {/* Dropdown Menu */}
+                {showStoreDropdown && (
+                  <div className="absolute z-10 mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                    {/* Option: Tous les magasins */}
+                    <div
+                      onClick={() => {
+                        setNewKeyData({ ...newKeyData, store_ids: null });
+                        setShowStoreDropdown(false);
+                      }}
+                      className={`px-4 py-3 cursor-pointer hover:bg-blue-50 border-b border-gray-200 ${
+                        newKeyData.store_ids === null ? 'bg-blue-50' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          newKeyData.store_ids === null ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
+                        }`}>
+                          {newKeyData.store_ids === null && (
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <span className="text-sm font-semibold text-blue-700 block">🌐 Tous les magasins</span>
+                          <span className="text-xs text-gray-500">Accès complet à tous vos magasins</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+                      <p className="text-xs font-semibold text-gray-600 uppercase">Ou sélectionnez des magasins spécifiques :</p>
+                    </div>
+
+                    {/* Store List */}
+                    {stores.length === 0 ? (
+                      <div className="px-4 py-3 text-sm text-gray-500 italic">Chargement des magasins...</div>
+                    ) : (
+                      stores.map(store => (
+                        <label 
+                          key={store.id}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-purple-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={Array.isArray(newKeyData.store_ids) && newKeyData.store_ids.includes(store.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                const currentIds = Array.isArray(newKeyData.store_ids) ? newKeyData.store_ids : [];
+                                setNewKeyData({
+                                  ...newKeyData,
+                                  store_ids: [...currentIds, store.id]
+                                });
+                              } else {
+                                const currentIds = Array.isArray(newKeyData.store_ids) ? newKeyData.store_ids : [];
+                                const newIds = currentIds.filter(id => id !== store.id);
+                                setNewKeyData({
+                                  ...newKeyData,
+                                  store_ids: newIds.length > 0 ? newIds : null
+                                });
+                              }
+                            }}
+                            className="h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <span className="text-sm font-medium text-gray-900 block">{store.name}</span>
+                            {store.location && (
+                              <span className="text-xs text-gray-500">{store.location}</span>
+                            )}
+                          </div>
+                        </label>
+                      ))
+                    )}
+
+                    {/* Footer with selection count */}
                     {Array.isArray(newKeyData.store_ids) && newKeyData.store_ids.length > 0 && (
-                      <p className="text-xs text-purple-600 mt-2 font-medium">
-                        ✓ {newKeyData.store_ids.length} magasin{newKeyData.store_ids.length > 1 ? 's' : ''} sélectionné{newKeyData.store_ids.length > 1 ? 's' : ''}
-                      </p>
+                      <div className="px-4 py-2 bg-purple-50 border-t border-purple-200">
+                        <p className="text-xs text-purple-700 font-medium">
+                          ✓ {newKeyData.store_ids.length} magasin{newKeyData.store_ids.length > 1 ? 's' : ''} sélectionné{newKeyData.store_ids.length > 1 ? 's' : ''}
+                        </p>
+                      </div>
                     )}
                   </div>
-                </div>
+                )}
+                
                 <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
-                  Choisissez soit tous les magasins, soit une sélection spécifique
+                  Cliquez pour choisir les magasins autorisés
                 </p>
               </div>
 
