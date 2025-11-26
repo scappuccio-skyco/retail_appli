@@ -22,6 +22,24 @@ const APIKeysManagement = () => {
     fetchStores();
   }, []);
 
+  const fetchStores = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/gerant/stores`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Erreur lors du chargement des magasins');
+
+      const data = await response.json();
+      setStores(data.stores || []);
+    } catch (err) {
+      console.error('Erreur chargement magasins:', err);
+    }
+  };
+
   const fetchAPIKeys = async () => {
     try {
       setLoading(true);
