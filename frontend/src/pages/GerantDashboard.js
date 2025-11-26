@@ -495,7 +495,7 @@ const GerantDashboard = ({ user, onLogout }) => {
       {/* Header */}
       <div className="bg-white shadow-md border-b-4 border-orange-500">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
                 🏢 Dashboard Gérant
@@ -534,6 +534,32 @@ const GerantDashboard = ({ user, onLogout }) => {
                 <span className="hidden sm:inline">Déconnexion</span>
               </button>
             </div>
+          </div>
+
+          {/* Onglets de navigation */}
+          <div className="flex gap-1 border-b border-gray-200">
+            <button
+              onClick={() => setActiveView('dashboard')}
+              className={`flex items-center gap-2 px-6 py-3 font-semibold transition-all ${
+                activeView === 'dashboard'
+                  ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <BarChart3 className="w-5 h-5" />
+              <span>Vue d'ensemble</span>
+            </button>
+            <button
+              onClick={() => setActiveView('api')}
+              className={`flex items-center gap-2 px-6 py-3 font-semibold transition-all ${
+                activeView === 'api'
+                  ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <Key className="w-5 h-5" />
+              <span>Intégrations API</span>
+            </button>
           </div>
         </div>
       </div>
