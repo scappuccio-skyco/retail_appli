@@ -235,13 +235,13 @@ const APIKeysManagement = () => {
 
       {/* API Keys List */}
       <div className="space-y-4">
-        {apiKeys.length === 0 ? (
+        {apiKeys.filter(k => k.active).length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-            <p className="text-gray-600 text-lg">Aucune clé API créée</p>
+            <p className="text-gray-600 text-lg">Aucune clé API active</p>
             <p className="text-gray-500 text-sm mt-2">Créez votre première clé pour commencer l'intégration</p>
           </div>
         ) : (
-          apiKeys.map((key) => (
+          apiKeys.filter(k => k.active).map((key) => (
             <div
               key={key.id}
               className={`border rounded-lg p-6 transition-all ${
