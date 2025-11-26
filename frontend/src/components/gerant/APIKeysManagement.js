@@ -385,9 +385,16 @@ const APIKeysManagement = () => {
 
       {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Créer une nouvelle clé API</h2>
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto"
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Créer une nouvelle clé API</h2>
             
             <div className="space-y-4 mb-6">
               <div>
