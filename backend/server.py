@@ -9500,6 +9500,7 @@ async def create_api_key(
         "key": api_key,
         "name": key_data.name,
         "permissions": key_data.permissions,
+        "store_ids": key_data.store_ids,  # None = all stores
         "active": True,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "last_used_at": None,
