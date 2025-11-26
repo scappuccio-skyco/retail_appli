@@ -35,9 +35,11 @@ const APIKeysManagement = () => {
       if (!response.ok) throw new Error('Erreur lors du chargement des magasins');
 
       const data = await response.json();
-      setStores(data.stores || []);
+      // L'endpoint retourne directement un array, pas {stores: [...]}
+      setStores(Array.isArray(data) ? data : (data.stores || []));
     } catch (err) {
       console.error('Erreur chargement magasins:', err);
+      setStores([]);
     }
   };
 
