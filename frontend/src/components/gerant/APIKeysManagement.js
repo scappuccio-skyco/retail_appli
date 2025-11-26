@@ -325,16 +325,26 @@ const APIKeysManagement = () => {
               <div className="mt-4 space-y-3">
                 {/* Permissions */}
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Permissions</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Autorisations</p>
                   <div className="flex flex-wrap gap-2">
-                    {key.permissions.map((perm) => (
-                      <span
-                        key={perm}
-                        className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium"
-                      >
-                        {perm}
-                      </span>
-                    ))}
+                    {key.permissions.map((perm) => {
+                      const permLabel = perm === 'write:kpi' 
+                        ? '📝 Écriture KPI' 
+                        : perm === 'read:stats' 
+                        ? '📊 Lecture stats' 
+                        : perm;
+                      return (
+                        <span
+                          key={perm}
+                          className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium"
+                          title={perm === 'write:kpi' 
+                            ? 'Permet d\'envoyer les données de ventes' 
+                            : 'Permet de récupérer les statistiques'}
+                        >
+                          {permLabel}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
 
