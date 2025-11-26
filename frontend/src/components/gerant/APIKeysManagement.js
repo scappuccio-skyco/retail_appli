@@ -79,7 +79,7 @@ const APIKeysManagement = () => {
       const data = await response.json();
       setCreatedKey(data);
       setShowCreateModal(false);
-      setNewKeyData({ name: '', permissions: ['write:kpi', 'read:stats'], expires_days: null });
+      setNewKeyData({ name: '', permissions: ['write:kpi', 'read:stats'], expires_days: null, store_ids: null });
       fetchAPIKeys();
     } catch (err) {
       setError(err.message);
