@@ -390,47 +390,55 @@ const APIKeysManagement = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Accès aux magasins
+                  Accès aux magasins <span className="text-red-500">*</span>
                 </label>
-                <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
-                  <label className="flex items-center gap-2 p-2 hover:bg-white rounded transition-colors">
+                <div className="space-y-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                  <label className="flex items-center gap-2 p-2 hover:bg-white rounded transition-colors cursor-pointer">
                     <input
                       type="radio"
                       checked={newKeyData.store_ids === null}
                       onChange={() => setNewKeyData({ ...newKeyData, store_ids: null })}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
                     />
-                    <span className="text-sm font-semibold text-blue-700">🌐 Tous les magasins</span>
+                    <span className="text-sm font-semibold text-blue-700">🌐 Tous les magasins ({stores.length})</span>
                   </label>
                   <div className="border-t border-gray-300 my-2"></div>
+                  <p className="text-xs text-gray-600 px-2 mb-1 font-medium">Ou sélectionnez un ou plusieurs magasins :</p>
                   {stores.map(store => (
-                    <label key={store.id} className="flex items-center gap-2 p-2 hover:bg-white rounded transition-colors">
+                    <label key={store.id} className="flex items-center gap-2 p-2 hover:bg-white rounded transition-colors cursor-pointer">
                       <input
                         type="checkbox"
                         checked={Array.isArray(newKeyData.store_ids) && newKeyData.store_ids.includes(store.id)}
                         onChange={(e) => {
-                          const currentIds = Array.isArray(newKeyData.store_ids) ? newKeyData.store_ids : [];
                           if (e.target.checked) {
+                            // Add this store to selection
+                            const currentIds = Array.isArray(newKeyData.store_ids) ? newKeyData.store_ids : [];
                             setNewKeyData({
                               ...newKeyData,
                               store_ids: [...currentIds, store.id]
                             });
                           } else {
+                            // Remove this store from selection
+                            const currentIds = Array.isArray(newKeyData.store_ids) ? newKeyData.store_ids : [];
                             const newIds = currentIds.filter(id => id !== store.id);
+                            // If no stores left, set to null (all stores)
                             setNewKeyData({
                               ...newKeyData,
                               store_ids: newIds.length > 0 ? newIds : null
                             });
                           }
                         }}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer"
                       />
                       <span className="text-sm text-gray-700">{store.name}</span>
                     </label>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Sélectionnez "Tous les magasins" ou choisissez des magasins spécifiques
+                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  Sélectionnez les magasins auxquels cette clé aura accès
                 </p>
               </div>
 
