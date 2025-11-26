@@ -9628,13 +9628,23 @@ async def sync_kpi_integration(
         raise HTTPException(status_code=404, detail="Store not found")
     
     # Verify API key has access to this store
-    if api_key_data.get('store_id') and api_key_data['store_id'] != data.store_id:
+    store_ids = api_key_data.get('store_ids')
+    
+    # If store_ids is None, it means access to all stores (for gerant)
+    if store_ids is not None:
+        # Specific stores are defined, check access
+        if data.store_id not in store_ids:
+            raise HTTPException(status_code=403, detail="API key does not have access to this store")
+    else:
+        # store_ids is None = all stores access
         # Check if gerant owns this store
         if api_key_data.get('gerant_id'):
             if store.get('gerant_id') != api_key_data['gerant_id']:
                 raise HTTPException(status_code=403, detail="API key does not have access to this store")
-        else:
-            raise HTTPException(status_code=403, detail="API key does not have access to this store")
+        elif api_key_data.get('store_id'):
+            # Manager's key - check specific store
+            if api_key_data['store_id'] != data.store_id:
+                raise HTTPException(status_code=403, detail="API key does not have access to this store")
     
     entries_created = 0
     entries_updated = 0
