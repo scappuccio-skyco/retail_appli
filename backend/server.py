@@ -9508,11 +9508,20 @@ def generate_api_key() -> str:
 
 # Middleware: Verify API Key
 async def verify_api_key_integration(request: Request):
-    """Verify API key from header"""
+    """Verify API key from header with rate limiting"""
     api_key = request.headers.get('X-API-Key') or request.headers.get('Authorization', '').replace('Bearer ', '')
     
     if not api_key:
         raise HTTPException(status_code=401, detail="API Key missing. Include X-API-Key header.")
+    
+    # Check rate limit BEFORE database query (performance)
+    if not rate_limiter.is_allowed(api_key):
+        remaining = rate_limiter.get_remaining(api_key)
+        raise HTTPException(
+            status_code=429, 
+            detail=f"Rate limit exceeded. Maximum 100 requests per minute. Try again in a few seconds.",
+            headers={"Retry-After": "60", "X-RateLimit-Remaining": str(remaining)}
+        )
     
     # Find API key in database
     key_record = await db.api_keys.find_one({
