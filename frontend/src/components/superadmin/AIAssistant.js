@@ -200,7 +200,7 @@ export default function AIAssistant() {
             conversations.map((conv) => (
               <div
                 key={conv.id}
-                className={`p-3 rounded-lg cursor-pointer transition-all group ${
+                className={`p-3 rounded-lg transition-all group relative ${
                   conv.id === conversationId
                     ? 'bg-purple-600/30 border border-purple-500/50'
                     : 'bg-white/5 hover:bg-white/10 border border-transparent'
@@ -208,7 +208,7 @@ export default function AIAssistant() {
               >
                 <div
                   onClick={() => loadConversation(conv.id)}
-                  className="flex-1"
+                  className="cursor-pointer pr-8"
                 >
                   <p className="text-sm text-white font-medium truncate">
                     {conv.title}
@@ -227,7 +227,7 @@ export default function AIAssistant() {
                     e.stopPropagation();
                     deleteConversation(conv.id);
                   }}
-                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
                 >
                   <Trash2 className="w-4 h-4 text-red-400" />
                 </button>
