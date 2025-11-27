@@ -9609,6 +9609,38 @@ async def regenerate_api_key(
         store_ids=new_key_record.get("store_ids")
     )
 
+@api_router.delete("/manager/api-keys/{key_id}/permanent")
+async def delete_api_key_permanent(
+    key_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Permanently delete an inactive API key"""
+    if current_user['role'] not in ['manager', 'gerant']:
+        raise HTTPException(status_code=403, detail="Only managers and gerants can delete API keys")
+    
+    # Find the key and verify ownership
+    key = await db.api_keys.find_one({"id": key_id}, {"_id": 0})
+    
+    if not key:
+        raise HTTPException(status_code=404, detail="API key not found")
+    
+    # Verify ownership
+    if current_user['role'] == 'manager':
+        if key.get('user_id') != current_user['id']:
+            raise HTTPException(status_code=403, detail="Not authorized to delete this key")
+    elif current_user['role'] == 'gerant':
+        if key.get('gerant_id') != current_user['id']:
+            raise HTTPException(status_code=403, detail="Not authorized to delete this key")
+    
+    # Only allow deletion of inactive keys
+    if key.get('active'):
+        raise HTTPException(status_code=400, detail="Cannot permanently delete an active key. Deactivate it first.")
+    
+    # Permanently delete the key
+    await db.api_keys.delete_one({"id": key_id})
+    
+    return {"success": True, "message": "API key permanently deleted"}
+
 # Integration Endpoints (authenticated via API Key)
 
 @api_router.post("/v1/integrations/kpi/sync")
