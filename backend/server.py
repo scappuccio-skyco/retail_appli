@@ -8899,10 +8899,13 @@ async def get_conversation_messages(
     """Get messages for a specific conversation"""
     try:
         # Verify conversation belongs to admin
-        conversation = await db.ai_conversations.find_one({
-            "id": conversation_id,
-            "admin_email": current_admin['email']
-        })
+        conversation = await db.ai_conversations.find_one(
+            {
+                "id": conversation_id,
+                "admin_email": current_admin['email']
+            },
+            {"_id": 0}
+        )
         
         if not conversation:
             raise HTTPException(status_code=404, detail="Conversation non trouvée")
