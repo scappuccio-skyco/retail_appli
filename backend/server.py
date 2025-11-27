@@ -8424,6 +8424,7 @@ async def get_admin_logs(
             "filters_applied": {
                 "action": action,
                 "admin_email": admin_email,
+                "admin_emails": admin_emails,
                 "workspace_id": workspace_id,
                 "days": days
             }
