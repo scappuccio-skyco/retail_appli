@@ -147,6 +147,12 @@ const APIKeysManagement = () => {
   };
 
   const copyToClipboard = (text, keyId) => {
+    // Clear any existing timeout
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = null;
+    }
+
     // Use the most reliable method: textarea + select + execCommand
     const textArea = document.createElement('textarea');
     textArea.value = text;
@@ -167,18 +173,27 @@ const APIKeysManagement = () => {
     
     try {
       const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
       if (successful) {
-        setCopiedKey(keyId);
-        setTimeout(() => setCopiedKey(''), 2000);
+        // Use requestAnimationFrame to defer state update
+        requestAnimationFrame(() => {
+          setCopiedKey(keyId);
+          copyTimeoutRef.current = setTimeout(() => {
+            setCopiedKey('');
+          }, 2000);
+        });
       } else {
-        setError('Impossible de copier. Veuillez sélectionner et copier manuellement.');
+        console.warn('Copy command was unsuccessful');
       }
     } catch (err) {
       console.error('Copy failed:', err);
-      setError('Erreur lors de la copie. Veuillez copier manuellement.');
+      try {
+        document.body.removeChild(textArea);
+      } catch (e) {
+        // Already removed
+      }
     }
-    
-    document.body.removeChild(textArea);
   };
 
   const formatDate = (dateString) => {
