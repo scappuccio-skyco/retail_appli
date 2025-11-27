@@ -8804,16 +8804,16 @@ Réponds toujours en français."""
         
         # Call GPT-5
         llm = LlmChat(
-            model="gpt-5",
             api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            session_id=conversation_id or str(uuid.uuid4()),
             system_message=system_prompt
-        )
+        ).with_model("openai", "gpt-5")
         
-        # Build conversation for LlmChat
-        user_messages = [UserMessage(content=msg["content"]) for msg in messages if msg["role"] == "user"]
+        # Create user message
+        user_message = UserMessage(text=request.message)
         
         # Get AI response
-        response = llm.send_message(user_messages[-1].content)
+        response = await llm.send_message(user_message)
         ai_response = response.content
         
         # Save user message
