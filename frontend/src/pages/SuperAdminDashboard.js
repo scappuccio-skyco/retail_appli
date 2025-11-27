@@ -14,8 +14,11 @@ export default function SuperAdminDashboard() {
   const [stats, setStats] = useState(null);
   const [workspaces, setWorkspaces] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [systemLogs, setSystemLogs] = useState([]);
+  const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [logFilters, setLogFilters] = useState({ level: '', type: '', hours: 24 });
 
   useEffect(() => {
     fetchData();
