@@ -45,7 +45,61 @@ Authorization: Bearer rp_live_votre_cle_api_ici
 
 ### Endpoints disponibles
 
-#### 1. Récupérer les statistiques de vos magasins (Recommandé - Simple)
+#### 1. Récupérer la liste de vos magasins, managers et vendeurs
+
+**Endpoint** : `GET /api/v1/integrations/my-stores`
+
+**Description** : Récupère la liste complète de tous les magasins accessibles avec leur personnel (managers et vendeurs). Idéal pour mapper vos données externes avec les IDs internes.
+
+**Headers** :
+```
+X-API-Key: rp_live_votre_cle_api_ici
+```
+
+**Réponse** (200 OK) :
+```json
+{
+  "stores": [
+    {
+      "store_id": "c2dd1ada-d0a2-4a90-be81-644b7cb78bc7",
+      "store_name": "Skyco Lyon Part-Dieu",
+      "store_address": "45 Rue de la République, 69003 Lyon",
+      "managers_count": 1,
+      "managers": [
+        {
+          "id": "72468398-620f-42d1-977c-bd250f4d440a",
+          "name": "DENIS TOM",
+          "email": "Manager12@test.com"
+        }
+      ],
+      "sellers_count": 8,
+      "sellers": [
+        {
+          "id": "2a1c816b-fd21-463a-8a8f-bfe98616aeba",
+          "name": "Vendeur Test 1",
+          "email": "vendeur1@test.com"
+        }
+      ]
+    }
+  ],
+  "total_stores": 4,
+  "total_managers": 4,
+  "total_sellers": 13
+}
+```
+
+**Configuration N8N** :
+1. **Method** : `GET`
+2. **URL** : `https://votre-domaine.com/api/v1/integrations/my-stores`
+3. **Send Headers** : ✅ Activé
+   - Name: `X-API-Key`
+   - Value: `rp_live_votre_cle_api_ici`
+
+**Cas d'usage** : Utilisez cet endpoint au début de votre workflow N8N pour récupérer tous les IDs nécessaires avant d'envoyer des KPI.
+
+---
+
+#### 2. Récupérer les statistiques de vos magasins
 
 **Endpoint** : `GET /api/v1/integrations/my-stats`
 
