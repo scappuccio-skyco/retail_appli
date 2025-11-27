@@ -145,56 +145,6 @@ const APIKeysManagement = () => {
     }));
   };
 
-  const copyToClipboard = (text, keyId) => {
-    // Clear any existing timeout
-    if (copyTimeoutRef.current) {
-      clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = null;
-    }
-
-    // Use the most reliable method: textarea + select + execCommand
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    textArea.style.position = 'fixed';
-    textArea.style.top = '0';
-    textArea.style.left = '0';
-    textArea.style.width = '2em';
-    textArea.style.height = '2em';
-    textArea.style.padding = '0';
-    textArea.style.border = 'none';
-    textArea.style.outline = 'none';
-    textArea.style.boxShadow = 'none';
-    textArea.style.background = 'transparent';
-    
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    
-    try {
-      const successful = document.execCommand('copy');
-      document.body.removeChild(textArea);
-      
-      if (successful) {
-        // Use requestAnimationFrame to defer state update
-        requestAnimationFrame(() => {
-          setCopiedKey(keyId);
-          copyTimeoutRef.current = setTimeout(() => {
-            setCopiedKey('');
-          }, 2000);
-        });
-      } else {
-        console.warn('Copy command was unsuccessful');
-      }
-    } catch (err) {
-      console.error('Copy failed:', err);
-      try {
-        document.body.removeChild(textArea);
-      } catch (e) {
-        // Already removed
-      }
-    }
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return 'Jamais';
     const date = new Date(dateString);
