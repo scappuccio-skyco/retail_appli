@@ -16,10 +16,8 @@ const APIKeysManagement = () => {
   });
   const [createdKey, setCreatedKey] = useState(null);
   const [visibleKeys, setVisibleKeys] = useState({});
-  const [copiedKey, setCopiedKey] = useState('');
   const [showInactive, setShowInactive] = useState(false);
   const [showStoreDropdown, setShowStoreDropdown] = useState(false);
-  const copyTimeoutRef = useRef(null);
 
   useEffect(() => {
     fetchAPIKeys();
