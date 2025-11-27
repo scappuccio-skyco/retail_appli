@@ -468,7 +468,7 @@ const APIKeysManagement = () => {
                 {/* Dropdown Button */}
                 <button
                   type="button"
-                  onClick={() => setShowStoreDropdown(!showStoreDropdown)}
+                  onClick={() => showStoreDropdown ? closeDropdown() : openDropdown()}
                   className="w-full px-4 py-3 text-left bg-white border border-gray-300 rounded-lg hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 >
                   <div className="flex items-center justify-between">
