@@ -25,6 +25,20 @@ const APIKeysManagement = () => {
     fetchStores();
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowStoreDropdown(false);
+      }
+    };
+
+    if (showStoreDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showStoreDropdown]);
+
   const fetchStores = async () => {
     try {
       const token = localStorage.getItem('token');
