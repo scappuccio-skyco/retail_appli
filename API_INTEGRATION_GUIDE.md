@@ -177,10 +177,10 @@ X-API-Key: rp_live_votre_cle_api_ici
 **Configuration N8N** :
 1. **Method** : `GET`
 2. **URL** : `https://votre-domaine.com/api/v1/integrations/my-stats`
-3. **Send Query Parameters** : ✅ Activé
+3. **Send Query Parameters** : ✅ **ACTIVÉ** (obligatoire)
    - `start_date` → `2025-01-01`
    - `end_date` → `2025-01-31`
-4. **Send Headers** : ✅ Activé
+4. **Send Headers** : ✅ **ACTIVÉ**
    - Name: `X-API-Key`
    - Value: `rp_live_votre_cle_api_ici`
 
