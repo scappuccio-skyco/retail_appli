@@ -8219,6 +8219,12 @@ async def get_superadmin_stats(current_admin: dict = Depends(get_super_admin)):
 async def get_all_workspaces(current_admin: dict = Depends(get_super_admin)):
     """Liste tous les workspaces avec informations de base"""
     try:
+        # Log access
+        await log_admin_action(
+            admin=current_admin,
+            action="access_workspaces_list",
+            details={"view": "workspaces"}
+        )
         workspaces = await db.workspaces.find({}, {"_id": 0}).to_list(1000)
         
         result = []
