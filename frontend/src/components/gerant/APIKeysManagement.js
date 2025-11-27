@@ -338,25 +338,26 @@ const APIKeysManagement = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {key.active ? (
-                    <>
-                      <button
-                        onClick={() => regenerateAPIKey(key.id)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Régénérer"
-                      >
-                        <RefreshCw className="h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => deleteAPIKey(key.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Désactiver"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </>
-                  ) : (
+                {key.active && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => regenerateAPIKey(key.id)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Régénérer"
+                    >
+                      <RefreshCw className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => deleteAPIKey(key.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Désactiver"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
+                )}
+                {!key.active && (
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => permanentDeleteAPIKey(key.id)}
                       className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
@@ -365,8 +366,8 @@ const APIKeysManagement = () => {
                       <Trash2 className="h-4 w-4" />
                       Supprimer définitivement
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               <div className="bg-gray-50 rounded-lg p-3 font-mono text-sm">
