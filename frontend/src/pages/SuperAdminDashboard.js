@@ -107,7 +107,9 @@ export default function SuperAdminDashboard() {
         limit: 100,
         days: auditFilters.days,
         ...(auditFilters.action && { action: auditFilters.action }),
-        ...(auditFilters.admin_email && { admin_email: auditFilters.admin_email })
+        ...(auditFilters.admin_emails && auditFilters.admin_emails.length > 0 && { 
+          admin_emails: auditFilters.admin_emails.join(',') 
+        })
       };
       const res = await axios.get(`${API}/superadmin/logs`, { headers, params });
       setAuditLogData(res.data);
