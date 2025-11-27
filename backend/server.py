@@ -8812,9 +8812,8 @@ Réponds toujours en français."""
         # Create user message
         user_message = UserMessage(text=request.message)
         
-        # Get AI response
-        response = await llm.send_message(user_message)
-        ai_response = response.content
+        # Get AI response (returns str directly)
+        ai_response = await llm.send_message(user_message)
         
         # Save user message
         user_msg = {
