@@ -145,10 +145,38 @@ const APIKeysManagement = () => {
     }));
   };
 
-  const copyToClipboard = (text, keyId) => {
-    navigator.clipboard.writeText(text);
-    setCopiedKey(keyId);
-    setTimeout(() => setCopiedKey(''), 2000);
+  const copyToClipboard = async (text, keyId) => {
+    try {
+      // Try modern clipboard API
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        setCopiedKey(keyId);
+        setTimeout(() => setCopiedKey(''), 2000);
+      } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+          setCopiedKey(keyId);
+          setTimeout(() => setCopiedKey(''), 2000);
+        } catch (err) {
+          console.error('Fallback copy failed:', err);
+          setError('Impossible de copier automatiquement. Veuillez copier manuellement.');
+        }
+        
+        document.body.removeChild(textArea);
+      }
+    } catch (err) {
+      console.error('Copy failed:', err);
+      setError('Erreur lors de la copie. Veuillez copier manuellement la clé.');
+    }
   };
 
   const formatDate = (dateString) => {
