@@ -45,9 +45,86 @@ Authorization: Bearer rp_live_votre_cle_api_ici
 
 ### Endpoints disponibles
 
-#### 1. Synchroniser les KPI journaliers
+#### 1. Récupérer les statistiques de vos magasins (Recommandé - Simple)
 
-**Endpoint** : `POST /api/integrations/kpi/sync`
+**Endpoint** : `GET /api/v1/integrations/my-stats`
+
+**Description** : Récupère automatiquement les statistiques de tous les magasins autorisés par votre clé API. Pas besoin de spécifier les magasins !
+
+**Headers** :
+```
+X-API-Key: rp_live_votre_cle_api_ici
+```
+
+**Query Parameters** :
+- `start_date` : Date de début (format `YYYY-MM-DD`, ex: `2025-01-01`)
+- `end_date` : Date de fin (format `YYYY-MM-DD`, ex: `2025-01-31`)
+
+**Exemple de requête** :
+```bash
+GET /api/v1/integrations/my-stats?start_date=2025-01-01&end_date=2025-01-31
+X-API-Key: rp_live_votre_cle_api_ici
+```
+
+**Réponse** (200 OK) :
+```json
+{
+  "period": {
+    "start": "2025-01-01",
+    "end": "2025-01-31"
+  },
+  "stores": [
+    {
+      "store_id": "store-001",
+      "store_name": "Skyco Paris Centre",
+      "metrics": {
+        "total_ca": 107359.70,
+        "total_ventes": 833,
+        "total_articles": 1417,
+        "average_basket": 128.88
+      }
+    },
+    {
+      "store_id": "store-002",
+      "store_name": "Skyco Lyon Part-Dieu",
+      "metrics": {
+        "total_ca": 209728.64,
+        "total_ventes": 1403,
+        "total_articles": 2300,
+        "average_basket": 149.49
+      }
+    }
+  ],
+  "total_all_stores": {
+    "total_ca": 317088.34,
+    "total_ventes": 2236,
+    "total_articles": 3717,
+    "average_basket": 141.81
+  }
+}
+```
+
+**Configuration N8N** :
+1. **Method** : `GET`
+2. **URL** : `https://votre-domaine.com/api/v1/integrations/my-stats`
+3. **Send Query Parameters** : ✅ Activé
+   - `start_date` → `2025-01-01`
+   - `end_date` → `2025-01-31`
+4. **Send Headers** : ✅ Activé
+   - Name: `X-API-Key`
+   - Value: `rp_live_votre_cle_api_ici`
+
+**Codes d'erreur** :
+- `401` : Clé API invalide ou expirée
+- `403` : Permission insuffisante (nécessite `read:stats`)
+- `400` : Paramètres manquants (start_date ou end_date)
+- `404` : Aucun magasin accessible avec cette clé
+
+---
+
+#### 2. Synchroniser les KPI journaliers
+
+**Endpoint** : `POST /api/v1/integrations/kpi/sync`
 
 **Description** : Envoyez les KPI journaliers d'un ou plusieurs vendeurs
 
