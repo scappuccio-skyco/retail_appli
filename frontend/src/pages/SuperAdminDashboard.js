@@ -571,10 +571,11 @@ export default function SuperAdminDashboard() {
                   value={auditFilters.action}
                   onChange={(e) => setAuditFilters({ ...auditFilters, action: e.target.value })}
                   className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
+                  style={{colorScheme: 'dark'}}
                 >
-                  <option value="">Toutes les actions</option>
+                  <option value="" className="bg-gray-800 text-white">Toutes les actions</option>
                   {auditLogData.available_actions && auditLogData.available_actions.map((action) => (
-                    <option key={action} value={action}>
+                    <option key={action} value={action} className="bg-gray-800 text-white">
                       {action.replace(/_/g, ' ')}
                     </option>
                   ))}
@@ -596,12 +597,13 @@ export default function SuperAdminDashboard() {
                   value={auditFilters.days}
                   onChange={(e) => setAuditFilters({ ...auditFilters, days: parseInt(e.target.value) })}
                   className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
+                  style={{colorScheme: 'dark'}}
                 >
-                  <option value="1">Dernier jour</option>
-                  <option value="7">7 jours</option>
-                  <option value="30">30 jours</option>
-                  <option value="90">90 jours</option>
-                  <option value="365">1 an</option>
+                  <option value="1" className="bg-gray-800 text-white">Dernier jour</option>
+                  <option value="7" className="bg-gray-800 text-white">7 jours</option>
+                  <option value="30" className="bg-gray-800 text-white">30 jours</option>
+                  <option value="90" className="bg-gray-800 text-white">90 jours</option>
+                  <option value="365" className="bg-gray-800 text-white">1 an</option>
                 </select>
               </div>
             </div>
