@@ -33,8 +33,10 @@ export default function SuperAdminDashboard() {
   useEffect(() => {
     if (activeTab === 'system-logs') {
       fetchSystemLogs();
+    } else if (activeTab === 'logs') {
+      fetchAuditLogs();
     }
-  }, [activeTab, logFilters]);
+  }, [activeTab, logFilters, auditFilters]);
 
   const fetchData = async () => {
     try {
