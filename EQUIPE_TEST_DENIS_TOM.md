@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://bugfix-retail.preview.emergentagent.com
+https://app-connect-hub-1.preview.emergentagent.com
 
 ### Manager
 ```
