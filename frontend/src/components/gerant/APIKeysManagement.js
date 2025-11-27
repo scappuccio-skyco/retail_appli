@@ -125,8 +125,14 @@ const APIKeysManagement = () => {
       if (!response.ok) throw new Error('Erreur lors de la régénération de la clé API');
 
       const data = await response.json();
-      setCreatedKey(data);
-      fetchAPIKeys();
+      
+      // Refresh the list first, then show the new key
+      await fetchAPIKeys();
+      
+      // Use setTimeout to ensure DOM is stable before showing modal
+      setTimeout(() => {
+        setCreatedKey(data);
+      }, 100);
     } catch (err) {
       setError(err.message);
     }
