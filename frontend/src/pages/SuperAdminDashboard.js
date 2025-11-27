@@ -22,7 +22,16 @@ export default function SuperAdminDashboard() {
 
   useEffect(() => {
     fetchData();
+    // Auto-refresh health every 30 seconds
+    const interval = setInterval(fetchHealth, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'system-logs') {
+      fetchSystemLogs();
+    }
+  }, [activeTab, logFilters]);
 
   const fetchData = async () => {
     try {
