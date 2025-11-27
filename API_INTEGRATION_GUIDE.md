@@ -434,10 +434,12 @@ Pour toute question ou problème :
 ## Changelog
 
 ### Version 1.1 (27 Nov 2025)
-- ✨ Nouvel endpoint `/api/v1/integrations/my-stats` pour récupérer facilement les stats
-- 🎯 Détection automatique des magasins autorisés (plus besoin de spécifier store_id)
-- 📖 Guide de configuration N8N ajouté
+- ✨ Nouvel endpoint `/api/v1/integrations/my-stores` pour lister magasins + managers + vendeurs
+- ✨ Nouvel endpoint `/api/v1/integrations/my-stats` pour récupérer les statistiques agrégées
+- 🎯 Détection automatique des magasins autorisés (plus besoin de spécifier store_id manuellement)
+- 📖 Guide de configuration N8N détaillé avec tableau comparatif des endpoints
 - 🔧 Correction des exemples de code avec le préfixe `/v1`
+- ⚠️ Clarification importante : distinction entre `/my-stores` (personnel) et `/my-stats` (chiffres)
 
 ### Version 1.0 (26 Nov 2025)
 - 🎉 Lancement de l'API
