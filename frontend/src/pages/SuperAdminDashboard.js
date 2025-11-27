@@ -47,13 +47,14 @@ export default function SuperAdminDashboard() {
       const [statsRes, workspacesRes, logsRes, healthRes] = await Promise.all([
         axios.get(`${API}/superadmin/stats`, { headers }),
         axios.get(`${API}/superadmin/workspaces`, { headers }),
-        axios.get(`${API}/superadmin/logs?limit=50`, { headers }),
+        axios.get(`${API}/superadmin/logs?limit=50&days=7`, { headers }),
         axios.get(`${API}/superadmin/health`, { headers })
       ]);
 
       setStats(statsRes.data);
       setWorkspaces(workspacesRes.data);
-      setLogs(logsRes.data);
+      setAuditLogData(logsRes.data);
+      setLogs(logsRes.data.logs || logsRes.data);
       setHealth(healthRes.data);
     } catch (error) {
       if (error.response?.status === 403) {
