@@ -200,22 +200,10 @@ const APIKeysManagement = () => {
           </p>
           <div className="bg-white border border-green-300 rounded-lg p-4 font-mono text-sm break-all flex items-center justify-between gap-4">
             <code className="text-gray-900">{createdKey.key}</code>
-            <button
-              onClick={() => copyToClipboard(createdKey.key, 'created')}
+            <CopyButton 
+              text={createdKey.key}
               className="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-            >
-              {copiedKey === 'created' ? (
-                <>
-                  <CheckCircle className="h-4 w-4" />
-                  Copié !
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4" />
-                  Copier
-                </>
-              )}
-            </button>
+            />
           </div>
           <button
             onClick={() => setCreatedKey(null)}
