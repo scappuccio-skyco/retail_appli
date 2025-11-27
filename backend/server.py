@@ -10143,17 +10143,114 @@ async def get_my_integration_stores(
 # Include router
 app.include_router(api_router)
 
-# Security Headers Middleware
+# ============================================================================
+# SYSTEM LOGGING MIDDLEWARE
+# ============================================================================
+
+async def log_system_event(
+    level: str,
+    log_type: str,
+    message: str,
+    endpoint: str = None,
+    user_id: str = None,
+    http_code: int = None,
+    stack_trace: str = None,
+    details: dict = None
+):
+    """Log system event to database"""
+    try:
+        log_entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": level,  # error, warning, info
+            "type": log_type,  # backend, frontend, database, api
+            "message": message,
+            "endpoint": endpoint,
+            "user_id": user_id,
+            "http_code": http_code,
+            "stack_trace": stack_trace,
+            "details": details or {}
+        }
+        await db.system_logs.insert_one(log_entry)
+    except Exception as e:
+        # Don't let logging errors break the app
+        logger.error(f"Failed to log system event: {str(e)}")
+
 @app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    """Add security headers to all responses"""
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    return response
+async def logging_and_security_middleware(request: Request, call_next):
+    """Combined middleware for logging and security headers"""
+    start_time = time.time()
+    
+    # Get user info from token if available
+    user_id = None
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        if token:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            user_id = payload.get('user_id')
+    except:
+        pass
+    
+    try:
+        response = await call_next(request)
+        
+        # Calculate response time
+        process_time = time.time() - start_time
+        
+        # Add security headers
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["X-Response-Time"] = str(process_time)
+        
+        # Log warnings and errors
+        if response.status_code >= 500:
+            await log_system_event(
+                level="error",
+                log_type="backend",
+                message=f"Server error on {request.method} {request.url.path}",
+                endpoint=str(request.url.path),
+                user_id=user_id,
+                http_code=response.status_code,
+                details={"method": request.method, "response_time": process_time}
+            )
+        elif response.status_code == 429:
+            await log_system_event(
+                level="warning",
+                log_type="api",
+                message=f"Rate limit exceeded on {request.url.path}",
+                endpoint=str(request.url.path),
+                user_id=user_id,
+                http_code=429,
+                details={"method": request.method}
+            )
+        elif response.status_code in [401, 403]:
+            await log_system_event(
+                level="warning",
+                log_type="api",
+                message=f"Access denied on {request.method} {request.url.path}",
+                endpoint=str(request.url.path),
+                user_id=user_id,
+                http_code=response.status_code,
+                details={"method": request.method}
+            )
+        
+        return response
+        
+    except Exception as e:
+        # Log unhandled exceptions
+        await log_system_event(
+            level="error",
+            log_type="backend",
+            message=f"Unhandled exception: {str(e)}",
+            endpoint=str(request.url.path),
+            user_id=user_id,
+            http_code=500,
+            stack_trace=str(e),
+            details={"method": request.method}
+        )
+        raise
 
 logging.basicConfig(
     level=logging.INFO,
