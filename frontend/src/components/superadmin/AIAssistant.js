@@ -320,8 +320,37 @@ export default function AIAssistant() {
                       : 'bg-white/10 text-white border border-white/20'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap">{msg.content}</div>
-                  <div className="text-xs opacity-70 mt-2">
+                  {msg.role === 'user' ? (
+                    <div className="whitespace-pre-wrap">{msg.content}</div>
+                  ) : (
+                    <div className="prose prose-invert prose-sm max-w-none">
+                      <ReactMarkdown
+                        components={{
+                          h1: ({node, ...props}) => <h1 className="text-xl font-bold text-purple-200 mb-3 mt-4 first:mt-0" {...props} />,
+                          h2: ({node, ...props}) => <h2 className="text-lg font-semibold text-purple-300 mb-2 mt-3 first:mt-0" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-base font-semibold text-purple-300 mb-2 mt-2 first:mt-0" {...props} />,
+                          p: ({node, ...props}) => <p className="mb-2 last:mb-0 text-white leading-relaxed" {...props} />,
+                          ul: ({node, ...props}) => <ul className="list-disc list-inside mb-3 space-y-1 text-white" {...props} />,
+                          ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-1 text-white" {...props} />,
+                          li: ({node, ...props}) => <li className="ml-2 text-white" {...props} />,
+                          strong: ({node, ...props}) => <strong className="font-bold text-purple-200" {...props} />,
+                          em: ({node, ...props}) => <em className="italic text-purple-200" {...props} />,
+                          code: ({node, inline, ...props}) => 
+                            inline ? (
+                              <code className="px-1.5 py-0.5 bg-black/30 rounded text-purple-200 text-sm font-mono" {...props} />
+                            ) : (
+                              <code className="block p-2 bg-black/30 rounded text-purple-200 text-sm font-mono my-2 overflow-x-auto" {...props} />
+                            ),
+                          blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-purple-500 pl-4 my-2 italic text-purple-200" {...props} />,
+                          a: ({node, ...props}) => <a className="text-purple-400 hover:text-purple-300 underline" {...props} />,
+                          hr: ({node, ...props}) => <hr className="my-4 border-white/20" {...props} />
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                  <div className="text-xs opacity-70 mt-3">
                     {new Date(msg.timestamp).toLocaleTimeString('fr-FR', {
                       hour: '2-digit',
                       minute: '2-digit'
