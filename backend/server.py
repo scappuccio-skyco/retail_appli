@@ -8395,12 +8395,25 @@ async def get_admin_logs(
             {"_id": 0}
         ).sort("timestamp", -1).limit(limit).to_list(limit)
         
-        # Get unique actions for filter dropdown
+        # Get unique actions and admins for filter dropdowns
         all_actions = await db.admin_logs.distinct("action")
+        all_admins = await db.admin_logs.aggregate([
+            {"$group": {
+                "_id": "$admin_email",
+                "name": {"$first": "$admin_name"}
+            }},
+            {"$sort": {"_id": 1}}
+        ]).to_list(100)
+        
+        available_admins = [
+            {"email": admin["_id"], "name": admin.get("name") or admin["_id"]}
+            for admin in all_admins if admin["_id"]
+        ]
         
         return {
             "logs": logs,
             "available_actions": sorted(all_actions),
+            "available_admins": available_admins,
             "filters_applied": {
                 "action": action,
                 "admin_email": admin_email,
