@@ -24,49 +24,6 @@ const APIKeysManagement = () => {
     fetchStores();
   }, []);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        closeDropdown();
-      }
-    };
-
-    if (showStoreDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [showStoreDropdown]);
-
-  const openDropdown = () => {
-    setTempStoreSelection(newKeyData.store_ids);
-    setShowStoreDropdown(true);
-  };
-
-  const closeDropdown = () => {
-    if (tempStoreSelection !== null) {
-      setNewKeyData({ ...newKeyData, store_ids: tempStoreSelection });
-    }
-    setShowStoreDropdown(false);
-    setTempStoreSelection(null);
-  };
-
-  const handleStoreToggle = (storeId, checked) => {
-    if (checked) {
-      const currentIds = Array.isArray(tempStoreSelection) ? tempStoreSelection : [];
-      setTempStoreSelection([...currentIds, storeId]);
-    } else {
-      const currentIds = Array.isArray(tempStoreSelection) ? tempStoreSelection : [];
-      const newIds = currentIds.filter(id => id !== storeId);
-      setTempStoreSelection(newIds.length > 0 ? newIds : null);
-    }
-  };
-
-  const selectAllStores = () => {
-    setTempStoreSelection(null);
-    closeDropdown();
-  };
-
   const fetchStores = async () => {
     try {
       const token = localStorage.getItem('token');
