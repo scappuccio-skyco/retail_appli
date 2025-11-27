@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Copy, Eye, EyeOff, Plus, Trash2, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 
 const APIKeysManagement = () => {
