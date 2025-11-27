@@ -8133,6 +8133,12 @@ async def get_super_admin(credentials: HTTPAuthorizationCredentials = Depends(se
 async def get_superadmin_stats(current_admin: dict = Depends(get_super_admin)):
     """Statistiques globales de la plateforme (métriques anonymisées)"""
     try:
+        # Log access to dashboard
+        await log_admin_action(
+            admin=current_admin,
+            action="access_superadmin_dashboard",
+            details={"view": "stats"}
+        )
         # Nombre de workspaces
         total_workspaces = await db.workspaces.count_documents({})
         active_workspaces = await db.workspaces.count_documents({"status": "active"})
