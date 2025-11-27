@@ -8364,6 +8364,7 @@ async def get_admin_logs(
     limit: int = 100,
     action: Optional[str] = None,
     admin_email: Optional[str] = None,
+    admin_emails: Optional[str] = None,
     workspace_id: Optional[str] = None,
     days: int = 7,
     current_admin: dict = Depends(get_super_admin)
@@ -8381,8 +8382,14 @@ async def get_admin_logs(
         if action:
             query["action"] = action
         
-        # Filter by admin email
-        if admin_email:
+        # Filter by admin email (single or multiple)
+        if admin_emails:
+            # Multiple emails sent as comma-separated string
+            email_list = [email.strip() for email in admin_emails.split(',') if email.strip()]
+            if email_list:
+                query["admin_email"] = {"$in": email_list}
+        elif admin_email:
+            # Backward compatibility: single email with regex
             query["admin_email"] = {"$regex": admin_email, "$options": "i"}
         
         # Filter by workspace
