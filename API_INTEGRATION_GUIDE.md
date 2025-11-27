@@ -99,11 +99,17 @@ X-API-Key: rp_live_votre_cle_api_ici
 **Configuration N8N** :
 1. **Method** : `GET`
 2. **URL** : `https://votre-domaine.com/api/v1/integrations/my-stores`
-3. **Send Headers** : ✅ Activé
+3. **Send Query Parameters** : ❌ **DÉSACTIVÉ** (pas de paramètres nécessaires)
+4. **Send Headers** : ✅ **ACTIVÉ**
    - Name: `X-API-Key`
    - Value: `rp_live_votre_cle_api_ici`
 
 **Cas d'usage** : Utilisez cet endpoint au début de votre workflow N8N pour récupérer tous les IDs nécessaires avant d'envoyer des KPI.
+
+**Codes d'erreur** :
+- `401` : Clé API invalide ou expirée
+- `403` : Permission insuffisante (nécessite `read:stats`)
+- `404` : Aucun magasin accessible avec cette clé
 
 ---
 
