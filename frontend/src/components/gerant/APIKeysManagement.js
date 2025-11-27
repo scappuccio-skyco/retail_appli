@@ -430,7 +430,7 @@ const APIKeysManagement = () => {
                 </p>
               </div>
 
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Accès aux magasins <span className="text-red-500">*</span>
                 </label>
