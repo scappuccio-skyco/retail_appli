@@ -359,35 +359,29 @@ const APIKeysManagement = () => {
                 </div>
               </div>
 
-              <div className="mt-4 space-y-3">
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                 {/* Permissions */}
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Autorisations</p>
-                  <div className="flex flex-wrap gap-2">
-                    {key.permissions.map((perm) => {
-                      const permLabel = perm === 'write:kpi' 
-                        ? '📝 Écriture KPI' 
-                        : perm === 'read:stats' 
-                        ? '📊 Lecture stats' 
-                        : perm;
-                      return (
-                        <span
-                          key={perm}
-                          className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium"
-                          title={perm === 'write:kpi' 
-                            ? 'Permet d\'envoyer les données de ventes' 
-                            : 'Permet de récupérer les statistiques'}
-                        >
-                          {permLabel}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
+                {key.permissions.map((perm) => {
+                  const permLabel = perm === 'write:kpi' 
+                    ? '📝 Écriture KPI' 
+                    : perm === 'read:stats' 
+                    ? '📊 Lecture stats' 
+                    : perm;
+                  return (
+                    <span
+                      key={perm}
+                      className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium"
+                      title={perm === 'write:kpi' 
+                        ? 'Permet d\'envoyer les données de ventes' 
+                        : 'Permet de récupérer les statistiques'}
+                    >
+                      {permLabel}
+                    </span>
+                  );
+                })}
 
                 {/* Store Access */}
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Accès magasins</p>
+                <span className="text-gray-400">•</span>
                   {key.store_ids === null || key.store_ids === undefined ? (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
                       🌐 Tous les magasins
