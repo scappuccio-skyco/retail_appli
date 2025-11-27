@@ -45,9 +45,12 @@ Authorization: Bearer rp_live_votre_cle_api_ici
 
 ### Endpoints disponibles
 
-> **💡 Note importante** : Il existe deux endpoints pour récupérer des données :
-> - `/my-stores` → Retourne les **magasins + personnel** (managers et vendeurs avec leurs IDs)
-> - `/my-stats` → Retourne les **statistiques uniquement** (CA, ventes) sans les noms/IDs du personnel
+> **💡 Note importante** : Il existe deux endpoints GET différents, ne pas les confondre !
+
+| Endpoint | Retourne | Query Params | Cas d'usage |
+|----------|----------|--------------|-------------|
+| `/my-stores` | **Magasins + Personnel** (IDs, noms, emails) | ❌ Aucun | Obtenir les IDs pour envoyer des KPI |
+| `/my-stats` | **Statistiques uniquement** (CA, ventes, articles) | ✅ Dates requises | Analyser les performances |
 
 ---
 
