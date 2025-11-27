@@ -8236,8 +8236,8 @@ async def get_all_workspaces(current_admin: dict = Depends(get_super_admin)):
             }, {"_id": 0})
             
             result.append({
-                "id": workspace['id'],
-                "name": workspace['name'],
+                "id": workspace.get('id', 'unknown'),
+                "name": workspace.get('name', 'Sans nom'),
                 "status": workspace.get('status', 'active'),
                 "created_at": workspace.get('created_at'),
                 "manager": {
