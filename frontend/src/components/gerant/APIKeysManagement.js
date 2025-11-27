@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Copy, Eye, EyeOff, Plus, Trash2, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+import { Copy, Eye, EyeOff, Plus, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 import CopyButton from './CopyButton';
 import StoreDropdown from './StoreDropdown';
 
