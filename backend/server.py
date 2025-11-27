@@ -8325,14 +8325,20 @@ async def update_workspace_plan(
             {"$set": {"plan_type": new_plan, "updated_at": datetime.now(timezone.utc).isoformat()}}
         )
         
-        # Log d'audit
-        await db.admin_logs.insert_one({
-            "admin_id": current_admin['id'],
-            "action": "workspace_plan_change",
-            "workspace_id": workspace_id,
-            "new_plan": new_plan,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        })
+        # Get workspace details
+        workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0, "name": 1, "plan_type": 1})
+        
+        # Log d'audit enrichi
+        await log_admin_action(
+            admin=current_admin,
+            action="workspace_plan_change",
+            workspace_id=workspace_id,
+            details={
+                "workspace_name": workspace.get('name') if workspace else 'Unknown',
+                "old_plan": workspace.get('plan_type') if workspace else 'unknown',
+                "new_plan": new_plan
+            }
+        )
         
         return {"success": True, "message": f"Plan changed to {new_plan}"}
     except HTTPException:
