@@ -9984,6 +9984,16 @@ async def get_my_integration_stores(
             {"_id": 0, "password": 0}
         ).to_list(100)
         
+        # Get all active managers in this store
+        managers = await db.users.find(
+            {
+                "store_id": store_id,
+                "role": "manager",
+                "status": "active"
+            },
+            {"_id": 0, "password": 0}
+        ).to_list(100)
+        
         # Simplify seller data for API response
         sellers_list = [
             {
@@ -9994,10 +10004,22 @@ async def get_my_integration_stores(
             for seller in sellers
         ]
         
+        # Simplify manager data for API response
+        managers_list = [
+            {
+                "id": manager['id'],
+                "name": manager['name'],
+                "email": manager['email']
+            }
+            for manager in managers
+        ]
+        
         stores_with_sellers.append({
             "store_id": store['id'],
             "store_name": store['name'],
             "store_address": store.get('address'),
+            "managers_count": len(managers_list),
+            "managers": managers_list,
             "sellers_count": len(sellers_list),
             "sellers": sellers_list
         })
