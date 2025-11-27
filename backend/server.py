@@ -88,6 +88,70 @@ TRIAL_DAYS = 14
 MAX_SELLERS_TRIAL = 15  # Limite pendant la période d'essai
 TRIAL_AI_CREDITS = 100  # Crédits IA pour l'essai gratuit
 
+# ============================================================================
+# RATE LIMITING CONFIGURATION
+# ============================================================================
+
+class RateLimiter:
+    """
+    Simple in-memory rate limiter for API keys
+    Limits: 100 requests per minute per API key
+    """
+    def __init__(self, requests_per_minute: int = 100):
+        self.requests_per_minute = requests_per_minute
+        self.requests: Dict[str, List[float]] = defaultdict(list)
+        self.cleanup_interval = 300  # Cleanup every 5 minutes
+        self.last_cleanup = time.time()
+    
+    def is_allowed(self, api_key: str) -> bool:
+        """Check if request is allowed for this API key"""
+        now = time.time()
+        
+        # Periodic cleanup of old entries
+        if now - self.last_cleanup > self.cleanup_interval:
+            self._cleanup_old_entries(now)
+        
+        # Get requests for this key in the last minute
+        minute_ago = now - 60
+        recent_requests = [ts for ts in self.requests[api_key] if ts > minute_ago]
+        
+        # Check if limit exceeded
+        if len(recent_requests) >= self.requests_per_minute:
+            return False
+        
+        # Add current request
+        recent_requests.append(now)
+        self.requests[api_key] = recent_requests
+        
+        return True
+    
+    def _cleanup_old_entries(self, now: float):
+        """Remove entries older than 1 minute"""
+        minute_ago = now - 60
+        keys_to_remove = []
+        
+        for api_key, timestamps in self.requests.items():
+            recent = [ts for ts in timestamps if ts > minute_ago]
+            if recent:
+                self.requests[api_key] = recent
+            else:
+                keys_to_remove.append(api_key)
+        
+        for key in keys_to_remove:
+            del self.requests[key]
+        
+        self.last_cleanup = now
+    
+    def get_remaining(self, api_key: str) -> int:
+        """Get remaining requests for this API key"""
+        now = time.time()
+        minute_ago = now - 60
+        recent_requests = [ts for ts in self.requests.get(api_key, []) if ts > minute_ago]
+        return max(0, self.requests_per_minute - len(recent_requests))
+
+# Initialize rate limiter
+rate_limiter = RateLimiter(requests_per_minute=100)
+
 # AI Credits Formula: 150 (manager base) + (30 × number of seats)
 MANAGER_BASE_CREDITS = 150  # Base credits for manager analyses
 CREDITS_PER_SEAT = 30  # Credits per seller seat
