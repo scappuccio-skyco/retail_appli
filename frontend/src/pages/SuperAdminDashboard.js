@@ -585,13 +585,77 @@ export default function SuperAdminDashboard() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-purple-200 mb-2">Email admin</label>
-                <input
-                  type="text"
-                  value={auditFilters.admin_email}
-                  onChange={(e) => setAuditFilters({ ...auditFilters, admin_email: e.target.value })}
-                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-300"
-                  placeholder="Filtrer par email..."
+                <label className="block text-sm text-purple-200 mb-2">Administrateurs</label>
+                <Select
+                  isMulti
+                  value={auditFilters.admin_emails.map(email => {
+                    const admin = auditLogData.available_admins?.find(a => a.email === email);
+                    return {
+                      value: email,
+                      label: admin ? `${admin.name} (${email})` : email
+                    };
+                  })}
+                  onChange={(selected) => {
+                    const emails = selected ? selected.map(option => option.value) : [];
+                    setAuditFilters({ ...auditFilters, admin_emails: emails });
+                  }}
+                  options={auditLogData.available_admins?.map(admin => ({
+                    value: admin.email,
+                    label: `${admin.name} (${admin.email})`
+                  })) || []}
+                  placeholder="Sélectionner un ou plusieurs admins..."
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      borderColor: 'rgba(255, 255, 255, 0.2)',
+                      minHeight: '42px',
+                      '&:hover': {
+                        borderColor: 'rgba(255, 255, 255, 0.3)'
+                      }
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      backgroundColor: '#1f2937',
+                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isFocused ? '#374151' : '#1f2937',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: '#374151'
+                      }
+                    }),
+                    multiValue: (base) => ({
+                      ...base,
+                      backgroundColor: '#9333ea',
+                      borderRadius: '4px'
+                    }),
+                    multiValueLabel: (base) => ({
+                      ...base,
+                      color: 'white',
+                      fontSize: '0.875rem'
+                    }),
+                    multiValueRemove: (base) => ({
+                      ...base,
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: '#7c3aed',
+                        color: 'white'
+                      }
+                    }),
+                    input: (base) => ({
+                      ...base,
+                      color: 'white'
+                    }),
+                    placeholder: (base) => ({
+                      ...base,
+                      color: '#d8b4fe'
+                    })
+                  }}
                 />
               </div>
               <div>
