@@ -198,11 +198,35 @@ const APIKeysManagement = () => {
             <strong>IMPORTANT :</strong> Copiez cette clé maintenant. Elle ne sera plus affichée par la suite.
           </p>
           <div className="bg-white border border-green-300 rounded-lg p-4 font-mono text-sm break-all flex items-center justify-between gap-4">
-            <code className="text-gray-900">{createdKey.key}</code>
-            <CopyButton 
-              text={createdKey.key}
-              className="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-            />
+            <code className="text-gray-900" id="api-key-text">{createdKey.key}</code>
+            <button
+              onClick={() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = createdKey.key;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                // Show feedback without React state
+                const btn = document.getElementById('copy-btn');
+                if (btn) {
+                  const originalHTML = btn.innerHTML;
+                  btn.innerHTML = '✓ Copié !';
+                  btn.classList.add('bg-green-800');
+                  setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('bg-green-800');
+                  }, 2000);
+                }
+              }}
+              id="copy-btn"
+              className="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              📋 Copier
+            </button>
           </div>
           <button
             onClick={() => setCreatedKey(null)}
