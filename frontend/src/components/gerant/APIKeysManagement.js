@@ -338,7 +338,7 @@ const APIKeysManagement = () => {
                   </div>
                 </div>
 
-                {key.active && (
+                {key.active ? (
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => regenerateAPIKey(key.id)}
@@ -353,6 +353,17 @@ const APIKeysManagement = () => {
                       title="Désactiver"
                     >
                       <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => permanentDeleteAPIKey(key.id)}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                      title="Supprimer définitivement"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Supprimer définitivement
                     </button>
                   </div>
                 )}
