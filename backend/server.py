@@ -12,6 +12,7 @@ import uuid
 from datetime import datetime, timezone, timedelta, date
 import bcrypt
 import jwt
+import secrets
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 import asyncio
