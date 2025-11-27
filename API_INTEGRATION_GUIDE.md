@@ -113,11 +113,13 @@ X-API-Key: rp_live_votre_cle_api_ici
 
 ---
 
-#### 2. Récupérer les statistiques de vos magasins
+#### 2. Récupérer les statistiques de vos magasins 📊
 
 **Endpoint** : `GET /api/v1/integrations/my-stats`
 
-**Description** : Récupère automatiquement les statistiques de tous les magasins autorisés par votre clé API. Pas besoin de spécifier les magasins !
+**Description** : Récupère les **statistiques agrégées** (CA, ventes, articles) de tous les magasins autorisés par votre clé API pour une période donnée.
+
+**⚠️ ATTENTION** : Cet endpoint retourne **uniquement des chiffres** (CA, ventes, etc.), **PAS les IDs des vendeurs/managers**. Pour obtenir les IDs du personnel, utilisez `/my-stores`.
 
 **Headers** :
 ```
