@@ -240,7 +240,7 @@ getStats();
 
 ---
 
-#### 2. Synchroniser les KPI journaliers
+#### 3. Synchroniser les KPI journaliers
 
 **Endpoint** : `POST /api/v1/integrations/kpi/sync`
 
