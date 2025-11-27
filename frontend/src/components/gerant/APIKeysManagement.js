@@ -415,124 +415,16 @@ const APIKeysManagement = () => {
                 </p>
               </div>
 
-              <div className="relative" ref={dropdownRef}>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Accès aux magasins <span className="text-red-500">*</span>
                 </label>
                 
-                {/* Dropdown Button */}
-                <button
-                  type="button"
-                  onClick={() => showStoreDropdown ? closeDropdown() : openDropdown()}
-                  className="w-full px-4 py-3 text-left bg-white border border-gray-300 rounded-lg hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      {newKeyData.store_ids === null ? (
-                        <div>
-                          <span className="text-base font-semibold text-blue-700">🌐 Tous les magasins</span>
-                          <span className="text-xs text-gray-500 block mt-0.5">
-                            Accès à l'ensemble de vos {stores.length} magasin{stores.length > 1 ? 's' : ''}
-                          </span>
-                        </div>
-                      ) : (
-                        <div>
-                          <span className="text-base font-semibold text-purple-700">
-                            {newKeyData.store_ids.length} magasin{newKeyData.store_ids.length > 1 ? 's' : ''} sélectionné{newKeyData.store_ids.length > 1 ? 's' : ''}
-                          </span>
-                          <span className="text-xs text-gray-500 block mt-0.5">
-                            {newKeyData.store_ids.map(id => {
-                              const store = stores.find(s => s.id === id);
-                              return store ? store.name : id;
-                            }).join(', ')}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <svg 
-                      className={`w-5 h-5 text-gray-400 transition-transform ${showStoreDropdown ? 'rotate-180' : ''}`} 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </button>
-
-                {/* Dropdown Menu */}
-                {showStoreDropdown && (
-                  <div className="absolute z-10 mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto">
-                    {/* Option: Tous les magasins */}
-                    <div
-                      onClick={selectAllStores}
-                      className={`px-4 py-3 cursor-pointer hover:bg-blue-50 border-b border-gray-200 ${
-                        (showStoreDropdown ? tempStoreSelection : newKeyData.store_ids) === null ? 'bg-blue-50' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                          newKeyData.store_ids === null ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
-                        }`}>
-                          {newKeyData.store_ids === null && (
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <span className="text-sm font-semibold text-blue-700 block">🌐 Tous les magasins</span>
-                          <span className="text-xs text-gray-500">Accès complet à tous vos magasins</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                      <p className="text-xs font-semibold text-gray-600 uppercase">Ou sélectionnez des magasins spécifiques :</p>
-                    </div>
-
-                    {/* Store List */}
-                    {stores.length === 0 ? (
-                      <div className="px-4 py-3 text-sm text-gray-500 italic">Chargement des magasins...</div>
-                    ) : (
-                      stores.map(store => {
-                        const currentSelection = showStoreDropdown ? tempStoreSelection : newKeyData.store_ids;
-                        const isChecked = Array.isArray(currentSelection) && currentSelection.includes(store.id);
-                        
-                        return (
-                          <label 
-                            key={store.id}
-                            className="flex items-center gap-3 px-4 py-3 hover:bg-purple-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={(e) => handleStoreToggle(store.id, e.target.checked)}
-                              className="h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer"
-                            />
-                            <div className="flex-1">
-                              <span className="text-sm font-medium text-gray-900 block">{store.name}</span>
-                              {store.location && (
-                                <span className="text-xs text-gray-500">{store.location}</span>
-                              )}
-                            </div>
-                          </label>
-                        );
-                      })
-                    )}
-
-                    {/* Footer with selection count */}
-                    {Array.isArray(tempStoreSelection) && tempStoreSelection.length > 0 && (
-                      <div className="px-4 py-2 bg-purple-50 border-t border-purple-200">
-                        <p className="text-xs text-purple-700 font-medium">
-                          ✓ {tempStoreSelection.length} magasin{tempStoreSelection.length > 1 ? 's' : ''} sélectionné{tempStoreSelection.length > 1 ? 's' : ''}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <StoreDropdown
+                  stores={stores}
+                  selectedStoreIds={newKeyData.store_ids}
+                  onSelectionChange={(storeIds) => setNewKeyData({ ...newKeyData, store_ids: storeIds })}
+                />
                 
                 <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
