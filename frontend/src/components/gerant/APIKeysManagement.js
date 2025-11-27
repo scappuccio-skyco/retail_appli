@@ -338,7 +338,7 @@ const APIKeysManagement = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div key={`actions-${key.id}-${key.active}`} className="flex items-center gap-2">
                   {key.active && (
                     <button
                       onClick={() => regenerateAPIKey(key.id)}
