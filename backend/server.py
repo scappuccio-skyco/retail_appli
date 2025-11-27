@@ -8277,14 +8277,20 @@ async def update_workspace_status(
         if result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Workspace not found")
         
-        # Log d'audit
-        await db.admin_logs.insert_one({
-            "admin_id": current_admin['id'],
-            "action": "workspace_status_change",
-            "workspace_id": workspace_id,
-            "new_status": status,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        })
+        # Get workspace details for logging
+        workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0, "name": 1})
+        
+        # Log d'audit enrichi
+        await log_admin_action(
+            admin=current_admin,
+            action="workspace_status_change",
+            workspace_id=workspace_id,
+            details={
+                "workspace_name": workspace.get('name') if workspace else 'Unknown',
+                "old_status": "active",  # Could fetch this before update
+                "new_status": status
+            }
+        )
         
         return {"success": True, "message": f"Workspace status updated to {status}"}
     except HTTPException:
