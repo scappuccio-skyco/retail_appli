@@ -569,10 +569,10 @@ const APIKeysManagement = () => {
                     )}
 
                     {/* Footer with selection count */}
-                    {Array.isArray(newKeyData.store_ids) && newKeyData.store_ids.length > 0 && (
+                    {Array.isArray(tempStoreSelection) && tempStoreSelection.length > 0 && (
                       <div className="px-4 py-2 bg-purple-50 border-t border-purple-200">
                         <p className="text-xs text-purple-700 font-medium">
-                          ✓ {newKeyData.store_ids.length} magasin{newKeyData.store_ids.length > 1 ? 's' : ''} sélectionné{newKeyData.store_ids.length > 1 ? 's' : ''}
+                          ✓ {tempStoreSelection.length} magasin{tempStoreSelection.length > 1 ? 's' : ''} sélectionné{tempStoreSelection.length > 1 ? 's' : ''}
                         </p>
                       </div>
                     )}
