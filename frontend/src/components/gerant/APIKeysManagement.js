@@ -541,41 +541,31 @@ const APIKeysManagement = () => {
                     {stores.length === 0 ? (
                       <div className="px-4 py-3 text-sm text-gray-500 italic">Chargement des magasins...</div>
                     ) : (
-                      stores.map(store => (
-                        <label 
-                          key={store.id}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-purple-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={Array.isArray(newKeyData.store_ids) && newKeyData.store_ids.includes(store.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                const currentIds = Array.isArray(newKeyData.store_ids) ? newKeyData.store_ids : [];
-                                setNewKeyData({
-                                  ...newKeyData,
-                                  store_ids: [...currentIds, store.id]
-                                });
-                              } else {
-                                const currentIds = Array.isArray(newKeyData.store_ids) ? newKeyData.store_ids : [];
-                                const newIds = currentIds.filter(id => id !== store.id);
-                                setNewKeyData({
-                                  ...newKeyData,
-                                  store_ids: newIds.length > 0 ? newIds : null
-                                });
-                              }
-                            }}
-                            className="h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer"
-                          />
-                          <div className="flex-1">
-                            <span className="text-sm font-medium text-gray-900 block">{store.name}</span>
-                            {store.location && (
-                              <span className="text-xs text-gray-500">{store.location}</span>
-                            )}
-                          </div>
-                        </label>
-                      ))
+                      stores.map(store => {
+                        const currentSelection = showStoreDropdown ? tempStoreSelection : newKeyData.store_ids;
+                        const isChecked = Array.isArray(currentSelection) && currentSelection.includes(store.id);
+                        
+                        return (
+                          <label 
+                            key={store.id}
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-purple-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => handleStoreToggle(store.id, e.target.checked)}
+                              className="h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer"
+                            />
+                            <div className="flex-1">
+                              <span className="text-sm font-medium text-gray-900 block">{store.name}</span>
+                              {store.location && (
+                                <span className="text-xs text-gray-500">{store.location}</span>
+                              )}
+                            </div>
+                          </label>
+                        );
+                      }))
                     )}
 
                     {/* Footer with selection count */}
