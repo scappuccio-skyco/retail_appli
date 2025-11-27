@@ -372,6 +372,17 @@ export default function SuperAdminDashboard() {
           >
             Gestion Admins
           </button>
+          <button
+            onClick={() => setActiveTab('ai-assistant')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+              activeTab === 'ai-assistant'
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                : 'text-purple-200 hover:bg-white/10'
+            }`}
+          >
+            <Sparkles className="w-5 h-5" />
+            Assistant IA
+          </button>
         </div>
       </div>
 
