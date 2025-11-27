@@ -8352,6 +8352,107 @@ async def get_admin_logs(
         logger.error(f"Error fetching admin logs: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/superadmin/system-logs")
+async def get_system_logs(
+    limit: int = 100,
+    level: Optional[str] = None,
+    log_type: Optional[str] = None,
+    hours: int = 24,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Récupère les logs système avec filtres"""
+    try:
+        # Build query
+        query = {}
+        
+        # Filter by time
+        since = datetime.now(timezone.utc) - timedelta(hours=hours)
+        query["timestamp"] = {"$gte": since.isoformat()}
+        
+        # Filter by level (error, warning, info)
+        if level:
+            query["level"] = level
+        
+        # Filter by type (backend, frontend, database, api)
+        if log_type:
+            query["type"] = log_type
+        
+        # Fetch logs
+        logs = await db.system_logs.find(
+            query,
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(limit).to_list(limit)
+        
+        # Get stats
+        total_errors = await db.system_logs.count_documents({
+            "level": "error",
+            "timestamp": {"$gte": since.isoformat()}
+        })
+        
+        total_warnings = await db.system_logs.count_documents({
+            "level": "warning",
+            "timestamp": {"$gte": since.isoformat()}
+        })
+        
+        return {
+            "logs": logs,
+            "stats": {
+                "total_errors": total_errors,
+                "total_warnings": total_warnings,
+                "period_hours": hours
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error fetching system logs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/superadmin/health")
+async def get_system_health(current_admin: dict = Depends(get_super_admin)):
+    """Get system health metrics"""
+    try:
+        # Errors in last 24h
+        last_24h = datetime.now(timezone.utc) - timedelta(hours=24)
+        errors_24h = await db.system_logs.count_documents({
+            "level": "error",
+            "timestamp": {"$gte": last_24h.isoformat()}
+        })
+        
+        # Errors in last 10 minutes (for critical alerts)
+        last_10min = datetime.now(timezone.utc) - timedelta(minutes=10)
+        errors_10min = await db.system_logs.count_documents({
+            "level": "error",
+            "timestamp": {"$gte": last_10min.isoformat()}
+        })
+        
+        # Get last critical error
+        last_error = await db.system_logs.find_one(
+            {"level": "error"},
+            {"_id": 0},
+            sort=[("timestamp", -1)]
+        )
+        
+        # Determine health status
+        if errors_10min >= 10:
+            status = "critical"
+        elif errors_24h >= 100:
+            status = "warning"
+        else:
+            status = "healthy"
+        
+        return {
+            "status": status,
+            "errors_24h": errors_24h,
+            "errors_10min": errors_10min,
+            "last_error": last_error,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error fetching health: {str(e)}")
+        return {
+            "status": "unknown",
+            "error": str(e)
+        }
+
 # ============================================
 # GERANT ENDPOINTS - Multi-Store Management
 # ============================================
