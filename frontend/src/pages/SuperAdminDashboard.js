@@ -334,6 +334,16 @@ export default function SuperAdminDashboard() {
               </span>
             )}
           </button>
+          <button
+            onClick={() => setActiveTab('admins')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              activeTab === 'admins'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'text-purple-200 hover:bg-white/10'
+            }`}
+          >
+            Gestion Admins
+          </button>
         </div>
       </div>
 
