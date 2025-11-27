@@ -110,6 +110,26 @@ const APIKeysManagement = () => {
     }
   };
 
+  const permanentDeleteAPIKey = async (keyId) => {
+    if (!window.confirm('⚠️ ATTENTION : Cette action est IRRÉVERSIBLE !\n\nVoulez-vous vraiment supprimer définitivement cette clé API désactivée ?\n\nElle sera supprimée de la base de données et ne pourra pas être récupérée.')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys/${keyId}/permanent`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Erreur lors de la suppression définitive de la clé API');
+
+      fetchAPIKeys();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   const regenerateAPIKey = async (keyId) => {
     if (!window.confirm('⚠️ Attention : Régénérer cette clé désactivera l\'ancienne clé définitivement.\n\n⚠️ LA NOUVELLE CLÉ SERA AFFICHÉE UNE SEULE FOIS dans la liste après régénération.\n\nContinuer ?')) return;
 
