@@ -145,38 +145,39 @@ const APIKeysManagement = () => {
     }));
   };
 
-  const copyToClipboard = async (text, keyId) => {
+  const copyToClipboard = (text, keyId) => {
+    // Use the most reliable method: textarea + select + execCommand
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.width = '2em';
+    textArea.style.height = '2em';
+    textArea.style.padding = '0';
+    textArea.style.border = 'none';
+    textArea.style.outline = 'none';
+    textArea.style.boxShadow = 'none';
+    textArea.style.background = 'transparent';
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
     try {
-      // Try modern clipboard API
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
+      const successful = document.execCommand('copy');
+      if (successful) {
         setCopiedKey(keyId);
         setTimeout(() => setCopiedKey(''), 2000);
       } else {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        
-        try {
-          document.execCommand('copy');
-          setCopiedKey(keyId);
-          setTimeout(() => setCopiedKey(''), 2000);
-        } catch (err) {
-          console.error('Fallback copy failed:', err);
-          setError('Impossible de copier automatiquement. Veuillez copier manuellement.');
-        }
-        
-        document.body.removeChild(textArea);
+        setError('Impossible de copier. Veuillez sélectionner et copier manuellement.');
       }
     } catch (err) {
       console.error('Copy failed:', err);
-      setError('Erreur lors de la copie. Veuillez copier manuellement la clé.');
+      setError('Erreur lors de la copie. Veuillez copier manuellement.');
     }
+    
+    document.body.removeChild(textArea);
   };
 
   const formatDate = (dateString) => {
