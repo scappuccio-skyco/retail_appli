@@ -318,6 +318,21 @@ export default function SuperAdminDashboard() {
           >
             Logs d'audit
           </button>
+          <button
+            onClick={() => setActiveTab('system-logs')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+              activeTab === 'system-logs'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'text-purple-200 hover:bg-white/10'
+            }`}
+          >
+            Logs Système
+            {health && health.errors_24h > 0 && (
+              <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                {health.errors_24h}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 
