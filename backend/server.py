@@ -8386,6 +8386,18 @@ async def get_system_logs(
 ):
     """Récupère les logs système avec filtres"""
     try:
+        # Log access to system logs
+        await log_admin_action(
+            admin=current_admin,
+            action="access_system_logs",
+            details={
+                "filters": {
+                    "level": level,
+                    "type": log_type,
+                    "hours": hours
+                }
+            }
+        )
         # Build query
         query = {}
         
