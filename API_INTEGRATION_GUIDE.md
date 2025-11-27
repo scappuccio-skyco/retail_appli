@@ -209,7 +209,7 @@ data = {
 
 # Envoi
 response = requests.post(
-    f"{BASE_URL}/integrations/kpi/sync",
+    f"{BASE_URL}/v1/integrations/kpi/sync",
     headers=headers,
     json=data
 )
