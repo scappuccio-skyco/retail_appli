@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://app-connect-hub-1.preview.emergentagent.com
+https://super-admin-logs.preview.emergentagent.com
 
 ### Manager
 ```
