@@ -45,11 +45,19 @@ Authorization: Bearer rp_live_votre_cle_api_ici
 
 ### Endpoints disponibles
 
-#### 1. Récupérer la liste de vos magasins, managers et vendeurs
+> **💡 Note importante** : Il existe deux endpoints pour récupérer des données :
+> - `/my-stores` → Retourne les **magasins + personnel** (managers et vendeurs avec leurs IDs)
+> - `/my-stats` → Retourne les **statistiques uniquement** (CA, ventes) sans les noms/IDs du personnel
+
+---
+
+#### 1. Récupérer la liste de vos magasins, managers et vendeurs 👥
 
 **Endpoint** : `GET /api/v1/integrations/my-stores`
 
-**Description** : Récupère la liste complète de tous les magasins accessibles avec leur personnel (managers et vendeurs). Idéal pour mapper vos données externes avec les IDs internes.
+**Description** : Récupère la liste complète de tous les magasins accessibles avec leur personnel (managers et vendeurs). **Idéal pour obtenir les IDs nécessaires avant d'envoyer des KPI.**
+
+**⚠️ NE PAS CONFONDRE avec `/my-stats`** qui ne retourne que des chiffres sans les IDs du personnel.
 
 **Headers** :
 ```
