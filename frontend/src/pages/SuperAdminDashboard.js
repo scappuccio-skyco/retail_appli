@@ -685,11 +685,12 @@ export default function SuperAdminDashboard() {
                   value={logFilters.level}
                   onChange={(e) => setLogFilters({ ...logFilters, level: e.target.value })}
                   className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
+                  style={{colorScheme: 'dark'}}
                 >
-                  <option value="">Tous</option>
-                  <option value="error">Erreurs</option>
-                  <option value="warning">Avertissements</option>
-                  <option value="info">Informations</option>
+                  <option value="" className="bg-gray-800 text-white">Tous</option>
+                  <option value="error" className="bg-gray-800 text-white">Erreurs</option>
+                  <option value="warning" className="bg-gray-800 text-white">Avertissements</option>
+                  <option value="info" className="bg-gray-800 text-white">Informations</option>
                 </select>
               </div>
               <div>
@@ -698,12 +699,13 @@ export default function SuperAdminDashboard() {
                   value={logFilters.type}
                   onChange={(e) => setLogFilters({ ...logFilters, type: e.target.value })}
                   className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
+                  style={{colorScheme: 'dark'}}
                 >
-                  <option value="">Tous</option>
-                  <option value="backend">Backend</option>
-                  <option value="api">API</option>
-                  <option value="database">Database</option>
-                  <option value="frontend">Frontend</option>
+                  <option value="" className="bg-gray-800 text-white">Tous</option>
+                  <option value="backend" className="bg-gray-800 text-white">Backend</option>
+                  <option value="api" className="bg-gray-800 text-white">API</option>
+                  <option value="database" className="bg-gray-800 text-white">Database</option>
+                  <option value="frontend" className="bg-gray-800 text-white">Frontend</option>
                 </select>
               </div>
               <div>
@@ -712,12 +714,13 @@ export default function SuperAdminDashboard() {
                   value={logFilters.hours}
                   onChange={(e) => setLogFilters({ ...logFilters, hours: parseInt(e.target.value) })}
                   className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
+                  style={{colorScheme: 'dark'}}
                 >
-                  <option value="1">Dernière heure</option>
-                  <option value="6">6 heures</option>
-                  <option value="24">24 heures</option>
-                  <option value="72">3 jours</option>
-                  <option value="168">7 jours</option>
+                  <option value="1" className="bg-gray-800 text-white">Dernière heure</option>
+                  <option value="6" className="bg-gray-800 text-white">6 heures</option>
+                  <option value="24" className="bg-gray-800 text-white">24 heures</option>
+                  <option value="72" className="bg-gray-800 text-white">3 jours</option>
+                  <option value="168" className="bg-gray-800 text-white">7 jours</option>
                 </select>
               </div>
             </div>
