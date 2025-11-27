@@ -9823,6 +9823,116 @@ async def get_integration_stats(
     }
 
 
+@api_router.get("/v1/integrations/my-stats")
+async def get_my_integration_stats(
+    start_date: str,
+    end_date: str,
+    api_key_data: dict = Depends(verify_api_key_integration)
+):
+    """
+    Get statistics for all stores authorized by the API key
+    Simplified endpoint - no store_id required
+    Requires API Key with 'read:stats' permission
+    """
+    # Verify permissions
+    if "read:stats" not in api_key_data.get('permissions', []):
+        raise HTTPException(status_code=403, detail="Insufficient permissions. Requires 'read:stats'")
+    
+    # Determine which stores this API key has access to
+    store_ids = api_key_data.get('store_ids')
+    
+    # Get all accessible stores
+    if store_ids is None:
+        # Access to all stores for this gerant
+        gerant_id = api_key_data.get('gerant_id')
+        if gerant_id:
+            stores = await db.stores.find({"gerant_id": gerant_id, "active": True}, {"_id": 0}).to_list(100)
+        else:
+            # Manager with single store
+            store_id = api_key_data.get('store_id')
+            if store_id:
+                stores = await db.stores.find({"id": store_id, "active": True}, {"_id": 0}).to_list(1)
+            else:
+                raise HTTPException(status_code=403, detail="API key has no store access defined")
+    else:
+        # Specific stores
+        stores = await db.stores.find({"id": {"$in": store_ids}, "active": True}, {"_id": 0}).to_list(100)
+    
+    if not stores:
+        raise HTTPException(status_code=404, detail="No accessible stores found")
+    
+    # Collect stats for each store
+    stores_stats = []
+    total_ca_all = 0
+    total_ventes_all = 0
+    total_articles_all = 0
+    
+    for store in stores:
+        store_id = store['id']
+        
+        # Aggregate KPI data for this store
+        pipeline = [
+            {
+                "$match": {
+                    "store_id": store_id,
+                    "date": {"$gte": start_date, "$lte": end_date}
+                }
+            },
+            {
+                "$group": {
+                    "_id": None,
+                    "total_ca": {"$sum": "$ca_journalier"},
+                    "total_ventes": {"$sum": "$nb_ventes"},
+                    "total_articles": {"$sum": "$nb_articles"}
+                }
+            }
+        ]
+        
+        seller_stats = await db.kpi_entries.aggregate(pipeline).to_list(1)
+        manager_stats = await db.manager_kpis.aggregate(pipeline).to_list(1)
+        
+        total_ca = (seller_stats[0].get("total_ca", 0) if seller_stats else 0) + \
+                   (manager_stats[0].get("total_ca", 0) if manager_stats else 0)
+        total_ventes = (seller_stats[0].get("total_ventes", 0) if seller_stats else 0) + \
+                       (manager_stats[0].get("total_ventes", 0) if manager_stats else 0)
+        total_articles = (seller_stats[0].get("total_articles", 0) if seller_stats else 0) + \
+                         (manager_stats[0].get("total_articles", 0) if manager_stats else 0)
+        
+        avg_basket = total_ca / total_ventes if total_ventes > 0 else 0
+        
+        stores_stats.append({
+            "store_id": store_id,
+            "store_name": store.get("name"),
+            "metrics": {
+                "total_ca": round(total_ca, 2),
+                "total_ventes": total_ventes,
+                "total_articles": total_articles,
+                "average_basket": round(avg_basket, 2)
+            }
+        })
+        
+        # Aggregate totals
+        total_ca_all += total_ca
+        total_ventes_all += total_ventes
+        total_articles_all += total_articles
+    
+    avg_basket_all = total_ca_all / total_ventes_all if total_ventes_all > 0 else 0
+    
+    return {
+        "period": {
+            "start": start_date,
+            "end": end_date
+        },
+        "stores": stores_stats,
+        "total_all_stores": {
+            "total_ca": round(total_ca_all, 2),
+            "total_ventes": total_ventes_all,
+            "total_articles": total_articles_all,
+            "average_basket": round(avg_basket_all, 2)
+        }
+    }
+
+
 # Include router
 app.include_router(api_router)
 
