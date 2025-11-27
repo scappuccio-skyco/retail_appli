@@ -553,29 +553,112 @@ export default function SuperAdminDashboard() {
 
         {activeTab === 'logs' && (
           <div>
-            <h2 className="text-2xl font-bold text-white mb-6">Logs d'audit administrateur</h2>
-            <div className="space-y-2">
-              {logs.map((log, idx) => (
-                <div key={idx} className="p-3 bg-white/5 rounded-lg border border-white/10">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Clock className="w-4 h-4 text-purple-300" />
-                      <span className="text-sm text-purple-200">
-                        {new Date(log.timestamp).toLocaleString('fr-FR')}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">Logs d'audit administrateur</h2>
+              <button
+                onClick={fetchAuditLogs}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all"
+              >
+                Actualiser
+              </button>
+            </div>
+
+            {/* Filters */}
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm text-purple-200 mb-2">Type d'action</label>
+                <select
+                  value={auditFilters.action}
+                  onChange={(e) => setAuditFilters({ ...auditFilters, action: e.target.value })}
+                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
+                >
+                  <option value="">Toutes les actions</option>
+                  {auditLogData.available_actions && auditLogData.available_actions.map((action) => (
+                    <option key={action} value={action}>
+                      {action.replace(/_/g, ' ')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-purple-200 mb-2">Email admin</label>
+                <input
+                  type="text"
+                  value={auditFilters.admin_email}
+                  onChange={(e) => setAuditFilters({ ...auditFilters, admin_email: e.target.value })}
+                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-300"
+                  placeholder="Filtrer par email..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-purple-200 mb-2">Période</label>
+                <select
+                  value={auditFilters.days}
+                  onChange={(e) => setAuditFilters({ ...auditFilters, days: parseInt(e.target.value) })}
+                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
+                >
+                  <option value="1">Dernier jour</option>
+                  <option value="7">7 jours</option>
+                  <option value="30">30 jours</option>
+                  <option value="90">90 jours</option>
+                  <option value="365">1 an</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Logs List */}
+            <div className="space-y-2 max-h-[600px] overflow-y-auto">
+              {logs && logs.length > 0 ? (
+                logs.map((log, idx) => (
+                  <div key={idx} className="p-4 bg-white/10 backdrop-blur-lg rounded-lg border border-white/20 hover:border-purple-500/50 transition-all">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <Clock className="w-5 h-5 text-purple-400" />
+                        <span className="text-sm text-purple-200">
+                          {new Date(log.timestamp).toLocaleString('fr-FR', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {log.admin_name && (
+                          <span className="text-sm font-medium text-white">{log.admin_name}</span>
+                        )}
+                        <span className="text-xs text-purple-300">{log.admin_email}</span>
+                      </div>
+                    </div>
+                    <div className="text-white font-medium mb-1">
+                      <span className="px-2 py-1 bg-purple-600/30 rounded text-sm">
+                        {log.action.replace(/_/g, ' ').toUpperCase()}
                       </span>
                     </div>
-                    <span className="text-xs text-purple-300">{log.admin_email}</span>
-                  </div>
-                  <div className="mt-2 text-white">
-                    Action: <span className="font-medium">{log.action}</span>
                     {log.workspace_id && (
-                      <span className="ml-3 text-purple-200">
-                        Workspace: {log.workspace_id}
-                      </span>
+                      <div className="text-sm text-purple-300 mt-1">
+                        Workspace: {log.details?.workspace_name || log.workspace_id}
+                      </div>
+                    )}
+                    {log.details && Object.keys(log.details).length > 0 && (
+                      <details className="mt-2">
+                        <summary className="text-sm text-purple-300 cursor-pointer hover:text-purple-200">
+                          Détails
+                        </summary>
+                        <pre className="mt-2 p-2 bg-black/30 rounded text-xs text-purple-200 overflow-x-auto">
+                          {JSON.stringify(log.details, null, 2)}
+                        </pre>
+                      </details>
                     )}
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-12 text-purple-300">
+                  Aucun log pour les filtres sélectionnés
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}
