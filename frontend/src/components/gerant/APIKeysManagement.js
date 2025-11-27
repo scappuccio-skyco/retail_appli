@@ -308,73 +308,54 @@ const APIKeysManagement = () => {
           apiKeys.filter(k => showInactive || k.active).map((key) => (
             <div
               key={key.id}
-              className={`border rounded-lg p-6 transition-all ${
+              className={`border rounded-lg p-4 transition-all ${
                 key.active 
-                  ? 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-md' 
+                  ? 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm' 
                   : 'bg-gray-50 border-gray-300 opacity-60'
               }`}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-semibold text-gray-900">{key.name}</h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      key.active 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-200 text-gray-700'
-                    }`}>
-                      {key.active ? 'Active' : 'Désactivée'}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <p><strong>Créée :</strong> {formatDate(key.created_at)}</p>
-                    <p><strong>Dernière utilisation :</strong> {formatDate(key.last_used_at)}</p>
-                    {key.expires_at && (
-                      <p><strong>Expire :</strong> {formatDate(key.expires_at)}</p>
-                    )}
-                  </div>
+              <div className="flex items-center justify-between gap-4">
+                {/* Left: Name + Status */}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <h3 className="text-base font-semibold text-gray-900 truncate">{key.name}</h3>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${
+                    key.active 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-gray-200 text-gray-700'
+                  }`}>
+                    {key.active ? 'Active' : 'Désactivée'}
+                  </span>
                 </div>
 
-                <div key={`actions-${key.id}-${key.active}`} className="flex items-center gap-2">
-                  {key.active && (
-                    <button
-                      onClick={() => regenerateAPIKey(key.id)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Régénérer"
-                    >
-                      <RefreshCw className="h-5 w-5" />
-                    </button>
+                {/* Middle: Dates */}
+                <div className="hidden md:flex items-center gap-4 text-xs text-gray-500">
+                  <span title="Date de création">Créée: {formatDate(key.created_at)}</span>
+                  {key.last_used_at && (
+                    <span title="Dernière utilisation">Utilisée: {formatDate(key.last_used_at)}</span>
                   )}
+                </div>
+
+                {/* Right: Action button */}
+                <div key={`actions-${key.id}-${key.active}`} className="shrink-0">
                   {key.active && (
                     <button
                       onClick={() => deleteAPIKey(key.id)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Désactiver"
+                      title="Désactiver la clé"
                     >
-                      <Trash2 className="h-5 w-5" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   )}
                   {!key.active && (
                     <button
                       onClick={() => permanentDeleteAPIKey(key.id)}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5"
                       title="Supprimer définitivement"
                     >
-                      <Trash2 className="h-4 w-4" />
-                      Supprimer définitivement
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Supprimer
                     </button>
                   )}
-                </div>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-3 font-mono text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-400 flex-1">
-                    {maskKey('rp_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')}
-                  </span>
-                  <span className="text-xs text-gray-500 italic">
-                    (Clé masquée pour des raisons de sécurité)
-                  </span>
                 </div>
               </div>
 
