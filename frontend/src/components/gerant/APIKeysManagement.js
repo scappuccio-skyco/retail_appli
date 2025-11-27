@@ -22,13 +22,6 @@ const APIKeysManagement = () => {
   useEffect(() => {
     fetchAPIKeys();
     fetchStores();
-    
-    // Cleanup on unmount
-    return () => {
-      if (copyTimeoutRef.current) {
-        clearTimeout(copyTimeoutRef.current);
-      }
-    };
   }, []);
 
   const fetchStores = async () => {
