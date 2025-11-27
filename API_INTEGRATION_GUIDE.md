@@ -235,7 +235,7 @@ const BASE_URL = 'https://votre-domaine.com/api';
 async function syncKPI() {
   try {
     const response = await axios.post(
-      `${BASE_URL}/integrations/kpi/sync`,
+      `${BASE_URL}/v1/integrations/kpi/sync`,
       {
         store_id: 'store-123',
         date: new Date().toISOString().split('T')[0],
