@@ -10347,6 +10347,36 @@ async def get_my_integration_stores(
 app.include_router(api_router)
 
 # ============================================================================
+# AUDIT LOGGING HELPER
+# ============================================================================
+
+async def log_admin_action(
+    admin: dict,
+    action: str,
+    details: dict = None,
+    workspace_id: str = None
+):
+    """
+    Centralized admin audit logging
+    Logs all administrative actions for compliance and security
+    """
+    try:
+        log_entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "admin_id": admin.get('id'),
+            "admin_email": admin.get('email'),
+            "admin_name": admin.get('name'),
+            "action": action,
+            "workspace_id": workspace_id,
+            "details": details or {}
+        }
+        await db.admin_logs.insert_one(log_entry)
+        logger.info(f"Admin action logged: {action} by {admin.get('email')}")
+    except Exception as e:
+        # Don't let logging errors break the app
+        logger.error(f"Failed to log admin action: {str(e)}")
+
+# ============================================================================
 # SYSTEM LOGGING MIDDLEWARE
 # ============================================================================
 
