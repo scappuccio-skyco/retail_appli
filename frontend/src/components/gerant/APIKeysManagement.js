@@ -565,7 +565,7 @@ const APIKeysManagement = () => {
                             </div>
                           </label>
                         );
-                      }))
+                      })
                     )}
 
                     {/* Footer with selection count */}
