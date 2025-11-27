@@ -188,6 +188,41 @@ export default function SuperAdminDashboard() {
         </div>
       </div>
 
+      {/* System Health Alert */}
+      {health && health.status !== 'healthy' && (
+        <div className={`mb-6 p-4 rounded-xl border-2 ${
+          health.status === 'critical' 
+            ? 'bg-red-500/20 border-red-500' 
+            : 'bg-yellow-500/20 border-yellow-500'
+        }`}>
+          <div className="flex items-center gap-3">
+            <AlertCircle className={`w-6 h-6 ${
+              health.status === 'critical' ? 'text-red-400' : 'text-yellow-400'
+            }`} />
+            <div>
+              <h3 className="text-white font-bold">
+                {health.status === 'critical' ? '🚨 Alerte Critique' : '⚠️ Attention'}
+              </h3>
+              <p className="text-sm text-purple-200">
+                {health.errors_10min > 0 && `${health.errors_10min} erreurs dans les 10 dernières minutes. `}
+                {health.errors_24h > 0 && `${health.errors_24h} erreurs au total sur 24h.`}
+              </p>
+              {health.last_error && (
+                <p className="text-xs text-purple-300 mt-1">
+                  Dernière erreur: {health.last_error.message}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => setActiveTab('system-logs')}
+              className="ml-auto px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm"
+            >
+              Voir les logs
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
