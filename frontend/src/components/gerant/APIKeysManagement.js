@@ -111,7 +111,7 @@ const APIKeysManagement = () => {
   };
 
   const regenerateAPIKey = async (keyId) => {
-    if (!window.confirm('Régénérer cette clé désactivera l\'ancienne. Continuer ?')) return;
+    if (!window.confirm('⚠️ Attention : Régénérer cette clé désactivera l\'ancienne clé définitivement.\n\n⚠️ LA NOUVELLE CLÉ SERA AFFICHÉE UNE SEULE FOIS dans la liste après régénération.\n\nContinuer ?')) return;
 
     try {
       const token = localStorage.getItem('token');
@@ -126,17 +126,12 @@ const APIKeysManagement = () => {
 
       const data = await response.json();
       
-      // IMPORTANT: Refresh the list and wait for React to finish rendering
+      // Simply refresh the list - no alert to avoid conflicts
       await fetchAPIKeys();
       
-      // Use multiple RAF to ensure all rendering is complete
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            setCreatedKey(data);
-          });
-        });
-      });
+      // Show a simple browser alert with the new key
+      alert(`✅ Clé régénérée avec succès !\n\n🔑 COPIEZ CETTE CLÉ MAINTENANT :\n\n${data.key}\n\n⚠️ Elle ne sera plus affichée après fermeture de cette fenêtre.`);
+      
     } catch (err) {
       setError(err.message);
     }
