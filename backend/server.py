@@ -8654,6 +8654,425 @@ async def remove_super_admin(
         logger.error(f"Error removing super admin: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ============================================
+# AI ASSISTANT ENDPOINTS - SuperAdmin Only
+# ============================================
+
+class ChatMessage(BaseModel):
+    role: str  # 'user' or 'assistant'
+    content: str
+    timestamp: Optional[str] = None
+    context: Optional[Dict] = None
+
+class ChatRequest(BaseModel):
+    message: str
+    conversation_id: Optional[str] = None
+
+class ActionRequest(BaseModel):
+    action_type: str  # e.g., 'reactivate_workspace', 'change_plan'
+    target_id: str
+    params: Optional[Dict] = None
+
+async def get_app_context_for_ai():
+    """Gather relevant application context for AI assistant"""
+    try:
+        # Get recent errors (last 24h)
+        last_24h = datetime.now(timezone.utc) - timedelta(hours=24)
+        recent_errors = await db.system_logs.find(
+            {"level": "error", "timestamp": {"$gte": last_24h.isoformat()}},
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(10).to_list(10)
+        
+        # Get recent warnings
+        recent_warnings = await db.system_logs.find(
+            {"level": "warning", "timestamp": {"$gte": last_24h.isoformat()}},
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(5).to_list(5)
+        
+        # Get recent admin actions (last 7 days)
+        last_7d = datetime.now(timezone.utc) - timedelta(days=7)
+        recent_actions = await db.admin_logs.find(
+            {"timestamp": {"$gte": last_7d.isoformat()}},
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(20).to_list(20)
+        
+        # Get platform stats
+        total_workspaces = await db.workspaces.count_documents({})
+        active_workspaces = await db.workspaces.count_documents({"status": "active"})
+        suspended_workspaces = await db.workspaces.count_documents({"status": "suspended"})
+        total_users = await db.users.count_documents({})
+        
+        # Get health status
+        errors_24h = len(recent_errors)
+        health_status = "healthy" if errors_24h < 10 else "warning" if errors_24h < 50 else "critical"
+        
+        context = {
+            "platform_stats": {
+                "total_workspaces": total_workspaces,
+                "active_workspaces": active_workspaces,
+                "suspended_workspaces": suspended_workspaces,
+                "total_users": total_users,
+                "health_status": health_status
+            },
+            "recent_errors": recent_errors[:5],  # Top 5 errors
+            "recent_warnings": recent_warnings[:3],  # Top 3 warnings
+            "recent_actions": recent_actions[:10],  # Last 10 admin actions
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        return context
+    except Exception as e:
+        logger.error(f"Error gathering AI context: {str(e)}")
+        return {}
+
+@api_router.post("/superadmin/ai-assistant/chat")
+async def chat_with_ai_assistant(
+    request: ChatRequest,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Chat with AI assistant for troubleshooting and support"""
+    try:
+        # Get or create conversation
+        conversation_id = request.conversation_id
+        if not conversation_id:
+            # Create new conversation
+            conversation_id = str(uuid.uuid4())
+            conversation = {
+                "id": conversation_id,
+                "admin_email": current_admin['email'],
+                "admin_name": current_admin.get('name', 'Admin'),
+                "title": request.message[:50] + "..." if len(request.message) > 50 else request.message,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.ai_conversations.insert_one(conversation)
+        else:
+            # Update existing conversation
+            await db.ai_conversations.update_one(
+                {"id": conversation_id},
+                {"$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
+            )
+        
+        # Get app context
+        app_context = await get_app_context_for_ai()
+        
+        # Get conversation history
+        history = await db.ai_messages.find(
+            {"conversation_id": conversation_id},
+            {"_id": 0}
+        ).sort("timestamp", 1).to_list(50)
+        
+        # Build messages for GPT-5
+        system_prompt = f"""Tu es un assistant IA expert pour le SuperAdmin de Retail Performer AI, une plateforme SaaS de coaching commercial.
+
+CONTEXTE DE L'APPLICATION:
+{json.dumps(app_context, indent=2, ensure_ascii=False)}
+
+TES CAPACITÉS:
+1. Analyser les logs système et audit pour diagnostiquer les problèmes
+2. Fournir des recommandations techniques précises
+3. Suggérer des actions concrètes (avec validation admin requise)
+4. Expliquer les fonctionnalités et l'architecture
+5. Identifier les patterns d'erreurs et tendances
+
+ACTIONS DISPONIBLES (toujours demander confirmation):
+- reactivate_workspace: Réactiver un workspace suspendu
+- change_workspace_plan: Changer le plan d'un workspace
+- suspend_workspace: Suspendre un workspace problématique
+- reset_ai_credits: Réinitialiser les crédits IA d'un workspace
+
+STYLE DE RÉPONSE:
+- Concis et technique
+- Propose des actions concrètes avec boutons de confirmation
+- Utilise des emojis pour la lisibilité (🔍 pour analyse, ⚠️ pour alertes, ✅ pour solutions)
+- Structure tes réponses avec des sections claires
+
+Réponds toujours en français."""
+
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        # Add conversation history (last 10 messages)
+        for msg in history[-10:]:
+            messages.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
+        
+        # Add current user message
+        messages.append({"role": "user", "content": request.message})
+        
+        # Call GPT-5
+        llm = LlmChat(
+            model="gpt-5",
+            api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            system_message=system_prompt
+        )
+        
+        # Build conversation for LlmChat
+        user_messages = [UserMessage(content=msg["content"]) for msg in messages if msg["role"] == "user"]
+        
+        # Get AI response
+        response = llm.send_message(user_messages[-1].content)
+        ai_response = response.content
+        
+        # Save user message
+        user_msg = {
+            "conversation_id": conversation_id,
+            "role": "user",
+            "content": request.message,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "context": app_context
+        }
+        await db.ai_messages.insert_one(user_msg)
+        
+        # Save assistant message
+        assistant_msg = {
+            "conversation_id": conversation_id,
+            "role": "assistant",
+            "content": ai_response,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await db.ai_messages.insert_one(assistant_msg)
+        
+        # Log AI assistant usage
+        await log_admin_action(
+            admin=current_admin,
+            action="ai_assistant_query",
+            details={
+                "conversation_id": conversation_id,
+                "query_length": len(request.message),
+                "response_length": len(ai_response)
+            }
+        )
+        
+        return {
+            "conversation_id": conversation_id,
+            "message": ai_response,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "context_used": {
+                "errors_count": len(app_context.get('recent_errors', [])),
+                "health_status": app_context.get('platform_stats', {}).get('health_status', 'unknown')
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in AI assistant chat: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur AI: {str(e)}")
+
+@api_router.get("/superadmin/ai-assistant/conversations")
+async def get_ai_conversations(
+    limit: int = 20,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Get AI assistant conversation history (last 7 days)"""
+    try:
+        # Get conversations from last 7 days
+        since = datetime.now(timezone.utc) - timedelta(days=7)
+        
+        conversations = await db.ai_conversations.find(
+            {
+                "admin_email": current_admin['email'],
+                "created_at": {"$gte": since.isoformat()}
+            },
+            {"_id": 0}
+        ).sort("updated_at", -1).limit(limit).to_list(limit)
+        
+        return {
+            "conversations": conversations,
+            "total": len(conversations)
+        }
+    except Exception as e:
+        logger.error(f"Error fetching AI conversations: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/superadmin/ai-assistant/conversation/{conversation_id}")
+async def get_conversation_messages(
+    conversation_id: str,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Get messages for a specific conversation"""
+    try:
+        # Verify conversation belongs to admin
+        conversation = await db.ai_conversations.find_one({
+            "id": conversation_id,
+            "admin_email": current_admin['email']
+        })
+        
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation non trouvée")
+        
+        # Get messages
+        messages = await db.ai_messages.find(
+            {"conversation_id": conversation_id},
+            {"_id": 0}
+        ).sort("timestamp", 1).to_list(1000)
+        
+        return {
+            "conversation": conversation,
+            "messages": messages
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching conversation messages: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/superadmin/ai-assistant/execute-action")
+async def execute_ai_suggested_action(
+    action: ActionRequest,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Execute an action suggested by AI assistant (with admin confirmation)"""
+    try:
+        result = None
+        
+        if action.action_type == "reactivate_workspace":
+            # Reactivate workspace
+            workspace = await db.workspaces.find_one({"id": action.target_id})
+            if not workspace:
+                raise HTTPException(status_code=404, detail="Workspace non trouvé")
+            
+            await db.workspaces.update_one(
+                {"id": action.target_id},
+                {"$set": {"status": "active", "updated_at": datetime.now(timezone.utc).isoformat()}}
+            )
+            
+            result = {"success": True, "message": f"Workspace {workspace['name']} réactivé"}
+            
+            await log_admin_action(
+                admin=current_admin,
+                action="ai_reactivate_workspace",
+                details={
+                    "workspace_id": action.target_id,
+                    "workspace_name": workspace['name'],
+                    "via_ai_assistant": True
+                }
+            )
+        
+        elif action.action_type == "change_workspace_plan":
+            new_plan = action.params.get('new_plan')
+            if not new_plan:
+                raise HTTPException(status_code=400, detail="new_plan requis")
+            
+            workspace = await db.workspaces.find_one({"id": action.target_id})
+            if not workspace:
+                raise HTTPException(status_code=404, detail="Workspace non trouvé")
+            
+            await db.workspaces.update_one(
+                {"id": action.target_id},
+                {"$set": {
+                    "plan_type": new_plan,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            result = {"success": True, "message": f"Plan changé vers {new_plan}"}
+            
+            await log_admin_action(
+                admin=current_admin,
+                action="ai_change_plan",
+                details={
+                    "workspace_id": action.target_id,
+                    "workspace_name": workspace['name'],
+                    "old_plan": workspace.get('plan_type'),
+                    "new_plan": new_plan,
+                    "via_ai_assistant": True
+                }
+            )
+        
+        elif action.action_type == "suspend_workspace":
+            workspace = await db.workspaces.find_one({"id": action.target_id})
+            if not workspace:
+                raise HTTPException(status_code=404, detail="Workspace non trouvé")
+            
+            await db.workspaces.update_one(
+                {"id": action.target_id},
+                {"$set": {"status": "suspended", "updated_at": datetime.now(timezone.utc).isoformat()}}
+            )
+            
+            result = {"success": True, "message": f"Workspace {workspace['name']} suspendu"}
+            
+            await log_admin_action(
+                admin=current_admin,
+                action="ai_suspend_workspace",
+                details={
+                    "workspace_id": action.target_id,
+                    "workspace_name": workspace['name'],
+                    "reason": action.params.get('reason', 'Via AI assistant'),
+                    "via_ai_assistant": True
+                }
+            )
+        
+        elif action.action_type == "reset_ai_credits":
+            workspace = await db.workspaces.find_one({"id": action.target_id})
+            if not workspace:
+                raise HTTPException(status_code=404, detail="Workspace non trouvé")
+            
+            new_credits = action.params.get('credits', 100)
+            
+            await db.workspaces.update_one(
+                {"id": action.target_id},
+                {"$set": {
+                    "ai_credits_remaining": new_credits,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            result = {"success": True, "message": f"Crédits IA réinitialisés à {new_credits}"}
+            
+            await log_admin_action(
+                admin=current_admin,
+                action="ai_reset_credits",
+                details={
+                    "workspace_id": action.target_id,
+                    "workspace_name": workspace['name'],
+                    "new_credits": new_credits,
+                    "via_ai_assistant": True
+                }
+            )
+        
+        else:
+            raise HTTPException(status_code=400, detail=f"Action non supportée: {action.action_type}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error executing AI action: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/superadmin/ai-assistant/conversation/{conversation_id}")
+async def delete_conversation(
+    conversation_id: str,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Delete a conversation and its messages"""
+    try:
+        # Verify ownership
+        conversation = await db.ai_conversations.find_one({
+            "id": conversation_id,
+            "admin_email": current_admin['email']
+        })
+        
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation non trouvée")
+        
+        # Delete messages
+        await db.ai_messages.delete_many({"conversation_id": conversation_id})
+        
+        # Delete conversation
+        await db.ai_conversations.delete_one({"id": conversation_id})
+        
+        return {"success": True, "message": "Conversation supprimée"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting conversation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # ============================================
 # GERANT ENDPOINTS - Multi-Store Management
 # ============================================
