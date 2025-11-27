@@ -130,33 +130,6 @@ const APIKeysManagement = () => {
     }
   };
 
-  const regenerateAPIKey = async (keyId) => {
-    if (!window.confirm('⚠️ Attention : Régénérer cette clé désactivera l\'ancienne clé définitivement.\n\n⚠️ LA NOUVELLE CLÉ SERA AFFICHÉE UNE SEULE FOIS dans la liste après régénération.\n\nContinuer ?')) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys/${keyId}/regenerate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Erreur lors de la régénération de la clé API');
-
-      const data = await response.json();
-      
-      // Simply refresh the list - no alert to avoid conflicts
-      await fetchAPIKeys();
-      
-      // Show a simple browser alert with the new key
-      alert(`✅ Clé régénérée avec succès !\n\n🔑 COPIEZ CETTE CLÉ MAINTENANT :\n\n${data.key}\n\n⚠️ Elle ne sera plus affichée après fermeture de cette fenêtre.`);
-      
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
   const toggleKeyVisibility = (keyId) => {
     setVisibleKeys(prev => ({
       ...prev,
