@@ -510,12 +510,9 @@ const APIKeysManagement = () => {
                   <div className="absolute z-10 mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto">
                     {/* Option: Tous les magasins */}
                     <div
-                      onClick={() => {
-                        setNewKeyData({ ...newKeyData, store_ids: null });
-                        setShowStoreDropdown(false);
-                      }}
+                      onClick={selectAllStores}
                       className={`px-4 py-3 cursor-pointer hover:bg-blue-50 border-b border-gray-200 ${
-                        newKeyData.store_ids === null ? 'bg-blue-50' : ''
+                        (showStoreDropdown ? tempStoreSelection : newKeyData.store_ids) === null ? 'bg-blue-50' : ''
                       }`}
                     >
                       <div className="flex items-center gap-3">
