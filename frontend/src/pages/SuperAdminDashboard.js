@@ -34,7 +34,7 @@ export default function SuperAdminDashboard() {
   }, [activeTab, logFilters]);
 
   const fetchData = async () => {
-    try:
+    try {
       setLoading(true);
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
