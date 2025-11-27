@@ -8362,16 +8362,52 @@ async def update_workspace_plan(
 @api_router.get("/superadmin/logs")
 async def get_admin_logs(
     limit: int = 100,
+    action: Optional[str] = None,
+    admin_email: Optional[str] = None,
+    workspace_id: Optional[str] = None,
+    days: int = 7,
     current_admin: dict = Depends(get_super_admin)
 ):
-    """Récupère les logs d'audit admin"""
+    """Récupère les logs d'audit admin avec filtres"""
     try:
+        # Build query
+        query = {}
+        
+        # Filter by time
+        since = datetime.now(timezone.utc) - timedelta(days=days)
+        query["timestamp"] = {"$gte": since.isoformat()}
+        
+        # Filter by action
+        if action:
+            query["action"] = action
+        
+        # Filter by admin email
+        if admin_email:
+            query["admin_email"] = {"$regex": admin_email, "$options": "i"}
+        
+        # Filter by workspace
+        if workspace_id:
+            query["workspace_id"] = workspace_id
+        
+        # Fetch logs
         logs = await db.admin_logs.find(
-            {},
+            query,
             {"_id": 0}
         ).sort("timestamp", -1).limit(limit).to_list(limit)
         
-        return logs
+        # Get unique actions for filter dropdown
+        all_actions = await db.admin_logs.distinct("action")
+        
+        return {
+            "logs": logs,
+            "available_actions": sorted(all_actions),
+            "filters_applied": {
+                "action": action,
+                "admin_email": admin_email,
+                "workspace_id": workspace_id,
+                "days": days
+            }
+        }
     except Exception as e:
         logger.error(f"Error fetching admin logs: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
