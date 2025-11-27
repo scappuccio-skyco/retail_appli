@@ -16,13 +16,13 @@ export default function SuperAdminDashboard() {
   const [stats, setStats] = useState(null);
   const [workspaces, setWorkspaces] = useState([]);
   const [logs, setLogs] = useState([]);
-  const [auditLogData, setAuditLogData] = useState({ logs: [], available_actions: [] });
+  const [auditLogData, setAuditLogData] = useState({ logs: [], available_actions: [], available_admins: [] });
   const [systemLogs, setSystemLogs] = useState([]);
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [logFilters, setLogFilters] = useState({ level: '', type: '', hours: 24 });
-  const [auditFilters, setAuditFilters] = useState({ action: '', admin_email: '', days: 7 });
+  const [auditFilters, setAuditFilters] = useState({ action: '', admin_emails: [], days: 7 });
 
   useEffect(() => {
     fetchData();
