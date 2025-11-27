@@ -382,30 +382,19 @@ const APIKeysManagement = () => {
 
                 {/* Store Access */}
                 <span className="text-gray-400">•</span>
-                  {key.store_ids === null || key.store_ids === undefined ? (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
-                      🌐 Tous les magasins
-                    </span>
-                  ) : key.store_ids.length === 0 ? (
-                    <span className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-xs font-medium">
-                      Aucun magasin
-                    </span>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {key.store_ids.map((storeId) => {
-                        const store = stores.find(s => s.id === storeId);
-                        return (
-                          <span
-                            key={storeId}
-                            className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-medium"
-                          >
-                            {store ? store.name : storeId}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                {key.store_ids === null || key.store_ids === undefined ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium">
+                    🌐 Tous les magasins
+                  </span>
+                ) : key.store_ids.length === 0 ? (
+                  <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded text-xs font-medium">
+                    Aucun magasin
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-xs font-medium">
+                    🏪 {key.store_ids.length} magasin{key.store_ids.length > 1 ? 's' : ''}
+                  </span>
+                )}
               </div>
             </div>
           ))
