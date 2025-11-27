@@ -98,6 +98,25 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  const fetchAuditLogs = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      const params = {
+        limit: 100,
+        days: auditFilters.days,
+        ...(auditFilters.action && { action: auditFilters.action }),
+        ...(auditFilters.admin_email && { admin_email: auditFilters.admin_email })
+      };
+      const res = await axios.get(`${API}/superadmin/logs`, { headers, params });
+      setAuditLogData(res.data);
+      setLogs(res.data.logs || res.data);
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      toast.error('Erreur lors du chargement des logs d\'audit');
+    }
+  };
+
   const handleWorkspaceStatusChange = async (workspaceId, newStatus) => {
     try {
       const token = localStorage.getItem('token');
