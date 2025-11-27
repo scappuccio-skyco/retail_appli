@@ -120,6 +120,70 @@ X-API-Key: rp_live_votre_cle_api_ici
 - `400` : Paramètres manquants (start_date ou end_date)
 - `404` : Aucun magasin accessible avec cette clé
 
+**Exemple Python** :
+```python
+import requests
+
+API_KEY = "rp_live_votre_cle_api_ici"
+BASE_URL = "https://votre-domaine.com/api"
+
+headers = {"X-API-Key": API_KEY}
+params = {
+    "start_date": "2025-01-01",
+    "end_date": "2025-01-31"
+}
+
+response = requests.get(
+    f"{BASE_URL}/v1/integrations/my-stats",
+    headers=headers,
+    params=params
+)
+
+if response.status_code == 200:
+    data = response.json()
+    print(f"✓ Statistiques récupérées pour {len(data['stores'])} magasins")
+    print(f"CA Total: {data['total_all_stores']['total_ca']}€")
+    for store in data['stores']:
+        print(f"  - {store['store_name']}: {store['metrics']['total_ca']}€")
+else:
+    print(f"✗ Erreur: {response.status_code}")
+```
+
+**Exemple JavaScript/Node.js** :
+```javascript
+const axios = require('axios');
+
+const API_KEY = 'rp_live_votre_cle_api_ici';
+const BASE_URL = 'https://votre-domaine.com/api';
+
+async function getStats() {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/v1/integrations/my-stats`,
+      {
+        params: {
+          start_date: '2025-01-01',
+          end_date: '2025-01-31'
+        },
+        headers: {
+          'X-API-Key': API_KEY
+        }
+      }
+    );
+    
+    console.log(`✓ Statistiques récupérées pour ${response.data.stores.length} magasins`);
+    console.log(`CA Total: ${response.data.total_all_stores.total_ca}€`);
+    response.data.stores.forEach(store => {
+      console.log(`  - ${store.store_name}: ${store.metrics.total_ca}€`);
+    });
+  } catch (error) {
+    console.error('✗ Erreur:', error.response?.status);
+  }
+}
+
+getStats();
+```
+
 ---
 
 #### 2. Synchroniser les KPI journaliers
