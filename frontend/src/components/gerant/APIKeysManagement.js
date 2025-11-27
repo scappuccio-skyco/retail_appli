@@ -126,13 +126,17 @@ const APIKeysManagement = () => {
 
       const data = await response.json();
       
-      // Refresh the list first, then show the new key
+      // IMPORTANT: Refresh the list and wait for React to finish rendering
       await fetchAPIKeys();
       
-      // Use setTimeout to ensure DOM is stable before showing modal
-      setTimeout(() => {
-        setCreatedKey(data);
-      }, 100);
+      // Use multiple RAF to ensure all rendering is complete
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setCreatedKey(data);
+          });
+        });
+      });
     } catch (err) {
       setError(err.message);
     }
