@@ -8555,13 +8555,16 @@ async def remove_super_admin(
         # Remove admin
         await db.users.delete_one({"id": admin_id})
         
-        # Log action
-        await db.admin_logs.insert_one({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "admin_email": current_admin['email'],
-            "action": "remove_super_admin",
-            "details": {"removed_admin_email": admin_to_remove['email']}
-        })
+        # Log action enrichi
+        await log_admin_action(
+            admin=current_admin,
+            action="remove_super_admin",
+            details={
+                "removed_admin_email": admin_to_remove['email'],
+                "removed_admin_name": admin_to_remove.get('name'),
+                "removed_admin_id": admin_id
+            }
+        )
         
         return {"success": True, "message": "Super admin supprimé"}
     except HTTPException:
