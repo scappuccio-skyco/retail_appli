@@ -900,6 +900,8 @@ export default function SuperAdminDashboard() {
         )}
 
         {activeTab === 'admins' && <AdminManagement />}
+
+        {activeTab === 'ai-assistant' && <AIAssistant />}
       </div>
     </div>
   );
