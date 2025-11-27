@@ -296,6 +296,12 @@ Pour toute question ou problème :
 
 ## Changelog
 
+### Version 1.1 (27 Nov 2025)
+- ✨ Nouvel endpoint `/api/v1/integrations/my-stats` pour récupérer facilement les stats
+- 🎯 Détection automatique des magasins autorisés (plus besoin de spécifier store_id)
+- 📖 Guide de configuration N8N ajouté
+- 🔧 Correction des exemples de code avec le préfixe `/v1`
+
 ### Version 1.0 (26 Nov 2025)
 - 🎉 Lancement de l'API
 - ✨ Endpoint de synchronisation KPI
