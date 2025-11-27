@@ -20,10 +20,12 @@ export default function AdminManagement() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      console.log('Fetching admins from:', `${API}/superadmin/admins`);
       const res = await axios.get(`${API}/superadmin/admins`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setAdmins(res.data.admins);
+      console.log('Admins received:', res.data);
+      setAdmins(res.data.admins || []);
     } catch (error) {
       console.error('Error fetching admins:', error);
       toast.error('Erreur lors du chargement des admins');
