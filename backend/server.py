@@ -7,7 +7,7 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone, timedelta, date
 import bcrypt
@@ -17,6 +17,8 @@ from emergentintegrations.payments.stripe.checkout import StripeCheckout, Checko
 import asyncio
 import json
 from fastapi import Request
+from collections import defaultdict
+import time
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
