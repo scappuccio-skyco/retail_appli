@@ -285,17 +285,14 @@ const APIKeysManagement = () => {
             onClick={() => setShowInactive(!showInactive)}
             className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            {showInactive ? (
-              <>
-                <EyeOff className="h-4 w-4" />
-                Masquer les clés désactivées ({apiKeys.filter(k => !k.active).length})
-              </>
-            ) : (
-              <>
-                <Eye className="h-4 w-4" />
-                Afficher les clés désactivées ({apiKeys.filter(k => !k.active).length})
-              </>
-            )}
+            {showInactive && <EyeOff className="h-4 w-4" />}
+            {!showInactive && <Eye className="h-4 w-4" />}
+            <span>
+              {showInactive 
+                ? `Masquer les clés désactivées (${apiKeys.filter(k => !k.active).length})`
+                : `Afficher les clés désactivées (${apiKeys.filter(k => !k.active).length})`
+              }
+            </span>
           </button>
         )}
       </div>
