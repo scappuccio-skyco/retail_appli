@@ -707,6 +707,8 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
         )}
+
+        {activeTab === 'admins' && <AdminManagement />}
       </div>
     </div>
   );
