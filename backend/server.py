@@ -8513,13 +8513,16 @@ async def add_super_admin(
         
         await db.users.insert_one(new_admin)
         
-        # Log action
-        await db.admin_logs.insert_one({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "admin_email": current_admin['email'],
-            "action": "add_super_admin",
-            "details": {"new_admin_email": email, "name": name}
-        })
+        # Log action enrichi
+        await log_admin_action(
+            admin=current_admin,
+            action="add_super_admin",
+            details={
+                "new_admin_email": email,
+                "new_admin_name": name,
+                "temp_password_generated": True
+            }
+        )
         
         return {
             "success": True,
