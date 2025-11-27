@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
 import { Send, Sparkles, Loader2, Trash2, MessageSquare, AlertCircle, CheckCircle } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
