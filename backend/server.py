@@ -10027,6 +10027,7 @@ async def get_my_integration_stores(
     return {
         "stores": stores_with_sellers,
         "total_stores": len(stores_with_sellers),
+        "total_managers": sum(s['managers_count'] for s in stores_with_sellers),
         "total_sellers": sum(s['sellers_count'] for s in stores_with_sellers)
     }
 
