@@ -8784,11 +8784,17 @@ ACTIONS DISPONIBLES (toujours demander confirmation):
 
 STYLE DE RÉPONSE:
 - Concis et technique
-- Propose des actions concrètes avec boutons de confirmation
-- Utilise des emojis pour la lisibilité (🔍 pour analyse, ⚠️ pour alertes, ✅ pour solutions)
-- Structure tes réponses avec des sections claires
+- Utilise le format Markdown pour une meilleure lisibilité :
+  * Titres avec ## ou ### pour les sections
+  * Listes à puces (-) ou numérotées (1.)
+  * **Gras** pour les points importants
+  * `code` pour les valeurs techniques
+  * Sauts de ligne entre sections
+- Utilise des emojis pour la lisibilité (🔍 analyse, ⚠️ alertes, ✅ solutions, 📊 stats)
+- Structure tes réponses avec des sections claires et aérées
+- Propose des actions concrètes quand nécessaire
 
-Réponds toujours en français."""
+Réponds toujours en français avec formatage Markdown."""
 
         messages = [{"role": "system", "content": system_prompt}]
         
