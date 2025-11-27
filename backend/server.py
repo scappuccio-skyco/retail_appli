@@ -9933,6 +9933,82 @@ async def get_my_integration_stats(
     }
 
 
+@api_router.get("/v1/integrations/my-stores")
+async def get_my_integration_stores(
+    api_key_data: dict = Depends(verify_api_key_integration)
+):
+    """
+    Get list of stores and their sellers accessible by the API key
+    Useful for mapping external data to internal IDs
+    Requires API Key with 'read:stats' permission
+    """
+    # Verify permissions
+    if "read:stats" not in api_key_data.get('permissions', []):
+        raise HTTPException(status_code=403, detail="Insufficient permissions. Requires 'read:stats'")
+    
+    # Determine which stores this API key has access to
+    store_ids = api_key_data.get('store_ids')
+    
+    # Get all accessible stores
+    if store_ids is None:
+        # Access to all stores for this gerant
+        gerant_id = api_key_data.get('gerant_id')
+        if gerant_id:
+            stores = await db.stores.find({"gerant_id": gerant_id, "active": True}, {"_id": 0}).to_list(100)
+        else:
+            # Manager with single store
+            store_id = api_key_data.get('store_id')
+            if store_id:
+                stores = await db.stores.find({"id": store_id, "active": True}, {"_id": 0}).to_list(1)
+            else:
+                raise HTTPException(status_code=403, detail="API key has no store access defined")
+    else:
+        # Specific stores
+        stores = await db.stores.find({"id": {"$in": store_ids}, "active": True}, {"_id": 0}).to_list(100)
+    
+    if not stores:
+        raise HTTPException(status_code=404, detail="No accessible stores found")
+    
+    # For each store, get the list of sellers
+    stores_with_sellers = []
+    for store in stores:
+        store_id = store['id']
+        
+        # Get all active sellers in this store
+        sellers = await db.users.find(
+            {
+                "store_id": store_id,
+                "role": "seller",
+                "status": "active"
+            },
+            {"_id": 0, "password": 0}
+        ).to_list(100)
+        
+        # Simplify seller data for API response
+        sellers_list = [
+            {
+                "id": seller['id'],
+                "name": seller['name'],
+                "email": seller['email']
+            }
+            for seller in sellers
+        ]
+        
+        stores_with_sellers.append({
+            "store_id": store['id'],
+            "store_name": store['name'],
+            "store_address": store.get('address'),
+            "sellers_count": len(sellers_list),
+            "sellers": sellers_list
+        })
+    
+    return {
+        "stores": stores_with_sellers,
+        "total_stores": len(stores_with_sellers),
+        "total_sellers": sum(s['sellers_count'] for s in stores_with_sellers)
+    }
+
+
 # Include router
 app.include_router(api_router)
 
