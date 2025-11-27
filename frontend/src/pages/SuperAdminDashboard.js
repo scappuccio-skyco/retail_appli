@@ -34,20 +34,22 @@ export default function SuperAdminDashboard() {
   }, [activeTab, logFilters]);
 
   const fetchData = async () => {
-    try {
+    try:
       setLoading(true);
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [statsRes, workspacesRes, logsRes] = await Promise.all([
+      const [statsRes, workspacesRes, logsRes, healthRes] = await Promise.all([
         axios.get(`${API}/superadmin/stats`, { headers }),
         axios.get(`${API}/superadmin/workspaces`, { headers }),
-        axios.get(`${API}/superadmin/logs?limit=50`, { headers })
+        axios.get(`${API}/superadmin/logs?limit=50`, { headers }),
+        axios.get(`${API}/superadmin/health`, { headers })
       ]);
 
       setStats(statsRes.data);
       setWorkspaces(workspacesRes.data);
       setLogs(logsRes.data);
+      setHealth(healthRes.data);
     } catch (error) {
       if (error.response?.status === 403) {
         toast.error('Accès refusé - SuperAdmin requis');
@@ -58,6 +60,35 @@ export default function SuperAdminDashboard() {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchHealth = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      const healthRes = await axios.get(`${API}/superadmin/health`, { headers });
+      setHealth(healthRes.data);
+    } catch (error) {
+      console.error('Error fetching health:', error);
+    }
+  };
+
+  const fetchSystemLogs = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      const params = {
+        limit: 100,
+        hours: logFilters.hours,
+        ...(logFilters.level && { level: logFilters.level }),
+        ...(logFilters.type && { type: logFilters.type })
+      };
+      const res = await axios.get(`${API}/superadmin/system-logs`, { headers, params });
+      setSystemLogs(res.data);
+    } catch (error) {
+      console.error('Error fetching system logs:', error);
+      toast.error('Erreur lors du chargement des logs');
     }
   };
 
