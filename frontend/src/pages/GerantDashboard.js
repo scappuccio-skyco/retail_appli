@@ -265,6 +265,9 @@ const GerantDashboard = ({ user, onLogout }) => {
         throw new Error(error.detail || 'Erreur lors de la création');
       }
 
+      // Consommer la réponse en cas de succès
+      await response.json();
+
       toast.success('Magasin créé avec succès ! 🎉');
       await fetchDashboardData();
     } catch (error) {
