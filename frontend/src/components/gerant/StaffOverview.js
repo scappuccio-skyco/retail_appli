@@ -86,6 +86,24 @@ export default function StaffOverview() {
   };
 
   const handleDelete = async (userId, role) => {
+    // Pour les managers, vérifier d'abord s'ils ont des vendeurs
+    if (role === 'manager') {
+      const manager = (activeTab === 'managers' ? managers : sellers).find(u => u.id === userId);
+      
+      // Compter les vendeurs actifs de ce manager
+      const sellersCount = sellers.filter(s => 
+        s.manager_id === userId && 
+        (s.status === 'active' || s.status === 'suspended')
+      ).length;
+      
+      if (sellersCount > 0) {
+        const confirmMessage = `⚠️ ATTENTION\n\nCe manager a ${sellersCount} vendeur(s) sous sa responsabilité.\n\nLes vendeurs resteront attachés à leur magasin (aucune perte de données), mais n'auront plus de manager actif.\n\n✅ Recommandation : Transférez d'abord les vendeurs vers un autre manager.\n\nVoulez-vous quand même supprimer ce manager ?`;
+        
+        if (!window.confirm(confirmMessage)) return;
+      }
+    }
+    
+    // Confirmation finale
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer définitivement cet utilisateur ? Cette action est irréversible.')) return;
 
     try {
