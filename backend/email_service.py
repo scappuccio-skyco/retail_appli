@@ -1,0 +1,273 @@
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
+import os
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Configuration Brevo
+configuration = sib_api_v3_sdk.Configuration()
+configuration.api_key['api-key'] = os.environ.get('BREVO_API_KEY')
+
+api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'hello@retailperformerai.com')
+SENDER_NAME = os.environ.get('SENDER_NAME', 'Retail Performer AI')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+
+
+def send_gerant_invitation_email(recipient_email: str, recipient_name: str, invitation_token: str):
+    """
+    Envoyer un email d'invitation à un nouveau Gérant
+    """
+    invitation_link = f"{FRONTEND_URL}/register/gerant/{invitation_token}"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">🎉 Bienvenue sur Retail Performer AI</h1>
+        </div>
+        
+        <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 16px;">Bonjour {recipient_name},</p>
+            
+            <p style="font-size: 16px;">
+                Nous sommes ravis de vous inviter à rejoindre <strong>Retail Performer AI</strong>, 
+                la plateforme de coaching commercial qui transforme vos équipes de vente.
+            </p>
+            
+            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+                <h3 style="margin-top: 0; color: #667eea;">✨ Ce qui vous attend :</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 8px 0;">📊 Dashboard de performance en temps réel</li>
+                    <li style="padding: 8px 0;">🤖 Coach IA personnalisé pour chaque vendeur</li>
+                    <li style="padding: 8px 0;">📈 Suivi des KPIs et analyses détaillées</li>
+                    <li style="padding: 8px 0;">👥 Gestion multi-magasins simplifiée</li>
+                    <li style="padding: 8px 0;">🎯 14 jours d'essai gratuit</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{invitation_link}" 
+                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                          color: white; 
+                          padding: 15px 40px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-size: 16px; 
+                          font-weight: bold; 
+                          display: inline-block;
+                          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                    🚀 Créer mon compte Gérant
+                </a>
+            </div>
+            
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                <strong>Note :</strong> Ce lien d'invitation est valable pendant 7 jours.
+            </p>
+            
+            <p style="font-size: 14px; color: #666;">
+                Si vous n'avez pas demandé cette invitation, vous pouvez ignorer cet email.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                Retail Performer AI - La solution de coaching commercial nouvelle génération<br>
+                © 2024 Tous droits réservés
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient_email, "name": recipient_name}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject="🎉 Votre invitation à Retail Performer AI",
+            html_content=html_content
+        )
+        
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Invitation email sent to Gérant {recipient_email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending invitation email to {recipient_email}: {e}")
+        return False
+
+
+def send_manager_invitation_email(recipient_email: str, recipient_name: str, invitation_token: str, gerant_name: str, store_name: str = None):
+    """
+    Envoyer un email d'invitation à un Manager (invité par un Gérant)
+    """
+    invitation_link = f"{FRONTEND_URL}/register/manager/{invitation_token}"
+    
+    store_info = f" pour le magasin <strong>{store_name}</strong>" if store_name else ""
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">👋 Vous êtes invité !</h1>
+        </div>
+        
+        <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 16px;">Bonjour {recipient_name},</p>
+            
+            <p style="font-size: 16px;">
+                <strong>{gerant_name}</strong> vous invite à rejoindre son équipe{store_info} 
+                sur <strong>Retail Performer AI</strong>.
+            </p>
+            
+            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+                <h3 style="margin-top: 0; color: #667eea;">🎯 En tant que Manager, vous pourrez :</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 8px 0;">👥 Gérer votre équipe de vendeurs</li>
+                    <li style="padding: 8px 0;">📊 Suivre les performances en temps réel</li>
+                    <li style="padding: 8px 0;">🤖 Accéder au coach IA pour vos vendeurs</li>
+                    <li style="padding: 8px 0;">📈 Analyser les KPIs de votre magasin</li>
+                    <li style="padding: 8px 0;">💬 Faire des débriefs personnalisés</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{invitation_link}" 
+                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                          color: white; 
+                          padding: 15px 40px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-size: 16px; 
+                          font-weight: bold; 
+                          display: inline-block;
+                          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                    ✅ Accepter l'invitation
+                </a>
+            </div>
+            
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                <strong>Note :</strong> Ce lien d'invitation est valable pendant 7 jours.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                Retail Performer AI<br>
+                © 2024 Tous droits réservés
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient_email, "name": recipient_name}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject=f"👋 {gerant_name} vous invite à rejoindre Retail Performer AI",
+            html_content=html_content
+        )
+        
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Manager invitation email sent to {recipient_email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending manager invitation email to {recipient_email}: {e}")
+        return False
+
+
+def send_seller_invitation_email(recipient_email: str, recipient_name: str, invitation_token: str, manager_name: str, store_name: str = None):
+    """
+    Envoyer un email d'invitation à un Vendeur (invité par un Manager)
+    """
+    invitation_link = f"{FRONTEND_URL}/register/seller/{invitation_token}"
+    
+    store_info = f" du magasin <strong>{store_name}</strong>" if store_name else ""
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">🌟 Bienvenue dans l'équipe !</h1>
+        </div>
+        
+        <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 16px;">Bonjour {recipient_name},</p>
+            
+            <p style="font-size: 16px;">
+                <strong>{manager_name}</strong>, votre manager{store_info}, 
+                vous invite à rejoindre <strong>Retail Performer AI</strong> !
+            </p>
+            
+            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+                <h3 style="margin-top: 0; color: #667eea;">🚀 Votre coach IA personnel :</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 8px 0;">🎯 Diagnostic personnalisé de vos compétences</li>
+                    <li style="padding: 8px 0;">💡 Conseils IA adaptés à votre profil</li>
+                    <li style="padding: 8px 0;">📈 Suivi de votre progression</li>
+                    <li style="padding: 8px 0;">🏆 Débriefs avec votre manager</li>
+                    <li style="padding: 8px 0;">✨ Plans d'action personnalisés</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{invitation_link}" 
+                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                          color: white; 
+                          padding: 15px 40px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-size: 16px; 
+                          font-weight: bold; 
+                          display: inline-block;
+                          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                    🎉 Commencer maintenant
+                </a>
+            </div>
+            
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                <strong>Note :</strong> Ce lien d'invitation est valable pendant 7 jours.
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                Retail Performer AI - Votre coach personnel<br>
+                © 2024 Tous droits réservés
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient_email, "name": recipient_name}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject=f"🌟 {manager_name} vous invite à rejoindre l'équipe !",
+            html_content=html_content
+        )
+        
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Seller invitation email sent to {recipient_email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending seller invitation email to {recipient_email}: {e}")
+        return False
