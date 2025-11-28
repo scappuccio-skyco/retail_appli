@@ -137,10 +137,11 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
                 <h3 style="margin-top: 0; color: #9333ea;">🎯 En tant que Manager, vous pourrez :</h3>
                 <ul style="list-style: none; padding: 0;">
                     <li style="padding: 8px 0;">👥 Gérer votre équipe de vendeurs</li>
-                    <li style="padding: 8px 0;">📊 Suivre les performances en temps réel</li>
-                    <li style="padding: 8px 0;">🤖 Accéder au coach IA pour vos vendeurs</li>
-                    <li style="padding: 8px 0;">📈 Analyser les KPIs de votre magasin</li>
-                    <li style="padding: 8px 0;">💬 Générer des bilans d'équipe IA</li>
+                    <li style="padding: 8px 0;">📊 Suivre les KPI de votre magasin en temps réel</li>
+                    <li style="padding: 8px 0;">🎯 Créer et suivre des objectifs pour votre équipe</li>
+                    <li style="padding: 8px 0;">🏆 Créer et suivre des challenges</li>
+                    <li style="padding: 8px 0;">📈 Générer des bilans d'équipe assistés par IA</li>
+                    <li style="padding: 8px 0;">🤝 Obtenir des conseils IA pour la gestion relationnelle</li>
                 </ul>
             </div>
             
