@@ -250,34 +250,15 @@ const GerantDashboard = ({ user, onLogout }) => {
 
   const handleCreateStore = async (formData) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${backendUrl}/api/gerant/stores`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      // Lire le texte UNE SEULE FOIS (pas de clone, pas de double lecture)
-      const text = await response.text();
-      let data = null;
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch (e) {
-        console.error('Erreur parse JSON:', e);
-      }
-
-      if (!response.ok) {
-        throw new Error(data?.detail || 'Erreur lors de la création');
-      }
+      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
+      await axios.post(`${backendUrl}/api/gerant/stores`, formData);
 
       toast.success('Magasin créé avec succès ! 🎉');
       await fetchDashboardData();
     } catch (error) {
       console.error('Erreur création magasin:', error);
-      throw error;
+      const errorMessage = error.response?.data?.detail || 'Erreur lors de la création';
+      throw new Error(errorMessage);
     }
   };
 
