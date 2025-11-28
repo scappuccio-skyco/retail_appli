@@ -308,10 +308,20 @@ const GerantDashboard = ({ user, onLogout }) => {
   const handleTransferSeller = async (sellerId, newStoreId, newManagerId) => {
     try {
       // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      await axios.post(`${backendUrl}/api/gerant/sellers/${sellerId}/transfer`, {
-        new_store_id: newStoreId,
-        new_manager_id: newManagerId
-      });
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${backendUrl}/api/gerant/sellers/${sellerId}/transfer`, 
+        {
+          new_store_id: newStoreId,
+          new_manager_id: newManagerId
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
 
       toast.success('Vendeur transféré avec succès ! 🎉');
       await fetchDashboardData();
