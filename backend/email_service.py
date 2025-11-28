@@ -141,7 +141,7 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
                     <li style="padding: 8px 0;">🎯 Créer et suivre des objectifs pour votre équipe</li>
                     <li style="padding: 8px 0;">🏆 Créer et suivre des challenges</li>
                     <li style="padding: 8px 0;">📈 Générer des bilans d'équipe assistés par IA</li>
-                    <li style="padding: 8px 0;">🤝 Obtenir des conseils IA pour la gestion relationnelle</li>
+                    <li style="padding: 8px 0;">🤝 Obtenir des conseils IA pour la gestion relationnelle avec chaque membre de votre équipe</li>
                 </ul>
             </div>
             
