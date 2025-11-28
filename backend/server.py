@@ -9896,7 +9896,8 @@ async def reactivate_seller(
     if not seller:
         raise HTTPException(status_code=404, detail="Vendeur non trouvé")
     
-    if seller.get('status') != 'suspended':
+    # Accepter suspended et inactive (ancien statut)
+    if seller.get('status') not in ['suspended', 'inactive']:
         raise HTTPException(status_code=400, detail="Le vendeur n'est pas suspendu")
     
     # Réactiver le vendeur
