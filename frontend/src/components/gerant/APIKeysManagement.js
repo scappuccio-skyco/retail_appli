@@ -526,6 +526,12 @@ const APIKeysManagement = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de documentation API */}
+      <APIDocModal 
+        isOpen={showDocModal} 
+        onClose={() => setShowDocModal(false)} 
+      />
     </div>
   );
 };
