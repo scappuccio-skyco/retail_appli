@@ -328,6 +328,9 @@ const GerantDashboard = ({ user, onLogout }) => {
         throw new Error(error.detail || 'Erreur lors du transfert');
       }
 
+      // Consommer la réponse en cas de succès
+      await response.json();
+
       toast.success('Vendeur transféré avec succès ! 🎉');
       await fetchDashboardData();
     } catch (error) {
