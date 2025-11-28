@@ -611,9 +611,14 @@ const GerantDashboard = ({ user, onLogout }) => {
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <Users className="w-6 h-6 text-blue-600" />
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Managers</p>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-600">Managers actifs</p>
                   <p className="text-2xl font-bold text-gray-800">{globalStats?.total_managers || 0}</p>
+                  {globalStats?.suspended_managers > 0 && (
+                    <p className="text-xs text-orange-600 mt-1">
+                      {globalStats.suspended_managers} suspendu{globalStats.suspended_managers > 1 ? 's' : ''}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -624,9 +629,14 @@ const GerantDashboard = ({ user, onLogout }) => {
                 <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
                   <Users className="w-6 h-6 text-indigo-600" />
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Vendeurs</p>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-600">Vendeurs actifs</p>
                   <p className="text-2xl font-bold text-gray-800">{globalStats?.total_sellers || 0}</p>
+                  {globalStats?.suspended_sellers > 0 && (
+                    <p className="text-xs text-orange-600 mt-1">
+                      {globalStats.suspended_sellers} suspendu{globalStats.suspended_sellers > 1 ? 's' : ''}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
