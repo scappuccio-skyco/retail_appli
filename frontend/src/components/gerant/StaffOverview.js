@@ -144,15 +144,20 @@ export default function StaffOverview() {
   };
 
   const getStatusBadge = (status) => {
-    switch (status) {
+    // Normaliser le statut : undefined, null, ou vide = 'active' par défaut
+    const normalizedStatus = status || 'active';
+    
+    switch (normalizedStatus) {
       case 'active':
         return <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Actif</span>;
       case 'suspended':
         return <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs">Suspendu</span>;
       case 'deleted':
         return <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">Supprimé</span>;
+      case 'inactive':
+        return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">Inactif</span>;
       default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">Inconnu</span>;
+        return <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Actif</span>;
     }
   };
 
