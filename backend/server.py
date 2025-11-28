@@ -1334,6 +1334,27 @@ async def create_invitation(invite_data: InvitationCreate, current_user: dict = 
     
     await db.invitations.insert_one(doc)
     
+    # Send invitation email
+    try:
+        # Get store name if available
+        store_name = None
+        if current_user.get('store_id'):
+            store = await db.stores.find_one({"id": current_user['store_id']}, {"_id": 0})
+            if store:
+                store_name = store.get('name')
+        
+        send_seller_invitation_email(
+            recipient_email=invite_data.email,
+            recipient_name=invite_data.email.split('@')[0],  # Use email prefix as name
+            invitation_token=invitation.token,
+            manager_name=current_user['name'],
+            store_name=store_name
+        )
+        logger.info(f"Invitation email sent to {invite_data.email}")
+    except Exception as e:
+        logger.error(f"Failed to send invitation email: {e}")
+        # Continue even if email fails
+    
     return invitation
 
 @api_router.get("/manager/invitations")
