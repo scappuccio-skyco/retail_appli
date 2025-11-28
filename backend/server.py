@@ -9303,7 +9303,9 @@ async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_us
     return {
         "total_stores": len(stores),
         "total_managers": total_managers,
+        "suspended_managers": suspended_managers,
         "total_sellers": total_sellers,
+        "suspended_sellers": suspended_sellers,
         "month_ca": stats.get("total_ca", 0),
         "month_ventes": stats.get("total_ventes", 0),
         "month_articles": stats.get("total_articles", 0),
