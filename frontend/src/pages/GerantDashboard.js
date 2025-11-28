@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key, UserCog } from 'lucide-react';
 import { toast } from 'sonner';
+import axios from 'axios';
 import StoreCard from '../components/gerant/StoreCard';
 import CreateStoreModal from '../components/gerant/CreateStoreModal';
 import StoreDetailModal from '../components/gerant/StoreDetailModal';
