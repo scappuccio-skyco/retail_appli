@@ -134,6 +134,23 @@ const InviteStaffModal = ({ onClose, onInvite, stores, selectedStoreId = null })
             </div>
           )}
 
+          {/* Nom complet */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+              <UserPlus className="w-4 h-4" />
+              Nom complet *
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              placeholder="Prénom Nom"
+              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+            />
+          </div>
+
           {/* Email */}
           <div>
             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
