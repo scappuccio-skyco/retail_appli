@@ -260,7 +260,9 @@ const GerantDashboard = ({ user, onLogout }) => {
         body: JSON.stringify(formData)
       });
 
-      const data = await response.json();
+      // Utiliser .text() puis JSON.parse pour éviter les problèmes de clonage
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
 
       if (!response.ok) {
         throw new Error(data.detail || 'Erreur lors de la création');
