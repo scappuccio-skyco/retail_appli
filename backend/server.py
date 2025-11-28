@@ -10080,8 +10080,11 @@ async def create_gerant_invitation(
             manager_id = manager['id']
             manager_name = manager['name']
     
-    # Vérifier si l'email existe déjà
-    existing_user = await db.users.find_one({"email": invite_data.email}, {"_id": 0})
+    # Vérifier si l'email existe déjà (sauf si l'utilisateur est supprimé)
+    existing_user = await db.users.find_one({
+        "email": invite_data.email,
+        "status": {"$ne": "deleted"}
+    }, {"_id": 0})
     if existing_user:
         raise HTTPException(status_code=400, detail="Un utilisateur avec cet email existe déjà")
     
