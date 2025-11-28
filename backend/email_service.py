@@ -133,8 +133,8 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
                 sur <strong>Retail Performer AI</strong>.
             </p>
             
-            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
-                <h3 style="margin-top: 0; color: #667eea;">🎯 En tant que Manager, vous pourrez :</h3>
+            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9333ea;">
+                <h3 style="margin-top: 0; color: #9333ea;">🎯 En tant que Manager, vous pourrez :</h3>
                 <ul style="list-style: none; padding: 0;">
                     <li style="padding: 8px 0;">👥 Gérer votre équipe de vendeurs</li>
                     <li style="padding: 8px 0;">📊 Suivre les performances en temps réel</li>
@@ -146,7 +146,7 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
             
             <div style="text-align: center; margin: 30px 0;">
                 <a href="{invitation_link}" 
-                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                   style="background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%); 
                           color: white; 
                           padding: 15px 40px; 
                           text-decoration: none; 
@@ -154,7 +154,7 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
                           font-size: 16px; 
                           font-weight: bold; 
                           display: inline-block;
-                          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                          box-shadow: 0 4px 15px rgba(147, 51, 234, 0.4);">
                     ✅ Accepter l'invitation
                 </a>
             </div>
