@@ -147,15 +147,16 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
             
             <div style="text-align: center; margin: 30px 0;">
                 <a href="{invitation_link}" 
-                   style="background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%); 
-                          color: white; 
-                          padding: 15px 40px; 
-                          text-decoration: none; 
-                          border-radius: 25px; 
-                          font-size: 16px; 
-                          font-weight: bold; 
-                          display: inline-block;
-                          box-shadow: 0 4px 15px rgba(147, 51, 234, 0.4);">
+                   style="background-color: #9333ea !important; 
+                          background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%) !important; 
+                          color: white !important; 
+                          padding: 15px 40px !important; 
+                          text-decoration: none !important; 
+                          border-radius: 25px !important; 
+                          font-size: 16px !important; 
+                          font-weight: bold !important; 
+                          display: inline-block !important;
+                          box-shadow: 0 4px 15px rgba(147, 51, 234, 0.4) !important;">
                     ✅ Accepter l'invitation
                 </a>
             </div>
