@@ -252,7 +252,17 @@ const GerantDashboard = ({ user, onLogout }) => {
   const handleCreateStore = async (formData) => {
     try {
       // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      await axios.post(`${backendUrl}/api/gerant/stores`, formData);
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${backendUrl}/api/gerant/stores`, 
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
 
       toast.success('Magasin créé avec succès ! 🎉');
       await fetchDashboardData();
