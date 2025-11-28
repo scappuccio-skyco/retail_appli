@@ -20,6 +20,7 @@ import json
 from fastapi import Request
 from collections import defaultdict
 import time
+from email_service import send_seller_invitation_email, send_manager_invitation_email, send_gerant_invitation_email
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
