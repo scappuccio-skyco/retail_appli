@@ -9616,6 +9616,143 @@ async def assign_manager_to_store(
     return {"message": f"Manager {manager['name']} assigné au magasin {store['name']}"}
 
 @api_router.post("/gerant/managers/{manager_id}/transfer")
+
+@api_router.patch("/gerant/managers/{manager_id}/suspend")
+async def suspend_manager(
+    manager_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Suspendre un manager (il ne peut plus se connecter)"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le manager existe et appartient au gérant
+    manager = await db.users.find_one(
+        {"id": manager_id, "gerant_id": current_user['id'], "role": "manager"},
+        {"_id": 0}
+    )
+    if not manager:
+        raise HTTPException(status_code=404, detail="Manager non trouvé")
+    
+    if manager.get('status') == 'suspended':
+        raise HTTPException(status_code=400, detail="Le manager est déjà suspendu")
+    
+    if manager.get('status') == 'deleted':
+        raise HTTPException(status_code=400, detail="Impossible de suspendre un manager supprimé")
+    
+    # Suspendre le manager
+    await db.users.update_one(
+        {"id": manager_id},
+        {"$set": {
+            "status": "suspended",
+            "suspended_at": datetime.now(timezone.utc).isoformat(),
+            "suspended_by": current_user['id']
+        }}
+    )
+    
+    logger.info(f"Manager {manager_id} suspended by gerant {current_user['id']}")
+    
+    return {
+        "success": True,
+        "message": f"Manager {manager['name']} suspendu avec succès",
+        "manager_id": manager_id,
+        "status": "suspended"
+    }
+
+@api_router.patch("/gerant/managers/{manager_id}/reactivate")
+async def reactivate_manager(
+    manager_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Réactiver un manager suspendu"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le manager existe et appartient au gérant
+    manager = await db.users.find_one(
+        {"id": manager_id, "gerant_id": current_user['id'], "role": "manager"},
+        {"_id": 0}
+    )
+    if not manager:
+        raise HTTPException(status_code=404, detail="Manager non trouvé")
+    
+    if manager.get('status') != 'suspended':
+        raise HTTPException(status_code=400, detail="Le manager n'est pas suspendu")
+    
+    # Réactiver le manager
+    await db.users.update_one(
+        {"id": manager_id},
+        {"$set": {
+            "status": "active",
+            "reactivated_at": datetime.now(timezone.utc).isoformat()
+        },
+        "$unset": {
+            "suspended_at": "",
+            "suspended_by": ""
+        }}
+    )
+    
+    logger.info(f"Manager {manager_id} reactivated by gerant {current_user['id']}")
+    
+    return {
+        "success": True,
+        "message": f"Manager {manager['name']} réactivé avec succès",
+        "manager_id": manager_id,
+        "status": "active"
+    }
+
+@api_router.delete("/gerant/managers/{manager_id}")
+async def delete_manager_gerant(
+    manager_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Supprimer définitivement un manager (soft delete)"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le manager existe et appartient au gérant
+    manager = await db.users.find_one(
+        {"id": manager_id, "gerant_id": current_user['id'], "role": "manager"},
+        {"_id": 0}
+    )
+    if not manager:
+        raise HTTPException(status_code=404, detail="Manager non trouvé")
+    
+    if manager.get('status') == 'deleted':
+        raise HTTPException(status_code=400, detail="Le manager est déjà supprimé")
+    
+    # Vérifier s'il a des vendeurs actifs
+    active_sellers = await db.users.count_documents({
+        "manager_id": manager_id,
+        "role": "seller",
+        "status": {"$ne": "deleted"}
+    })
+    
+    if active_sellers > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Impossible de supprimer ce manager : il a encore {active_sellers} vendeur(s) actif(s). Veuillez d'abord les transférer."
+        )
+    
+    # Soft delete : marquer comme supprimé
+    await db.users.update_one(
+        {"id": manager_id},
+        {"$set": {
+            "status": "deleted",
+            "deleted_at": datetime.now(timezone.utc).isoformat(),
+            "deleted_by": current_user['id']
+        }}
+    )
+    
+    logger.info(f"Manager {manager_id} deleted by gerant {current_user['id']}")
+    
+    return {
+        "success": True,
+        "message": f"Manager {manager['name']} supprimé avec succès",
+        "manager_id": manager_id,
+        "status": "deleted"
+    }
+
 async def transfer_manager_to_store(
     manager_id: str,
     transfer: ManagerTransfer,
