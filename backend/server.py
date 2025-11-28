@@ -9699,6 +9699,130 @@ async def transfer_seller_to_store(
         "new_manager": new_manager['name']
     }
 
+
+@api_router.patch("/gerant/sellers/{seller_id}/suspend")
+async def suspend_seller(
+    seller_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Suspendre un vendeur (il ne peut plus se connecter)"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le vendeur existe et appartient au gérant
+    seller = await db.users.find_one(
+        {"id": seller_id, "gerant_id": current_user['id'], "role": "seller"},
+        {"_id": 0}
+    )
+    if not seller:
+        raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+    
+    if seller.get('status') == 'suspended':
+        raise HTTPException(status_code=400, detail="Le vendeur est déjà suspendu")
+    
+    if seller.get('status') == 'deleted':
+        raise HTTPException(status_code=400, detail="Impossible de suspendre un vendeur supprimé")
+    
+    # Suspendre le vendeur
+    await db.users.update_one(
+        {"id": seller_id},
+        {"$set": {
+            "status": "suspended",
+            "suspended_at": datetime.now(timezone.utc).isoformat(),
+            "suspended_by": current_user['id']
+        }}
+    )
+    
+    logger.info(f"Seller {seller_id} suspended by gerant {current_user['id']}")
+    
+    return {
+        "success": True,
+        "message": f"Vendeur {seller['name']} suspendu avec succès",
+        "seller_id": seller_id,
+        "status": "suspended"
+    }
+
+@api_router.patch("/gerant/sellers/{seller_id}/reactivate")
+async def reactivate_seller(
+    seller_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Réactiver un vendeur suspendu"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le vendeur existe et appartient au gérant
+    seller = await db.users.find_one(
+        {"id": seller_id, "gerant_id": current_user['id'], "role": "seller"},
+        {"_id": 0}
+    )
+    if not seller:
+        raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+    
+    if seller.get('status') != 'suspended':
+        raise HTTPException(status_code=400, detail="Le vendeur n'est pas suspendu")
+    
+    # Réactiver le vendeur
+    await db.users.update_one(
+        {"id": seller_id},
+        {"$set": {
+            "status": "active",
+            "reactivated_at": datetime.now(timezone.utc).isoformat()
+        },
+        "$unset": {
+            "suspended_at": "",
+            "suspended_by": ""
+        }}
+    )
+    
+    logger.info(f"Seller {seller_id} reactivated by gerant {current_user['id']}")
+    
+    return {
+        "success": True,
+        "message": f"Vendeur {seller['name']} réactivé avec succès",
+        "seller_id": seller_id,
+        "status": "active"
+    }
+
+@api_router.delete("/gerant/sellers/{seller_id}")
+async def delete_seller_gerant(
+    seller_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Supprimer définitivement un vendeur (soft delete)"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que le vendeur existe et appartient au gérant
+    seller = await db.users.find_one(
+        {"id": seller_id, "gerant_id": current_user['id'], "role": "seller"},
+        {"_id": 0}
+    )
+    if not seller:
+        raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+    
+    if seller.get('status') == 'deleted':
+        raise HTTPException(status_code=400, detail="Le vendeur est déjà supprimé")
+    
+    # Soft delete : marquer comme supprimé
+    await db.users.update_one(
+        {"id": seller_id},
+        {"$set": {
+            "status": "deleted",
+            "deleted_at": datetime.now(timezone.utc).isoformat(),
+            "deleted_by": current_user['id']
+        }}
+    )
+    
+    logger.info(f"Seller {seller_id} deleted by gerant {current_user['id']}")
+    
+    return {
+        "success": True,
+        "message": f"Vendeur {seller['name']} supprimé avec succès",
+        "seller_id": seller_id,
+        "status": "deleted"
+    }
+
 @api_router.get("/gerant/managers")
 async def get_all_managers(current_user: dict = Depends(get_current_user)):
     """Récupérer tous les managers du gérant"""
