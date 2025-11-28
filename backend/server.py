@@ -9676,7 +9676,8 @@ async def reactivate_manager(
     if not manager:
         raise HTTPException(status_code=404, detail="Manager non trouvé")
     
-    if manager.get('status') != 'suspended':
+    # Accepter suspended et inactive (ancien statut)
+    if manager.get('status') not in ['suspended', 'inactive']:
         raise HTTPException(status_code=400, detail="Le manager n'est pas suspendu")
     
     # Réactiver le manager
