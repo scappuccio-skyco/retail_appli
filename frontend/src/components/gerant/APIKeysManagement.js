@@ -19,6 +19,7 @@ const APIKeysManagement = () => {
   const [createdKey, setCreatedKey] = useState(null);
   const [visibleKeys, setVisibleKeys] = useState({});
   const [showInactive, setShowInactive] = useState(false);
+  const [showDocModal, setShowDocModal] = useState(false);
 
   useEffect(() => {
     fetchAPIKeys();
