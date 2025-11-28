@@ -194,6 +194,11 @@ function AppContent() {
           }
         />
         
+        {/* Registration Pages - Public */}
+        <Route path="/register/gerant/:token" element={<RegisterGerant />} />
+        <Route path="/register/manager/:token" element={<RegisterManager />} />
+        <Route path="/register/seller/:token" element={<RegisterSeller />} />
+        
         {/* Dashboard - Protected */}
         <Route
           path="/dashboard"
