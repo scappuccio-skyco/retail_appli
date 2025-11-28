@@ -995,53 +995,8 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                                 Voir détail
                               </button>
                               
-                              {seller.status === 'active' ? (
-                                <>
-                                  <div className="relative">
-                                    <button
-                                      onClick={() => setConfirmModal({ isOpen: true, action: 'deactivate', seller })}
-                                      onMouseEnter={() => setHoveredButton(`pause-${seller.id}`)}
-                                      onMouseLeave={() => setHoveredButton(null)}
-                                      className="p-2 bg-orange-100 text-orange-600 rounded hover:bg-orange-200 transition-colors relative"
-                                    >
-                                      <PauseCircle className="w-4 h-4" />
-                                    </button>
-                                    {hoveredButton === `pause-${seller.id}` && (
-                                      <div className="absolute right-full top-1/2 transform -translate-y-1/2 mr-2 z-[9999] w-64 bg-gray-900 text-white text-xs rounded-lg shadow-2xl p-3 pointer-events-none whitespace-nowrap">
-                                        <div className="font-bold mb-2 text-orange-400">🟠 Mettre en sommeil</div>
-                                        <div className="text-gray-300 space-y-1">
-                                          <div>• Libère 1 siège</div>
-                                          <div>• Réversible</div>
-                                          <div>• Historique conservé</div>
-                                        </div>
-                                        <div className="absolute left-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
-                                      </div>
-                                    )}
-                                  </div>
-                                  
-                                  <div className="relative">
-                                    <button
-                                      onClick={() => setConfirmModal({ isOpen: true, action: 'delete', seller })}
-                                      onMouseEnter={() => setHoveredButton(`delete-${seller.id}`)}
-                                      onMouseLeave={() => setHoveredButton(null)}
-                                      className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors relative"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
-                                    {hoveredButton === `delete-${seller.id}` && (
-                                      <div className="absolute right-full top-1/2 transform -translate-y-1/2 mr-2 z-[9999] w-64 bg-gray-900 text-white text-xs rounded-lg shadow-2xl p-3 pointer-events-none whitespace-nowrap">
-                                        <div className="font-bold mb-2 text-red-400">🔴 Supprimer définitivement</div>
-                                        <div className="text-gray-300 space-y-1">
-                                          <div>• Libère 1 siège</div>
-                                          <div>• Action irréversible</div>
-                                          <div>• Historique conservé</div>
-                                        </div>
-                                        <div className="absolute left-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
-                                      </div>
-                                    )}
-                                  </div>
-                                </>
-                              ) : seller.status === 'inactive' ? (
+                              {/* Actions de suspension/suppression retirées - Réservées au Gérant */}
+                              {seller.status === 'inactive' || seller.status === 'suspended' ? (
                                 <div className="relative">
                                   <button
                                     onClick={() => setConfirmModal({ isOpen: true, action: 'reactivate', seller })}
