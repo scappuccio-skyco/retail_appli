@@ -315,6 +315,7 @@ class GerantInvitation(BaseModel):
 
 class GerantInvitationCreate(BaseModel):
     """Modèle pour créer une invitation Gérant"""
+    name: str  # Nom complet de la personne invitée
     email: EmailStr
     role: str  # "manager" ou "seller"
     store_id: str
