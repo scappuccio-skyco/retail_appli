@@ -10241,7 +10241,8 @@ async def create_gerant_invitation(
     
     # Send invitation email based on role
     try:
-        recipient_name = invite_data.email.split('@')[0]
+        # Utiliser le nom fourni au lieu de l'email
+        recipient_name = invite_data.name
         
         if invite_data.role == 'manager':
             send_manager_invitation_email(
