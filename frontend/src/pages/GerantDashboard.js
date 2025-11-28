@@ -321,13 +321,11 @@ const GerantDashboard = ({ user, onLogout }) => {
         })
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Erreur lors du transfert');
-      }
+      const data = await response.json();
 
-      // Consommer la réponse en cas de succès
-      await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || 'Erreur lors du transfert');
+      }
 
       toast.success('Vendeur transféré avec succès ! 🎉');
       await fetchDashboardData();
