@@ -63,8 +63,11 @@ export default function APIDocModal({ isOpen, onClose }) {
                 Toutes les requêtes API nécessitent une clé API dans le header :
               </p>
               <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-                <code>Authorization: Bearer rp_live_votre_cle_api_ici</code>
+                <code>X-API-Key: rp_live_votre_cle_api_ici</code>
               </div>
+              <p className="text-xs text-gray-600 mt-2 italic">
+                Note : Le format <code className="bg-gray-200 px-1 rounded">Authorization: Bearer [clé]</code> est également supporté
+              </p>
             </section>
 
             {/* Endpoints */}
