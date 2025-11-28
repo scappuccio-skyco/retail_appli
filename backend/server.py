@@ -9827,6 +9827,32 @@ async def create_gerant_invitation(
     
     await db.gerant_invitations.insert_one(doc)
     
+    # Send invitation email based on role
+    try:
+        recipient_name = invite_data.email.split('@')[0]
+        
+        if invite_data.role == 'manager':
+            send_manager_invitation_email(
+                recipient_email=invite_data.email,
+                recipient_name=recipient_name,
+                invitation_token=invitation.token,
+                gerant_name=current_user['name'],
+                store_name=store['name']
+            )
+        elif invite_data.role == 'seller':
+            send_seller_invitation_email(
+                recipient_email=invite_data.email,
+                recipient_name=recipient_name,
+                invitation_token=invitation.token,
+                manager_name=manager_name if manager_name else "Votre manager",
+                store_name=store['name']
+            )
+        
+        logger.info(f"Invitation email sent to {invite_data.email} (role: {invite_data.role})")
+    except Exception as e:
+        logger.error(f"Failed to send invitation email: {e}")
+        # Continue even if email fails
+    
     return invitation
 
 @api_router.get("/gerant/invitations")
