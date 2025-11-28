@@ -140,7 +140,7 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
                     <li style="padding: 8px 0;">📊 Suivre les performances en temps réel</li>
                     <li style="padding: 8px 0;">🤖 Accéder au coach IA pour vos vendeurs</li>
                     <li style="padding: 8px 0;">📈 Analyser les KPIs de votre magasin</li>
-                    <li style="padding: 8px 0;">💬 Faire des débriefs personnalisés</li>
+                    <li style="padding: 8px 0;">💬 Générer des bilans d'équipe IA</li>
                 </ul>
             </div>
             
