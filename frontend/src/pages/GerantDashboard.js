@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key } from 'lucide-react';
+import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key, UserCog } from 'lucide-react';
 import { toast } from 'sonner';
 import StoreCard from '../components/gerant/StoreCard';
 import CreateStoreModal from '../components/gerant/CreateStoreModal';
@@ -11,6 +11,7 @@ import DeleteStoreConfirmation from '../components/gerant/DeleteStoreConfirmatio
 import InviteStaffModal from '../components/gerant/InviteStaffModal';
 import SubscriptionModal from '../components/SubscriptionModal';
 import APIKeysManagement from '../components/gerant/APIKeysManagement';
+import StaffOverview from '../components/gerant/StaffOverview';
 
 const GerantDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
