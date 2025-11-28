@@ -90,6 +90,7 @@ const InviteStaffModal = ({ onClose, onInvite, stores, selectedStoreId = null })
 
     try {
       const inviteData = {
+        name: formData.name,
         email: formData.email,
         role: formData.role,
         store_id: formData.store_id,
