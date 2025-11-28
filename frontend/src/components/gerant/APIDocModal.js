@@ -1,0 +1,269 @@
+import React from 'react';
+import { X, Book, ExternalLink } from 'lucide-react';
+
+export default function APIDocModal({ isOpen, onClose }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-purple-600 to-indigo-600">
+          <div className="flex items-center gap-3">
+            <Book className="w-6 h-6 text-white" />
+            <h2 className="text-2xl font-bold text-white">Guide d'Intégration API</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="prose prose-slate max-w-none">
+            
+            {/* Vue d'ensemble */}
+            <section className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">📋 Vue d'ensemble</h3>
+              <p className="text-gray-700">
+                Ce guide décrit comment connecter vos logiciels externes (caisse, ERP, etc.) à Retail Performer AI via l'API REST.
+              </p>
+            </section>
+
+            {/* Gestion des clés */}
+            <section className="mb-8 bg-purple-50 p-6 rounded-lg border border-purple-200">
+              <h3 className="text-xl font-bold text-purple-900 mb-4">🔑 Gestion des Clés API (Gérant uniquement)</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Créer une clé API</h4>
+                  <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-4">
+                    <li>Cliquez sur <strong>"Créer une nouvelle clé API"</strong></li>
+                    <li>Remplissez le formulaire :
+                      <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
+                        <li><strong>Nom</strong> : Identifiant de la clé (ex: "Caisse Magasin Paris")</li>
+                        <li><strong>Permissions</strong> : Sélectionnez les permissions nécessaires</li>
+                        <li><strong>Expiration</strong> : Optionnel - nombre de jours avant expiration</li>
+                      </ul>
+                    </li>
+                    <li>Cliquez sur <strong>"Créer la clé"</strong></li>
+                    <li className="text-red-600 font-semibold">⚠️ IMPORTANT : Copiez immédiatement la clé générée - elle ne sera plus affichée</li>
+                  </ol>
+                </div>
+              </div>
+            </section>
+
+            {/* Authentification */}
+            <section className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">🔐 Authentification</h3>
+              <p className="text-gray-700 mb-4">
+                Toutes les requêtes API nécessitent une clé API dans le header :
+              </p>
+              <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+                <code>Authorization: Bearer rp_live_votre_cle_api_ici</code>
+              </div>
+            </section>
+
+            {/* Endpoints */}
+            <section className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">🌐 Endpoints disponibles</h3>
+              
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                <p className="text-blue-900 font-semibold">
+                  💡 Note importante : Il existe deux endpoints GET différents, ne pas les confondre !
+                </p>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-collapse border border-gray-300 mb-6">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Endpoint</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Retourne</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Cas d'usage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border border-gray-300 px-4 py-2 font-mono text-sm bg-purple-50">/my-stores</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">Magasins + Personnel (IDs, noms, emails)</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">Obtenir les IDs pour envoyer des KPI</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-4 py-2 font-mono text-sm bg-green-50">/my-stats</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">Statistiques (CA, ventes, articles)</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">Analyser les performances</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Endpoint 1 : my-stores */}
+              <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
+                <h4 className="text-lg font-bold text-purple-900 mb-3">
+                  1. GET /api/v1/integrations/my-stores 👥
+                </h4>
+                <p className="text-gray-700 mb-4">
+                  Récupère la liste complète de tous les magasins accessibles avec leur personnel. 
+                  <strong className="text-purple-600"> Idéal pour obtenir les IDs nécessaires avant d'envoyer des KPI.</strong>
+                </p>
+                
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
+                  <div className="text-green-400">GET</div>
+                  <div className="text-blue-300">https://votre-domaine.com/api/v1/integrations/my-stores</div>
+                  <div className="mt-2 text-gray-400">Headers:</div>
+                  <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
+                </div>
+
+                <p className="text-sm text-gray-600 italic">
+                  Retourne : IDs des magasins, managers et vendeurs avec leurs informations complètes
+                </p>
+              </div>
+
+              {/* Endpoint 2 : my-stats */}
+              <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
+                <h4 className="text-lg font-bold text-green-900 mb-3">
+                  2. GET /api/v1/integrations/my-stats 📊
+                </h4>
+                <p className="text-gray-700 mb-4">
+                  Récupère les statistiques agrégées (CA, ventes, articles) sur une période donnée.
+                </p>
+                
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
+                  <div className="text-green-400">GET</div>
+                  <div className="text-blue-300">https://votre-domaine.com/api/v1/integrations/my-stats</div>
+                  <div className="mt-2 text-gray-400">Query Params:</div>
+                  <div className="text-yellow-300">start_date=2024-01-01&end_date=2024-01-31</div>
+                  <div className="mt-2 text-gray-400">Headers:</div>
+                  <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
+                </div>
+
+                <p className="text-sm text-gray-600 italic">
+                  Retourne : Statistiques agrégées par magasin (CA total, nombre de ventes, articles vendus)
+                </p>
+              </div>
+
+              {/* Endpoint 3 : POST kpi */}
+              <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
+                <h4 className="text-lg font-bold text-orange-900 mb-3">
+                  3. POST /api/v1/integrations/kpi ✍️
+                </h4>
+                <p className="text-gray-700 mb-4">
+                  Envoie les KPI journaliers d'un vendeur (CA, nombre de ventes, articles vendus).
+                </p>
+                
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
+                  <div className="text-orange-400">POST</div>
+                  <div className="text-blue-300">https://votre-domaine.com/api/v1/integrations/kpi</div>
+                  <div className="mt-2 text-gray-400">Headers:</div>
+                  <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
+                  <div className="text-yellow-300">Content-Type: application/json</div>
+                  <div className="mt-2 text-gray-400">Body:</div>
+                  <pre className="text-green-300 mt-1">{`{
+  "seller_id": "uuid-du-vendeur",
+  "date": "2024-01-15",
+  "ca_journalier": 1250.50,
+  "nb_ventes": 12,
+  "nb_articles": 28
+}`}</pre>
+                </div>
+
+                <p className="text-sm text-gray-600 italic">
+                  ⚠️ Utilisez l'endpoint <code className="bg-gray-200 px-1 rounded">/my-stores</code> pour récupérer les seller_id
+                </p>
+              </div>
+            </section>
+
+            {/* Exemples de code */}
+            <section className="mb-8 bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">💻 Exemples de code</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">curl (Bash)</h4>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                    <pre>{`# Récupérer les magasins
+curl -X GET "https://api.retailperformer.com/api/v1/integrations/my-stores" \\
+  -H "X-API-Key: rp_live_votre_cle"
+
+# Envoyer des KPI
+curl -X POST "https://api.retailperformer.com/api/v1/integrations/kpi" \\
+  -H "X-API-Key: rp_live_votre_cle" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "seller_id": "uuid-vendeur",
+    "date": "2024-01-15",
+    "ca_journalier": 1250.50,
+    "nb_ventes": 12,
+    "nb_articles": 28
+  }'`}</pre>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Python</h4>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                    <pre>{`import requests
+
+API_KEY = "rp_live_votre_cle"
+BASE_URL = "https://api.retailperformer.com/api/v1/integrations"
+
+# Récupérer les magasins
+response = requests.get(
+    f"{BASE_URL}/my-stores",
+    headers={"X-API-Key": API_KEY}
+)
+stores = response.json()
+
+# Envoyer des KPI
+kpi_data = {
+    "seller_id": "uuid-vendeur",
+    "date": "2024-01-15",
+    "ca_journalier": 1250.50,
+    "nb_ventes": 12,
+    "nb_articles": 28
+}
+response = requests.post(
+    f"{BASE_URL}/kpi",
+    headers={"X-API-Key": API_KEY},
+    json=kpi_data
+)`}</pre>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Support */}
+            <section className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
+              <h3 className="text-xl font-bold text-purple-900 mb-3">💬 Besoin d'aide ?</h3>
+              <p className="text-gray-700 mb-4">
+                Pour toute question sur l'utilisation de l'API, contactez le support technique.
+              </p>
+              <a
+                href="mailto:support@retailperformerai.com"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Contacter le support
+              </a>
+            </section>
+
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t bg-gray-50 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold transition-colors"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
