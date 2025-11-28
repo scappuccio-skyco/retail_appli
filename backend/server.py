@@ -10224,6 +10224,7 @@ async def create_gerant_invitation(
     
     # Créer l'invitation
     invitation = GerantInvitation(
+        name=invite_data.name,
         email=invite_data.email,
         role=invite_data.role,
         gerant_id=current_user['id'],
