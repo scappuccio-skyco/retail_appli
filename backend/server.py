@@ -9238,14 +9238,14 @@ async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_us
     total_managers = await db.users.count_documents({
         "gerant_id": current_user['id'],
         "role": "manager",
-        "status": {"$ne": "deleted"}  # Exclure les supprimés
+        "status": "active"  # Uniquement les actifs
     })
     
     # Compter les vendeurs actifs uniquement
     total_sellers = await db.users.count_documents({
         "gerant_id": current_user['id'],
         "role": "seller",
-        "status": {"$ne": "deleted"}  # Exclure les supprimés
+        "status": "active"  # Uniquement les actifs
     })
     
     # Calculer le CA cumulé du mois en cours
