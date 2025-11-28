@@ -6782,11 +6782,12 @@ async def check_subscription_access(user_id: str) -> dict:
 async def check_can_add_seller(user_id: str) -> dict:
     """Check if manager/gerant can add more sellers based on subscription seats"""
     # Get user role to determine how to count sellers
+    # Uniquement les vendeurs actifs consomment des sièges
     user = await db.users.find_one({"id": user_id}, {"_id": 0, "role": 1})
     if user and user.get('role') == 'gerant':
-        seller_count = await db.users.count_documents({"gerant_id": user_id, "role": "seller", "status": {"$ne": "deleted"}})
+        seller_count = await db.users.count_documents({"gerant_id": user_id, "role": "seller", "status": "active"})
     else:
-        seller_count = await db.users.count_documents({"manager_id": user_id, "role": "seller"})
+        seller_count = await db.users.count_documents({"manager_id": user_id, "role": "seller", "status": "active"})
     
     sub = await get_user_subscription(user_id)
     
