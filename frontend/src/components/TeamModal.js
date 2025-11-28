@@ -282,71 +282,8 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
   };
 
   // Gérer la désactivation d'un vendeur
-  const handleDeactivate = async (sellerId) => {
-    // Fermer le modal de confirmation immédiatement
-    setConfirmModal({ isOpen: false, action: null, seller: null });
-    
-    // Masquer le vendeur immédiatement
-    setHiddenSellerIds(prev => [...prev, sellerId]);
-    
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API}/manager/seller/${sellerId}/deactivate`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success('Vendeur mis en sommeil avec succès');
-      
-      // Refresh des données
-      await refreshSellersData();
-      // Nettoyer les IDs masqués après le refresh
-      setHiddenSellerIds([]);
-      
-      // Notifier le parent pour recharger ses données
-      if (onDataUpdate) {
-        await onDataUpdate();
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur lors de la désactivation');
-      // Restaurer l'affichage en cas d'erreur
-      setHiddenSellerIds(prev => prev.filter(id => id !== sellerId));
-    }
-  };
-
-  // Gérer la suppression d'un vendeur
-  const handleDelete = async (sellerId) => {
-    // Fermer le modal de confirmation immédiatement
-    setConfirmModal({ isOpen: false, action: null, seller: null });
-    
-    // Masquer le vendeur immédiatement
-    setHiddenSellerIds(prev => [...prev, sellerId]);
-    
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${API}/manager/seller/${sellerId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success('Vendeur supprimé avec succès');
-      
-      // Refresh des données
-      await refreshSellersData();
-      // Nettoyer les IDs masqués après le refresh
-      setHiddenSellerIds([]);
-      
-      // Notifier le parent pour recharger ses données
-      if (onDataUpdate) {
-        await onDataUpdate();
-      }
-      
-      // Notifier le parent pour recharger ses données
-      if (onDataUpdate) {
-        await onDataUpdate();
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur lors de la suppression');
-      // Restaurer l'affichage en cas d'erreur
-      setHiddenSellerIds(prev => prev.filter(id => id !== sellerId));
-    }
-  };
+  // FONCTIONS RETIRÉES - Actions de suspension/suppression réservées au Gérant
+  // handleDeactivate et handleDelete ont été supprimées
 
   // Gérer la réactivation d'un vendeur
   const handleReactivate = async (sellerId) => {
