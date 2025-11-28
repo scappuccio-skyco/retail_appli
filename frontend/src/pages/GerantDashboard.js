@@ -260,13 +260,11 @@ const GerantDashboard = ({ user, onLogout }) => {
         body: JSON.stringify(formData)
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Erreur lors de la création');
-      }
+      const data = await response.json();
 
-      // Consommer la réponse en cas de succès
-      await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || 'Erreur lors de la création');
+      }
 
       toast.success('Magasin créé avec succès ! 🎉');
       await fetchDashboardData();
