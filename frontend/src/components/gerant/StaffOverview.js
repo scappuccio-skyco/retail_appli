@@ -17,7 +17,7 @@ export default function StaffOverview() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [storeFilter, setStoreFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('active'); // Par défaut : afficher uniquement les actifs
   const [actionMenuOpen, setActionMenuOpen] = useState(null);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
