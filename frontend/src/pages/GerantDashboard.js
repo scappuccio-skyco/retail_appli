@@ -551,6 +551,17 @@ const GerantDashboard = ({ user, onLogout }) => {
               <span>Vue d'ensemble</span>
             </button>
             <button
+              onClick={() => setActiveView('staff')}
+              className={`flex items-center gap-2 px-6 py-3 font-semibold transition-all ${
+                activeView === 'staff'
+                  ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <UserCog className="w-5 h-5" />
+              <span>Personnel</span>
+            </button>
+            <button
               onClick={() => setActiveView('api')}
               className={`flex items-center gap-2 px-6 py-3 font-semibold transition-all ${
                 activeView === 'api'
