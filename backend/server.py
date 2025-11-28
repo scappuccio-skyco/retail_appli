@@ -7038,14 +7038,19 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
     access_info = await check_workspace_access(workspace['id'])
     
     # Count sellers - for gerant: count by gerant_id, for manager: count by workspace_id
+    # Seulement les actifs consomment des sièges
     if current_user['role'] == 'gerant':
         seller_count = await db.users.count_documents({
             "gerant_id": current_user['id'], 
             "role": "seller",
-            "status": {"$ne": "deleted"}
+            "status": "active"  # Uniquement les actifs
         })
     else:
-        seller_count = await db.users.count_documents({"workspace_id": workspace['id'], "role": "seller"})
+        seller_count = await db.users.count_documents({
+            "workspace_id": workspace['id'], 
+            "role": "seller",
+            "status": "active"  # Uniquement les actifs
+        })
     
     # Determine plan based on quantity (for frontend compatibility)
     quantity = workspace.get('stripe_quantity', 0)
