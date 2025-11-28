@@ -242,17 +242,15 @@ const APIKeysManagement = () => {
             <Plus className="h-5 w-5" />
             Créer une nouvelle clé API
           </button>
-          <a
-            href="/API_INTEGRATION_GUIDE.md"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => setShowDocModal(true)}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg flex items-center gap-2 font-semibold transition-colors shadow-sm border border-gray-300"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Notice d'utilisation API
-          </a>
+          </button>
         </div>
         
         {apiKeys.filter(k => !k.active).length > 0 && (
