@@ -324,8 +324,9 @@ const GerantDashboard = ({ user, onLogout }) => {
         })
       });
 
-      // Utiliser .text() puis JSON.parse pour éviter les problèmes de clonage
-      const text = await response.text();
+      // Cloner immédiatement pour éviter les conflits avec les intercepteurs
+      const clonedResponse = response.clone();
+      const text = await clonedResponse.text();
       const data = text ? JSON.parse(text) : {};
 
       if (!response.ok) {
