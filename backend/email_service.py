@@ -96,6 +96,7 @@ def send_gerant_invitation_email(recipient_email: str, recipient_name: str, invi
             html_content=html_content
         )
         
+        api_instance = get_brevo_api_instance()
         api_response = api_instance.send_transac_email(send_email)
         logger.info(f"Invitation email sent to Gérant {recipient_email}: {api_response}")
         return True
@@ -181,6 +182,7 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
             html_content=html_content
         )
         
+        api_instance = get_brevo_api_instance()
         api_response = api_instance.send_transac_email(send_email)
         logger.info(f"Manager invitation email sent to {recipient_email}: {api_response}")
         return True
@@ -266,6 +268,7 @@ def send_seller_invitation_email(recipient_email: str, recipient_name: str, invi
             html_content=html_content
         )
         
+        api_instance = get_brevo_api_instance()
         api_response = api_instance.send_transac_email(send_email)
         logger.info(f"Seller invitation email sent to {recipient_email}: {api_response}")
         return True
