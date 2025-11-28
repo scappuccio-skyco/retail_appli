@@ -5,15 +5,16 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Configuration Brevo
-configuration = sib_api_v3_sdk.Configuration()
-configuration.api_key['api-key'] = os.environ.get('BREVO_API_KEY')
-
-api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
-
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'hello@retailperformerai.com')
 SENDER_NAME = os.environ.get('SENDER_NAME', 'Retail Performer AI')
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+
+
+def get_brevo_api_instance():
+    """Initialize Brevo API instance with fresh configuration"""
+    configuration = sib_api_v3_sdk.Configuration()
+    configuration.api_key['api-key'] = os.environ.get('BREVO_API_KEY')
+    return sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
 
 
 def send_gerant_invitation_email(recipient_email: str, recipient_name: str, invitation_token: str):
