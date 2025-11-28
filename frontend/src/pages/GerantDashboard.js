@@ -296,37 +296,18 @@ const GerantDashboard = ({ user, onLogout }) => {
 
   const handleTransferSeller = async (sellerId, newStoreId, newManagerId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${backendUrl}/api/gerant/sellers/${sellerId}/transfer`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          new_store_id: newStoreId,
-          new_manager_id: newManagerId
-        })
+      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
+      await axios.post(`${backendUrl}/api/gerant/sellers/${sellerId}/transfer`, {
+        new_store_id: newStoreId,
+        new_manager_id: newManagerId
       });
-
-      // Lire le texte UNE SEULE FOIS (pas de clone, pas de double lecture)
-      const text = await response.text();
-      let data = null;
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch (e) {
-        console.error('Erreur parse JSON:', e);
-      }
-
-      if (!response.ok) {
-        throw new Error(data?.detail || 'Erreur lors du transfert');
-      }
 
       toast.success('Vendeur transféré avec succès ! 🎉');
       await fetchDashboardData();
     } catch (error) {
       console.error('Erreur transfert vendeur:', error);
-      throw error;
+      const errorMessage = error.response?.data?.detail || 'Erreur lors du transfert';
+      throw new Error(errorMessage);
     }
   };
 
