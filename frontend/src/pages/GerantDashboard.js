@@ -338,7 +338,17 @@ const GerantDashboard = ({ user, onLogout }) => {
   const handleInviteStaff = async (inviteData) => {
     try {
       // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      const response = await axios.post(`${backendUrl}/api/gerant/invitations`, inviteData);
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${backendUrl}/api/gerant/invitations`, 
+        inviteData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
 
       const roleText = inviteData.role === 'manager' ? 'Manager' : 'Vendeur';
       toast.success(`Invitation envoyée avec succès ! 📨 Le ${roleText} recevra un email pour rejoindre votre équipe.`);
