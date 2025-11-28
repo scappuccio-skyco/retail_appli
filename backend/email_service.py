@@ -220,13 +220,13 @@ def send_seller_invitation_email(recipient_email: str, recipient_name: str, invi
             </p>
             
             <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9333ea;">
-                <h3 style="margin-top: 0; color: #9333ea;">🚀 Votre coach IA personnel :</h3>
+                <h3 style="margin-top: 0; color: #9333ea;">🚀 Votre espace personnel :</h3>
                 <ul style="list-style: none; padding: 0;">
-                    <li style="padding: 8px 0;">🎯 Diagnostic personnalisé de vos compétences</li>
-                    <li style="padding: 8px 0;">💡 Conseils IA adaptés à votre profil</li>
-                    <li style="padding: 8px 0;">📈 Suivi de votre progression</li>
-                    <li style="padding: 8px 0;">🏆 Débriefs avec votre manager</li>
-                    <li style="padding: 8px 0;">✨ Plans d'action personnalisés</li>
+                    <li style="padding: 8px 0;">📊 Suivre vos KPI et performances en temps réel</li>
+                    <li style="padding: 8px 0;">🎯 Consulter vos objectifs et challenges</li>
+                    <li style="padding: 8px 0;">🤖 Accéder à votre coach IA pour créer vos défis personnels</li>
+                    <li style="padding: 8px 0;">📈 Analyser vos ventes avec l'IA</li>
+                    <li style="padding: 8px 0;">💬 Recevoir des débriefs de votre manager</li>
                 </ul>
             </div>
             
