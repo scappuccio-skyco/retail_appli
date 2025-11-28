@@ -5,6 +5,7 @@ const InviteStaffModal = ({ onClose, onInvite, stores, selectedStoreId = null })
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
   
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     role: 'manager',
     store_id: selectedStoreId || '',
