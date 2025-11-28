@@ -9241,18 +9241,32 @@ async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_us
     
     store_ids = [store['id'] for store in stores]
     
-    # Compter les managers actifs uniquement
+    # Compter les managers actifs
     total_managers = await db.users.count_documents({
         "gerant_id": current_user['id'],
         "role": "manager",
-        "status": "active"  # Uniquement les actifs
+        "status": "active"
     })
     
-    # Compter les vendeurs actifs uniquement
+    # Compter les managers suspendus
+    suspended_managers = await db.users.count_documents({
+        "gerant_id": current_user['id'],
+        "role": "manager",
+        "status": "suspended"
+    })
+    
+    # Compter les vendeurs actifs
     total_sellers = await db.users.count_documents({
         "gerant_id": current_user['id'],
         "role": "seller",
-        "status": "active"  # Uniquement les actifs
+        "status": "active"
+    })
+    
+    # Compter les vendeurs suspendus
+    suspended_sellers = await db.users.count_documents({
+        "gerant_id": current_user['id'],
+        "role": "seller",
+        "status": "suspended"
     })
     
     # Calculer le CA cumulé du mois en cours
