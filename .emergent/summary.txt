@@ -1,90 +1,97 @@
 <analysis>**original_problem_statement:**
-The user initially requested to abandon the previous priorities (P0 and P1) and focus on implementing the API Integration Feature (previously P2). The goal was to create a secure way for the Gérant (Director) persona to generate and manage API keys to connect external software (like POS systems) to the application.
+The user initiated a series of feature enhancements and bug fixes to improve the application's administrative capabilities and user management flows.
 
-This evolved into a complex feature request with several refinements:
-1.  **Gérant-Only Access**: The feature must only be accessible to the Gérant, not Managers.
-2.  **Granular Permissions**: Instead of a single key for all stores, the Gérant must be able to create keys that have access to:
-    *   All stores.
-    *   A specific, multi-selected list of stores.
-3.  **UI/UX Polish**: The user requested several improvements during development:
-    *   Hide deactivated keys by default with a toggle to show them.
-    *   Clarify the meaning of API permissions (, ) with user-friendly descriptions.
-    *   Fix all UI bugs, including a very persistent React DOM error ( / ) that occurred during key regeneration, copying, and store selection.
-    *   Improve the store selection UI from a simple list to a more compact dropdown.
-4.  **API Usage Guide**: Provide instructions on how to use the generated API key with a third-party tool like N8N.
+1.  **Multi-Select Filter (P0 Task)**: The user requested to change the Filter by Admin dropdown in the Audit Logs tab of the Super Admin dashboard into a multi-select component to allow filtering by multiple admins at once.
+2.  **AI Assistant**: The user requested a new AI assistant within the Super Admin dashboard to help them diagnose application issues by analyzing logs and system data. This included building a chat interface, handling conversation history, and formatting the AI's responses using Markdown.
+3.  **User Invitation & Registration Flow**: The user wanted to test and implement a complete user creation flow for Gérant (Client), Manager, and Vendeur (Seller) roles, including sending invitation emails. This required integrating an external email service (Brevo).
+4.  **Gérant (Client) Role Enhancement**: The user requested significant enhancements to the Gérant's capabilities:
+    *   The ability to suspend, reactivate, and delete sellers and managers directly.
+    *   A new Personnel (Staff) overview page to manage all staff members in one place, instead of navigating into each store.
+    *   Centralization of power, removing the ability for Managers to delete/suspend their own sellers.
+5.  **Bug Fixes & UX Improvements**: The user reported and requested fixes for several issues:
+    *   Inconsistent user statuses (Inconnu, inactif).
+    *   Discrepancies in user counts between the dashboard overview, the staff management page, and the subscription billing.
+    *   A blank page when clicking the Notice API button.
+    *   Incorrect authentication instructions ( vs. ) in the API documentation.
+    *   Failure to load past conversations in the new AI Assistant.
+    *   An inability to delete a manager who still had sellers assigned to them.
+    *   Failure to receive invitation emails.
 
 **User's preferred language**: French
 
 **what currently exists?**
-A complete, robust, and production-ready API Key Management system has been implemented within the Gérant Dashboard.
+The application now includes an AI-powered assistant for super admins and has significantly enhanced staff management capabilities for the Gérant (client) role.
 
--   **Backend ()**:
-    -   Endpoints for creating, listing, regenerating, and deactivating API keys are fully functional.
-    -   The  model in the database now supports a  array, allowing for granular, per-store access control.
-    -   The KPI sync endpoint () correctly validates the API key against the requested  and checks that sellers belong to that store.
-
--   **Frontend (, , , )**:
-    -   A new Intégrations API tab exists on the Gérant dashboard.
-    -   The UI allows the Gérant to create keys, giving them a name and selecting permissions.
-    -   A sophisticated, bug-free dropdown (using ) allows the selection of All stores or a specific subset of stores.
-    -   The list of API keys clearly displays the status (Active/Inactive), store access, and permissions for each key.
-    -   Deactivated keys are hidden by default, with a toggle to show them.
-    -   The Copy functionality for a newly generated key is now stable and bug-free.
-    -   The key regeneration flow is also stable.
-
-A critical and recurring React DOM error ( / ) has been completely resolved through multiple targeted refactors, including isolating components and using advanced React patterns.
+*   **Backend (, )**:
+    *   **Super Admin**: An AI Assistant is implemented with endpoints for chat, conversation history, and executing predefined actions (). The audit log endpoint now supports multi-admin filtering.
+    *   **Gérant**: New endpoints have been added to allow Gérants to suspend, reactivate, and delete both managers and sellers (, ).
+    *   **User Counting Logic**: Most key endpoints (, ) have been updated to count only **'active'** users for dashboard stats and subscription billing.
+    *   **Email Integration**: Brevo email service integration is set up via  and connected to the invitation endpoints. The service is currently non-functional due to an external IP block.
+    *   **Data Integrity**: The business logic was changed to allow deleting a manager even if they have sellers. The sellers'  is now set to  upon deletion. A test script () was created to validate this.
+*   **Frontend**:
+    *   **Super Admin Dashboard**: A new Assistant IA tab contains a complete chat interface () with conversation history and Markdown rendering for AI responses. The audit log filter is now a multi-select component.
+    *   **Gérant Dashboard**: A new Personnel tab was added, which renders a  component. This provides a centralized table to view, filter, and manage all managers and sellers, with actions like suspend, reactivate, and delete. The main dashboard view was updated to show separate counts for Actifs and Suspendus staff.
+    *   **Manager View ()**: The ability for managers to suspend or delete sellers has been removed, centralizing this control to the Gérant.
+    *   **API Documentation**: The API guide is now displayed in a modal () instead of a blank page, with corrected authentication instructions ().
+    *   **Registration Pages**: New skeleton pages for user registration have been created: , , , and linked in .
+*   **Database**: A one-time script was run to normalize the  field in the  collection, migrating old/null statuses to 'active' or 'suspended'.
 
 **Last working item**:
-The agent successfully provided the user with detailed instructions on how to configure N8N to send data to the application's KPI sync endpoint using a generated API key.
-
-- Last item agent was working: Providing a configuration guide for using the newly created API with N8N.
-- Status: COMPLETED
-- Agent Testing Done: Y
-- Which testing method agent to use? NA
-- User Testing Done: Y (The user accepted the solution and asked the next question on how to use it).
+- Last item agent was working: Investigating the workflow for assigning orphan sellers (whose manager has been deleted) to a new manager. The user asked how the application handles adding a new manager and assigning existing staff to them. The agent had started analyzing the backend code for manager invitations.
+- Status: IN PROGRESS
+- Agent Testing Done: N
+- Which testing method agent to use? manual testing by curl. First, the agent needs to analyze the code to understand the current process (if any). Then, propose a solution (likely involving a new UI component) and test the corresponding API endpoints with curl before building the frontend.
+- User Testing Done: N
 
 **All Pending/In progress Issue list**:
-There are no active, unresolved issues. The primary blocker of the session (the recurring React DOM error) has been fixed.
+- **Issue 1: Brevo Email Integration is Blocked (P0)**
+    - Description: The Brevo API is returning a 401 Unauthorized error because the server's IP address () is not whitelisted in the user's Brevo account security settings. This prevents all invitation emails from being sent.
+    - Status: BLOCKED
+    - Is recurring issue? N
+    - Why fix this issue and what will be achieved with the fix?: This is a critical blocker for the entire user registration and invitation feature. Fixing it will allow testing and validation of the new user onboarding flows.
+    - **Next action**: The user must log in to their Brevo account and add the IP address  to the list of authorized IPs for their API key. The agent cannot proceed without this user action.
 
 **In progress Task List**:
-There are no tasks currently in progress. The API Integration feature is complete.
+- **Task 1: Define and Implement Orphan Seller Re-assignment Workflow (P1)**
+    - **Where to resume**: The agent was analyzing the  endpoint. The next step is to devise a complete workflow for how a Gérant can assign sellers (whose  is ) to a new or existing manager. This will likely require creating a new UI element, possibly within the  component or as a separate modal.
+    - **What will be achieved with this?**: A complete staff lifecycle management feature, allowing Gérants to handle manager departures and re-organize teams without data loss.
+    - **Status**: IN PROGRESS
+    - **Should Test frontend/backend/both after fix?**: both
+    - **Blocked on something**: No.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks**:
+    - **P0: Test Full User Registration Flow**: Once the Brevo IP issue is resolved, conduct a full end-to-end test of the invitation and registration process for a Gérant, a Manager, and a Seller.
     - **P1: Implement Referral Program**: Implement the 50€ / 50€ credit referral system.
-        -   **Backend**: Logic to generate unique referral codes, track referrals, and apply credits.
-        -   **Frontend**: A new UI section for users to get their referral link and track rewards.
-    - **P2: Gerant Dashboard Enhancements (Phase 2 & 3)**:
-        -   Add a main evolution graph showing performance over the selected period.
-        -   Add a detailed comparative table of store performance.
+    - **P2: Gérant Dashboard Enhancements (Phase 2 & 3)**:
+        - Add a main evolution graph showing performance over the selected period.
+        - Add a detailed comparative table of store performance.
 - **Future Tasks**:
     - **P3: IA Illimitée (Unlimited AI) Feature**: Investigate removing AI usage quotas.
     - **P3: Export Feature**: Add a CSV/Excel export button for the comparative table on the Gérant Dashboard.
 
 **Completed work in this session**
-- **Feature: API Key Management System (DONE)**:
-    -   Created a new tab and UI in the Gérant dashboard for API management.
-    -   Implemented backend logic in  to support granular, per-store access for API keys.
-    -   Developed a robust frontend UI in  for full CRUD operations on keys.
-    -   Implemented a complex, multi-select dropdown for store selection in .
-- **Bug Fix: Critical Recurring React DOM Error (DONE)**:
-    -   Resolved a persistent  /  error that plagued the UI.
-    -   Fixed the Copy key functionality using a dedicated, state-isolated  and pure DOM manipulation.
-    -   Fixed the dropdown selection by isolating it into its own component () and rendering it with  to prevent DOM conflicts.
-    -   Fixed the key regeneration flow by simplifying the success notification to a native browser .
-- **Documentation**: Created  and provided direct instructions to the user for N8N integration.
+- **Feature: AI Assistant in SuperAdmin Dashboard (DONE)**: Fully functional chat interface with conversation history and Markdown rendering.
+- **Feature: Gérant Staff Management Hub (DONE)**: New Personnel tab with a unified view () to manage all sellers and managers, including suspend, reactivate, and delete actions.
+- **Feature: Multi-Select Admin Filter for Audit Logs (DONE)**
+- **Refactor: Centralized Staff Management (DONE)**: Removed seller management permissions from the Manager role and consolidated them under the Gérant role.
+- **Fix: Inconsistent User Counts and Statuses (DONE)**: Standardized user statuses (, , ) in the database and frontend. Updated dashboard counters to be consistent and logical.
+- **Fix: API Documentation Modal (DONE)**: Replaced a blank page with a functional modal and corrected the authentication instructions to use .
+- **Fix: Data Integrity on Manager Deletion (DONE)**: Removed the block on deleting managers with sellers and ensured seller data remains intact by setting  to null.
 
 **Earlier issues found/mentioned but not fixed**
--   The user asked to abandon the P0 (Non validé text bug) and P1 issues from the previous fork at the beginning of this session. These remain unfixed as per the user's direction.
-
-**Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork**: Inconsistent seller count in Mon Équipe view (P1) and Verify Focus Produit details display (P2).
--   **Recurrence count**: 1
--   **Status**: NOT STARTED (User stated these were settled but they were not worked on. This should be verified later).
+- **Issue 1: Incomplete Subscription Logic Update**
+    - Debug checklist: The agent updated most endpoints to count only 'active' users for subscription billing, but missed the Stripe checkout endpoint.
+    - File to check: 
+    - Function to check:  (around line 7413) still uses a query  which includes suspended users. It should be changed to .
+    - Why to solve this issue and what will be achieved with this?: To ensure billing is 100% consistent with the user's request to only charge for active users.
+    - Should Test frontend/backend/both after fix: backend
+    - Is recurring issue? N
 
 **Code Architecture**
 .
 ├── ACCES_TESTS_MULTI_STORE.md
+├── ADMIN_LOGGING_GUIDE.md
 ├── ANALYSE_STRUCTURE_IA.md
 ├── API_INTEGRATION_GUIDE.md
 ├── CALCUL_NOMBRE_ANALYSES.md
@@ -104,6 +111,7 @@ There are no tasks currently in progress. The API Integration feature is complet
 ├── README.md
 ├── RECOMMANDATIONS_FORFAITS_IA.md
 ├── REPONSE_CREDITS_PAR_VENDEUR_OU_GROUPE.md
+├── SECURITY_AUDIT_REPORT.md
 ├── SIMULATION_COUTS_IA.md
 ├── VENDEURS_SKYCO_INFO.md
 ├── __pycache__
@@ -111,6 +119,7 @@ There are no tasks currently in progress. The API Integration feature is complet
 ├── annual_to_monthly_downgrade_test.py
 ├── backend
 │   ├── __pycache__
+│   │   ├── email_service.cpython-311.pyc
 │   │   └── server.cpython-311.pyc
 │   ├── add_kpi_data.py
 │   ├── calculate_competences_and_levels.py
@@ -119,6 +128,7 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   ├── create_gerant_workspace.py
 │   ├── create_superadmin.py
 │   ├── create_ylegoff_data.py
+│   ├── email_service.py
 │   ├── enrich_diagnostics.py
 │   ├── fill_kpi_data.py
 │   ├── fill_kpis_ylegoff.py
@@ -132,6 +142,7 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   ├── seed_kpi_data_12months.py
 │   ├── server.py
 │   ├── sync_subscription_seats.py
+│   ├── test_manager_deletion.py
 │   ├── update_kpi_configs.py
 │   └── update_sellers_password.py
 ├── backend_test.py
@@ -156,20 +167,6 @@ There are no tasks currently in progress. The API Integration feature is complet
 ├── fix_subscription.py
 ├── frontend
 │   ├── README.md
-│   ├── build
-│   │   ├── dashboard-manager-old-backup.png
-│   │   ├── dashboard-manager.png
-│   │   ├── dashboard-vendeur-old-backup.png
-│   │   ├── dashboard-vendeur.png
-│   │   ├── hero-retail-boutique.png
-│   │   ├── logo-full.png
-│   │   ├── logo-icon.png
-│   │   ├── logo-retail-performer-blue.png
-│   │   ├── logo-retail-performer.png
-│   │   ├── logo.jpg
-│   │   ├── screenshot1.png
-│   │   ├── screenshot2.png
-│   │   └── screenshot3.png
 │   ├── components.json
 │   ├── craco.config.js
 │   ├── jsconfig.json
@@ -2693,6 +2690,443 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │       │   ├── index.d.ts
 │   │   │       │   └── index.mjs
 │   │   │       └── package.json
+│   │   ├── @emotion
+│   │   │   ├── babel-plugin
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── emotion-babel-plugin.cjs.default.js
+│   │   │   │   │   ├── emotion-babel-plugin.cjs.js
+│   │   │   │   │   ├── emotion-babel-plugin.cjs.mjs
+│   │   │   │   │   └── emotion-babel-plugin.esm.js
+│   │   │   │   ├── node_modules
+│   │   │   │   │   └── source-map
+│   │   │   │   │       ├── CHANGELOG.md
+│   │   │   │   │       ├── LICENSE
+│   │   │   │   │       ├── README.md
+│   │   │   │   │       ├── dist
+│   │   │   │   │       │   ├── source-map.debug.js
+│   │   │   │   │       │   ├── source-map.js
+│   │   │   │   │       │   ├── source-map.min.js
+│   │   │   │   │       │   └── source-map.min.js.map
+│   │   │   │   │       ├── lib
+│   │   │   │   │       │   ├── array-set.js
+│   │   │   │   │       │   ├── base64-vlq.js
+│   │   │   │   │       │   ├── base64.js
+│   │   │   │   │       │   ├── binary-search.js
+│   │   │   │   │       │   ├── mapping-list.js
+│   │   │   │   │       │   ├── quick-sort.js
+│   │   │   │   │       │   ├── source-map-consumer.js
+│   │   │   │   │       │   ├── source-map-generator.js
+│   │   │   │   │       │   ├── source-node.js
+│   │   │   │   │       │   └── util.js
+│   │   │   │   │       ├── package.json
+│   │   │   │   │       └── source-map.js
+│   │   │   │   ├── package.json
+│   │   │   │   └── src
+│   │   │   │       ├── core-macro.js
+│   │   │   │       ├── emotion-macro.js
+│   │   │   │       ├── index.js
+│   │   │   │       ├── styled-macro.js
+│   │   │   │       └── utils
+│   │   │   │           ├── add-import.js
+│   │   │   │           ├── create-node-env-conditional.js
+│   │   │   │           ├── get-styled-options.js
+│   │   │   │           ├── get-target-class-name.js
+│   │   │   │           ├── index.js
+│   │   │   │           ├── label.js
+│   │   │   │           ├── minify.js
+│   │   │   │           ├── object-to-string.js
+│   │   │   │           ├── source-maps.js
+│   │   │   │           ├── strings.js
+│   │   │   │           ├── transform-expression-with-styles.js
+│   │   │   │           ├── transformer-macro.js
+│   │   │   │           └── transpiled-output-utils.js
+│   │   │   ├── cache
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── declarations
+│   │   │   │   │   │   └── src
+│   │   │   │   │   │       ├── index.d.ts
+│   │   │   │   │   │       └── types.d.ts
+│   │   │   │   │   ├── emotion-cache.browser.cjs.default.js
+│   │   │   │   │   ├── emotion-cache.browser.cjs.js
+│   │   │   │   │   ├── emotion-cache.browser.cjs.mjs
+│   │   │   │   │   ├── emotion-cache.browser.development.cjs.default.js
+│   │   │   │   │   ├── emotion-cache.browser.development.cjs.js
+│   │   │   │   │   ├── emotion-cache.browser.development.cjs.mjs
+│   │   │   │   │   ├── emotion-cache.browser.development.esm.js
+│   │   │   │   │   ├── emotion-cache.browser.esm.js
+│   │   │   │   │   ├── emotion-cache.cjs.d.mts
+│   │   │   │   │   ├── emotion-cache.cjs.d.ts
+│   │   │   │   │   ├── emotion-cache.cjs.default.d.ts
+│   │   │   │   │   ├── emotion-cache.cjs.default.js
+│   │   │   │   │   ├── emotion-cache.cjs.js
+│   │   │   │   │   ├── emotion-cache.cjs.mjs
+│   │   │   │   │   ├── emotion-cache.development.cjs.default.js
+│   │   │   │   │   ├── emotion-cache.development.cjs.js
+│   │   │   │   │   ├── emotion-cache.development.cjs.mjs
+│   │   │   │   │   ├── emotion-cache.development.edge-light.cjs.default.js
+│   │   │   │   │   ├── emotion-cache.development.edge-light.cjs.js
+│   │   │   │   │   ├── emotion-cache.development.edge-light.cjs.mjs
+│   │   │   │   │   ├── emotion-cache.development.edge-light.esm.js
+│   │   │   │   │   ├── emotion-cache.development.esm.js
+│   │   │   │   │   ├── emotion-cache.edge-light.cjs.default.js
+│   │   │   │   │   ├── emotion-cache.edge-light.cjs.js
+│   │   │   │   │   ├── emotion-cache.edge-light.cjs.mjs
+│   │   │   │   │   ├── emotion-cache.edge-light.esm.js
+│   │   │   │   │   └── emotion-cache.esm.js
+│   │   │   │   ├── package.json
+│   │   │   │   └── src
+│   │   │   │       ├── conditions
+│   │   │   │       │   ├── false.ts
+│   │   │   │       │   ├── is-browser.ts
+│   │   │   │       │   └── true.ts
+│   │   │   │       ├── index.ts
+│   │   │   │       ├── prefixer.ts
+│   │   │   │       ├── stylis-plugins.ts
+│   │   │   │       └── types.ts
+│   │   │   ├── hash
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── declarations
+│   │   │   │   │   │   └── src
+│   │   │   │   │   │       └── index.d.ts
+│   │   │   │   │   ├── emotion-hash.cjs.d.mts
+│   │   │   │   │   ├── emotion-hash.cjs.d.mts.map
+│   │   │   │   │   ├── emotion-hash.cjs.d.ts
+│   │   │   │   │   ├── emotion-hash.cjs.d.ts.map
+│   │   │   │   │   ├── emotion-hash.cjs.default.d.ts
+│   │   │   │   │   ├── emotion-hash.cjs.default.js
+│   │   │   │   │   ├── emotion-hash.cjs.dev.js
+│   │   │   │   │   ├── emotion-hash.cjs.js
+│   │   │   │   │   ├── emotion-hash.cjs.mjs
+│   │   │   │   │   ├── emotion-hash.cjs.prod.js
+│   │   │   │   │   └── emotion-hash.esm.js
+│   │   │   │   ├── package.json
+│   │   │   │   └── src
+│   │   │   │       └── index.ts
+│   │   │   ├── memoize
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── declarations
+│   │   │   │   │   │   └── src
+│   │   │   │   │   │       └── index.d.ts
+│   │   │   │   │   ├── emotion-memoize.cjs.d.mts
+│   │   │   │   │   ├── emotion-memoize.cjs.d.mts.map
+│   │   │   │   │   ├── emotion-memoize.cjs.d.ts
+│   │   │   │   │   ├── emotion-memoize.cjs.d.ts.map
+│   │   │   │   │   ├── emotion-memoize.cjs.default.d.ts
+│   │   │   │   │   ├── emotion-memoize.cjs.default.js
+│   │   │   │   │   ├── emotion-memoize.cjs.dev.js
+│   │   │   │   │   ├── emotion-memoize.cjs.js
+│   │   │   │   │   ├── emotion-memoize.cjs.mjs
+│   │   │   │   │   ├── emotion-memoize.cjs.prod.js
+│   │   │   │   │   └── emotion-memoize.esm.js
+│   │   │   │   ├── package.json
+│   │   │   │   └── src
+│   │   │   │       └── index.ts
+│   │   │   ├── react
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── _isolated-hnrs
+│   │   │   │   │   ├── dist
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.browser.cjs.default.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.browser.cjs.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.browser.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.browser.development.cjs.default.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.browser.development.cjs.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.browser.development.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.browser.development.esm.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.browser.esm.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.cjs.d.mts
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.cjs.d.ts
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.cjs.default.d.ts
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.cjs.default.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.cjs.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.development.cjs.default.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.development.cjs.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.development.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.development.edge-light.cjs.default.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.development.edge-light.cjs.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.development.edge-light.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.development.edge-light.esm.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.development.esm.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.edge-light.cjs.default.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.edge-light.cjs.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.edge-light.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.edge-light.esm.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.esm.js
+│   │   │   │   │   │   ├── emotion-react-_isolated-hnrs.umd.min.js
+│   │   │   │   │   │   └── emotion-react-_isolated-hnrs.umd.min.js.map
+│   │   │   │   │   └── package.json
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── declarations
+│   │   │   │   │   │   └── src
+│   │   │   │   │   │       ├── _isolated-hnrs.d.ts
+│   │   │   │   │   │       ├── class-names.d.ts
+│   │   │   │   │   │       ├── context.d.ts
+│   │   │   │   │   │       ├── css.d.ts
+│   │   │   │   │   │       ├── global.d.ts
+│   │   │   │   │   │       ├── index.d.ts
+│   │   │   │   │   │       ├── jsx-dev-runtime.d.ts
+│   │   │   │   │   │       ├── jsx-namespace.d.ts
+│   │   │   │   │   │       ├── jsx-runtime.d.ts
+│   │   │   │   │   │       ├── jsx.d.ts
+│   │   │   │   │   │       ├── keyframes.d.ts
+│   │   │   │   │   │       ├── theming.d.ts
+│   │   │   │   │   │       └── types.d.ts
+│   │   │   │   │   ├── emotion-element-010f37fa.development.edge-light.cjs.js
+│   │   │   │   │   ├── emotion-element-25f9958c.browser.cjs.js
+│   │   │   │   │   ├── emotion-element-4787f564.browser.development.cjs.js
+│   │   │   │   │   ├── emotion-element-489459f2.browser.development.esm.js
+│   │   │   │   │   ├── emotion-element-516430c7.development.edge-light.esm.js
+│   │   │   │   │   ├── emotion-element-782f682d.development.esm.js
+│   │   │   │   │   ├── emotion-element-8113875a.edge-light.esm.js
+│   │   │   │   │   ├── emotion-element-a1829a1e.cjs.js
+│   │   │   │   │   ├── emotion-element-af3dc15b.edge-light.cjs.js
+│   │   │   │   │   ├── emotion-element-d59e098f.esm.js
+│   │   │   │   │   ├── emotion-element-e8f4cc37.development.cjs.js
+│   │   │   │   │   ├── emotion-element-f0de968e.browser.esm.js
+│   │   │   │   │   ├── emotion-react.browser.cjs.js
+│   │   │   │   │   ├── emotion-react.browser.cjs.mjs
+│   │   │   │   │   ├── emotion-react.browser.development.cjs.js
+│   │   │   │   │   ├── emotion-react.browser.development.cjs.mjs
+│   │   │   │   │   ├── emotion-react.browser.development.esm.js
+│   │   │   │   │   ├── emotion-react.browser.esm.js
+│   │   │   │   │   ├── emotion-react.cjs.d.mts
+│   │   │   │   │   ├── emotion-react.cjs.d.ts
+│   │   │   │   │   ├── emotion-react.cjs.js
+│   │   │   │   │   ├── emotion-react.cjs.mjs
+│   │   │   │   │   ├── emotion-react.development.cjs.js
+│   │   │   │   │   ├── emotion-react.development.cjs.mjs
+│   │   │   │   │   ├── emotion-react.development.edge-light.cjs.js
+│   │   │   │   │   ├── emotion-react.development.edge-light.cjs.mjs
+│   │   │   │   │   ├── emotion-react.development.edge-light.esm.js
+│   │   │   │   │   ├── emotion-react.development.esm.js
+│   │   │   │   │   ├── emotion-react.edge-light.cjs.js
+│   │   │   │   │   ├── emotion-react.edge-light.cjs.mjs
+│   │   │   │   │   ├── emotion-react.edge-light.esm.js
+│   │   │   │   │   ├── emotion-react.esm.js
+│   │   │   │   │   ├── emotion-react.umd.min.js
+│   │   │   │   │   └── emotion-react.umd.min.js.map
+│   │   │   │   ├── jsx-dev-runtime
+│   │   │   │   │   ├── dist
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.browser.cjs.js
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.browser.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.browser.development.cjs.js
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.browser.development.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.browser.development.esm.js
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.browser.esm.js
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.cjs.d.mts
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.cjs.d.ts
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.cjs.js
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.development.cjs.js
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.development.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.development.edge-light.cjs.js
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.development.edge-light.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.development.edge-light.esm.js
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.development.esm.js
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.edge-light.cjs.js
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.edge-light.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.edge-light.esm.js
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.esm.js
+│   │   │   │   │   │   ├── emotion-react-jsx-dev-runtime.umd.min.js
+│   │   │   │   │   │   └── emotion-react-jsx-dev-runtime.umd.min.js.map
+│   │   │   │   │   └── package.json
+│   │   │   │   ├── jsx-runtime
+│   │   │   │   │   ├── dist
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.browser.cjs.js
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.browser.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.browser.development.cjs.js
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.browser.development.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.browser.development.esm.js
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.browser.esm.js
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.cjs.d.mts
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.cjs.d.ts
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.cjs.js
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.development.cjs.js
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.development.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.development.edge-light.cjs.js
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.development.edge-light.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.development.edge-light.esm.js
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.development.esm.js
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.edge-light.cjs.js
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.edge-light.cjs.mjs
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.edge-light.esm.js
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.esm.js
+│   │   │   │   │   │   ├── emotion-react-jsx-runtime.umd.min.js
+│   │   │   │   │   │   └── emotion-react-jsx-runtime.umd.min.js.map
+│   │   │   │   │   └── package.json
+│   │   │   │   ├── macro.d.mts
+│   │   │   │   ├── macro.d.ts
+│   │   │   │   ├── macro.js
+│   │   │   │   ├── package.json
+│   │   │   │   ├── src
+│   │   │   │   │   ├── _isolated-hnrs.ts
+│   │   │   │   │   ├── class-names.tsx
+│   │   │   │   │   ├── conditions
+│   │   │   │   │   │   ├── false.ts
+│   │   │   │   │   │   ├── is-browser.ts
+│   │   │   │   │   │   └── true.ts
+│   │   │   │   │   ├── context.tsx
+│   │   │   │   │   ├── css.ts
+│   │   │   │   │   ├── emotion-element.tsx
+│   │   │   │   │   ├── get-label-from-stack-trace.ts
+│   │   │   │   │   ├── global.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── jsx-dev-runtime.ts
+│   │   │   │   │   ├── jsx-namespace.ts
+│   │   │   │   │   ├── jsx-runtime.ts
+│   │   │   │   │   ├── jsx.ts
+│   │   │   │   │   ├── keyframes.ts
+│   │   │   │   │   ├── theming.tsx
+│   │   │   │   │   ├── types.ts
+│   │   │   │   │   └── utils.ts
+│   │   │   │   └── types
+│   │   │   │       └── css-prop.d.ts
+│   │   │   ├── serialize
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── declarations
+│   │   │   │   │   │   └── src
+│   │   │   │   │   │       └── index.d.ts
+│   │   │   │   │   ├── emotion-serialize.cjs.d.mts
+│   │   │   │   │   ├── emotion-serialize.cjs.d.ts
+│   │   │   │   │   ├── emotion-serialize.cjs.js
+│   │   │   │   │   ├── emotion-serialize.cjs.mjs
+│   │   │   │   │   ├── emotion-serialize.development.cjs.js
+│   │   │   │   │   ├── emotion-serialize.development.cjs.mjs
+│   │   │   │   │   ├── emotion-serialize.development.esm.js
+│   │   │   │   │   └── emotion-serialize.esm.js
+│   │   │   │   ├── node_modules
+│   │   │   │   │   └── csstype
+│   │   │   │   │       ├── LICENSE
+│   │   │   │   │       ├── README.md
+│   │   │   │   │       ├── index.d.ts
+│   │   │   │   │       ├── index.js.flow
+│   │   │   │   │       └── package.json
+│   │   │   │   ├── package.json
+│   │   │   │   └── src
+│   │   │   │       ├── conditions
+│   │   │   │       │   ├── false.ts
+│   │   │   │       │   └── true.ts
+│   │   │   │       └── index.ts
+│   │   │   ├── sheet
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── declarations
+│   │   │   │   │   │   └── src
+│   │   │   │   │   │       └── index.d.ts
+│   │   │   │   │   ├── emotion-sheet.cjs.d.mts
+│   │   │   │   │   ├── emotion-sheet.cjs.d.ts
+│   │   │   │   │   ├── emotion-sheet.cjs.js
+│   │   │   │   │   ├── emotion-sheet.cjs.mjs
+│   │   │   │   │   ├── emotion-sheet.development.cjs.js
+│   │   │   │   │   ├── emotion-sheet.development.cjs.mjs
+│   │   │   │   │   ├── emotion-sheet.development.esm.js
+│   │   │   │   │   └── emotion-sheet.esm.js
+│   │   │   │   ├── package.json
+│   │   │   │   └── src
+│   │   │   │       ├── conditions
+│   │   │   │       │   ├── false.ts
+│   │   │   │       │   └── true.ts
+│   │   │   │       └── index.ts
+│   │   │   ├── unitless
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── declarations
+│   │   │   │   │   │   └── src
+│   │   │   │   │   │       └── index.d.ts
+│   │   │   │   │   ├── emotion-unitless.cjs.d.mts
+│   │   │   │   │   ├── emotion-unitless.cjs.d.ts
+│   │   │   │   │   ├── emotion-unitless.cjs.default.d.ts
+│   │   │   │   │   ├── emotion-unitless.cjs.default.js
+│   │   │   │   │   ├── emotion-unitless.cjs.js
+│   │   │   │   │   ├── emotion-unitless.cjs.mjs
+│   │   │   │   │   └── emotion-unitless.esm.js
+│   │   │   │   ├── package.json
+│   │   │   │   └── src
+│   │   │   │       └── index.ts
+│   │   │   ├── use-insertion-effect-with-fallbacks
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── declarations
+│   │   │   │   │   │   └── src
+│   │   │   │   │   │       └── index.d.ts
+│   │   │   │   │   ├── emotion-use-insertion-effect-with-fallbacks.browser.cjs.js
+│   │   │   │   │   ├── emotion-use-insertion-effect-with-fallbacks.browser.cjs.mjs
+│   │   │   │   │   ├── emotion-use-insertion-effect-with-fallbacks.browser.esm.js
+│   │   │   │   │   ├── emotion-use-insertion-effect-with-fallbacks.cjs.d.mts
+│   │   │   │   │   ├── emotion-use-insertion-effect-with-fallbacks.cjs.d.ts
+│   │   │   │   │   ├── emotion-use-insertion-effect-with-fallbacks.cjs.js
+│   │   │   │   │   ├── emotion-use-insertion-effect-with-fallbacks.cjs.mjs
+│   │   │   │   │   ├── emotion-use-insertion-effect-with-fallbacks.edge-light.cjs.js
+│   │   │   │   │   ├── emotion-use-insertion-effect-with-fallbacks.edge-light.cjs.mjs
+│   │   │   │   │   ├── emotion-use-insertion-effect-with-fallbacks.edge-light.esm.js
+│   │   │   │   │   └── emotion-use-insertion-effect-with-fallbacks.esm.js
+│   │   │   │   ├── package.json
+│   │   │   │   └── src
+│   │   │   │       ├── conditions
+│   │   │   │       │   ├── false.ts
+│   │   │   │       │   ├── is-browser.ts
+│   │   │   │       │   └── true.ts
+│   │   │   │       └── index.ts
+│   │   │   ├── utils
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── declarations
+│   │   │   │   │   │   └── src
+│   │   │   │   │   │       ├── index.d.ts
+│   │   │   │   │   │       └── types.d.ts
+│   │   │   │   │   ├── emotion-utils.browser.cjs.js
+│   │   │   │   │   ├── emotion-utils.browser.cjs.mjs
+│   │   │   │   │   ├── emotion-utils.browser.esm.js
+│   │   │   │   │   ├── emotion-utils.cjs.d.mts
+│   │   │   │   │   ├── emotion-utils.cjs.d.ts
+│   │   │   │   │   ├── emotion-utils.cjs.js
+│   │   │   │   │   ├── emotion-utils.cjs.mjs
+│   │   │   │   │   ├── emotion-utils.edge-light.cjs.js
+│   │   │   │   │   ├── emotion-utils.edge-light.cjs.mjs
+│   │   │   │   │   ├── emotion-utils.edge-light.esm.js
+│   │   │   │   │   └── emotion-utils.esm.js
+│   │   │   │   ├── package.json
+│   │   │   │   └── src
+│   │   │   │       ├── conditions
+│   │   │   │       │   ├── false.ts
+│   │   │   │       │   ├── is-browser.ts
+│   │   │   │       │   └── true.ts
+│   │   │   │       ├── index.ts
+│   │   │   │       └── types.ts
+│   │   │   └── weak-memoize
+│   │   │       ├── LICENSE
+│   │   │       ├── README.md
+│   │   │       ├── dist
+│   │   │       │   ├── declarations
+│   │   │       │   │   └── src
+│   │   │       │   │       └── index.d.ts
+│   │   │       │   ├── emotion-weak-memoize.cjs.d.mts
+│   │   │       │   ├── emotion-weak-memoize.cjs.d.mts.map
+│   │   │       │   ├── emotion-weak-memoize.cjs.d.ts
+│   │   │       │   ├── emotion-weak-memoize.cjs.d.ts.map
+│   │   │       │   ├── emotion-weak-memoize.cjs.default.d.ts
+│   │   │       │   ├── emotion-weak-memoize.cjs.default.js
+│   │   │       │   ├── emotion-weak-memoize.cjs.dev.js
+│   │   │       │   ├── emotion-weak-memoize.cjs.js
+│   │   │       │   ├── emotion-weak-memoize.cjs.mjs
+│   │   │       │   ├── emotion-weak-memoize.cjs.prod.js
+│   │   │       │   └── emotion-weak-memoize.esm.js
+│   │   │       ├── package.json
+│   │   │       └── src
+│   │   │           └── index.ts
 │   │   ├── @eslint
 │   │   │   ├── config-array
 │   │   │   │   ├── LICENSE
@@ -5885,6 +6319,11 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── README.md
 │   │   │   │   ├── index.d.ts
 │   │   │   │   └── package.json
+│   │   │   ├── debug
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── package.json
 │   │   │   ├── eslint
 │   │   │   │   ├── LICENSE
 │   │   │   │   ├── README.md
@@ -5931,6 +6370,11 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── flow.d.ts
 │   │   │   │   ├── index.d.ts
 │   │   │   │   └── package.json
+│   │   │   ├── estree-jsx
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── package.json
 │   │   │   ├── express
 │   │   │   │   ├── LICENSE
 │   │   │   │   ├── README.md
@@ -5949,6 +6393,11 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── index.d.ts
 │   │   │   │   └── package.json
 │   │   │   ├── graceful-fs
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── package.json
+│   │   │   ├── hast
 │   │   │   │   ├── LICENSE
 │   │   │   │   ├── README.md
 │   │   │   │   ├── index.d.ts
@@ -5993,12 +6442,22 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── index.d.ts
 │   │   │   │   ├── package.json
 │   │   │   │   └── types-metadata.json
+│   │   │   ├── mdast
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── package.json
 │   │   │   ├── mime
 │   │   │   │   ├── LICENSE
 │   │   │   │   ├── Mime.d.ts
 │   │   │   │   ├── README.md
 │   │   │   │   ├── index.d.ts
 │   │   │   │   ├── lite.d.ts
+│   │   │   │   └── package.json
+│   │   │   ├── ms
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── index.d.ts
 │   │   │   │   └── package.json
 │   │   │   ├── node
 │   │   │   │   ├── LICENSE
@@ -6142,6 +6601,16 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── README.md
 │   │   │   │   ├── index.d.ts
 │   │   │   │   └── package.json
+│   │   │   ├── react-transition-group
+│   │   │   │   ├── CSSTransition.d.ts
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── SwitchTransition.d.ts
+│   │   │   │   ├── Transition.d.ts
+│   │   │   │   ├── TransitionGroup.d.ts
+│   │   │   │   ├── config.d.ts
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── package.json
 │   │   │   ├── resolve
 │   │   │   │   ├── LICENSE
 │   │   │   │   ├── README.md
@@ -6246,6 +6715,11 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── index.d.ts
 │   │   │   │   ├── lib
 │   │   │   │   │   └── index.d.ts
+│   │   │   │   └── package.json
+│   │   │   ├── unist
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.md
+│   │   │   │   ├── index.d.ts
 │   │   │   │   └── package.json
 │   │   │   ├── use-sync-external-store
 │   │   │   │   ├── LICENSE
@@ -8858,6 +9332,12 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── prod.js
 │   │   │   ├── test.js
 │   │   │   └── webpack-overrides.js
+│   │   ├── bail
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── balanced-match
 │   │   │   ├── LICENSE.md
 │   │   │   ├── README.md
@@ -10267,6 +10747,12 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── README.md
 │   │   │   ├── index.js
 │   │   │   └── package.json
+│   │   ├── ccount
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── chalk
 │   │   │   ├── index.d.ts
 │   │   │   ├── license
@@ -10282,6 +10768,30 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── index.d.ts
 │   │   │   ├── index.js
 │   │   │   └── package.json
+│   │   ├── character-entities
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── character-entities-html4
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── character-entities-legacy
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── character-reference-invalid
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── check-types
 │   │   │   ├── COPYING
 │   │   │   ├── README.md
@@ -10676,6 +11186,12 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   └── combined_stream.js
 │   │   │   ├── package.json
 │   │   │   └── yarn.lock
+│   │   ├── comma-separated-tokens
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── commander
 │   │   │   ├── CHANGELOG.md
 │   │   │   ├── LICENSE
@@ -25475,6 +25991,16 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── API.html
 │   │   │   │   └── decimal.js.map
 │   │   │   └── package.json
+│   │   ├── decode-named-character-reference
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.dom.d.ts
+│   │   │   ├── index.dom.d.ts.map
+│   │   │   ├── index.dom.js
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── dedent
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -25554,6 +26080,20 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   └── browser
 │   │   │   │       └── index.js
 │   │   │   └── package.json
+│   │   ├── dequal
+│   │   │   ├── dist
+│   │   │   │   ├── index.js
+│   │   │   │   ├── index.min.js
+│   │   │   │   └── index.mjs
+│   │   │   ├── index.d.ts
+│   │   │   ├── license
+│   │   │   ├── lite
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.js
+│   │   │   │   ├── index.min.js
+│   │   │   │   └── index.mjs
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── destroy
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -25617,6 +26157,14 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │       ├── package.json
 │   │   │   │       └── readme.md
 │   │   │   └── package.json
+│   │   ├── devlop
+│   │   │   ├── lib
+│   │   │   │   ├── default.js
+│   │   │   │   ├── development.d.ts
+│   │   │   │   └── development.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── didyoumean
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -25713,6 +26261,355 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── objectToSaneObject.js
 │   │   │   │   └── saneObjectToDom.js
 │   │   │   └── package.json
+│   │   ├── dom-helpers
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── activeElement
+│   │   │   │   └── package.json
+│   │   │   ├── addClass
+│   │   │   │   └── package.json
+│   │   │   ├── addEventListener
+│   │   │   │   └── package.json
+│   │   │   ├── animate
+│   │   │   │   └── package.json
+│   │   │   ├── animationFrame
+│   │   │   │   └── package.json
+│   │   │   ├── attribute
+│   │   │   │   └── package.json
+│   │   │   ├── camelize
+│   │   │   │   └── package.json
+│   │   │   ├── camelizeStyle
+│   │   │   │   └── package.json
+│   │   │   ├── canUseDOM
+│   │   │   │   └── package.json
+│   │   │   ├── childElements
+│   │   │   │   └── package.json
+│   │   │   ├── childNodes
+│   │   │   │   └── package.json
+│   │   │   ├── cjs
+│   │   │   │   ├── activeElement.d.ts
+│   │   │   │   ├── activeElement.js
+│   │   │   │   ├── addClass.d.ts
+│   │   │   │   ├── addClass.js
+│   │   │   │   ├── addEventListener.d.ts
+│   │   │   │   ├── addEventListener.js
+│   │   │   │   ├── animate.d.ts
+│   │   │   │   ├── animate.js
+│   │   │   │   ├── animationFrame.d.ts
+│   │   │   │   ├── animationFrame.js
+│   │   │   │   ├── attribute.d.ts
+│   │   │   │   ├── attribute.js
+│   │   │   │   ├── camelize.d.ts
+│   │   │   │   ├── camelize.js
+│   │   │   │   ├── camelizeStyle.d.ts
+│   │   │   │   ├── camelizeStyle.js
+│   │   │   │   ├── canUseDOM.d.ts
+│   │   │   │   ├── canUseDOM.js
+│   │   │   │   ├── childElements.d.ts
+│   │   │   │   ├── childElements.js
+│   │   │   │   ├── childNodes.d.ts
+│   │   │   │   ├── childNodes.js
+│   │   │   │   ├── clear.d.ts
+│   │   │   │   ├── clear.js
+│   │   │   │   ├── closest.d.ts
+│   │   │   │   ├── closest.js
+│   │   │   │   ├── collectElements.d.ts
+│   │   │   │   ├── collectElements.js
+│   │   │   │   ├── collectSiblings.d.ts
+│   │   │   │   ├── collectSiblings.js
+│   │   │   │   ├── contains.d.ts
+│   │   │   │   ├── contains.js
+│   │   │   │   ├── css.d.ts
+│   │   │   │   ├── css.js
+│   │   │   │   ├── filterEventHandler.d.ts
+│   │   │   │   ├── filterEventHandler.js
+│   │   │   │   ├── getComputedStyle.d.ts
+│   │   │   │   ├── getComputedStyle.js
+│   │   │   │   ├── getScrollAccessor.d.ts
+│   │   │   │   ├── getScrollAccessor.js
+│   │   │   │   ├── hasClass.d.ts
+│   │   │   │   ├── hasClass.js
+│   │   │   │   ├── height.d.ts
+│   │   │   │   ├── height.js
+│   │   │   │   ├── hyphenate.d.ts
+│   │   │   │   ├── hyphenate.js
+│   │   │   │   ├── hyphenateStyle.d.ts
+│   │   │   │   ├── hyphenateStyle.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.js
+│   │   │   │   ├── insertAfter.d.ts
+│   │   │   │   ├── insertAfter.js
+│   │   │   │   ├── isDocument.d.ts
+│   │   │   │   ├── isDocument.js
+│   │   │   │   ├── isInput.d.ts
+│   │   │   │   ├── isInput.js
+│   │   │   │   ├── isTransform.d.ts
+│   │   │   │   ├── isTransform.js
+│   │   │   │   ├── isVisible.d.ts
+│   │   │   │   ├── isVisible.js
+│   │   │   │   ├── isWindow.d.ts
+│   │   │   │   ├── isWindow.js
+│   │   │   │   ├── listen.d.ts
+│   │   │   │   ├── listen.js
+│   │   │   │   ├── matches.d.ts
+│   │   │   │   ├── matches.js
+│   │   │   │   ├── nextUntil.d.ts
+│   │   │   │   ├── nextUntil.js
+│   │   │   │   ├── offset.d.ts
+│   │   │   │   ├── offset.js
+│   │   │   │   ├── offsetParent.d.ts
+│   │   │   │   ├── offsetParent.js
+│   │   │   │   ├── ownerDocument.d.ts
+│   │   │   │   ├── ownerDocument.js
+│   │   │   │   ├── ownerWindow.d.ts
+│   │   │   │   ├── ownerWindow.js
+│   │   │   │   ├── parents.d.ts
+│   │   │   │   ├── parents.js
+│   │   │   │   ├── position.d.ts
+│   │   │   │   ├── position.js
+│   │   │   │   ├── prepend.d.ts
+│   │   │   │   ├── prepend.js
+│   │   │   │   ├── querySelectorAll.d.ts
+│   │   │   │   ├── querySelectorAll.js
+│   │   │   │   ├── remove.d.ts
+│   │   │   │   ├── remove.js
+│   │   │   │   ├── removeClass.d.ts
+│   │   │   │   ├── removeClass.js
+│   │   │   │   ├── removeEventListener.d.ts
+│   │   │   │   ├── removeEventListener.js
+│   │   │   │   ├── scrollLeft.d.ts
+│   │   │   │   ├── scrollLeft.js
+│   │   │   │   ├── scrollParent.d.ts
+│   │   │   │   ├── scrollParent.js
+│   │   │   │   ├── scrollTo.d.ts
+│   │   │   │   ├── scrollTo.js
+│   │   │   │   ├── scrollTop.d.ts
+│   │   │   │   ├── scrollTop.js
+│   │   │   │   ├── scrollbarSize.d.ts
+│   │   │   │   ├── scrollbarSize.js
+│   │   │   │   ├── siblings.d.ts
+│   │   │   │   ├── siblings.js
+│   │   │   │   ├── text.d.ts
+│   │   │   │   ├── text.js
+│   │   │   │   ├── toggleClass.d.ts
+│   │   │   │   ├── toggleClass.js
+│   │   │   │   ├── transitionEnd.d.ts
+│   │   │   │   ├── transitionEnd.js
+│   │   │   │   ├── triggerEvent.d.ts
+│   │   │   │   ├── triggerEvent.js
+│   │   │   │   ├── types.d.ts
+│   │   │   │   ├── width.d.ts
+│   │   │   │   └── width.js
+│   │   │   ├── clear
+│   │   │   │   └── package.json
+│   │   │   ├── closest
+│   │   │   │   └── package.json
+│   │   │   ├── collectElements
+│   │   │   │   └── package.json
+│   │   │   ├── collectSiblings
+│   │   │   │   └── package.json
+│   │   │   ├── contains
+│   │   │   │   └── package.json
+│   │   │   ├── css
+│   │   │   │   └── package.json
+│   │   │   ├── esm
+│   │   │   │   ├── activeElement.d.ts
+│   │   │   │   ├── activeElement.js
+│   │   │   │   ├── addClass.d.ts
+│   │   │   │   ├── addClass.js
+│   │   │   │   ├── addEventListener.d.ts
+│   │   │   │   ├── addEventListener.js
+│   │   │   │   ├── animate.d.ts
+│   │   │   │   ├── animate.js
+│   │   │   │   ├── animationFrame.d.ts
+│   │   │   │   ├── animationFrame.js
+│   │   │   │   ├── attribute.d.ts
+│   │   │   │   ├── attribute.js
+│   │   │   │   ├── camelize.d.ts
+│   │   │   │   ├── camelize.js
+│   │   │   │   ├── camelizeStyle.d.ts
+│   │   │   │   ├── camelizeStyle.js
+│   │   │   │   ├── canUseDOM.d.ts
+│   │   │   │   ├── canUseDOM.js
+│   │   │   │   ├── childElements.d.ts
+│   │   │   │   ├── childElements.js
+│   │   │   │   ├── childNodes.d.ts
+│   │   │   │   ├── childNodes.js
+│   │   │   │   ├── clear.d.ts
+│   │   │   │   ├── clear.js
+│   │   │   │   ├── closest.d.ts
+│   │   │   │   ├── closest.js
+│   │   │   │   ├── collectElements.d.ts
+│   │   │   │   ├── collectElements.js
+│   │   │   │   ├── collectSiblings.d.ts
+│   │   │   │   ├── collectSiblings.js
+│   │   │   │   ├── contains.d.ts
+│   │   │   │   ├── contains.js
+│   │   │   │   ├── css.d.ts
+│   │   │   │   ├── css.js
+│   │   │   │   ├── filterEventHandler.d.ts
+│   │   │   │   ├── filterEventHandler.js
+│   │   │   │   ├── getComputedStyle.d.ts
+│   │   │   │   ├── getComputedStyle.js
+│   │   │   │   ├── getScrollAccessor.d.ts
+│   │   │   │   ├── getScrollAccessor.js
+│   │   │   │   ├── hasClass.d.ts
+│   │   │   │   ├── hasClass.js
+│   │   │   │   ├── height.d.ts
+│   │   │   │   ├── height.js
+│   │   │   │   ├── hyphenate.d.ts
+│   │   │   │   ├── hyphenate.js
+│   │   │   │   ├── hyphenateStyle.d.ts
+│   │   │   │   ├── hyphenateStyle.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.js
+│   │   │   │   ├── insertAfter.d.ts
+│   │   │   │   ├── insertAfter.js
+│   │   │   │   ├── isDocument.d.ts
+│   │   │   │   ├── isDocument.js
+│   │   │   │   ├── isInput.d.ts
+│   │   │   │   ├── isInput.js
+│   │   │   │   ├── isTransform.d.ts
+│   │   │   │   ├── isTransform.js
+│   │   │   │   ├── isVisible.d.ts
+│   │   │   │   ├── isVisible.js
+│   │   │   │   ├── isWindow.d.ts
+│   │   │   │   ├── isWindow.js
+│   │   │   │   ├── listen.d.ts
+│   │   │   │   ├── listen.js
+│   │   │   │   ├── matches.d.ts
+│   │   │   │   ├── matches.js
+│   │   │   │   ├── nextUntil.d.ts
+│   │   │   │   ├── nextUntil.js
+│   │   │   │   ├── offset.d.ts
+│   │   │   │   ├── offset.js
+│   │   │   │   ├── offsetParent.d.ts
+│   │   │   │   ├── offsetParent.js
+│   │   │   │   ├── ownerDocument.d.ts
+│   │   │   │   ├── ownerDocument.js
+│   │   │   │   ├── ownerWindow.d.ts
+│   │   │   │   ├── ownerWindow.js
+│   │   │   │   ├── parents.d.ts
+│   │   │   │   ├── parents.js
+│   │   │   │   ├── position.d.ts
+│   │   │   │   ├── position.js
+│   │   │   │   ├── prepend.d.ts
+│   │   │   │   ├── prepend.js
+│   │   │   │   ├── querySelectorAll.d.ts
+│   │   │   │   ├── querySelectorAll.js
+│   │   │   │   ├── remove.d.ts
+│   │   │   │   ├── remove.js
+│   │   │   │   ├── removeClass.d.ts
+│   │   │   │   ├── removeClass.js
+│   │   │   │   ├── removeEventListener.d.ts
+│   │   │   │   ├── removeEventListener.js
+│   │   │   │   ├── scrollLeft.d.ts
+│   │   │   │   ├── scrollLeft.js
+│   │   │   │   ├── scrollParent.d.ts
+│   │   │   │   ├── scrollParent.js
+│   │   │   │   ├── scrollTo.d.ts
+│   │   │   │   ├── scrollTo.js
+│   │   │   │   ├── scrollTop.d.ts
+│   │   │   │   ├── scrollTop.js
+│   │   │   │   ├── scrollbarSize.d.ts
+│   │   │   │   ├── scrollbarSize.js
+│   │   │   │   ├── siblings.d.ts
+│   │   │   │   ├── siblings.js
+│   │   │   │   ├── text.d.ts
+│   │   │   │   ├── text.js
+│   │   │   │   ├── toggleClass.d.ts
+│   │   │   │   ├── toggleClass.js
+│   │   │   │   ├── transitionEnd.d.ts
+│   │   │   │   ├── transitionEnd.js
+│   │   │   │   ├── triggerEvent.d.ts
+│   │   │   │   ├── triggerEvent.js
+│   │   │   │   ├── types.d.ts
+│   │   │   │   ├── width.d.ts
+│   │   │   │   └── width.js
+│   │   │   ├── filterEventHandler
+│   │   │   │   └── package.json
+│   │   │   ├── getComputedStyle
+│   │   │   │   └── package.json
+│   │   │   ├── getScrollAccessor
+│   │   │   │   └── package.json
+│   │   │   ├── hasClass
+│   │   │   │   └── package.json
+│   │   │   ├── height
+│   │   │   │   └── package.json
+│   │   │   ├── hyphenate
+│   │   │   │   └── package.json
+│   │   │   ├── hyphenateStyle
+│   │   │   │   └── package.json
+│   │   │   ├── insertAfter
+│   │   │   │   └── package.json
+│   │   │   ├── isDocument
+│   │   │   │   └── package.json
+│   │   │   ├── isInput
+│   │   │   │   └── package.json
+│   │   │   ├── isTransform
+│   │   │   │   └── package.json
+│   │   │   ├── isVisible
+│   │   │   │   └── package.json
+│   │   │   ├── isWindow
+│   │   │   │   └── package.json
+│   │   │   ├── listen
+│   │   │   │   └── package.json
+│   │   │   ├── matches
+│   │   │   │   └── package.json
+│   │   │   ├── nextUntil
+│   │   │   │   └── package.json
+│   │   │   ├── node_modules
+│   │   │   │   └── csstype
+│   │   │   │       ├── LICENSE
+│   │   │   │       ├── README.md
+│   │   │   │       ├── index.d.ts
+│   │   │   │       ├── index.js.flow
+│   │   │   │       └── package.json
+│   │   │   ├── offset
+│   │   │   │   └── package.json
+│   │   │   ├── offsetParent
+│   │   │   │   └── package.json
+│   │   │   ├── ownerDocument
+│   │   │   │   └── package.json
+│   │   │   ├── ownerWindow
+│   │   │   │   └── package.json
+│   │   │   ├── package.json
+│   │   │   ├── parents
+│   │   │   │   └── package.json
+│   │   │   ├── position
+│   │   │   │   └── package.json
+│   │   │   ├── prepend
+│   │   │   │   └── package.json
+│   │   │   ├── querySelectorAll
+│   │   │   │   └── package.json
+│   │   │   ├── remove
+│   │   │   │   └── package.json
+│   │   │   ├── removeClass
+│   │   │   │   └── package.json
+│   │   │   ├── removeEventListener
+│   │   │   │   └── package.json
+│   │   │   ├── scrollLeft
+│   │   │   │   └── package.json
+│   │   │   ├── scrollParent
+│   │   │   │   └── package.json
+│   │   │   ├── scrollTo
+│   │   │   │   └── package.json
+│   │   │   ├── scrollTop
+│   │   │   │   └── package.json
+│   │   │   ├── scrollbarSize
+│   │   │   │   └── package.json
+│   │   │   ├── siblings
+│   │   │   │   └── package.json
+│   │   │   ├── text
+│   │   │   │   └── package.json
+│   │   │   ├── toggleClass
+│   │   │   │   └── package.json
+│   │   │   ├── transitionEnd
+│   │   │   │   └── package.json
+│   │   │   ├── triggerEvent
+│   │   │   │   └── package.json
+│   │   │   └── width
+│   │   │       └── package.json
 │   │   ├── dom-serializer
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -33312,6 +34209,15 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── estraverse.js
 │   │   │   ├── gulpfile.js
 │   │   │   └── package.json
+│   │   ├── estree-util-is-identifier-name
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── estree-walker
 │   │   │   ├── CHANGELOG.md
 │   │   │   ├── README.md
@@ -33492,6 +34398,13 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │       ├── license.md
 │   │   │   │       ├── package.json
 │   │   │   │       └── readme.md
+│   │   │   └── package.json
+│   │   ├── extend
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── component.json
+│   │   │   ├── index.js
 │   │   │   └── package.json
 │   │   ├── fast-deep-equal
 │   │   │   ├── LICENSE
@@ -33886,6 +34799,13 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── license
 │   │   │   ├── package.json
 │   │   │   └── readme.md
+│   │   ├── find-root
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── index.js
+│   │   │   ├── package.json
+│   │   │   └── test
+│   │   │       └── test.js
 │   │   ├── find-up
 │   │   │   ├── index.d.ts
 │   │   │   ├── index.js
@@ -35486,6 +36406,27 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── index.js
 │   │   │   ├── package.json
 │   │   │   └── tsconfig.json
+│   │   ├── hast-util-to-jsx-runtime
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   ├── index.js
+│   │   │   │   ├── types.d.ts
+│   │   │   │   └── types.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── hast-util-whitespace
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── he
 │   │   │   ├── LICENSE-MIT.txt
 │   │   │   ├── README.md
@@ -35495,6 +36436,17 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── man
 │   │   │   │   └── he.1
 │   │   │   └── package.json
+│   │   ├── hoist-non-react-statics
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE.md
+│   │   │   ├── README.md
+│   │   │   ├── dist
+│   │   │   │   ├── hoist-non-react-statics.cjs.js
+│   │   │   │   ├── hoist-non-react-statics.js
+│   │   │   │   └── hoist-non-react-statics.min.js
+│   │   │   ├── package.json
+│   │   │   └── src
+│   │   │       └── index.js
 │   │   ├── hoopy
 │   │   │   ├── AUTHORS
 │   │   │   ├── CHANGELOG.md
@@ -35660,6 +36612,17 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │       ├── htmlparser.js
 │   │   │       ├── tokenchain.js
 │   │   │       └── utils.js
+│   │   ├── html-url-attributes
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── html-webpack-plugin
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -36230,6 +37193,13 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── router.js
 │   │   │   │   ├── types.d.ts
 │   │   │   │   └── types.js
+│   │   │   ├── node_modules
+│   │   │   │   └── is-plain-obj
+│   │   │   │       ├── index.d.ts
+│   │   │   │       ├── index.js
+│   │   │   │       ├── license
+│   │   │   │       ├── package.json
+│   │   │   │       └── readme.md
 │   │   │   └── package.json
 │   │   ├── https-proxy-agent
 │   │   │   ├── README.md
@@ -36433,6 +37403,24 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── README.md
 │   │   │   ├── ini.js
 │   │   │   └── package.json
+│   │   ├── inline-style-parser
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── cjs
+│   │   │   │   ├── index.d.cts
+│   │   │   │   ├── index.js
+│   │   │   │   └── index.js.map
+│   │   │   ├── dist
+│   │   │   │   ├── inline-style-parser.js
+│   │   │   │   ├── inline-style-parser.js.map
+│   │   │   │   ├── inline-style-parser.min.js
+│   │   │   │   └── inline-style-parser.min.js.map
+│   │   │   ├── esm
+│   │   │   │   ├── index.d.mts
+│   │   │   │   ├── index.mjs
+│   │   │   │   └── index.mjs.map
+│   │   │   ├── index.d.ts
+│   │   │   └── package.json
 │   │   ├── input-otp
 │   │   │   ├── README.md
 │   │   │   ├── dist
@@ -36489,6 +37477,18 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── ipaddr.js
 │   │   │   │   └── ipaddr.js.d.ts
 │   │   │   └── package.json
+│   │   ├── is-alphabetical
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── is-alphanumerical
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── is-array-buffer
 │   │   │   ├── CHANGELOG.md
 │   │   │   ├── LICENSE
@@ -36578,6 +37578,12 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── test
 │   │   │   │   └── index.js
 │   │   │   └── tsconfig.json
+│   │   ├── is-decimal
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── is-docker
 │   │   │   ├── cli.js
 │   │   │   ├── index.d.ts
@@ -36629,6 +37635,12 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── README.md
 │   │   │   ├── index.js
 │   │   │   └── package.json
+│   │   ├── is-hexadecimal
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── is-map
 │   │   │   ├── CHANGELOG.md
 │   │   │   ├── LICENSE
@@ -40001,6 +41013,12 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── README.md
 │   │   │   ├── index.js
 │   │   │   └── package.json
+│   │   ├── longest-streak
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── loose-envify
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -43743,6 +44761,319 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── test
 │   │   │   │   └── index.js
 │   │   │   └── tsconfig.json
+│   │   ├── mdast-util-from-markdown
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.js
+│   │   │   │   └── lib
+│   │   │   │       ├── index.d.ts
+│   │   │   │       ├── index.d.ts.map
+│   │   │   │       ├── index.js
+│   │   │   │       ├── types.d.ts
+│   │   │   │       └── types.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.js
+│   │   │   │   ├── types.d.ts
+│   │   │   │   └── types.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── mdast-util-mdx-expression
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── mdast-util-mdx-jsx
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── mdast-util-mdxjs-esm
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── mdast-util-phrasing
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── mdast-util-to-hast
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── footer.d.ts
+│   │   │   │   ├── footer.d.ts.map
+│   │   │   │   ├── footer.js
+│   │   │   │   ├── handlers
+│   │   │   │   │   ├── blockquote.d.ts
+│   │   │   │   │   ├── blockquote.d.ts.map
+│   │   │   │   │   ├── blockquote.js
+│   │   │   │   │   ├── break.d.ts
+│   │   │   │   │   ├── break.d.ts.map
+│   │   │   │   │   ├── break.js
+│   │   │   │   │   ├── code.d.ts
+│   │   │   │   │   ├── code.d.ts.map
+│   │   │   │   │   ├── code.js
+│   │   │   │   │   ├── delete.d.ts
+│   │   │   │   │   ├── delete.d.ts.map
+│   │   │   │   │   ├── delete.js
+│   │   │   │   │   ├── emphasis.d.ts
+│   │   │   │   │   ├── emphasis.d.ts.map
+│   │   │   │   │   ├── emphasis.js
+│   │   │   │   │   ├── footnote-reference.d.ts
+│   │   │   │   │   ├── footnote-reference.d.ts.map
+│   │   │   │   │   ├── footnote-reference.js
+│   │   │   │   │   ├── heading.d.ts
+│   │   │   │   │   ├── heading.d.ts.map
+│   │   │   │   │   ├── heading.js
+│   │   │   │   │   ├── html.d.ts
+│   │   │   │   │   ├── html.d.ts.map
+│   │   │   │   │   ├── html.js
+│   │   │   │   │   ├── image-reference.d.ts
+│   │   │   │   │   ├── image-reference.d.ts.map
+│   │   │   │   │   ├── image-reference.js
+│   │   │   │   │   ├── image.d.ts
+│   │   │   │   │   ├── image.d.ts.map
+│   │   │   │   │   ├── image.js
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.d.ts.map
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── inline-code.d.ts
+│   │   │   │   │   ├── inline-code.d.ts.map
+│   │   │   │   │   ├── inline-code.js
+│   │   │   │   │   ├── link-reference.d.ts
+│   │   │   │   │   ├── link-reference.d.ts.map
+│   │   │   │   │   ├── link-reference.js
+│   │   │   │   │   ├── link.d.ts
+│   │   │   │   │   ├── link.d.ts.map
+│   │   │   │   │   ├── link.js
+│   │   │   │   │   ├── list-item.d.ts
+│   │   │   │   │   ├── list-item.d.ts.map
+│   │   │   │   │   ├── list-item.js
+│   │   │   │   │   ├── list.d.ts
+│   │   │   │   │   ├── list.d.ts.map
+│   │   │   │   │   ├── list.js
+│   │   │   │   │   ├── paragraph.d.ts
+│   │   │   │   │   ├── paragraph.d.ts.map
+│   │   │   │   │   ├── paragraph.js
+│   │   │   │   │   ├── root.d.ts
+│   │   │   │   │   ├── root.d.ts.map
+│   │   │   │   │   ├── root.js
+│   │   │   │   │   ├── strong.d.ts
+│   │   │   │   │   ├── strong.d.ts.map
+│   │   │   │   │   ├── strong.js
+│   │   │   │   │   ├── table-cell.d.ts
+│   │   │   │   │   ├── table-cell.d.ts.map
+│   │   │   │   │   ├── table-cell.js
+│   │   │   │   │   ├── table-row.d.ts
+│   │   │   │   │   ├── table-row.d.ts.map
+│   │   │   │   │   ├── table-row.js
+│   │   │   │   │   ├── table.d.ts
+│   │   │   │   │   ├── table.d.ts.map
+│   │   │   │   │   ├── table.js
+│   │   │   │   │   ├── text.d.ts
+│   │   │   │   │   ├── text.d.ts.map
+│   │   │   │   │   ├── text.js
+│   │   │   │   │   ├── thematic-break.d.ts
+│   │   │   │   │   ├── thematic-break.d.ts.map
+│   │   │   │   │   └── thematic-break.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   ├── index.js
+│   │   │   │   ├── revert.d.ts
+│   │   │   │   ├── revert.d.ts.map
+│   │   │   │   ├── revert.js
+│   │   │   │   ├── state.d.ts
+│   │   │   │   ├── state.d.ts.map
+│   │   │   │   └── state.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── mdast-util-to-markdown
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── configure.d.ts
+│   │   │   │   ├── configure.d.ts.map
+│   │   │   │   ├── configure.js
+│   │   │   │   ├── handle
+│   │   │   │   │   ├── blockquote.d.ts
+│   │   │   │   │   ├── blockquote.d.ts.map
+│   │   │   │   │   ├── blockquote.js
+│   │   │   │   │   ├── break.d.ts
+│   │   │   │   │   ├── break.d.ts.map
+│   │   │   │   │   ├── break.js
+│   │   │   │   │   ├── code.d.ts
+│   │   │   │   │   ├── code.d.ts.map
+│   │   │   │   │   ├── code.js
+│   │   │   │   │   ├── definition.d.ts
+│   │   │   │   │   ├── definition.d.ts.map
+│   │   │   │   │   ├── definition.js
+│   │   │   │   │   ├── emphasis.d.ts
+│   │   │   │   │   ├── emphasis.d.ts.map
+│   │   │   │   │   ├── emphasis.js
+│   │   │   │   │   ├── heading.d.ts
+│   │   │   │   │   ├── heading.d.ts.map
+│   │   │   │   │   ├── heading.js
+│   │   │   │   │   ├── html.d.ts
+│   │   │   │   │   ├── html.d.ts.map
+│   │   │   │   │   ├── html.js
+│   │   │   │   │   ├── image-reference.d.ts
+│   │   │   │   │   ├── image-reference.d.ts.map
+│   │   │   │   │   ├── image-reference.js
+│   │   │   │   │   ├── image.d.ts
+│   │   │   │   │   ├── image.d.ts.map
+│   │   │   │   │   ├── image.js
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.d.ts.map
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── inline-code.d.ts
+│   │   │   │   │   ├── inline-code.d.ts.map
+│   │   │   │   │   ├── inline-code.js
+│   │   │   │   │   ├── link-reference.d.ts
+│   │   │   │   │   ├── link-reference.d.ts.map
+│   │   │   │   │   ├── link-reference.js
+│   │   │   │   │   ├── link.d.ts
+│   │   │   │   │   ├── link.d.ts.map
+│   │   │   │   │   ├── link.js
+│   │   │   │   │   ├── list-item.d.ts
+│   │   │   │   │   ├── list-item.d.ts.map
+│   │   │   │   │   ├── list-item.js
+│   │   │   │   │   ├── list.d.ts
+│   │   │   │   │   ├── list.d.ts.map
+│   │   │   │   │   ├── list.js
+│   │   │   │   │   ├── paragraph.d.ts
+│   │   │   │   │   ├── paragraph.d.ts.map
+│   │   │   │   │   ├── paragraph.js
+│   │   │   │   │   ├── root.d.ts
+│   │   │   │   │   ├── root.d.ts.map
+│   │   │   │   │   ├── root.js
+│   │   │   │   │   ├── strong.d.ts
+│   │   │   │   │   ├── strong.d.ts.map
+│   │   │   │   │   ├── strong.js
+│   │   │   │   │   ├── text.d.ts
+│   │   │   │   │   ├── text.d.ts.map
+│   │   │   │   │   ├── text.js
+│   │   │   │   │   ├── thematic-break.d.ts
+│   │   │   │   │   ├── thematic-break.d.ts.map
+│   │   │   │   │   └── thematic-break.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   ├── index.js
+│   │   │   │   ├── join.d.ts
+│   │   │   │   ├── join.d.ts.map
+│   │   │   │   ├── join.js
+│   │   │   │   ├── types.d.ts
+│   │   │   │   ├── types.js
+│   │   │   │   ├── unsafe.d.ts
+│   │   │   │   ├── unsafe.d.ts.map
+│   │   │   │   ├── unsafe.js
+│   │   │   │   └── util
+│   │   │   │       ├── association.d.ts
+│   │   │   │       ├── association.d.ts.map
+│   │   │   │       ├── association.js
+│   │   │   │       ├── check-bullet-ordered.d.ts
+│   │   │   │       ├── check-bullet-ordered.d.ts.map
+│   │   │   │       ├── check-bullet-ordered.js
+│   │   │   │       ├── check-bullet-other.d.ts
+│   │   │   │       ├── check-bullet-other.d.ts.map
+│   │   │   │       ├── check-bullet-other.js
+│   │   │   │       ├── check-bullet.d.ts
+│   │   │   │       ├── check-bullet.d.ts.map
+│   │   │   │       ├── check-bullet.js
+│   │   │   │       ├── check-emphasis.d.ts
+│   │   │   │       ├── check-emphasis.d.ts.map
+│   │   │   │       ├── check-emphasis.js
+│   │   │   │       ├── check-fence.d.ts
+│   │   │   │       ├── check-fence.d.ts.map
+│   │   │   │       ├── check-fence.js
+│   │   │   │       ├── check-list-item-indent.d.ts
+│   │   │   │       ├── check-list-item-indent.d.ts.map
+│   │   │   │       ├── check-list-item-indent.js
+│   │   │   │       ├── check-quote.d.ts
+│   │   │   │       ├── check-quote.d.ts.map
+│   │   │   │       ├── check-quote.js
+│   │   │   │       ├── check-rule-repetition.d.ts
+│   │   │   │       ├── check-rule-repetition.d.ts.map
+│   │   │   │       ├── check-rule-repetition.js
+│   │   │   │       ├── check-rule.d.ts
+│   │   │   │       ├── check-rule.d.ts.map
+│   │   │   │       ├── check-rule.js
+│   │   │   │       ├── check-strong.d.ts
+│   │   │   │       ├── check-strong.d.ts.map
+│   │   │   │       ├── check-strong.js
+│   │   │   │       ├── compile-pattern.d.ts
+│   │   │   │       ├── compile-pattern.d.ts.map
+│   │   │   │       ├── compile-pattern.js
+│   │   │   │       ├── container-flow.d.ts
+│   │   │   │       ├── container-flow.d.ts.map
+│   │   │   │       ├── container-flow.js
+│   │   │   │       ├── container-phrasing.d.ts
+│   │   │   │       ├── container-phrasing.d.ts.map
+│   │   │   │       ├── container-phrasing.js
+│   │   │   │       ├── emphasis-strong-marker.d.ts
+│   │   │   │       ├── emphasis-strong-marker.d.ts.map
+│   │   │   │       ├── encode-character-reference.d.ts
+│   │   │   │       ├── encode-character-reference.d.ts.map
+│   │   │   │       ├── encode-character-reference.js
+│   │   │   │       ├── encode-info.d.ts
+│   │   │   │       ├── encode-info.d.ts.map
+│   │   │   │       ├── encode-info.js
+│   │   │   │       ├── format-code-as-indented.d.ts
+│   │   │   │       ├── format-code-as-indented.d.ts.map
+│   │   │   │       ├── format-code-as-indented.js
+│   │   │   │       ├── format-heading-as-setext.d.ts
+│   │   │   │       ├── format-heading-as-setext.d.ts.map
+│   │   │   │       ├── format-heading-as-setext.js
+│   │   │   │       ├── format-link-as-autolink.d.ts
+│   │   │   │       ├── format-link-as-autolink.d.ts.map
+│   │   │   │       ├── format-link-as-autolink.js
+│   │   │   │       ├── indent-lines.d.ts
+│   │   │   │       ├── indent-lines.d.ts.map
+│   │   │   │       ├── indent-lines.js
+│   │   │   │       ├── pattern-in-scope.d.ts
+│   │   │   │       ├── pattern-in-scope.d.ts.map
+│   │   │   │       ├── pattern-in-scope.js
+│   │   │   │       ├── safe.d.ts
+│   │   │   │       ├── safe.d.ts.map
+│   │   │   │       ├── safe.js
+│   │   │   │       ├── track.d.ts
+│   │   │   │       ├── track.d.ts.map
+│   │   │   │       └── track.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── mdast-util-to-string
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── mdn-data
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -43829,6 +45160,22 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── volume.d.ts
 │   │   │   │   └── volume.js
 │   │   │   └── package.json
+│   │   ├── memoize-one
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── dist
+│   │   │   │   ├── are-inputs-equal.d.ts
+│   │   │   │   ├── memoize-one.cjs.js
+│   │   │   │   ├── memoize-one.cjs.js.flow
+│   │   │   │   ├── memoize-one.d.ts
+│   │   │   │   ├── memoize-one.esm.js
+│   │   │   │   ├── memoize-one.js
+│   │   │   │   └── memoize-one.min.js
+│   │   │   ├── package.json
+│   │   │   └── src
+│   │   │       ├── are-inputs-equal.ts
+│   │   │       ├── memoize-one.js.flow
+│   │   │       └── memoize-one.ts
 │   │   ├── merge-descriptors
 │   │   │   ├── HISTORY.md
 │   │   │   ├── LICENSE
@@ -43851,6 +45198,437 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── README.md
 │   │   │   ├── index.js
 │   │   │   └── package.json
+│   │   ├── micromark
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   ├── index.js
+│   │   │   │   ├── lib
+│   │   │   │   │   ├── compile.d.ts
+│   │   │   │   │   ├── compile.d.ts.map
+│   │   │   │   │   ├── compile.js
+│   │   │   │   │   ├── constructs.d.ts
+│   │   │   │   │   ├── constructs.d.ts.map
+│   │   │   │   │   ├── constructs.js
+│   │   │   │   │   ├── create-tokenizer.d.ts
+│   │   │   │   │   ├── create-tokenizer.d.ts.map
+│   │   │   │   │   ├── create-tokenizer.js
+│   │   │   │   │   ├── initialize
+│   │   │   │   │   │   ├── content.d.ts
+│   │   │   │   │   │   ├── content.d.ts.map
+│   │   │   │   │   │   ├── content.js
+│   │   │   │   │   │   ├── document.d.ts
+│   │   │   │   │   │   ├── document.d.ts.map
+│   │   │   │   │   │   ├── document.js
+│   │   │   │   │   │   ├── flow.d.ts
+│   │   │   │   │   │   ├── flow.d.ts.map
+│   │   │   │   │   │   ├── flow.js
+│   │   │   │   │   │   ├── text.d.ts
+│   │   │   │   │   │   ├── text.d.ts.map
+│   │   │   │   │   │   └── text.js
+│   │   │   │   │   ├── parse.d.ts
+│   │   │   │   │   ├── parse.d.ts.map
+│   │   │   │   │   ├── parse.js
+│   │   │   │   │   ├── postprocess.d.ts
+│   │   │   │   │   ├── postprocess.d.ts.map
+│   │   │   │   │   ├── postprocess.js
+│   │   │   │   │   ├── preprocess.d.ts
+│   │   │   │   │   ├── preprocess.d.ts.map
+│   │   │   │   │   └── preprocess.js
+│   │   │   │   ├── stream.d.ts
+│   │   │   │   ├── stream.d.ts.map
+│   │   │   │   └── stream.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── compile.d.ts
+│   │   │   │   ├── compile.d.ts.map
+│   │   │   │   ├── compile.js
+│   │   │   │   ├── constructs.d.ts
+│   │   │   │   ├── constructs.d.ts.map
+│   │   │   │   ├── constructs.js
+│   │   │   │   ├── create-tokenizer.d.ts
+│   │   │   │   ├── create-tokenizer.d.ts.map
+│   │   │   │   ├── create-tokenizer.js
+│   │   │   │   ├── initialize
+│   │   │   │   │   ├── content.d.ts
+│   │   │   │   │   ├── content.d.ts.map
+│   │   │   │   │   ├── content.js
+│   │   │   │   │   ├── document.d.ts
+│   │   │   │   │   ├── document.d.ts.map
+│   │   │   │   │   ├── document.js
+│   │   │   │   │   ├── flow.d.ts
+│   │   │   │   │   ├── flow.d.ts.map
+│   │   │   │   │   ├── flow.js
+│   │   │   │   │   ├── text.d.ts
+│   │   │   │   │   ├── text.d.ts.map
+│   │   │   │   │   └── text.js
+│   │   │   │   ├── parse.d.ts
+│   │   │   │   ├── parse.d.ts.map
+│   │   │   │   ├── parse.js
+│   │   │   │   ├── postprocess.d.ts
+│   │   │   │   ├── postprocess.d.ts.map
+│   │   │   │   ├── postprocess.js
+│   │   │   │   ├── preprocess.d.ts
+│   │   │   │   ├── preprocess.d.ts.map
+│   │   │   │   └── preprocess.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   ├── readme.md
+│   │   │   ├── stream.d.ts
+│   │   │   ├── stream.d.ts.map
+│   │   │   └── stream.js
+│   │   ├── micromark-core-commonmark
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   ├── index.js
+│   │   │   │   └── lib
+│   │   │   │       ├── attention.d.ts
+│   │   │   │       ├── attention.d.ts.map
+│   │   │   │       ├── attention.js
+│   │   │   │       ├── autolink.d.ts
+│   │   │   │       ├── autolink.d.ts.map
+│   │   │   │       ├── autolink.js
+│   │   │   │       ├── blank-line.d.ts
+│   │   │   │       ├── blank-line.d.ts.map
+│   │   │   │       ├── blank-line.js
+│   │   │   │       ├── block-quote.d.ts
+│   │   │   │       ├── block-quote.d.ts.map
+│   │   │   │       ├── block-quote.js
+│   │   │   │       ├── character-escape.d.ts
+│   │   │   │       ├── character-escape.d.ts.map
+│   │   │   │       ├── character-escape.js
+│   │   │   │       ├── character-reference.d.ts
+│   │   │   │       ├── character-reference.d.ts.map
+│   │   │   │       ├── character-reference.js
+│   │   │   │       ├── code-fenced.d.ts
+│   │   │   │       ├── code-fenced.d.ts.map
+│   │   │   │       ├── code-fenced.js
+│   │   │   │       ├── code-indented.d.ts
+│   │   │   │       ├── code-indented.d.ts.map
+│   │   │   │       ├── code-indented.js
+│   │   │   │       ├── code-text.d.ts
+│   │   │   │       ├── code-text.d.ts.map
+│   │   │   │       ├── code-text.js
+│   │   │   │       ├── content.d.ts
+│   │   │   │       ├── content.d.ts.map
+│   │   │   │       ├── content.js
+│   │   │   │       ├── definition.d.ts
+│   │   │   │       ├── definition.d.ts.map
+│   │   │   │       ├── definition.js
+│   │   │   │       ├── hard-break-escape.d.ts
+│   │   │   │       ├── hard-break-escape.d.ts.map
+│   │   │   │       ├── hard-break-escape.js
+│   │   │   │       ├── heading-atx.d.ts
+│   │   │   │       ├── heading-atx.d.ts.map
+│   │   │   │       ├── heading-atx.js
+│   │   │   │       ├── html-flow.d.ts
+│   │   │   │       ├── html-flow.d.ts.map
+│   │   │   │       ├── html-flow.js
+│   │   │   │       ├── html-text.d.ts
+│   │   │   │       ├── html-text.d.ts.map
+│   │   │   │       ├── html-text.js
+│   │   │   │       ├── label-end.d.ts
+│   │   │   │       ├── label-end.d.ts.map
+│   │   │   │       ├── label-end.js
+│   │   │   │       ├── label-start-image.d.ts
+│   │   │   │       ├── label-start-image.d.ts.map
+│   │   │   │       ├── label-start-image.js
+│   │   │   │       ├── label-start-link.d.ts
+│   │   │   │       ├── label-start-link.d.ts.map
+│   │   │   │       ├── label-start-link.js
+│   │   │   │       ├── line-ending.d.ts
+│   │   │   │       ├── line-ending.d.ts.map
+│   │   │   │       ├── line-ending.js
+│   │   │   │       ├── list.d.ts
+│   │   │   │       ├── list.d.ts.map
+│   │   │   │       ├── list.js
+│   │   │   │       ├── setext-underline.d.ts
+│   │   │   │       ├── setext-underline.d.ts.map
+│   │   │   │       ├── setext-underline.js
+│   │   │   │       ├── thematic-break.d.ts
+│   │   │   │       ├── thematic-break.d.ts.map
+│   │   │   │       └── thematic-break.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── attention.d.ts
+│   │   │   │   ├── attention.d.ts.map
+│   │   │   │   ├── attention.js
+│   │   │   │   ├── autolink.d.ts
+│   │   │   │   ├── autolink.d.ts.map
+│   │   │   │   ├── autolink.js
+│   │   │   │   ├── blank-line.d.ts
+│   │   │   │   ├── blank-line.d.ts.map
+│   │   │   │   ├── blank-line.js
+│   │   │   │   ├── block-quote.d.ts
+│   │   │   │   ├── block-quote.d.ts.map
+│   │   │   │   ├── block-quote.js
+│   │   │   │   ├── character-escape.d.ts
+│   │   │   │   ├── character-escape.d.ts.map
+│   │   │   │   ├── character-escape.js
+│   │   │   │   ├── character-reference.d.ts
+│   │   │   │   ├── character-reference.d.ts.map
+│   │   │   │   ├── character-reference.js
+│   │   │   │   ├── code-fenced.d.ts
+│   │   │   │   ├── code-fenced.d.ts.map
+│   │   │   │   ├── code-fenced.js
+│   │   │   │   ├── code-indented.d.ts
+│   │   │   │   ├── code-indented.d.ts.map
+│   │   │   │   ├── code-indented.js
+│   │   │   │   ├── code-text.d.ts
+│   │   │   │   ├── code-text.d.ts.map
+│   │   │   │   ├── code-text.js
+│   │   │   │   ├── content.d.ts
+│   │   │   │   ├── content.d.ts.map
+│   │   │   │   ├── content.js
+│   │   │   │   ├── definition.d.ts
+│   │   │   │   ├── definition.d.ts.map
+│   │   │   │   ├── definition.js
+│   │   │   │   ├── hard-break-escape.d.ts
+│   │   │   │   ├── hard-break-escape.d.ts.map
+│   │   │   │   ├── hard-break-escape.js
+│   │   │   │   ├── heading-atx.d.ts
+│   │   │   │   ├── heading-atx.d.ts.map
+│   │   │   │   ├── heading-atx.js
+│   │   │   │   ├── html-flow.d.ts
+│   │   │   │   ├── html-flow.d.ts.map
+│   │   │   │   ├── html-flow.js
+│   │   │   │   ├── html-text.d.ts
+│   │   │   │   ├── html-text.d.ts.map
+│   │   │   │   ├── html-text.js
+│   │   │   │   ├── label-end.d.ts
+│   │   │   │   ├── label-end.d.ts.map
+│   │   │   │   ├── label-end.js
+│   │   │   │   ├── label-start-image.d.ts
+│   │   │   │   ├── label-start-image.d.ts.map
+│   │   │   │   ├── label-start-image.js
+│   │   │   │   ├── label-start-link.d.ts
+│   │   │   │   ├── label-start-link.d.ts.map
+│   │   │   │   ├── label-start-link.js
+│   │   │   │   ├── line-ending.d.ts
+│   │   │   │   ├── line-ending.d.ts.map
+│   │   │   │   ├── line-ending.js
+│   │   │   │   ├── list.d.ts
+│   │   │   │   ├── list.d.ts.map
+│   │   │   │   ├── list.js
+│   │   │   │   ├── setext-underline.d.ts
+│   │   │   │   ├── setext-underline.d.ts.map
+│   │   │   │   ├── setext-underline.js
+│   │   │   │   ├── thematic-break.d.ts
+│   │   │   │   ├── thematic-break.d.ts.map
+│   │   │   │   └── thematic-break.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-factory-destination
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-factory-label
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-factory-space
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-factory-title
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-factory-whitespace
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-character
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-chunked
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-classify-character
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-combine-extensions
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-decode-numeric-character-reference
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-decode-string
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-encode
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-html-tag-name
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-normalize-identifier
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-resolve-all
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-sanitize-uri
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-subtokenize
+│   │   │   ├── dev
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   ├── index.js
+│   │   │   │   └── lib
+│   │   │   │       ├── splice-buffer.d.ts
+│   │   │   │       ├── splice-buffer.d.ts.map
+│   │   │   │       └── splice-buffer.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── splice-buffer.d.ts
+│   │   │   │   ├── splice-buffer.d.ts.map
+│   │   │   │   └── splice-buffer.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-symbol
+│   │   │   ├── lib
+│   │   │   │   ├── codes.d.ts
+│   │   │   │   ├── codes.d.ts.map
+│   │   │   │   ├── codes.js
+│   │   │   │   ├── constants.d.ts
+│   │   │   │   ├── constants.d.ts.map
+│   │   │   │   ├── constants.js
+│   │   │   │   ├── default.d.ts
+│   │   │   │   ├── default.d.ts.map
+│   │   │   │   ├── default.js
+│   │   │   │   ├── types.d.ts
+│   │   │   │   ├── types.d.ts.map
+│   │   │   │   ├── types.js
+│   │   │   │   ├── values.d.ts
+│   │   │   │   ├── values.d.ts.map
+│   │   │   │   └── values.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── micromark-util-types
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── micromatch
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -44679,6 +46457,23 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   ├── parent-module
 │   │   │   ├── index.js
 │   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── parse-entities
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── node_modules
+│   │   │   │   └── @types
+│   │   │   │       └── unist
+│   │   │   │           ├── LICENSE
+│   │   │   │           ├── README.md
+│   │   │   │           ├── index.d.ts
+│   │   │   │           └── package.json
 │   │   │   ├── package.json
 │   │   │   └── readme.md
 │   │   ├── parse-json
@@ -46117,12 +47912,24 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── types.d.ts
 │   │   │   │   └── types.js
 │   │   │   ├── node_modules
-│   │   │   │   └── ansi-styles
-│   │   │   │       ├── index.d.ts
+│   │   │   │   ├── ansi-styles
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── license
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   └── readme.md
+│   │   │   │   └── react-is
+│   │   │   │       ├── LICENSE
+│   │   │   │       ├── README.md
+│   │   │   │       ├── build-info.json
+│   │   │   │       ├── cjs
+│   │   │   │       │   ├── react-is.development.js
+│   │   │   │       │   └── react-is.production.min.js
 │   │   │   │       ├── index.js
-│   │   │   │       ├── license
 │   │   │   │       ├── package.json
-│   │   │   │       └── readme.md
+│   │   │   │       └── umd
+│   │   │   │           ├── react-is.development.js
+│   │   │   │           └── react-is.production.min.js
 │   │   │   └── package.json
 │   │   ├── process-nextick-args
 │   │   │   ├── index.js
@@ -46265,21 +48072,68 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── ReactPropTypesSecret.js
 │   │   │   │   └── has.js
 │   │   │   ├── node_modules
-│   │   │   │   └── react-is
-│   │   │   │       ├── LICENSE
-│   │   │   │       ├── README.md
-│   │   │   │       ├── build-info.json
-│   │   │   │       ├── cjs
-│   │   │   │       │   ├── react-is.development.js
-│   │   │   │       │   └── react-is.production.min.js
-│   │   │   │       ├── index.js
-│   │   │   │       ├── package.json
-│   │   │   │       └── umd
-│   │   │   │           ├── react-is.development.js
-│   │   │   │           └── react-is.production.min.js
 │   │   │   ├── package.json
 │   │   │   ├── prop-types.js
 │   │   │   └── prop-types.min.js
+│   │   ├── property-information
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── aria.d.ts
+│   │   │   │   ├── aria.d.ts.map
+│   │   │   │   ├── aria.js
+│   │   │   │   ├── find.d.ts
+│   │   │   │   ├── find.d.ts.map
+│   │   │   │   ├── find.js
+│   │   │   │   ├── hast-to-react.d.ts
+│   │   │   │   ├── hast-to-react.d.ts.map
+│   │   │   │   ├── hast-to-react.js
+│   │   │   │   ├── html.d.ts
+│   │   │   │   ├── html.d.ts.map
+│   │   │   │   ├── html.js
+│   │   │   │   ├── normalize.d.ts
+│   │   │   │   ├── normalize.d.ts.map
+│   │   │   │   ├── normalize.js
+│   │   │   │   ├── svg.d.ts
+│   │   │   │   ├── svg.d.ts.map
+│   │   │   │   ├── svg.js
+│   │   │   │   ├── util
+│   │   │   │   │   ├── case-insensitive-transform.d.ts
+│   │   │   │   │   ├── case-insensitive-transform.d.ts.map
+│   │   │   │   │   ├── case-insensitive-transform.js
+│   │   │   │   │   ├── case-sensitive-transform.d.ts
+│   │   │   │   │   ├── case-sensitive-transform.d.ts.map
+│   │   │   │   │   ├── case-sensitive-transform.js
+│   │   │   │   │   ├── create.d.ts
+│   │   │   │   │   ├── create.d.ts.map
+│   │   │   │   │   ├── create.js
+│   │   │   │   │   ├── defined-info.d.ts
+│   │   │   │   │   ├── defined-info.d.ts.map
+│   │   │   │   │   ├── defined-info.js
+│   │   │   │   │   ├── info.d.ts
+│   │   │   │   │   ├── info.d.ts.map
+│   │   │   │   │   ├── info.js
+│   │   │   │   │   ├── merge.d.ts
+│   │   │   │   │   ├── merge.d.ts.map
+│   │   │   │   │   ├── merge.js
+│   │   │   │   │   ├── schema.d.ts
+│   │   │   │   │   ├── schema.d.ts.map
+│   │   │   │   │   ├── schema.js
+│   │   │   │   │   ├── types.d.ts
+│   │   │   │   │   ├── types.d.ts.map
+│   │   │   │   │   └── types.js
+│   │   │   │   ├── xlink.d.ts
+│   │   │   │   ├── xlink.d.ts.map
+│   │   │   │   ├── xlink.js
+│   │   │   │   ├── xml.d.ts
+│   │   │   │   ├── xml.d.ts.map
+│   │   │   │   ├── xml.js
+│   │   │   │   ├── xmlns.d.ts
+│   │   │   │   ├── xmlns.d.ts.map
+│   │   │   │   └── xmlns.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── proxy-addr
 │   │   │   ├── HISTORY.md
 │   │   │   ├── LICENSE
@@ -47155,6 +49009,17 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   └── umd
 │   │   │       ├── react-is.development.js
 │   │   │       └── react-is.production.min.js
+│   │   ├── react-markdown
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── react-redux
 │   │   │   ├── LICENSE.md
 │   │   │   ├── README.md
@@ -50131,6 +51996,166 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   └── README.md
 │   │   │   └── template-typescript
 │   │   │       └── README.md
+│   │   ├── react-select
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── animated
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── react-select-animated.cjs.d.mts
+│   │   │   │   │   ├── react-select-animated.cjs.d.mts.map
+│   │   │   │   │   ├── react-select-animated.cjs.d.ts
+│   │   │   │   │   ├── react-select-animated.cjs.d.ts.map
+│   │   │   │   │   ├── react-select-animated.cjs.default.d.ts
+│   │   │   │   │   ├── react-select-animated.cjs.default.js
+│   │   │   │   │   ├── react-select-animated.cjs.dev.js
+│   │   │   │   │   ├── react-select-animated.cjs.js
+│   │   │   │   │   ├── react-select-animated.cjs.mjs
+│   │   │   │   │   ├── react-select-animated.cjs.prod.js
+│   │   │   │   │   └── react-select-animated.esm.js
+│   │   │   │   └── package.json
+│   │   │   ├── async
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── react-select-async.cjs.d.mts
+│   │   │   │   │   ├── react-select-async.cjs.d.mts.map
+│   │   │   │   │   ├── react-select-async.cjs.d.ts
+│   │   │   │   │   ├── react-select-async.cjs.d.ts.map
+│   │   │   │   │   ├── react-select-async.cjs.default.d.ts
+│   │   │   │   │   ├── react-select-async.cjs.default.js
+│   │   │   │   │   ├── react-select-async.cjs.dev.js
+│   │   │   │   │   ├── react-select-async.cjs.js
+│   │   │   │   │   ├── react-select-async.cjs.mjs
+│   │   │   │   │   ├── react-select-async.cjs.prod.js
+│   │   │   │   │   └── react-select-async.esm.js
+│   │   │   │   └── package.json
+│   │   │   ├── async-creatable
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── react-select-async-creatable.cjs.d.mts
+│   │   │   │   │   ├── react-select-async-creatable.cjs.d.mts.map
+│   │   │   │   │   ├── react-select-async-creatable.cjs.d.ts
+│   │   │   │   │   ├── react-select-async-creatable.cjs.d.ts.map
+│   │   │   │   │   ├── react-select-async-creatable.cjs.default.d.ts
+│   │   │   │   │   ├── react-select-async-creatable.cjs.default.js
+│   │   │   │   │   ├── react-select-async-creatable.cjs.dev.js
+│   │   │   │   │   ├── react-select-async-creatable.cjs.js
+│   │   │   │   │   ├── react-select-async-creatable.cjs.mjs
+│   │   │   │   │   ├── react-select-async-creatable.cjs.prod.js
+│   │   │   │   │   └── react-select-async-creatable.esm.js
+│   │   │   │   └── package.json
+│   │   │   ├── base
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── react-select-base.cjs.d.mts
+│   │   │   │   │   ├── react-select-base.cjs.d.mts.map
+│   │   │   │   │   ├── react-select-base.cjs.d.ts
+│   │   │   │   │   ├── react-select-base.cjs.d.ts.map
+│   │   │   │   │   ├── react-select-base.cjs.default.d.ts
+│   │   │   │   │   ├── react-select-base.cjs.default.js
+│   │   │   │   │   ├── react-select-base.cjs.dev.js
+│   │   │   │   │   ├── react-select-base.cjs.js
+│   │   │   │   │   ├── react-select-base.cjs.mjs
+│   │   │   │   │   ├── react-select-base.cjs.prod.js
+│   │   │   │   │   └── react-select-base.esm.js
+│   │   │   │   └── package.json
+│   │   │   ├── creatable
+│   │   │   │   ├── dist
+│   │   │   │   │   ├── react-select-creatable.cjs.d.mts
+│   │   │   │   │   ├── react-select-creatable.cjs.d.mts.map
+│   │   │   │   │   ├── react-select-creatable.cjs.d.ts
+│   │   │   │   │   ├── react-select-creatable.cjs.d.ts.map
+│   │   │   │   │   ├── react-select-creatable.cjs.default.d.ts
+│   │   │   │   │   ├── react-select-creatable.cjs.default.js
+│   │   │   │   │   ├── react-select-creatable.cjs.dev.js
+│   │   │   │   │   ├── react-select-creatable.cjs.js
+│   │   │   │   │   ├── react-select-creatable.cjs.mjs
+│   │   │   │   │   ├── react-select-creatable.cjs.prod.js
+│   │   │   │   │   └── react-select-creatable.esm.js
+│   │   │   │   └── package.json
+│   │   │   ├── dist
+│   │   │   │   ├── Select-1b9abbe3.cjs.dev.js
+│   │   │   │   ├── Select-8685a2b1.cjs.prod.js
+│   │   │   │   ├── Select-ef7c0426.esm.js
+│   │   │   │   ├── declarations
+│   │   │   │   │   └── src
+│   │   │   │   │       ├── Async.d.ts
+│   │   │   │   │       ├── AsyncCreatable.d.ts
+│   │   │   │   │       ├── Creatable.d.ts
+│   │   │   │   │       ├── NonceProvider.d.ts
+│   │   │   │   │       ├── Select.d.ts
+│   │   │   │   │       ├── accessibility
+│   │   │   │   │       │   ├── helpers.d.ts
+│   │   │   │   │       │   └── index.d.ts
+│   │   │   │   │       ├── animated
+│   │   │   │   │       │   ├── Input.d.ts
+│   │   │   │   │       │   ├── MultiValue.d.ts
+│   │   │   │   │       │   ├── Placeholder.d.ts
+│   │   │   │   │       │   ├── SingleValue.d.ts
+│   │   │   │   │       │   ├── ValueContainer.d.ts
+│   │   │   │   │       │   ├── index.d.ts
+│   │   │   │   │       │   └── transitions.d.ts
+│   │   │   │   │       ├── async
+│   │   │   │   │       │   └── index.d.ts
+│   │   │   │   │       ├── async-creatable
+│   │   │   │   │       │   └── index.d.ts
+│   │   │   │   │       ├── base
+│   │   │   │   │       │   └── index.d.ts
+│   │   │   │   │       ├── builtins.d.ts
+│   │   │   │   │       ├── components
+│   │   │   │   │       │   ├── Control.d.ts
+│   │   │   │   │       │   ├── Group.d.ts
+│   │   │   │   │       │   ├── Input.d.ts
+│   │   │   │   │       │   ├── LiveRegion.d.ts
+│   │   │   │   │       │   ├── Menu.d.ts
+│   │   │   │   │       │   ├── MultiValue.d.ts
+│   │   │   │   │       │   ├── Option.d.ts
+│   │   │   │   │       │   ├── Placeholder.d.ts
+│   │   │   │   │       │   ├── SingleValue.d.ts
+│   │   │   │   │       │   ├── containers.d.ts
+│   │   │   │   │       │   ├── index.d.ts
+│   │   │   │   │       │   └── indicators.d.ts
+│   │   │   │   │       ├── creatable
+│   │   │   │   │       │   └── index.d.ts
+│   │   │   │   │       ├── diacritics.d.ts
+│   │   │   │   │       ├── filters.d.ts
+│   │   │   │   │       ├── index.d.ts
+│   │   │   │   │       ├── internal
+│   │   │   │   │       │   ├── A11yText.d.ts
+│   │   │   │   │       │   ├── DummyInput.d.ts
+│   │   │   │   │       │   ├── RequiredInput.d.ts
+│   │   │   │   │       │   ├── ScrollManager.d.ts
+│   │   │   │   │       │   ├── index.d.ts
+│   │   │   │   │       │   ├── useScrollCapture.d.ts
+│   │   │   │   │       │   └── useScrollLock.d.ts
+│   │   │   │   │       ├── stateManager.d.ts
+│   │   │   │   │       ├── styles.d.ts
+│   │   │   │   │       ├── theme.d.ts
+│   │   │   │   │       ├── types.d.ts
+│   │   │   │   │       ├── useAsync.d.ts
+│   │   │   │   │       ├── useCreatable.d.ts
+│   │   │   │   │       ├── useStateManager.d.ts
+│   │   │   │   │       └── utils.d.ts
+│   │   │   │   ├── index-42b266b1.cjs.dev.js
+│   │   │   │   ├── index-641ee5b8.esm.js
+│   │   │   │   ├── index-665c4ed8.cjs.prod.js
+│   │   │   │   ├── react-select.cjs.d.mts
+│   │   │   │   ├── react-select.cjs.d.mts.map
+│   │   │   │   ├── react-select.cjs.d.ts
+│   │   │   │   ├── react-select.cjs.d.ts.map
+│   │   │   │   ├── react-select.cjs.default.d.ts
+│   │   │   │   ├── react-select.cjs.default.js
+│   │   │   │   ├── react-select.cjs.dev.js
+│   │   │   │   ├── react-select.cjs.js
+│   │   │   │   ├── react-select.cjs.mjs
+│   │   │   │   ├── react-select.cjs.prod.js
+│   │   │   │   ├── react-select.esm.js
+│   │   │   │   ├── useAsync-6b7b2aae.cjs.dev.js
+│   │   │   │   ├── useAsync-be659a57.cjs.prod.js
+│   │   │   │   ├── useAsync-c64f5536.esm.js
+│   │   │   │   ├── useCreatable-09aaeb9a.esm.js
+│   │   │   │   ├── useCreatable-55029b87.cjs.dev.js
+│   │   │   │   ├── useCreatable-92373e48.cjs.prod.js
+│   │   │   │   ├── useStateManager-7748b351.cjs.dev.js
+│   │   │   │   ├── useStateManager-7e1e8489.esm.js
+│   │   │   │   └── useStateManager-ce23061c.cjs.prod.js
+│   │   │   └── package.json
 │   │   ├── react-style-singleton
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -50163,6 +52188,56 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   │   ├── singleton.d.ts
 │   │   │   │   │   └── singleton.js
 │   │   │   │   └── index.js
+│   │   │   └── package.json
+│   │   ├── react-transition-group
+│   │   │   ├── CSSTransition
+│   │   │   │   └── package.json
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── ReplaceTransition
+│   │   │   │   └── package.json
+│   │   │   ├── SwitchTransition
+│   │   │   │   └── package.json
+│   │   │   ├── Transition
+│   │   │   │   └── package.json
+│   │   │   ├── TransitionGroup
+│   │   │   │   └── package.json
+│   │   │   ├── TransitionGroupContext
+│   │   │   │   └── package.json
+│   │   │   ├── cjs
+│   │   │   │   ├── CSSTransition.js
+│   │   │   │   ├── ReplaceTransition.js
+│   │   │   │   ├── SwitchTransition.js
+│   │   │   │   ├── Transition.js
+│   │   │   │   ├── TransitionGroup.js
+│   │   │   │   ├── TransitionGroupContext.js
+│   │   │   │   ├── config.js
+│   │   │   │   ├── index.js
+│   │   │   │   └── utils
+│   │   │   │       ├── ChildMapping.js
+│   │   │   │       ├── PropTypes.js
+│   │   │   │       ├── SimpleSet.js
+│   │   │   │       └── reflow.js
+│   │   │   ├── config
+│   │   │   │   └── package.json
+│   │   │   ├── dist
+│   │   │   │   ├── react-transition-group.js
+│   │   │   │   └── react-transition-group.min.js
+│   │   │   ├── esm
+│   │   │   │   ├── CSSTransition.js
+│   │   │   │   ├── ReplaceTransition.js
+│   │   │   │   ├── SwitchTransition.js
+│   │   │   │   ├── Transition.js
+│   │   │   │   ├── TransitionGroup.js
+│   │   │   │   ├── TransitionGroupContext.js
+│   │   │   │   ├── config.js
+│   │   │   │   ├── index.js
+│   │   │   │   └── utils
+│   │   │   │       ├── ChildMapping.js
+│   │   │   │       ├── PropTypes.js
+│   │   │   │       ├── SimpleSet.js
+│   │   │   │       └── reflow.js
+│   │   │   ├── node_modules
 │   │   │   └── package.json
 │   │   ├── read-cache
 │   │   │   ├── LICENSE
@@ -51571,6 +53646,26 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │       └── path.js
 │   │   │   ├── license
 │   │   │   └── package.json
+│   │   ├── remark-parse
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── remark-rehype
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── renderkid
 │   │   │   ├── CHANGELOG.md
 │   │   │   ├── LICENSE
@@ -53386,6 +55481,12 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   └── types
 │   │   │   │       └── sourcemap-codec.d.ts
 │   │   │   └── package.json
+│   │   ├── space-separated-tokens
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── spdy
 │   │   │   ├── README.md
 │   │   │   ├── lib
@@ -53643,6 +55744,31 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── lib
 │   │   │   │   └── string_decoder.js
 │   │   │   └── package.json
+│   │   ├── stringify-entities
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── constant
+│   │   │   │   │   ├── dangerous.d.ts
+│   │   │   │   │   └── dangerous.js
+│   │   │   │   ├── core.d.ts
+│   │   │   │   ├── core.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.js
+│   │   │   │   └── util
+│   │   │   │       ├── format-basic.d.ts
+│   │   │   │       ├── format-basic.js
+│   │   │   │       ├── format-smart.d.ts
+│   │   │   │       ├── format-smart.js
+│   │   │   │       ├── to-decimal.d.ts
+│   │   │   │       ├── to-decimal.js
+│   │   │   │       ├── to-hexadecimal.d.ts
+│   │   │   │       ├── to-hexadecimal.js
+│   │   │   │       ├── to-named.d.ts
+│   │   │   │       └── to-named.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── stringify-object
 │   │   │   ├── LICENSE
 │   │   │   ├── index.js
@@ -53711,6 +55837,52 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   └── utils.js
 │   │   │   ├── node_modules
 │   │   │   └── package.json
+│   │   ├── style-to-js
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── cjs
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   ├── index.js
+│   │   │   │   ├── index.js.map
+│   │   │   │   ├── utilities.d.ts
+│   │   │   │   ├── utilities.d.ts.map
+│   │   │   │   ├── utilities.js
+│   │   │   │   └── utilities.js.map
+│   │   │   ├── package.json
+│   │   │   ├── src
+│   │   │   │   ├── index.test.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── utilities.test.ts
+│   │   │   │   └── utilities.ts
+│   │   │   └── umd
+│   │   │       ├── style-to-js.js
+│   │   │       ├── style-to-js.js.map
+│   │   │       ├── style-to-js.min.js
+│   │   │       └── style-to-js.min.js.map
+│   │   ├── style-to-object
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── cjs
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   ├── index.js
+│   │   │   │   └── index.js.map
+│   │   │   ├── dist
+│   │   │   │   ├── style-to-object.js
+│   │   │   │   ├── style-to-object.js.map
+│   │   │   │   ├── style-to-object.min.js
+│   │   │   │   └── style-to-object.min.js.map
+│   │   │   ├── esm
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   ├── index.js
+│   │   │   │   ├── index.js.map
+│   │   │   │   ├── index.mjs
+│   │   │   │   └── index.mjs.map
+│   │   │   ├── package.json
+│   │   │   └── src
+│   │   │       └── index.ts
 │   │   ├── stylehacks
 │   │   │   ├── LICENSE-MIT
 │   │   │   ├── README.md
@@ -53764,6 +55936,26 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │           ├── slash9.d.ts
 │   │   │           ├── starHtml.d.ts
 │   │   │           └── trailingSlashComma.d.ts
+│   │   ├── stylis
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── dist
+│   │   │   │   ├── stylis.mjs
+│   │   │   │   ├── stylis.mjs.map
+│   │   │   │   └── umd
+│   │   │   │       ├── package.json
+│   │   │   │       ├── stylis.js
+│   │   │   │       └── stylis.js.map
+│   │   │   ├── index.js
+│   │   │   ├── package.json
+│   │   │   └── src
+│   │   │       ├── Enum.js
+│   │   │       ├── Middleware.js
+│   │   │       ├── Parser.js
+│   │   │       ├── Prefixer.js
+│   │   │       ├── Serializer.js
+│   │   │       ├── Tokenizer.js
+│   │   │       └── Utility.js
 │   │   ├── sucrase
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -55236,6 +57428,23 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── regexes.js
 │   │   │   │   └── statusMapping.js
 │   │   │   └── package.json
+│   │   ├── trim-lines
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── trough
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── tryer
 │   │   │   ├── AUTHORS
 │   │   │   ├── CHANGES.md
@@ -56378,9 +58587,76 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── README.md
 │   │   │   ├── index.js
 │   │   │   └── package.json
+│   │   ├── unified
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── callable-instance.d.ts
+│   │   │   │   ├── callable-instance.d.ts.map
+│   │   │   │   ├── callable-instance.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── unique-string
 │   │   │   ├── index.d.ts
 │   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── unist-util-is
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── unist-util-position
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── unist-util-stringify-position
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── unist-util-visit
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── unist-util-visit-parents
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── color.d.ts
+│   │   │   │   ├── color.d.ts.map
+│   │   │   │   ├── color.js
+│   │   │   │   ├── color.node.d.ts
+│   │   │   │   ├── color.node.d.ts.map
+│   │   │   │   ├── color.node.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   └── index.js
 │   │   │   ├── license
 │   │   │   ├── package.json
 │   │   │   └── readme.md
@@ -56545,6 +58821,25 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │       ├── useRef.js
 │   │   │   │       ├── useTransformRef.d.ts
 │   │   │   │       └── useTransformRef.js
+│   │   │   └── package.json
+│   │   ├── use-isomorphic-layout-effect
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── dist
+│   │   │   │   ├── declarations
+│   │   │   │   │   └── src
+│   │   │   │   │       └── index.d.ts
+│   │   │   │   ├── use-isomorphic-layout-effect.browser.cjs.default.js
+│   │   │   │   ├── use-isomorphic-layout-effect.browser.cjs.js
+│   │   │   │   ├── use-isomorphic-layout-effect.browser.cjs.mjs
+│   │   │   │   ├── use-isomorphic-layout-effect.browser.esm.js
+│   │   │   │   ├── use-isomorphic-layout-effect.cjs.d.mts
+│   │   │   │   ├── use-isomorphic-layout-effect.cjs.d.ts
+│   │   │   │   ├── use-isomorphic-layout-effect.cjs.default.d.ts
+│   │   │   │   ├── use-isomorphic-layout-effect.cjs.default.js
+│   │   │   │   ├── use-isomorphic-layout-effect.cjs.js
+│   │   │   │   ├── use-isomorphic-layout-effect.cjs.mjs
+│   │   │   │   └── use-isomorphic-layout-effect.esm.js
 │   │   │   └── package.json
 │   │   ├── use-sidecar
 │   │   │   ├── LICENSE
@@ -56823,6 +59118,46 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   └── index.mjs
 │   │   │   ├── package.json
 │   │   │   └── style.css
+│   │   ├── vfile
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.d.ts.map
+│   │   │   │   ├── index.js
+│   │   │   │   ├── minpath.browser.d.ts
+│   │   │   │   ├── minpath.browser.d.ts.map
+│   │   │   │   ├── minpath.browser.js
+│   │   │   │   ├── minpath.d.ts
+│   │   │   │   ├── minpath.d.ts.map
+│   │   │   │   ├── minpath.js
+│   │   │   │   ├── minproc.browser.d.ts
+│   │   │   │   ├── minproc.browser.d.ts.map
+│   │   │   │   ├── minproc.browser.js
+│   │   │   │   ├── minproc.d.ts
+│   │   │   │   ├── minproc.d.ts.map
+│   │   │   │   ├── minproc.js
+│   │   │   │   ├── minurl.browser.d.ts
+│   │   │   │   ├── minurl.browser.d.ts.map
+│   │   │   │   ├── minurl.browser.js
+│   │   │   │   ├── minurl.d.ts
+│   │   │   │   ├── minurl.d.ts.map
+│   │   │   │   ├── minurl.js
+│   │   │   │   ├── minurl.shared.d.ts
+│   │   │   │   ├── minurl.shared.d.ts.map
+│   │   │   │   └── minurl.shared.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── vfile-message
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── victory-vendor
 │   │   │   ├── CHANGELOG.md
 │   │   │   ├── README.md
@@ -60105,628 +62440,634 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── license
 │   │   │   ├── package.json
 │   │   │   └── readme.md
-│   │   └── zod
-│   │       ├── LICENSE
-│   │       ├── README.md
-│   │       ├── index.cjs
-│   │       ├── index.d.cts
+│   │   ├── zod
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── index.cjs
+│   │   │   ├── index.d.cts
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── package.json
+│   │   │   ├── src
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── v3
+│   │   │   │   │   ├── ZodError.ts
+│   │   │   │   │   ├── benchmarks
+│   │   │   │   │   │   ├── datetime.ts
+│   │   │   │   │   │   ├── discriminatedUnion.ts
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   ├── ipv4.ts
+│   │   │   │   │   │   ├── object.ts
+│   │   │   │   │   │   ├── primitives.ts
+│   │   │   │   │   │   ├── realworld.ts
+│   │   │   │   │   │   ├── string.ts
+│   │   │   │   │   │   └── union.ts
+│   │   │   │   │   ├── errors.ts
+│   │   │   │   │   ├── external.ts
+│   │   │   │   │   ├── helpers
+│   │   │   │   │   │   ├── enumUtil.ts
+│   │   │   │   │   │   ├── errorUtil.ts
+│   │   │   │   │   │   ├── parseUtil.ts
+│   │   │   │   │   │   ├── partialUtil.ts
+│   │   │   │   │   │   ├── typeAliases.ts
+│   │   │   │   │   │   └── util.ts
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── locales
+│   │   │   │   │   │   └── en.ts
+│   │   │   │   │   ├── standard-schema.ts
+│   │   │   │   │   ├── tests
+│   │   │   │   │   │   ├── Mocker.ts
+│   │   │   │   │   │   ├── all-errors.test.ts
+│   │   │   │   │   │   ├── anyunknown.test.ts
+│   │   │   │   │   │   ├── array.test.ts
+│   │   │   │   │   │   ├── async-parsing.test.ts
+│   │   │   │   │   │   ├── async-refinements.test.ts
+│   │   │   │   │   │   ├── base.test.ts
+│   │   │   │   │   │   ├── bigint.test.ts
+│   │   │   │   │   │   ├── branded.test.ts
+│   │   │   │   │   │   ├── catch.test.ts
+│   │   │   │   │   │   ├── coerce.test.ts
+│   │   │   │   │   │   ├── complex.test.ts
+│   │   │   │   │   │   ├── custom.test.ts
+│   │   │   │   │   │   ├── date.test.ts
+│   │   │   │   │   │   ├── deepmasking.test.ts
+│   │   │   │   │   │   ├── default.test.ts
+│   │   │   │   │   │   ├── description.test.ts
+│   │   │   │   │   │   ├── discriminated-unions.test.ts
+│   │   │   │   │   │   ├── enum.test.ts
+│   │   │   │   │   │   ├── error.test.ts
+│   │   │   │   │   │   ├── firstparty.test.ts
+│   │   │   │   │   │   ├── firstpartyschematypes.test.ts
+│   │   │   │   │   │   ├── function.test.ts
+│   │   │   │   │   │   ├── generics.test.ts
+│   │   │   │   │   │   ├── instanceof.test.ts
+│   │   │   │   │   │   ├── intersection.test.ts
+│   │   │   │   │   │   ├── language-server.source.ts
+│   │   │   │   │   │   ├── language-server.test.ts
+│   │   │   │   │   │   ├── literal.test.ts
+│   │   │   │   │   │   ├── map.test.ts
+│   │   │   │   │   │   ├── masking.test.ts
+│   │   │   │   │   │   ├── mocker.test.ts
+│   │   │   │   │   │   ├── nan.test.ts
+│   │   │   │   │   │   ├── nativeEnum.test.ts
+│   │   │   │   │   │   ├── nullable.test.ts
+│   │   │   │   │   │   ├── number.test.ts
+│   │   │   │   │   │   ├── object-augmentation.test.ts
+│   │   │   │   │   │   ├── object-in-es5-env.test.ts
+│   │   │   │   │   │   ├── object.test.ts
+│   │   │   │   │   │   ├── optional.test.ts
+│   │   │   │   │   │   ├── parseUtil.test.ts
+│   │   │   │   │   │   ├── parser.test.ts
+│   │   │   │   │   │   ├── partials.test.ts
+│   │   │   │   │   │   ├── pickomit.test.ts
+│   │   │   │   │   │   ├── pipeline.test.ts
+│   │   │   │   │   │   ├── preprocess.test.ts
+│   │   │   │   │   │   ├── primitive.test.ts
+│   │   │   │   │   │   ├── promise.test.ts
+│   │   │   │   │   │   ├── readonly.test.ts
+│   │   │   │   │   │   ├── record.test.ts
+│   │   │   │   │   │   ├── recursive.test.ts
+│   │   │   │   │   │   ├── refine.test.ts
+│   │   │   │   │   │   ├── safeparse.test.ts
+│   │   │   │   │   │   ├── set.test.ts
+│   │   │   │   │   │   ├── standard-schema.test.ts
+│   │   │   │   │   │   ├── string.test.ts
+│   │   │   │   │   │   ├── transformer.test.ts
+│   │   │   │   │   │   ├── tuple.test.ts
+│   │   │   │   │   │   ├── unions.test.ts
+│   │   │   │   │   │   ├── validations.test.ts
+│   │   │   │   │   │   └── void.test.ts
+│   │   │   │   │   └── types.ts
+│   │   │   │   ├── v4
+│   │   │   │   │   ├── classic
+│   │   │   │   │   │   ├── checks.ts
+│   │   │   │   │   │   ├── coerce.ts
+│   │   │   │   │   │   ├── compat.ts
+│   │   │   │   │   │   ├── errors.ts
+│   │   │   │   │   │   ├── external.ts
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   ├── iso.ts
+│   │   │   │   │   │   ├── parse.ts
+│   │   │   │   │   │   ├── schemas.ts
+│   │   │   │   │   │   └── tests
+│   │   │   │   │   │       ├── anyunknown.test.ts
+│   │   │   │   │   │       ├── array.test.ts
+│   │   │   │   │   │       ├── assignability.test.ts
+│   │   │   │   │   │       ├── async-parsing.test.ts
+│   │   │   │   │   │       ├── async-refinements.test.ts
+│   │   │   │   │   │       ├── base.test.ts
+│   │   │   │   │   │       ├── bigint.test.ts
+│   │   │   │   │   │       ├── brand.test.ts
+│   │   │   │   │   │       ├── catch.test.ts
+│   │   │   │   │   │       ├── coalesce.test.ts
+│   │   │   │   │   │       ├── coerce.test.ts
+│   │   │   │   │   │       ├── continuability.test.ts
+│   │   │   │   │   │       ├── custom.test.ts
+│   │   │   │   │   │       ├── date.test.ts
+│   │   │   │   │   │       ├── datetime.test.ts
+│   │   │   │   │   │       ├── default.test.ts
+│   │   │   │   │   │       ├── description.test.ts
+│   │   │   │   │   │       ├── discriminated-unions.test.ts
+│   │   │   │   │   │       ├── enum.test.ts
+│   │   │   │   │   │       ├── error-utils.test.ts
+│   │   │   │   │   │       ├── error.test.ts
+│   │   │   │   │   │       ├── file.test.ts
+│   │   │   │   │   │       ├── firstparty.test.ts
+│   │   │   │   │   │       ├── function.test.ts
+│   │   │   │   │   │       ├── generics.test.ts
+│   │   │   │   │   │       ├── index.test.ts
+│   │   │   │   │   │       ├── instanceof.test.ts
+│   │   │   │   │   │       ├── intersection.test.ts
+│   │   │   │   │   │       ├── json.test.ts
+│   │   │   │   │   │       ├── lazy.test.ts
+│   │   │   │   │   │       ├── literal.test.ts
+│   │   │   │   │   │       ├── map.test.ts
+│   │   │   │   │   │       ├── nan.test.ts
+│   │   │   │   │   │       ├── nested-refine.test.ts
+│   │   │   │   │   │       ├── nonoptional.test.ts
+│   │   │   │   │   │       ├── nullable.test.ts
+│   │   │   │   │   │       ├── number.test.ts
+│   │   │   │   │   │       ├── object.test.ts
+│   │   │   │   │   │       ├── optional.test.ts
+│   │   │   │   │   │       ├── partial.test.ts
+│   │   │   │   │   │       ├── pickomit.test.ts
+│   │   │   │   │   │       ├── pipe.test.ts
+│   │   │   │   │   │       ├── prefault.test.ts
+│   │   │   │   │   │       ├── preprocess.test.ts
+│   │   │   │   │   │       ├── primitive.test.ts
+│   │   │   │   │   │       ├── promise.test.ts
+│   │   │   │   │   │       ├── prototypes.test.ts
+│   │   │   │   │   │       ├── readonly.test.ts
+│   │   │   │   │   │       ├── record.test.ts
+│   │   │   │   │   │       ├── recursive-types.test.ts
+│   │   │   │   │   │       ├── refine.test.ts
+│   │   │   │   │   │       ├── registries.test.ts
+│   │   │   │   │   │       ├── set.test.ts
+│   │   │   │   │   │       ├── standard-schema.test.ts
+│   │   │   │   │   │       ├── string-formats.test.ts
+│   │   │   │   │   │       ├── string.test.ts
+│   │   │   │   │   │       ├── stringbool.test.ts
+│   │   │   │   │   │       ├── template-literal.test.ts
+│   │   │   │   │   │       ├── to-json-schema.test.ts
+│   │   │   │   │   │       ├── transform.test.ts
+│   │   │   │   │   │       ├── tuple.test.ts
+│   │   │   │   │   │       ├── union.test.ts
+│   │   │   │   │   │       ├── validations.test.ts
+│   │   │   │   │   │       └── void.test.ts
+│   │   │   │   │   ├── core
+│   │   │   │   │   │   ├── api.ts
+│   │   │   │   │   │   ├── checks.ts
+│   │   │   │   │   │   ├── config.ts
+│   │   │   │   │   │   ├── core.ts
+│   │   │   │   │   │   ├── doc.ts
+│   │   │   │   │   │   ├── errors.ts
+│   │   │   │   │   │   ├── function.ts
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   ├── json-schema.ts
+│   │   │   │   │   │   ├── parse.ts
+│   │   │   │   │   │   ├── regexes.ts
+│   │   │   │   │   │   ├── registries.ts
+│   │   │   │   │   │   ├── schemas.ts
+│   │   │   │   │   │   ├── standard-schema.ts
+│   │   │   │   │   │   ├── tests
+│   │   │   │   │   │   │   ├── index.test.ts
+│   │   │   │   │   │   │   └── locales
+│   │   │   │   │   │   │       ├── be.test.ts
+│   │   │   │   │   │   │       ├── en.test.ts
+│   │   │   │   │   │   │       ├── ru.test.ts
+│   │   │   │   │   │   │       └── tr.test.ts
+│   │   │   │   │   │   ├── to-json-schema.ts
+│   │   │   │   │   │   ├── util.ts
+│   │   │   │   │   │   ├── versions.ts
+│   │   │   │   │   │   └── zsf.ts
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── locales
+│   │   │   │   │   │   ├── ar.ts
+│   │   │   │   │   │   ├── az.ts
+│   │   │   │   │   │   ├── be.ts
+│   │   │   │   │   │   ├── ca.ts
+│   │   │   │   │   │   ├── cs.ts
+│   │   │   │   │   │   ├── de.ts
+│   │   │   │   │   │   ├── en.ts
+│   │   │   │   │   │   ├── eo.ts
+│   │   │   │   │   │   ├── es.ts
+│   │   │   │   │   │   ├── fa.ts
+│   │   │   │   │   │   ├── fi.ts
+│   │   │   │   │   │   ├── fr-CA.ts
+│   │   │   │   │   │   ├── fr.ts
+│   │   │   │   │   │   ├── he.ts
+│   │   │   │   │   │   ├── hu.ts
+│   │   │   │   │   │   ├── id.ts
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   ├── it.ts
+│   │   │   │   │   │   ├── ja.ts
+│   │   │   │   │   │   ├── kh.ts
+│   │   │   │   │   │   ├── ko.ts
+│   │   │   │   │   │   ├── mk.ts
+│   │   │   │   │   │   ├── ms.ts
+│   │   │   │   │   │   ├── nl.ts
+│   │   │   │   │   │   ├── no.ts
+│   │   │   │   │   │   ├── ota.ts
+│   │   │   │   │   │   ├── pl.ts
+│   │   │   │   │   │   ├── ps.ts
+│   │   │   │   │   │   ├── pt.ts
+│   │   │   │   │   │   ├── ru.ts
+│   │   │   │   │   │   ├── sl.ts
+│   │   │   │   │   │   ├── sv.ts
+│   │   │   │   │   │   ├── ta.ts
+│   │   │   │   │   │   ├── th.ts
+│   │   │   │   │   │   ├── tr.ts
+│   │   │   │   │   │   ├── ua.ts
+│   │   │   │   │   │   ├── ur.ts
+│   │   │   │   │   │   ├── vi.ts
+│   │   │   │   │   │   ├── zh-CN.ts
+│   │   │   │   │   │   └── zh-TW.ts
+│   │   │   │   │   └── mini
+│   │   │   │   │       ├── checks.ts
+│   │   │   │   │       ├── coerce.ts
+│   │   │   │   │       ├── external.ts
+│   │   │   │   │       ├── index.ts
+│   │   │   │   │       ├── iso.ts
+│   │   │   │   │       ├── parse.ts
+│   │   │   │   │       ├── schemas.ts
+│   │   │   │   │       └── tests
+│   │   │   │   │           ├── assignability.test.ts
+│   │   │   │   │           ├── brand.test.ts
+│   │   │   │   │           ├── checks.test.ts
+│   │   │   │   │           ├── computed.test.ts
+│   │   │   │   │           ├── error.test.ts
+│   │   │   │   │           ├── functions.test.ts
+│   │   │   │   │           ├── index.test.ts
+│   │   │   │   │           ├── number.test.ts
+│   │   │   │   │           ├── object.test.ts
+│   │   │   │   │           ├── prototypes.test.ts
+│   │   │   │   │           ├── recursive-types.test.ts
+│   │   │   │   │           └── string.test.ts
+│   │   │   │   └── v4-mini
+│   │   │   │       └── index.ts
+│   │   │   ├── v3
+│   │   │   │   ├── ZodError.cjs
+│   │   │   │   ├── ZodError.d.cts
+│   │   │   │   ├── ZodError.d.ts
+│   │   │   │   ├── ZodError.js
+│   │   │   │   ├── errors.cjs
+│   │   │   │   ├── errors.d.cts
+│   │   │   │   ├── errors.d.ts
+│   │   │   │   ├── errors.js
+│   │   │   │   ├── external.cjs
+│   │   │   │   ├── external.d.cts
+│   │   │   │   ├── external.d.ts
+│   │   │   │   ├── external.js
+│   │   │   │   ├── helpers
+│   │   │   │   │   ├── enumUtil.cjs
+│   │   │   │   │   ├── enumUtil.d.cts
+│   │   │   │   │   ├── enumUtil.d.ts
+│   │   │   │   │   ├── enumUtil.js
+│   │   │   │   │   ├── errorUtil.cjs
+│   │   │   │   │   ├── errorUtil.d.cts
+│   │   │   │   │   ├── errorUtil.d.ts
+│   │   │   │   │   ├── errorUtil.js
+│   │   │   │   │   ├── parseUtil.cjs
+│   │   │   │   │   ├── parseUtil.d.cts
+│   │   │   │   │   ├── parseUtil.d.ts
+│   │   │   │   │   ├── parseUtil.js
+│   │   │   │   │   ├── partialUtil.cjs
+│   │   │   │   │   ├── partialUtil.d.cts
+│   │   │   │   │   ├── partialUtil.d.ts
+│   │   │   │   │   ├── partialUtil.js
+│   │   │   │   │   ├── typeAliases.cjs
+│   │   │   │   │   ├── typeAliases.d.cts
+│   │   │   │   │   ├── typeAliases.d.ts
+│   │   │   │   │   ├── typeAliases.js
+│   │   │   │   │   ├── util.cjs
+│   │   │   │   │   ├── util.d.cts
+│   │   │   │   │   ├── util.d.ts
+│   │   │   │   │   └── util.js
+│   │   │   │   ├── index.cjs
+│   │   │   │   ├── index.d.cts
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.js
+│   │   │   │   ├── locales
+│   │   │   │   │   ├── en.cjs
+│   │   │   │   │   ├── en.d.cts
+│   │   │   │   │   ├── en.d.ts
+│   │   │   │   │   └── en.js
+│   │   │   │   ├── standard-schema.cjs
+│   │   │   │   ├── standard-schema.d.cts
+│   │   │   │   ├── standard-schema.d.ts
+│   │   │   │   ├── standard-schema.js
+│   │   │   │   ├── types.cjs
+│   │   │   │   ├── types.d.cts
+│   │   │   │   ├── types.d.ts
+│   │   │   │   └── types.js
+│   │   │   ├── v4
+│   │   │   │   ├── classic
+│   │   │   │   │   ├── checks.cjs
+│   │   │   │   │   ├── checks.d.cts
+│   │   │   │   │   ├── checks.d.ts
+│   │   │   │   │   ├── checks.js
+│   │   │   │   │   ├── coerce.cjs
+│   │   │   │   │   ├── coerce.d.cts
+│   │   │   │   │   ├── coerce.d.ts
+│   │   │   │   │   ├── coerce.js
+│   │   │   │   │   ├── compat.cjs
+│   │   │   │   │   ├── compat.d.cts
+│   │   │   │   │   ├── compat.d.ts
+│   │   │   │   │   ├── compat.js
+│   │   │   │   │   ├── errors.cjs
+│   │   │   │   │   ├── errors.d.cts
+│   │   │   │   │   ├── errors.d.ts
+│   │   │   │   │   ├── errors.js
+│   │   │   │   │   ├── external.cjs
+│   │   │   │   │   ├── external.d.cts
+│   │   │   │   │   ├── external.d.ts
+│   │   │   │   │   ├── external.js
+│   │   │   │   │   ├── index.cjs
+│   │   │   │   │   ├── index.d.cts
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── iso.cjs
+│   │   │   │   │   ├── iso.d.cts
+│   │   │   │   │   ├── iso.d.ts
+│   │   │   │   │   ├── iso.js
+│   │   │   │   │   ├── parse.cjs
+│   │   │   │   │   ├── parse.d.cts
+│   │   │   │   │   ├── parse.d.ts
+│   │   │   │   │   ├── parse.js
+│   │   │   │   │   ├── schemas.cjs
+│   │   │   │   │   ├── schemas.d.cts
+│   │   │   │   │   ├── schemas.d.ts
+│   │   │   │   │   └── schemas.js
+│   │   │   │   ├── core
+│   │   │   │   │   ├── api.cjs
+│   │   │   │   │   ├── api.d.cts
+│   │   │   │   │   ├── api.d.ts
+│   │   │   │   │   ├── api.js
+│   │   │   │   │   ├── checks.cjs
+│   │   │   │   │   ├── checks.d.cts
+│   │   │   │   │   ├── checks.d.ts
+│   │   │   │   │   ├── checks.js
+│   │   │   │   │   ├── core.cjs
+│   │   │   │   │   ├── core.d.cts
+│   │   │   │   │   ├── core.d.ts
+│   │   │   │   │   ├── core.js
+│   │   │   │   │   ├── doc.cjs
+│   │   │   │   │   ├── doc.d.cts
+│   │   │   │   │   ├── doc.d.ts
+│   │   │   │   │   ├── doc.js
+│   │   │   │   │   ├── errors.cjs
+│   │   │   │   │   ├── errors.d.cts
+│   │   │   │   │   ├── errors.d.ts
+│   │   │   │   │   ├── errors.js
+│   │   │   │   │   ├── function.cjs
+│   │   │   │   │   ├── function.d.cts
+│   │   │   │   │   ├── function.d.ts
+│   │   │   │   │   ├── function.js
+│   │   │   │   │   ├── index.cjs
+│   │   │   │   │   ├── index.d.cts
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── json-schema.cjs
+│   │   │   │   │   ├── json-schema.d.cts
+│   │   │   │   │   ├── json-schema.d.ts
+│   │   │   │   │   ├── json-schema.js
+│   │   │   │   │   ├── parse.cjs
+│   │   │   │   │   ├── parse.d.cts
+│   │   │   │   │   ├── parse.d.ts
+│   │   │   │   │   ├── parse.js
+│   │   │   │   │   ├── regexes.cjs
+│   │   │   │   │   ├── regexes.d.cts
+│   │   │   │   │   ├── regexes.d.ts
+│   │   │   │   │   ├── regexes.js
+│   │   │   │   │   ├── registries.cjs
+│   │   │   │   │   ├── registries.d.cts
+│   │   │   │   │   ├── registries.d.ts
+│   │   │   │   │   ├── registries.js
+│   │   │   │   │   ├── schemas.cjs
+│   │   │   │   │   ├── schemas.d.cts
+│   │   │   │   │   ├── schemas.d.ts
+│   │   │   │   │   ├── schemas.js
+│   │   │   │   │   ├── standard-schema.cjs
+│   │   │   │   │   ├── standard-schema.d.cts
+│   │   │   │   │   ├── standard-schema.d.ts
+│   │   │   │   │   ├── standard-schema.js
+│   │   │   │   │   ├── to-json-schema.cjs
+│   │   │   │   │   ├── to-json-schema.d.cts
+│   │   │   │   │   ├── to-json-schema.d.ts
+│   │   │   │   │   ├── to-json-schema.js
+│   │   │   │   │   ├── util.cjs
+│   │   │   │   │   ├── util.d.cts
+│   │   │   │   │   ├── util.d.ts
+│   │   │   │   │   ├── util.js
+│   │   │   │   │   ├── versions.cjs
+│   │   │   │   │   ├── versions.d.cts
+│   │   │   │   │   ├── versions.d.ts
+│   │   │   │   │   └── versions.js
+│   │   │   │   ├── index.cjs
+│   │   │   │   ├── index.d.cts
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.js
+│   │   │   │   ├── locales
+│   │   │   │   │   ├── ar.cjs
+│   │   │   │   │   ├── ar.d.cts
+│   │   │   │   │   ├── ar.d.ts
+│   │   │   │   │   ├── ar.js
+│   │   │   │   │   ├── az.cjs
+│   │   │   │   │   ├── az.d.cts
+│   │   │   │   │   ├── az.d.ts
+│   │   │   │   │   ├── az.js
+│   │   │   │   │   ├── be.cjs
+│   │   │   │   │   ├── be.d.cts
+│   │   │   │   │   ├── be.d.ts
+│   │   │   │   │   ├── be.js
+│   │   │   │   │   ├── ca.cjs
+│   │   │   │   │   ├── ca.d.cts
+│   │   │   │   │   ├── ca.d.ts
+│   │   │   │   │   ├── ca.js
+│   │   │   │   │   ├── cs.cjs
+│   │   │   │   │   ├── cs.d.cts
+│   │   │   │   │   ├── cs.d.ts
+│   │   │   │   │   ├── cs.js
+│   │   │   │   │   ├── de.cjs
+│   │   │   │   │   ├── de.d.cts
+│   │   │   │   │   ├── de.d.ts
+│   │   │   │   │   ├── de.js
+│   │   │   │   │   ├── en.cjs
+│   │   │   │   │   ├── en.d.cts
+│   │   │   │   │   ├── en.d.ts
+│   │   │   │   │   ├── en.js
+│   │   │   │   │   ├── eo.cjs
+│   │   │   │   │   ├── eo.d.cts
+│   │   │   │   │   ├── eo.d.ts
+│   │   │   │   │   ├── eo.js
+│   │   │   │   │   ├── es.cjs
+│   │   │   │   │   ├── es.d.cts
+│   │   │   │   │   ├── es.d.ts
+│   │   │   │   │   ├── es.js
+│   │   │   │   │   ├── fa.cjs
+│   │   │   │   │   ├── fa.d.cts
+│   │   │   │   │   ├── fa.d.ts
+│   │   │   │   │   ├── fa.js
+│   │   │   │   │   ├── fi.cjs
+│   │   │   │   │   ├── fi.d.cts
+│   │   │   │   │   ├── fi.d.ts
+│   │   │   │   │   ├── fi.js
+│   │   │   │   │   ├── fr-CA.cjs
+│   │   │   │   │   ├── fr-CA.d.cts
+│   │   │   │   │   ├── fr-CA.d.ts
+│   │   │   │   │   ├── fr-CA.js
+│   │   │   │   │   ├── fr.cjs
+│   │   │   │   │   ├── fr.d.cts
+│   │   │   │   │   ├── fr.d.ts
+│   │   │   │   │   ├── fr.js
+│   │   │   │   │   ├── he.cjs
+│   │   │   │   │   ├── he.d.cts
+│   │   │   │   │   ├── he.d.ts
+│   │   │   │   │   ├── he.js
+│   │   │   │   │   ├── hu.cjs
+│   │   │   │   │   ├── hu.d.cts
+│   │   │   │   │   ├── hu.d.ts
+│   │   │   │   │   ├── hu.js
+│   │   │   │   │   ├── id.cjs
+│   │   │   │   │   ├── id.d.cts
+│   │   │   │   │   ├── id.d.ts
+│   │   │   │   │   ├── id.js
+│   │   │   │   │   ├── index.cjs
+│   │   │   │   │   ├── index.d.cts
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── it.cjs
+│   │   │   │   │   ├── it.d.cts
+│   │   │   │   │   ├── it.d.ts
+│   │   │   │   │   ├── it.js
+│   │   │   │   │   ├── ja.cjs
+│   │   │   │   │   ├── ja.d.cts
+│   │   │   │   │   ├── ja.d.ts
+│   │   │   │   │   ├── ja.js
+│   │   │   │   │   ├── kh.cjs
+│   │   │   │   │   ├── kh.d.cts
+│   │   │   │   │   ├── kh.d.ts
+│   │   │   │   │   ├── kh.js
+│   │   │   │   │   ├── ko.cjs
+│   │   │   │   │   ├── ko.d.cts
+│   │   │   │   │   ├── ko.d.ts
+│   │   │   │   │   ├── ko.js
+│   │   │   │   │   ├── mk.cjs
+│   │   │   │   │   ├── mk.d.cts
+│   │   │   │   │   ├── mk.d.ts
+│   │   │   │   │   ├── mk.js
+│   │   │   │   │   ├── ms.cjs
+│   │   │   │   │   ├── ms.d.cts
+│   │   │   │   │   ├── ms.d.ts
+│   │   │   │   │   ├── ms.js
+│   │   │   │   │   ├── nl.cjs
+│   │   │   │   │   ├── nl.d.cts
+│   │   │   │   │   ├── nl.d.ts
+│   │   │   │   │   ├── nl.js
+│   │   │   │   │   ├── no.cjs
+│   │   │   │   │   ├── no.d.cts
+│   │   │   │   │   ├── no.d.ts
+│   │   │   │   │   ├── no.js
+│   │   │   │   │   ├── ota.cjs
+│   │   │   │   │   ├── ota.d.cts
+│   │   │   │   │   ├── ota.d.ts
+│   │   │   │   │   ├── ota.js
+│   │   │   │   │   ├── pl.cjs
+│   │   │   │   │   ├── pl.d.cts
+│   │   │   │   │   ├── pl.d.ts
+│   │   │   │   │   ├── pl.js
+│   │   │   │   │   ├── ps.cjs
+│   │   │   │   │   ├── ps.d.cts
+│   │   │   │   │   ├── ps.d.ts
+│   │   │   │   │   ├── ps.js
+│   │   │   │   │   ├── pt.cjs
+│   │   │   │   │   ├── pt.d.cts
+│   │   │   │   │   ├── pt.d.ts
+│   │   │   │   │   ├── pt.js
+│   │   │   │   │   ├── ru.cjs
+│   │   │   │   │   ├── ru.d.cts
+│   │   │   │   │   ├── ru.d.ts
+│   │   │   │   │   ├── ru.js
+│   │   │   │   │   ├── sl.cjs
+│   │   │   │   │   ├── sl.d.cts
+│   │   │   │   │   ├── sl.d.ts
+│   │   │   │   │   ├── sl.js
+│   │   │   │   │   ├── sv.cjs
+│   │   │   │   │   ├── sv.d.cts
+│   │   │   │   │   ├── sv.d.ts
+│   │   │   │   │   ├── sv.js
+│   │   │   │   │   ├── ta.cjs
+│   │   │   │   │   ├── ta.d.cts
+│   │   │   │   │   ├── ta.d.ts
+│   │   │   │   │   ├── ta.js
+│   │   │   │   │   ├── th.cjs
+│   │   │   │   │   ├── th.d.cts
+│   │   │   │   │   ├── th.d.ts
+│   │   │   │   │   ├── th.js
+│   │   │   │   │   ├── tr.cjs
+│   │   │   │   │   ├── tr.d.cts
+│   │   │   │   │   ├── tr.d.ts
+│   │   │   │   │   ├── tr.js
+│   │   │   │   │   ├── ua.cjs
+│   │   │   │   │   ├── ua.d.cts
+│   │   │   │   │   ├── ua.d.ts
+│   │   │   │   │   ├── ua.js
+│   │   │   │   │   ├── ur.cjs
+│   │   │   │   │   ├── ur.d.cts
+│   │   │   │   │   ├── ur.d.ts
+│   │   │   │   │   ├── ur.js
+│   │   │   │   │   ├── vi.cjs
+│   │   │   │   │   ├── vi.d.cts
+│   │   │   │   │   ├── vi.d.ts
+│   │   │   │   │   ├── vi.js
+│   │   │   │   │   ├── zh-CN.cjs
+│   │   │   │   │   ├── zh-CN.d.cts
+│   │   │   │   │   ├── zh-CN.d.ts
+│   │   │   │   │   ├── zh-CN.js
+│   │   │   │   │   ├── zh-TW.cjs
+│   │   │   │   │   ├── zh-TW.d.cts
+│   │   │   │   │   ├── zh-TW.d.ts
+│   │   │   │   │   └── zh-TW.js
+│   │   │   │   └── mini
+│   │   │   │       ├── checks.cjs
+│   │   │   │       ├── checks.d.cts
+│   │   │   │       ├── checks.d.ts
+│   │   │   │       ├── checks.js
+│   │   │   │       ├── coerce.cjs
+│   │   │   │       ├── coerce.d.cts
+│   │   │   │       ├── coerce.d.ts
+│   │   │   │       ├── coerce.js
+│   │   │   │       ├── external.cjs
+│   │   │   │       ├── external.d.cts
+│   │   │   │       ├── external.d.ts
+│   │   │   │       ├── external.js
+│   │   │   │       ├── index.cjs
+│   │   │   │       ├── index.d.cts
+│   │   │   │       ├── index.d.ts
+│   │   │   │       ├── index.js
+│   │   │   │       ├── iso.cjs
+│   │   │   │       ├── iso.d.cts
+│   │   │   │       ├── iso.d.ts
+│   │   │   │       ├── iso.js
+│   │   │   │       ├── parse.cjs
+│   │   │   │       ├── parse.d.cts
+│   │   │   │       ├── parse.d.ts
+│   │   │   │       ├── parse.js
+│   │   │   │       ├── schemas.cjs
+│   │   │   │       ├── schemas.d.cts
+│   │   │   │       ├── schemas.d.ts
+│   │   │   │       └── schemas.js
+│   │   │   └── v4-mini
+│   │   │       ├── index.cjs
+│   │   │       ├── index.d.cts
+│   │   │       ├── index.d.ts
+│   │   │       └── index.js
+│   │   └── zwitch
 │   │       ├── index.d.ts
 │   │       ├── index.js
+│   │       ├── license
 │   │       ├── package.json
-│   │       ├── src
-│   │       │   ├── index.ts
-│   │       │   ├── v3
-│   │       │   │   ├── ZodError.ts
-│   │       │   │   ├── benchmarks
-│   │       │   │   │   ├── datetime.ts
-│   │       │   │   │   ├── discriminatedUnion.ts
-│   │       │   │   │   ├── index.ts
-│   │       │   │   │   ├── ipv4.ts
-│   │       │   │   │   ├── object.ts
-│   │       │   │   │   ├── primitives.ts
-│   │       │   │   │   ├── realworld.ts
-│   │       │   │   │   ├── string.ts
-│   │       │   │   │   └── union.ts
-│   │       │   │   ├── errors.ts
-│   │       │   │   ├── external.ts
-│   │       │   │   ├── helpers
-│   │       │   │   │   ├── enumUtil.ts
-│   │       │   │   │   ├── errorUtil.ts
-│   │       │   │   │   ├── parseUtil.ts
-│   │       │   │   │   ├── partialUtil.ts
-│   │       │   │   │   ├── typeAliases.ts
-│   │       │   │   │   └── util.ts
-│   │       │   │   ├── index.ts
-│   │       │   │   ├── locales
-│   │       │   │   │   └── en.ts
-│   │       │   │   ├── standard-schema.ts
-│   │       │   │   ├── tests
-│   │       │   │   │   ├── Mocker.ts
-│   │       │   │   │   ├── all-errors.test.ts
-│   │       │   │   │   ├── anyunknown.test.ts
-│   │       │   │   │   ├── array.test.ts
-│   │       │   │   │   ├── async-parsing.test.ts
-│   │       │   │   │   ├── async-refinements.test.ts
-│   │       │   │   │   ├── base.test.ts
-│   │       │   │   │   ├── bigint.test.ts
-│   │       │   │   │   ├── branded.test.ts
-│   │       │   │   │   ├── catch.test.ts
-│   │       │   │   │   ├── coerce.test.ts
-│   │       │   │   │   ├── complex.test.ts
-│   │       │   │   │   ├── custom.test.ts
-│   │       │   │   │   ├── date.test.ts
-│   │       │   │   │   ├── deepmasking.test.ts
-│   │       │   │   │   ├── default.test.ts
-│   │       │   │   │   ├── description.test.ts
-│   │       │   │   │   ├── discriminated-unions.test.ts
-│   │       │   │   │   ├── enum.test.ts
-│   │       │   │   │   ├── error.test.ts
-│   │       │   │   │   ├── firstparty.test.ts
-│   │       │   │   │   ├── firstpartyschematypes.test.ts
-│   │       │   │   │   ├── function.test.ts
-│   │       │   │   │   ├── generics.test.ts
-│   │       │   │   │   ├── instanceof.test.ts
-│   │       │   │   │   ├── intersection.test.ts
-│   │       │   │   │   ├── language-server.source.ts
-│   │       │   │   │   ├── language-server.test.ts
-│   │       │   │   │   ├── literal.test.ts
-│   │       │   │   │   ├── map.test.ts
-│   │       │   │   │   ├── masking.test.ts
-│   │       │   │   │   ├── mocker.test.ts
-│   │       │   │   │   ├── nan.test.ts
-│   │       │   │   │   ├── nativeEnum.test.ts
-│   │       │   │   │   ├── nullable.test.ts
-│   │       │   │   │   ├── number.test.ts
-│   │       │   │   │   ├── object-augmentation.test.ts
-│   │       │   │   │   ├── object-in-es5-env.test.ts
-│   │       │   │   │   ├── object.test.ts
-│   │       │   │   │   ├── optional.test.ts
-│   │       │   │   │   ├── parseUtil.test.ts
-│   │       │   │   │   ├── parser.test.ts
-│   │       │   │   │   ├── partials.test.ts
-│   │       │   │   │   ├── pickomit.test.ts
-│   │       │   │   │   ├── pipeline.test.ts
-│   │       │   │   │   ├── preprocess.test.ts
-│   │       │   │   │   ├── primitive.test.ts
-│   │       │   │   │   ├── promise.test.ts
-│   │       │   │   │   ├── readonly.test.ts
-│   │       │   │   │   ├── record.test.ts
-│   │       │   │   │   ├── recursive.test.ts
-│   │       │   │   │   ├── refine.test.ts
-│   │       │   │   │   ├── safeparse.test.ts
-│   │       │   │   │   ├── set.test.ts
-│   │       │   │   │   ├── standard-schema.test.ts
-│   │       │   │   │   ├── string.test.ts
-│   │       │   │   │   ├── transformer.test.ts
-│   │       │   │   │   ├── tuple.test.ts
-│   │       │   │   │   ├── unions.test.ts
-│   │       │   │   │   ├── validations.test.ts
-│   │       │   │   │   └── void.test.ts
-│   │       │   │   └── types.ts
-│   │       │   ├── v4
-│   │       │   │   ├── classic
-│   │       │   │   │   ├── checks.ts
-│   │       │   │   │   ├── coerce.ts
-│   │       │   │   │   ├── compat.ts
-│   │       │   │   │   ├── errors.ts
-│   │       │   │   │   ├── external.ts
-│   │       │   │   │   ├── index.ts
-│   │       │   │   │   ├── iso.ts
-│   │       │   │   │   ├── parse.ts
-│   │       │   │   │   ├── schemas.ts
-│   │       │   │   │   └── tests
-│   │       │   │   │       ├── anyunknown.test.ts
-│   │       │   │   │       ├── array.test.ts
-│   │       │   │   │       ├── assignability.test.ts
-│   │       │   │   │       ├── async-parsing.test.ts
-│   │       │   │   │       ├── async-refinements.test.ts
-│   │       │   │   │       ├── base.test.ts
-│   │       │   │   │       ├── bigint.test.ts
-│   │       │   │   │       ├── brand.test.ts
-│   │       │   │   │       ├── catch.test.ts
-│   │       │   │   │       ├── coalesce.test.ts
-│   │       │   │   │       ├── coerce.test.ts
-│   │       │   │   │       ├── continuability.test.ts
-│   │       │   │   │       ├── custom.test.ts
-│   │       │   │   │       ├── date.test.ts
-│   │       │   │   │       ├── datetime.test.ts
-│   │       │   │   │       ├── default.test.ts
-│   │       │   │   │       ├── description.test.ts
-│   │       │   │   │       ├── discriminated-unions.test.ts
-│   │       │   │   │       ├── enum.test.ts
-│   │       │   │   │       ├── error-utils.test.ts
-│   │       │   │   │       ├── error.test.ts
-│   │       │   │   │       ├── file.test.ts
-│   │       │   │   │       ├── firstparty.test.ts
-│   │       │   │   │       ├── function.test.ts
-│   │       │   │   │       ├── generics.test.ts
-│   │       │   │   │       ├── index.test.ts
-│   │       │   │   │       ├── instanceof.test.ts
-│   │       │   │   │       ├── intersection.test.ts
-│   │       │   │   │       ├── json.test.ts
-│   │       │   │   │       ├── lazy.test.ts
-│   │       │   │   │       ├── literal.test.ts
-│   │       │   │   │       ├── map.test.ts
-│   │       │   │   │       ├── nan.test.ts
-│   │       │   │   │       ├── nested-refine.test.ts
-│   │       │   │   │       ├── nonoptional.test.ts
-│   │       │   │   │       ├── nullable.test.ts
-│   │       │   │   │       ├── number.test.ts
-│   │       │   │   │       ├── object.test.ts
-│   │       │   │   │       ├── optional.test.ts
-│   │       │   │   │       ├── partial.test.ts
-│   │       │   │   │       ├── pickomit.test.ts
-│   │       │   │   │       ├── pipe.test.ts
-│   │       │   │   │       ├── prefault.test.ts
-│   │       │   │   │       ├── preprocess.test.ts
-│   │       │   │   │       ├── primitive.test.ts
-│   │       │   │   │       ├── promise.test.ts
-│   │       │   │   │       ├── prototypes.test.ts
-│   │       │   │   │       ├── readonly.test.ts
-│   │       │   │   │       ├── record.test.ts
-│   │       │   │   │       ├── recursive-types.test.ts
-│   │       │   │   │       ├── refine.test.ts
-│   │       │   │   │       ├── registries.test.ts
-│   │       │   │   │       ├── set.test.ts
-│   │       │   │   │       ├── standard-schema.test.ts
-│   │       │   │   │       ├── string-formats.test.ts
-│   │       │   │   │       ├── string.test.ts
-│   │       │   │   │       ├── stringbool.test.ts
-│   │       │   │   │       ├── template-literal.test.ts
-│   │       │   │   │       ├── to-json-schema.test.ts
-│   │       │   │   │       ├── transform.test.ts
-│   │       │   │   │       ├── tuple.test.ts
-│   │       │   │   │       ├── union.test.ts
-│   │       │   │   │       ├── validations.test.ts
-│   │       │   │   │       └── void.test.ts
-│   │       │   │   ├── core
-│   │       │   │   │   ├── api.ts
-│   │       │   │   │   ├── checks.ts
-│   │       │   │   │   ├── config.ts
-│   │       │   │   │   ├── core.ts
-│   │       │   │   │   ├── doc.ts
-│   │       │   │   │   ├── errors.ts
-│   │       │   │   │   ├── function.ts
-│   │       │   │   │   ├── index.ts
-│   │       │   │   │   ├── json-schema.ts
-│   │       │   │   │   ├── parse.ts
-│   │       │   │   │   ├── regexes.ts
-│   │       │   │   │   ├── registries.ts
-│   │       │   │   │   ├── schemas.ts
-│   │       │   │   │   ├── standard-schema.ts
-│   │       │   │   │   ├── tests
-│   │       │   │   │   │   ├── index.test.ts
-│   │       │   │   │   │   └── locales
-│   │       │   │   │   │       ├── be.test.ts
-│   │       │   │   │   │       ├── en.test.ts
-│   │       │   │   │   │       ├── ru.test.ts
-│   │       │   │   │   │       └── tr.test.ts
-│   │       │   │   │   ├── to-json-schema.ts
-│   │       │   │   │   ├── util.ts
-│   │       │   │   │   ├── versions.ts
-│   │       │   │   │   └── zsf.ts
-│   │       │   │   ├── index.ts
-│   │       │   │   ├── locales
-│   │       │   │   │   ├── ar.ts
-│   │       │   │   │   ├── az.ts
-│   │       │   │   │   ├── be.ts
-│   │       │   │   │   ├── ca.ts
-│   │       │   │   │   ├── cs.ts
-│   │       │   │   │   ├── de.ts
-│   │       │   │   │   ├── en.ts
-│   │       │   │   │   ├── eo.ts
-│   │       │   │   │   ├── es.ts
-│   │       │   │   │   ├── fa.ts
-│   │       │   │   │   ├── fi.ts
-│   │       │   │   │   ├── fr-CA.ts
-│   │       │   │   │   ├── fr.ts
-│   │       │   │   │   ├── he.ts
-│   │       │   │   │   ├── hu.ts
-│   │       │   │   │   ├── id.ts
-│   │       │   │   │   ├── index.ts
-│   │       │   │   │   ├── it.ts
-│   │       │   │   │   ├── ja.ts
-│   │       │   │   │   ├── kh.ts
-│   │       │   │   │   ├── ko.ts
-│   │       │   │   │   ├── mk.ts
-│   │       │   │   │   ├── ms.ts
-│   │       │   │   │   ├── nl.ts
-│   │       │   │   │   ├── no.ts
-│   │       │   │   │   ├── ota.ts
-│   │       │   │   │   ├── pl.ts
-│   │       │   │   │   ├── ps.ts
-│   │       │   │   │   ├── pt.ts
-│   │       │   │   │   ├── ru.ts
-│   │       │   │   │   ├── sl.ts
-│   │       │   │   │   ├── sv.ts
-│   │       │   │   │   ├── ta.ts
-│   │       │   │   │   ├── th.ts
-│   │       │   │   │   ├── tr.ts
-│   │       │   │   │   ├── ua.ts
-│   │       │   │   │   ├── ur.ts
-│   │       │   │   │   ├── vi.ts
-│   │       │   │   │   ├── zh-CN.ts
-│   │       │   │   │   └── zh-TW.ts
-│   │       │   │   └── mini
-│   │       │   │       ├── checks.ts
-│   │       │   │       ├── coerce.ts
-│   │       │   │       ├── external.ts
-│   │       │   │       ├── index.ts
-│   │       │   │       ├── iso.ts
-│   │       │   │       ├── parse.ts
-│   │       │   │       ├── schemas.ts
-│   │       │   │       └── tests
-│   │       │   │           ├── assignability.test.ts
-│   │       │   │           ├── brand.test.ts
-│   │       │   │           ├── checks.test.ts
-│   │       │   │           ├── computed.test.ts
-│   │       │   │           ├── error.test.ts
-│   │       │   │           ├── functions.test.ts
-│   │       │   │           ├── index.test.ts
-│   │       │   │           ├── number.test.ts
-│   │       │   │           ├── object.test.ts
-│   │       │   │           ├── prototypes.test.ts
-│   │       │   │           ├── recursive-types.test.ts
-│   │       │   │           └── string.test.ts
-│   │       │   └── v4-mini
-│   │       │       └── index.ts
-│   │       ├── v3
-│   │       │   ├── ZodError.cjs
-│   │       │   ├── ZodError.d.cts
-│   │       │   ├── ZodError.d.ts
-│   │       │   ├── ZodError.js
-│   │       │   ├── errors.cjs
-│   │       │   ├── errors.d.cts
-│   │       │   ├── errors.d.ts
-│   │       │   ├── errors.js
-│   │       │   ├── external.cjs
-│   │       │   ├── external.d.cts
-│   │       │   ├── external.d.ts
-│   │       │   ├── external.js
-│   │       │   ├── helpers
-│   │       │   │   ├── enumUtil.cjs
-│   │       │   │   ├── enumUtil.d.cts
-│   │       │   │   ├── enumUtil.d.ts
-│   │       │   │   ├── enumUtil.js
-│   │       │   │   ├── errorUtil.cjs
-│   │       │   │   ├── errorUtil.d.cts
-│   │       │   │   ├── errorUtil.d.ts
-│   │       │   │   ├── errorUtil.js
-│   │       │   │   ├── parseUtil.cjs
-│   │       │   │   ├── parseUtil.d.cts
-│   │       │   │   ├── parseUtil.d.ts
-│   │       │   │   ├── parseUtil.js
-│   │       │   │   ├── partialUtil.cjs
-│   │       │   │   ├── partialUtil.d.cts
-│   │       │   │   ├── partialUtil.d.ts
-│   │       │   │   ├── partialUtil.js
-│   │       │   │   ├── typeAliases.cjs
-│   │       │   │   ├── typeAliases.d.cts
-│   │       │   │   ├── typeAliases.d.ts
-│   │       │   │   ├── typeAliases.js
-│   │       │   │   ├── util.cjs
-│   │       │   │   ├── util.d.cts
-│   │       │   │   ├── util.d.ts
-│   │       │   │   └── util.js
-│   │       │   ├── index.cjs
-│   │       │   ├── index.d.cts
-│   │       │   ├── index.d.ts
-│   │       │   ├── index.js
-│   │       │   ├── locales
-│   │       │   │   ├── en.cjs
-│   │       │   │   ├── en.d.cts
-│   │       │   │   ├── en.d.ts
-│   │       │   │   └── en.js
-│   │       │   ├── standard-schema.cjs
-│   │       │   ├── standard-schema.d.cts
-│   │       │   ├── standard-schema.d.ts
-│   │       │   ├── standard-schema.js
-│   │       │   ├── types.cjs
-│   │       │   ├── types.d.cts
-│   │       │   ├── types.d.ts
-│   │       │   └── types.js
-│   │       ├── v4
-│   │       │   ├── classic
-│   │       │   │   ├── checks.cjs
-│   │       │   │   ├── checks.d.cts
-│   │       │   │   ├── checks.d.ts
-│   │       │   │   ├── checks.js
-│   │       │   │   ├── coerce.cjs
-│   │       │   │   ├── coerce.d.cts
-│   │       │   │   ├── coerce.d.ts
-│   │       │   │   ├── coerce.js
-│   │       │   │   ├── compat.cjs
-│   │       │   │   ├── compat.d.cts
-│   │       │   │   ├── compat.d.ts
-│   │       │   │   ├── compat.js
-│   │       │   │   ├── errors.cjs
-│   │       │   │   ├── errors.d.cts
-│   │       │   │   ├── errors.d.ts
-│   │       │   │   ├── errors.js
-│   │       │   │   ├── external.cjs
-│   │       │   │   ├── external.d.cts
-│   │       │   │   ├── external.d.ts
-│   │       │   │   ├── external.js
-│   │       │   │   ├── index.cjs
-│   │       │   │   ├── index.d.cts
-│   │       │   │   ├── index.d.ts
-│   │       │   │   ├── index.js
-│   │       │   │   ├── iso.cjs
-│   │       │   │   ├── iso.d.cts
-│   │       │   │   ├── iso.d.ts
-│   │       │   │   ├── iso.js
-│   │       │   │   ├── parse.cjs
-│   │       │   │   ├── parse.d.cts
-│   │       │   │   ├── parse.d.ts
-│   │       │   │   ├── parse.js
-│   │       │   │   ├── schemas.cjs
-│   │       │   │   ├── schemas.d.cts
-│   │       │   │   ├── schemas.d.ts
-│   │       │   │   └── schemas.js
-│   │       │   ├── core
-│   │       │   │   ├── api.cjs
-│   │       │   │   ├── api.d.cts
-│   │       │   │   ├── api.d.ts
-│   │       │   │   ├── api.js
-│   │       │   │   ├── checks.cjs
-│   │       │   │   ├── checks.d.cts
-│   │       │   │   ├── checks.d.ts
-│   │       │   │   ├── checks.js
-│   │       │   │   ├── core.cjs
-│   │       │   │   ├── core.d.cts
-│   │       │   │   ├── core.d.ts
-│   │       │   │   ├── core.js
-│   │       │   │   ├── doc.cjs
-│   │       │   │   ├── doc.d.cts
-│   │       │   │   ├── doc.d.ts
-│   │       │   │   ├── doc.js
-│   │       │   │   ├── errors.cjs
-│   │       │   │   ├── errors.d.cts
-│   │       │   │   ├── errors.d.ts
-│   │       │   │   ├── errors.js
-│   │       │   │   ├── function.cjs
-│   │       │   │   ├── function.d.cts
-│   │       │   │   ├── function.d.ts
-│   │       │   │   ├── function.js
-│   │       │   │   ├── index.cjs
-│   │       │   │   ├── index.d.cts
-│   │       │   │   ├── index.d.ts
-│   │       │   │   ├── index.js
-│   │       │   │   ├── json-schema.cjs
-│   │       │   │   ├── json-schema.d.cts
-│   │       │   │   ├── json-schema.d.ts
-│   │       │   │   ├── json-schema.js
-│   │       │   │   ├── parse.cjs
-│   │       │   │   ├── parse.d.cts
-│   │       │   │   ├── parse.d.ts
-│   │       │   │   ├── parse.js
-│   │       │   │   ├── regexes.cjs
-│   │       │   │   ├── regexes.d.cts
-│   │       │   │   ├── regexes.d.ts
-│   │       │   │   ├── regexes.js
-│   │       │   │   ├── registries.cjs
-│   │       │   │   ├── registries.d.cts
-│   │       │   │   ├── registries.d.ts
-│   │       │   │   ├── registries.js
-│   │       │   │   ├── schemas.cjs
-│   │       │   │   ├── schemas.d.cts
-│   │       │   │   ├── schemas.d.ts
-│   │       │   │   ├── schemas.js
-│   │       │   │   ├── standard-schema.cjs
-│   │       │   │   ├── standard-schema.d.cts
-│   │       │   │   ├── standard-schema.d.ts
-│   │       │   │   ├── standard-schema.js
-│   │       │   │   ├── to-json-schema.cjs
-│   │       │   │   ├── to-json-schema.d.cts
-│   │       │   │   ├── to-json-schema.d.ts
-│   │       │   │   ├── to-json-schema.js
-│   │       │   │   ├── util.cjs
-│   │       │   │   ├── util.d.cts
-│   │       │   │   ├── util.d.ts
-│   │       │   │   ├── util.js
-│   │       │   │   ├── versions.cjs
-│   │       │   │   ├── versions.d.cts
-│   │       │   │   ├── versions.d.ts
-│   │       │   │   └── versions.js
-│   │       │   ├── index.cjs
-│   │       │   ├── index.d.cts
-│   │       │   ├── index.d.ts
-│   │       │   ├── index.js
-│   │       │   ├── locales
-│   │       │   │   ├── ar.cjs
-│   │       │   │   ├── ar.d.cts
-│   │       │   │   ├── ar.d.ts
-│   │       │   │   ├── ar.js
-│   │       │   │   ├── az.cjs
-│   │       │   │   ├── az.d.cts
-│   │       │   │   ├── az.d.ts
-│   │       │   │   ├── az.js
-│   │       │   │   ├── be.cjs
-│   │       │   │   ├── be.d.cts
-│   │       │   │   ├── be.d.ts
-│   │       │   │   ├── be.js
-│   │       │   │   ├── ca.cjs
-│   │       │   │   ├── ca.d.cts
-│   │       │   │   ├── ca.d.ts
-│   │       │   │   ├── ca.js
-│   │       │   │   ├── cs.cjs
-│   │       │   │   ├── cs.d.cts
-│   │       │   │   ├── cs.d.ts
-│   │       │   │   ├── cs.js
-│   │       │   │   ├── de.cjs
-│   │       │   │   ├── de.d.cts
-│   │       │   │   ├── de.d.ts
-│   │       │   │   ├── de.js
-│   │       │   │   ├── en.cjs
-│   │       │   │   ├── en.d.cts
-│   │       │   │   ├── en.d.ts
-│   │       │   │   ├── en.js
-│   │       │   │   ├── eo.cjs
-│   │       │   │   ├── eo.d.cts
-│   │       │   │   ├── eo.d.ts
-│   │       │   │   ├── eo.js
-│   │       │   │   ├── es.cjs
-│   │       │   │   ├── es.d.cts
-│   │       │   │   ├── es.d.ts
-│   │       │   │   ├── es.js
-│   │       │   │   ├── fa.cjs
-│   │       │   │   ├── fa.d.cts
-│   │       │   │   ├── fa.d.ts
-│   │       │   │   ├── fa.js
-│   │       │   │   ├── fi.cjs
-│   │       │   │   ├── fi.d.cts
-│   │       │   │   ├── fi.d.ts
-│   │       │   │   ├── fi.js
-│   │       │   │   ├── fr-CA.cjs
-│   │       │   │   ├── fr-CA.d.cts
-│   │       │   │   ├── fr-CA.d.ts
-│   │       │   │   ├── fr-CA.js
-│   │       │   │   ├── fr.cjs
-│   │       │   │   ├── fr.d.cts
-│   │       │   │   ├── fr.d.ts
-│   │       │   │   ├── fr.js
-│   │       │   │   ├── he.cjs
-│   │       │   │   ├── he.d.cts
-│   │       │   │   ├── he.d.ts
-│   │       │   │   ├── he.js
-│   │       │   │   ├── hu.cjs
-│   │       │   │   ├── hu.d.cts
-│   │       │   │   ├── hu.d.ts
-│   │       │   │   ├── hu.js
-│   │       │   │   ├── id.cjs
-│   │       │   │   ├── id.d.cts
-│   │       │   │   ├── id.d.ts
-│   │       │   │   ├── id.js
-│   │       │   │   ├── index.cjs
-│   │       │   │   ├── index.d.cts
-│   │       │   │   ├── index.d.ts
-│   │       │   │   ├── index.js
-│   │       │   │   ├── it.cjs
-│   │       │   │   ├── it.d.cts
-│   │       │   │   ├── it.d.ts
-│   │       │   │   ├── it.js
-│   │       │   │   ├── ja.cjs
-│   │       │   │   ├── ja.d.cts
-│   │       │   │   ├── ja.d.ts
-│   │       │   │   ├── ja.js
-│   │       │   │   ├── kh.cjs
-│   │       │   │   ├── kh.d.cts
-│   │       │   │   ├── kh.d.ts
-│   │       │   │   ├── kh.js
-│   │       │   │   ├── ko.cjs
-│   │       │   │   ├── ko.d.cts
-│   │       │   │   ├── ko.d.ts
-│   │       │   │   ├── ko.js
-│   │       │   │   ├── mk.cjs
-│   │       │   │   ├── mk.d.cts
-│   │       │   │   ├── mk.d.ts
-│   │       │   │   ├── mk.js
-│   │       │   │   ├── ms.cjs
-│   │       │   │   ├── ms.d.cts
-│   │       │   │   ├── ms.d.ts
-│   │       │   │   ├── ms.js
-│   │       │   │   ├── nl.cjs
-│   │       │   │   ├── nl.d.cts
-│   │       │   │   ├── nl.d.ts
-│   │       │   │   ├── nl.js
-│   │       │   │   ├── no.cjs
-│   │       │   │   ├── no.d.cts
-│   │       │   │   ├── no.d.ts
-│   │       │   │   ├── no.js
-│   │       │   │   ├── ota.cjs
-│   │       │   │   ├── ota.d.cts
-│   │       │   │   ├── ota.d.ts
-│   │       │   │   ├── ota.js
-│   │       │   │   ├── pl.cjs
-│   │       │   │   ├── pl.d.cts
-│   │       │   │   ├── pl.d.ts
-│   │       │   │   ├── pl.js
-│   │       │   │   ├── ps.cjs
-│   │       │   │   ├── ps.d.cts
-│   │       │   │   ├── ps.d.ts
-│   │       │   │   ├── ps.js
-│   │       │   │   ├── pt.cjs
-│   │       │   │   ├── pt.d.cts
-│   │       │   │   ├── pt.d.ts
-│   │       │   │   ├── pt.js
-│   │       │   │   ├── ru.cjs
-│   │       │   │   ├── ru.d.cts
-│   │       │   │   ├── ru.d.ts
-│   │       │   │   ├── ru.js
-│   │       │   │   ├── sl.cjs
-│   │       │   │   ├── sl.d.cts
-│   │       │   │   ├── sl.d.ts
-│   │       │   │   ├── sl.js
-│   │       │   │   ├── sv.cjs
-│   │       │   │   ├── sv.d.cts
-│   │       │   │   ├── sv.d.ts
-│   │       │   │   ├── sv.js
-│   │       │   │   ├── ta.cjs
-│   │       │   │   ├── ta.d.cts
-│   │       │   │   ├── ta.d.ts
-│   │       │   │   ├── ta.js
-│   │       │   │   ├── th.cjs
-│   │       │   │   ├── th.d.cts
-│   │       │   │   ├── th.d.ts
-│   │       │   │   ├── th.js
-│   │       │   │   ├── tr.cjs
-│   │       │   │   ├── tr.d.cts
-│   │       │   │   ├── tr.d.ts
-│   │       │   │   ├── tr.js
-│   │       │   │   ├── ua.cjs
-│   │       │   │   ├── ua.d.cts
-│   │       │   │   ├── ua.d.ts
-│   │       │   │   ├── ua.js
-│   │       │   │   ├── ur.cjs
-│   │       │   │   ├── ur.d.cts
-│   │       │   │   ├── ur.d.ts
-│   │       │   │   ├── ur.js
-│   │       │   │   ├── vi.cjs
-│   │       │   │   ├── vi.d.cts
-│   │       │   │   ├── vi.d.ts
-│   │       │   │   ├── vi.js
-│   │       │   │   ├── zh-CN.cjs
-│   │       │   │   ├── zh-CN.d.cts
-│   │       │   │   ├── zh-CN.d.ts
-│   │       │   │   ├── zh-CN.js
-│   │       │   │   ├── zh-TW.cjs
-│   │       │   │   ├── zh-TW.d.cts
-│   │       │   │   ├── zh-TW.d.ts
-│   │       │   │   └── zh-TW.js
-│   │       │   └── mini
-│   │       │       ├── checks.cjs
-│   │       │       ├── checks.d.cts
-│   │       │       ├── checks.d.ts
-│   │       │       ├── checks.js
-│   │       │       ├── coerce.cjs
-│   │       │       ├── coerce.d.cts
-│   │       │       ├── coerce.d.ts
-│   │       │       ├── coerce.js
-│   │       │       ├── external.cjs
-│   │       │       ├── external.d.cts
-│   │       │       ├── external.d.ts
-│   │       │       ├── external.js
-│   │       │       ├── index.cjs
-│   │       │       ├── index.d.cts
-│   │       │       ├── index.d.ts
-│   │       │       ├── index.js
-│   │       │       ├── iso.cjs
-│   │       │       ├── iso.d.cts
-│   │       │       ├── iso.d.ts
-│   │       │       ├── iso.js
-│   │       │       ├── parse.cjs
-│   │       │       ├── parse.d.cts
-│   │       │       ├── parse.d.ts
-│   │       │       ├── parse.js
-│   │       │       ├── schemas.cjs
-│   │       │       ├── schemas.d.cts
-│   │       │       ├── schemas.d.ts
-│   │       │       └── schemas.js
-│   │       └── v4-mini
-│   │           ├── index.cjs
-│   │           ├── index.d.cts
-│   │           ├── index.d.ts
-│   │           └── index.js
+│   │       └── readme.md
 │   ├── package.json
 │   ├── plugins
 │   │   ├── health-check
@@ -60808,6 +63149,7 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   ├── TeamModal.js
 │   │   │   ├── VenteConclueForm.js
 │   │   │   ├── gerant
+│   │   │   │   ├── APIDocModal.js
 │   │   │   │   ├── APIKeysManagement.js
 │   │   │   │   ├── CopyButton.js
 │   │   │   │   ├── CreateStoreModal.js
@@ -60816,9 +63158,13 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │   │   │   ├── ManagerTransferModal.js
 │   │   │   │   ├── SellerTransferModal.js
 │   │   │   │   ├── Sparkline.js
+│   │   │   │   ├── StaffOverview.js
 │   │   │   │   ├── StoreCard.js
 │   │   │   │   ├── StoreDetailModal.js
 │   │   │   │   └── StoreDropdown.js
+│   │   │   ├── superadmin
+│   │   │   │   ├── AIAssistant.js
+│   │   │   │   └── AdminManagement.js
 │   │   │   └── ui
 │   │   │       ├── accordion.jsx
 │   │   │       ├── alert-dialog.jsx
@@ -60881,6 +63227,9 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   │       ├── ManagerDashboard.js
 │   │       ├── ManagerDashboard_OLD_BACKUP.js
 │   │       ├── ManagerSettings.js
+│   │       ├── RegisterGerant.js
+│   │       ├── RegisterManager.js
+│   │       ├── RegisterSeller.js
 │   │       ├── SellerDashboard.js
 │   │       └── SuperAdminDashboard.js
 │   ├── tailwind.config.js
@@ -60911,52 +63260,65 @@ There are no tasks currently in progress. The API Integration feature is complet
 │   └── __init__.py
 └── yarn.lock
 
-5704 directories, 55123 filesstore_ids
+6044 directories, 57126 files
 
 **Key Technical Concepts**
--   **ReactDOM.createPortal**: Used to render the store selection dropdown outside of its parent DOM hierarchy. This was the key to solving the persistent  error by preventing DOM conflicts within the modal.
--   **Component Isolation**: The Copy button and Store Dropdown were moved into their own self-contained components (, ) to decouple their state and logic from the main  component, which was critical for debugging and stability.
--   **Pure DOM Manipulation as a Fallback**: When React's state management caused unsolvable conflicts for the simple Copy button, the solution was to fall back to pure JavaScript DOM manipulation (, ) within the  handler to avoid triggering React re-renders.
--   **Granular API Permissions**: The backend was enhanced to associate a list of  with each API key, allowing for flexible and secure access control, moving from a one key for all to a one key for selected model.
+- **External API Integration (Brevo)**: Integrated the  to send transactional emails. The process revealed the importance of checking external service security policies, such as IP whitelisting.
+- **AI Integration ()**: Successfully used the internal library to create a conversational AI assistant, including managing conversation state and formatting responses.
+- **Data Normalization**: Performed a one-time database update via a bash command to clean up legacy data and enforce a consistent state for the  field on users.
+- **Data Integrity Testing**: Created a dedicated Python test script () to simulate an operation (deleting a manager) and programmatically verify that related data remains correct, ensuring business logic changes are safe.
+- **Decoupling Business Logic**: Refactored the application to allow the deletion of a manager without deleting their associated sellers by setting the  field to , correctly identifying that the primary data relationship is with the store, not the manager.
 
 **key DB schema**
--   ****: (MODIFIED)  - The  field was added to store an array of store IDs that the key is authorized to access. If  or empty, it implies access to all stores.
+-   No new collections were added. The  collection was modified to standardize the  field to one of , , or .
 
 **All files**
--   : Modified to add  to the API key logic.
--   : Modified to add the tab navigation.
--   : Heavily modified; the main component for the feature.
--   : New file created to isolate the copy button logic and fix a bug.
--   : New file created to isolate the store dropdown and fix a critical bug using a React Portal.
--   : New documentation file.
+-   : Major changes for AI assistant, Gérant permissions, user counting, and Brevo integration.
+-   : Added the AI Assistant tab and component.
+-   : Added the Staff Overview tab and updated dashboard stat display.
+-   : New file for the AI chat UI.
+-   : New file for the unified staff management table.
+-   : New file to handle all Brevo email sending logic.
+-   : Updated with Brevo credentials and .
+-   : Updated with routes for new registration pages.
+
+**key api endpoints**
+-   : Interact with the AI assistant.
+-   : Fetch conversation history.
+-   : Suspend a seller.
+-   : Reactivate a seller.
+-   : Delete a seller.
+-   : Same actions for managers.
+-   : Modified to return counts for active and suspended users separately.
+-   : Modified to only count active users for billing.
+-   , : Modified to trigger an email via the Brevo service.
 
 **Critical Info for New Agent**
--   **The  bug is subtle**: The core issue was React trying to update/remove DOM nodes that were being affected by other state changes simultaneously (e.g., a dropdown menu inside a modal). The solutions were  for the dropdown and component isolation with pure DOM updates for the copy button. Be wary of making changes in  that could re-introduce these state conflicts.
--   **User is Technically Proficient**: The user understands technical concepts, provides detailed bug reports with console errors, and has strong opinions on UI/UX. Be prepared for precise feedback.
--   **Priorities can change**: The user is willing to abandon previously set priorities to focus on what they deem most important. Always confirm the next steps.
--   **Next Task**: The user has not yet confirmed the next task, but the Referral Program is the next highest priority from the previous plan. You should confirm this with the user.
+-   **Brevo is BLOCKED**: The entire user invitation/registration flow is non-functional until the user whitelists the server IP  in their Brevo account. This is the highest priority issue. You must inform the user about this and wait for their action.
+-   **Billing Logic**: The user has explicitly stated that only **active** users should be counted for subscription billing. While most endpoints were updated, the Stripe checkout logic was missed. This needs to be corrected to ensure 100% consistency.
+-   **Manager Deletion Logic**: The system now allows deleting a manager even if they have sellers. It sets the  of those sellers to , effectively making them orphans until they are re-assigned. The current task is to define how this re-assignment works.
 
 **Last 5 User Messages and any pending user messages**
--   **User**: Reports the  error persists after the agent's fix for the dropdown. **Status: ADDRESSED.**
--   **User**: Confirms a hard refresh didn't work and they don't want to simplify the UI to a checkbox list. **Status: ADDRESSED.**
--   **User**: Reports the  error persists even after the temporary state fix. **Status: ADDRESSED.**
--   **User**: Confirms the React Portal solution worked for the dropdown, but the copy button is still broken. **Status: ADDRESSED.**
--   **User**: Asks how to configure N8N to test the API. **Status: ADDRESSED.** The agent provided a complete guide.
+-   **User**: Stated that in principle, data is attached to the store, not the manager, so deleting a manager should be possible. **Status**: COMPLETED. Agent verified this and agreed.
+-   **User**: Chose Option B: when a manager is deleted, set their sellers'  to . Asked the agent to run a test to verify data integrity. **Status**: COMPLETED. Agent implemented the logic and ran a test script confirming no data loss.
+-   **User**: and what happens if I add a manager back later? How does the app handle this new entrant? **Status**: PENDING. This is the current task the agent is working on.
+-   **User**: Pointed out that the Notice API button leads to a blank page and should be a modal. **Status**: COMPLETED.
+-   **User**: Noticed the API documentation mentioned  token and questioned if it was correct. **Status**: COMPLETED. Agent corrected it to .
 
 **Project Health Check:**
--   **Broken**: None. All reported issues in this session have been resolved.
--   **Mocked**: Performance badges on the Gérant dashboard still use simplified logic. This is a known, low-priority item from the previous fork.
+-   **Broken**: The user invitation and registration flow is completely broken due to the Brevo IP block.
+-   **Mocked**: None.
 
 **Testing status**
--   Testing agent used after significant changes: NO (Agent used screenshot tool and manual testing extensively).
+-   Testing agent used after significant changes: YES, used to validate the AI Assistant feature.
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: []
--   Known regressions: None. The final implemented feature is stable.
+-   Known regressions: None.
 
 **Credentials to test flow:**
--   **Gérant**:  /  (Required for accessing the API Key Management page).
--   **Manager**:  / 
--   **Sellers**: , , etc. / 
+-   **Super Admin**:  / 
+-   **Gérant**:  / 
 
 **What agent forgot to execute**
--   The P0 and P1 issues from the previous fork summary were explicitly abandoned by the user at the start of this session. They were not forgotten but rather de-prioritized by user request.</analysis>
+-   The agent did not update the user counting logic in the Stripe checkout endpoint ( in ). It still includes suspended users in the count when it should only count active users.
+-   The test file  contains a check that produces a false alarm failure. While the agent correctly identified it as a false alarm, the test script itself should be corrected to reflect the valid logic (sellers of the same manager can belong to different stores).</analysis>
