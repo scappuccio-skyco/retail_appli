@@ -8685,6 +8685,128 @@ async def remove_super_admin(
 
 
 # ============================================
+# INVITATIONS MANAGEMENT - SuperAdmin Only
+# ============================================
+
+@api_router.get("/superadmin/invitations")
+async def get_all_invitations(
+    status: Optional[str] = None,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Récupérer toutes les invitations (tous gérants)"""
+    try:
+        query = {}
+        if status:
+            query["status"] = status
+        
+        invitations = await db.gerant_invitations.find(query, {"_id": 0}).to_list(1000)
+        
+        # Enrichir avec les infos du gérant
+        for invite in invitations:
+            gerant = await db.users.find_one(
+                {"id": invite.get("gerant_id")}, 
+                {"_id": 0, "name": 1, "email": 1}
+            )
+            if gerant:
+                invite["gerant_name"] = gerant.get("name", "N/A")
+                invite["gerant_email"] = gerant.get("email", "N/A")
+        
+        return invitations
+    except Exception as e:
+        logger.error(f"Error fetching invitations: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.delete("/superadmin/invitations/{invitation_id}")
+async def delete_invitation(
+    invitation_id: str,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Supprimer une invitation"""
+    try:
+        invitation = await db.gerant_invitations.find_one({"id": invitation_id}, {"_id": 0})
+        if not invitation:
+            raise HTTPException(status_code=404, detail="Invitation non trouvée")
+        
+        await db.gerant_invitations.delete_one({"id": invitation_id})
+        
+        # Log action
+        await log_admin_action(
+            admin=current_admin,
+            action="delete_invitation",
+            details={
+                "invitation_id": invitation_id,
+                "email": invitation.get("email"),
+                "role": invitation.get("role"),
+                "gerant_id": invitation.get("gerant_id")
+            }
+        )
+        
+        return {"success": True, "message": "Invitation supprimée"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting invitation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/superadmin/invitations/{invitation_id}/resend")
+async def resend_invitation(
+    invitation_id: str,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Renvoyer une invitation"""
+    try:
+        invitation = await db.gerant_invitations.find_one({"id": invitation_id}, {"_id": 0})
+        if not invitation:
+            raise HTTPException(status_code=404, detail="Invitation non trouvée")
+        
+        # Envoyer l'email
+        try:
+            recipient_name = invitation['email'].split('@')[0]
+            
+            if invitation['role'] == 'manager':
+                send_manager_invitation_email(
+                    recipient_email=invitation['email'],
+                    recipient_name=recipient_name,
+                    invitation_token=invitation['token'],
+                    gerant_name=invitation.get('gerant_name', 'Votre gérant'),
+                    store_name=invitation.get('store_name', 'Votre magasin')
+                )
+            elif invitation['role'] == 'seller':
+                send_seller_invitation_email(
+                    recipient_email=invitation['email'],
+                    recipient_name=recipient_name,
+                    invitation_token=invitation['token'],
+                    manager_name=invitation.get('manager_name', 'Votre manager'),
+                    store_name=invitation.get('store_name', 'Votre magasin')
+                )
+            
+            logger.info(f"Invitation resent to {invitation['email']} by super admin {current_admin['email']}")
+        except Exception as e:
+            logger.error(f"Failed to resend invitation email: {e}")
+            raise HTTPException(status_code=500, detail=f"Erreur lors de l'envoi de l'email: {str(e)}")
+        
+        # Log action
+        await log_admin_action(
+            admin=current_admin,
+            action="resend_invitation",
+            details={
+                "invitation_id": invitation_id,
+                "email": invitation.get("email"),
+                "role": invitation.get("role")
+            }
+        )
+        
+        return {"success": True, "message": "Invitation renvoyée"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error resending invitation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================
 # AI ASSISTANT ENDPOINTS - SuperAdmin Only
 # ============================================
 
