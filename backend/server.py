@@ -9747,18 +9747,16 @@ async def delete_manager_gerant(
     if manager.get('status') == 'deleted':
         raise HTTPException(status_code=400, detail="Le manager est déjà supprimé")
     
-    # Vérifier s'il a des vendeurs actifs
+    # Compter les vendeurs actifs (info seulement, pas de blocage)
     active_sellers = await db.users.count_documents({
         "manager_id": manager_id,
         "role": "seller",
         "status": {"$ne": "deleted"}
     })
     
-    if active_sellers > 0:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Impossible de supprimer ce manager : il a encore {active_sellers} vendeur(s) actif(s). Veuillez d'abord les transférer."
-        )
+    # Note: On autorise la suppression même avec des vendeurs actifs
+    # Les vendeurs gardent leur manager_id (historique) et restent attachés au magasin
+    # Aucune perte de données car les KPI sont liés au store_id et seller_id
     
     # Soft delete : marquer comme supprimé
     await db.users.update_one(
