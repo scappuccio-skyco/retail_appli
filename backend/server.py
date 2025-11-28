@@ -10240,6 +10240,25 @@ async def register_with_gerant_invite(invite_data: RegisterWithGerantInvite):
     user_dict = user_obj.model_dump()
     await db.users.insert_one(user_dict)
     
+    # Si c'est un manager, réassigner automatiquement les vendeurs orphelins du même magasin
+    if invitation['role'] == 'manager':
+        orphan_sellers_result = await db.users.update_many(
+            {
+                "role": "seller",
+                "store_id": invitation['store_id'],
+                "manager_id": None,
+                "status": {"$ne": "deleted"}
+            },
+            {
+                "$set": {
+                    "manager_id": user_obj.id,
+                    "updatedAt": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        if orphan_sellers_result.modified_count > 0:
+            logger.info(f"Réassigné {orphan_sellers_result.modified_count} vendeur(s) orphelin(s) au nouveau manager {user_obj.email}")
+    
     # Marquer l'invitation comme acceptée
     await db.gerant_invitations.update_one(
         {"token": invite_data.invitation_token},
