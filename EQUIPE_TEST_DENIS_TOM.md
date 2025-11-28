@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://super-admin-logs.preview.emergentagent.com
+https://user-flows.preview.emergentagent.com
 
 ### Manager
 ```
