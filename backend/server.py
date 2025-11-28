@@ -301,6 +301,7 @@ class GerantInvitation(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     token: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # Nom complet de la personne invitée
     email: EmailStr
     role: str  # "manager" ou "seller"
     gerant_id: str
