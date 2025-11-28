@@ -225,9 +225,9 @@ def send_seller_invitation_email(recipient_email: str, recipient_name: str, invi
                 <ul style="list-style: none; padding: 0;">
                     <li style="padding: 8px 0;">📊 Suivre vos KPI et performances en temps réel</li>
                     <li style="padding: 8px 0;">🎯 Consulter vos objectifs et challenges</li>
-                    <li style="padding: 8px 0;">🤖 Accéder à votre coach IA pour créer vos défis personnels</li>
-                    <li style="padding: 8px 0;">📈 Analyser vos ventes avec l'IA</li>
-                    <li style="padding: 8px 0;">💬 Recevoir des débriefs de votre manager</li>
+                    <li style="padding: 8px 0;">🤖 Créer vos défis personnels avec votre coach IA</li>
+                    <li style="padding: 8px 0;">✅ Analyser vos ventes conclues avec l'IA</li>
+                    <li style="padding: 8px 0;">❌ Analyser vos opportunités manquées avec l'IA</li>
                 </ul>
             </div>
             
