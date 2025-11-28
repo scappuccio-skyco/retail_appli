@@ -373,6 +373,9 @@ const GerantDashboard = ({ user, onLogout }) => {
         throw new Error(error.detail || 'Erreur lors de l\'invitation');
       }
 
+      // Consommer la réponse en cas de succès
+      await response.json();
+
       const roleText = inviteData.role === 'manager' ? 'Manager' : 'Vendeur';
       toast.success(`Invitation envoyée avec succès ! 📨 Le ${roleText} recevra un email pour rejoindre votre équipe.`);
       
