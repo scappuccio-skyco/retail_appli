@@ -328,13 +328,17 @@ const GerantDashboard = ({ user, onLogout }) => {
         })
       });
 
-      // Cloner immédiatement pour éviter les conflits avec les intercepteurs
-      const clonedResponse = response.clone();
-      const text = await clonedResponse.text();
-      const data = text ? JSON.parse(text) : {};
+      // Lire le texte UNE SEULE FOIS (pas de clone, pas de double lecture)
+      const text = await response.text();
+      let data = null;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (e) {
+        console.error('Erreur parse JSON:', e);
+      }
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Erreur lors du transfert');
+        throw new Error(data?.detail || 'Erreur lors du transfert');
       }
 
       toast.success('Vendeur transféré avec succès ! 🎉');
