@@ -8765,7 +8765,8 @@ async def resend_invitation(
         
         # Envoyer l'email
         try:
-            recipient_name = invitation['email'].split('@')[0]
+            # Utiliser le nom de l'invitation ou fallback sur email
+            recipient_name = invitation.get('name', invitation['email'].split('@')[0])
             
             if invitation['role'] == 'manager':
                 send_manager_invitation_email(
