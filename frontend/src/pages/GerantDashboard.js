@@ -580,6 +580,8 @@ const GerantDashboard = ({ user, onLogout }) => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {activeView === 'api' ? (
           <APIKeysManagement />
+        ) : activeView === 'staff' ? (
+          <StaffOverview />
         ) : (
           <>
             {/* Stats Globales */}
