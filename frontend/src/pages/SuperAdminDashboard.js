@@ -406,6 +406,17 @@ export default function SuperAdminDashboard() {
             <Clock className="w-5 h-5" />
             Gestion des Essais
           </button>
+          <button
+            onClick={() => setActiveTab('subscriptions')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+              activeTab === 'subscriptions'
+                ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg'
+                : 'text-green-200 hover:bg-white/10'
+            }`}
+          >
+            <TrendingUp className="w-5 h-5" />
+            Abonnements Stripe
+          </button>
         </div>
       </div>
 
