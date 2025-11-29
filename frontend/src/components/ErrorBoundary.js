@@ -22,19 +22,31 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Ignorer les erreurs d'extensions
-    if (error.stack && (
-      error.stack.includes('chrome-extension://') ||
-      error.stack.includes('MetaMask') ||
-      error.message.includes('MetaMask')
-    )) {
-      console.warn('Erreur MetaMask/Extension ignorée');
-      return;
-    }
+    // Vérifier si c'est une erreur d'extension
+    const errorMessage = error?.message || '';
+    const errorStack = error?.stack || '';
     
-    console.error('ErrorBoundary caught error:', error);
-    console.error('Error info:', errorInfo);
-    this.setState({ errorInfo });
+    const isExtensionError = 
+      errorStack.includes('chrome-extension://') ||
+      errorStack.includes('moz-extension://') ||
+      errorStack.includes('safari-extension://') ||
+      errorMessage.includes('MetaMask') ||
+      errorMessage.includes('Failed to connect') ||
+      errorMessage.includes('Échec de la connexion');
+    
+    if (isExtensionError) {
+      console.warn('Erreur d\'extension capturée et ignorée par ErrorBoundary:', errorMessage);
+      // Réinitialiser l'état pour ne pas afficher d'erreur
+      this.setState({ hasError: false, error: null, errorInfo: null });
+      return; // Ne pas logguer ni afficher
+    }
+
+    // Erreur légitime - logger
+    console.error('Erreur capturée par ErrorBoundary:', error, errorInfo);
+    this.setState({
+      error: error,
+      errorInfo: errorInfo
+    });
     
     // Auto-reload after 2 seconds if it's the removeChild error
     if (error.message && error.message.includes('removeChild')) {
