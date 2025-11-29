@@ -982,6 +982,7 @@ const GerantDashboard = ({ user, onLogout }) => {
           fetchSubscriptionInfo();
         }}
         subscriptionInfo={subscriptionInfo}
+        userRole={user?.role}
       />
     </div>
   );
