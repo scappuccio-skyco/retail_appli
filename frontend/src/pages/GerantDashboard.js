@@ -752,15 +752,15 @@ const GerantDashboard = ({ user, onLogout }) => {
           </div>
         </div>
 
-        {/* Classement des Magasins */}
+        {/* Classement des Magasins - Version compacte */}
         {rankedStores.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-orange-600" />
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-orange-600" />
               🏆 Classement {periodType === 'week' ? 'de la Semaine' : periodType === 'month' ? 'du Mois' : "de l'Année"}
             </h2>
-            <div className="glass-morphism rounded-xl p-6 border-2 border-orange-200">
-              <div className="space-y-3">
+            <div className="glass-morphism rounded-xl p-4 border-2 border-orange-200">
+              <div className="space-y-2">
                 {rankedStores.slice(0, 10).map((storeData, index) => {
                   const badge = getPerformanceBadge(storeData);
                   
@@ -788,31 +788,31 @@ const GerantDashboard = ({ user, onLogout }) => {
                         animationDelay: `${index * 0.1}s`,
                         animationFillMode: 'both'
                       }}
-                      className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md ranking-item animate-slideIn"
+                      className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-200 hover:shadow-md ranking-item animate-slideIn"
                     >
-                      <div className="flex items-center gap-4">
-                        <span className="text-2xl font-bold w-12 text-center">{rankEmoji}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl font-bold w-8 text-center">{rankEmoji}</span>
                         <div>
-                          <p className="font-bold text-gray-800">{storeData.name}</p>
-                          <p className="text-sm text-gray-600">{storeData.location}</p>
+                          <p className="font-semibold text-sm text-gray-800">{storeData.name}</p>
+                          <p className="text-xs text-gray-500">{storeData.location}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
                         <div className="text-right">
-                          <p className="text-lg font-bold text-gray-800">
+                          <p className="text-sm font-bold text-gray-800">
                             {storeData.periodCA.toLocaleString('fr-FR')} €
                           </p>
                           <p className="text-xs text-gray-500">{storeData.periodVentes} ventes</p>
                         </div>
                         {storeData.periodEvolution !== 0 && (
-                          <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold ${
+                          <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${
                             storeData.periodEvolution > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                           }`}>
                             {storeData.periodEvolution > 0 ? '↗' : '↘'} {Math.abs(storeData.periodEvolution).toFixed(0)}%
                           </div>
                         )}
                         {badge && (
-                          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          <div className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                             badge.type === 'excellent' ? 'bg-green-100 text-green-700' :
                             badge.type === 'good' ? 'bg-blue-100 text-blue-700' :
                             badge.type === 'average' ? 'bg-orange-100 text-orange-700' :
