@@ -9,55 +9,131 @@
         <!-- Filtrer les erreurs MetaMask AVANT le chargement de React -->
         <script>
             (function() {
-                // Désactiver l'overlay d'erreur React pour MetaMask
-                window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ || {};
-                const originalReportRuntimeError = window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__.reportRuntimeError;
+                console.log('[MetaMask Filter] Initializing error suppression...');
                 
-                window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__.reportRuntimeError = function(error) {
-                    const isMetaMaskError = 
-                        error?.message?.includes('MetaMask') ||
-                        error?.message?.includes('Failed to connect') ||
-                        error?.message?.includes('Échec de la connexion') ||
-                        error?.stack?.includes('chrome-extension://');
-                    
-                    if (isMetaMaskError) {
-                        console.warn('[Filtered] MetaMask extension error:', error.message);
-                        return; // Bloquer l'overlay
-                    }
-                    
-                    // Pour les autres erreurs, appeler la fonction originale si elle existe
-                    if (originalReportRuntimeError) {
-                        originalReportRuntimeError.call(this, error);
-                    }
-                };
+                // ÉTAPE 1: Désactiver complètement l'overlay React en production
+                if (typeof window !== 'undefined') {
+                    window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = {
+                        reportRuntimeError: function(error) {
+                            const isMetaMaskError = 
+                                error?.message?.includes('MetaMask') ||
+                                error?.message?.includes('Failed to connect') ||
+                                error?.message?.includes('Échec de la connexion') ||
+                                error?.message?.includes('chrome-extension') ||
+                                error?.stack?.includes('chrome-extension://');
+                            
+                            if (isMetaMaskError) {
+                                console.warn('[BLOCKED] MetaMask extension error - overlay suppressed');
+                                return; // Ne rien faire pour les erreurs MetaMask
+                            }
+                        },
+                        reportBuildError: function() {},
+                        dismissRuntimeErrors: function() {},
+                        startReportingRuntimeErrors: function() {}
+                    };
+                }
                 
-                // Intercepter les erreurs globales
+                // ÉTAPE 2: Intercepter les erreurs globales
                 window.addEventListener('error', function(event) {
                     const isMetaMaskError = 
                         event.message?.includes('MetaMask') ||
                         event.message?.includes('Failed to connect') ||
+                        event.message?.includes('Échec') ||
+                        event.message?.includes('chrome-extension') ||
                         event.filename?.includes('chrome-extension://');
                     
                     if (isMetaMaskError) {
-                        console.warn('[Filtered] Global MetaMask error:', event.message);
+                        console.warn('[BLOCKED] Global MetaMask error');
                         event.preventDefault();
+                        event.stopPropagation();
                         event.stopImmediatePropagation();
                         return false;
                     }
                 }, true);
                 
-                // Intercepter les promesses rejetées
+                // ÉTAPE 3: Intercepter les promesses rejetées
                 window.addEventListener('unhandledrejection', function(event) {
+                    const reason = event.reason;
                     const isMetaMaskError = 
-                        event.reason?.message?.includes('MetaMask') ||
-                        event.reason?.message?.includes('Failed to connect') ||
-                        String(event.reason).includes('MetaMask');
+                        reason?.message?.includes('MetaMask') ||
+                        reason?.message?.includes('Failed to connect') ||
+                        reason?.message?.includes('Échec') ||
+                        reason?.message?.includes('chrome-extension') ||
+                        String(reason).includes('MetaMask') ||
+                        String(reason).includes('chrome-extension');
                     
                     if (isMetaMaskError) {
-                        console.warn('[Filtered] Unhandled MetaMask promise rejection:', event.reason);
+                        console.warn('[BLOCKED] Unhandled MetaMask promise rejection');
                         event.preventDefault();
+                        event.stopPropagation();
                     }
-                });
+                }, true);
+                
+                // ÉTAPE 4: Surveillance continue et suppression de l'overlay s'il apparaît
+                function removeErrorOverlay() {
+                    // Chercher tous les éléments d'overlay possibles
+                    const overlays = [
+                        document.querySelector('iframe[style*="z-index"]'),
+                        document.querySelector('div[style*="position: fixed"][style*="z-index"]'),
+                        document.querySelector('[data-reactroot]'),
+                        ...Array.from(document.querySelectorAll('div')).filter(div => {
+                            const style = window.getComputedStyle(div);
+                            return style.position === 'fixed' && 
+                                   style.zIndex > 9000 &&
+                                   (div.textContent?.includes('ERREUR') || div.textContent?.includes('MetaMask'));
+                        })
+                    ];
+                    
+                    overlays.forEach(overlay => {
+                        if (overlay && overlay.textContent?.includes('MetaMask')) {
+                            console.warn('[REMOVED] MetaMask error overlay detected and removed');
+                            overlay.remove();
+                        }
+                    });
+                }
+                
+                // Vérifier toutes les 100ms pendant les 10 premières secondes
+                let checks = 0;
+                const maxChecks = 100;
+                const intervalId = setInterval(function() {
+                    removeErrorOverlay();
+                    checks++;
+                    if (checks >= maxChecks) {
+                        clearInterval(intervalId);
+                        console.log('[MetaMask Filter] Monitoring completed');
+                    }
+                }, 100);
+                
+                // ÉTAPE 5: Observer les mutations DOM pour attraper les overlays ajoutés dynamiquement
+                if (typeof MutationObserver !== 'undefined') {
+                    const observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            mutation.addedNodes.forEach(function(node) {
+                                if (node.nodeType === 1) { // Element node
+                                    const text = node.textContent || '';
+                                    if (text.includes('MetaMask') || text.includes('ERREUR')) {
+                                        const style = window.getComputedStyle(node);
+                                        if (style.position === 'fixed' && parseInt(style.zIndex) > 1000) {
+                                            console.warn('[REMOVED] MetaMask overlay caught by MutationObserver');
+                                            node.remove();
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    });
+                    
+                    // Observer dès que le DOM est prêt
+                    if (document.body) {
+                        observer.observe(document.body, { childList: true, subtree: true });
+                    } else {
+                        document.addEventListener('DOMContentLoaded', function() {
+                            observer.observe(document.body, { childList: true, subtree: true });
+                        });
+                    }
+                }
+                
+                console.log('[MetaMask Filter] Error suppression active on all pages');
             })();
         </script>
         <!--
