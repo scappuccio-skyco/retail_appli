@@ -10793,15 +10793,70 @@ async def get_gerant_subscription_status(current_user: dict = Depends(get_curren
                 active_subscription = trial_subs.data[0]
         
         if not active_subscription:
+            # Vérifier dans la base de données locale si pas trouvé dans Stripe
+            db_subscription = await db.subscriptions.find_one(
+                {"user_id": current_user['id'], "status": "active"},
+                {"_id": 0}
+            )
+            
+            if not db_subscription:
+                return {
+                    "has_subscription": False,
+                    "status": "inactive",
+                    "message": "Aucun abonnement actif",
+                    "active_sellers_count": await db.users.count_documents({
+                        "gerant_id": current_user['id'],
+                        "role": "seller", 
+                        "status": "active"
+                    })
+                }
+            
+            # Utiliser l'abonnement de la DB locale
+            active_sellers_count = await db.users.count_documents({
+                "gerant_id": current_user['id'],
+                "role": "seller",
+                "status": "active"
+            })
+            
+            # Déterminer le plan basé sur la quantité
+            quantity = db_subscription.get('seats', 1)
+            current_plan = 'starter'
+            if quantity >= 16:
+                current_plan = 'enterprise'
+            elif quantity >= 6:
+                current_plan = 'professional'
+            
+            # Calculer les jours restants si en période d'essai
+            days_left = None
+            trial_end = None
+            if db_subscription.get('trial_end'):
+                trial_end = db_subscription['trial_end']
+                now = datetime.now(timezone.utc)
+                trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
+                days_left = max(0, (trial_end_dt - now).days)
+            
+            status = 'trialing' if db_subscription.get('trial_end') and days_left and days_left > 0 else 'active'
+            
             return {
-                "has_subscription": False,
-                "status": "inactive",
-                "message": "Aucun abonnement actif",
-                "active_sellers_count": await db.users.count_documents({
-                    "gerant_id": current_user['id'],
-                    "role": "seller", 
-                    "status": "active"
-                })
+                "has_subscription": True,
+                "status": status,
+                "plan": current_plan,
+                "subscription": {
+                    "id": db_subscription.get('stripe_subscription_id'),
+                    "seats": quantity,
+                    "price_per_seat": 25 if current_plan == 'professional' else 29,  # Prix par défaut
+                    "billing_interval": "month",
+                    "current_period_start": db_subscription.get('current_period_start'),
+                    "current_period_end": db_subscription.get('current_period_end'),
+                    "cancel_at_period_end": db_subscription.get('cancel_at_period_end', False),
+                    "subscription_item_id": db_subscription.get('stripe_subscription_item_id'),
+                    "price_id": None
+                },
+                "trial_end": trial_end,
+                "days_left": days_left,
+                "active_sellers_count": active_sellers_count,
+                "used_seats": active_sellers_count,
+                "remaining_seats": max(0, quantity - active_sellers_count)
             }
         
         # Calculer les informations de l'abonnement
