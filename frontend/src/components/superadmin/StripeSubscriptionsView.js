@@ -144,11 +144,11 @@ export default function StripeSubscriptionsView() {
               <div key={item.gerant.id} className="hover:bg-gray-50 transition-colors">
                 {/* Main Row */}
                 <div 
-                  className="px-6 py-4 cursor-pointer"
+                  className="px-4 sm:px-6 py-4 cursor-pointer"
                   onClick={() => toggleGerantDetails(item.gerant.id)}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1">
                       <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                         {item.gerant.name?.charAt(0) || 'G'}
                       </div>
