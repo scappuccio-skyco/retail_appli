@@ -990,6 +990,13 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                             ⚠️ Impossible de passer d'annuel à mensuel. Veuillez annuler votre abonnement actuel.
                           </p>
                         </div>
+                      ) : (plan.maxSellers && sellerCount > plan.maxSellers) ? (
+                        <button
+                          disabled
+                          className="w-full py-3 bg-gray-400 text-white rounded-lg font-semibold cursor-not-allowed opacity-50"
+                        >
+                          🚫 Non disponible
+                        </button>
                       ) : (
                         <button
                           onClick={() => handleSelectPlan(planKey)}
