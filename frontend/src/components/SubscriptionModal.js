@@ -1142,8 +1142,16 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                   </button>
                 </div>
                 <p className="text-xs text-gray-600 text-center mt-2">
-                  Min: {PLANS[planConfirmData.planKey].minSellers} • Max: {PLANS[planConfirmData.planKey].maxSellers}
+                  Min: {Math.max(sellerCount, PLANS[planConfirmData.planKey].minSellers)} • Max: {PLANS[planConfirmData.planKey].maxSellers}
                 </p>
+                
+                {sellerCount > PLANS[planConfirmData.planKey].minSellers && planConfirmData.quantity === Math.max(sellerCount, PLANS[planConfirmData.planKey].minSellers) && (
+                  <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-lg">
+                    <p className="text-xs text-orange-800 text-center">
+                      ⚠️ Vous avez <strong>{sellerCount} vendeur{sellerCount > 1 ? 's' : ''} actif{sellerCount > 1 ? 's' : ''}</strong>. Pour réduire, suspendez d'abord des vendeurs.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Cost Details - Simplified view */}
