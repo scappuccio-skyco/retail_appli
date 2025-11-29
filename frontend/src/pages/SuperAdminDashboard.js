@@ -319,7 +319,7 @@ export default function SuperAdminDashboard() {
 
       {/* Tabs */}
       <div className="mb-6">
-        <div className="flex gap-2 bg-white/10 backdrop-blur-lg rounded-lg p-2 border border-white/20">
+        <div className="flex flex-wrap gap-2 bg-white/10 backdrop-blur-lg rounded-lg p-2 border border-white/20">
           <button
             onClick={() => setActiveTab('overview')}
             className={`px-6 py-3 rounded-lg font-medium transition-all ${
