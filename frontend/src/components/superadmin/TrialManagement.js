@@ -208,13 +208,16 @@ export default function TrialManagement() {
                         </button>
                       ) : (
                         <div className="flex flex-col gap-2">
-                          <input
-                            type="date"
-                            value={newTrialEnd}
-                            onChange={(e) => setNewTrialEnd(e.target.value)}
-                            min={new Date().toISOString().split('T')[0]}
-                            className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
+                          <div className="relative">
+                            <input
+                              type="date"
+                              value={newTrialEnd}
+                              onChange={(e) => setNewTrialEnd(e.target.value)}
+                              min={new Date().toISOString().split('T')[0]}
+                              className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+                              onClick={(e) => e.target.showPicker && e.target.showPicker()}
+                            />
+                          </div>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleUpdateTrial(gerant.id)}
