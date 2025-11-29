@@ -10938,7 +10938,7 @@ async def get_gerant_subscription_status(current_user: dict = Depends(get_curren
         if not active_subscription:
             # Vérifier dans la base de données locale si pas trouvé dans Stripe
             db_subscription = await db.subscriptions.find_one(
-                {"user_id": current_user['id'], "status": "active"},
+                {"user_id": current_user['id'], "status": {"$in": ["active", "trialing"]}},
                 {"_id": 0}
             )
             
