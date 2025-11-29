@@ -10168,13 +10168,10 @@ async def create_gerant_invitation(
     if not store:
         raise HTTPException(status_code=404, detail="Magasin non trouvé ou inactif")
     
-    # Si c'est un vendeur, vérifier que le manager existe (actif ou en attente)
+    # Si c'est un vendeur, récupérer le manager (optionnel)
     manager_id = None
     manager_name = None
-    if invite_data.role == 'seller':
-        if not invite_data.manager_id:
-            raise HTTPException(status_code=400, detail="Un manager est requis pour inviter un vendeur")
-        
+    if invite_data.role == 'seller' and invite_data.manager_id:
         # Si manager_id commence par "pending_", c'est une invitation en attente
         if invite_data.manager_id.startswith('pending_'):
             # Vérifier que l'invitation de manager existe
