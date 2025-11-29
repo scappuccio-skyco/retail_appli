@@ -1061,15 +1061,19 @@ async def auto_update_stripe_subscription_quantity(gerant_id: str, reason: str =
             limit=10
         )
         
+        logger.info(f"🔍 Found {len(all_subscriptions.data)} subscriptions for customer {gerant['stripe_customer_id']}")
+        
         # Filtrer pour trouver un abonnement actif ou en trial (pas annulé)
         subscription = None
         for sub in all_subscriptions.data:
+            logger.info(f"  Sub {sub.id}: status={sub.status}, cancel_at_period_end={sub.cancel_at_period_end}")
             if sub.status in ['active', 'trialing'] and not sub.cancel_at_period_end:
                 subscription = sub
+                logger.info(f"  ✅ Selected subscription {sub.id}")
                 break
         
         if not subscription:
-            logger.info(f"Aucun abonnement actif/trialing trouvé pour gérant {gerant_id}")
+            logger.warning(f"Aucun abonnement actif/trialing trouvé pour gérant {gerant_id}")
             return {"success": False, "reason": "no_active_subscription"}
         
         # Vérifier si l'abonnement a des items
