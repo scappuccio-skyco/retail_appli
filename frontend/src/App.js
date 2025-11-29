@@ -14,6 +14,7 @@ import RegisterManager from './pages/RegisterManager';
 import RegisterSeller from './pages/RegisterSeller';
 import DiagnosticForm from './components/DiagnosticFormScrollable';
 import DiagnosticResult from './components/DiagnosticResult';
+import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
