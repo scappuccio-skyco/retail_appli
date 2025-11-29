@@ -7334,7 +7334,17 @@ async def change_subscription_seats(
 
 @api_router.get("/subscription/history")
 async def get_subscription_history(current_user: dict = Depends(get_current_user)):
-    """Get subscription change history"""
+    """
+    Get subscription change history (DEPRECATED - Legacy endpoint)
+    
+    ⚠️ DEPRECATION NOTICE:
+    This endpoint is part of the old "Manager-led" billing system.
+    The application has transitioned to a "Gérant-led" billing model where
+    gérants manage subscriptions for their entire organization.
+    
+    This endpoint is kept for historical data access only and should not be
+    used in new features. Use /api/gerant/subscription/status instead.
+    """
     if current_user['role'] != 'manager':
         raise HTTPException(status_code=403, detail="Only managers have subscription history")
     
