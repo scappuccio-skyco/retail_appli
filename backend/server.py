@@ -1040,7 +1040,7 @@ async def auto_update_stripe_subscription_quantity(gerant_id: str, reason: str =
     """
     try:
         import stripe as stripe_lib
-        stripe_lib.api_key = os.environ.get('STRIPE_API_KEY')
+        stripe_lib.api_key = STRIPE_API_KEY
         
         # Compter les vendeurs actifs
         active_sellers_count = await db.users.count_documents({
@@ -1055,23 +1055,21 @@ async def auto_update_stripe_subscription_quantity(gerant_id: str, reason: str =
             logger.info(f"Gérant {gerant_id} n'a pas de customer Stripe - skip auto-update")
             return {"success": False, "reason": "no_stripe_customer"}
         
-        # Récupérer l'abonnement actif
-        subscriptions = stripe_lib.Subscription.list(
+        # Récupérer TOUS les abonnements (active et trialing)
+        all_subscriptions = stripe_lib.Subscription.list(
             customer=gerant['stripe_customer_id'],
-            status='active',
-            limit=1
+            limit=10
         )
         
-        if not subscriptions.data:
-            # Vérifier aussi les abonnements en trial
-            subscriptions = stripe_lib.Subscription.list(
-                customer=gerant['stripe_customer_id'],
-                status='trialing',
-                limit=1
-            )
+        # Filtrer pour trouver un abonnement actif ou en trial (pas annulé)
+        subscription = None
+        for sub in all_subscriptions.data:
+            if sub.status in ['active', 'trialing'] and not sub.cancel_at_period_end:
+                subscription = sub
+                break
         
-        if not subscriptions.data:
-            logger.info(f"Aucun abonnement actif trouvé pour gérant {gerant_id}")
+        if not subscription:
+            logger.info(f"Aucun abonnement actif/trialing trouvé pour gérant {gerant_id}")
             return {"success": False, "reason": "no_active_subscription"}
         
         subscription = subscriptions.data[0]
