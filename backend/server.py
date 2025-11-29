@@ -10141,6 +10141,24 @@ async def reactivate_seller(
     if seller.get('status') not in ['suspended', 'inactive']:
         raise HTTPException(status_code=400, detail="Le vendeur n'est pas suspendu")
     
+    # Vérifier si le vendeur est assigné à un magasin
+    if seller.get('store_id'):
+        # Vérifier que le magasin est actif
+        store = await db.stores.find_one(
+            {"id": seller['store_id']},
+            {"_id": 0, "name": 1, "active": 1}
+        )
+        if not store:
+            raise HTTPException(
+                status_code=400, 
+                detail="Le magasin assigné n'existe plus. Veuillez d'abord transférer le vendeur vers un magasin actif."
+            )
+        if not store.get('active', False):
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Le magasin '{store['name']}' est inactif. Veuillez d'abord transférer le vendeur vers un magasin actif avant de le réactiver."
+            )
+    
     # Réactiver le vendeur
     await db.users.update_one(
         {"id": seller_id},
@@ -10150,7 +10168,8 @@ async def reactivate_seller(
         },
         "$unset": {
             "suspended_at": "",
-            "suspended_by": ""
+            "suspended_by": "",
+            "suspended_reason": ""
         }}
     )
     
