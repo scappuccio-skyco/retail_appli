@@ -5,6 +5,7 @@ import AdminManagement from '../components/superadmin/AdminManagement';
 import AIAssistant from '../components/superadmin/AIAssistant';
 import InvitationsManagement from '../components/superadmin/InvitationsManagement';
 import TrialManagement from '../components/superadmin/TrialManagement';
+import StripeSubscriptionsView from '../components/superadmin/StripeSubscriptionsView';
 import Select from 'react-select';
 import { 
   Users, Building2, TrendingUp, Database, Activity, 
