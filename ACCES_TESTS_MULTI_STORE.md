@@ -24,7 +24,7 @@
 
 **Endpoint de test :**
 ```bash
-curl -X POST https://user-flows.preview.emergentagent.com/api/auth/login \
+curl -X POST https://user-flow-enhance-1.preview.emergentagent.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"gerant@skyco.fr","password":"gerant123"}'
 ```
@@ -140,7 +140,7 @@ curl -X POST https://user-flows.preview.emergentagent.com/api/auth/login \
 #### a) Dashboard Stats Globales
 ```bash
 # Récupérer le token après login
-curl -X GET https://user-flows.preview.emergentagent.com/api/gerant/dashboard/stats \
+curl -X GET https://user-flow-enhance-1.preview.emergentagent.com/api/gerant/dashboard/stats \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -159,25 +159,25 @@ curl -X GET https://user-flows.preview.emergentagent.com/api/gerant/dashboard/st
 
 #### b) Liste des Magasins
 ```bash
-curl -X GET https://user-flows.preview.emergentagent.com/api/gerant/stores \
+curl -X GET https://user-flow-enhance-1.preview.emergentagent.com/api/gerant/stores \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 #### c) Stats d'un Magasin Spécifique
 ```bash
-curl -X GET https://user-flows.preview.emergentagent.com/api/gerant/stores/{store_id}/stats \
+curl -X GET https://user-flow-enhance-1.preview.emergentagent.com/api/gerant/stores/{store_id}/stats \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 #### d) Managers d'un Magasin
 ```bash
-curl -X GET https://user-flows.preview.emergentagent.com/api/gerant/stores/{store_id}/managers \
+curl -X GET https://user-flow-enhance-1.preview.emergentagent.com/api/gerant/stores/{store_id}/managers \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 #### e) Créer un Nouveau Magasin
 ```bash
-curl -X POST https://user-flows.preview.emergentagent.com/api/gerant/stores \
+curl -X POST https://user-flow-enhance-1.preview.emergentagent.com/api/gerant/stores \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -191,7 +191,7 @@ curl -X POST https://user-flows.preview.emergentagent.com/api/gerant/stores \
 
 #### f) Transférer un Manager
 ```bash
-curl -X POST https://user-flows.preview.emergentagent.com/api/gerant/managers/{manager_id}/transfer \
+curl -X POST https://user-flow-enhance-1.preview.emergentagent.com/api/gerant/managers/{manager_id}/transfer \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -201,7 +201,7 @@ curl -X POST https://user-flows.preview.emergentagent.com/api/gerant/managers/{m
 
 #### g) Transférer un Vendeur
 ```bash
-curl -X POST https://user-flows.preview.emergentagent.com/api/gerant/sellers/{seller_id}/transfer \
+curl -X POST https://user-flow-enhance-1.preview.emergentagent.com/api/gerant/sellers/{seller_id}/transfer \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
