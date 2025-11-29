@@ -140,15 +140,13 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       if (propSubscriptionInfo) {
         setSubscriptionInfo(propSubscriptionInfo);
         setLoading(false);
-        // Still fetch seller count from API for used_seats
-        if (propSubscriptionInfo.subscription) {
-          setSellerCount(propSubscriptionInfo.subscription.used_seats || 0);
-        }
       } else {
         // Otherwise fetch from API (ManagerDashboard)
         fetchSubscriptionStatus();
-        fetchSellerCount();
       }
+      
+      // TOUJOURS fetcher le seller count pour avoir le bon nombre pour la validation
+      fetchSellerCount();
       fetchSubscriptionHistory();
     }
   }, [isOpen, propSubscriptionInfo]);
