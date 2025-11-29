@@ -717,10 +717,10 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                   </div>
                 )}
 
-                {/* Preview of change - Simplified */}
+                {/* Preview of change with cost calculation */}
                 {newSeatsCount !== (subscriptionInfo.subscription.seats || 1) && (
-                  <div className="mb-3 p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg text-white shadow">
-                    <div className="flex items-center justify-between">
+                  <div className="mb-3 p-4 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg text-white shadow-lg">
+                    <div className="flex items-center justify-between mb-3">
                       <div>
                         <p className="text-xs opacity-75">Changement prévu</p>
                         <p className="text-lg font-bold">
@@ -731,6 +731,33 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                         {newSeatsCount > (subscriptionInfo.subscription.seats || 1) ? '+' : ''}
                         {newSeatsCount - (subscriptionInfo.subscription.seats || 1)}
                       </div>
+                    </div>
+                    
+                    {/* Cost preview */}
+                    <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span>Prix par siège :</span>
+                        <span className="font-bold">{newSeatsCount <= 5 ? '29' : '25'}€/mois</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Coût mensuel futur :</span>
+                        <span className="font-bold">{newSeatsCount * (newSeatsCount <= 5 ? 29 : 25)}€/mois</span>
+                      </div>
+                      {subscriptionInfo.status === 'trialing' && subscriptionInfo.days_left !== null && (
+                        <div className="mt-2 pt-2 border-t border-white/30">
+                          <p className="text-xs opacity-90">
+                            💡 Pendant l'essai ({subscriptionInfo.days_left} jours restants), aucun frais ne sera appliqué. 
+                            Le paiement débutera à la fin de la période d'essai.
+                          </p>
+                        </div>
+                      )}
+                      {subscriptionInfo.status === 'active' && newSeatsCount > (subscriptionInfo.subscription.seats || 1) && (
+                        <div className="mt-2 pt-2 border-t border-white/30">
+                          <p className="text-xs opacity-90">
+                            ℹ️ Un coût proratisé sera appliqué pour les sièges ajoutés en cours de cycle.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
