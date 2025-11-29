@@ -9979,17 +9979,41 @@ async def transfer_manager_to_store(
     if not manager:
         raise HTTPException(status_code=404, detail="Manager non trouvé")
     
-    # Vérifier que le nouveau magasin existe
+    # Vérifier que le nouveau magasin existe ET est actif
     new_store = await db.stores.find_one({"id": transfer.new_store_id, "gerant_id": current_user['id']})
     if not new_store:
         raise HTTPException(status_code=404, detail="Nouveau magasin non trouvé")
     
+    if not new_store.get('active', False):
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Le magasin '{new_store['name']}' est inactif. Impossible de transférer vers un magasin inactif."
+        )
+    
     old_store_id = manager.get('store_id')
     
+    # Préparer les champs à mettre à jour
+    update_fields = {"store_id": transfer.new_store_id}
+    unset_fields = {}
+    
+    # Si le manager était suspendu à cause d'un magasin inactif, le réactiver automatiquement
+    if manager.get('status') == 'suspended' and manager.get('suspended_reason', '').startswith('Magasin'):
+        update_fields["status"] = "active"
+        update_fields["reactivated_at"] = datetime.now(timezone.utc).isoformat()
+        unset_fields = {
+            "suspended_at": "",
+            "suspended_by": "",
+            "suspended_reason": ""
+        }
+    
     # Transférer le manager
+    update_operation = {"$set": update_fields}
+    if unset_fields:
+        update_operation["$unset"] = unset_fields
+    
     await db.users.update_one(
         {"id": manager_id},
-        {"$set": {"store_id": transfer.new_store_id}}
+        update_operation
     )
     
     # Compter les vendeurs qui restent sans manager dans l'ancien magasin
@@ -9999,10 +10023,15 @@ async def transfer_manager_to_store(
         "role": "seller"
     })
     
+    message = f"Manager transféré avec succès vers {new_store['name']}"
+    if update_fields.get("status") == "active":
+        message += " et réactivé automatiquement"
+    
     return {
-        "message": f"Manager transféré avec succès",
+        "message": message,
         "orphan_sellers_count": orphan_sellers,
-        "warning": f"{orphan_sellers} vendeur(s) restent dans l'ancien magasin sans manager" if orphan_sellers > 0 else None
+        "warning": f"{orphan_sellers} vendeur(s) restent dans l'ancien magasin sans manager" if orphan_sellers > 0 else None,
+        "reactivated": update_fields.get("status") == "active"
     }
 
 @api_router.post("/gerant/sellers/{seller_id}/transfer")
