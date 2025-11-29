@@ -149,6 +149,7 @@ export default function StaffOverview({ onRefresh }) {
 
       toast.success('Transfert effectué avec succès');
       fetchData();
+      if (onRefresh) onRefresh(); // Rafraîchir les cartes de magasins
       setTransferModalOpen(false);
       setSelectedUser(null);
     } catch (error) {
