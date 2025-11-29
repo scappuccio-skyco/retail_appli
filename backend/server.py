@@ -10415,11 +10415,22 @@ async def suspend_seller(
     
     logger.info(f"Seller {seller_id} suspended by gerant {current_user['id']}")
     
+    # Auto-update Stripe subscription quantity
+    stripe_update = await auto_update_stripe_subscription_quantity(
+        current_user['id'],
+        reason=f"seller_suspended:{seller_id}"
+    )
+    
+    message = f"Vendeur {seller['name']} suspendu avec succès"
+    if stripe_update.get('updated'):
+        message += f" (Abonnement mis à jour: {stripe_update['new_quantity']} vendeurs actifs)"
+    
     return {
         "success": True,
-        "message": f"Vendeur {seller['name']} suspendu avec succès",
+        "message": message,
         "seller_id": seller_id,
-        "status": "suspended"
+        "status": "suspended",
+        "stripe_updated": stripe_update.get('updated', False)
     }
 
 @api_router.patch("/gerant/sellers/{seller_id}/reactivate")
