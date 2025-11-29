@@ -1249,21 +1249,32 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                     const token = localStorage.getItem('token');
                     const originUrl = window.location.origin;
                     
-                    const response = await axios.post(
-                      `${API}/api/checkout/create-session`,
-                      {
-                        plan: planConfirmData.planKey,
-                        origin_url: originUrl,
-                        quantity: planConfirmData.quantity,
-                        billing_period: isAnnual ? 'annual' : 'monthly'
-                      },
-                      {
-                        headers: { Authorization: `Bearer ${token}` }
-                      }
-                    );
+                    // Use different endpoint based on user role
+                    const endpoint = userRole === 'gerant'
+                      ? `${API}/api/gerant/stripe/checkout`
+                      : `${API}/api/checkout/create-session`;
                     
-                    if (response.data.url) {
-                      window.location.replace(response.data.url);
+                    const requestData = userRole === 'gerant'
+                      ? {
+                          origin_url: originUrl,
+                          quantity: planConfirmData.quantity,
+                          billing_period: isAnnual ? 'annual' : 'monthly'
+                        }
+                      : {
+                          plan: planConfirmData.planKey,
+                          origin_url: originUrl,
+                          quantity: planConfirmData.quantity,
+                          billing_period: isAnnual ? 'annual' : 'monthly'
+                        };
+                    
+                    const response = await axios.post(endpoint, requestData, {
+                      headers: { Authorization: `Bearer ${token}` }
+                    });
+                    
+                    // Handle both checkout_url (gerant) and url (manager) fields
+                    const checkoutUrl = response.data.checkout_url || response.data.url;
+                    if (checkoutUrl) {
+                      window.location.replace(checkoutUrl);
                     } else if (response.data.success) {
                       window.location.reload();
                     }
