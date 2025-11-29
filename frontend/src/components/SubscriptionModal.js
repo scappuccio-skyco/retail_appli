@@ -165,7 +165,12 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
   const fetchSubscriptionStatus = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/api/subscription/status`, {
+      // Use different endpoint based on user role
+      const endpoint = userRole === 'gerant' 
+        ? `${API}/api/gerant/subscription/status`
+        : `${API}/api/subscription/status`;
+      
+      const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (isMounted) {
@@ -183,11 +188,20 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
   const fetchSellerCount = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/api/manager/sellers`, {
+      // Use different endpoint based on user role
+      const endpoint = userRole === 'gerant'
+        ? `${API}/api/gerant/dashboard/stats`
+        : `${API}/api/manager/sellers`;
+      
+      const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (isMounted) {
-        setSellerCount(response.data.length);
+        // Extract seller count based on response structure
+        const count = userRole === 'gerant' 
+          ? (response.data.total_sellers || 0)
+          : (response.data.length || 0);
+        setSellerCount(count);
       }
     } catch (error) {
       console.error('Error fetching sellers:', error);
