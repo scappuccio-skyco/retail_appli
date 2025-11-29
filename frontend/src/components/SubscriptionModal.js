@@ -209,6 +209,11 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
   };
 
   const fetchSubscriptionHistory = async () => {
+    // L'historique n'est disponible que pour les managers, pas pour les gérants
+    if (userRole === 'gerant') {
+      return; // Skip pour les gérants
+    }
+    
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API}/api/subscription/history`, {
