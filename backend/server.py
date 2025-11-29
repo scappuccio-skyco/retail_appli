@@ -11438,6 +11438,158 @@ async def upgrade_gerant_subscription(current_user: dict = Depends(get_current_u
         raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à niveau: {str(e)}")
 
 
+class UpdateSeatsRequest(BaseModel):
+    seats: int = Field(..., ge=1, le=15, description="Nombre de sièges (1-15)")
+
+
+@api_router.post("/gerant/subscription/update-seats")
+async def update_gerant_subscription_seats(
+    request: UpdateSeatsRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Mettre à jour le nombre de sièges de l'abonnement Gérant.
+    Pendant l'essai : Mise à jour sans frais
+    Abonnement actif : Proratisation appliquée automatiquement
+    """
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    new_seats = request.seats
+    
+    # Validation
+    if new_seats > 15:
+        raise HTTPException(
+            status_code=400,
+            detail="Plus de 15 sièges nécessite un devis personnalisé. Contactez notre équipe."
+        )
+    
+    try:
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
+        # Récupérer les infos du gérant
+        gerant = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        if not gerant or not gerant.get('stripe_customer_id'):
+            raise HTTPException(status_code=400, detail="Aucun compte Stripe trouvé")
+        
+        # Récupérer l'abonnement
+        subscriptions = stripe_lib.Subscription.list(
+            customer=gerant['stripe_customer_id'],
+            status='active',
+            limit=10
+        )
+        
+        subscription = None
+        for sub in subscriptions.data:
+            if not sub.get('cancel_at_period_end', False):
+                subscription = sub
+                break
+        
+        # Si pas trouvé en actif, chercher en trial
+        if not subscription:
+            trial_subs = stripe_lib.Subscription.list(
+                customer=gerant['stripe_customer_id'],
+                status='trialing',
+                limit=10
+            )
+            for sub in trial_subs.data:
+                if not sub.get('cancel_at_period_end', False):
+                    subscription = sub
+                    break
+        
+        if not subscription:
+            raise HTTPException(status_code=400, detail="Aucun abonnement actif trouvé")
+        
+        # Récupérer la quantité actuelle
+        subscription_item = subscription['items']['data'][0]
+        current_seats = subscription_item['quantity']
+        
+        if current_seats == new_seats:
+            return {
+                "success": True,
+                "message": "Le nombre de sièges est déjà à jour",
+                "seats": current_seats,
+                "no_change": True
+            }
+        
+        # Calculer le nouveau prix par siège selon le palier
+        if new_seats <= 5:
+            price_per_seat = 29.00
+            tier = "starter"
+        elif new_seats <= 15:
+            price_per_seat = 25.00
+            tier = "professional"
+        else:
+            raise HTTPException(status_code=400, detail="Nombre de sièges invalide")
+        
+        # Vérifier si en période d'essai
+        is_trial = subscription['status'] == 'trialing'
+        
+        # Calculer le coût estimé
+        old_monthly_cost = current_seats * (29 if current_seats <= 5 else 25)
+        new_monthly_cost = new_seats * price_per_seat
+        cost_difference = new_monthly_cost - old_monthly_cost
+        
+        # Si augmentation et abonnement actif, calculer la proratisation
+        proration_amount = 0
+        if not is_trial and new_seats > current_seats:
+            # Calculer le nombre de jours restants dans le cycle actuel
+            current_period_end = datetime.fromtimestamp(subscription['current_period_end'], tz=timezone.utc)
+            now = datetime.now(timezone.utc)
+            days_remaining = (current_period_end - now).days
+            days_in_cycle = 30  # Approximation
+            
+            # Coût proraté pour les nouveaux sièges
+            seats_difference = new_seats - current_seats
+            proration_amount = (seats_difference * price_per_seat) * (days_remaining / days_in_cycle)
+        
+        # Mettre à jour l'abonnement Stripe
+        updated_subscription = stripe_lib.Subscription.modify(
+            subscription.id,
+            items=[{
+                'id': subscription_item.id,
+                'quantity': new_seats
+            }],
+            proration_behavior='create_prorations' if not is_trial else 'none',
+            metadata={
+                'manual_update': 'true',
+                'updated_by': current_user['id'],
+                'previous_seats': str(current_seats),
+                'new_seats': str(new_seats),
+                'tier': tier,
+                'updated_at': datetime.now(timezone.utc).isoformat()
+            }
+        )
+        
+        logger.info(
+            f"✅ Sièges mis à jour manuellement pour gérant {current_user['name']}: "
+            f"{current_seats} → {new_seats} sièges (Tier: {tier}, "
+            f"Prix: {price_per_seat}€/siège, Essai: {is_trial})"
+        )
+        
+        return {
+            "success": True,
+            "message": "Nombre de sièges mis à jour avec succès",
+            "old_seats": current_seats,
+            "new_seats": new_seats,
+            "tier": tier,
+            "price_per_seat": price_per_seat,
+            "old_monthly_cost": old_monthly_cost,
+            "new_monthly_cost": new_monthly_cost,
+            "cost_difference": cost_difference,
+            "is_trial": is_trial,
+            "proration_amount": round(proration_amount, 2) if proration_amount > 0 else 0,
+            "subscription_id": subscription.id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour des sièges: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+
 # ============================================
 # GERANT STORE PERFORMANCE ENDPOINTS
 # ============================================
