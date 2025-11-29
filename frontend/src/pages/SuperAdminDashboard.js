@@ -395,6 +395,17 @@ export default function SuperAdminDashboard() {
             <Sparkles className="w-5 h-5" />
             Assistant IA
           </button>
+          <button
+            onClick={() => setActiveTab('trials')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+              activeTab === 'trials'
+                ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg'
+                : 'text-orange-200 hover:bg-white/10'
+            }`}
+          >
+            <Clock className="w-5 h-5" />
+            Gestion des Essais
+          </button>
         </div>
       </div>
 
