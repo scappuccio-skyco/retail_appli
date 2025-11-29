@@ -193,20 +193,23 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
         ? `${API}/api/gerant/dashboard/stats`
         : `${API}/api/manager/sellers`;
       
+      console.log('🔍 Fetching seller count from:', endpoint, 'for role:', userRole);
       const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('📦 Response data:', response.data);
+      
       if (isMounted) {
         // Extract seller count based on response structure
-        // Pour les gérants, on utilise active_sellers_count (vendeurs actifs seulement)
+        // Pour les gérants, on utilise total_sellers (qui compte déjà seulement les actifs)
         const count = userRole === 'gerant' 
-          ? (response.data.active_sellers_count || response.data.total_sellers || 0)
+          ? (response.data.total_sellers || 0)
           : (response.data.length || 0);
         setSellerCount(count);
-        console.log('📊 Seller count loaded:', count, 'for role:', userRole);
+        console.log('✅ Seller count set to:', count);
       }
     } catch (error) {
-      console.error('Error fetching sellers:', error);
+      console.error('❌ Error fetching sellers:', error);
     }
   };
 
