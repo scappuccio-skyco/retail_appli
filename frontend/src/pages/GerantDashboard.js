@@ -334,24 +334,20 @@ const GerantDashboard = ({ user, onLogout }) => {
 
   const handleDeleteStore = async (storeId) => {
     try {
+      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
       const token = localStorage.getItem('token');
-      const response = await fetch(`${backendUrl}/api/gerant/stores/${storeId}`, {
-        method: 'DELETE',
+      await axios.delete(`${backendUrl}/api/gerant/stores/${storeId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Erreur lors de la suppression');
-      }
-
-      toast.success('Magasin supprimé avec succès');
+      toast.success('Magasin supprimé avec succès ! L\'équipe a été suspendue automatiquement.');
       await fetchDashboardData();
     } catch (error) {
       console.error('Erreur suppression magasin:', error);
-      throw error;
+      const errorMessage = error.response?.data?.detail || 'Erreur lors de la suppression';
+      throw new Error(errorMessage);
     }
   };
 
