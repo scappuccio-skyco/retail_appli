@@ -1055,25 +1055,34 @@ async def auto_update_stripe_subscription_quantity(gerant_id: str, reason: str =
             logger.info(f"Gérant {gerant_id} n'a pas de customer Stripe - skip auto-update")
             return {"success": False, "reason": "no_stripe_customer"}
         
-        # Récupérer TOUS les abonnements (active et trialing)
-        all_subscriptions = stripe_lib.Subscription.list(
+        # Récupérer les abonnements actifs
+        subscriptions = stripe_lib.Subscription.list(
             customer=gerant['stripe_customer_id'],
+            status='active',
             limit=10
         )
         
-        logger.info(f"🔍 Found {len(all_subscriptions.data)} subscriptions for customer {gerant['stripe_customer_id']}")
-        
-        # Filtrer pour trouver un abonnement actif ou en trial (pas annulé)
+        # Trouver un abonnement non annulé
         subscription = None
-        for sub in all_subscriptions.data:
-            logger.info(f"  Sub {sub.id}: status={sub.status}, cancel_at_period_end={sub.cancel_at_period_end}")
-            if sub.status in ['active', 'trialing'] and not sub.cancel_at_period_end:
+        for sub in subscriptions.data:
+            if not sub.get('cancel_at_period_end', False):
                 subscription = sub
-                logger.info(f"  ✅ Selected subscription {sub.id}")
                 break
         
+        # Si pas trouvé, vérifier les abonnements en trial
         if not subscription:
-            logger.warning(f"Aucun abonnement actif/trialing trouvé pour gérant {gerant_id}")
+            trial_subs = stripe_lib.Subscription.list(
+                customer=gerant['stripe_customer_id'],
+                status='trialing',
+                limit=10
+            )
+            for sub in trial_subs.data:
+                if not sub.get('cancel_at_period_end', False):
+                    subscription = sub
+                    break
+        
+        if not subscription:
+            logger.info(f"Aucun abonnement actif/trialing trouvé pour gérant {gerant_id}")
             return {"success": False, "reason": "no_active_subscription"}
         
         # Vérifier si l'abonnement a des items
