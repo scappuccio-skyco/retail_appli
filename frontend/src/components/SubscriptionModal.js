@@ -948,12 +948,15 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
 
                   {/* Warning if too many sellers */}
                   {!isEnterprise && plan.maxSellers && sellerCount > plan.maxSellers && !isCurrentPlan && (
-                    <div className="mb-4 p-3 bg-orange-50 border-2 border-orange-300 rounded-lg">
-                      <p className="text-sm text-orange-800 font-semibold">
-                        ⚠️ Attention
+                    <div className="mb-4 p-4 bg-red-50 border-2 border-red-400 rounded-lg shadow-md">
+                      <p className="text-base text-red-800 font-bold flex items-center gap-2">
+                        <span className="text-2xl">🚫</span> Plan non disponible
                       </p>
-                      <p className="text-xs text-orange-700 mt-1">
-                        Vous avez {sellerCount} vendeur(s). Ce plan est limité à {plan.maxSellers}.
+                      <p className="text-sm text-red-700 mt-2 font-semibold">
+                        Vous avez actuellement <strong>{sellerCount} vendeurs actifs</strong>, mais ce plan est limité à <strong>{plan.maxSellers} vendeurs maximum</strong>.
+                      </p>
+                      <p className="text-xs text-red-600 mt-2">
+                        💡 Pour utiliser ce plan, vous devez d'abord suspendre ou supprimer {sellerCount - plan.maxSellers} vendeur{sellerCount - plan.maxSellers > 1 ? 's' : ''}.
                       </p>
                     </div>
                   )}
