@@ -9963,6 +9963,7 @@ async def delete_manager_gerant(
         "status": "deleted"
     }
 
+@api_router.post("/gerant/managers/{manager_id}/transfer")
 async def transfer_manager_to_store(
     manager_id: str,
     transfer: ManagerTransfer,
