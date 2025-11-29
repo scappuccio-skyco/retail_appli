@@ -10049,10 +10049,16 @@ async def transfer_seller_to_store(
     if not seller:
         raise HTTPException(status_code=404, detail="Vendeur non trouvé")
     
-    # Vérifier que le nouveau magasin existe
+    # Vérifier que le nouveau magasin existe ET est actif
     new_store = await db.stores.find_one({"id": transfer.new_store_id, "gerant_id": current_user['id']})
     if not new_store:
         raise HTTPException(status_code=404, detail="Nouveau magasin non trouvé")
+    
+    if not new_store.get('active', False):
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Le magasin '{new_store['name']}' est inactif. Impossible de transférer vers un magasin inactif."
+        )
     
     # Vérifier que le nouveau manager existe et est bien dans le nouveau magasin
     new_manager = await db.users.find_one({
@@ -10063,18 +10069,41 @@ async def transfer_seller_to_store(
     if not new_manager:
         raise HTTPException(status_code=404, detail="Manager non trouvé dans ce magasin")
     
+    # Préparer les champs à mettre à jour
+    update_fields = {
+        "store_id": transfer.new_store_id,
+        "manager_id": transfer.new_manager_id
+    }
+    unset_fields = {}
+    
+    # Si le vendeur était suspendu à cause d'un magasin inactif, le réactiver automatiquement
+    if seller.get('status') == 'suspended' and seller.get('suspended_reason', '').startswith('Magasin'):
+        update_fields["status"] = "active"
+        update_fields["reactivated_at"] = datetime.now(timezone.utc).isoformat()
+        unset_fields = {
+            "suspended_at": "",
+            "suspended_by": "",
+            "suspended_reason": ""
+        }
+    
     # Transférer le vendeur
+    update_operation = {"$set": update_fields}
+    if unset_fields:
+        update_operation["$unset"] = unset_fields
+    
     await db.users.update_one(
         {"id": seller_id},
-        {"$set": {
-            "store_id": transfer.new_store_id,
-            "manager_id": transfer.new_manager_id
-        }}
+        update_operation
     )
     
+    message = f"Vendeur transféré avec succès vers {new_store['name']}"
+    if update_fields.get("status") == "active":
+        message += " et réactivé automatiquement"
+    
     return {
-        "message": f"Vendeur transféré avec succès vers {new_store['name']}",
-        "new_manager": new_manager['name']
+        "message": message,
+        "new_manager": new_manager['name'],
+        "reactivated": update_fields.get("status") == "active"
     }
 
 
