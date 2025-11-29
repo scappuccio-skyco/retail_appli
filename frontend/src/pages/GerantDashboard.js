@@ -576,7 +576,11 @@ const GerantDashboard = ({ user, onLogout }) => {
         {activeView === 'api' ? (
           <APIKeysManagement />
         ) : activeView === 'staff' ? (
-          <StaffOverview onRefresh={fetchDashboardData} />
+          <StaffOverview 
+            onRefresh={fetchDashboardData}
+            onOpenInviteModal={() => setShowInviteStaffModal(true)}
+            onOpenCreateStoreModal={() => setShowCreateStoreModal(true)}
+          />
         ) : (
           <>
             {/* Stats Globales */}
