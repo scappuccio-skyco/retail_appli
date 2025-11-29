@@ -5,8 +5,11 @@ import App from "@/App";
 
 // Surcharger console.error pour filtrer les erreurs d'extension
 const originalConsoleError = console.error;
+const originalConsoleWarn = console.warn;
+
 console.error = (...args) => {
-  const message = args.join(' ');
+  const message = String(args[0] || '');
+  const fullMessage = args.join(' ');
   
   // Ignorer les erreurs d'extensions
   if (
@@ -15,13 +18,30 @@ console.error = (...args) => {
     message.includes('Failed to connect') ||
     message.includes('Échec de la connexion') ||
     message.includes('moz-extension://') ||
-    message.includes('safari-extension://')
+    message.includes('safari-extension://') ||
+    fullMessage.includes('MetaMask') ||
+    fullMessage.includes('chrome-extension://')
   ) {
     return; // Ne rien afficher
   }
   
   // Appeler la fonction originale pour les autres erreurs
   originalConsoleError.apply(console, args);
+};
+
+// Également filtrer les warnings
+console.warn = (...args) => {
+  const message = String(args[0] || '');
+  
+  if (
+    message.includes('MetaMask') ||
+    message.includes('chrome-extension://') ||
+    message.includes('Failed to connect')
+  ) {
+    return; // Ne rien afficher
+  }
+  
+  originalConsoleWarn.apply(console, args);
 };
 
 // Désactiver l'overlay d'erreur React pour les erreurs d'extension
