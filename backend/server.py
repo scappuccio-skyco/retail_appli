@@ -11732,6 +11732,336 @@ async def update_gerant_subscription_seats(
 
 
 # ============================================
+# STRIPE WEBHOOKS
+# ============================================
+
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+
+@api_router.post("/webhooks/stripe")
+async def stripe_webhook_handler(request: Request):
+    """
+    Endpoint pour recevoir et traiter les webhooks Stripe.
+    Gère la synchronisation automatique des abonnements et paiements.
+    """
+    try:
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
+        # Récupérer le payload et la signature
+        payload = await request.body()
+        sig_header = request.headers.get('stripe-signature')
+        
+        # Vérifier la signature du webhook (sécurité)
+        try:
+            if STRIPE_WEBHOOK_SECRET:
+                event = stripe_lib.Webhook.construct_event(
+                    payload, sig_header, STRIPE_WEBHOOK_SECRET
+                )
+            else:
+                # Mode dev : accepter sans vérification (à ne pas utiliser en prod)
+                event = json.loads(payload)
+                logger.warning("⚠️ Webhook Stripe reçu sans vérification de signature (dev mode)")
+        except ValueError as e:
+            logger.error(f"❌ Payload webhook invalide: {str(e)}")
+            raise HTTPException(status_code=400, detail="Invalid payload")
+        except stripe_lib.error.SignatureVerificationError as e:
+            logger.error(f"❌ Signature webhook invalide: {str(e)}")
+            raise HTTPException(status_code=400, detail="Invalid signature")
+        
+        # Vérifier l'idempotence (éviter de traiter 2x le même événement)
+        event_id = event.get('id')
+        existing_event = await db.stripe_events.find_one({"event_id": event_id}, {"_id": 0})
+        
+        if existing_event:
+            logger.info(f"✓ Événement webhook {event_id} déjà traité (idempotent)")
+            return {"received": True, "status": "already_processed"}
+        
+        # Logger l'événement
+        event_type = event.get('type')
+        logger.info(f"📨 Webhook Stripe reçu: {event_type} (ID: {event_id})")
+        
+        # Stocker l'événement pour idempotence
+        await db.stripe_events.insert_one({
+            "event_id": event_id,
+            "event_type": event_type,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "processed": False,
+            "data": event
+        })
+        
+        # Router vers le bon handler
+        if event_type == 'customer.subscription.updated':
+            await handle_subscription_updated(event)
+        elif event_type == 'invoice.paid':
+            await handle_invoice_paid(event)
+        elif event_type == 'invoice.payment_failed':
+            await handle_invoice_payment_failed(event)
+        elif event_type == 'customer.subscription.deleted':
+            await handle_subscription_deleted(event)
+        else:
+            logger.info(f"ℹ️ Événement {event_type} non géré (ignoré)")
+        
+        # Marquer comme traité
+        await db.stripe_events.update_one(
+            {"event_id": event_id},
+            {"$set": {"processed": True, "processed_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        return {"received": True, "status": "processed"}
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur webhook Stripe: {str(e)}")
+        # Ne pas renvoyer 500 à Stripe pour éviter les retry infinis
+        return {"received": True, "status": "error", "message": str(e)}
+
+
+async def handle_subscription_updated(event):
+    """
+    Gérer la mise à jour d'un abonnement Stripe.
+    Synchronise les changements (quantité, statut, prix) avec la DB.
+    """
+    try:
+        subscription_data = event['data']['object']
+        subscription_id = subscription_data['id']
+        customer_id = subscription_data['customer']
+        status = subscription_data['status']
+        
+        # Récupérer le gérant associé
+        gerant = await db.users.find_one(
+            {"stripe_customer_id": customer_id, "role": "gerant"},
+            {"_id": 0}
+        )
+        
+        if not gerant:
+            logger.warning(f"⚠️ Gérant non trouvé pour customer {customer_id}")
+            return
+        
+        # Récupérer la quantité et l'item ID
+        items = subscription_data.get('items', {}).get('data', [])
+        if not items:
+            logger.warning(f"⚠️ Pas d'items dans l'abonnement {subscription_id}")
+            return
+        
+        subscription_item = items[0]
+        quantity = subscription_item['quantity']
+        subscription_item_id = subscription_item['id']
+        price_id = subscription_item.get('price', {}).get('id')
+        
+        # Prix unitaire
+        unit_amount = subscription_item.get('price', {}).get('unit_amount', 0) / 100
+        
+        logger.info(
+            f"📊 Mise à jour abonnement: Gérant {gerant['name']} → "
+            f"Statut: {status}, Quantité: {quantity}, Prix: {unit_amount}€/siège"
+        )
+        
+        # Mettre à jour ou créer l'abonnement dans notre DB
+        await db.subscriptions.update_one(
+            {"user_id": gerant['id']},
+            {
+                "$set": {
+                    "stripe_subscription_id": subscription_id,
+                    "stripe_customer_id": customer_id,
+                    "subscription_item_id": subscription_item_id,
+                    "price_id": price_id,
+                    "status": status,
+                    "seats": quantity,
+                    "price_per_seat": unit_amount,
+                    "current_period_start": datetime.fromtimestamp(
+                        subscription_data['current_period_start'], tz=timezone.utc
+                    ).isoformat(),
+                    "current_period_end": datetime.fromtimestamp(
+                        subscription_data['current_period_end'], tz=timezone.utc
+                    ).isoformat(),
+                    "trial_end": datetime.fromtimestamp(
+                        subscription_data['trial_end'], tz=timezone.utc
+                    ).isoformat() if subscription_data.get('trial_end') else None,
+                    "cancel_at_period_end": subscription_data.get('cancel_at_period_end', False),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            },
+            upsert=True
+        )
+        
+        logger.info(f"✅ Abonnement synchronisé pour gérant {gerant['name']}")
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur handle_subscription_updated: {str(e)}")
+        raise
+
+
+async def handle_invoice_paid(event):
+    """
+    Gérer une facture payée.
+    Enregistre les prorations et confirme les paiements.
+    """
+    try:
+        invoice_data = event['data']['object']
+        invoice_id = invoice_data['id']
+        customer_id = invoice_data['customer']
+        subscription_id = invoice_data.get('subscription')
+        amount_paid = invoice_data['amount_paid'] / 100  # Convertir en euros
+        
+        # Récupérer le gérant
+        gerant = await db.users.find_one(
+            {"stripe_customer_id": customer_id, "role": "gerant"},
+            {"_id": 0}
+        )
+        
+        if not gerant:
+            logger.warning(f"⚠️ Gérant non trouvé pour facture {invoice_id}")
+            return
+        
+        # Vérifier si c'est une facture de proration
+        lines = invoice_data.get('lines', {}).get('data', [])
+        has_proration = any(line.get('proration', False) for line in lines)
+        
+        logger.info(
+            f"💰 Facture payée: {invoice_id} → Gérant {gerant['name']}, "
+            f"Montant: {amount_paid}€, Proration: {has_proration}"
+        )
+        
+        # Enregistrer dans la collection des transactions
+        await db.payment_transactions.insert_one({
+            "id": str(uuid.uuid4()),
+            "user_id": gerant['id'],
+            "stripe_invoice_id": invoice_id,
+            "stripe_subscription_id": subscription_id,
+            "amount": amount_paid,
+            "currency": invoice_data.get('currency', 'eur'),
+            "status": "paid",
+            "is_proration": has_proration,
+            "invoice_pdf": invoice_data.get('invoice_pdf'),
+            "paid_at": datetime.fromtimestamp(
+                invoice_data['status_transitions']['paid_at'], tz=timezone.utc
+            ).isoformat() if invoice_data.get('status_transitions', {}).get('paid_at') else None,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Mettre à jour la subscription avec la dernière facture
+        if subscription_id:
+            await db.subscriptions.update_one(
+                {"user_id": gerant['id'], "stripe_subscription_id": subscription_id},
+                {
+                    "$set": {
+                        "last_invoice_id": invoice_id,
+                        "last_payment_status": "paid",
+                        "last_payment_amount": amount_paid,
+                        "last_payment_date": datetime.now(timezone.utc).isoformat()
+                    }
+                }
+            )
+        
+        logger.info(f"✅ Paiement enregistré pour gérant {gerant['name']}")
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur handle_invoice_paid: {str(e)}")
+        raise
+
+
+async def handle_invoice_payment_failed(event):
+    """
+    Gérer un échec de paiement.
+    Alerte le gérant et suspend potentiellement l'accès.
+    """
+    try:
+        invoice_data = event['data']['object']
+        invoice_id = invoice_data['id']
+        customer_id = invoice_data['customer']
+        subscription_id = invoice_data.get('subscription')
+        amount_due = invoice_data['amount_due'] / 100
+        
+        # Récupérer le gérant
+        gerant = await db.users.find_one(
+            {"stripe_customer_id": customer_id, "role": "gerant"},
+            {"_id": 0}
+        )
+        
+        if not gerant:
+            logger.warning(f"⚠️ Gérant non trouvé pour facture échouée {invoice_id}")
+            return
+        
+        logger.warning(
+            f"⚠️ PAIEMENT ÉCHOUÉ: Facture {invoice_id} → Gérant {gerant['name']}, "
+            f"Montant dû: {amount_due}€"
+        )
+        
+        # Enregistrer l'échec
+        await db.payment_transactions.insert_one({
+            "id": str(uuid.uuid4()),
+            "user_id": gerant['id'],
+            "stripe_invoice_id": invoice_id,
+            "stripe_subscription_id": subscription_id,
+            "amount": amount_due,
+            "currency": invoice_data.get('currency', 'eur'),
+            "status": "failed",
+            "failure_reason": invoice_data.get('last_payment_error', {}).get('message', 'Unknown'),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Mettre à jour la subscription
+        if subscription_id:
+            await db.subscriptions.update_one(
+                {"user_id": gerant['id'], "stripe_subscription_id": subscription_id},
+                {
+                    "$set": {
+                        "last_payment_status": "failed",
+                        "last_payment_failure_date": datetime.now(timezone.utc).isoformat(),
+                        "payment_retry_count": invoice_data.get('attempt_count', 1)
+                    }
+                }
+            )
+        
+        # TODO: Envoyer un email d'alerte au gérant
+        # TODO: Après 3 échecs, suspendre l'accès
+        
+        logger.info(f"⚠️ Échec de paiement enregistré pour gérant {gerant['name']}")
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur handle_invoice_payment_failed: {str(e)}")
+        raise
+
+
+async def handle_subscription_deleted(event):
+    """
+    Gérer l'annulation/suppression d'un abonnement.
+    """
+    try:
+        subscription_data = event['data']['object']
+        subscription_id = subscription_data['id']
+        customer_id = subscription_data['customer']
+        
+        # Récupérer le gérant
+        gerant = await db.users.find_one(
+            {"stripe_customer_id": customer_id, "role": "gerant"},
+            {"_id": 0}
+        )
+        
+        if not gerant:
+            logger.warning(f"⚠️ Gérant non trouvé pour subscription deleted {subscription_id}")
+            return
+        
+        logger.warning(f"🚫 Abonnement supprimé: {subscription_id} → Gérant {gerant['name']}")
+        
+        # Mettre à jour le statut
+        await db.subscriptions.update_one(
+            {"user_id": gerant['id'], "stripe_subscription_id": subscription_id},
+            {
+                "$set": {
+                    "status": "canceled",
+                    "canceled_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        
+        logger.info(f"✅ Abonnement marqué comme annulé pour gérant {gerant['name']}")
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur handle_subscription_deleted: {str(e)}")
+        raise
+
+
+# ============================================
 # GERANT STORE PERFORMANCE ENDPOINTS
 # ============================================
 
