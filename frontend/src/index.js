@@ -13,16 +13,23 @@ window.addEventListener('error', (event) => {
   )) {
     console.warn('Erreur d\'extension de navigateur ignorée:', event.message);
     event.preventDefault();
-    return;
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    return false;
   }
   
   // Ignorer spécifiquement les erreurs MetaMask
-  if (event.message && event.message.includes('MetaMask')) {
+  if (event.message && (
+    event.message.includes('MetaMask') ||
+    event.message.includes('Failed to connect')
+  )) {
     console.warn('Erreur MetaMask ignorée');
     event.preventDefault();
-    return;
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    return false;
   }
-});
+}, true); // Utiliser la phase de capture
 
 // Gestionnaire pour les promesses non gérées
 window.addEventListener('unhandledrejection', (event) => {
