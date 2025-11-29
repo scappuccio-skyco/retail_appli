@@ -9,7 +9,7 @@ import {
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export default function StaffOverview() {
+export default function StaffOverview({ onRefresh }) {
   const [activeTab, setActiveTab] = useState('managers');
   const [managers, setManagers] = useState([]);
   const [sellers, setSellers] = useState([]);
