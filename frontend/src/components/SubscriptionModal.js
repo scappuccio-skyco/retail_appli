@@ -324,26 +324,37 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       const token = localStorage.getItem('token');
       const originUrl = window.location.origin;
       
-      console.log('📡 Creating checkout session...');
-      const response = await axios.post(
-        `${API}/api/checkout/create-session`,
-        {
-          plan: selectedPlan,
-          origin_url: originUrl,
-          quantity: selectedQuantity,
-          billing_period: isAnnual ? 'annual' : 'monthly'
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      console.log('📡 Creating checkout session for role:', userRole);
+      
+      // Use different endpoint based on user role
+      const endpoint = userRole === 'gerant'
+        ? `${API}/api/gerant/stripe/checkout`
+        : `${API}/api/checkout/create-session`;
+      
+      const requestData = userRole === 'gerant'
+        ? {
+            origin_url: originUrl,
+            quantity: selectedQuantity,
+            billing_period: isAnnual ? 'annual' : 'monthly'
+          }
+        : {
+            plan: selectedPlan,
+            origin_url: originUrl,
+            quantity: selectedQuantity,
+            billing_period: isAnnual ? 'annual' : 'monthly'
+          };
+      
+      const response = await axios.post(endpoint, requestData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       
       console.log('✅ Checkout response:', response.data);
       
-      // If there's a URL, redirect to Stripe
-      if (response.data.url) {
+      // If there's a checkout_url (for gerant) or url (for manager), redirect to Stripe
+      const checkoutUrl = response.data.checkout_url || response.data.url;
+      if (checkoutUrl) {
         console.log('🔄 Redirecting to Stripe...');
-        window.location.replace(response.data.url);
+        window.location.replace(checkoutUrl);
       } else if (response.data.success) {
         // If no URL (subscription updated directly), reload
         console.log('✅ Subscription updated, reloading...');
