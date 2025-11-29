@@ -71,10 +71,10 @@ const DeleteStoreConfirmation = ({ store, onClose, onDelete }) => {
                 </p>
                 <ul className="text-sm text-yellow-800 space-y-2 ml-6 list-disc">
                   <li>Le magasin sera <strong>définitivement supprimé</strong></li>
-                  <li>Tous les managers devront être <strong>réassignés</strong></li>
-                  <li>Tous les vendeurs devront être <strong>réassignés</strong></li>
-                  <li>Les KPIs historiques seront <strong>conservés mais orphelins</strong></li>
-                  <li>Cette action est <strong>irréversible</strong></li>
+                  <li>Tous les managers seront <strong>automatiquement suspendus</strong></li>
+                  <li>Tous les vendeurs seront <strong>automatiquement suspendus</strong></li>
+                  <li>Les KPIs historiques seront <strong>conservés</strong></li>
+                  <li>L'équipe pourra être <strong>réactivée</strong> plus tard</li>
                 </ul>
               </div>
 
