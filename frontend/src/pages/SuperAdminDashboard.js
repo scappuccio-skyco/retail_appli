@@ -322,7 +322,7 @@ export default function SuperAdminDashboard() {
         <div className="flex flex-wrap gap-2 bg-white/10 backdrop-blur-lg rounded-lg p-2 border border-white/20">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+            className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
               activeTab === 'overview'
                 ? 'bg-purple-600 text-white shadow-lg'
                 : 'text-purple-200 hover:bg-white/10'
@@ -332,7 +332,7 @@ export default function SuperAdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('workspaces')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+            className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
               activeTab === 'workspaces'
                 ? 'bg-purple-600 text-white shadow-lg'
                 : 'text-purple-200 hover:bg-white/10'
@@ -342,7 +342,7 @@ export default function SuperAdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('logs')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+            className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
               activeTab === 'logs'
                 ? 'bg-purple-600 text-white shadow-lg'
                 : 'text-purple-200 hover:bg-white/10'
@@ -352,7 +352,7 @@ export default function SuperAdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('system-logs')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 ${
               activeTab === 'system-logs'
                 ? 'bg-purple-600 text-white shadow-lg'
                 : 'text-purple-200 hover:bg-white/10'
@@ -367,7 +367,7 @@ export default function SuperAdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('admins')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+            className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
               activeTab === 'admins'
                 ? 'bg-purple-600 text-white shadow-lg'
                 : 'text-purple-200 hover:bg-white/10'
@@ -377,7 +377,7 @@ export default function SuperAdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('invitations')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+            className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
               activeTab === 'invitations'
                 ? 'bg-purple-600 text-white shadow-lg'
                 : 'text-purple-200 hover:bg-white/10'
@@ -387,35 +387,35 @@ export default function SuperAdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('ai-assistant')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 ${
               activeTab === 'ai-assistant'
                 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
                 : 'text-purple-200 hover:bg-white/10'
             }`}
           >
-            <Sparkles className="w-5 h-5" />
+            <Sparkles className="w-4 h-4" />
             Assistant IA
           </button>
           <button
             onClick={() => setActiveTab('trials')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 ${
               activeTab === 'trials'
                 ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg'
                 : 'text-orange-200 hover:bg-white/10'
             }`}
           >
-            <Clock className="w-5 h-5" />
+            <Clock className="w-4 h-4" />
             Gestion des Essais
           </button>
           <button
             onClick={() => setActiveTab('subscriptions')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg font-medium transition-all text-sm flex items-center gap-2 ${
               activeTab === 'subscriptions'
                 ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg'
                 : 'text-green-200 hover:bg-white/10'
             }`}
           >
-            <TrendingUp className="w-5 h-5" />
+            <TrendingUp className="w-4 h-4" />
             Abonnements Stripe
           </button>
         </div>
