@@ -9774,12 +9774,16 @@ async def get_store_managers(store_id: str, current_user: dict = Depends(get_cur
 
 @api_router.get("/gerant/stores/{store_id}/sellers")
 async def get_store_sellers(store_id: str, current_user: dict = Depends(get_current_user)):
-    """Récupérer les vendeurs d'un magasin"""
+    """Récupérer les vendeurs d'un magasin (exclut les vendeurs supprimés)"""
     if current_user['role'] != 'gerant':
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     sellers = await db.users.find(
-        {"store_id": store_id, "role": "seller"},
+        {
+            "store_id": store_id, 
+            "role": "seller",
+            "status": {"$ne": "deleted"}  # Exclure les vendeurs supprimés
+        },
         {"_id": 0, "password": 0}
     ).to_list(length=None)
     
