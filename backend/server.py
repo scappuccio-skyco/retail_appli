@@ -9492,11 +9492,19 @@ async def get_store_stats(
     if not store:
         raise HTTPException(status_code=404, detail="Magasin non trouvé")
     
-    # Compter les managers
-    managers_count = await db.users.count_documents({"store_id": store_id, "role": "manager"})
+    # Compter les managers actifs uniquement
+    managers_count = await db.users.count_documents({
+        "store_id": store_id, 
+        "role": "manager",
+        "status": "active"
+    })
     
-    # Compter les vendeurs
-    sellers_count = await db.users.count_documents({"store_id": store_id, "role": "seller"})
+    # Compter les vendeurs actifs uniquement
+    sellers_count = await db.users.count_documents({
+        "store_id": store_id, 
+        "role": "seller",
+        "status": "active"
+    })
     
     # Calculer le CA du jour (sellers + managers)
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
