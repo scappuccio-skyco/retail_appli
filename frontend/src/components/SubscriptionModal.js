@@ -198,10 +198,12 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       });
       if (isMounted) {
         // Extract seller count based on response structure
+        // Pour les gérants, on utilise active_sellers_count (vendeurs actifs seulement)
         const count = userRole === 'gerant' 
-          ? (response.data.total_sellers || 0)
+          ? (response.data.active_sellers_count || response.data.total_sellers || 0)
           : (response.data.length || 0);
         setSellerCount(count);
+        console.log('📊 Seller count loaded:', count, 'for role:', userRole);
       }
     } catch (error) {
       console.error('Error fetching sellers:', error);
