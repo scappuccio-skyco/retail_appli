@@ -10806,22 +10806,73 @@ async def get_gerant_subscription_status(current_user: dict = Depends(get_curren
         
         # Calculer les informations de l'abonnement
         quantity = 1
+        subscription_item_id = None
+        price_id = None
+        unit_amount = None
+        billing_interval = 'month'
+        
         if active_subscription.get('items') and active_subscription['items']['data']:
-            quantity = active_subscription['items']['data'][0].get('quantity', 1)
+            item_data = active_subscription['items']['data'][0]
+            quantity = item_data.get('quantity', 1)
+            subscription_item_id = item_data.get('id')
+            
+            # Récupérer les infos de prix
+            if item_data.get('price'):
+                price = item_data['price']
+                price_id = price.get('id')
+                unit_amount = price.get('unit_amount', 0) / 100  # Convertir en euros
+                billing_interval = price.get('recurring', {}).get('interval', 'month')
+        
+        # Compter les vendeurs actifs
+        active_sellers_count = await db.users.count_documents({
+            "gerant_id": current_user['id'],
+            "role": "seller",
+            "status": "active"
+        })
+        
+        # Déterminer le plan basé sur la quantité
+        current_plan = 'starter'
+        if quantity >= 16:
+            current_plan = 'enterprise'
+        elif quantity >= 6:
+            current_plan = 'professional'
+        
+        # Calculer les jours restants si en période d'essai
+        days_left = None
+        trial_end = None
+        if active_subscription.get('status') == 'trialing' and active_subscription.get('trial_end'):
+            trial_end_ts = active_subscription['trial_end']
+            trial_end = datetime.fromtimestamp(trial_end_ts, tz=timezone.utc).isoformat()
+            now = datetime.now(timezone.utc)
+            trial_end_dt = datetime.fromtimestamp(trial_end_ts, tz=timezone.utc)
+            days_left = max(0, (trial_end_dt - now).days)
         
         return {
             "has_subscription": True,
             "status": active_subscription.get('status'),
-            "subscription_id": active_subscription.id,
-            "quantity": quantity,
-            "current_period_start": active_subscription.get('current_period_start'),
-            "current_period_end": active_subscription.get('current_period_end'),
-            "cancel_at_period_end": active_subscription.get('cancel_at_period_end', False),
-            "active_sellers_count": await db.users.count_documents({
-                "gerant_id": current_user['id'],
-                "role": "seller",
-                "status": "active"
-            })
+            "plan": current_plan,
+            "subscription": {
+                "id": active_subscription.id,
+                "seats": quantity,
+                "price_per_seat": unit_amount,
+                "billing_interval": billing_interval,
+                "current_period_start": datetime.fromtimestamp(
+                    active_subscription.get('current_period_start'), 
+                    tz=timezone.utc
+                ).isoformat() if active_subscription.get('current_period_start') else None,
+                "current_period_end": datetime.fromtimestamp(
+                    active_subscription.get('current_period_end'),
+                    tz=timezone.utc
+                ).isoformat() if active_subscription.get('current_period_end') else None,
+                "cancel_at_period_end": active_subscription.get('cancel_at_period_end', False),
+                "subscription_item_id": subscription_item_id,
+                "price_id": price_id
+            },
+            "trial_end": trial_end,
+            "days_left": days_left,
+            "active_sellers_count": active_sellers_count,
+            "used_seats": active_sellers_count,
+            "remaining_seats": max(0, quantity - active_sellers_count)
         }
         
     except Exception as e:
