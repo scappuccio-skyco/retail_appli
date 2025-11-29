@@ -10551,6 +10551,92 @@ async def create_gerant_checkout_session(
         raise HTTPException(status_code=500, detail=f"Erreur lors de la création de l'abonnement: {str(e)}")
 
 
+@api_router.get("/gerant/subscription/status")
+async def get_gerant_subscription_status(current_user: dict = Depends(get_current_user)):
+    """Obtenir le statut de l'abonnement du gérant"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    try:
+        # Récupérer les informations du gérant
+        gerant = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        stripe_customer_id = gerant.get('stripe_customer_id')
+        
+        if not stripe_customer_id:
+            return {
+                "has_subscription": False,
+                "status": "no_subscription", 
+                "message": "Aucun abonnement trouvé",
+                "active_sellers_count": await db.users.count_documents({
+                    "gerant_id": current_user['id'],
+                    "role": "seller",
+                    "status": "active"
+                })
+            }
+        
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
+        # Récupérer les abonnements actifs
+        subscriptions = stripe_lib.Subscription.list(
+            customer=stripe_customer_id,
+            status='active',
+            limit=10
+        )
+        
+        active_subscription = None
+        for sub in subscriptions.data:
+            if not sub.get('cancel_at_period_end', False):
+                active_subscription = sub
+                break
+        
+        if not active_subscription:
+            # Vérifier s'il y a des abonnements en période d'essai
+            trial_subs = stripe_lib.Subscription.list(
+                customer=stripe_customer_id,
+                status='trialing',
+                limit=1
+            )
+            if trial_subs.data:
+                active_subscription = trial_subs.data[0]
+        
+        if not active_subscription:
+            return {
+                "has_subscription": False,
+                "status": "inactive",
+                "message": "Aucun abonnement actif",
+                "active_sellers_count": await db.users.count_documents({
+                    "gerant_id": current_user['id'],
+                    "role": "seller", 
+                    "status": "active"
+                })
+            }
+        
+        # Calculer les informations de l'abonnement
+        quantity = 1
+        if active_subscription.get('items') and active_subscription['items']['data']:
+            quantity = active_subscription['items']['data'][0].get('quantity', 1)
+        
+        return {
+            "has_subscription": True,
+            "status": active_subscription.get('status'),
+            "subscription_id": active_subscription.id,
+            "quantity": quantity,
+            "current_period_start": active_subscription.get('current_period_start'),
+            "current_period_end": active_subscription.get('current_period_end'),
+            "cancel_at_period_end": active_subscription.get('cancel_at_period_end', False),
+            "active_sellers_count": await db.users.count_documents({
+                "gerant_id": current_user['id'],
+                "role": "seller",
+                "status": "active"
+            })
+        }
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération du statut d'abonnement: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ============================================
 # GERANT STORE PERFORMANCE ENDPOINTS
 # ============================================
