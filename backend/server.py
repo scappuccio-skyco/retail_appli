@@ -10796,6 +10796,87 @@ async def get_gerant_subscription_detailed_info(current_user: dict = Depends(get
     return await get_gerant_subscription_info(current_user['id'])
 
 
+@api_router.post("/gerant/subscription/upgrade")
+async def upgrade_gerant_subscription(current_user: dict = Depends(get_current_user)):
+    """
+    Mettre à niveau automatiquement l'abonnement gérant
+    (Starter vers Professional quand on dépasse 5 vendeurs)
+    """
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    try:
+        subscription_info = await get_gerant_subscription_info(current_user['id'])
+        
+        if not subscription_info['has_subscription']:
+            raise HTTPException(status_code=400, detail="Aucun abonnement actif trouvé")
+        
+        if not subscription_info['needs_upgrade']:
+            return {
+                "message": "Aucune mise à niveau nécessaire",
+                "current_tier": subscription_info['subscription_tier'],
+                "active_sellers": subscription_info['active_sellers_count']
+            }
+        
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
+        # Récupérer l'abonnement
+        subscription = stripe_lib.Subscription.retrieve(subscription_info['subscription_id'])
+        
+        # Calculer la nouvelle quantité et le nouveau prix
+        new_quantity = subscription_info['active_sellers_count']
+        
+        if subscription_info['subscription_tier'] == 'starter' and new_quantity > 5:
+            # Passage de Starter (29€) à Professional (25€)
+            new_price = 25.00
+            new_tier = "professional"
+        elif subscription_info['subscription_tier'] == 'professional' and new_quantity > 15:
+            raise HTTPException(
+                status_code=400,
+                detail="Plus de 15 vendeurs nécessite un abonnement sur mesure. Contactez notre équipe commerciale."
+            )
+        else:
+            raise HTTPException(status_code=400, detail="Mise à niveau non applicable")
+        
+        # Mettre à jour l'abonnement Stripe
+        stripe_lib.Subscription.modify(
+            subscription_info['subscription_id'],
+            items=[{
+                'id': subscription['items']['data'][0]['id'],
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {
+                        'name': f'Retail Performer AI - {new_quantity} vendeur(s)',
+                        'description': f'Abonnement {new_tier.capitalize()} - {new_price}€/vendeur/mois'
+                    },
+                    'unit_amount': int(new_price * 100),
+                    'recurring': {'interval': 'month'}
+                },
+                'quantity': new_quantity,
+            }],
+            proration_behavior='create_prorations'  # Créer des prorations pour la différence
+        )
+        
+        logger.info(f"Abonnement gérant {current_user['name']} mis à niveau vers {new_tier} avec {new_quantity} vendeurs")
+        
+        return {
+            "message": "Abonnement mis à niveau avec succès",
+            "old_tier": subscription_info['subscription_tier'],
+            "new_tier": new_tier,
+            "old_quantity": subscription_info['allowed_sellers'],
+            "new_quantity": new_quantity,
+            "new_price_per_seller": new_price,
+            "new_total_monthly": new_price * new_quantity
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à niveau d'abonnement: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à niveau: {str(e)}")
+
+
 # ============================================
 # GERANT STORE PERFORMANCE ENDPOINTS
 # ============================================
