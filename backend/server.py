@@ -11442,6 +11442,147 @@ class UpdateSeatsRequest(BaseModel):
     seats: int = Field(..., ge=1, le=15, description="Nombre de sièges (1-15)")
 
 
+@api_router.post("/gerant/subscription/preview-seats-update")
+async def preview_gerant_seats_update(
+    request: UpdateSeatsRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Prévisualiser le coût d'un changement de nombre de sièges
+    sans effectuer la modification
+    """
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    new_seats = request.seats
+    
+    try:
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
+        # Récupérer les infos du gérant
+        gerant = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        if not gerant or not gerant.get('stripe_customer_id'):
+            # Pas d'abonnement encore, calculer juste le coût futur
+            price_per_seat = 29.00 if new_seats <= 5 else 25.00
+            tier = "starter" if new_seats <= 5 else "professional"
+            
+            return {
+                "preview": True,
+                "new_seats": new_seats,
+                "current_seats": 0,
+                "tier": tier,
+                "price_per_seat": price_per_seat,
+                "monthly_cost": new_seats * price_per_seat,
+                "cost_difference": new_seats * price_per_seat,
+                "is_trial": False,
+                "proration_amount": 0,
+                "message": "Coût mensuel après souscription"
+            }
+        
+        # Récupérer l'abonnement
+        subscriptions = stripe_lib.Subscription.list(
+            customer=gerant['stripe_customer_id'],
+            status='active',
+            limit=10
+        )
+        
+        subscription = None
+        for sub in subscriptions.data:
+            if not sub.get('cancel_at_period_end', False):
+                subscription = sub
+                break
+        
+        if not subscription:
+            trial_subs = stripe_lib.Subscription.list(
+                customer=gerant['stripe_customer_id'],
+                status='trialing',
+                limit=10
+            )
+            for sub in trial_subs.data:
+                if not sub.get('cancel_at_period_end', False):
+                    subscription = sub
+                    break
+        
+        if not subscription:
+            # Pas d'abonnement, retourner le coût futur
+            price_per_seat = 29.00 if new_seats <= 5 else 25.00
+            tier = "starter" if new_seats <= 5 else "professional"
+            
+            return {
+                "preview": True,
+                "new_seats": new_seats,
+                "current_seats": 0,
+                "tier": tier,
+                "price_per_seat": price_per_seat,
+                "monthly_cost": new_seats * price_per_seat,
+                "cost_difference": new_seats * price_per_seat,
+                "is_trial": False,
+                "proration_amount": 0,
+                "message": "Coût mensuel après souscription"
+            }
+        
+        # Récupérer la quantité actuelle
+        subscription_item = subscription['items']['data'][0]
+        current_seats = subscription_item['quantity']
+        
+        # Calculer les prix
+        current_price_per_seat = 29.00 if current_seats <= 5 else 25.00
+        new_price_per_seat = 29.00 if new_seats <= 5 else 25.00
+        new_tier = "starter" if new_seats <= 5 else "professional"
+        
+        old_monthly_cost = current_seats * current_price_per_seat
+        new_monthly_cost = new_seats * new_price_per_seat
+        cost_difference = new_monthly_cost - old_monthly_cost
+        
+        # Vérifier si en période d'essai
+        is_trial = subscription['status'] == 'trialing'
+        
+        # Calculer la proratisation si nécessaire
+        proration_amount = 0
+        proration_message = ""
+        
+        if not is_trial and new_seats != current_seats:
+            # Calculer les jours restants
+            current_period_end = datetime.fromtimestamp(subscription['current_period_end'], tz=timezone.utc)
+            now = datetime.now(timezone.utc)
+            days_remaining = max(0, (current_period_end - now).days)
+            days_in_cycle = 30
+            
+            if new_seats > current_seats:
+                # Augmentation : payer le prorata pour les nouveaux sièges
+                seats_added = new_seats - current_seats
+                proration_amount = (seats_added * new_price_per_seat) * (days_remaining / days_in_cycle)
+                proration_message = f"Coût immédiat (proratisé sur {days_remaining} jours restants)"
+            else:
+                # Diminution : crédit pour le prochain cycle
+                seats_removed = current_seats - new_seats
+                proration_amount = -(seats_removed * current_price_per_seat) * (days_remaining / days_in_cycle)
+                proration_message = f"Crédit appliqué (proratisé sur {days_remaining} jours restants)"
+        elif is_trial:
+            proration_message = "Aucun coût pendant l'essai - Paiement à la fin de la période"
+        
+        return {
+            "preview": True,
+            "new_seats": new_seats,
+            "current_seats": current_seats,
+            "tier": new_tier,
+            "price_per_seat": new_price_per_seat,
+            "old_monthly_cost": old_monthly_cost,
+            "new_monthly_cost": new_monthly_cost,
+            "cost_difference": cost_difference,
+            "is_trial": is_trial,
+            "proration_amount": round(proration_amount, 2),
+            "proration_message": proration_message,
+            "days_remaining_in_cycle": (datetime.fromtimestamp(subscription['current_period_end'], tz=timezone.utc) - datetime.now(timezone.utc)).days if subscription else 0,
+            "message": "Aperçu du changement de sièges"
+        }
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la prévisualisation: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+
 @api_router.post("/gerant/subscription/update-seats")
 async def update_gerant_subscription_seats(
     request: UpdateSeatsRequest,
