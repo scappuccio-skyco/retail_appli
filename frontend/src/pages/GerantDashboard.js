@@ -575,7 +575,7 @@ const GerantDashboard = ({ user, onLogout }) => {
         {activeView === 'api' ? (
           <APIKeysManagement />
         ) : activeView === 'staff' ? (
-          <StaffOverview />
+          <StaffOverview onRefresh={fetchDashboardData} />
         ) : (
           <>
             {/* Stats Globales */}
