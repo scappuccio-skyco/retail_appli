@@ -628,8 +628,8 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
             </div>
           )}
 
-          {/* Seat Management - Only for active subscriptions */}
-          {subscriptionInfo && subscriptionInfo.status === 'active' && subscriptionInfo.subscription && (
+          {/* Seat Management - For active subscriptions and trials */}
+          {subscriptionInfo && (subscriptionInfo.status === 'active' || subscriptionInfo.status === 'trialing') && subscriptionInfo.subscription && (
             <div className="mb-8">
               <details className="bg-white rounded-xl border-2 border-green-200 overflow-hidden">
                 <summary className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white cursor-pointer hover:from-green-600 hover:to-emerald-700 transition-all">
