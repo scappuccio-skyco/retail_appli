@@ -941,6 +941,8 @@ export default function SuperAdminDashboard() {
         {activeTab === 'ai-assistant' && <AIAssistant />}
 
         {activeTab === 'trials' && <TrialManagement />}
+
+        {activeTab === 'subscriptions' && <StripeSubscriptionsView />}
       </div>
     </div>
   );
