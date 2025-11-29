@@ -492,11 +492,41 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
               {subscriptionInfo.status === 'trialing' && (
                 <div>
                   <p className="text-gray-700">
-                    <span className="font-semibold">Essai gratuit</span> - {subscriptionInfo.days_left} jour{subscriptionInfo.days_left > 1 ? 's' : ''} restant{subscriptionInfo.days_left > 1 ? 's' : ''}
+                    <span className="font-semibold">Essai gratuit - Plan {PLANS[currentPlan]?.name}</span> - {subscriptionInfo.days_left} jour{subscriptionInfo.days_left > 1 ? 's' : ''} restant{subscriptionInfo.days_left > 1 ? 's' : ''}
                   </p>
                   <p className="text-sm text-gray-600 mt-1">
                     Fin de l'essai le {new Date(subscriptionInfo.trial_end).toLocaleDateString('fr-FR')}
                   </p>
+                  
+                  {/* Seats information during trial */}
+                  <div className="mt-3 p-3 bg-white rounded-lg border border-blue-300">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-blue-600" />
+                        <span className="font-semibold text-gray-800">Sièges vendeurs</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl font-bold text-blue-600">
+                          {subscriptionInfo.used_seats || sellerCount}
+                        </span>
+                        <span className="text-gray-500 mx-1">/</span>
+                        <span className="text-xl font-semibold text-gray-700">
+                          {subscriptionInfo.subscription?.seats || PLANS[currentPlan]?.maxSellers}
+                        </span>
+                        <p className="text-xs text-gray-500 mt-0.5">actifs / achetés</p>
+                      </div>
+                    </div>
+                    {subscriptionInfo.remaining_seats !== undefined && subscriptionInfo.remaining_seats > 0 && (
+                      <p className="text-xs text-green-600 mt-2">
+                        ✅ {subscriptionInfo.remaining_seats} siège{subscriptionInfo.remaining_seats > 1 ? 's' : ''} restant{subscriptionInfo.remaining_seats > 1 ? 's' : ''}
+                      </p>
+                    )}
+                    {subscriptionInfo.remaining_seats !== undefined && subscriptionInfo.remaining_seats <= 0 && (
+                      <p className="text-xs text-orange-600 mt-2">
+                        ⚠️ Vous avez atteint la limite de sièges. Passez à un plan supérieur pour ajouter plus de vendeurs.
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
               {subscriptionInfo.status === 'active' && (
