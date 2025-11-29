@@ -62,6 +62,7 @@ export default function StaffOverview({ onRefresh }) {
       await axios.patch(endpoint, {}, { headers });
       toast.success('Utilisateur suspendu avec succès');
       fetchData();
+      if (onRefresh) onRefresh(); // Rafraîchir les cartes de magasins
       setActionMenuOpen(null);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de la suspension');
