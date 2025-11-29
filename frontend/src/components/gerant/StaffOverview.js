@@ -215,6 +215,24 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
             Gérez tous vos managers et vendeurs depuis une seule vue
           </p>
         </div>
+        
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={onOpenInviteModal}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+          >
+            <Users className="w-5 h-5" />
+            Inviter du Personnel
+          </button>
+          <button
+            onClick={onOpenCreateStoreModal}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+          >
+            <Building2 className="w-5 h-5" />
+            Créer un Magasin
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
