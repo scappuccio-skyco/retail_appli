@@ -1025,6 +1025,122 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+# ===== STRIPE AUTO-UPGRADE UTILITY =====
+async def auto_update_stripe_subscription_quantity(gerant_id: str, reason: str = "seller_count_change"):
+    """
+    Vérifie et met à jour automatiquement la quantité de l'abonnement Stripe
+    d'un gérant lorsque le nombre de vendeurs actifs change.
+    
+    Args:
+        gerant_id: ID du gérant
+        reason: Raison du changement (pour les logs)
+    
+    Returns:
+        dict avec success, message, et détails de mise à jour
+    """
+    try:
+        import stripe as stripe_lib
+        stripe_lib.api_key = os.environ.get('STRIPE_API_KEY')
+        
+        # Compter les vendeurs actifs
+        active_sellers_count = await db.users.count_documents({
+            "gerant_id": gerant_id,
+            "role": "seller",
+            "status": "active"
+        })
+        
+        # Récupérer les infos du gérant
+        gerant = await db.users.find_one({"id": gerant_id}, {"_id": 0})
+        if not gerant or not gerant.get('stripe_customer_id'):
+            logger.info(f"Gérant {gerant_id} n'a pas de customer Stripe - skip auto-update")
+            return {"success": False, "reason": "no_stripe_customer"}
+        
+        # Récupérer l'abonnement actif
+        subscriptions = stripe_lib.Subscription.list(
+            customer=gerant['stripe_customer_id'],
+            status='active',
+            limit=1
+        )
+        
+        if not subscriptions.data:
+            # Vérifier aussi les abonnements en trial
+            subscriptions = stripe_lib.Subscription.list(
+                customer=gerant['stripe_customer_id'],
+                status='trialing',
+                limit=1
+            )
+        
+        if not subscriptions.data:
+            logger.info(f"Aucun abonnement actif trouvé pour gérant {gerant_id}")
+            return {"success": False, "reason": "no_active_subscription"}
+        
+        subscription = subscriptions.data[0]
+        
+        # Vérifier si l'abonnement a des items
+        if not subscription.get('items') or not subscription['items'].data:
+            logger.warning(f"Abonnement {subscription.id} n'a pas d'items")
+            return {"success": False, "reason": "no_subscription_items"}
+        
+        subscription_item = subscription['items'].data[0]
+        current_quantity = subscription_item['quantity']
+        
+        # Si la quantité est déjà correcte, pas besoin de mise à jour
+        if current_quantity == active_sellers_count:
+            logger.info(f"Quantité déjà correcte ({current_quantity}) pour gérant {gerant_id}")
+            return {"success": True, "already_correct": True, "quantity": current_quantity}
+        
+        # Déterminer le nouveau prix par siège selon le palier
+        if active_sellers_count <= 5:
+            new_price_per_seat = 29
+            tier = "starter"
+        elif active_sellers_count <= 15:
+            new_price_per_seat = 25
+            tier = "professional"
+        else:
+            # Plus de 15 vendeurs nécessite un devis personnalisé
+            logger.warning(f"Gérant {gerant_id} a {active_sellers_count} vendeurs (>15) - mise à jour manuelle requise")
+            return {"success": False, "reason": "requires_custom_quote", "seller_count": active_sellers_count}
+        
+        # Mettre à jour la quantité de l'abonnement
+        updated_subscription = stripe_lib.Subscription.modify(
+            subscription.id,
+            items=[{
+                'id': subscription_item.id,
+                'quantity': active_sellers_count
+            }],
+            proration_behavior='create_prorations',  # Proratiser les changements
+            metadata={
+                'auto_updated': 'true',
+                'reason': reason,
+                'previous_quantity': str(current_quantity),
+                'new_quantity': str(active_sellers_count),
+                'tier': tier,
+                'updated_at': datetime.now(timezone.utc).isoformat()
+            }
+        )
+        
+        logger.info(
+            f"✅ Abonnement Stripe auto-mis à jour pour gérant {gerant_id}: "
+            f"{current_quantity} → {active_sellers_count} vendeurs "
+            f"(Tier: {tier}, Prix: {new_price_per_seat}€/vendeur) "
+            f"Raison: {reason}"
+        )
+        
+        return {
+            "success": True,
+            "updated": True,
+            "previous_quantity": current_quantity,
+            "new_quantity": active_sellers_count,
+            "tier": tier,
+            "price_per_seat": new_price_per_seat,
+            "subscription_id": subscription.id,
+            "reason": reason
+        }
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour auto Stripe pour gérant {gerant_id}: {str(e)}")
+        return {"success": False, "error": str(e)}
+
 # ===== AI FEEDBACK GENERATION =====
 async def generate_ai_feedback(evaluation_data: dict) -> str:
     """Generate AI feedback using emergentintegrations"""
