@@ -224,7 +224,8 @@ const GerantDashboard = ({ user, onLogout }) => {
   const fetchSubscriptionInfo = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${backendUrl}/api/subscription/status`, {
+      // Use gerant-specific endpoint
+      const res = await fetch(`${backendUrl}/api/gerant/subscription/status`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
