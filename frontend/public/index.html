@@ -5,6 +5,61 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
         <meta name="description" content="A product of emergent.sh" />
+        
+        <!-- Filtrer les erreurs MetaMask AVANT le chargement de React -->
+        <script>
+            (function() {
+                // Désactiver l'overlay d'erreur React pour MetaMask
+                window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ || {};
+                const originalReportRuntimeError = window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__.reportRuntimeError;
+                
+                window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__.reportRuntimeError = function(error) {
+                    const isMetaMaskError = 
+                        error?.message?.includes('MetaMask') ||
+                        error?.message?.includes('Failed to connect') ||
+                        error?.message?.includes('Échec de la connexion') ||
+                        error?.stack?.includes('chrome-extension://');
+                    
+                    if (isMetaMaskError) {
+                        console.warn('[Filtered] MetaMask extension error:', error.message);
+                        return; // Bloquer l'overlay
+                    }
+                    
+                    // Pour les autres erreurs, appeler la fonction originale si elle existe
+                    if (originalReportRuntimeError) {
+                        originalReportRuntimeError.call(this, error);
+                    }
+                };
+                
+                // Intercepter les erreurs globales
+                window.addEventListener('error', function(event) {
+                    const isMetaMaskError = 
+                        event.message?.includes('MetaMask') ||
+                        event.message?.includes('Failed to connect') ||
+                        event.filename?.includes('chrome-extension://');
+                    
+                    if (isMetaMaskError) {
+                        console.warn('[Filtered] Global MetaMask error:', event.message);
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        return false;
+                    }
+                }, true);
+                
+                // Intercepter les promesses rejetées
+                window.addEventListener('unhandledrejection', function(event) {
+                    const isMetaMaskError = 
+                        event.reason?.message?.includes('MetaMask') ||
+                        event.reason?.message?.includes('Failed to connect') ||
+                        String(event.reason).includes('MetaMask');
+                    
+                    if (isMetaMaskError) {
+                        console.warn('[Filtered] Unhandled MetaMask promise rejection:', event.reason);
+                        event.preventDefault();
+                    }
+                });
+            })();
+        </script>
         <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
