@@ -76,6 +76,15 @@ export default function QuantityModal({
           <div className="text-center text-sm text-gray-500">
             Min: {minQuantity} • Max: {plan.maxSellers}
           </div>
+          
+          {sellerCount > 0 && selectedQuantity === minQuantity && (
+            <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+              <p className="text-sm text-orange-800 text-center">
+                ⚠️ Vous avez actuellement <strong>{sellerCount} vendeur{sellerCount > 1 ? 's' : ''} actif{sellerCount > 1 ? 's' : ''}</strong>. 
+                Pour réduire le nombre de sièges, vous devez d'abord suspendre ou supprimer des vendeurs.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Price Calculation */}
