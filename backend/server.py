@@ -10207,6 +10207,11 @@ async def create_gerant_invitation(
             
             manager_id = manager['id']
             manager_name = manager['name']
+        
+    # Si aucun manager spécifié pour un vendeur, c'est OK (sera assigné plus tard)
+    elif invite_data.role == 'seller':
+        manager_id = None
+        manager_name = "À assigner plus tard"
     
     # Vérifier si l'email existe déjà (sauf si l'utilisateur est supprimé)
     existing_user = await db.users.find_one({
