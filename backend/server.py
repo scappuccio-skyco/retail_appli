@@ -10176,36 +10176,39 @@ async def reactivate_seller(
     if seller.get('status') not in ['suspended', 'inactive']:
         raise HTTPException(status_code=400, detail="Le vendeur n'est pas suspendu")
     
+    # Préparer les champs à mettre à jour
+    update_fields = {
+        "status": "active",
+        "reactivated_at": datetime.now(timezone.utc).isoformat()
+    }
+    unset_fields = {
+        "suspended_at": "",
+        "suspended_by": "",
+        "suspended_reason": ""
+    }
+    
     # Vérifier si le vendeur est assigné à un magasin
+    store_removed = False
     if seller.get('store_id'):
         # Vérifier que le magasin est actif
         store = await db.stores.find_one(
             {"id": seller['store_id']},
             {"_id": 0, "name": 1, "active": 1}
         )
-        if not store:
-            raise HTTPException(
-                status_code=400, 
-                detail="Le magasin assigné n'existe plus. Veuillez d'abord transférer le vendeur vers un magasin actif."
-            )
-        if not store.get('active', False):
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Le magasin '{store['name']}' est inactif. Veuillez d'abord transférer le vendeur vers un magasin actif avant de le réactiver."
-            )
+        if not store or not store.get('active', False):
+            # Si le magasin n'existe plus ou est inactif, retirer l'assignation
+            unset_fields["store_id"] = ""
+            unset_fields["manager_id"] = ""
+            store_removed = True
+            store_name = store['name'] if store else "inconnu"
     
     # Réactiver le vendeur
     await db.users.update_one(
         {"id": seller_id},
-        {"$set": {
-            "status": "active",
-            "reactivated_at": datetime.now(timezone.utc).isoformat()
-        },
-        "$unset": {
-            "suspended_at": "",
-            "suspended_by": "",
-            "suspended_reason": ""
-        }}
+        {
+            "$set": update_fields,
+            "$unset": unset_fields
+        }
     )
     
     logger.info(f"Seller {seller_id} reactivated by gerant {current_user['id']}")
