@@ -3,6 +3,26 @@ import ReactDOM from "react-dom/client";
 import "@/index.css";
 import App from "@/App";
 
+// Surcharger console.error pour filtrer les erreurs d'extension
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  const message = args.join(' ');
+  
+  // Ignorer les erreurs d'extensions
+  if (
+    message.includes('MetaMask') ||
+    message.includes('chrome-extension://') ||
+    message.includes('Failed to connect') ||
+    message.includes('moz-extension://') ||
+    message.includes('safari-extension://')
+  ) {
+    return; // Ne rien afficher
+  }
+  
+  // Appeler la fonction originale pour les autres erreurs
+  originalConsoleError.apply(console, args);
+};
+
 // Gestionnaire d'erreurs global pour filtrer les erreurs d'extensions tierces (MetaMask, etc.)
 window.addEventListener('error', (event) => {
   // Ignorer les erreurs provenant d'extensions Chrome
