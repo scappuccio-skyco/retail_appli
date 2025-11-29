@@ -9242,6 +9242,139 @@ async def delete_conversation(
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================
+# SUPERADMIN - TRIAL MANAGEMENT
+# ============================================
+
+@api_router.get("/superadmin/gerants/trials")
+async def get_gerants_trials(current_admin: dict = Depends(get_super_admin)):
+    """Récupérer tous les gérants avec leurs informations d'essai"""
+    try:
+        # Récupérer tous les gérants
+        gerants = await db.users.find(
+            {"role": "gerant"},
+            {"_id": 0, "password": 0}
+        ).to_list(length=None)
+        
+        result = []
+        for gerant in gerants:
+            # Compter les vendeurs actifs
+            active_sellers_count = await db.users.count_documents({
+                "gerant_id": gerant['id'],
+                "role": "seller",
+                "status": "active"
+            })
+            
+            # Vérifier s'il a un abonnement actif
+            subscription = await db.subscriptions.find_one(
+                {"user_id": gerant['id']},
+                {"_id": 0}
+            )
+            
+            has_subscription = False
+            trial_end = None
+            
+            if subscription:
+                has_subscription = subscription.get('status') in ['active', 'trialing']
+                trial_end = subscription.get('trial_end')
+            
+            result.append({
+                "id": gerant['id'],
+                "name": gerant.get('name', 'N/A'),
+                "email": gerant['email'],
+                "trial_end": trial_end,
+                "active_sellers_count": active_sellers_count,
+                "has_subscription": has_subscription,
+                "subscription_status": subscription.get('status') if subscription else None
+            })
+        
+        # Trier par date d'expiration (les plus proches d'abord)
+        result.sort(key=lambda x: (
+            x['trial_end'] is None,  # Ceux sans essai en dernier
+            x['trial_end'] if x['trial_end'] else ''
+        ))
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error fetching gerants trials: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.patch("/superadmin/gerants/{gerant_id}/trial")
+async def update_gerant_trial(
+    gerant_id: str,
+    trial_data: dict,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """Modifier la période d'essai d'un gérant"""
+    try:
+        # Vérifier que le gérant existe
+        gerant = await db.users.find_one(
+            {"id": gerant_id, "role": "gerant"},
+            {"_id": 0}
+        )
+        
+        if not gerant:
+            raise HTTPException(status_code=404, detail="Gérant non trouvé")
+        
+        # Récupérer la nouvelle date de fin d'essai
+        trial_end_str = trial_data.get('trial_end')
+        if not trial_end_str:
+            raise HTTPException(status_code=400, detail="Date de fin d'essai requise")
+        
+        # Parser et valider la date
+        try:
+            trial_end_date = datetime.fromisoformat(trial_end_str.replace('Z', '+00:00'))
+            # S'assurer que c'est en UTC
+            if trial_end_date.tzinfo is None:
+                trial_end_date = trial_end_date.replace(tzinfo=timezone.utc)
+            trial_end = trial_end_date.isoformat()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Format de date invalide")
+        
+        # Mettre à jour ou créer l'abonnement
+        subscription = await db.subscriptions.find_one({"user_id": gerant_id})
+        
+        if subscription:
+            # Mettre à jour l'abonnement existant
+            await db.subscriptions.update_one(
+                {"user_id": gerant_id},
+                {"$set": {
+                    "trial_end": trial_end,
+                    "status": "trialing",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+        else:
+            # Créer un nouvel abonnement avec période d'essai
+            from uuid import uuid4
+            new_subscription = {
+                "id": str(uuid4()),
+                "user_id": gerant_id,
+                "workspace_id": gerant.get('workspace_id'),
+                "plan": "professional",  # Plan par défaut pour l'essai
+                "status": "trialing",
+                "seats": 10,  # 10 sièges par défaut
+                "trial_end": trial_end,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.subscriptions.insert_one(new_subscription)
+        
+        logger.info(f"Trial period updated for gerant {gerant_id} by admin {current_admin['email']}")
+        
+        return {
+            "success": True,
+            "message": "Période d'essai mise à jour avec succès",
+            "trial_end": trial_end
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating gerant trial: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================
 # GERANT ENDPOINTS - Multi-Store Management
 # ============================================
 
