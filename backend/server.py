@@ -10418,6 +10418,140 @@ async def register_with_gerant_invite(invite_data: RegisterWithGerantInvite):
 
 
 # ============================================
+# GERANT STRIPE CHECKOUT ENDPOINTS
+# ============================================
+
+@api_router.post("/gerant/stripe/checkout")
+async def create_gerant_checkout_session(
+    checkout_data: GerantCheckoutRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Créer une session de checkout Stripe pour un gérant.
+    Tarification basée sur le nombre de vendeurs actifs :
+    - 1-5 vendeurs actifs : 29€/vendeur
+    - 6-15 vendeurs actifs : 25€/vendeur  
+    - >15 vendeurs : sur devis (erreur)
+    """
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    try:
+        # Compter les vendeurs ACTIFS uniquement (pas suspendus, pas supprimés)
+        active_sellers_count = await db.users.count_documents({
+            "gerant_id": current_user['id'],
+            "role": "seller", 
+            "status": "active"
+        })
+        
+        # Utiliser la quantité fournie ou celle calculée
+        quantity = checkout_data.quantity if checkout_data.quantity else active_sellers_count
+        quantity = max(quantity, 1)  # Minimum 1 vendeur
+        
+        # Validation des limites et calcul du prix
+        if quantity > 15:
+            raise HTTPException(
+                status_code=400, 
+                detail="Plus de 15 vendeurs nécessite un devis personnalisé. Contactez notre équipe commerciale."
+            )
+        
+        # Logique de tarification
+        if 1 <= quantity <= 5:
+            price_per_seller = 29.00  # 29€ par vendeur
+        elif 6 <= quantity <= 15:
+            price_per_seller = 25.00  # 25€ par vendeur
+        else:
+            raise HTTPException(status_code=400, detail="Quantité invalide")
+        
+        total_amount = int(price_per_seller * quantity * 100)  # En centimes pour Stripe
+        
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
+        # Vérifier si le gérant a déjà un customer ID Stripe
+        gerant = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        stripe_customer_id = gerant.get('stripe_customer_id')
+        
+        # Créer ou récupérer le client Stripe
+        if stripe_customer_id:
+            try:
+                customer = stripe_lib.Customer.retrieve(stripe_customer_id)
+                if customer.get('deleted'):
+                    stripe_customer_id = None
+                logger.info(f"Réutilisation du client Stripe: {stripe_customer_id}")
+            except stripe_lib.error.InvalidRequestError:
+                stripe_customer_id = None
+                logger.warning(f"Client Stripe {stripe_customer_id} introuvable, création d'un nouveau")
+        
+        if not stripe_customer_id:
+            customer = stripe_lib.Customer.create(
+                email=current_user['email'],
+                name=current_user['name'],
+                metadata={
+                    'gerant_id': current_user['id'],
+                    'role': 'gerant'
+                }
+            )
+            stripe_customer_id = customer.id
+            
+            # Mettre à jour l'ID client Stripe dans la base de données
+            await db.users.update_one(
+                {"id": current_user['id']},
+                {"$set": {"stripe_customer_id": stripe_customer_id}}
+            )
+            logger.info(f"Nouveau client Stripe créé: {stripe_customer_id}")
+        
+        # URLs de succès et d'annulation
+        success_url = f"{checkout_data.origin_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{checkout_data.origin_url}/dashboard"
+        
+        # Créer la session de checkout
+        session = stripe_lib.checkout.Session.create(
+            customer=stripe_customer_id,
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {
+                        'name': f'Retail Performer AI - {quantity} vendeur(s)',
+                        'description': f'Abonnement pour {quantity} vendeur(s) actif(s) - {price_per_seller}€/vendeur/mois'
+                    },
+                    'unit_amount': int(price_per_seller * 100),  # En centimes
+                    'recurring': {
+                        'interval': 'month' if checkout_data.billing_period == 'monthly' else 'year'
+                    }
+                },
+                'quantity': quantity,
+            }],
+            mode='subscription',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                'gerant_id': current_user['id'],
+                'seller_quantity': str(quantity),
+                'price_per_seller': str(price_per_seller)
+            }
+        )
+        
+        logger.info(f"Session de checkout créée {session.id} pour gérant {current_user['name']} avec {quantity} vendeur(s)")
+        
+        return {
+            "checkout_url": session.url,
+            "session_id": session.id,
+            "quantity": quantity,
+            "price_per_seller": price_per_seller,
+            "total_monthly": price_per_seller * quantity,
+            "active_sellers_count": active_sellers_count
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de la création de la session de checkout: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la création de l'abonnement: {str(e)}")
+
+
+# ============================================
 # GERANT STORE PERFORMANCE ENDPOINTS
 # ============================================
 
