@@ -10213,11 +10213,16 @@ async def reactivate_seller(
     
     logger.info(f"Seller {seller_id} reactivated by gerant {current_user['id']}")
     
+    message = f"Vendeur {seller['name']} réactivé avec succès"
+    if store_removed:
+        message += f". Le magasin '{store_name}' étant inactif, le vendeur a été désassigné et peut maintenant être assigné à un nouveau magasin."
+    
     return {
         "success": True,
-        "message": f"Vendeur {seller['name']} réactivé avec succès",
+        "message": message,
         "seller_id": seller_id,
-        "status": "active"
+        "status": "active",
+        "store_removed": store_removed
     }
 
 @api_router.delete("/gerant/sellers/{seller_id}")
