@@ -767,22 +767,52 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                 )}
 
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     const currentSeats = subscriptionInfo.subscription.seats || 1;
                     const diff = newSeatsCount - currentSeats;
-                    const action = diff > 0 ? 'Ajout' : 'Réduction';
-                    const estimatedAmount = calculateEstimatedAmount(currentSeats, newSeatsCount);
                     
-                    // Show custom confirmation modal with estimated amount
-                    setConfirmData({
-                      action,
-                      diff: Math.abs(diff),
-                      currentSeats,
-                      newSeats: newSeatsCount,
-                      isIncrease: diff > 0,
-                      estimatedAmount: Math.abs(estimatedAmount)
-                    });
-                    setShowConfirmModal(true);
+                    if (newSeatsCount === currentSeats) return;
+                    
+                    setAdjustingSeats(true);
+                    
+                    try {
+                      const token = localStorage.getItem('token');
+                      
+                      // Call the new update-seats endpoint
+                      const response = await axios.post(
+                        `${API}/api/gerant/subscription/update-seats`,
+                        { seats: newSeatsCount },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      );
+                      
+                      if (response.data.success) {
+                        toast.success(
+                          response.data.message,
+                          {
+                            duration: 5000,
+                            description: response.data.is_trial 
+                              ? `Nouveau coût mensuel après l'essai : ${response.data.new_monthly_cost}€`
+                              : response.data.proration_amount > 0
+                                ? `Coût proratisé immédiat : ${response.data.proration_amount}€`
+                                : `Nouveau coût mensuel : ${response.data.new_monthly_cost}€`
+                          }
+                        );
+                        
+                        // Refresh subscription info
+                        await fetchSubscriptionInfo();
+                        
+                        // Reset the seats count to match new value
+                        setNewSeatsCount(response.data.new_seats);
+                      }
+                    } catch (error) {
+                      console.error('Error updating seats:', error);
+                      toast.error(
+                        error.response?.data?.detail || 'Erreur lors de la mise à jour des sièges',
+                        { duration: 6000 }
+                      );
+                    } finally {
+                      setAdjustingSeats(false);
+                    }
                   }}
                   disabled={adjustingSeats || newSeatsCount === (subscriptionInfo.subscription.seats || 1)}
                   className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black text-lg rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-0.5"
@@ -790,12 +820,12 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                   {adjustingSeats ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader className="w-5 h-5 animate-spin" />
-                      Modification en cours...
+                      Mise à jour en cours...
                     </span>
                   ) : (
                     <span className="flex items-center justify-center gap-2">
                       <Check className="w-5 h-5" />
-                      Valider le changement
+                      {subscriptionInfo.status === 'trialing' ? 'Mettre à jour (Sans frais)' : 'Mettre à jour l\'abonnement'}
                     </span>
                   )}
                 </button>
