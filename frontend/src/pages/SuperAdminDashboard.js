@@ -927,6 +927,8 @@ export default function SuperAdminDashboard() {
         {activeTab === 'invitations' && <InvitationsManagement />}
 
         {activeTab === 'ai-assistant' && <AIAssistant />}
+
+        {activeTab === 'trials' && <TrialManagement />}
       </div>
     </div>
   );
