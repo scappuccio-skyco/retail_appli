@@ -10863,6 +10863,13 @@ async def register_with_gerant_invite(invite_data: RegisterWithGerantInvite):
         {"$set": {"status": "accepted"}}
     )
     
+    # Auto-update Stripe subscription si c'est un vendeur
+    if invitation['role'] == 'seller':
+        await auto_update_stripe_subscription_quantity(
+            invitation['gerant_id'],
+            reason=f"seller_registered:{user_obj.id}"
+        )
+    
     # Créer le token
     token = create_token(user_obj.id, user_obj.email, user_obj.role)
     
