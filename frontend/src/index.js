@@ -13,6 +13,7 @@ console.error = (...args) => {
     message.includes('MetaMask') ||
     message.includes('chrome-extension://') ||
     message.includes('Failed to connect') ||
+    message.includes('Échec de la connexion') ||
     message.includes('moz-extension://') ||
     message.includes('safari-extension://')
   ) {
@@ -22,6 +23,32 @@ console.error = (...args) => {
   // Appeler la fonction originale pour les autres erreurs
   originalConsoleError.apply(console, args);
 };
+
+// Désactiver l'overlay d'erreur React pour les erreurs d'extension
+if (process.env.NODE_ENV === 'development') {
+  const originalSetTimeout = window.setTimeout;
+  window.setTimeout = function(callback, delay, ...args) {
+    // Intercepter les erreurs avant qu'elles n'atteignent l'overlay
+    const wrappedCallback = function() {
+      try {
+        return callback.apply(this, arguments);
+      } catch (error) {
+        const isExtensionError = 
+          error?.message?.includes('MetaMask') ||
+          error?.message?.includes('Failed to connect') ||
+          error?.message?.includes('Échec de la connexion') ||
+          error?.stack?.includes('chrome-extension://');
+        
+        if (isExtensionError) {
+          console.warn('Erreur d\'extension interceptée avant overlay:', error.message);
+          return; // Ne pas propager
+        }
+        throw error; // Propager les autres erreurs
+      }
+    };
+    return originalSetTimeout.call(this, wrappedCallback, delay, ...args);
+  };
+}
 
 // Gestionnaire d'erreurs global pour filtrer les erreurs d'extensions tierces (MetaMask, etc.)
 window.addEventListener('error', (event) => {
