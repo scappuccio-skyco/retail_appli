@@ -3,6 +3,44 @@ import ReactDOM from "react-dom/client";
 import "@/index.css";
 import App from "@/App";
 
+// Désactiver l'overlay d'erreur React pour les erreurs d'extension
+if (process.env.NODE_ENV === 'development') {
+  const showErrorOverlay = (err) => {
+    // Ne rien faire - overlay désactivé pour toutes les erreurs MetaMask
+    const isExtensionError = 
+      err?.message?.includes('MetaMask') ||
+      err?.message?.includes('Failed to connect') ||
+      err?.message?.includes('Échec de la connexion') ||
+      err?.stack?.includes('chrome-extension://');
+    
+    if (!isExtensionError) {
+      // Pour les autres erreurs, laisser React gérer
+      console.error('Erreur React:', err);
+    }
+  };
+  
+  // Surcharger le handler d'erreur de React
+  window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = {
+    isSupportedErrorBoundaryVersion: () => true,
+    registerErrorOverlay: () => {},
+    clearErrorOverlay: () => {},
+    reportBuildError: () => {},
+    reportRuntimeError: (err) => {
+      const isExtensionError = 
+        err?.message?.includes('MetaMask') ||
+        err?.message?.includes('Failed to connect') ||
+        err?.message?.includes('Échec de la connexion') ||
+        err?.stack?.includes('chrome-extension://');
+      
+      if (isExtensionError) {
+        console.warn('Erreur d\'extension interceptée (overlay bloqué):', err.message);
+        return; // Bloquer l'overlay
+      }
+      // Pour les autres erreurs, on laisse passer (comportement par défaut impossible à reproduire ici)
+    }
+  };
+}
+
 // Surcharger console.error pour filtrer les erreurs d'extension
 const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
