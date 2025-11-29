@@ -465,6 +465,12 @@ class CheckoutRequest(BaseModel):
     quantity: Optional[int] = None  # Number of sellers (optional, defaults to current count)
     billing_period: Optional[str] = 'monthly'  # monthly or annual
 
+class GerantCheckoutRequest(BaseModel):
+    """Modèle pour la demande de checkout gérant"""
+    origin_url: str
+    quantity: Optional[int] = None  # Nombre de vendeurs (optionnel, par défaut = nombre actuel)
+    billing_period: Optional[str] = 'monthly'  # monthly ou annual
+
 class Sale(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
