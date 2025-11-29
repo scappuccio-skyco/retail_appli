@@ -9325,38 +9325,68 @@ async def update_store(
 
 @api_router.delete("/gerant/stores/{store_id}")
 async def delete_store(store_id: str, current_user: dict = Depends(get_current_user)):
-    """Supprimer un magasin (avec validation stricte)"""
+    """Supprimer un magasin et suspendre automatiquement l'équipe"""
     if current_user['role'] != 'gerant':
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le magasin appartient au gérant
-    store = await db.stores.find_one({"id": store_id, "gerant_id": current_user['id']})
+    store = await db.stores.find_one({"id": store_id, "gerant_id": current_user['id']}, {"_id": 0})
     if not store:
         raise HTTPException(status_code=404, detail="Magasin non trouvé")
     
-    # Vérifier qu'il n'y a pas de managers assignés
-    managers_count = await db.users.count_documents({"store_id": store_id, "role": "manager"})
-    if managers_count > 0:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Impossible de supprimer : {managers_count} manager(s) assigné(s)"
-        )
+    # Compter les utilisateurs qui seront suspendus
+    managers_count = await db.users.count_documents({
+        "store_id": store_id, 
+        "role": "manager",
+        "status": {"$ne": "deleted"}
+    })
+    sellers_count = await db.users.count_documents({
+        "store_id": store_id, 
+        "role": "seller",
+        "status": {"$ne": "deleted"}
+    })
     
-    # Vérifier qu'il n'y a pas de vendeurs assignés
-    sellers_count = await db.users.count_documents({"store_id": store_id, "role": "seller"})
-    if sellers_count > 0:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Impossible de supprimer : {sellers_count} vendeur(s) assigné(s)"
+    # Suspendre automatiquement tous les managers et vendeurs du magasin
+    if managers_count > 0 or sellers_count > 0:
+        await db.users.update_many(
+            {
+                "store_id": store_id,
+                "role": {"$in": ["manager", "seller"]},
+                "status": {"$ne": "deleted"}
+            },
+            {
+                "$set": {
+                    "status": "suspended",
+                    "suspended_reason": f"Magasin '{store['name']}' supprimé",
+                    "suspended_at": datetime.now(timezone.utc).isoformat(),
+                    "suspended_by": current_user['id']
+                }
+            }
         )
+        
+        logger.info(f"Magasin {store['name']} supprimé - {managers_count} manager(s) et {sellers_count} vendeur(s) suspendus")
     
-    # Marquer comme inactif au lieu de supprimer (soft delete)
+    # Marquer le magasin comme inactif (soft delete)
     await db.stores.update_one(
         {"id": store_id},
-        {"$set": {"active": False, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        {
+            "$set": {
+                "active": False,
+                "deleted_at": datetime.now(timezone.utc).isoformat(),
+                "deleted_by": current_user['id'],
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
     )
     
-    return {"message": "Magasin désactivé avec succès"}
+    # Retourner les informations de l'action
+    return {
+        "message": "Magasin supprimé avec succès",
+        "store_name": store['name'],
+        "suspended_managers": managers_count,
+        "suspended_sellers": sellers_count,
+        "total_suspended": managers_count + sellers_count
+    }
 
 @api_router.get("/gerant/dashboard/stats")
 async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_user)):
