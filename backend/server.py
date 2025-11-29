@@ -10480,16 +10480,27 @@ async def reactivate_seller(
     
     logger.info(f"Seller {seller_id} reactivated by gerant {current_user['id']}")
     
+    # Auto-update Stripe subscription quantity
+    stripe_update = await auto_update_stripe_subscription_quantity(
+        current_user['id'], 
+        reason=f"seller_reactivated:{seller_id}"
+    )
+    
     message = f"Vendeur {seller['name']} réactivé avec succès"
     if store_removed:
         message += f". Le magasin '{store_name}' étant inactif, le vendeur a été désassigné et peut maintenant être assigné à un nouveau magasin."
+    
+    # Ajouter info sur mise à jour Stripe si elle a eu lieu
+    if stripe_update.get('updated'):
+        message += f" (Abonnement mis à jour: {stripe_update['new_quantity']} vendeurs actifs)"
     
     return {
         "success": True,
         "message": message,
         "seller_id": seller_id,
         "status": "active",
-        "store_removed": store_removed
+        "store_removed": store_removed,
+        "stripe_updated": stripe_update.get('updated', False)
     }
 
 @api_router.delete("/gerant/sellers/{seller_id}")
