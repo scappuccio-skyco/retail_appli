@@ -10229,6 +10229,40 @@ async def create_gerant_invitation(
     if existing_invite:
         raise HTTPException(status_code=400, detail="Une invitation est déjà en attente pour cet email")
     
+    # NOUVEAU : Vérifier les quotas d'abonnement avant de créer l'invitation
+    if invite_data.role == "seller":
+        subscription_info = await get_gerant_subscription_info(current_user['id'])
+        
+        if not subscription_info['can_invite']:
+            if subscription_info['needs_upgrade']:
+                if subscription_info['subscription_tier'] == 'starter':
+                    raise HTTPException(
+                        status_code=400, 
+                        detail="Vous avez dépassé la limite de 5 vendeurs. Veuillez passer à l'abonnement Professionnel pour inviter plus de vendeurs."
+                    )
+                else:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Vous avez atteint la limite de 15 vendeurs. Contactez notre équipe pour un abonnement sur mesure."
+                    )
+            elif subscription_info['quota_exceeded']:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Quota dépassé ! Vous avez {subscription_info['active_sellers_count']} vendeurs actifs mais seulement {subscription_info['allowed_sellers']} autorisés. Mettez à niveau votre abonnement."
+                )
+            elif subscription_info['remaining_slots'] <= 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Limite atteinte ! Vous avez utilisé tous vos {subscription_info['allowed_sellers']} emplacements vendeurs. Mettez à niveau votre abonnement pour inviter plus de vendeurs."
+                )
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Impossible d'inviter un nouveau vendeur. Vérifiez votre abonnement."
+                )
+    
+    # Les managers ne sont pas comptabilisés dans les quotas (gratuits)
+    
     # Créer l'invitation
     invitation = GerantInvitation(
         name=invite_data.name,
