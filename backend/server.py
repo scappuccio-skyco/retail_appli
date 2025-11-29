@@ -8718,6 +8718,197 @@ async def get_system_health(current_admin: dict = Depends(get_super_admin)):
             "error": str(e)
         }
 
+
+@api_router.get("/superadmin/subscriptions/overview")
+async def get_subscriptions_overview(current_admin: dict = Depends(get_super_admin)):
+    """
+    Vue d'ensemble de tous les abonnements Stripe des gérants.
+    Affiche statuts, paiements, prorations, etc.
+    """
+    try:
+        # Récupérer tous les gérants
+        gerants = await db.users.find(
+            {"role": "gerant"},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "stripe_customer_id": 1, "created_at": 1}
+        ).to_list(None)
+        
+        subscriptions_data = []
+        
+        for gerant in gerants:
+            # Récupérer l'abonnement
+            subscription = await db.subscriptions.find_one(
+                {"user_id": gerant['id']},
+                {"_id": 0}
+            )
+            
+            # Compter les vendeurs actifs
+            active_sellers_count = await db.users.count_documents({
+                "gerant_id": gerant['id'],
+                "role": "seller",
+                "status": "active"
+            })
+            
+            # Récupérer la dernière transaction
+            last_transaction = await db.payment_transactions.find_one(
+                {"user_id": gerant['id']},
+                {"_id": 0},
+                sort=[("created_at", -1)]
+            )
+            
+            subscriptions_data.append({
+                "gerant": {
+                    "id": gerant['id'],
+                    "name": gerant['name'],
+                    "email": gerant['email'],
+                    "created_at": gerant.get('created_at')
+                },
+                "subscription": subscription,
+                "active_sellers_count": active_sellers_count,
+                "last_transaction": last_transaction
+            })
+        
+        # Statistiques globales
+        total_gerants = len(gerants)
+        active_subscriptions = sum(1 for s in subscriptions_data if s['subscription'] and s['subscription'].get('status') in ['active', 'trialing'])
+        trialing_subscriptions = sum(1 for s in subscriptions_data if s['subscription'] and s['subscription'].get('status') == 'trialing')
+        total_mrr = sum(
+            s['subscription'].get('seats', 0) * s['subscription'].get('price_per_seat', 0)
+            for s in subscriptions_data
+            if s['subscription'] and s['subscription'].get('status') == 'active'
+        )
+        
+        return {
+            "summary": {
+                "total_gerants": total_gerants,
+                "active_subscriptions": active_subscriptions,
+                "trialing_subscriptions": trialing_subscriptions,
+                "total_mrr": round(total_mrr, 2)
+            },
+            "subscriptions": subscriptions_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching subscriptions overview: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/superadmin/subscriptions/{gerant_id}/details")
+async def get_subscription_details(
+    gerant_id: str,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """
+    Détails complets d'un abonnement spécifique.
+    Inclut historique des prorations, paiements, événements webhook.
+    """
+    try:
+        # Récupérer le gérant
+        gerant = await db.users.find_one(
+            {"id": gerant_id, "role": "gerant"},
+            {"_id": 0}
+        )
+        
+        if not gerant:
+            raise HTTPException(status_code=404, detail="Gérant non trouvé")
+        
+        # Récupérer l'abonnement
+        subscription = await db.subscriptions.find_one(
+            {"user_id": gerant_id},
+            {"_id": 0}
+        )
+        
+        # Récupérer toutes les transactions
+        transactions = await db.payment_transactions.find(
+            {"user_id": gerant_id},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(100)
+        
+        # Récupérer les événements webhook liés
+        webhook_events = []
+        if subscription and subscription.get('stripe_subscription_id'):
+            webhook_events = await db.stripe_events.find(
+                {
+                    "$or": [
+                        {"data.object.id": subscription['stripe_subscription_id']},
+                        {"data.object.subscription": subscription['stripe_subscription_id']},
+                        {"data.object.customer": gerant.get('stripe_customer_id')}
+                    ]
+                },
+                {"_id": 0}
+            ).sort("created_at", -1).limit(50).to_list(None)
+        
+        # Compter les vendeurs
+        active_sellers = await db.users.count_documents({
+            "gerant_id": gerant_id,
+            "role": "seller",
+            "status": "active"
+        })
+        
+        suspended_sellers = await db.users.count_documents({
+            "gerant_id": gerant_id,
+            "role": "seller",
+            "status": "suspended"
+        })
+        
+        return {
+            "gerant": gerant,
+            "subscription": subscription,
+            "sellers": {
+                "active": active_sellers,
+                "suspended": suspended_sellers,
+                "total": active_sellers + suspended_sellers
+            },
+            "transactions": transactions,
+            "webhook_events": webhook_events
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching subscription details: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/superadmin/webhooks/recent")
+async def get_recent_webhooks(
+    limit: int = 50,
+    current_admin: dict = Depends(get_super_admin)
+):
+    """
+    Liste des webhooks Stripe récents.
+    Utile pour déboguer et monitorer.
+    """
+    try:
+        events = await db.stripe_events.find(
+            {},
+            {"_id": 0}
+        ).sort("created_at", -1).limit(limit).to_list(None)
+        
+        # Statistiques
+        total_events = await db.stripe_events.count_documents({})
+        processed_events = await db.stripe_events.count_documents({"processed": True})
+        failed_events = await db.stripe_events.count_documents({"processed": False})
+        
+        # Dernières 24h
+        last_24h = datetime.now(timezone.utc) - timedelta(hours=24)
+        events_24h = await db.stripe_events.count_documents({
+            "created_at": {"$gte": last_24h.isoformat()}
+        })
+        
+        return {
+            "summary": {
+                "total_events": total_events,
+                "processed": processed_events,
+                "failed": failed_events,
+                "last_24h": events_24h
+            },
+            "events": events
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching recent webhooks: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/superadmin/admins")
 async def get_super_admins(current_admin: dict = Depends(get_super_admin)):
     """Get list of super admins"""
