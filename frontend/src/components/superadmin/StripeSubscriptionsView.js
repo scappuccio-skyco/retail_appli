@@ -197,8 +197,8 @@ export default function StripeSubscriptionsView() {
 
                 {/* Expanded Details */}
                 {isExpanded && details && (
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="px-4 sm:px-6 py-4 bg-gray-50 border-t border-gray-200">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Left Column - Subscription Details */}
                       <div className="space-y-4">
                         <h5 className="font-semibold text-gray-900 flex items-center gap-2">
