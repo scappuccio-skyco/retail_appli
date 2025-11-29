@@ -93,14 +93,15 @@ const DeleteStoreConfirmation = ({ store, onClose, onDelete }) => {
               <div className="bg-orange-50 border-2 border-orange-400 rounded-lg p-4">
                 <p className="font-bold text-orange-800 mb-2 flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5" />
-                  Étape 2/3 : Vérification des conditions
+                  Étape 2/3 : Action automatique sur l'équipe
                 </p>
                 <div className="text-sm text-orange-800 space-y-2">
-                  <p>⚠️ Avant de supprimer ce magasin, assurez-vous que :</p>
+                  <p>🔄 <strong>Suspension automatique de l'équipe :</strong></p>
                   <ul className="ml-6 list-disc space-y-1">
-                    <li>Aucun manager n'est assigné à ce magasin</li>
-                    <li>Aucun vendeur n'est assigné à ce magasin</li>
-                    <li>Vous avez informé votre équipe</li>
+                    <li>Tous les managers du magasin passeront en statut "Suspendu"</li>
+                    <li>Tous les vendeurs du magasin passeront en statut "Suspendu"</li>
+                    <li>Ils n'auront plus accès à l'application</li>
+                    <li>Vous pourrez les réactiver plus tard via l'onglet "Personnel"</li>
                   </ul>
                 </div>
               </div>
