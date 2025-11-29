@@ -118,6 +118,7 @@ export default function StaffOverview({ onRefresh }) {
       await axios.delete(endpoint, { headers });
       toast.success('Utilisateur supprimé avec succès');
       fetchData();
+      if (onRefresh) onRefresh(); // Rafraîchir les cartes de magasins
       setActionMenuOpen(null);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de la suppression');
