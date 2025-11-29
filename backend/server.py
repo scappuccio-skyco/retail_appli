@@ -10638,6 +10638,131 @@ async def get_gerant_subscription_status(current_user: dict = Depends(get_curren
 
 
 # ============================================
+# GERANT SUBSCRIPTION HELPERS
+# ============================================
+
+async def get_gerant_subscription_info(gerant_id: str):
+    """
+    Récupérer les informations complètes d'abonnement d'un gérant
+    incluant quotas et limites
+    """
+    # Compter les vendeurs actifs
+    active_sellers_count = await db.users.count_documents({
+        "gerant_id": gerant_id,
+        "role": "seller", 
+        "status": "active"
+    })
+    
+    # Récupérer les infos du gérant
+    gerant = await db.users.find_one({"id": gerant_id}, {"_id": 0})
+    if not gerant:
+        raise HTTPException(status_code=404, detail="Gérant non trouvé")
+        
+    stripe_customer_id = gerant.get('stripe_customer_id')
+    
+    # Informations par défaut (pas d'abonnement)
+    subscription_info = {
+        "has_subscription": False,
+        "status": "no_subscription",
+        "allowed_sellers": 0,  # Pas de vendeurs autorisés sans abonnement
+        "active_sellers_count": active_sellers_count,
+        "remaining_slots": 0,
+        "price_per_seller": 0,
+        "total_monthly": 0,
+        "subscription_tier": None,
+        "quota_exceeded": active_sellers_count > 0,  # Si pas d'abonnement, toujours en dépassement
+        "needs_upgrade": False,
+        "can_invite": False
+    }
+    
+    if not stripe_customer_id:
+        return subscription_info
+    
+    try:
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_API_KEY
+        
+        # Récupérer l'abonnement actif
+        subscriptions = stripe_lib.Subscription.list(
+            customer=stripe_customer_id,
+            status='active',
+            limit=1
+        )
+        
+        active_subscription = None
+        if subscriptions.data:
+            active_subscription = subscriptions.data[0]
+        else:
+            # Vérifier les abonnements en trial
+            trial_subs = stripe_lib.Subscription.list(
+                customer=stripe_customer_id,
+                status='trialing',
+                limit=1
+            )
+            if trial_subs.data:
+                active_subscription = trial_subs.data[0]
+        
+        if active_subscription:
+            # Récupérer la quantité de l'abonnement
+            allowed_sellers = 1
+            if active_subscription.get('items') and active_subscription['items']['data']:
+                allowed_sellers = active_subscription['items']['data'][0].get('quantity', 1)
+            
+            # Déterminer le tier de tarification
+            if 1 <= allowed_sellers <= 5:
+                subscription_tier = "starter"
+                price_per_seller = 29.0
+            elif 6 <= allowed_sellers <= 15:
+                subscription_tier = "professional" 
+                price_per_seller = 25.0
+            else:
+                subscription_tier = "enterprise"
+                price_per_seller = 0  # Sur devis
+            
+            remaining_slots = allowed_sellers - active_sellers_count
+            quota_exceeded = active_sellers_count > allowed_sellers
+            
+            # Vérifier si une mise à niveau est nécessaire
+            needs_upgrade = (
+                active_sellers_count > 5 and subscription_tier == "starter"
+            ) or (
+                active_sellers_count > 15 and subscription_tier == "professional"
+            )
+            
+            subscription_info.update({
+                "has_subscription": True,
+                "status": active_subscription.get('status'),
+                "subscription_id": active_subscription.id,
+                "allowed_sellers": allowed_sellers,
+                "remaining_slots": remaining_slots,
+                "price_per_seller": price_per_seller,
+                "total_monthly": price_per_seller * allowed_sellers,
+                "subscription_tier": subscription_tier,
+                "quota_exceeded": quota_exceeded,
+                "needs_upgrade": needs_upgrade,
+                "can_invite": remaining_slots > 0 and not needs_upgrade,
+                "current_period_start": active_subscription.get('current_period_start'),
+                "current_period_end": active_subscription.get('current_period_end'),
+                "cancel_at_period_end": active_subscription.get('cancel_at_period_end', False)
+            })
+    
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des infos d'abonnement: {str(e)}")
+        # En cas d'erreur, retourner les infos de base
+    
+    return subscription_info
+
+
+@api_router.get("/gerant/subscription/info")
+async def get_gerant_subscription_detailed_info(current_user: dict = Depends(get_current_user)):
+    """Obtenir les informations détaillées d'abonnement avec quotas"""
+    if current_user['role'] != 'gerant':
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    return await get_gerant_subscription_info(current_user['id'])
+
+
+# ============================================
 # GERANT STORE PERFORMANCE ENDPOINTS
 # ============================================
 
