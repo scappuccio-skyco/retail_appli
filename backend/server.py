@@ -9809,8 +9809,6 @@ async def assign_manager_to_store(
     
     return {"message": f"Manager {manager['name']} assigné au magasin {store['name']}"}
 
-@api_router.post("/gerant/managers/{manager_id}/transfer")
-
 @api_router.patch("/gerant/managers/{manager_id}/suspend")
 async def suspend_manager(
     manager_id: str,
