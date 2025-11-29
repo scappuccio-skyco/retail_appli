@@ -162,7 +162,7 @@ export default function StripeSubscriptionsView() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-6 text-sm">
+                    <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm w-full sm:w-auto">
                       {sub ? (
                         <>
                           <div className="text-center">
