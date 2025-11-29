@@ -1072,8 +1072,6 @@ async def auto_update_stripe_subscription_quantity(gerant_id: str, reason: str =
             logger.info(f"Aucun abonnement actif/trialing trouvé pour gérant {gerant_id}")
             return {"success": False, "reason": "no_active_subscription"}
         
-        subscription = subscriptions.data[0]
-        
         # Vérifier si l'abonnement a des items
         if not subscription.get('items') or not subscription['items'].data:
             logger.warning(f"Abonnement {subscription.id} n'a pas d'items")
