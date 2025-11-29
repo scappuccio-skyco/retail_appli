@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import AdminManagement from '../components/superadmin/AdminManagement';
 import AIAssistant from '../components/superadmin/AIAssistant';
 import InvitationsManagement from '../components/superadmin/InvitationsManagement';
+import TrialManagement from '../components/superadmin/TrialManagement';
 import Select from 'react-select';
 import { 
   Users, Building2, TrendingUp, Database, Activity, 
