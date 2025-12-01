@@ -326,7 +326,7 @@ BASE_URL = "https://votre-domaine.com/api"
 
 # Headers
 headers = {
-    "Authorization": f"Bearer {API_KEY}",
+    "X-API-Key": API_KEY,
     "Content-Type": "application/json"
 }
 
