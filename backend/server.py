@@ -8909,6 +8909,110 @@ async def get_recent_webhooks(
         logger.error(f"Error fetching recent webhooks: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@api_router.get("/superadmin/ai-credits/usage")
+async def get_ai_credits_usage(current_admin: dict = Depends(get_super_admin)):
+    """
+    Récupère l'utilisation des crédits IA par gérant/workspace.
+    Affiche le total des crédits consommés et les détails par action.
+    """
+    try:
+        # Récupérer tous les gérants
+        gerants = await db.users.find(
+            {"role": "gerant"},
+            {"_id": 0, "id": 1, "name": 1, "email": 1}
+        ).to_list(None)
+        
+        usage_by_gerant = []
+        total_credits_all = 0
+        
+        for gerant in gerants:
+            # Récupérer tous les utilisateurs (managers + sellers) de ce gérant
+            team_members = await db.users.find(
+                {"gerant_id": gerant['id']},
+                {"_id": 0, "id": 1}
+            ).to_list(None)
+            
+            team_ids = [member['id'] for member in team_members]
+            
+            if not team_ids:
+                usage_by_gerant.append({
+                    "gerant": gerant,
+                    "total_credits": 0,
+                    "usage_by_action": {},
+                    "recent_usage": []
+                })
+                continue
+            
+            # Agréger l'utilisation par type d'action
+            pipeline = [
+                {"$match": {"user_id": {"$in": team_ids}}},
+                {"$group": {
+                    "_id": "$action_type",
+                    "total_credits": {"$sum": "$credits_consumed"},
+                    "count": {"$sum": 1}
+                }}
+            ]
+            
+            usage_by_action = {}
+            total_credits = 0
+            
+            async for result in db.ai_usage_logs.aggregate(pipeline):
+                action_type = result['_id']
+                credits = result['total_credits']
+                count = result['count']
+                
+                usage_by_action[action_type] = {
+                    "credits": credits,
+                    "count": count
+                }
+                total_credits += credits
+            
+            total_credits_all += total_credits
+            
+            # Récupérer les 5 dernières utilisations
+            recent_usage = await db.ai_usage_logs.find(
+                {"user_id": {"$in": team_ids}},
+                {"_id": 0}
+            ).sort("timestamp", -1).limit(5).to_list(None)
+            
+            usage_by_gerant.append({
+                "gerant": gerant,
+                "total_credits": total_credits,
+                "usage_by_action": usage_by_action,
+                "recent_usage": recent_usage,
+                "team_size": len(team_ids)
+            })
+        
+        # Trier par crédits consommés (décroissant)
+        usage_by_gerant.sort(key=lambda x: x['total_credits'], reverse=True)
+        
+        # Statistiques globales
+        total_usage_count = await db.ai_usage_logs.count_documents({})
+        
+        # Usage des 30 derniers jours
+        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+        usage_30d = await db.ai_usage_logs.aggregate([
+            {"$match": {"timestamp": {"$gte": thirty_days_ago.isoformat()}}},
+            {"$group": {"_id": None, "total": {"$sum": "$credits_consumed"}}}
+        ]).to_list(None)
+        
+        credits_30d = usage_30d[0]['total'] if usage_30d else 0
+        
+        return {
+            "summary": {
+                "total_credits_consumed": total_credits_all,
+                "total_usage_count": total_usage_count,
+                "credits_last_30_days": credits_30d,
+                "total_gerants": len(gerants)
+            },
+            "usage_by_gerant": usage_by_gerant
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching AI credits usage: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/superadmin/admins")
 async def get_super_admins(current_admin: dict = Depends(get_super_admin)):
     """Get list of super admins"""
