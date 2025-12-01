@@ -391,7 +391,7 @@ async function syncKPI() {
       },
       {
         headers: {
-          'Authorization': `Bearer ${API_KEY}`,
+          'X-API-Key': API_KEY,
           'Content-Type': 'application/json'
         }
       }
