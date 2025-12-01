@@ -8755,6 +8755,24 @@ async def get_subscriptions_overview(current_admin: dict = Depends(get_super_adm
                 sort=[("created_at", -1)]
             )
             
+            # Récupérer l'utilisation des crédits IA
+            team_members = await db.users.find(
+                {"gerant_id": gerant['id']},
+                {"_id": 0, "id": 1}
+            ).to_list(None)
+            
+            team_ids = [member['id'] for member in team_members]
+            
+            ai_credits_total = 0
+            if team_ids:
+                pipeline = [
+                    {"$match": {"user_id": {"$in": team_ids}}},
+                    {"$group": {"_id": None, "total": {"$sum": "$credits_consumed"}}}
+                ]
+                result = await db.ai_usage_logs.aggregate(pipeline).to_list(None)
+                if result:
+                    ai_credits_total = result[0]['total']
+            
             subscriptions_data.append({
                 "gerant": {
                     "id": gerant['id'],
@@ -8764,7 +8782,8 @@ async def get_subscriptions_overview(current_admin: dict = Depends(get_super_adm
                 },
                 "subscription": subscription,
                 "active_sellers_count": active_sellers_count,
-                "last_transaction": last_transaction
+                "last_transaction": last_transaction,
+                "ai_credits_used": ai_credits_total
             })
         
         # Statistiques globales
