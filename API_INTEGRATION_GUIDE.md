@@ -267,9 +267,11 @@ getStats();
 
 **Headers** :
 ```
-Authorization: Bearer rp_live_votre_cle_api_ici
+X-API-Key: rp_live_votre_cle_api_ici
 Content-Type: application/json
 ```
+
+**Note** : Vous pouvez aussi utiliser `Authorization: Bearer rp_live_votre_cle_api_ici`
 
 **Body** :
 ```json
