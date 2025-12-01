@@ -90,37 +90,48 @@ export default function StripeSubscriptionsView() {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 sm:p-6 text-white">
           <div className="flex items-center justify-between mb-2">
-            <Users className="w-8 h-8 opacity-80" />
+            <Users className="w-6 sm:w-8 h-6 sm:h-8 opacity-80" />
           </div>
-          <p className="text-sm opacity-90">Total Gérants</p>
-          <p className="text-3xl font-bold">{overview?.summary?.total_gerants || 0}</p>
+          <p className="text-xs sm:text-sm opacity-90">Total Gérants</p>
+          <p className="text-2xl sm:text-3xl font-bold">{overview?.summary?.total_gerants || 0}</p>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white">
+        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-4 sm:p-6 text-white">
           <div className="flex items-center justify-between mb-2">
-            <CheckCircle className="w-8 h-8 opacity-80" />
+            <CheckCircle className="w-6 sm:w-8 h-6 sm:h-8 opacity-80" />
           </div>
-          <p className="text-sm opacity-90">Abonnements Actifs</p>
-          <p className="text-3xl font-bold">{overview?.summary?.active_subscriptions || 0}</p>
+          <p className="text-xs sm:text-sm opacity-90">Abonnements Actifs</p>
+          <p className="text-2xl sm:text-3xl font-bold">{overview?.summary?.active_subscriptions || 0}</p>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl p-6 text-white">
+        <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl p-4 sm:p-6 text-white">
           <div className="flex items-center justify-between mb-2">
-            <Clock className="w-8 h-8 opacity-80" />
+            <Clock className="w-6 sm:w-8 h-6 sm:h-8 opacity-80" />
           </div>
-          <p className="text-sm opacity-90">En Essai</p>
-          <p className="text-3xl font-bold">{overview?.summary?.trialing_subscriptions || 0}</p>
+          <p className="text-xs sm:text-sm opacity-90">En Essai</p>
+          <p className="text-2xl sm:text-3xl font-bold">{overview?.summary?.trialing_subscriptions || 0}</p>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl p-6 text-white">
+        <div className="bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl p-4 sm:p-6 text-white">
           <div className="flex items-center justify-between mb-2">
-            <DollarSign className="w-8 h-8 opacity-80" />
+            <Activity className="w-6 sm:w-8 h-6 sm:h-8 opacity-80" />
           </div>
-          <p className="text-sm opacity-90">MRR Total</p>
-          <p className="text-3xl font-bold">{overview?.summary?.total_mrr?.toFixed(0) || 0}€</p>
+          <p className="text-xs sm:text-sm opacity-90">Crédits IA Totaux</p>
+          <p className="text-2xl sm:text-3xl font-bold">
+            {overview?.subscriptions?.reduce((sum, item) => sum + (item.ai_credits_used || 0), 0) || 0}
+          </p>
+          <p className="text-xs opacity-75 mt-1">Tous workspaces</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl p-4 sm:p-6 text-white">
+          <div className="flex items-center justify-between mb-2">
+            <DollarSign className="w-6 sm:w-8 h-6 sm:h-8 opacity-80" />
+          </div>
+          <p className="text-xs sm:text-sm opacity-90">MRR Total</p>
+          <p className="text-2xl sm:text-3xl font-bold">{overview?.summary?.total_mrr?.toFixed(0) || 0}€</p>
           <p className="text-xs opacity-75 mt-1">Revenu Mensuel Récurrent</p>
         </div>
       </div>
