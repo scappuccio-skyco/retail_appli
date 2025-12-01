@@ -181,6 +181,10 @@ export default function StripeSubscriptionsView() {
                             <p className="text-gray-500 text-xs">Vendeurs actifs</p>
                             <p className="font-bold text-blue-600">{item.active_sellers_count}</p>
                           </div>
+                          <div className="text-center">
+                            <p className="text-gray-500 text-xs">Crédits IA</p>
+                            <p className="font-bold text-purple-600">{item.ai_credits_used || 0}</p>
+                          </div>
                         </>
                       ) : (
                         <p className="text-gray-400 italic">Pas d'abonnement</p>
