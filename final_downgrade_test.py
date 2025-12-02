@@ -18,7 +18,7 @@ def test_annual_to_monthly_downgrade_blocking():
     3. Verify HTTP 400 with French error message
     """
     
-    base_url = "https://saas-billing-2.preview.emergentagent.com/api"
+    base_url = "https://data-bridge-36.preview.emergentagent.com/api"
     
     print("🎯 ANNUAL TO MONTHLY DOWNGRADE BLOCKING TEST")
     print("="*60)
@@ -63,7 +63,7 @@ def test_annual_to_monthly_downgrade_blocking():
         "plan": "professional",
         "quantity": 8,
         "billing_period": "monthly",
-        "origin_url": "https://saas-billing-2.preview.emergentagent.com/dashboard"
+        "origin_url": "https://data-bridge-36.preview.emergentagent.com/dashboard"
     }
     
     print(f"   Request: POST /api/checkout/create-session")
