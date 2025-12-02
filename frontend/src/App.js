@@ -221,6 +221,8 @@ function AppContent() {
               <Navigate to="/login" replace />
             ) : user.role === 'super_admin' ? (
               <Navigate to="/superadmin" replace />
+            ) : user.role === 'it_admin' ? (
+              <Navigate to="/it-admin" replace />
             ) : user.role === 'gerant' ? (
               <Navigate to="/gerant-dashboard" replace />
             ) : user.role === 'seller' ? (
