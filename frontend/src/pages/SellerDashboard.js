@@ -19,6 +19,11 @@ import CompetencesExplicationModal from '../components/CompetencesExplicationMod
 import ChallengeHistoryModal from '../components/ChallengeHistoryModal';
 import DailyChallengeModal from '../components/DailyChallengeModal';
 import CoachingModal from '../components/CoachingModal';
+import TutorialButton from '../components/onboarding/TutorialButton';
+import OnboardingModal from '../components/onboarding/OnboardingModal';
+import { getSellerSteps } from '../components/onboarding/sellerSteps';
+import { useOnboarding } from '../hooks/useOnboarding';
+import { useSyncMode } from '../hooks/useSyncMode';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
