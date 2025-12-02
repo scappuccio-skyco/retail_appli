@@ -1456,6 +1456,20 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         }}
         token={localStorage.getItem('token')}
       />
+
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={onboarding.isOpen}
+        onClose={onboarding.close}
+        currentStep={onboarding.currentStep}
+        totalSteps={sellerSteps.length}
+        steps={sellerSteps}
+        onNext={onboarding.next}
+        onPrev={onboarding.prev}
+        onGoTo={onboarding.goTo}
+        onSkip={onboarding.skip}
+        completedSteps={onboarding.completedSteps}
+      />
     </div>
   );
 }
