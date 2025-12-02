@@ -710,14 +710,11 @@ function GenerateKeyModal({ onClose, onSuccess }) {
                   />
                   <button
                     onClick={handleCopy}
-                    className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 ${
-                      copied 
-                        ? 'bg-green-600 text-white'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
+                    id="copy-api-key-btn"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors"
                   >
-                    {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    {copied ? 'Copié' : 'Copier'}
+                    <Copy className="w-4 h-4" />
+                    Copier
                   </button>
                 </div>
               </div>
