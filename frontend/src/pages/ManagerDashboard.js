@@ -541,9 +541,7 @@ export default function ManagerDashboard({ user, onLogout }) {
     setShowDetailView(true);
   };
 
-  const handleInviteSuccess = () => {
-    fetchData();
-  };
+  // REMOVED: handleInviteSuccess - only gerant can invite
 
   const getStatusIcon = (status) => {
     switch (status) {
