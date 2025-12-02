@@ -747,6 +747,20 @@ function GenerateKeyModal({ onClose, onSuccess }) {
           )}
         </div>
       </div>
+
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={onboarding.isOpen}
+        onClose={onboarding.close}
+        currentStep={onboarding.currentStep}
+        totalSteps={itAdminSteps.length}
+        steps={itAdminSteps}
+        onNext={onboarding.next}
+        onPrev={onboarding.prev}
+        onGoTo={onboarding.goTo}
+        onSkip={onboarding.skip}
+        completedSteps={onboarding.completedSteps}
+      />
     </div>
   );
 }
