@@ -1,0 +1,60 @@
+Instructions pour intégrer l'onboarding dans SellerDashboard:
+
+1. Importer les composants:
+import TutorialButton from '../components/onboarding/TutorialButton';
+import OnboardingModal from '../components/onboarding/OnboardingModal';
+import { getSellerSteps } from '../components/onboarding/sellerSteps';
+import { useOnboarding } from '../hooks/useOnboarding';
+import { useSyncMode } from '../hooks/useSyncMode';
+import axios from 'axios';
+
+2. Dans le composant, après les autres états:
+const { isReadOnly } = useSyncMode();
+const [kpiEnabled, setKpiEnabled] = useState(true);
+const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
+
+useEffect(() => {
+  const detectKpiMode = async () => {
+    try {
+      const res = await axios.get(`${API}/seller/kpi-enabled`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      let mode;
+      if (isReadOnly) {
+        mode = 'API_SYNC';
+      } else if (!res.data.enabled) {
+        mode = 'MANAGER_SAISIT';
+      } else {
+        mode = 'VENDEUR_SAISIT';
+      }
+      
+      setKpiMode(mode);
+      setKpiEnabled(res.data.enabled);
+    } catch (error) {
+      console.error('Error detecting KPI mode:', error);
+    }
+  };
+  
+  detectKpiMode();
+}, [isReadOnly]);
+
+const sellerSteps = getSellerSteps(kpiMode);
+const onboarding = useOnboarding(sellerSteps.length);
+
+3. Dans le header, ajouter le bouton:
+<TutorialButton onClick={onboarding.open} />
+
+4. À la fin du JSX, avant la fermeture:
+<OnboardingModal
+  isOpen={onboarding.isOpen}
+  onClose={onboarding.close}
+  currentStep={onboarding.currentStep}
+  totalSteps={sellerSteps.length}
+  steps={sellerSteps}
+  onNext={onboarding.next}
+  onPrev={onboarding.prev}
+  onGoTo={onboarding.goTo}
+  onSkip={onboarding.skip}
+  completedSteps={onboarding.completedSteps}
+/>
