@@ -1441,10 +1441,12 @@ async def register_with_invite(invite_data: RegisterWithInvite):
     }
 
 # ===== INVITATION ROUTES =====
-@api_router.post("/manager/invite", response_model=Invitation)
-async def create_invitation(invite_data: InvitationCreate, current_user: dict = Depends(get_current_user)):
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can send invitations")
+# DISABLED: Only gerant can invite managers and sellers
+# Managers can no longer invite sellers directly
+# @api_router.post("/manager/invite", response_model=Invitation)
+# async def create_invitation(invite_data: InvitationCreate, current_user: dict = Depends(get_current_user)):
+#     if current_user['role'] != 'manager':
+#         raise HTTPException(status_code=403, detail="Only managers can send invitations")
     
     # Check subscription access
     access_info = await check_subscription_access(current_user['id'])
