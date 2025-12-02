@@ -141,6 +141,40 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showCoachingModal, setShowCoachingModal] = useState(false);
   const [storeName, setStoreName] = useState('');
   
+  // Onboarding logic
+  const { isReadOnly } = useSyncMode();
+  const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
+  
+  // Detect KPI mode for adaptive onboarding
+  useEffect(() => {
+    const detectKpiMode = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API}/seller/kpi-enabled`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        let mode;
+        if (isReadOnly) {
+          mode = 'API_SYNC';
+        } else if (!res.data.enabled) {
+          mode = 'MANAGER_SAISIT';
+        } else {
+          mode = 'VENDEUR_SAISIT';
+        }
+        
+        setKpiMode(mode);
+      } catch (error) {
+        console.error('Error detecting KPI mode:', error);
+      }
+    };
+    
+    detectKpiMode();
+  }, [isReadOnly]);
+  
+  const sellerSteps = getSellerSteps(kpiMode);
+  const onboarding = useOnboarding(sellerSteps.length);
+  
   // Dashboard Filters & Preferences
   const [dashboardFilters, setDashboardFilters] = useState(() => {
     const saved = localStorage.getItem('seller_dashboard_filters');
