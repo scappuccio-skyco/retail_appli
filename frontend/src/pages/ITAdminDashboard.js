@@ -568,47 +568,31 @@ function GenerateKeyModal({ onClose, onSuccess }) {
     }
   };
 
-  const handleCopy = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
+  const handleCopy = () => {
     if (!generatedKey?.key) return;
 
-    // Create textarea for copying (méthode fiable sans conflit DOM)
+    // Méthode exacte de l'espace Gérant (manipulation DOM directe sans React state)
     const textArea = document.createElement('textarea');
     textArea.value = generatedKey.key;
     textArea.style.position = 'fixed';
-    textArea.style.top = '0';
-    textArea.style.left = '0';
-    textArea.style.width = '2em';
-    textArea.style.height = '2em';
-    textArea.style.padding = '0';
-    textArea.style.border = 'none';
-    textArea.style.outline = 'none';
-    textArea.style.boxShadow = 'none';
-    textArea.style.background = 'transparent';
-    
+    textArea.style.left = '-999999px';
     document.body.appendChild(textArea);
-    textArea.focus();
     textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
     
-    try {
-      const successful = document.execCommand('copy');
-      document.body.removeChild(textArea);
-      
-      if (successful) {
-        setCopied(true);
-        setTimeout(() => {
-          setCopied(false);
-        }, 2000);
-      }
-    } catch (err) {
-      console.error('Copy failed:', err);
-      try {
-        document.body.removeChild(textArea);
-      } catch (e) {
-        // Already removed
-      }
+    // Show feedback without React state (évite conflit DOM)
+    const btn = document.getElementById('copy-api-key-btn');
+    if (btn) {
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg> Copié';
+      btn.classList.add('bg-green-600');
+      btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+      setTimeout(() => {
+        btn.innerHTML = originalHTML;
+        btn.classList.remove('bg-green-600');
+        btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+      }, 2000);
     }
   };
 
