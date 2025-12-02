@@ -568,12 +568,39 @@ function GenerateKeyModal({ onClose, onSuccess }) {
     }
   };
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (generatedKey?.key) {
-      navigator.clipboard.writeText(generatedKey.key);
-      setCopied(true);
-      toast.success('Clé copiée dans le presse-papiers');
-      setTimeout(() => setCopied(false), 2000);
+      try {
+        // Utiliser l'API Clipboard de manière sécurisée
+        await navigator.clipboard.writeText(generatedKey.key);
+        setCopied(true);
+        // Toast sans animation complexe
+        setTimeout(() => {
+          toast.success('Clé copiée dans le presse-papiers', {
+            duration: 2000,
+            position: 'top-center'
+          });
+        }, 0);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        // Fallback pour navigateurs anciens
+        const textArea = document.createElement('textarea');
+        textArea.value = generatedKey.key;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          setCopied(true);
+          toast.success('Clé copiée dans le presse-papiers');
+          setTimeout(() => setCopied(false), 2000);
+        } catch (err2) {
+          toast.error('Erreur lors de la copie');
+        }
+        document.body.removeChild(textArea);
+      }
     }
   };
 
