@@ -19,13 +19,24 @@ from enterprise_models import (
     SyncLog, BulkUserImport, BulkStoreImport, BulkImportResponse,
     EnterpriseSyncStatus, ITAdminCreate
 )
+import uuid
 
 logger = logging.getLogger(__name__)
 
-# Importer le rate limiter depuis server.py
-from server import rate_limiter, db, get_current_user
+# Ces imports seront faits dynamiquement pour éviter la dépendance circulaire
+rate_limiter = None
+db = None
+get_current_user = None
 
 enterprise_router = APIRouter(prefix="/api/enterprise", tags=["enterprise"])
+
+
+def init_enterprise_router(database, rate_limiter_instance, auth_dependency):
+    """Initialiser le router avec les dépendances de server.py"""
+    global db, rate_limiter, get_current_user
+    db = database
+    rate_limiter = rate_limiter_instance
+    get_current_user = auth_dependency
 
 
 # ============================================
