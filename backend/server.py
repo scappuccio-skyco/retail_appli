@@ -1447,73 +1447,73 @@ async def register_with_invite(invite_data: RegisterWithInvite):
 # async def create_invitation(invite_data: InvitationCreate, current_user: dict = Depends(get_current_user)):
 #     if current_user['role'] != 'manager':
 #         raise HTTPException(status_code=403, detail="Only managers can send invitations")
-    
-    # Check subscription access
-    access_info = await check_subscription_access(current_user['id'])
-    if not access_info['has_access']:
-        raise HTTPException(
-            status_code=403, 
-            detail=f"Abonnement requis pour inviter des vendeurs. {access_info.get('message', '')}"
-        )
-    
-    # Check seller limit
-    seller_check = await check_can_add_seller(current_user['id'])
-    if not seller_check['can_add']:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Limite atteinte : vous avez {seller_check['current']} vendeur(s) sur un maximum de {seller_check['max']} pour votre plan"
-        )
-    
-    # Check if user with this email already exists
-    existing_user = await db.users.find_one({"email": invite_data.email}, {"_id": 0})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="User with this email already exists")
-    
-    # Check if there's already a pending invitation
-    existing_invite = await db.invitations.find_one({
-        "email": invite_data.email,
-        "manager_id": current_user['id'],
-        "status": "pending"
-    }, {"_id": 0})
-    
-    if existing_invite:
-        raise HTTPException(status_code=400, detail="Invitation already sent to this email")
-    
-    # Create invitation
-    invitation = Invitation(
-        email=invite_data.email,
-        manager_id=current_user['id'],
-        manager_name=current_user['name']
-    )
-    
-    doc = invitation.model_dump()
-    doc['created_at'] = doc['created_at'].isoformat()
-    doc['expires_at'] = doc['expires_at'].isoformat()
-    
-    await db.invitations.insert_one(doc)
-    
-    # Send invitation email
-    try:
-        # Get store name if available
-        store_name = None
-        if current_user.get('store_id'):
-            store = await db.stores.find_one({"id": current_user['store_id']}, {"_id": 0})
-            if store:
-                store_name = store.get('name')
-        
-        send_seller_invitation_email(
-            recipient_email=invite_data.email,
-            recipient_name=invite_data.email.split('@')[0],  # Use email prefix as name
-            invitation_token=invitation.token,
-            manager_name=current_user['name'],
-            store_name=store_name
-        )
-        logger.info(f"Invitation email sent to {invite_data.email}")
-    except Exception as e:
-        logger.error(f"Failed to send invitation email: {e}")
-        # Continue even if email fails
-    
-    return invitation
+#     
+#     # Check subscription access
+#     access_info = await check_subscription_access(current_user['id'])
+#     if not access_info['has_access']:
+#         raise HTTPException(
+#             status_code=403, 
+#             detail=f"Abonnement requis pour inviter des vendeurs. {access_info.get('message', '')}"
+#         )
+#     
+#     # Check seller limit
+#     seller_check = await check_can_add_seller(current_user['id'])
+#     if not seller_check['can_add']:
+#         raise HTTPException(
+#             status_code=400, 
+#             detail=f"Limite atteinte : vous avez {seller_check['current']} vendeur(s) sur un maximum de {seller_check['max']} pour votre plan"
+#         )
+#     
+#     # Check if user with this email already exists
+#     existing_user = await db.users.find_one({"email": invite_data.email}, {"_id": 0})
+#     if existing_user:
+#         raise HTTPException(status_code=400, detail="User with this email already exists")
+#     
+#     # Check if there's already a pending invitation
+#     existing_invite = await db.invitations.find_one({
+#         "email": invite_data.email,
+#         "manager_id": current_user['id'],
+#         "status": "pending"
+#     }, {"_id": 0})
+#     
+#     if existing_invite:
+#         raise HTTPException(status_code=400, detail="Invitation already sent to this email")
+#     
+#     # Create invitation
+#     invitation = Invitation(
+#         email=invite_data.email,
+#         manager_id=current_user['id'],
+#         manager_name=current_user['name']
+#     )
+#     
+#     doc = invitation.model_dump()
+#     doc['created_at'] = doc['created_at'].isoformat()
+#     doc['expires_at'] = doc['expires_at'].isoformat()
+#     
+#     await db.invitations.insert_one(doc)
+#     
+#     # Send invitation email
+#     try:
+#         # Get store name if available
+#         store_name = None
+#         if current_user.get('store_id'):
+#             store = await db.stores.find_one({"id": current_user['store_id']}, {"_id": 0})
+#             if store:
+#                 store_name = store.get('name')
+#         
+#         send_seller_invitation_email(
+#             recipient_email=invite_data.email,
+#             recipient_name=invite_data.email.split('@')[0],  # Use email prefix as name
+#             invitation_token=invitation.token,
+#             manager_name=current_user['name'],
+#             store_name=store_name
+#         )
+#         logger.info(f"Invitation email sent to {invite_data.email}")
+#     except Exception as e:
+#         logger.error(f"Failed to send invitation email: {e}")
+#         # Continue even if email fails
+#     
+#     return invitation
 
 @api_router.get("/manager/invitations")
 async def get_invitations(current_user: dict = Depends(get_current_user)):
