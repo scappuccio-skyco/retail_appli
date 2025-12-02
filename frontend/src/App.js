@@ -280,6 +280,20 @@ function AppContent() {
             )
           }
         />
+        
+        {/* IT Admin Dashboard - IT Admin Only */}
+        <Route
+          path="/it-admin"
+          element={
+            !user ? (
+              <Navigate to="/login" replace />
+            ) : user.role !== 'it_admin' ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <ITAdminDashboard user={user} onLogout={handleLogout} />
+            )
+          }
+        />
       </Routes>
     </>
   );
