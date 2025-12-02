@@ -13577,61 +13577,6 @@ async def logging_and_security_middleware(request: Request, call_next):
         )
         raise
 
-# ============================================================================
-# TEMPORARY ADMIN CREATION ENDPOINT (SECURE)
-# ============================================================================
-
-class CreateAdminRequest(BaseModel):
-    secret_token: str
-    email: EmailStr
-    password: str
-    name: str
-
-@api_router.post("/auth/create-super-admin")
-async def create_super_admin(request: CreateAdminRequest):
-    """
-    Endpoint temporaire et sécurisé pour créer un compte super_admin
-    Utilisez un token secret pour l'authentification
-    """
-    # Vérifier le token secret
-    expected_token = os.environ.get('ADMIN_CREATION_SECRET', 'CHANGE_ME_IN_PRODUCTION')
-    if request.secret_token != expected_token:
-        raise HTTPException(status_code=403, detail="Token secret invalide")
-    
-    # Vérifier si l'utilisateur existe déjà
-    existing_user = await db.users.find_one({"email": request.email}, {"_id": 0})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Un utilisateur avec cet email existe déjà")
-    
-    # Créer le super_admin
-    user_id = str(uuid.uuid4())
-    hashed_pw = hash_password(request.password)
-    
-    user = {
-        "id": user_id,
-        "email": request.email,
-        "password": hashed_pw,
-        "name": request.name,
-        "role": "super_admin",
-        "workspace_id": None,
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    await db.users.insert_one(user)
-    
-    # Créer un token pour la connexion automatique
-    token = create_token(user_id, request.email, "super_admin")
-    
-    user.pop('password')
-    
-    logger.info(f"Super admin created: {request.email}")
-    
-    return {
-        "message": "Super admin créé avec succès",
-        "user": user,
-        "token": token
-    }
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
