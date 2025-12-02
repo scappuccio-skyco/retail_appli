@@ -817,6 +817,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </svg>
               <span className="hidden sm:inline">Personnaliser</span>
             </button>
+            <TutorialButton onClick={onboarding.open} />
             <button
               data-testid="logout-button"
               onClick={onLogout}
