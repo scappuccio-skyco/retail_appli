@@ -16,6 +16,8 @@ import TeamModal from '../components/TeamModal';
 import ManagerSettingsModal from '../components/ManagerSettingsModal';
 import StoreKPIModal from '../components/StoreKPIModal';
 import RelationshipManagementModal from '../components/RelationshipManagementModal';
+import SyncModeBadge from '../components/SyncModeBadge';
+import { useSyncMode } from '../hooks/useSyncMode';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
