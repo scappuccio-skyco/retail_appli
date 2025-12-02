@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 class StripeAdjustableQuantityTester:
-    def __init__(self, base_url="https://user-management-hub.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://saas-billing-2.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
@@ -109,7 +109,7 @@ class StripeAdjustableQuantityTester:
         
         starter_checkout_data = {
             "plan": "starter",
-            "origin_url": "https://user-management-hub.preview.emergentagent.com"
+            "origin_url": "https://saas-billing-2.preview.emergentagent.com"
         }
         
         success, starter_response = self.run_test(
@@ -152,7 +152,7 @@ class StripeAdjustableQuantityTester:
         
         professional_checkout_data = {
             "plan": "professional",
-            "origin_url": "https://user-management-hub.preview.emergentagent.com"
+            "origin_url": "https://saas-billing-2.preview.emergentagent.com"
         }
         
         success, professional_response = self.run_test(
@@ -356,7 +356,7 @@ class StripeAdjustableQuantityTester:
         # Test invalid plan
         invalid_checkout_data = {
             "plan": "invalid_plan",
-            "origin_url": "https://user-management-hub.preview.emergentagent.com"
+            "origin_url": "https://saas-billing-2.preview.emergentagent.com"
         }
         
         success, _ = self.run_test(

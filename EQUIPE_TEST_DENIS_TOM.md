@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://user-management-hub.preview.emergentagent.com
+https://saas-billing-2.preview.emergentagent.com
 
 ### Manager
 ```
