@@ -3826,7 +3826,7 @@ Consignes :
     
     try:
         llm_chat = LlmChat(
-            api_key="sk-emergent-dB388Be0647671cF21",
+            api_key=os.environ.get('EMERGENT_LLM_KEY'),
             session_id=f"team_bilan_{manager_id}_{periode}",
             system_message="Tu es un coach en management retail. Tu réponds TOUJOURS en JSON valide uniquement."
         )
@@ -4195,7 +4195,7 @@ Consignes CRITIQUES :
     
     try:
         llm_chat = LlmChat(
-            api_key="sk-emergent-dB388Be0647671cF21",
+            api_key=os.environ.get('EMERGENT_LLM_KEY'),
             session_id=f"seller_bilan_{seller_id}_{periode}",
             system_message="Tu es un coach en vente retail. Tu réponds TOUJOURS en JSON valide uniquement. Tu tutoies le vendeur."
         )
