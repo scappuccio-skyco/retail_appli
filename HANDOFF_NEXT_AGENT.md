@@ -301,11 +301,14 @@ return mode === 'VENDEUR_SAISIT'
 
 ## 🎯 PROCHAINES ACTIONS RECOMMANDÉES
 
-### Étape 1 : Valider l'approche avec l'utilisateur
-Questions à poser :
-1. Par quel rôle commencer l'implémentation ? (Recommandation : Vendeur car le plus critique)
-2. Style visuel : Modal centré (comme l'exemple) ou Overlay avec tooltips ?
-3. Nombre d'étapes max par parcours ? (Actuellement : 5-7)
+### Étape 1 : Approche validée avec l'utilisateur ✅
+
+**Décisions confirmées** :
+1. **Bouton "Tutoriel"** permanent dans chaque dashboard (Option 2)
+2. **Navigation libre** : Possibilité de sauter des étapes à tout moment
+3. **Toujours relançable** : L'utilisateur peut relancer le tutoriel quand il veut
+4. **Style visuel** : Modal centré (comme l'exemple de l'app Père Noël)
+5. **Nombre d'étapes** : 5-7 selon le rôle
 
 ### Étape 2 : Créer les composants de base
 - `OnboardingModal.js` - Composant principal
