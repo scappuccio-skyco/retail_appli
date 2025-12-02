@@ -535,7 +535,6 @@ function GenerateKeyModal({ onClose, onSuccess }) {
   const [scopes, setScopes] = useState(['users:read', 'users:write', 'stores:read', 'stores:write']);
   const [saving, setSaving] = useState(false);
   const [generatedKey, setGeneratedKey] = useState(null);
-  const [copied, setCopied] = useState(false);
 
   const token = localStorage.getItem('token');
   const headers = { Authorization: `Bearer ${token}` };
