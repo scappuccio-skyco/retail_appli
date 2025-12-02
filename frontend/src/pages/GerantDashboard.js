@@ -997,6 +997,20 @@ const GerantDashboard = ({ user, onLogout }) => {
         subscriptionInfo={subscriptionInfo}
         userRole={user?.role}
       />
+
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={onboarding.isOpen}
+        onClose={onboarding.close}
+        currentStep={onboarding.currentStep}
+        totalSteps={gerantSteps.length}
+        steps={gerantSteps}
+        onNext={onboarding.next}
+        onPrev={onboarding.prev}
+        onGoTo={onboarding.goTo}
+        onSkip={onboarding.skip}
+        completedSteps={onboarding.completedSteps}
+      />
     </div>
   );
 };
