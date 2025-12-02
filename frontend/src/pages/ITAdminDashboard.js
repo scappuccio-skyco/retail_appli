@@ -6,12 +6,19 @@ import {
   Eye, EyeOff, Trash2, Plus, CheckCircle, XCircle,
   Cloud, Database, Clock, BarChart3
 } from 'lucide-react';
+import TutorialButton from '../components/onboarding/TutorialButton';
+import OnboardingModal from '../components/onboarding/OnboardingModal';
+import { itAdminSteps } from '../components/onboarding/itAdminSteps';
+import { useOnboarding } from '../hooks/useOnboarding';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export default function ITAdminDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Onboarding
+  const onboarding = useOnboarding(itAdminSteps.length);
   const [syncStatus, setSyncStatus] = useState(null);
   const [apiKeys, setApiKeys] = useState([]);
   const [enterpriseConfig, setEnterpriseConfig] = useState(null);
