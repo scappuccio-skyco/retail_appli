@@ -83,6 +83,7 @@ const ProgressIndicator = ({ label, emoji, target, progress, type = 'currency', 
 
 export default function ManagerDashboard({ user, onLogout }) {
   const navigate = useNavigate();
+  const { canEditKPIConfig, isReadOnly } = useSyncMode();
   const [sellers, setSellers] = useState([]);
   const [selectedSeller, setSelectedSeller] = useState(null);
   const [sellerStats, setSellerStats] = useState(null);
