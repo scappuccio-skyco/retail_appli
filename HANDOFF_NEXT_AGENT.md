@@ -326,9 +326,10 @@ return mode === 'VENDEUR_SAISIT'
 - [x] Création système d'initialisation DB production
 - [x] Audit complet des fonctionnalités
 - [x] Analyse approfondie des modes KPI
+- [x] Implémentation complète système d'onboarding (9 composants, 4 dashboards)
 
 ### 🔄 En cours
-- [ ] Implémentation système d'onboarding
+- [ ] Tests du système d'onboarding (par l'utilisateur)
 
 ### 📝 À faire (backlog)
 - [ ] Tests end-to-end du système d'onboarding
