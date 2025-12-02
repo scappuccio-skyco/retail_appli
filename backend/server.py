@@ -1260,16 +1260,12 @@ async def register(user_data: UserCreate):
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Valider le rôle pour inscription publique (manager ou gérant uniquement)
-    if user_data.role not in ["manager", "gérant", "gerant"]:
-        user_data.role = "manager"  # Par défaut: manager
+    # Force role to 'gérant' for public registration
+    # Managers and sellers are invited by gérant
+    user_data.role = "gérant"
     
-    # Normaliser "gerant" (sans accent) en "gérant" (avec accent)
-    if user_data.role == "gerant":
-        user_data.role = "gérant"
-    
-    # Vérifier que le nom d'entreprise est fourni pour les managers et gérants
-    if user_data.role in ["manager", "gérant"] and not user_data.workspace_name:
+    # Vérifier que le nom d'entreprise est fourni
+    if not user_data.workspace_name:
         raise HTTPException(status_code=400, detail="Le nom de l'entreprise est requis")
     
     # Vérifier que le nom d'entreprise n'existe pas déjà
