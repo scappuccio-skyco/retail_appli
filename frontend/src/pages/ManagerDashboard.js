@@ -88,6 +88,40 @@ const ProgressIndicator = ({ label, emoji, target, progress, type = 'currency', 
 export default function ManagerDashboard({ user, onLogout }) {
   const navigate = useNavigate();
   const { canEditKPIConfig, isReadOnly } = useSyncMode();
+  
+  // Onboarding logic - Detect KPI mode
+  const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
+  
+  useEffect(() => {
+    const detectKpiMode = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const API = `${BACKEND_URL}/api`;
+        const res = await axios.get(`${API}/seller/kpi-enabled`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        let mode;
+        if (isReadOnly) {
+          mode = 'API_SYNC';
+        } else if (!res.data.enabled) {
+          mode = 'MANAGER_SAISIT';
+        } else {
+          mode = 'VENDEUR_SAISIT';
+        }
+        
+        setKpiMode(mode);
+      } catch (error) {
+        // Si erreur, garder le mode par défaut
+        console.error('Error detecting KPI mode:', error);
+      }
+    };
+    
+    detectKpiMode();
+  }, [isReadOnly]);
+  
+  const managerSteps = getManagerSteps(kpiMode);
+  const onboarding = useOnboarding(managerSteps.length);
   const [sellers, setSellers] = useState([]);
   const [selectedSeller, setSelectedSeller] = useState(null);
   const [sellerStats, setSellerStats] = useState(null);
