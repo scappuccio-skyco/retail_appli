@@ -350,7 +350,10 @@ return mode === 'VENDEUR_SAISIT'
 ### Étape 3 : Implémenter pour un rôle (MVP)
 - Commencer par Vendeur (le plus complexe)
 - 7 étapes avec adaptation selon mode KPI
-- Stockage de l'état d'onboarding en DB
+- **Navigation libre** : Boutons "Passer", "Précédent", "Suivant"
+- **Barre de progression cliquable** pour aller directement à une étape
+- Bouton "🎓 Tutoriel" dans le header du SellerDashboard
+- (Optionnel) Stockage de l'état d'onboarding en DB
 
 ### Étape 4 : Tester et itérer
 - Tests avec les 3 modes KPI
