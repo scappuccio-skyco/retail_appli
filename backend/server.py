@@ -342,7 +342,7 @@ class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     email: EmailStr
-    role: str  # "gerant" | "manager" | "seller"
+    role: str  # "gerant" | "manager" | "seller" | "it_admin"
     status: str = "active"  # active, inactive, deleted
     
     # Hiérarchie Multi-Store
@@ -353,6 +353,12 @@ class User(BaseModel):
     # Double rôle pour gérant qui est aussi manager
     is_also_manager: bool = False
     managed_store_id: Optional[str] = None  # ID du magasin qu'il manage directement
+    
+    # Enterprise/IT Admin fields
+    enterprise_account_id: Optional[str] = None  # ID du compte entreprise (pour IT Admin)
+    sync_mode: Optional[str] = None  # "manual" (default) | "api_sync" | "scim_sync"
+    external_id: Optional[str] = None  # ID dans le système externe (SAP, ERP, etc.)
+    stripe_customer_id: Optional[str] = None  # ID du customer Stripe (pour gérant)
     
     # Legacy (à garder pour compatibilité)
     workspace_id: Optional[str] = None  # ID du workspace (entreprise)
