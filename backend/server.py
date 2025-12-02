@@ -22,6 +22,9 @@ from collections import defaultdict
 import time
 from email_service import send_seller_invitation_email, send_manager_invitation_email, send_gerant_invitation_email
 
+# Import enterprise routes
+from enterprise_routes import enterprise_router, init_enterprise_router
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
