@@ -568,6 +568,17 @@ async def bulk_import_users(
             initiated_by=f"api_key:{api_key['id']}"
         )
         
+        # Mettre à jour le statut de sync dans enterprise_accounts
+        await db.enterprise_accounts.update_one(
+            {"id": enterprise_id},
+            {
+                "$set": {
+                    "scim_last_sync": datetime.now(timezone.utc).isoformat(),
+                    "scim_sync_status": "success" if results["failed"] == 0 else "partial"
+                }
+            }
+        )
+        
         return BulkImportResponse(
             success=results["failed"] == 0,
             total_processed=results["total_processed"],
