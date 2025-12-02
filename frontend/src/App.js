@@ -83,13 +83,19 @@ function AppContent() {
     // Redirection selon le rôle
     if (userData.role === 'gerant') {
       // Gérant → Dashboard Gérant
-      navigate('/gerant-dashboard');
+      window.location.href = '/gerant-dashboard';
       return;
     }
     
     if (userData.role === 'it_admin') {
       // IT Admin → IT Admin Dashboard
-      navigate('/it-admin');
+      window.location.href = '/it-admin';
+      return;
+    }
+    
+    if (userData.role === 'superadmin' || userData.role === 'super_admin') {
+      // Super Admin → Super Admin Dashboard
+      window.location.href = '/superadmin';
       return;
     }
     
@@ -110,7 +116,7 @@ function AppContent() {
       }
     }
     
-    // Navigate to dashboard after successful login
+    // Navigate to dashboard after successful login (Manager or Seller)
     // Using window.location for reliable redirect
     window.location.href = '/dashboard';
   };
