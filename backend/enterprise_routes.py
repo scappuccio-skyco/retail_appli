@@ -67,6 +67,9 @@ async def verify_api_key(x_api_key: str = Header(...)) -> dict:
         expires_at = api_key['expires_at']
         if isinstance(expires_at, str):
             expires_at = datetime.fromisoformat(expires_at)
+        # Ensure timezone aware comparison
+        if not expires_at.tzinfo:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
         if datetime.now(timezone.utc) > expires_at:
             raise HTTPException(status_code=401, detail="API key expired")
     
