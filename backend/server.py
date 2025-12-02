@@ -195,6 +195,16 @@ CREDIT_PACK_PRICE = 25.0  # 25€ pour 5000 crédits
 security = HTTPBearer()
 
 app = FastAPI()
+
+# Configure CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 api_router = APIRouter(prefix="/api")
 
 # ===== HELPER FUNCTIONS =====
