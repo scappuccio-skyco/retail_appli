@@ -177,8 +177,10 @@ function AppContent() {
     <>
       <Toaster 
         position="top-right" 
-        richColors 
+        richColors
+        expand={false}
         toastOptions={{
+          duration: 3000,
           style: {
             padding: '12px 16px',
             fontSize: '14px',
