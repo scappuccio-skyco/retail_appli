@@ -44,6 +44,9 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [showInviteStaffModal, setShowInviteStaffModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   
+  // Onboarding
+  const onboarding = useOnboarding(gerantSteps.length);
+  
   // Selected items for modals
   const [selectedStore, setSelectedStore] = useState(null);
   const [selectedManager, setSelectedManager] = useState(null);
