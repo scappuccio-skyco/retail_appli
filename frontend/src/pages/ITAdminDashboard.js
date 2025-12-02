@@ -91,12 +91,15 @@ export default function ITAdminDashboard({ user, onLogout }) {
               <h1 className="text-2xl font-bold text-gray-900">IT Admin Dashboard</h1>
               <p className="text-sm text-gray-600 mt-1">{enterpriseConfig?.company_name}</p>
             </div>
-            <button
-              onClick={onLogout}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 font-medium"
-            >
-              Se déconnecter
-            </button>
+            <div className="flex items-center gap-3">
+              <TutorialButton onClick={onboarding.open} />
+              <button
+                onClick={onLogout}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 font-medium"
+              >
+                Se déconnecter
+              </button>
+            </div>
           </div>
         </div>
       </div>
