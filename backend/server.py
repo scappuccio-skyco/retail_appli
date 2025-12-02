@@ -13406,7 +13406,7 @@ async def create_super_admin(request: CreateAdminRequest):
     user_id = str(uuid.uuid4())
     hashed_pw = hash_password(request.password)
     
-    user = {
+    user_doc = {
         "id": user_id,
         "email": request.email,
         "password": hashed_pw,
@@ -13416,18 +13416,21 @@ async def create_super_admin(request: CreateAdminRequest):
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
-    await db.users.insert_one(user)
+    await db.users.insert_one(user_doc)
     
     # Créer un token pour la connexion automatique
     token = create_token(user_id, request.email, "super_admin")
-    
-    user.pop('password')
     
     logger.info(f"Super admin created: {request.email}")
     
     return {
         "message": "Super admin créé avec succès",
-        "user": user,
+        "user": {
+            "id": user_id,
+            "email": request.email,
+            "name": request.name,
+            "role": "super_admin"
+        },
         "token": token
     }
 
