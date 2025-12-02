@@ -415,3 +415,309 @@ async def log_sync_operation(
     except Exception as e:
         logger.error(f"Error logging sync operation: {str(e)}")
         # Ne pas lever d'exception pour ne pas bloquer l'opération principale
+
+
+# ============================================
+# BULK IMPORT ENDPOINTS (API REST)
+# ============================================
+
+@enterprise_router.post("/users/bulk-import", response_model=BulkImportResponse)
+async def bulk_import_users(
+    import_data: BulkUserImport,
+    api_key: dict = Depends(verify_api_key)
+):
+    """
+    Import en masse d'utilisateurs via API REST.
+    Format attendu pour chaque utilisateur :
+    {
+        "email": "user@example.com",
+        "name": "John Doe",
+        "role": "manager" | "seller",
+        "store_id": "store-uuid",
+        "manager_id": "manager-uuid" (requis si role=seller),
+        "external_id": "SAP-12345" (optionnel, ID dans le système source)
+    }
+    """
+    try:
+        enterprise_id = api_key['enterprise_account_id']
+        results = {
+            "total_processed": 0,
+            "created": 0,
+            "updated": 0,
+            "failed": 0,
+            "errors": []
+        }
+        
+        for user_data in import_data.users:
+            results["total_processed"] += 1
+            
+            try:
+                # Validation des champs requis
+                if not user_data.get('email') or not user_data.get('name'):
+                    results["failed"] += 1
+                    results["errors"].append({
+                        "email": user_data.get('email', 'unknown'),
+                        "error": "Missing required fields: email or name"
+                    })
+                    continue
+                
+                # Vérifier si l'utilisateur existe déjà
+                existing_user = await db.users.find_one({"email": user_data['email']}, {"_id": 0})
+                
+                if existing_user:
+                    # Mode update
+                    if import_data.mode in ["update_only", "create_or_update"]:
+                        update_fields = {
+                            "name": user_data['name'],
+                            "role": user_data.get('role', existing_user.get('role')),
+                            "store_id": user_data.get('store_id', existing_user.get('store_id')),
+                            "status": "active",
+                            "enterprise_account_id": enterprise_id,
+                            "sync_mode": "api_sync",
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }
+                        
+                        if user_data.get('manager_id'):
+                            update_fields['manager_id'] = user_data['manager_id']
+                        
+                        if user_data.get('external_id'):
+                            update_fields['external_id'] = user_data['external_id']
+                        
+                        await db.users.update_one(
+                            {"id": existing_user['id']},
+                            {"$set": update_fields}
+                        )
+                        
+                        results["updated"] += 1
+                        
+                        # Log l'opération
+                        await log_sync_operation(
+                            enterprise_id, "api", "user_updated", "success",
+                            "user", existing_user['id'],
+                            details={"email": user_data['email']},
+                            initiated_by=f"api_key:{api_key['id']}"
+                        )
+                    else:
+                        results["failed"] += 1
+                        results["errors"].append({
+                            "email": user_data['email'],
+                            "error": "User already exists (mode=create_only)"
+                        })
+                else:
+                    # Mode create
+                    if import_data.mode in ["create_only", "create_or_update"]:
+                        # Générer un mot de passe temporaire
+                        temp_password = secrets.token_urlsafe(16)
+                        hashed_password = bcrypt.hashpw(temp_password.encode('utf-8'), bcrypt.gensalt())
+                        
+                        new_user = {
+                            "id": str(uuid.uuid4()),
+                            "email": user_data['email'],
+                            "name": user_data['name'],
+                            "password": hashed_password.decode('utf-8'),
+                            "role": user_data.get('role', 'seller'),
+                            "status": "active",
+                            "enterprise_account_id": enterprise_id,
+                            "sync_mode": "api_sync",
+                            "store_id": user_data.get('store_id'),
+                            "manager_id": user_data.get('manager_id'),
+                            "external_id": user_data.get('external_id'),
+                            "created_at": datetime.now(timezone.utc).isoformat()
+                        }
+                        
+                        await db.users.insert_one(new_user)
+                        results["created"] += 1
+                        
+                        # Log l'opération
+                        await log_sync_operation(
+                            enterprise_id, "api", "user_created", "success",
+                            "user", new_user['id'],
+                            details={"email": user_data['email']},
+                            initiated_by=f"api_key:{api_key['id']}"
+                        )
+                        
+                        # TODO: Envoyer invitation si send_invitations=True
+                    else:
+                        results["failed"] += 1
+                        results["errors"].append({
+                            "email": user_data['email'],
+                            "error": "User does not exist (mode=update_only)"
+                        })
+                        
+            except Exception as e:
+                results["failed"] += 1
+                results["errors"].append({
+                    "email": user_data.get('email', 'unknown'),
+                    "error": str(e)
+                })
+                logger.error(f"Error importing user {user_data.get('email')}: {str(e)}")
+        
+        # Log l'opération globale
+        await log_sync_operation(
+            enterprise_id, "api", "bulk_user_import",
+            "success" if results["failed"] == 0 else "partial",
+            "bulk", None,
+            details=results,
+            initiated_by=f"api_key:{api_key['id']}"
+        )
+        
+        return BulkImportResponse(
+            success=results["failed"] == 0,
+            total_processed=results["total_processed"],
+            created=results["created"],
+            updated=results["updated"],
+            failed=results["failed"],
+            errors=results["errors"]
+        )
+        
+    except Exception as e:
+        logger.error(f"Error in bulk user import: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@enterprise_router.post("/stores/bulk-import", response_model=BulkImportResponse)
+async def bulk_import_stores(
+    import_data: BulkStoreImport,
+    api_key: dict = Depends(verify_api_key)
+):
+    """
+    Import en masse de magasins via API REST.
+    Format attendu pour chaque magasin :
+    {
+        "name": "Store Name",
+        "location": "Paris 75001",
+        "external_id": "SAP-STORE-123" (optionnel),
+        "address": "123 rue Example" (optionnel),
+        "phone": "+33123456789" (optionnel)
+    }
+    """
+    try:
+        enterprise_id = api_key['enterprise_account_id']
+        results = {
+            "total_processed": 0,
+            "created": 0,
+            "updated": 0,
+            "failed": 0,
+            "errors": []
+        }
+        
+        for store_data in import_data.stores:
+            results["total_processed"] += 1
+            
+            try:
+                # Validation des champs requis
+                if not store_data.get('name'):
+                    results["failed"] += 1
+                    results["errors"].append({
+                        "name": store_data.get('name', 'unknown'),
+                        "error": "Missing required field: name"
+                    })
+                    continue
+                
+                # Chercher par external_id si fourni, sinon par nom
+                query = {}
+                if store_data.get('external_id'):
+                    query['external_id'] = store_data['external_id']
+                else:
+                    query['name'] = store_data['name']
+                    query['enterprise_account_id'] = enterprise_id
+                
+                existing_store = await db.stores.find_one(query, {"_id": 0})
+                
+                if existing_store:
+                    # Mode update
+                    if import_data.mode in ["update_only", "create_or_update"]:
+                        update_fields = {
+                            "name": store_data['name'],
+                            "location": store_data.get('location', existing_store.get('location')),
+                            "active": True,
+                            "sync_mode": "api_sync",
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }
+                        
+                        if store_data.get('address'):
+                            update_fields['address'] = store_data['address']
+                        if store_data.get('phone'):
+                            update_fields['phone'] = store_data['phone']
+                        
+                        await db.stores.update_one(
+                            {"id": existing_store['id']},
+                            {"$set": update_fields}
+                        )
+                        
+                        results["updated"] += 1
+                        
+                        await log_sync_operation(
+                            enterprise_id, "api", "store_updated", "success",
+                            "store", existing_store['id'],
+                            details={"name": store_data['name']},
+                            initiated_by=f"api_key:{api_key['id']}"
+                        )
+                    else:
+                        results["failed"] += 1
+                        results["errors"].append({
+                            "name": store_data['name'],
+                            "error": "Store already exists (mode=create_only)"
+                        })
+                else:
+                    # Mode create
+                    if import_data.mode in ["create_only", "create_or_update"]:
+                        new_store = {
+                            "id": str(uuid.uuid4()),
+                            "name": store_data['name'],
+                            "location": store_data.get('location', ''),
+                            "enterprise_account_id": enterprise_id,
+                            "sync_mode": "api_sync",
+                            "active": True,
+                            "address": store_data.get('address'),
+                            "phone": store_data.get('phone'),
+                            "external_id": store_data.get('external_id'),
+                            "created_at": datetime.now(timezone.utc).isoformat(),
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }
+                        
+                        await db.stores.insert_one(new_store)
+                        results["created"] += 1
+                        
+                        await log_sync_operation(
+                            enterprise_id, "api", "store_created", "success",
+                            "store", new_store['id'],
+                            details={"name": store_data['name']},
+                            initiated_by=f"api_key:{api_key['id']}"
+                        )
+                    else:
+                        results["failed"] += 1
+                        results["errors"].append({
+                            "name": store_data['name'],
+                            "error": "Store does not exist (mode=update_only)"
+                        })
+                        
+            except Exception as e:
+                results["failed"] += 1
+                results["errors"].append({
+                    "name": store_data.get('name', 'unknown'),
+                    "error": str(e)
+                })
+                logger.error(f"Error importing store {store_data.get('name')}: {str(e)}")
+        
+        await log_sync_operation(
+            enterprise_id, "api", "bulk_store_import",
+            "success" if results["failed"] == 0 else "partial",
+            "bulk", None,
+            details=results,
+            initiated_by=f"api_key:{api_key['id']}"
+        )
+        
+        return BulkImportResponse(
+            success=results["failed"] == 0,
+            total_processed=results["total_processed"],
+            created=results["created"],
+            updated=results["updated"],
+            failed=results["failed"],
+            errors=results["errors"]
+        )
+        
+    except Exception as e:
+        logger.error(f"Error in bulk store import: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
