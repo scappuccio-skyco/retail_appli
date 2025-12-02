@@ -568,38 +568,46 @@ function GenerateKeyModal({ onClose, onSuccess }) {
     }
   };
 
-  const handleCopy = async () => {
-    if (generatedKey?.key) {
-      try {
-        // Utiliser l'API Clipboard de manière sécurisée
-        await navigator.clipboard.writeText(generatedKey.key);
+  const handleCopy = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!generatedKey?.key) return;
+
+    // Create textarea for copying (méthode fiable sans conflit DOM)
+    const textArea = document.createElement('textarea');
+    textArea.value = generatedKey.key;
+    textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.width = '2em';
+    textArea.style.height = '2em';
+    textArea.style.padding = '0';
+    textArea.style.border = 'none';
+    textArea.style.outline = 'none';
+    textArea.style.boxShadow = 'none';
+    textArea.style.background = 'transparent';
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
         setCopied(true);
-        // Toast sans animation complexe
         setTimeout(() => {
-          toast.success('Clé copiée dans le presse-papiers', {
-            duration: 2000,
-            position: 'top-center'
-          });
-        }, 0);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        // Fallback pour navigateurs anciens
-        const textArea = document.createElement('textarea');
-        textArea.value = generatedKey.key;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        try {
-          document.execCommand('copy');
-          setCopied(true);
-          toast.success('Clé copiée dans le presse-papiers');
-          setTimeout(() => setCopied(false), 2000);
-        } catch (err2) {
-          toast.error('Erreur lors de la copie');
-        }
+          setCopied(false);
+        }, 2000);
+      }
+    } catch (err) {
+      console.error('Copy failed:', err);
+      try {
         document.body.removeChild(textArea);
+      } catch (e) {
+        // Already removed
       }
     }
   };
