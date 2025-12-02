@@ -129,7 +129,7 @@ export default function Login({ onLogin }) {
               </p>
             ) : (
               <p className="text-gray-600">
-                {isRegister ? 'Créez votre compte' : 'Connectez-vous'}
+                {isRegister ? 'Créez votre compte Gérant' : 'Connectez-vous'}
               </p>
             )}
           </div>
