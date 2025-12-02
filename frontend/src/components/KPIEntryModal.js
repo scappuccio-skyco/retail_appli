@@ -341,6 +341,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                   <label className="font-medium text-gray-800">
                     Nombre de ventes
                   </label>
+                  {isReadOnly && <Lock className="w-4 h-4 text-gray-500" />}
                 </div>
                 <div className="flex items-center gap-2">
                   <input
@@ -350,7 +351,8 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                     placeholder="0"
                     step="1"
                     min="0"
-                    className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                    disabled={isReadOnly}
+                    className={`flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent ${isReadOnly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''}`}
                   />
                   <span className="text-gray-600 font-medium min-w-[40px]">ventes</span>
                 </div>
