@@ -256,7 +256,10 @@ class Store(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str  # ex: "Skyco Paris Centre"
     location: str  # ex: "75001 Paris"
-    gerant_id: str  # ID du gérant propriétaire
+    gerant_id: Optional[str] = None  # ID du gérant propriétaire (null pour enterprise)
+    enterprise_account_id: Optional[str] = None  # ID du compte entreprise (si géré en mode enterprise)
+    sync_mode: Optional[str] = None  # "manual" (default) | "api_sync" | "scim_sync"
+    external_id: Optional[str] = None  # ID dans le système externe (SAP, ERP, etc.)
     active: bool = True
     address: Optional[str] = None
     phone: Optional[str] = None
