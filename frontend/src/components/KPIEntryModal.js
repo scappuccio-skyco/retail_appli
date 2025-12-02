@@ -432,15 +432,17 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
               onClick={onClose}
               className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
             >
-              Annuler
+              {isReadOnly ? 'Fermer' : 'Annuler'}
             </button>
-            <button
-              onClick={handleSubmit}
-              disabled={saving}
-              className="flex-1 py-3 bg-[#ffd871] text-gray-800 rounded-full font-semibold hover:shadow-lg disabled:opacity-50"
-            >
-              {saving ? 'Enregistrement...' : 'Enregistrer'}
-            </button>
+            {!isReadOnly && (
+              <button
+                onClick={handleSubmit}
+                disabled={saving}
+                className="flex-1 py-3 bg-[#ffd871] text-gray-800 rounded-full font-semibold hover:shadow-lg disabled:opacity-50"
+              >
+                {saving ? 'Enregistrement...' : 'Enregistrer'}
+              </button>
+            )}
           </div>
         </div>
       </div>
