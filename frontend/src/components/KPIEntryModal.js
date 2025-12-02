@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { X, Calendar, AlertTriangle } from 'lucide-react';
+import { X, Calendar, AlertTriangle, Lock } from 'lucide-react';
+import { useSyncMode } from '../hooks/useSyncMode';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) {
+  const { isReadOnly } = useSyncMode();
   const [enabled, setEnabled] = useState(false);
   const [kpiConfig, setKpiConfig] = useState(null);
   const [date, setDate] = useState(editEntry?.date || new Date().toISOString().split('T')[0]);
