@@ -1195,6 +1195,17 @@ export default function ManagerDashboard({ user, onLogout }) {
           </div>
         </div>
       )}
+
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        isOpen={onboarding.isOpen}
+        onClose={onboarding.close}
+        steps={managerSteps}
+        currentStep={onboarding.currentStep}
+        onNext={onboarding.next}
+        onPrevious={onboarding.previous}
+        onComplete={onboarding.complete}
+      />
     </div>
   );
 }
