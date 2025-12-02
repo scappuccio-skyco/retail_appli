@@ -297,6 +297,16 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
             </p>
           </div>
 
+          {/* Badge if read-only mode */}
+          {isReadOnly && (
+            <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+              <Lock className="w-4 h-4 text-blue-600 flex-shrink-0" />
+              <p className="text-sm text-blue-800">
+                Ces données sont synchronisées automatiquement depuis votre ERP. Consultation uniquement.
+              </p>
+            </div>
+          )}
+
           {/* KPI Inputs - Dynamic based on config */}
           <div className="space-y-4 mb-6">
             {kpiConfig?.track_ca && (
@@ -306,6 +316,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                   <label className="font-medium text-gray-800">
                     Chiffre d'affaires
                   </label>
+                  {isReadOnly && <Lock className="w-4 h-4 text-gray-500" />}
                 </div>
                 <div className="flex items-center gap-2">
                   <input
@@ -315,7 +326,8 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
                     placeholder="0.00"
                     step="0.01"
                     min="0"
-                    className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent"
+                    disabled={isReadOnly}
+                    className={`flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#ffd871] focus:border-transparent ${isReadOnly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''}`}
                   />
                   <span className="text-gray-600 font-medium min-w-[40px]">€</span>
                 </div>
