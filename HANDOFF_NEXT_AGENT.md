@@ -311,10 +311,41 @@ return mode === 'VENDEUR_SAISIT'
 5. **Nombre d'étapes** : 5-7 selon le rôle
 
 ### Étape 2 : Créer les composants de base
-- `OnboardingModal.js` - Composant principal
+
+#### A. Composants UI
+- `OnboardingModal.js` - Composant principal du modal
+  - Fond semi-transparent
+  - Modal centré
+  - Fermeture possible à tout moment
 - `OnboardingStep.js` - Composant pour chaque étape
-- `ProgressBar.js` - Barre de progression
+  - Titre, description, illustration
+  - Boutons navigation (Précédent, Suivant, Passer)
+- `ProgressBar.js` - Barre de progression visuelle
+  - Affiche étape courante / total
+  - Cliquable pour naviguer librement
+- `TutorialButton.js` - Bouton permanent "🎓 Tutoriel"
+  - Visible dans header de chaque dashboard
+  - Lance le modal d'onboarding
+
+#### B. Logic & State
 - Hook `useOnboarding.js` - Gestion de l'état
+  - État d'ouverture du modal
+  - Étape courante
+  - Navigation (next, prev, goTo, skip)
+  - Sauvegarde de la progression (optionnel)
+
+#### C. Backend (optionnel)
+- Endpoint `/api/user/onboarding-progress` (GET/POST)
+  - Sauvegarder la progression
+  - Récupérer l'état
+- Champs dans `users` collection :
+  ```javascript
+  {
+    onboarding_completed: boolean,
+    onboarding_current_step: number,
+    onboarding_skipped_steps: [number]
+  }
+  ```
 
 ### Étape 3 : Implémenter pour un rôle (MVP)
 - Commencer par Vendeur (le plus complexe)
