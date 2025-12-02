@@ -82,15 +82,19 @@ async def verify_api_key(x_api_key: str = Header(...)) -> dict:
     return api_key
 
 
-async def verify_it_admin(current_user: dict = Depends(get_current_user)) -> dict:
+async def verify_it_admin(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())) -> dict:
     """Vérifie que l'utilisateur actuel est un IT Admin"""
+    from server import get_current_user as _get_current_user
+    current_user = await _get_current_user(credentials)
     if current_user.get('role') != 'it_admin':
         raise HTTPException(status_code=403, detail="Access restricted to IT Admins")
     return current_user
 
 
-async def verify_super_admin(current_user: dict = Depends(get_current_user)) -> dict:
+async def verify_super_admin(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())) -> dict:
     """Vérifie que l'utilisateur actuel est un Super Admin"""
+    from server import get_current_user as _get_current_user
+    current_user = await _get_current_user(credentials)
     if current_user.get('role') != 'superadmin':
         raise HTTPException(status_code=403, detail="Access restricted to Super Admins")
     return current_user
