@@ -15,7 +15,7 @@ import sys
 
 class ComprehensiveDowngradeTest:
     def __init__(self):
-        self.base_url = "https://saas-billing-2.preview.emergentagent.com/api"
+        self.base_url = "https://data-bridge-36.preview.emergentagent.com/api"
         self.token = None
         self.user = None
         self.subscription_data = None
@@ -147,7 +147,7 @@ class ComprehensiveDowngradeTest:
             "plan": "professional",
             "quantity": 8,
             "billing_period": "monthly",
-            "origin_url": "https://saas-billing-2.preview.emergentagent.com/dashboard"
+            "origin_url": "https://data-bridge-36.preview.emergentagent.com/dashboard"
         }
         
         print(f"   Requesting monthly billing...")
