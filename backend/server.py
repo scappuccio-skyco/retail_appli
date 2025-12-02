@@ -13434,6 +13434,179 @@ async def create_super_admin(request: CreateAdminRequest):
         "token": token
     }
 
+class SeedDatabaseRequest(BaseModel):
+    secret_token: str
+
+@api_router.post("/auth/seed-database")
+async def seed_database(request: SeedDatabaseRequest):
+    """
+    Endpoint pour initialiser la base de données avec des comptes de test pour tous les rôles
+    Protégé par token secret
+    """
+    # Vérifier le token secret
+    expected_token = os.environ.get('ADMIN_CREATION_SECRET', 'CHANGE_ME_IN_PRODUCTION')
+    if request.secret_token != expected_token:
+        raise HTTPException(status_code=403, detail="Token secret invalide")
+    
+    created_accounts = []
+    
+    # Mot de passe par défaut pour tous les comptes
+    default_password = "TestPassword123!"
+    hashed_pw = hash_password(default_password)
+    
+    # 1. Créer un Super Admin
+    superadmin_id = str(uuid.uuid4())
+    superadmin_email = "admin@retail-coach.fr"
+    existing = await db.users.find_one({"email": superadmin_email})
+    if not existing:
+        await db.users.insert_one({
+            "id": superadmin_id,
+            "email": superadmin_email,
+            "password": hashed_pw,
+            "name": "Super Administrateur",
+            "role": "super_admin",
+            "workspace_id": None,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        created_accounts.append({"email": superadmin_email, "role": "super_admin", "password": default_password})
+        logger.info(f"Super admin created: {superadmin_email}")
+    
+    # 2. Créer un Gérant avec workspace
+    gerant_id = str(uuid.uuid4())
+    gerant_workspace_id = str(uuid.uuid4())
+    gerant_email = "gerant@retail-coach.fr"
+    existing = await db.users.find_one({"email": gerant_email})
+    if not existing:
+        # Créer le workspace
+        trial_start = datetime.now(timezone.utc)
+        trial_end = trial_start + timedelta(days=TRIAL_DAYS)
+        await db.workspaces.insert_one({
+            "id": gerant_workspace_id,
+            "name": "Entreprise Demo",
+            "owner_id": gerant_id,
+            "subscription_status": "trialing",
+            "trial_start": trial_start.isoformat(),
+            "trial_end": trial_end.isoformat(),
+            "ai_credits_remaining": TRIAL_AI_CREDITS,
+            "ai_credits_used_this_month": 0,
+            "last_credit_reset": trial_start.isoformat(),
+            "created_at": trial_start.isoformat(),
+            "updated_at": trial_start.isoformat()
+        })
+        
+        # Créer le gérant
+        await db.users.insert_one({
+            "id": gerant_id,
+            "email": gerant_email,
+            "password": hashed_pw,
+            "name": "Gérant Demo",
+            "role": "gérant",
+            "workspace_id": gerant_workspace_id,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        created_accounts.append({"email": gerant_email, "role": "gérant", "password": default_password, "workspace": "Entreprise Demo"})
+        logger.info(f"Gérant created: {gerant_email}")
+    
+    # 3. Créer un IT Admin avec compte enterprise
+    itadmin_id = str(uuid.uuid4())
+    enterprise_account_id = str(uuid.uuid4())
+    itadmin_email = "itadmin@retail-coach.fr"
+    existing = await db.users.find_one({"email": itadmin_email})
+    if not existing:
+        # Créer le compte enterprise
+        await db.enterprise_accounts.insert_one({
+            "id": enterprise_account_id,
+            "name": "Enterprise Demo",
+            "owner_id": itadmin_id,
+            "sync_mode": "manual",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Créer l'IT Admin
+        await db.users.insert_one({
+            "id": itadmin_id,
+            "email": itadmin_email,
+            "password": hashed_pw,
+            "name": "IT Admin Demo",
+            "role": "it_admin",
+            "enterprise_account_id": enterprise_account_id,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        created_accounts.append({"email": itadmin_email, "role": "it_admin", "password": default_password, "enterprise": "Enterprise Demo"})
+        logger.info(f"IT Admin created: {itadmin_email}")
+    
+    # 4. Créer un Manager avec store
+    manager_id = str(uuid.uuid4())
+    manager_workspace_id = str(uuid.uuid4())
+    store_id = str(uuid.uuid4())
+    manager_email = "manager@retail-coach.fr"
+    existing = await db.users.find_one({"email": manager_email})
+    if not existing:
+        # Créer le workspace
+        trial_start = datetime.now(timezone.utc)
+        trial_end = trial_start + timedelta(days=TRIAL_DAYS)
+        await db.workspaces.insert_one({
+            "id": manager_workspace_id,
+            "name": "Magasin Demo",
+            "owner_id": manager_id,
+            "subscription_status": "trialing",
+            "trial_start": trial_start.isoformat(),
+            "trial_end": trial_end.isoformat(),
+            "ai_credits_remaining": TRIAL_AI_CREDITS,
+            "ai_credits_used_this_month": 0,
+            "last_credit_reset": trial_start.isoformat(),
+            "created_at": trial_start.isoformat(),
+            "updated_at": trial_start.isoformat()
+        })
+        
+        # Créer le manager
+        await db.users.insert_one({
+            "id": manager_id,
+            "email": manager_email,
+            "password": hashed_pw,
+            "name": "Manager Demo",
+            "role": "manager",
+            "workspace_id": manager_workspace_id,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Créer le store
+        await db.stores.insert_one({
+            "id": store_id,
+            "name": "Boutique Paris Centre",
+            "manager_id": manager_id,
+            "workspace_id": manager_workspace_id,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        created_accounts.append({"email": manager_email, "role": "manager", "password": default_password, "store": "Boutique Paris Centre"})
+        logger.info(f"Manager created: {manager_email}")
+    
+    # 5. Créer un Vendeur attaché au manager
+    seller_id = str(uuid.uuid4())
+    seller_email = "vendeur@retail-coach.fr"
+    existing = await db.users.find_one({"email": seller_email})
+    if not existing:
+        await db.users.insert_one({
+            "id": seller_id,
+            "email": seller_email,
+            "password": hashed_pw,
+            "name": "Vendeur Demo",
+            "role": "seller",
+            "manager_id": manager_id,
+            "workspace_id": manager_workspace_id,
+            "store_id": store_id,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        created_accounts.append({"email": seller_email, "role": "seller", "password": default_password, "manager": "manager@retail-coach.fr"})
+        logger.info(f"Seller created: {seller_email}")
+    
+    return {
+        "message": f"Base de données initialisée avec succès ! {len(created_accounts)} comptes créés.",
+        "accounts": created_accounts,
+        "instructions": "Utilisez ces identifiants pour vous connecter. Mot de passe par défaut: TestPassword123!"
+    }
+
 # Initialize enterprise router with dependencies
 init_enterprise_router(db, rate_limiter, get_current_user)
 
