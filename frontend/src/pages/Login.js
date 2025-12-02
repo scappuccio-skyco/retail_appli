@@ -241,8 +241,6 @@ export default function Login({ onLogin }) {
               </>
             )}
 
-            {/* Role is always 'manager' for public registration */}
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email
