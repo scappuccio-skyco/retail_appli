@@ -13319,8 +13319,12 @@ async def get_my_integration_stores(
     }
 
 
-# Include router
+# Initialize enterprise router with dependencies
+init_enterprise_router(db, rate_limiter, get_current_user)
+
+# Include routers
 app.include_router(api_router)
+app.include_router(enterprise_router)
 
 # ============================================================================
 # AUDIT LOGGING HELPER
