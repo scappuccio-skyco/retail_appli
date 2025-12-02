@@ -820,6 +820,11 @@ export default function ManagerDashboard({ user, onLogout }) {
         </div>
       </div>
 
+      {/* Sync Mode Badge - Affichage si mode synchronisé */}
+      <div className="max-w-7xl mx-auto">
+        <SyncModeBadge />
+      </div>
+
       {/* Dashboard Filters Panel */}
       {showFilters && (
         <div className="max-w-7xl mx-auto mb-6">
