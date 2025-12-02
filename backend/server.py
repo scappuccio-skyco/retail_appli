@@ -383,7 +383,7 @@ class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
-    role: str
+    role: Optional[str] = None  # Optionnel, forcé à "gérant" côté backend pour inscription publique
     manager_id: Optional[str] = None
     workspace_name: Optional[str] = None  # Nom de l'entreprise (pour managers)
 
