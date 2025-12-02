@@ -18,6 +18,10 @@ import StoreKPIModal from '../components/StoreKPIModal';
 import RelationshipManagementModal from '../components/RelationshipManagementModal';
 import SyncModeBadge from '../components/SyncModeBadge';
 import { useSyncMode } from '../hooks/useSyncMode';
+import TutorialButton from '../components/onboarding/TutorialButton';
+import OnboardingModal from '../components/onboarding/OnboardingModal';
+import { getManagerSteps } from '../components/onboarding/managerSteps';
+import { useOnboarding } from '../hooks/useOnboarding';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
