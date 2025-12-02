@@ -791,13 +791,7 @@ export default function ManagerDashboard({ user, onLogout }) {
                 Profil
               </button>
             )}
-            <button
-              onClick={() => setShowInviteModal(true)}
-              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
-            >
-              <UserPlus className="w-4 h-4" />
-              Inviter
-            </button>
+            {/* REMOVED: Only gerant can invite - managers cannot invite sellers */}
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
