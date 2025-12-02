@@ -1200,11 +1200,14 @@ export default function ManagerDashboard({ user, onLogout }) {
       <OnboardingModal
         isOpen={onboarding.isOpen}
         onClose={onboarding.close}
-        steps={managerSteps}
         currentStep={onboarding.currentStep}
+        totalSteps={managerSteps.length}
+        steps={managerSteps}
         onNext={onboarding.next}
-        onPrevious={onboarding.previous}
-        onComplete={onboarding.complete}
+        onPrev={onboarding.prev}
+        onGoTo={onboarding.goTo}
+        onSkip={onboarding.skip}
+        completedSteps={onboarding.completedSteps}
       />
     </div>
   );
