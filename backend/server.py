@@ -1278,8 +1278,8 @@ async def register(user_data: UserCreate):
     
     workspace_id = None
     
-    # Créer le workspace pour les managers et gérants
-    if user_data.role in ["manager", "gérant"]:
+    # Créer le workspace pour le gérant
+    if user_data.role == "gérant":
         trial_start = datetime.now(timezone.utc)
         trial_end = trial_start + timedelta(days=TRIAL_DAYS)
         
