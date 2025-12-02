@@ -837,6 +837,7 @@ export default function ManagerDashboard({ user, onLogout }) {
               </svg>
               Config
             </button>
+            <TutorialButton onClick={onboarding.open} />
             <button
               data-testid="logout-button"
               onClick={onLogout}
