@@ -148,6 +148,57 @@ Application de lettre au Père Noël (image fournie par l'utilisateur) :
 - Navigation claire (Précédent/Suivant)
 - Possibilité de skip
 
+### UX et comportement validés ✅
+
+#### A. Accès au tutoriel
+- **Bouton permanent** "🎓 Tutoriel" dans le header de chaque dashboard
+- **Toujours accessible** : Peut être relancé à tout moment
+- **Non intrusif** : Pas de popup au premier login
+- **Icône claire** : 🎓 ou 📚 pour identifier facilement
+
+#### B. Navigation dans le tutoriel
+**Boutons disponibles à chaque étape** :
+- **"Précédent"** : Retour à l'étape précédente
+- **"Suivant"** : Passer à l'étape suivante
+- **"Passer"** ou "Skip" : Sauter l'étape courante
+- **"Fermer"** (X) : Fermer le tutoriel complètement
+
+**Barre de progression** :
+- Visuelle (ex: 3/7)
+- **Cliquable** : Permet de sauter directement à une étape
+- Indique les étapes complétées, courante, et à venir
+
+#### C. Comportement du modal
+```javascript
+// Structure exemple
+<OnboardingModal isOpen={isOpen} onClose={handleClose}>
+  <ProgressBar 
+    current={currentStep} 
+    total={totalSteps}
+    onClick={goToStep}  // ← Navigation libre
+  />
+  
+  <OnboardingStep 
+    step={currentStep}
+    content={steps[currentStep]}
+  />
+  
+  <NavigationButtons>
+    {currentStep > 0 && <Button onClick={prev}>Précédent</Button>}
+    <Button onClick={skip}>Passer</Button>
+    {currentStep < totalSteps - 1 
+      ? <Button onClick={next}>Suivant</Button>
+      : <Button onClick={finish}>Terminer</Button>
+    }
+  </NavigationButtons>
+</OnboardingModal>
+```
+
+#### D. Persistance (optionnel mais recommandé)
+- Sauvegarder l'étape courante en DB
+- Reprendre où l'utilisateur s'est arrêté
+- Tracker les étapes passées/complétées
+
 ### Parcours d'onboarding proposés
 
 #### GÉRANT - 5 étapes
