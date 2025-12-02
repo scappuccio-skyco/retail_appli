@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key, UserCog } from 'lucide-react';
+import CreateStoreModal from '../components/gerant/CreateStoreModal';
+import TutorialButton from '../components/onboarding/TutorialButton';
+import OnboardingModal from '../components/onboarding/OnboardingModal';
+import { gerantSteps } from '../components/onboarding/gerantSteps';
+import { useOnboarding } from '../hooks/useOnboarding';
 import { toast } from 'sonner';
 import axios from 'axios';
 import StoreCard from '../components/gerant/StoreCard';
-import CreateStoreModal from '../components/gerant/CreateStoreModal';
 import StoreDetailModal from '../components/gerant/StoreDetailModal';
 import ManagerTransferModal from '../components/gerant/ManagerTransferModal';
 import SellerTransferModal from '../components/gerant/SellerTransferModal';
