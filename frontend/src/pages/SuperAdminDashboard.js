@@ -509,7 +509,18 @@ export default function SuperAdminDashboard() {
 
         {activeTab === 'workspaces' && (
           <div>
-            <h2 className="text-2xl font-bold text-white mb-6">Gestion des Workspaces</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">Gestion des Workspaces</h2>
+              <label className="flex items-center gap-2 text-purple-200 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showDeletedWorkspaces}
+                  onChange={(e) => setShowDeletedWorkspaces(e.target.checked)}
+                  className="w-4 h-4 rounded border-purple-300"
+                />
+                <span>Afficher les workspaces supprimés</span>
+              </label>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
