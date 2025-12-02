@@ -87,6 +87,12 @@ function AppContent() {
       return;
     }
     
+    if (userData.role === 'it_admin') {
+      // IT Admin → IT Admin Dashboard
+      navigate('/it-admin');
+      return;
+    }
+    
     // Check diagnostic for new sellers - ensure it completes before navigation
     if (userData.role === 'seller') {
       try {
