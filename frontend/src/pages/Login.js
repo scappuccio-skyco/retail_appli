@@ -155,11 +155,50 @@ export default function Login({ onLogin }) {
                   </div>
                 </div>
 
-                {/* Champ nom d'entreprise - seulement pour inscription manager (sans invitation) */}
+                {/* Choix du type de compte - seulement pour inscription publique (sans invitation) */}
                 {!inviteToken && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nom de l'entreprise
+                      Type de compte
+                    </label>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, role: 'manager' })}
+                        className={`p-3 border-2 rounded-xl transition-all ${
+                          formData.role === 'manager'
+                            ? 'border-[#1E40AF] bg-blue-50 text-[#1E40AF]'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        <div className="text-center">
+                          <div className="font-medium">Manager</div>
+                          <div className="text-xs mt-1 opacity-75">Gérer un magasin</div>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, role: 'gérant' })}
+                        className={`p-3 border-2 rounded-xl transition-all ${
+                          formData.role === 'gérant'
+                            ? 'border-[#1E40AF] bg-blue-50 text-[#1E40AF]'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        <div className="text-center">
+                          <div className="font-medium">Gérant</div>
+                          <div className="text-xs mt-1 opacity-75">Gérer une entreprise</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+              {/* Champ nom d'entreprise - seulement pour inscription (sans invitation) */}
+                {!inviteToken && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nom de {formData.role === 'gérant' ? "l'entreprise" : "l'entreprise"}
                     </label>
                     <div className="relative">
                       <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
