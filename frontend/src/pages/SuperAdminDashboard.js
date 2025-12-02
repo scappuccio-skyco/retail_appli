@@ -534,7 +534,9 @@ export default function SuperAdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {workspaces.map((workspace) => (
+                  {workspaces
+                    .filter(workspace => showDeletedWorkspaces || workspace.subscription?.status !== 'deleted')
+                    .map((workspace) => (
                     <tr key={workspace.id} className="border-b border-white/10 hover:bg-white/5">
                       <td className="p-3 text-white font-medium">{workspace.name}</td>
                       <td className="p-3 text-purple-200">
