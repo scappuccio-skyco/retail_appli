@@ -27,6 +27,7 @@ export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [logFilters, setLogFilters] = useState({ level: '', type: '', hours: 24 });
   const [auditFilters, setAuditFilters] = useState({ action: '', admin_emails: [], days: 7 });
+  const [showDeletedWorkspaces, setShowDeletedWorkspaces] = useState(false);
 
   useEffect(() => {
     fetchData();
