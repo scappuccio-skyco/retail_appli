@@ -4662,6 +4662,45 @@ async def options_kpi_config():
     response.headers["Access-Control-Max-Age"] = "86400"
     return response
 
+
+@api_router.get("/manager/sync-mode")
+async def get_manager_sync_mode(current_user: dict = Depends(get_current_user)):
+    """
+    Vérifier si le manager/seller est en mode synchronisation automatique.
+    Utilisé par le frontend pour afficher les champs en lecture seule.
+    """
+    if current_user['role'] not in ['manager', 'seller', 'gerant']:
+        return {"sync_mode": "manual", "is_enterprise": False}
+    
+    # Récupérer les infos utilisateur
+    user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    
+    if not user:
+        return {"sync_mode": "manual", "is_enterprise": False}
+    
+    # Si le user a un enterprise_account_id, récupérer les infos de l'entreprise
+    if user.get('enterprise_account_id'):
+        enterprise = await db.enterprise_accounts.find_one(
+            {"id": user['enterprise_account_id']},
+            {"_id": 0}
+        )
+        return {
+            "sync_mode": user.get('sync_mode', 'manual'),
+            "is_enterprise": True,
+            "company_name": enterprise.get('company_name') if enterprise else None,
+            "can_edit_kpi": False,  # Les KPI ne peuvent pas être modifiés en mode entreprise
+            "can_edit_objectives": True  # Les objectifs/challenges peuvent être modifiés
+        }
+    
+    # Mode PME classique
+    return {
+        "sync_mode": user.get('sync_mode', 'manual'),
+        "is_enterprise": False,
+        "can_edit_kpi": True,
+        "can_edit_objectives": True
+    }
+
+
 # ===== STORE KPI ENDPOINTS =====
 @api_router.post("/manager/store-kpi")
 async def create_or_update_store_kpi(
