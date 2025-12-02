@@ -986,13 +986,7 @@ export default function ManagerDashboard({ user, onLogout }) {
       </div>
 
       {/* Modals */}
-      {showInviteModal && (
-        <InviteModal
-          onClose={() => setShowInviteModal(false)}
-          onSuccess={handleInviteSuccess}
-          sellerCount={sellers.filter(s => s.status === 'active').length}
-        />
-      )}
+      {/* REMOVED: InviteModal - only gerant can invite sellers */}
 
       {showKPIConfigModal && (
         <KPIConfigModal
