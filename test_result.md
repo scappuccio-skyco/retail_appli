@@ -175,6 +175,18 @@ frontend:
         agent: "main"
         comment: "MODAUX GÉRANT DÉJÀ IMPLÉMENTÉS: ✅ CreateStoreModal.js - Formulaire complet (name, location, address, phone, opening_hours), validation, loading state, error handling. ✅ StoreDetailModal.js - Onglets Managers/Vendeurs, liste avec boutons Transférer, bouton Supprimer magasin, bouton Actualiser, fetch des équipes via API. ✅ ManagerTransferModal.js - Dropdown magasins filtrés (actifs seulement, excluant magasin actuel), warning sur vendeurs orphelins, affichage magasin actuel/nouveau. ✅ SellerTransferModal.js - Dropdown magasins, fetch dynamique des managers du magasin sélectionné, dropdown managers, validation (magasin + manager requis), affichage confirmation. ✅ DeleteStoreConfirmation.js - Processus 3 étapes (conséquences, conditions, confirmation), saisie nom magasin pour valider, messages d'avertissement détaillés. ✅ StoreCard.js - Affichage stats (managers_count, sellers_count, today_ca), statut actif/inactif, hover effects. ✅ TOUS PRÊTS POUR TESTS."
 
+  - task: "Seller Onboarding Tutorial Modal - Bug Reproduction"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/onboarding/OnboardingModal.js, /app/frontend/src/pages/SellerDashboard.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "ONBOARDING MODAL CRASH BUG REPRODUCTION - CANNOT REPRODUCE: ✅ COMPREHENSIVE TESTING COMPLETED: Tested reported seller onboarding tutorial modal crash at step 2 using exact user credentials (vendeur@retail-coach.fr / TestPassword123!) and reproduction steps from review request. ✅ AUTHENTICATION SUCCESSFUL: Login works correctly with provided credentials, dashboard loads properly. ✅ MODAL FUNCTIONALITY VERIFIED: Tutorial button visible in header, modal opens correctly at step 1 ('Bienvenue sur Retail Performer AI'), navigation to step 2 ('Complétez votre diagnostic') works perfectly. ✅ CRITICAL BUG CANNOT BE REPRODUCED: Clicking 'Suivant' at step 2 does NOT cause page reload or modal crash - modal remains open and correctly advances to step 3. 'Précédent' button also works correctly, navigating back to step 2. No 'Actualisation en cours' text appears. No form submissions or page redirects detected during navigation. ✅ TECHNICAL ANALYSIS: All fixes mentioned in review request are working correctly - useMemo for sellerSteps prevents re-renders, type='button' on all buttons prevents form submission, event.preventDefault/stopPropagation prevents event bubbling, React.memo wrapper optimizes performance. ✅ CONSOLE ANALYSIS: No React errors or crashes detected during modal navigation - only normal API 404s for diagnostic/challenges endpoints which don't affect modal functionality. ✅ CONCLUSION: The onboarding modal is functioning correctly and the reported bug appears to be resolved. All navigation between steps works smoothly without crashes or page reloads. User may need to clear browser cache or test in incognito mode to see the fix."
+
 old_user_problem_statement_1: "REFONTE COMPLÈTE DU SYSTÈME D'OBJECTIFS - Découpler les objectifs des KPI généraux, permettre 3 types d'objectifs (KPI standard: CA/Ventes/Articles, Focus Produit: texte libre, Autre: personnalisé), ajouter toggles style 'Magasin' pour assigner la responsabilité de saisie (Manager/Vendeur)"
 
 old_backend:
