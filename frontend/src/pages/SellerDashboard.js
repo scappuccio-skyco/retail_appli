@@ -172,7 +172,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     detectKpiMode();
   }, [isReadOnly]);
   
-  const sellerSteps = getSellerSteps(kpiMode);
+  // Mémoïser sellerSteps pour éviter les re-créations inutiles qui cassent le modal
+  const sellerSteps = useMemo(() => getSellerSteps(kpiMode), [kpiMode]);
   const onboarding = useOnboarding(sellerSteps.length);
   
   // Dashboard Filters & Preferences
