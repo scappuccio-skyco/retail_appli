@@ -1,111 +1,128 @@
 <analysis>**original_problem_statement:**
-The user initiated a series of feature enhancements and bug fixes to improve the application's administrative capabilities and user management flows.
+The user's initial goal was to add an enterprise-grade integration system for automated user and store management. During this process, they also requested a fix for an untested Stripe auto-upgrade feature and encountered critical login/connectivity issues after deploying the application to production.
 
-1.  **Multi-Select Filter (P0 Task)**: The user requested to change the Filter by Admin dropdown in the Audit Logs tab of the Super Admin dashboard into a multi-select component to allow filtering by multiple admins at once.
-2.  **AI Assistant**: The user requested a new AI assistant within the Super Admin dashboard to help them diagnose application issues by analyzing logs and system data. This included building a chat interface, handling conversation history, and formatting the AI's responses using Markdown.
-3.  **User Invitation & Registration Flow**: The user wanted to test and implement a complete user creation flow for Gérant (Client), Manager, and Vendeur (Seller) roles, including sending invitation emails. This required integrating an external email service (Brevo).
-4.  **Gérant (Client) Role Enhancement**: The user requested significant enhancements to the Gérant's capabilities:
-    *   The ability to suspend, reactivate, and delete sellers and managers directly.
-    *   A new Personnel (Staff) overview page to manage all staff members in one place, instead of navigating into each store.
-    *   Centralization of power, removing the ability for Managers to delete/suspend their own sellers.
-5.  **Bug Fixes & UX Improvements**: The user reported and requested fixes for several issues:
-    *   Inconsistent user statuses (Inconnu, inactif).
-    *   Discrepancies in user counts between the dashboard overview, the staff management page, and the subscription billing.
-    *   A blank page when clicking the Notice API button.
-    *   Incorrect authentication instructions ( vs. ) in the API documentation.
-    *   Failure to load past conversations in the new AI Assistant.
-    *   An inability to delete a manager who still had sellers assigned to them.
-    *   Failure to receive invitation emails.
+After resolving the deployment blockers, the user's priority shifted. They requested the implementation of a comprehensive, guided onboarding tutorial system for all user roles (Gérant, Manager, Vendeur, IT Admin) to improve the user experience. The onboarding needed to be role-specific and adapt dynamically to different application configurations, such as the KPI data entry mode.
 
 **User's preferred language**: French
 
 **what currently exists?**
-The application now includes an AI-powered assistant for super admins and has significantly enhanced staff management capabilities for the Gérant (client) role.
+The application now includes a complete, multi-role onboarding tutorial system. This system was built from scratch and includes:
+*   **Core Components:** A new  hook to manage state, and reusable UI components like , , , and .
+*   **Role-Specific Content:** Dedicated content files (, , etc.) define the tutorial steps for each user role. The seller's tutorial is dynamic and adapts its content based on the configured KPI entry mode (seller entry, manager entry, or API sync).
+*   **Dashboard Integration:** A Tutoriel button has been added to the header of the Gérant, Manager, Vendeur, and IT Admin dashboards, allowing users to launch the tutorial at any time.
 
-*   **Backend (, )**:
-    *   **Super Admin**: An AI Assistant is implemented with endpoints for chat, conversation history, and executing predefined actions (). The audit log endpoint now supports multi-admin filtering.
-    *   **Gérant**: New endpoints have been added to allow Gérants to suspend, reactivate, and delete both managers and sellers (, ).
-    *   **User Counting Logic**: Most key endpoints (, ) have been updated to count only **'active'** users for dashboard stats and subscription billing.
-    *   **Email Integration**: Brevo email service integration is set up via  and connected to the invitation endpoints. The service is currently non-functional due to an external IP block.
-    *   **Data Integrity**: The business logic was changed to allow deleting a manager even if they have sellers. The sellers'  is now set to  upon deletion. A test script () was created to validate this.
-*   **Frontend**:
-    *   **Super Admin Dashboard**: A new Assistant IA tab contains a complete chat interface () with conversation history and Markdown rendering for AI responses. The audit log filter is now a multi-select component.
-    *   **Gérant Dashboard**: A new Personnel tab was added, which renders a  component. This provides a centralized table to view, filter, and manage all managers and sellers, with actions like suspend, reactivate, and delete. The main dashboard view was updated to show separate counts for Actifs and Suspendus staff.
-    *   **Manager View ()**: The ability for managers to suspend or delete sellers has been removed, centralizing this control to the Gérant.
-    *   **API Documentation**: The API guide is now displayed in a modal () instead of a blank page, with corrected authentication instructions ().
-    *   **Registration Pages**: New skeleton pages for user registration have been created: , , , and linked in .
-*   **Database**: A one-time script was run to normalize the  field in the  collection, migrating old/null statuses to 'active' or 'suspended'.
+Additionally, several critical production bugs have been resolved:
+*   A temporary, secure endpoint () was created to allow the user to initialize the production database with a standard set of test accounts.
+*   The public registration flow was fixed to correctly create a gérant user and redirect them to the appropriate dashboard.
+*   The user invitation logic was corrected to centralize all invitations to the gérant, disabling the manager's ability to invite staff.
+*   The SuperAdmin dashboard was improved with a filter to hide deleted workspaces.
 
 **Last working item**:
-- Last item agent was working: Investigating the workflow for assigning orphan sellers (whose manager has been deleted) to a new manager. The user asked how the application handles adding a new manager and assigning existing staff to them. The agent had started analyzing the backend code for manager invitations.
+- Last item agent was working: Debugging a critical bug reported by the user in the newly implemented Vendeur (Seller) onboarding tutorial. The user observed that after completing step 2 (related to the skills diagnostic), clicking the Next button causes the tutorial modal to close abruptly and the entire page to reload.
 - Status: IN PROGRESS
 - Agent Testing Done: N
-- Which testing method agent to use? manual testing by curl. First, the agent needs to analyze the code to understand the current process (if any). Then, propose a solution (likely involving a new UI component) and test the corresponding API endpoints with curl before building the frontend.
-- User Testing Done: N
+- Which testing method agent to use? Frontend testing agent or screenshot tool to reproduce the bug and verify the fix on the Seller Dashboard. The test should involve logging in as a seller, starting the tutorial, and proceeding past step 2.
+- User Testing Done: Y (User found and reported the bug).
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Brevo Email Integration is Blocked (P0)**
-    - Description: The Brevo API is returning a 401 Unauthorized error because the server's IP address () is not whitelisted in the user's Brevo account security settings. This prevents all invitation emails from being sent.
+- **Issue 1: Seller Onboarding Tutorial Crashes After Step 2 (P0)**
+    - Description: In the Vendeur (Seller) tutorial, clicking Suivant (Next) on the second step causes the modal to close and the page to refresh, preventing the user from completing the onboarding.
+    - Status: IN PROGRESS
+    - Is recurring issue? N
+    - Attempted fixes: The previous agent identified that the issue likely stems from the complex state management in , specifically the interaction between the  detection logic and the re-rendering of the  content.
+    - Next debug checklist:
+        1.  **Inspect :** Review the  hook that calls . The recalculation of  when  changes might be causing an unhandled re-render that crashes the modal.
+        2.  **Analyze :** The logic in  dynamically inserts or removes steps. Check for any errors in how the steps array is constructed that could lead to an invalid state.
+        3.  **Debug :** Examine the  function within the modal to ensure it correctly handles state transitions and doesn't have a side effect causing a page reload on error.
+        4.  **Check Console Logs:** The previous agent added a  to the  function's catch block. Check the browser console for any logged errors when the bug occurs.
+    - Why fix this issue and what will be achieved with the fix?: The brand-new onboarding feature is unusable for a key user role. Fixing it is essential for the feature to be considered complete.
+    - Should Test frontend/backend/both after fix?: frontend
+    - Blocked on other issue: NO (This is the top priority).
+
+- **Issue 2: Stripe Auto-Upgrade Logic is Untested (P2)**
+    - Description: The backend function  has never been tested end-to-end.
     - Status: BLOCKED
     - Is recurring issue? N
-    - Why fix this issue and what will be achieved with the fix?: This is a critical blocker for the entire user registration and invitation feature. Fixing it will allow testing and validation of the new user onboarding flows.
-    - **Next action**: The user must log in to their Brevo account and add the IP address  to the list of authorized IPs for their API key. The agent cannot proceed without this user action.
+    - Attempted fixes: None in this session.
+    - Next debug checklist:
+        1.  After the production environment is stable and the onboarding bug is fixed, follow the guide in .
+        2.  Create a real subscription for a test user.
+        3.  Trigger the function by adding/removing users to exceed the seat limit.
+    - Why fix this issue and what will be achieved with the fix?: This is a core billing requirement to ensure clients are billed correctly.
+    - Should Test frontend/backend/both after fix?: backend
+    - Blocked on other issue: Issue 1: Seller Onboarding Tutorial Crashes After Step 2.
 
 **In progress Task List**:
-- **Task 1: Define and Implement Orphan Seller Re-assignment Workflow (P1)**
-    - **Where to resume**: The agent was analyzing the  endpoint. The next step is to devise a complete workflow for how a Gérant can assign sellers (whose  is ) to a new or existing manager. This will likely require creating a new UI element, possibly within the  component or as a separate modal.
-    - **What will be achieved with this?**: A complete staff lifecycle management feature, allowing Gérants to handle manager departures and re-organize teams without data loss.
-    - **Status**: IN PROGRESS
-    - **Should Test frontend/backend/both after fix?**: both
-    - **Blocked on something**: No.
+- None.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks**:
-    - **P0: Test Full User Registration Flow**: Once the Brevo IP issue is resolved, conduct a full end-to-end test of the invitation and registration process for a Gérant, a Manager, and a Seller.
-    - **P1: Implement Referral Program**: Implement the 50€ / 50€ credit referral system.
-    - **P2: Gérant Dashboard Enhancements (Phase 2 & 3)**:
-        - Add a main evolution graph showing performance over the selected period.
-        - Add a detailed comparative table of store performance.
+    - **P1: Persist Onboarding State:** The current onboarding progress is not saved. The backend  model needs to be updated with fields like  and , and API endpoints need to be created to update this state.
+    - **P2: Enhance DB Schema for Stripe**: Implement the schema changes from the previous handoff (, ) to make the subscription system more robust.
+    - **P2: Finalize Stripe Webhook Implementation**: The endpoint exists but needs to be configured and tested in a production-like environment.
 - **Future Tasks**:
-    - **P3: IA Illimitée (Unlimited AI) Feature**: Investigate removing AI usage quotas.
-    - **P3: Export Feature**: Add a CSV/Excel export button for the comparative table on the Gérant Dashboard.
+    - **P3: Gérant Dashboard Enhancements (Phase 2 & 3)**: Add a main evolution graph and a detailed comparative table of store performance.
+    - **P3: IA Illimitée (Unlimited AI) Feature**: Investigate the implications of removing AI usage quotas.
+    - **P3: Export Feature**: Add a CSV/Excel export button for the comparative table.
 
 **Completed work in this session**
-- **Feature: AI Assistant in SuperAdmin Dashboard (DONE)**: Fully functional chat interface with conversation history and Markdown rendering.
-- **Feature: Gérant Staff Management Hub (DONE)**: New Personnel tab with a unified view () to manage all sellers and managers, including suspend, reactivate, and delete actions.
-- **Feature: Multi-Select Admin Filter for Audit Logs (DONE)**
-- **Refactor: Centralized Staff Management (DONE)**: Removed seller management permissions from the Manager role and consolidated them under the Gérant role.
-- **Fix: Inconsistent User Counts and Statuses (DONE)**: Standardized user statuses (, , ) in the database and frontend. Updated dashboard counters to be consistent and logical.
-- **Fix: API Documentation Modal (DONE)**: Replaced a blank page with a functional modal and corrected the authentication instructions to use .
-- **Fix: Data Integrity on Manager Deletion (DONE)**: Removed the block on deleting managers with sellers and ensured seller data remains intact by setting  to null.
+- **Feature: Onboarding Tutorial System (DONE - Implementation, Bug Pending)**:
+    - Built a complete, role-based onboarding system with a Tutoriel button on the Gérant, Manager, Vendeur, and IT Admin dashboards.
+    - Created all necessary React components (, , etc.) and role-specific content.
+- **Bug Fix: Production Environment Initialization (RESOLVED)**:
+    - Created a secure  endpoint to populate the production database with default accounts, resolving the user's login issues post-deployment.
+- **Bug Fix: Public Registration Flow (RESOLVED)**:
+    - Corrected the registration process to always create a gérant account and redirect to the correct dashboard.
+- **Bug Fix: User Invitation Logic (RESOLVED)**:
+    - Disabled the manager's ability to invite users, centralizing this function to the gérant as per the user's specification.
+- **Bug Fix: SuperAdmin Workspace Filter (RESOLVED)**:
+    - Implemented a toggle on the SuperAdmin dashboard to hide workspaces that have been marked as deleted.
+- **Documentation & Analysis**:
+    - Created a comprehensive feature map of the entire application ().
+    - Analyzed and documented the different KPI data entry modes ().
+    - Finalized the technical specifications for the onboarding feature ().
 
 **Earlier issues found/mentioned but not fixed**
-- **Issue 1: Incomplete Subscription Logic Update**
-    - Debug checklist: The agent updated most endpoints to count only 'active' users for subscription billing, but missed the Stripe checkout endpoint.
-    - File to check: 
-    - Function to check:  (around line 7413) still uses a query  which includes suspended users. It should be changed to .
-    - Why to solve this issue and what will be achieved with this?: To ensure billing is 100% consistent with the user's request to only charge for active users.
-    - Should Test frontend/backend/both after fix: backend
-    - Is recurring issue? N
+- **Issue 1: Legacy Stripe Endpoint Inaccuracy**: The legacy checkout endpoint () still incorrectly counts suspended users for billing.
+- **Issue 2: Flawed Test Script**: The test script  is known to be unreliable.
+
+**Known issue recurrence from previous fork**
+- None.
 
 **Code Architecture**
 .
 ├── ACCES_TESTS_MULTI_STORE.md
 ├── ADMIN_LOGGING_GUIDE.md
+├── ANALYSE_FONCTIONNALITES_COMPLETE.md
+├── ANALYSE_MODES_SAISIE_KPI.md
 ├── ANALYSE_STRUCTURE_IA.md
 ├── API_INTEGRATION_GUIDE.md
 ├── CALCUL_NOMBRE_ANALYSES.md
+├── CARTOGRAPHIE_FONCTIONNALITES.md
 ├── DOCUMENTATION_COMPOSANTS_IA_ACTUEL.md
+├── ENTERPRISE_API_DOCUMENTATION.md
 ├── EQUIPE_TEST_DENIS_TOM.md
+├── FIX_BUGS_PRODUCTION.md
+├── FIX_INSCRIPTION_GERANT.md
+├── FIX_SYSTEME_INVITATIONS.md
 ├── FORMULE_CREDITS_PAR_VENDEUR.md
 ├── GESTION_VENDEURS_SOMMEIL_SUPPRESSION.md
 ├── GRAPHIQUE_CONSOLIDE_INFO.md
+├── GUIDE_IMPORT_EN_MASSE.md
+├── GUIDE_INITIALISATION_PRODUCTION.md
+├── GUIDE_TEST_IT_ADMIN_DASHBOARD.md
+├── HANDOFF_NEXT_AGENT.md
 ├── IMPLEMENTATION_COMPLETE_OPTION_B.md
 ├── IMPLEMENTATION_COMPTEUR_CREDITS.md
+├── INSTRUCTIONS_CREATION_ADMIN.md
+├── INTEGRATION_SAP_ADVANCED.md
+├── INTEGRATION_SAP_GUIDE.md
 ├── Justification_Tarifaire_Retail_Performer_AI.html
 ├── Justification_Tarifaire_Retail_Performer_AI.md
 ├── MODIFICATIONS_LANDING_PAGE.md
 ├── MULTI_STORE_IMPLEMENTATION_PLAN.md
+├── ONBOARDING_IMPLEMENTATION_COMPLETE.md
+├── PHASE_3_UI_CONDITIONAL_LOGIC.md
 ├── PHASE_A_BACKEND_COMPLETED.md
 ├── PROMPTS_IA_EXPLICATIONS.md
 ├── README.md
@@ -113,13 +130,19 @@ The application now includes an AI-powered assistant for super admins and has si
 ├── REPONSE_CREDITS_PAR_VENDEUR_OU_GROUPE.md
 ├── SECURITY_AUDIT_REPORT.md
 ├── SIMULATION_COUTS_IA.md
+├── SPECS_ONBOARDING.md
+├── STRIPE_FIX_GUIDE.md
+├── TESTS_ONBOARDING.md
 ├── VENDEURS_SKYCO_INFO.md
 ├── __pycache__
 │   └── backend_test.cpython-311.pyc
 ├── annual_to_monthly_downgrade_test.py
+├── audit_features.py
 ├── backend
 │   ├── __pycache__
 │   │   ├── email_service.cpython-311.pyc
+│   │   ├── enterprise_models.cpython-311.pyc
+│   │   ├── enterprise_routes.cpython-311.pyc
 │   │   └── server.cpython-311.pyc
 │   ├── add_kpi_data.py
 │   ├── calculate_competences_and_levels.py
@@ -130,6 +153,8 @@ The application now includes an AI-powered assistant for super admins and has si
 │   ├── create_ylegoff_data.py
 │   ├── email_service.py
 │   ├── enrich_diagnostics.py
+│   ├── enterprise_models.py
+│   ├── enterprise_routes.py
 │   ├── fill_kpi_data.py
 │   ├── fill_kpis_ylegoff.py
 │   ├── fix_diagnostic_answers.py
@@ -160,6 +185,7 @@ The application now includes an AI-powered assistant for super admins and has si
 ├── create_consolidated_chart.py
 ├── create_test_sellers.py
 ├── create_test_team.py
+├── create_test_user.py
 ├── final_downgrade_test.py
 ├── find_annual_subscription.py
 ├── fix_objectives_status.py
@@ -63143,6 +63169,7 @@ The application now includes an AI-powered assistant for super admins and has si
 │   │   │   ├── SubscriptionBanner.js
 │   │   │   ├── SubscriptionModal.backup.js
 │   │   │   ├── SubscriptionModal.js
+│   │   │   ├── SyncModeBadge.js
 │   │   │   ├── TeamAIAnalysisModal.js
 │   │   │   ├── TeamBilanIA.js
 │   │   │   ├── TeamBilanModal.js
@@ -63162,9 +63189,21 @@ The application now includes an AI-powered assistant for super admins and has si
 │   │   │   │   ├── StoreCard.js
 │   │   │   │   ├── StoreDetailModal.js
 │   │   │   │   └── StoreDropdown.js
+│   │   │   ├── onboarding
+│   │   │   │   ├── OnboardingModal.js
+│   │   │   │   ├── OnboardingStep.js
+│   │   │   │   ├── ProgressBar.js
+│   │   │   │   ├── TutorialButton.js
+│   │   │   │   ├── gerantSteps.js
+│   │   │   │   ├── itAdminSteps.js
+│   │   │   │   ├── managerSteps.js
+│   │   │   │   └── sellerSteps.js
 │   │   │   ├── superadmin
 │   │   │   │   ├── AIAssistant.js
-│   │   │   │   └── AdminManagement.js
+│   │   │   │   ├── AdminManagement.js
+│   │   │   │   ├── InvitationsManagement.js
+│   │   │   │   ├── StripeSubscriptionsView.js
+│   │   │   │   └── TrialManagement.js
 │   │   │   └── ui
 │   │   │       ├── accordion.jsx
 │   │   │       ├── alert-dialog.jsx
@@ -63213,13 +63252,16 @@ The application now includes an AI-powered assistant for super admins and has si
 │   │   │       ├── toggle.jsx
 │   │   │       └── tooltip.jsx
 │   │   ├── hooks
-│   │   │   └── use-toast.js
+│   │   │   ├── use-toast.js
+│   │   │   ├── useOnboarding.js
+│   │   │   └── useSyncMode.js
 │   │   ├── index.css
 │   │   ├── index.js
 │   │   ├── lib
 │   │   │   └── utils.js
 │   │   └── pages
 │   │       ├── GerantDashboard.js
+│   │       ├── ITAdminDashboard.js
 │   │       ├── KPIReporting.js
 │   │       ├── LandingPage.js
 │   │       ├── LandingPage.js.backup
@@ -63231,11 +63273,15 @@ The application now includes an AI-powered assistant for super admins and has si
 │   │       ├── RegisterManager.js
 │   │       ├── RegisterSeller.js
 │   │       ├── SellerDashboard.js
+│   │       ├── SellerDashboard_onboarding_integration.txt
 │   │       └── SuperAdminDashboard.js
 │   ├── tailwind.config.js
 │   └── yarn.lock
+├── import_demo_data.sh
+├── init_production.sh
 ├── manager_dashboard_test.py
 ├── migrate_kpis_skyco.py
+├── reset_password.py
 ├── reset_seller_dashboard.html
 ├── setup_manager_team.py
 ├── stripe_adjustable_quantity_test.py
@@ -63260,65 +63306,77 @@ The application now includes an AI-powered assistant for super admins and has si
 │   └── __init__.py
 └── yarn.lock
 
-6044 directories, 57126 files
+6045 directories, 57170 files
 
 **Key Technical Concepts**
-- **External API Integration (Brevo)**: Integrated the  to send transactional emails. The process revealed the importance of checking external service security policies, such as IP whitelisting.
-- **AI Integration ()**: Successfully used the internal library to create a conversational AI assistant, including managing conversation state and formatting responses.
-- **Data Normalization**: Performed a one-time database update via a bash command to clean up legacy data and enforce a consistent state for the  field on users.
-- **Data Integrity Testing**: Created a dedicated Python test script () to simulate an operation (deleting a manager) and programmatically verify that related data remains correct, ensuring business logic changes are safe.
-- **Decoupling Business Logic**: Refactored the application to allow the deletion of a manager without deleting their associated sellers by setting the  field to , correctly identifying that the primary data relationship is with the store, not the manager.
+- **Dynamic Onboarding:** The tutorial system dynamically loads different steps based on the user's role and adapts its content based on application state (e.g., ).
+- **State Management with Hooks:** Extensive use of , , and custom hooks (, ) to manage complex UI states for the tutorial.
+- **Secure Database Seeding:** Creation of a temporary, secret-protected API endpoint for one-time database initialization in a production environment.
+- **Business Logic Enforcement:** Refactored backend and frontend code to enforce new business rules, such as centralizing user invitations to a single role.
 
 **key DB schema**
--   No new collections were added. The  collection was modified to standardize the  field to one of , , or .
+- **users** (Pydantic Model  in  modified): The  field was made optional () to support the simplified registration form, as the role is now always forced to  on the backend for public sign-ups.
 
-**All files**
--   : Major changes for AI assistant, Gérant permissions, user counting, and Brevo integration.
--   : Added the AI Assistant tab and component.
--   : Added the Staff Overview tab and updated dashboard stat display.
--   : New file for the AI chat UI.
--   : New file for the unified staff management table.
--   : New file to handle all Brevo email sending logic.
--   : Updated with Brevo credentials and .
--   : Updated with routes for new registration pages.
+**changes in tech stack**
+- None.
 
-**key api endpoints**
--   : Interact with the AI assistant.
--   : Fetch conversation history.
--   : Suspend a seller.
--   : Reactivate a seller.
--   : Delete a seller.
--   : Same actions for managers.
--   : Modified to return counts for active and suspended users separately.
--   : Modified to only count active users for billing.
--   , : Modified to trigger an email via the Brevo service.
+**All files of reference**
+*   **/app/frontend/src/pages/SellerDashboard.js**: The file where the current bug is manifesting. The interaction between the onboarding logic and KPI mode detection is critical.
+*   **/app/frontend/src/components/onboarding/sellerSteps.js**: Contains the dynamic step generation for the seller tutorial, a likely source of the error.
+*   **/app/frontend/src/components/onboarding/OnboardingModal.js**: The core modal component; its state handling for 'next' is relevant.
+*   **/app/frontend/src/hooks/useOnboarding.js**: The custom hook managing the frontend state of the tutorial.
+*   **/app/SPECS_ONBOARDING.md**: Contains the user-approved specifications for the feature being debugged.
 
 **Critical Info for New Agent**
--   **Brevo is BLOCKED**: The entire user invitation/registration flow is non-functional until the user whitelists the server IP  in their Brevo account. This is the highest priority issue. You must inform the user about this and wait for their action.
--   **Billing Logic**: The user has explicitly stated that only **active** users should be counted for subscription billing. While most endpoints were updated, the Stripe checkout logic was missed. This needs to be corrected to ensure 100% consistency.
--   **Manager Deletion Logic**: The system now allows deleting a manager even if they have sellers. It sets the  of those sellers to , effectively making them orphans until they are re-assigned. The current task is to define how this re-assignment works.
+- **Your top priority is to fix the bug in the Seller Onboarding tutorial.** The user has tested the new feature and is blocked by this crash.
+- The bug is located in the Seller Dashboard (). When the user clicks Next on the second step of the tutorial, the page reloads. The root cause is likely an unhandled error or state-change conflict between the  detection logic and the onboarding modal's state.
+- The entire onboarding feature has been implemented but the state (e.g., ) is **not yet saved to the backend**. This is a planned upcoming task but is secondary to fixing the current bug.
+- The agent has created extensive documentation on the application's features () and the new onboarding system (), which should be reviewed for context.
 
-**Last 5 User Messages and any pending user messages**
--   **User**: Stated that in principle, data is attached to the store, not the manager, so deleting a manager should be possible. **Status**: COMPLETED. Agent verified this and agreed.
--   **User**: Chose Option B: when a manager is deleted, set their sellers'  to . Asked the agent to run a test to verify data integrity. **Status**: COMPLETED. Agent implemented the logic and ran a test script confirming no data loss.
--   **User**: and what happens if I add a manager back later? How does the app handle this new entrant? **Status**: PENDING. This is the current task the agent is working on.
--   **User**: Pointed out that the Notice API button leads to a blank page and should be a modal. **Status**: COMPLETED.
--   **User**: Noticed the API documentation mentioned  token and questioned if it was correct. **Status**: COMPLETED. Agent corrected it to .
+**documents created in this job**
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+
+**Last 10 User Messages and any pending user messages**
+1.  **User**:  (Yes, implement the onboarding system) -> **Status: IN PROGRESS (Now in bug-fixing phase)**
+2.  **User**:  (I want you to finish the implementation. I'll do the tests at the end) -> **Status: COMPLETED**
+3.  **User**:  (Give me the test credentials for the app again) -> **Status: COMPLETED**
+4.  **User**:  (There's a problem in the seller tutorial...) -> **Status: IN PROGRESS (This is the current P0 bug)**
+5.  **User**:  (When I create my account, I still land on the manager space...) -> **Status: RESOLVED**
+6.  **User**:  (So why from the test phase to the production phase do I lose all my data?) -> **Status: RESOLVED (Agent explained the separate environments)**
+7.  **User**:  (Does each redeployment erase my production database?) -> **Status: RESOLVED (Agent confirmed it does not)**
+8.  **User**:  (Give me the PowerShell command to use after deployment again) -> **Status: COMPLETED**
+9.  **User**:  (Yes, I redeployed. Also, in the admin part...) -> **Status: RESOLVED**
+10. **Pending**: The user is waiting for a fix for the seller tutorial bug.
 
 **Project Health Check:**
--   **Broken**: The user invitation and registration flow is completely broken due to the Brevo IP block.
--   **Mocked**: None.
+- **Broken**: The new Onboarding feature is broken for the Vendeur (Seller) role, which is a critical bug blocking the feature's validation.
+
+**3rd Party Integrations**
+- **Stripe**: Used for subscription billing. Requires User API Key.
+- **Brevo**: Used for sending transactional emails. Requires User API Key.
+- **OpenAI GPT-4o-mini**: Used for AI diagnostic features. Uses Emergent LLM Key.
 
 **Testing status**
--   Testing agent used after significant changes: YES, used to validate the AI Assistant feature.
+-   Testing agent used after significant changes: NO (User requested to perform testing themselves for the onboarding feature).
 -   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: []
--   Known regressions: None.
+-   Test files created: None for the onboarding feature.
+-   Known regressions: The Seller onboarding tutorial is non-functional.
 
 **Credentials to test flow:**
--   **Super Admin**:  / 
--   **Gérant**:  / 
+Use the accounts created by the seeding script. To reproduce the current bug, use:
+*   **Role**: Vendeur
+*   **Email**: 
+*   **Password**: 
 
 **What agent forgot to execute**
--   The agent did not update the user counting logic in the Stripe checkout endpoint ( in ). It still includes suspended users in the count when it should only count active users.
--   The test file  contains a check that produces a false alarm failure. While the agent correctly identified it as a false alarm, the test script itself should be corrected to reflect the valid logic (sellers of the same manager can belong to different stores).</analysis>
+- The agent did not implement the backend persistence for the onboarding state (, ), as detailed in the . This remains an upcoming task.
+- The agent did not perform a final self-test of the onboarding feature before handover, relying on the user's request to do the testing, which led to the user discovering the critical bug.</analysis>
