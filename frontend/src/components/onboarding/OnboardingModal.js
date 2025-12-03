@@ -60,7 +60,11 @@ export default function OnboardingModal({
           <div className="flex items-center justify-between mt-6 pt-4 border-t">
             <button
               type="button"
-              onClick={onPrev}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onPrev();
+              }}
               disabled={isFirstStep}
               className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                 isFirstStep
@@ -73,7 +77,11 @@ export default function OnboardingModal({
 
             <button
               type="button"
-              onClick={onSkip}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSkip();
+              }}
               className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
             >
               Passer
@@ -81,7 +89,15 @@ export default function OnboardingModal({
 
             <button
               type="button"
-              onClick={isLastStep ? onClose : onNext}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (isLastStep) {
+                  onClose();
+                } else {
+                  onNext();
+                }
+              }}
               className="px-5 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               {isLastStep ? 'Terminer' : 'Suivant →'}
