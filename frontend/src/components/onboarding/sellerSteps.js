@@ -155,6 +155,15 @@ function getKpiStep(mode) {
         title: 'Saisissez vos KPI quotidiens',
         description: (
           <>
+            <div className="bg-green-50 border-2 border-green-400 rounded-lg p-4 mt-3 mb-4">
+              <p className="font-bold text-green-800 mb-2">📍 Saisir mes KPI :</p>
+              <ol className="list-decimal list-inside space-y-2 text-left text-green-900">
+                <li>Trouvez la section <strong className="bg-green-200 px-2 py-1 rounded">"Mes KPI"</strong> sur votre dashboard</li>
+                <li>Cliquez sur <strong>"➕ Saisir mes chiffres du jour"</strong></li>
+                <li>Remplissez le formulaire et validez</li>
+              </ol>
+            </div>
+            
             <p>Chaque jour, enregistrez vos résultats :</p>
             <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
               <li>CA réalisé</li>
