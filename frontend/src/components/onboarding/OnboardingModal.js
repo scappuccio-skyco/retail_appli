@@ -35,6 +35,7 @@ export default function OnboardingModal({
       <div className="relative bg-white rounded-xl shadow-2xl max-w-xl w-full mx-4 max-h-[80vh] overflow-y-auto">
         {/* Close button */}
         <button
+          type="button"
           onClick={onClose}
           className="absolute top-3 right-3 p-1.5 hover:bg-gray-100 rounded-full transition-colors z-10"
           title="Fermer"
