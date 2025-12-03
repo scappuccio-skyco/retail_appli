@@ -14,6 +14,7 @@ export default function ProgressBar({ current, total, onGoTo, completedSteps = [
 
           return (
             <button
+              type="button"
               key={i}
               onClick={() => onGoTo(i)}
               className={`transition-all rounded-full ${
