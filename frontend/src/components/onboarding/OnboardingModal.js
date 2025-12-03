@@ -36,7 +36,11 @@ export default function OnboardingModal({
         {/* Close button */}
         <button
           type="button"
-          onClick={onClose}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose();
+          }}
           className="absolute top-3 right-3 p-1.5 hover:bg-gray-100 rounded-full transition-colors z-10"
           title="Fermer"
         >
