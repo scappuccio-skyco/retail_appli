@@ -24,15 +24,24 @@ const OnboardingModal = React.memo(function OnboardingModal({
   const isLastStep = currentStep === totalSteps - 1;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div 
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
+      data-emergent-ignore="true"
+      style={{ pointerEvents: 'auto' }}
+    >
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
+        data-emergent-ignore="true"
       />
       
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-2xl max-w-xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+      <div 
+        className="relative bg-white rounded-xl shadow-2xl max-w-xl w-full mx-4 max-h-[80vh] overflow-y-auto"
+        data-emergent-ignore="true"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Close button */}
         <button
           type="button"
