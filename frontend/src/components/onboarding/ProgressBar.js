@@ -16,7 +16,11 @@ export default function ProgressBar({ current, total, onGoTo, completedSteps = [
             <button
               type="button"
               key={i}
-              onClick={() => onGoTo(i)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onGoTo(i);
+              }}
               className={`transition-all rounded-full ${
                 isCurrent
                   ? 'w-3 h-3 bg-blue-600 scale-110'
