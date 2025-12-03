@@ -6,7 +6,7 @@ import OnboardingStep from './OnboardingStep';
 /**
  * Modal principal d'onboarding
  */
-export default function OnboardingModal({
+const OnboardingModal = React.memo(function OnboardingModal({
   isOpen,
   onClose,
   currentStep,
