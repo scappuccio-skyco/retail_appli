@@ -111,4 +111,6 @@ const OnboardingModal = React.memo(function OnboardingModal({
       </div>
     </div>
   );
-}
+});
+
+export default OnboardingModal;
