@@ -56,11 +56,11 @@ export default function OnboardingModal({
           <OnboardingStep step={steps[currentStep]} />
 
           {/* Navigation */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t">
+          <div className="flex items-center justify-between mt-6 pt-4 border-t">
             <button
               onClick={onPrev}
               disabled={isFirstStep}
-              className={`px-4 py-2 rounded-lg transition-colors ${
+              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                 isFirstStep
                   ? 'opacity-0 cursor-default'
                   : 'border-2 border-gray-300 hover:border-blue-500 hover:text-blue-600'
@@ -71,14 +71,14 @@ export default function OnboardingModal({
 
             <button
               onClick={onSkip}
-              className="px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
+              className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
             >
               Passer
             </button>
 
             <button
               onClick={isLastStep ? onClose : onNext}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-5 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               {isLastStep ? 'Terminer' : 'Suivant →'}
             </button>
