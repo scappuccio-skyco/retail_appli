@@ -58,6 +58,14 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       title: 'Suivez vos performances',
       description: (
         <>
+          <div className="bg-blue-50 border-2 border-blue-400 rounded-lg p-4 mt-3 mb-4">
+            <p className="font-bold text-blue-800 mb-2">📍 Où trouver vos performances :</p>
+            <ol className="list-decimal list-inside space-y-2 text-left text-blue-900">
+              <li>Section <strong className="bg-blue-200 px-2 py-1 rounded">"Mes Performances"</strong> sur le dashboard</li>
+              <li>Ou cliquez sur <strong>"📈 Bilan"</strong> dans le menu</li>
+            </ol>
+          </div>
+          
           <p>Consultez vos statistiques en temps réel :</p>
           <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
             <li>Évolution de votre CA</li>
