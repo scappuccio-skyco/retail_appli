@@ -28,6 +28,16 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       description: (
         <>
           <p>Le diagnostic de compétences est votre <strong>première étape obligatoire</strong>.</p>
+          
+          <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 mt-4 mb-4">
+            <p className="font-bold text-yellow-800 mb-2">📍 Comment y accéder :</p>
+            <ol className="list-decimal list-inside space-y-2 text-left text-yellow-900">
+              <li>Cliquez sur le bouton <strong className="bg-yellow-200 px-2 py-1 rounded">👤 Profil</strong> en haut à droite</li>
+              <li>Trouvez la section <strong>"Diagnostic de compétences"</strong></li>
+              <li>Cliquez sur <strong>"Commencer le diagnostic"</strong> ou <strong>"Voir mon diagnostic"</strong></li>
+            </ol>
+          </div>
+          
           <p className="mt-3">Il permet de :</p>
           <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
             <li>Identifier votre profil de vendeur</li>
