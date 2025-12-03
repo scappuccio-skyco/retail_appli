@@ -59,6 +59,7 @@ export default function OnboardingModal({
           {/* Navigation */}
           <div className="flex items-center justify-between mt-6 pt-4 border-t">
             <button
+              type="button"
               onClick={onPrev}
               disabled={isFirstStep}
               className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
@@ -71,6 +72,7 @@ export default function OnboardingModal({
             </button>
 
             <button
+              type="button"
               onClick={onSkip}
               className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
             >
@@ -78,6 +80,7 @@ export default function OnboardingModal({
             </button>
 
             <button
+              type="button"
               onClick={isLastStep ? onClose : onNext}
               className="px-5 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
