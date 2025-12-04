@@ -82,15 +82,15 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
     // Étape 6 : Challenges
     {
       icon: '🎖️',
-      title: 'Participez aux challenges',
+      title: 'Relevez les challenges',
       description: (
         <>
-          <p>Chaque jour, un nouveau challenge vous attend :</p>
-          <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li>Objectifs quotidiens personnalisés</li>
-            <li>Récompenses et badges</li>
-            <li>Compétition amicale avec l'équipe</li>
-          </ul>
+          <div className="bg-green-50 border border-green-300 rounded p-2 mt-2 mb-2" data-emergent-ignore="true">
+            <p className="font-semibold mb-1">📍 Où trouver :</p>
+            <p>Cliquez sur la carte verte "Objectifs et Challenges" sur votre dashboard</p>
+          </div>
+          
+          <p>Objectifs quotidiens personnalisés, récompenses, badges et compétition amicale avec l'équipe !</p>
         </>
       ),
       tips: 'Les challenges rendent le travail plus fun et motivant !'
