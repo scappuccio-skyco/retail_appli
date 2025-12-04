@@ -278,3 +278,98 @@ def send_seller_invitation_email(recipient_email: str, recipient_name: str, invi
     except ApiException as e:
         logger.error(f"Error sending seller invitation email to {recipient_email}: {e}")
         return False
+
+
+def send_password_reset_email(recipient_email: str, recipient_name: str, reset_token: str):
+    """
+    Envoyer un email de réinitialisation de mot de passe
+    """
+    reset_link = f"{FRONTEND_URL}/reset-password?token={reset_token}"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">🔒 Réinitialisation de mot de passe</h1>
+        </div>
+        
+        <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 16px;">Bonjour {recipient_name},</p>
+            
+            <p style="font-size: 16px;">
+                Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte 
+                <strong>Retail Performer AI</strong>.
+            </p>
+            
+            <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+                <p style="margin: 0; font-size: 14px; color: #856404;">
+                    ⚠️ <strong>Important :</strong> Ce lien est valable pendant <strong>10 minutes</strong> seulement.
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{reset_link}" 
+                   style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                          color: white; 
+                          padding: 15px 40px; 
+                          text-decoration: none; 
+                          border-radius: 8px; 
+                          font-weight: bold; 
+                          font-size: 16px;
+                          display: inline-block;
+                          box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    Réinitialiser mon mot de passe
+                </a>
+            </div>
+            
+            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p style="font-size: 14px; color: #666; margin: 0;">
+                    Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :
+                </p>
+                <p style="font-size: 12px; color: #667eea; word-break: break-all; margin: 10px 0;">
+                    {reset_link}
+                </p>
+            </div>
+            
+            <div style="background-color: #f8d7da; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545;">
+                <p style="margin: 0; font-size: 14px; color: #721c24;">
+                    🛡️ <strong>Vous n'avez pas demandé cette réinitialisation ?</strong><br>
+                    Ignorez simplement cet email. Votre mot de passe reste inchangé et sécurisé.
+                </p>
+            </div>
+            
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                Cordialement,<br>
+                <strong>L'équipe Retail Performer AI</strong>
+            </p>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; font-size: 12px; color: #999;">
+            <p>© 2025 Retail Performer AI - Tous droits réservés</p>
+            <p>Cet email a été envoyé à {recipient_email}</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    send_email = sib_api_v3_sdk.SendSmtpEmail(
+        to=[{"email": recipient_email, "name": recipient_name}],
+        sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+        subject="Réinitialisation de votre mot de passe - Retail Performer AI",
+        html_content=html_content
+    )
+    
+    try:
+        api_instance = get_brevo_api_instance()
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Email de réinitialisation envoyé à {recipient_email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Erreur lors de l'envoi de l'email de réinitialisation: {e}")
+        return False
+
