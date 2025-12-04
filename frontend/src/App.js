@@ -228,7 +228,7 @@ function AppContent() {
               <Navigate to="/superadmin" replace />
             ) : user.role === 'it_admin' ? (
               <Navigate to="/it-admin" replace />
-            ) : user.role === 'gerant' ? (
+            ) : (user.role === 'gerant' || user.role === 'gérant') ? (
               <Navigate to="/gerant-dashboard" replace />
             ) : user.role === 'seller' ? (
               <SellerDashboard user={user} diagnostic={diagnostic} onLogout={handleLogout} />
@@ -244,7 +244,7 @@ function AppContent() {
           element={
             !user ? (
               <Navigate to="/login" replace />
-            ) : user.role !== 'gerant' ? (
+            ) : (user.role !== 'gerant' && user.role !== 'gérant') ? (
               <Navigate to="/dashboard" replace />
             ) : (
               <GerantDashboard user={user} onLogout={handleLogout} />
