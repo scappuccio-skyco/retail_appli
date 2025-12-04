@@ -55,25 +55,17 @@ const APIKeysManagement = () => {
 
   const createAPIKey = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newKeyData)
-      });
-
-      if (!response.ok) throw new Error('Erreur lors de la création de la clé API');
-
-      const data = await response.json();
-      setCreatedKey(data);
+      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys`,
+        newKeyData
+      );
+      setCreatedKey(response.data);
       setShowCreateModal(false);
       setNewKeyData({ name: '', permissions: ['write:kpi', 'read:stats'], expires_days: null, store_ids: null });
       fetchAPIKeys();
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.detail || err.message);
     }
   };
 
@@ -81,19 +73,11 @@ const APIKeysManagement = () => {
     if (!window.confirm('Êtes-vous sûr de vouloir désactiver cette clé API ?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys/${keyId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Erreur lors de la suppression de la clé API');
-
+      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys/${keyId}`);
       fetchAPIKeys();
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.detail || err.message);
     }
   };
 
@@ -101,19 +85,11 @@ const APIKeysManagement = () => {
     if (!window.confirm('⚠️ ATTENTION : Cette action est IRRÉVERSIBLE !\n\nVoulez-vous vraiment supprimer définitivement cette clé API désactivée ?\n\nElle sera supprimée de la base de données et ne pourra pas être récupérée.')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys/${keyId}/permanent`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Erreur lors de la suppression définitive de la clé API');
-
+      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys/${keyId}/permanent`);
       fetchAPIKeys();
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.detail || err.message);
     }
   };
 
