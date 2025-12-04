@@ -58,8 +58,8 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
         <>
           <div className="bg-blue-50 border border-blue-300 rounded p-3 mt-3 mb-3" data-emergent-ignore="true">
             <p className="font-semibold text-sm mb-2">📍 Où trouver vos performances :</p>
-            <p className="text-sm">1. Section Mes Performances sur le dashboard</p>
-            <p className="text-sm">2. Ou cliquez sur Bilan dans le menu</p>
+            <p className="text-sm">👉 <strong>Option 1 :</strong> Sur le dashboard, trouvez la section "Mes Performances" avec les graphiques</p>
+            <p className="text-sm">👉 <strong>Option 2 :</strong> Dans le menu latéral, cliquez sur "📈 Bilan" ou "📊 Performances"</p>
           </div>
           
           <p>Consultez vos statistiques en temps réel :</p>
