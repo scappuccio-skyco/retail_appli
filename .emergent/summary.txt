@@ -1,93 +1,131 @@
-<analysis>**original_problem_statement:**
-The user's initial goal was to add an enterprise-grade integration system for automated user and store management. During this process, they also requested a fix for an untested Stripe auto-upgrade feature and encountered critical login/connectivity issues after deploying the application to production.
+<analysis>An analysis of the user's requests and the agent's actions has been completed.
 
-After resolving the deployment blockers, the user's priority shifted. They requested the implementation of a comprehensive, guided onboarding tutorial system for all user roles (Gérant, Manager, Vendeur, IT Admin) to improve the user experience. The onboarding needed to be role-specific and adapt dynamically to different application configurations, such as the KPI data entry mode.
+**original_problem_statement:**
+The user's initial goal was to add an enterprise-grade integration system for automated user and store management. This priority then shifted to fixing an untested Stripe auto-upgrade feature and resolving critical login/connectivity issues after production deployment.
+
+Following the resolution of deployment blockers, the user requested a comprehensive, guided onboarding tutorial for all user roles (Gérant, Manager, Vendeur, IT Admin). During the development and testing of this tutorial, two critical bugs emerged and became the main focus:
+1.  A persistent bug causing the Vendeur (Seller) onboarding tutorial to crash or reload the page.
+2.  A redirection bug where the Gérant (Workspace Owner) is incorrectly sent to the Manager dashboard upon login.
+
+Additionally, the user reported that a Save to GitHub operation was failing due to a secret key being committed to the repository's history.
 
 **User's preferred language**: French
 
 **what currently exists?**
-The application now includes a complete, multi-role onboarding tutorial system. This system was built from scratch and includes:
-*   **Core Components:** A new  hook to manage state, and reusable UI components like , , , and .
-*   **Role-Specific Content:** Dedicated content files (, , etc.) define the tutorial steps for each user role. The seller's tutorial is dynamic and adapts its content based on the configured KPI entry mode (seller entry, manager entry, or API sync).
-*   **Dashboard Integration:** A Tutoriel button has been added to the header of the Gérant, Manager, Vendeur, and IT Admin dashboards, allowing users to launch the tutorial at any time.
+The application has a complete, multi-role onboarding tutorial system featuring a Tutoriel button on the Gérant, Manager, Vendeur, and IT Admin dashboards. This system includes a  hook and several UI components (, , ). The agent has made multiple attempts to fix a persistent crash bug in the seller's tutorial, applying various solutions including state memoization (), event propagation fixes (), and disabling an auto-reloading . The agent also implemented several UI/UX improvements to the tutorial modal based on user feedback, such as reducing its size and correcting instructional content.
 
-Additionally, several critical production bugs have been resolved:
-*   A temporary, secure endpoint () was created to allow the user to initialize the production database with a standard set of test accounts.
-*   The public registration flow was fixed to correctly create a gérant user and redirect them to the appropriate dashboard.
-*   The user invitation logic was corrected to centralize all invitations to the gérant, disabling the manager's ability to invite staff.
-*   The SuperAdmin dashboard was improved with a filter to hide deleted workspaces.
+The agent successfully cleaned the Git history by removing a sensitive key, but the user has not yet confirmed if the Save to GitHub function works.
+
+Currently, the agent is actively debugging a new, high-priority issue where the 'gérant' user is being redirected to the wrong dashboard.
 
 **Last working item**:
-- Last item agent was working: Debugging a critical bug reported by the user in the newly implemented Vendeur (Seller) onboarding tutorial. The user observed that after completing step 2 (related to the skills diagnostic), clicking the Next button causes the tutorial modal to close abruptly and the entire page to reload.
+- Last item agent was working: Debugging a critical redirection bug where a user with the 'gérant' role is incorrectly sent to the '/dashboard' (Manager) page after login, instead of the '/gerant-dashboard'.
 - Status: IN PROGRESS
-- Agent Testing Done: N
-- Which testing method agent to use? Frontend testing agent or screenshot tool to reproduce the bug and verify the fix on the Seller Dashboard. The test should involve logging in as a seller, starting the tutorial, and proceeding past step 2.
-- User Testing Done: Y (User found and reported the bug).
+- Agent Testing Done: Y (The agent's internal tests and code analysis suggest the logic is correct, but the agent suspects a severe browser caching issue on the user's end is preventing the fixes from being applied.)
+- Which testing method agent to use? The next step is to have the user test after a full browser cache clear and potentially after switching the environment to serve a production build to eliminate dev server caching.
+- User Testing Done: Y (The user has repeatedly confirmed the bug persists and provided console logs showing they are on the Manager Dashboard and that the agent's debugging  statements are not present.)
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Seller Onboarding Tutorial Crashes After Step 2 (P0)**
-    - Description: In the Vendeur (Seller) tutorial, clicking Suivant (Next) on the second step causes the modal to close and the page to refresh, preventing the user from completing the onboarding.
-    - Status: IN PROGRESS
-    - Is recurring issue? N
-    - Attempted fixes: The previous agent identified that the issue likely stems from the complex state management in , specifically the interaction between the  detection logic and the re-rendering of the  content.
-    - Next debug checklist:
-        1.  **Inspect :** Review the  hook that calls . The recalculation of  when  changes might be causing an unhandled re-render that crashes the modal.
-        2.  **Analyze :** The logic in  dynamically inserts or removes steps. Check for any errors in how the steps array is constructed that could lead to an invalid state.
-        3.  **Debug :** Examine the  function within the modal to ensure it correctly handles state transitions and doesn't have a side effect causing a page reload on error.
-        4.  **Check Console Logs:** The previous agent added a  to the  function's catch block. Check the browser console for any logged errors when the bug occurs.
-    - Why fix this issue and what will be achieved with the fix?: The brand-new onboarding feature is unusable for a key user role. Fixing it is essential for the feature to be considered complete.
-    - Should Test frontend/backend/both after fix?: frontend
-    - Blocked on other issue: NO (This is the top priority).
+-   **Issue 1: Gérant User Redirected to Manager Dashboard (P0)**
+-   **Issue 2: Seller Onboarding Tutorial Stability (P1)**
+-   **Issue 3: Save to GitHub Fails Due to Git History (P2)**
+-   **Issue 4: Stripe Auto-Upgrade Logic is Untested (P2)**
 
-- **Issue 2: Stripe Auto-Upgrade Logic is Untested (P2)**
-    - Description: The backend function  has never been tested end-to-end.
-    - Status: BLOCKED
-    - Is recurring issue? N
-    - Attempted fixes: None in this session.
-    - Next debug checklist:
-        1.  After the production environment is stable and the onboarding bug is fixed, follow the guide in .
-        2.  Create a real subscription for a test user.
-        3.  Trigger the function by adding/removing users to exceed the seat limit.
-    - Why fix this issue and what will be achieved with the fix?: This is a core billing requirement to ensure clients are billed correctly.
-    - Should Test frontend/backend/both after fix?: backend
-    - Blocked on other issue: Issue 1: Seller Onboarding Tutorial Crashes After Step 2.
+Issues Detail:
+-   **Issue 1: Gérant User Redirected to Manager Dashboard (P0)**
+    -   **Description**: A user with the role 'gérant' logs in and is incorrectly redirected to the manager's dashboard, resulting in multiple  errors as the dashboard attempts to call manager-specific API endpoints.
+    -   **Attempted fixes**:
+        -   Verified the user's role in the database is correct ().
+        -   Inspected the redirection logic in  and confirmed it appears correct.
+        -   Added  statements to  to trace the redirection flow. These logs did not appear in the user's browser console, indicating a severe caching issue.
+        -   Restarted the frontend service multiple times.
+    -   **Next debug checklist**:
+        1.  Instruct the user to perform a hard cache clear (e.g., via browser dev tools) and re-test.
+        2.  If that fails, finalize the switch to serving a static production build (yarn run v1.22.22
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command. ->  or ) instead of using the dev server (yarn run v1.22.22
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.) to definitively eliminate hot-reloading and caching as the cause. The agent started this process but it was not stabilized.
+        3.  Re-examine the routing logic in , specifically the conditions within  and the routes defined in , to ensure there isn't a subtle logic error.
+    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical bug as it prevents the primary administrative user (Gérant) from accessing their correct dashboard, making the application unusable for them.
+    -   **Status**: IN PROGRESS
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Blocked on other issue**: NO (This is the top priority)
+
+-   **Issue 2: Seller Onboarding Tutorial Stability (P1)**
+    -   **Description**: The seller tutorial was repeatedly causing a full page reload when navigating between steps. The agent applied multiple fixes, and while the agent's tests passed, the user continued to experience the issue until the final fix.
+    -   **Attempted fixes**: A long series of fixes were applied:  for state stability, adding , stopping event propagation, using , adding  to prevent script conflicts, simplifying JSX, and finally, modifying  to prevent it from auto-reloading the page on a specific, benign DOM error (). The last fix seemed to resolve the issue, but user focus shifted to the redirection bug.
+    -   **Next debug checklist**:
+        1.  Once the P0 redirection bug is resolved, get explicit confirmation from the user that the seller tutorial is now stable and does not crash.
+    -   **Why fix this issue and what will be achieved with the fix?**: This was a major new feature, and its stability is essential for the user experience of a key role.
+    -   **Status**: USER VERIFICATION PENDING
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Blocked on other issue**: Issue 1: Gérant User Redirected to Manager Dashboard
+
+-   **Issue 3: Save to GitHub Fails Due to Git History (P2)**
+    -   **Description**: The user reported a  error when trying to save to GitHub, caused by a Sendinblue/Brevo API key being present in the commit history, which triggered GitHub's secret scanning protection.
+    -   **Attempted fixes**: The agent successfully used WARNING: git-filter-branch has a glut of gotchas generating mangled history
+	 rewrites.  Hit Ctrl-C before proceeding to abort, then use an
+	 alternative filtering tool such as 'git filter-repo'
+	 (https://github.com/newren/git-filter-repo/) instead.  See the
+	 filter-branch manual page for more details; to squelch this warning,
+	 set FILTER_BRANCH_SQUELCH_WARNING=1.
+Proceeding with filter-branch... to rewrite the repository's history and remove the secret. The local  file was restored so the application remains functional.
+    -   **Next debug checklist**:
+        1.  Ask the user to try the Save to GitHub feature again. The agent's action of rewriting history should have resolved the remote rejection.
+    -   **Why fix this issue and what will be achieved with the fix?**: Allows the user to back up their code and use the platform's version control features.
+    -   **Status**: USER VERIFICATION PENDING
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?**: NA
+    -   **Blocked on other issue**: NO
+
+-   **Issue 4: Stripe Auto-Upgrade Logic is Untested (P2)**
+    -   **Description**: The backend function  has not been tested end-to-end.
+    -   **Attempted fixes**: None.
+    -   **Next debug checklist**:
+        1.  This is a low-priority task. Once all critical frontend bugs are resolved and confirmed by the user, follow the guide at  to test the functionality.
+    -   **Why fix this issue and what will be achieved with the fix?**: To ensure the core billing mechanism of the application functions correctly.
+    -   **Status**: BLOCKED
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?**: backend
+    -   **Blocked on other issue**: Issue 1, Issue 2.
 
 **In progress Task List**:
-- None.
+-   **Task 1: Improve Onboarding Tutorial Design & Content**
+    -   **Description**: The user requested multiple rounds of UI/UX improvements for the seller tutorial, including making it more compact and ensuring the instructional content is accurate.
+    -   **Where to resume**: The agent has already performed several rounds of updates, correcting content based on dashboard screenshots and significantly reducing the modal's size. The latest user feedback was a request for further design improvements and content correction. This should be re-addressed after the P0 bug is fixed.
+    -   **What will be achieved with this?**: A polished, accurate, and user-friendly onboarding experience.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Blocked on something**: Blocked by Issue 1 (Gérant Redirection Bug).
 
 **Upcoming and Future Tasks**
-- **Upcoming Tasks**:
-    - **P1: Persist Onboarding State:** The current onboarding progress is not saved. The backend  model needs to be updated with fields like  and , and API endpoints need to be created to update this state.
-    - **P2: Enhance DB Schema for Stripe**: Implement the schema changes from the previous handoff (, ) to make the subscription system more robust.
-    - **P2: Finalize Stripe Webhook Implementation**: The endpoint exists but needs to be configured and tested in a production-like environment.
-- **Future Tasks**:
-    - **P3: Gérant Dashboard Enhancements (Phase 2 & 3)**: Add a main evolution graph and a detailed comparative table of store performance.
-    - **P3: IA Illimitée (Unlimited AI) Feature**: Investigate the implications of removing AI usage quotas.
-    - **P3: Export Feature**: Add a CSV/Excel export button for the comparative table.
+-   **Upcoming Tasks**:
+    -   **P1: Persist Onboarding State:** Update the backend  model and create API endpoints to save user onboarding progress (, ).
+    -   **P2: Enhance DB Schema for Stripe**: Implement schema changes (, ) for a more robust subscription system.
+    -   **P2: Finalize Stripe Webhook Implementation**: Configure and test the existing endpoint.
+-   **Future Tasks**:
+    -   **P3: Gérant Dashboard Enhancements (Phase 2 & 3)**: Add main evolution graph and a detailed comparative table.
+    -   **P3: IA Illimitée (Unlimited AI) Feature**: Investigate removing AI usage quotas.
+    -   **P3: Export Feature**: Add a CSV/Excel export button.
 
 **Completed work in this session**
-- **Feature: Onboarding Tutorial System (DONE - Implementation, Bug Pending)**:
-    - Built a complete, role-based onboarding system with a Tutoriel button on the Gérant, Manager, Vendeur, and IT Admin dashboards.
-    - Created all necessary React components (, , etc.) and role-specific content.
-- **Bug Fix: Production Environment Initialization (RESOLVED)**:
-    - Created a secure  endpoint to populate the production database with default accounts, resolving the user's login issues post-deployment.
-- **Bug Fix: Public Registration Flow (RESOLVED)**:
-    - Corrected the registration process to always create a gérant account and redirect to the correct dashboard.
-- **Bug Fix: User Invitation Logic (RESOLVED)**:
-    - Disabled the manager's ability to invite users, centralizing this function to the gérant as per the user's specification.
-- **Bug Fix: SuperAdmin Workspace Filter (RESOLVED)**:
-    - Implemented a toggle on the SuperAdmin dashboard to hide workspaces that have been marked as deleted.
-- **Documentation & Analysis**:
-    - Created a comprehensive feature map of the entire application ().
-    - Analyzed and documented the different KPI data entry modes ().
-    - Finalized the technical specifications for the onboarding feature ().
+-   **Bug Fix: Seller Onboarding Tutorial Crash (RESOLVED - PENDING USER VERIFICATION)**: A persistent bug causing page reloads in the seller tutorial was debugged extensively. The final fix involved modifying  to prevent it from auto-reloading on benign DOM errors.
+-   **UI/UX: Onboarding Tutorial Redesign (DONE - Iteration 2)**: The tutorial modal was made significantly more compact, and the instructional content was updated for accuracy based on user feedback and screenshots.
+-   **Git Maintenance: Secret Removed from Git History (DONE - PENDING USER VERIFICATION)**: Used WARNING: git-filter-branch has a glut of gotchas generating mangled history
+	 rewrites.  Hit Ctrl-C before proceeding to abort, then use an
+	 alternative filtering tool such as 'git filter-repo'
+	 (https://github.com/newren/git-filter-repo/) instead.  See the
+	 filter-branch manual page for more details; to squelch this warning,
+	 set FILTER_BRANCH_SQUELCH_WARNING=1.
+Proceeding with filter-branch... to remove a committed API key from the repository's history, which should unblock the Save to GitHub feature.
 
 **Earlier issues found/mentioned but not fixed**
-- **Issue 1: Legacy Stripe Endpoint Inaccuracy**: The legacy checkout endpoint () still incorrectly counts suspended users for billing.
-- **Issue 2: Flawed Test Script**: The test script  is known to be unreliable.
+-   **Issue 1**: Legacy Stripe endpoint () incorrectly counts suspended users for billing.
+-   **Issue 2**: The test script  is unreliable.
 
 **Known issue recurrence from previous fork**
-- None.
+-   None.
 
 **Code Architecture**
 .
@@ -3974,12 +4012,6 @@ Additionally, several critical production bugs have been resolved:
 │   │   │       │   │   ├── license
 │   │   │       │   │   ├── package.json
 │   │   │       │   │   └── readme.md
-│   │   │       │   ├── ansi-styles
-│   │   │       │   │   ├── index.d.ts
-│   │   │       │   │   ├── index.js
-│   │   │       │   │   ├── license
-│   │   │       │   │   ├── package.json
-│   │   │       │   │   └── readme.md
 │   │   │       │   ├── emoji-regex
 │   │   │       │   │   ├── LICENSE-MIT.txt
 │   │   │       │   │   ├── README.md
@@ -4003,13 +4035,7 @@ Additionally, several critical production bugs have been resolved:
 │   │   │       │   │   ├── license
 │   │   │       │   │   ├── package.json
 │   │   │       │   │   └── readme.md
-│   │   │       │   ├── strip-ansi
-│   │   │       │   │   ├── index.d.ts
-│   │   │       │   │   ├── index.js
-│   │   │       │   │   ├── license
-│   │   │       │   │   ├── package.json
-│   │   │       │   │   └── readme.md
-│   │   │       │   └── wrap-ansi
+│   │   │       │   └── strip-ansi
 │   │   │       │       ├── index.d.ts
 │   │   │       │       ├── index.js
 │   │   │       │       ├── license
@@ -7887,6 +7913,22 @@ Additionally, several critical production bugs have been resolved:
 │   │   │       ├── package.json
 │   │   │       └── src
 │   │   │           └── long.js
+│   │   ├── @zeit
+│   │   │   └── schemas
+│   │   │       ├── LICENSE
+│   │   │       ├── README.md
+│   │   │       ├── deployment
+│   │   │       │   ├── config-env.js
+│   │   │       │   ├── config-static.js
+│   │   │       │   ├── config.js
+│   │   │       │   └── service.js
+│   │   │       ├── package.json
+│   │   │       ├── test
+│   │   │       │   ├── deployment-env.js
+│   │   │       │   ├── deployment.js
+│   │   │       │   └── user.js
+│   │   │       └── user
+│   │   │           └── index.js
 │   │   ├── abab
 │   │   │   ├── LICENSE.md
 │   │   │   ├── README.md
@@ -8136,6 +8178,16 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   │       ├── json-schema-draft-06.json
 │   │   │   │       ├── json-schema-draft-07.json
 │   │   │   │       └── json-schema-secure.json
+│   │   │   ├── node_modules
+│   │   │   │   └── json-schema-traverse
+│   │   │   │       ├── LICENSE
+│   │   │   │       ├── README.md
+│   │   │   │       ├── index.js
+│   │   │   │       ├── package.json
+│   │   │   │       └── spec
+│   │   │   │           ├── fixtures
+│   │   │   │           │   └── schema.js
+│   │   │   │           └── index.spec.js
 │   │   │   ├── package.json
 │   │   │   └── scripts
 │   │   │       ├── bundle.js
@@ -8180,6 +8232,12 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   │   ├── transform.js
 │   │   │   │   ├── typeof.js
 │   │   │   │   └── uniqueItemProperties.js
+│   │   │   └── package.json
+│   │   ├── ansi-align
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── index.js
 │   │   │   └── package.json
 │   │   ├── ansi-escapes
 │   │   │   ├── index.d.ts
@@ -8300,6 +8358,13 @@ Additionally, several critical production bugs have been resolved:
 │   │   ├── anymatch
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── package.json
+│   │   ├── arch
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── browser.js
 │   │   │   ├── index.d.ts
 │   │   │   ├── index.js
 │   │   │   └── package.json
@@ -9593,6 +9658,71 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   ├── README.md
 │   │   │   ├── index.js
 │   │   │   └── package.json
+│   │   ├── boxen
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── node_modules
+│   │   │   │   ├── ansi-regex
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── license
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   └── readme.md
+│   │   │   │   ├── camelcase
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── license
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   └── readme.md
+│   │   │   │   ├── chalk
+│   │   │   │   │   ├── license
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   ├── readme.md
+│   │   │   │   │   └── source
+│   │   │   │   │       ├── index.d.ts
+│   │   │   │   │       ├── index.js
+│   │   │   │   │       ├── utilities.js
+│   │   │   │   │       └── vendor
+│   │   │   │   │           ├── ansi-styles
+│   │   │   │   │           │   ├── index.d.ts
+│   │   │   │   │           │   └── index.js
+│   │   │   │   │           └── supports-color
+│   │   │   │   │               ├── browser.d.ts
+│   │   │   │   │               ├── browser.js
+│   │   │   │   │               ├── index.d.ts
+│   │   │   │   │               └── index.js
+│   │   │   │   ├── emoji-regex
+│   │   │   │   │   ├── LICENSE-MIT.txt
+│   │   │   │   │   ├── README.md
+│   │   │   │   │   ├── RGI_Emoji.d.ts
+│   │   │   │   │   ├── RGI_Emoji.js
+│   │   │   │   │   ├── es2015
+│   │   │   │   │   │   ├── RGI_Emoji.d.ts
+│   │   │   │   │   │   ├── RGI_Emoji.js
+│   │   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   │   ├── index.js
+│   │   │   │   │   │   ├── text.d.ts
+│   │   │   │   │   │   └── text.js
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   ├── text.d.ts
+│   │   │   │   │   └── text.js
+│   │   │   │   ├── string-width
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── license
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   └── readme.md
+│   │   │   │   └── strip-ansi
+│   │   │   │       ├── index.d.ts
+│   │   │   │       ├── index.js
+│   │   │   │       ├── license
+│   │   │   │       ├── package.json
+│   │   │   │       └── readme.md
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── brace-expansion
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -10788,6 +10918,12 @@ Additionally, several critical production bugs have been resolved:
 │   │   │       ├── index.js
 │   │   │       ├── templates.js
 │   │   │       └── util.js
+│   │   ├── chalk-template
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── char-regex
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -11021,6 +11157,31 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   │       ├── simple.js
 │   │   │   │       └── source-maps.js
 │   │   │   └── package.json
+│   │   ├── cli-boxes
+│   │   │   ├── boxes.json
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── clipboardy
+│   │   │   ├── browser.js
+│   │   │   ├── fallbacks
+│   │   │   │   ├── linux
+│   │   │   │   │   └── xsel
+│   │   │   │   └── windows
+│   │   │   │       ├── clipboard_i686.exe
+│   │   │   │       └── clipboard_x86_64.exe
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   ├── linux.js
+│   │   │   │   ├── macos.js
+│   │   │   │   ├── termux.js
+│   │   │   │   └── windows.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── cliui
 │   │   │   ├── CHANGELOG.md
 │   │   │   ├── LICENSE.txt
@@ -11031,6 +11192,12 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   │       ├── index.js
 │   │   │   │       └── string-utils.js
 │   │   │   ├── index.mjs
+│   │   │   ├── node_modules
+│   │   │   │   └── wrap-ansi
+│   │   │   │       ├── index.js
+│   │   │   │       ├── license
+│   │   │   │       ├── package.json
+│   │   │   │       └── readme.md
 │   │   │   └── package.json
 │   │   ├── clone-deep
 │   │   │   ├── LICENSE
@@ -26033,6 +26200,14 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   ├── dist
 │   │   │   │   └── dedent.js
 │   │   │   └── package.json
+│   │   ├── deep-extend
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   └── deep-extend.js
+│   │   │   └── package.json
 │   │   ├── deep-is
 │   │   │   ├── LICENSE
 │   │   │   ├── README.markdown
@@ -34398,6 +34573,12 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   │   ├── utils.js
 │   │   │   │   └── view.js
 │   │   │   ├── node_modules
+│   │   │   │   ├── content-disposition
+│   │   │   │   │   ├── HISTORY.md
+│   │   │   │   │   ├── LICENSE
+│   │   │   │   │   ├── README.md
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── package.json
 │   │   │   │   ├── cookie
 │   │   │   │   │   ├── LICENSE
 │   │   │   │   │   ├── README.md
@@ -34419,11 +34600,16 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   │   │       ├── index.js
 │   │   │   │   │       ├── inspector-log.js
 │   │   │   │   │       └── node.js
-│   │   │   │   └── ms
+│   │   │   │   ├── ms
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── license.md
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   └── readme.md
+│   │   │   │   └── path-to-regexp
+│   │   │   │       ├── LICENSE
+│   │   │   │       ├── Readme.md
 │   │   │   │       ├── index.js
-│   │   │   │       ├── license.md
-│   │   │   │       ├── package.json
-│   │   │   │       └── readme.md
+│   │   │   │       └── package.json
 │   │   │   └── package.json
 │   │   ├── extend
 │   │   │   ├── CHANGELOG.md
@@ -35889,27 +36075,72 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   │   │       ├── subset.js
 │   │   │   │   │       ├── to-comparators.js
 │   │   │   │   │       └── valid.js
-│   │   │   │   └── tapable
-│   │   │   │       ├── LICENSE
-│   │   │   │       ├── README.md
-│   │   │   │       ├── lib
-│   │   │   │       │   ├── AsyncParallelBailHook.js
-│   │   │   │       │   ├── AsyncParallelHook.js
-│   │   │   │       │   ├── AsyncSeriesBailHook.js
-│   │   │   │       │   ├── AsyncSeriesHook.js
-│   │   │   │       │   ├── AsyncSeriesLoopHook.js
-│   │   │   │       │   ├── AsyncSeriesWaterfallHook.js
-│   │   │   │       │   ├── Hook.js
-│   │   │   │       │   ├── HookCodeFactory.js
-│   │   │   │       │   ├── HookMap.js
-│   │   │   │       │   ├── MultiHook.js
-│   │   │   │       │   ├── SyncBailHook.js
-│   │   │   │       │   ├── SyncHook.js
-│   │   │   │       │   ├── SyncLoopHook.js
-│   │   │   │       │   ├── SyncWaterfallHook.js
-│   │   │   │       │   ├── Tapable.js
-│   │   │   │       │   └── index.js
-│   │   │   │       └── package.json
+│   │   │   │   ├── tapable
+│   │   │   │   │   ├── LICENSE
+│   │   │   │   │   ├── README.md
+│   │   │   │   │   ├── lib
+│   │   │   │   │   │   ├── AsyncParallelBailHook.js
+│   │   │   │   │   │   ├── AsyncParallelHook.js
+│   │   │   │   │   │   ├── AsyncSeriesBailHook.js
+│   │   │   │   │   │   ├── AsyncSeriesHook.js
+│   │   │   │   │   │   ├── AsyncSeriesLoopHook.js
+│   │   │   │   │   │   ├── AsyncSeriesWaterfallHook.js
+│   │   │   │   │   │   ├── Hook.js
+│   │   │   │   │   │   ├── HookCodeFactory.js
+│   │   │   │   │   │   ├── HookMap.js
+│   │   │   │   │   │   ├── MultiHook.js
+│   │   │   │   │   │   ├── SyncBailHook.js
+│   │   │   │   │   │   ├── SyncHook.js
+│   │   │   │   │   │   ├── SyncLoopHook.js
+│   │   │   │   │   │   ├── SyncWaterfallHook.js
+│   │   │   │   │   │   ├── Tapable.js
+│   │   │   │   │   │   └── index.js
+│   │   │   │   │   └── package.json
+│   │   │   │   └── type-fest
+│   │   │   │       ├── base.d.ts
+│   │   │   │       ├── index.d.ts
+│   │   │   │       ├── license
+│   │   │   │       ├── package.json
+│   │   │   │       ├── readme.md
+│   │   │   │       ├── source
+│   │   │   │       │   ├── async-return-type.d.ts
+│   │   │   │       │   ├── asyncify.d.ts
+│   │   │   │       │   ├── basic.d.ts
+│   │   │   │       │   ├── conditional-except.d.ts
+│   │   │   │       │   ├── conditional-keys.d.ts
+│   │   │   │       │   ├── conditional-pick.d.ts
+│   │   │   │       │   ├── entries.d.ts
+│   │   │   │       │   ├── entry.d.ts
+│   │   │   │       │   ├── except.d.ts
+│   │   │   │       │   ├── fixed-length-array.d.ts
+│   │   │   │       │   ├── iterable-element.d.ts
+│   │   │   │       │   ├── literal-union.d.ts
+│   │   │   │       │   ├── merge-exclusive.d.ts
+│   │   │   │       │   ├── merge.d.ts
+│   │   │   │       │   ├── mutable.d.ts
+│   │   │   │       │   ├── opaque.d.ts
+│   │   │   │       │   ├── package-json.d.ts
+│   │   │   │       │   ├── partial-deep.d.ts
+│   │   │   │       │   ├── promisable.d.ts
+│   │   │   │       │   ├── promise-value.d.ts
+│   │   │   │       │   ├── readonly-deep.d.ts
+│   │   │   │       │   ├── require-at-least-one.d.ts
+│   │   │   │       │   ├── require-exactly-one.d.ts
+│   │   │   │       │   ├── set-optional.d.ts
+│   │   │   │       │   ├── set-required.d.ts
+│   │   │   │       │   ├── set-return-type.d.ts
+│   │   │   │       │   ├── stringified.d.ts
+│   │   │   │       │   ├── tsconfig-json.d.ts
+│   │   │   │       │   ├── union-to-intersection.d.ts
+│   │   │   │       │   ├── utilities.d.ts
+│   │   │   │       │   └── value-of.d.ts
+│   │   │   │       └── ts41
+│   │   │   │           ├── camel-case.d.ts
+│   │   │   │           ├── delimiter-case.d.ts
+│   │   │   │           ├── index.d.ts
+│   │   │   │           ├── kebab-case.d.ts
+│   │   │   │           ├── pascal-case.d.ts
+│   │   │   │           └── snake-case.d.ts
 │   │   │   └── package.json
 │   │   ├── form-data
 │   │   │   ├── CHANGELOG.md
@@ -37730,6 +37961,12 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   ├── index.d.ts
 │   │   │   ├── index.js
 │   │   │   └── package.json
+│   │   ├── is-port-reachable
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── is-potential-custom-element-name
 │   │   │   ├── LICENSE-MIT.txt
 │   │   │   ├── README.md
@@ -39559,6 +39796,7 @@ Additionally, several critical production bugs have been resolved:
 │   │   ├── json-schema-traverse
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
+│   │   │   ├── index.d.ts
 │   │   │   ├── index.js
 │   │   │   ├── package.json
 │   │   │   └── spec
@@ -46581,6 +46819,11 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   ├── license
 │   │   │   ├── package.json
 │   │   │   └── readme.md
+│   │   ├── path-is-inside
+│   │   │   ├── LICENSE.txt
+│   │   │   ├── lib
+│   │   │   │   └── path-is-inside.js
+│   │   │   └── package.json
 │   │   ├── path-key
 │   │   │   ├── index.d.ts
 │   │   │   ├── index.js
@@ -46634,6 +46877,7 @@ Additionally, several critical production bugs have been resolved:
 │   │   ├── path-to-regexp
 │   │   │   ├── LICENSE
 │   │   │   ├── Readme.md
+│   │   │   ├── index.d.ts
 │   │   │   ├── index.js
 │   │   │   └── package.json
 │   │   ├── path-type
@@ -48270,6 +48514,27 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   ├── index.d.ts
 │   │   │   ├── index.js
 │   │   │   └── package.json
+│   │   ├── rc
+│   │   │   ├── LICENSE.APACHE2
+│   │   │   ├── LICENSE.BSD
+│   │   │   ├── LICENSE.MIT
+│   │   │   ├── README.md
+│   │   │   ├── browser.js
+│   │   │   ├── cli.js
+│   │   │   ├── index.js
+│   │   │   ├── lib
+│   │   │   │   └── utils.js
+│   │   │   ├── node_modules
+│   │   │   │   └── strip-json-comments
+│   │   │   │       ├── index.js
+│   │   │   │       ├── license
+│   │   │   │       ├── package.json
+│   │   │   │       └── readme.md
+│   │   │   ├── package.json
+│   │   │   └── test
+│   │   │       ├── ini.js
+│   │   │       ├── nested-env-vars.js
+│   │   │       └── test.js
 │   │   ├── react
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -52002,12 +52267,57 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   │   │       ├── subset.js
 │   │   │   │   │       ├── to-comparators.js
 │   │   │   │   │       └── valid.js
-│   │   │   │   └── supports-color
-│   │   │   │       ├── browser.js
-│   │   │   │       ├── index.js
+│   │   │   │   ├── supports-color
+│   │   │   │   │   ├── browser.js
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── license
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   └── readme.md
+│   │   │   │   └── type-fest
+│   │   │   │       ├── base.d.ts
+│   │   │   │       ├── index.d.ts
 │   │   │   │       ├── license
 │   │   │   │       ├── package.json
-│   │   │   │       └── readme.md
+│   │   │   │       ├── readme.md
+│   │   │   │       ├── source
+│   │   │   │       │   ├── async-return-type.d.ts
+│   │   │   │       │   ├── asyncify.d.ts
+│   │   │   │       │   ├── basic.d.ts
+│   │   │   │       │   ├── conditional-except.d.ts
+│   │   │   │       │   ├── conditional-keys.d.ts
+│   │   │   │       │   ├── conditional-pick.d.ts
+│   │   │   │       │   ├── entries.d.ts
+│   │   │   │       │   ├── entry.d.ts
+│   │   │   │       │   ├── except.d.ts
+│   │   │   │       │   ├── fixed-length-array.d.ts
+│   │   │   │       │   ├── iterable-element.d.ts
+│   │   │   │       │   ├── literal-union.d.ts
+│   │   │   │       │   ├── merge-exclusive.d.ts
+│   │   │   │       │   ├── merge.d.ts
+│   │   │   │       │   ├── mutable.d.ts
+│   │   │   │       │   ├── opaque.d.ts
+│   │   │   │       │   ├── package-json.d.ts
+│   │   │   │       │   ├── partial-deep.d.ts
+│   │   │   │       │   ├── promisable.d.ts
+│   │   │   │       │   ├── promise-value.d.ts
+│   │   │   │       │   ├── readonly-deep.d.ts
+│   │   │   │       │   ├── require-at-least-one.d.ts
+│   │   │   │       │   ├── require-exactly-one.d.ts
+│   │   │   │       │   ├── set-optional.d.ts
+│   │   │   │       │   ├── set-required.d.ts
+│   │   │   │       │   ├── set-return-type.d.ts
+│   │   │   │       │   ├── stringified.d.ts
+│   │   │   │       │   ├── tsconfig-json.d.ts
+│   │   │   │       │   ├── union-to-intersection.d.ts
+│   │   │   │       │   ├── utilities.d.ts
+│   │   │   │       │   └── value-of.d.ts
+│   │   │   │       └── ts41
+│   │   │   │           ├── camel-case.d.ts
+│   │   │   │           ├── delimiter-case.d.ts
+│   │   │   │           ├── index.d.ts
+│   │   │   │           ├── kebab-case.d.ts
+│   │   │   │           ├── pascal-case.d.ts
+│   │   │   │           └── snake-case.d.ts
 │   │   │   ├── package.json
 │   │   │   ├── scripts
 │   │   │   │   ├── build.js
@@ -53632,6 +53942,25 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   ├── package.json
 │   │   │   ├── rewrite-pattern.d.ts
 │   │   │   └── rewrite-pattern.js
+│   │   ├── registry-auth-token
+│   │   │   ├── CHANGELOG.md
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── base64.js
+│   │   │   ├── index.js
+│   │   │   ├── node_modules
+│   │   │   ├── package.json
+│   │   │   ├── registry-url.js
+│   │   │   ├── test
+│   │   │   │   ├── auth-token.test.js
+│   │   │   │   └── registry-url.test.js
+│   │   │   └── yarn.lock
+│   │   ├── registry-url
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── node_modules
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── regjsgen
 │   │   │   ├── LICENSE-MIT.txt
 │   │   │   ├── README.md
@@ -54813,182 +55142,172 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   │   │       ├── formats.ts
 │   │   │   │   │       ├── index.ts
 │   │   │   │   │       └── limit.ts
-│   │   │   │   ├── ajv-keywords
-│   │   │   │   │   ├── LICENSE
-│   │   │   │   │   ├── README.md
-│   │   │   │   │   ├── dist
-│   │   │   │   │   │   ├── definitions
-│   │   │   │   │   │   │   ├── _range.d.ts
-│   │   │   │   │   │   │   ├── _range.js
-│   │   │   │   │   │   │   ├── _range.js.map
-│   │   │   │   │   │   │   ├── _required.d.ts
-│   │   │   │   │   │   │   ├── _required.js
-│   │   │   │   │   │   │   ├── _required.js.map
-│   │   │   │   │   │   │   ├── _types.d.ts
-│   │   │   │   │   │   │   ├── _types.js
-│   │   │   │   │   │   │   ├── _types.js.map
-│   │   │   │   │   │   │   ├── _util.d.ts
-│   │   │   │   │   │   │   ├── _util.js
-│   │   │   │   │   │   │   ├── _util.js.map
-│   │   │   │   │   │   │   ├── allRequired.d.ts
-│   │   │   │   │   │   │   ├── allRequired.js
-│   │   │   │   │   │   │   ├── allRequired.js.map
-│   │   │   │   │   │   │   ├── anyRequired.d.ts
-│   │   │   │   │   │   │   ├── anyRequired.js
-│   │   │   │   │   │   │   ├── anyRequired.js.map
-│   │   │   │   │   │   │   ├── deepProperties.d.ts
-│   │   │   │   │   │   │   ├── deepProperties.js
-│   │   │   │   │   │   │   ├── deepProperties.js.map
-│   │   │   │   │   │   │   ├── deepRequired.d.ts
-│   │   │   │   │   │   │   ├── deepRequired.js
-│   │   │   │   │   │   │   ├── deepRequired.js.map
-│   │   │   │   │   │   │   ├── dynamicDefaults.d.ts
-│   │   │   │   │   │   │   ├── dynamicDefaults.js
-│   │   │   │   │   │   │   ├── dynamicDefaults.js.map
-│   │   │   │   │   │   │   ├── exclusiveRange.d.ts
-│   │   │   │   │   │   │   ├── exclusiveRange.js
-│   │   │   │   │   │   │   ├── exclusiveRange.js.map
-│   │   │   │   │   │   │   ├── index.d.ts
-│   │   │   │   │   │   │   ├── index.js
-│   │   │   │   │   │   │   ├── index.js.map
-│   │   │   │   │   │   │   ├── instanceof.d.ts
-│   │   │   │   │   │   │   ├── instanceof.js
-│   │   │   │   │   │   │   ├── instanceof.js.map
-│   │   │   │   │   │   │   ├── oneRequired.d.ts
-│   │   │   │   │   │   │   ├── oneRequired.js
-│   │   │   │   │   │   │   ├── oneRequired.js.map
-│   │   │   │   │   │   │   ├── patternRequired.d.ts
-│   │   │   │   │   │   │   ├── patternRequired.js
-│   │   │   │   │   │   │   ├── patternRequired.js.map
-│   │   │   │   │   │   │   ├── prohibited.d.ts
-│   │   │   │   │   │   │   ├── prohibited.js
-│   │   │   │   │   │   │   ├── prohibited.js.map
-│   │   │   │   │   │   │   ├── range.d.ts
-│   │   │   │   │   │   │   ├── range.js
-│   │   │   │   │   │   │   ├── range.js.map
-│   │   │   │   │   │   │   ├── regexp.d.ts
-│   │   │   │   │   │   │   ├── regexp.js
-│   │   │   │   │   │   │   ├── regexp.js.map
-│   │   │   │   │   │   │   ├── select.d.ts
-│   │   │   │   │   │   │   ├── select.js
-│   │   │   │   │   │   │   ├── select.js.map
-│   │   │   │   │   │   │   ├── transform.d.ts
-│   │   │   │   │   │   │   ├── transform.js
-│   │   │   │   │   │   │   ├── transform.js.map
-│   │   │   │   │   │   │   ├── typeof.d.ts
-│   │   │   │   │   │   │   ├── typeof.js
-│   │   │   │   │   │   │   ├── typeof.js.map
-│   │   │   │   │   │   │   ├── uniqueItemProperties.d.ts
-│   │   │   │   │   │   │   ├── uniqueItemProperties.js
-│   │   │   │   │   │   │   └── uniqueItemProperties.js.map
-│   │   │   │   │   │   ├── index.d.ts
-│   │   │   │   │   │   ├── index.js
-│   │   │   │   │   │   ├── index.js.map
-│   │   │   │   │   │   └── keywords
-│   │   │   │   │   │       ├── allRequired.d.ts
-│   │   │   │   │   │       ├── allRequired.js
-│   │   │   │   │   │       ├── allRequired.js.map
-│   │   │   │   │   │       ├── anyRequired.d.ts
-│   │   │   │   │   │       ├── anyRequired.js
-│   │   │   │   │   │       ├── anyRequired.js.map
-│   │   │   │   │   │       ├── deepProperties.d.ts
-│   │   │   │   │   │       ├── deepProperties.js
-│   │   │   │   │   │       ├── deepProperties.js.map
-│   │   │   │   │   │       ├── deepRequired.d.ts
-│   │   │   │   │   │       ├── deepRequired.js
-│   │   │   │   │   │       ├── deepRequired.js.map
-│   │   │   │   │   │       ├── dynamicDefaults.d.ts
-│   │   │   │   │   │       ├── dynamicDefaults.js
-│   │   │   │   │   │       ├── dynamicDefaults.js.map
-│   │   │   │   │   │       ├── exclusiveRange.d.ts
-│   │   │   │   │   │       ├── exclusiveRange.js
-│   │   │   │   │   │       ├── exclusiveRange.js.map
-│   │   │   │   │   │       ├── index.d.ts
-│   │   │   │   │   │       ├── index.js
-│   │   │   │   │   │       ├── index.js.map
-│   │   │   │   │   │       ├── instanceof.d.ts
-│   │   │   │   │   │       ├── instanceof.js
-│   │   │   │   │   │       ├── instanceof.js.map
-│   │   │   │   │   │       ├── oneRequired.d.ts
-│   │   │   │   │   │       ├── oneRequired.js
-│   │   │   │   │   │       ├── oneRequired.js.map
-│   │   │   │   │   │       ├── patternRequired.d.ts
-│   │   │   │   │   │       ├── patternRequired.js
-│   │   │   │   │   │       ├── patternRequired.js.map
-│   │   │   │   │   │       ├── prohibited.d.ts
-│   │   │   │   │   │       ├── prohibited.js
-│   │   │   │   │   │       ├── prohibited.js.map
-│   │   │   │   │   │       ├── range.d.ts
-│   │   │   │   │   │       ├── range.js
-│   │   │   │   │   │       ├── range.js.map
-│   │   │   │   │   │       ├── regexp.d.ts
-│   │   │   │   │   │       ├── regexp.js
-│   │   │   │   │   │       ├── regexp.js.map
-│   │   │   │   │   │       ├── select.d.ts
-│   │   │   │   │   │       ├── select.js
-│   │   │   │   │   │       ├── select.js.map
-│   │   │   │   │   │       ├── transform.d.ts
-│   │   │   │   │   │       ├── transform.js
-│   │   │   │   │   │       ├── transform.js.map
-│   │   │   │   │   │       ├── typeof.d.ts
-│   │   │   │   │   │       ├── typeof.js
-│   │   │   │   │   │       ├── typeof.js.map
-│   │   │   │   │   │       ├── uniqueItemProperties.d.ts
-│   │   │   │   │   │       ├── uniqueItemProperties.js
-│   │   │   │   │   │       └── uniqueItemProperties.js.map
-│   │   │   │   │   ├── package.json
-│   │   │   │   │   └── src
-│   │   │   │   │       ├── definitions
-│   │   │   │   │       │   ├── _range.ts
-│   │   │   │   │       │   ├── _required.ts
-│   │   │   │   │       │   ├── _types.ts
-│   │   │   │   │       │   ├── _util.ts
-│   │   │   │   │       │   ├── allRequired.ts
-│   │   │   │   │       │   ├── anyRequired.ts
-│   │   │   │   │       │   ├── deepProperties.ts
-│   │   │   │   │       │   ├── deepRequired.ts
-│   │   │   │   │       │   ├── dynamicDefaults.ts
-│   │   │   │   │       │   ├── exclusiveRange.ts
-│   │   │   │   │       │   ├── index.ts
-│   │   │   │   │       │   ├── instanceof.ts
-│   │   │   │   │       │   ├── oneRequired.ts
-│   │   │   │   │       │   ├── patternRequired.ts
-│   │   │   │   │       │   ├── prohibited.ts
-│   │   │   │   │       │   ├── range.ts
-│   │   │   │   │       │   ├── regexp.ts
-│   │   │   │   │       │   ├── select.ts
-│   │   │   │   │       │   ├── transform.ts
-│   │   │   │   │       │   ├── typeof.ts
-│   │   │   │   │       │   └── uniqueItemProperties.ts
-│   │   │   │   │       ├── index.ts
-│   │   │   │   │       └── keywords
-│   │   │   │   │           ├── allRequired.ts
-│   │   │   │   │           ├── anyRequired.ts
-│   │   │   │   │           ├── deepProperties.ts
-│   │   │   │   │           ├── deepRequired.ts
-│   │   │   │   │           ├── dynamicDefaults.ts
-│   │   │   │   │           ├── exclusiveRange.ts
-│   │   │   │   │           ├── index.ts
-│   │   │   │   │           ├── instanceof.ts
-│   │   │   │   │           ├── oneRequired.ts
-│   │   │   │   │           ├── patternRequired.ts
-│   │   │   │   │           ├── prohibited.ts
-│   │   │   │   │           ├── range.ts
-│   │   │   │   │           ├── regexp.ts
-│   │   │   │   │           ├── select.ts
-│   │   │   │   │           ├── transform.ts
-│   │   │   │   │           ├── typeof.ts
-│   │   │   │   │           └── uniqueItemProperties.ts
-│   │   │   │   └── json-schema-traverse
+│   │   │   │   └── ajv-keywords
 │   │   │   │       ├── LICENSE
 │   │   │   │       ├── README.md
-│   │   │   │       ├── index.d.ts
-│   │   │   │       ├── index.js
+│   │   │   │       ├── dist
+│   │   │   │       │   ├── definitions
+│   │   │   │       │   │   ├── _range.d.ts
+│   │   │   │       │   │   ├── _range.js
+│   │   │   │       │   │   ├── _range.js.map
+│   │   │   │       │   │   ├── _required.d.ts
+│   │   │   │       │   │   ├── _required.js
+│   │   │   │       │   │   ├── _required.js.map
+│   │   │   │       │   │   ├── _types.d.ts
+│   │   │   │       │   │   ├── _types.js
+│   │   │   │       │   │   ├── _types.js.map
+│   │   │   │       │   │   ├── _util.d.ts
+│   │   │   │       │   │   ├── _util.js
+│   │   │   │       │   │   ├── _util.js.map
+│   │   │   │       │   │   ├── allRequired.d.ts
+│   │   │   │       │   │   ├── allRequired.js
+│   │   │   │       │   │   ├── allRequired.js.map
+│   │   │   │       │   │   ├── anyRequired.d.ts
+│   │   │   │       │   │   ├── anyRequired.js
+│   │   │   │       │   │   ├── anyRequired.js.map
+│   │   │   │       │   │   ├── deepProperties.d.ts
+│   │   │   │       │   │   ├── deepProperties.js
+│   │   │   │       │   │   ├── deepProperties.js.map
+│   │   │   │       │   │   ├── deepRequired.d.ts
+│   │   │   │       │   │   ├── deepRequired.js
+│   │   │   │       │   │   ├── deepRequired.js.map
+│   │   │   │       │   │   ├── dynamicDefaults.d.ts
+│   │   │   │       │   │   ├── dynamicDefaults.js
+│   │   │   │       │   │   ├── dynamicDefaults.js.map
+│   │   │   │       │   │   ├── exclusiveRange.d.ts
+│   │   │   │       │   │   ├── exclusiveRange.js
+│   │   │   │       │   │   ├── exclusiveRange.js.map
+│   │   │   │       │   │   ├── index.d.ts
+│   │   │   │       │   │   ├── index.js
+│   │   │   │       │   │   ├── index.js.map
+│   │   │   │       │   │   ├── instanceof.d.ts
+│   │   │   │       │   │   ├── instanceof.js
+│   │   │   │       │   │   ├── instanceof.js.map
+│   │   │   │       │   │   ├── oneRequired.d.ts
+│   │   │   │       │   │   ├── oneRequired.js
+│   │   │   │       │   │   ├── oneRequired.js.map
+│   │   │   │       │   │   ├── patternRequired.d.ts
+│   │   │   │       │   │   ├── patternRequired.js
+│   │   │   │       │   │   ├── patternRequired.js.map
+│   │   │   │       │   │   ├── prohibited.d.ts
+│   │   │   │       │   │   ├── prohibited.js
+│   │   │   │       │   │   ├── prohibited.js.map
+│   │   │   │       │   │   ├── range.d.ts
+│   │   │   │       │   │   ├── range.js
+│   │   │   │       │   │   ├── range.js.map
+│   │   │   │       │   │   ├── regexp.d.ts
+│   │   │   │       │   │   ├── regexp.js
+│   │   │   │       │   │   ├── regexp.js.map
+│   │   │   │       │   │   ├── select.d.ts
+│   │   │   │       │   │   ├── select.js
+│   │   │   │       │   │   ├── select.js.map
+│   │   │   │       │   │   ├── transform.d.ts
+│   │   │   │       │   │   ├── transform.js
+│   │   │   │       │   │   ├── transform.js.map
+│   │   │   │       │   │   ├── typeof.d.ts
+│   │   │   │       │   │   ├── typeof.js
+│   │   │   │       │   │   ├── typeof.js.map
+│   │   │   │       │   │   ├── uniqueItemProperties.d.ts
+│   │   │   │       │   │   ├── uniqueItemProperties.js
+│   │   │   │       │   │   └── uniqueItemProperties.js.map
+│   │   │   │       │   ├── index.d.ts
+│   │   │   │       │   ├── index.js
+│   │   │   │       │   ├── index.js.map
+│   │   │   │       │   └── keywords
+│   │   │   │       │       ├── allRequired.d.ts
+│   │   │   │       │       ├── allRequired.js
+│   │   │   │       │       ├── allRequired.js.map
+│   │   │   │       │       ├── anyRequired.d.ts
+│   │   │   │       │       ├── anyRequired.js
+│   │   │   │       │       ├── anyRequired.js.map
+│   │   │   │       │       ├── deepProperties.d.ts
+│   │   │   │       │       ├── deepProperties.js
+│   │   │   │       │       ├── deepProperties.js.map
+│   │   │   │       │       ├── deepRequired.d.ts
+│   │   │   │       │       ├── deepRequired.js
+│   │   │   │       │       ├── deepRequired.js.map
+│   │   │   │       │       ├── dynamicDefaults.d.ts
+│   │   │   │       │       ├── dynamicDefaults.js
+│   │   │   │       │       ├── dynamicDefaults.js.map
+│   │   │   │       │       ├── exclusiveRange.d.ts
+│   │   │   │       │       ├── exclusiveRange.js
+│   │   │   │       │       ├── exclusiveRange.js.map
+│   │   │   │       │       ├── index.d.ts
+│   │   │   │       │       ├── index.js
+│   │   │   │       │       ├── index.js.map
+│   │   │   │       │       ├── instanceof.d.ts
+│   │   │   │       │       ├── instanceof.js
+│   │   │   │       │       ├── instanceof.js.map
+│   │   │   │       │       ├── oneRequired.d.ts
+│   │   │   │       │       ├── oneRequired.js
+│   │   │   │       │       ├── oneRequired.js.map
+│   │   │   │       │       ├── patternRequired.d.ts
+│   │   │   │       │       ├── patternRequired.js
+│   │   │   │       │       ├── patternRequired.js.map
+│   │   │   │       │       ├── prohibited.d.ts
+│   │   │   │       │       ├── prohibited.js
+│   │   │   │       │       ├── prohibited.js.map
+│   │   │   │       │       ├── range.d.ts
+│   │   │   │       │       ├── range.js
+│   │   │   │       │       ├── range.js.map
+│   │   │   │       │       ├── regexp.d.ts
+│   │   │   │       │       ├── regexp.js
+│   │   │   │       │       ├── regexp.js.map
+│   │   │   │       │       ├── select.d.ts
+│   │   │   │       │       ├── select.js
+│   │   │   │       │       ├── select.js.map
+│   │   │   │       │       ├── transform.d.ts
+│   │   │   │       │       ├── transform.js
+│   │   │   │       │       ├── transform.js.map
+│   │   │   │       │       ├── typeof.d.ts
+│   │   │   │       │       ├── typeof.js
+│   │   │   │       │       ├── typeof.js.map
+│   │   │   │       │       ├── uniqueItemProperties.d.ts
+│   │   │   │       │       ├── uniqueItemProperties.js
+│   │   │   │       │       └── uniqueItemProperties.js.map
 │   │   │   │       ├── package.json
-│   │   │   │       └── spec
-│   │   │   │           ├── fixtures
-│   │   │   │           │   └── schema.js
-│   │   │   │           └── index.spec.js
+│   │   │   │       └── src
+│   │   │   │           ├── definitions
+│   │   │   │           │   ├── _range.ts
+│   │   │   │           │   ├── _required.ts
+│   │   │   │           │   ├── _types.ts
+│   │   │   │           │   ├── _util.ts
+│   │   │   │           │   ├── allRequired.ts
+│   │   │   │           │   ├── anyRequired.ts
+│   │   │   │           │   ├── deepProperties.ts
+│   │   │   │           │   ├── deepRequired.ts
+│   │   │   │           │   ├── dynamicDefaults.ts
+│   │   │   │           │   ├── exclusiveRange.ts
+│   │   │   │           │   ├── index.ts
+│   │   │   │           │   ├── instanceof.ts
+│   │   │   │           │   ├── oneRequired.ts
+│   │   │   │           │   ├── patternRequired.ts
+│   │   │   │           │   ├── prohibited.ts
+│   │   │   │           │   ├── range.ts
+│   │   │   │           │   ├── regexp.ts
+│   │   │   │           │   ├── select.ts
+│   │   │   │           │   ├── transform.ts
+│   │   │   │           │   ├── typeof.ts
+│   │   │   │           │   └── uniqueItemProperties.ts
+│   │   │   │           ├── index.ts
+│   │   │   │           └── keywords
+│   │   │   │               ├── allRequired.ts
+│   │   │   │               ├── anyRequired.ts
+│   │   │   │               ├── deepProperties.ts
+│   │   │   │               ├── deepRequired.ts
+│   │   │   │               ├── dynamicDefaults.ts
+│   │   │   │               ├── exclusiveRange.ts
+│   │   │   │               ├── index.ts
+│   │   │   │               ├── instanceof.ts
+│   │   │   │               ├── oneRequired.ts
+│   │   │   │               ├── patternRequired.ts
+│   │   │   │               ├── prohibited.ts
+│   │   │   │               ├── range.ts
+│   │   │   │               ├── regexp.ts
+│   │   │   │               ├── select.ts
+│   │   │   │               ├── transform.ts
+│   │   │   │               ├── typeof.ts
+│   │   │   │               └── uniqueItemProperties.ts
 │   │   │   └── package.json
 │   │   ├── select-hose
 │   │   │   ├── README.md
@@ -55054,6 +55373,575 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   ├── README.md
 │   │   │   ├── index.js
 │   │   │   └── package.json
+│   │   ├── serve
+│   │   │   ├── build
+│   │   │   │   └── main.js
+│   │   │   ├── license.md
+│   │   │   ├── node_modules
+│   │   │   │   ├── ajv
+│   │   │   │   │   ├── LICENSE
+│   │   │   │   │   ├── README.md
+│   │   │   │   │   ├── dist
+│   │   │   │   │   │   ├── 2019.d.ts
+│   │   │   │   │   │   ├── 2019.js
+│   │   │   │   │   │   ├── 2019.js.map
+│   │   │   │   │   │   ├── 2020.d.ts
+│   │   │   │   │   │   ├── 2020.js
+│   │   │   │   │   │   ├── 2020.js.map
+│   │   │   │   │   │   ├── ajv.d.ts
+│   │   │   │   │   │   ├── ajv.js
+│   │   │   │   │   │   ├── ajv.js.map
+│   │   │   │   │   │   ├── compile
+│   │   │   │   │   │   │   ├── codegen
+│   │   │   │   │   │   │   │   ├── code.d.ts
+│   │   │   │   │   │   │   │   ├── code.js
+│   │   │   │   │   │   │   │   ├── code.js.map
+│   │   │   │   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   │   │   │   ├── index.js
+│   │   │   │   │   │   │   │   ├── index.js.map
+│   │   │   │   │   │   │   │   ├── scope.d.ts
+│   │   │   │   │   │   │   │   ├── scope.js
+│   │   │   │   │   │   │   │   └── scope.js.map
+│   │   │   │   │   │   │   ├── errors.d.ts
+│   │   │   │   │   │   │   ├── errors.js
+│   │   │   │   │   │   │   ├── errors.js.map
+│   │   │   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   │   │   ├── index.js
+│   │   │   │   │   │   │   ├── index.js.map
+│   │   │   │   │   │   │   ├── jtd
+│   │   │   │   │   │   │   │   ├── parse.d.ts
+│   │   │   │   │   │   │   │   ├── parse.js
+│   │   │   │   │   │   │   │   ├── parse.js.map
+│   │   │   │   │   │   │   │   ├── serialize.d.ts
+│   │   │   │   │   │   │   │   ├── serialize.js
+│   │   │   │   │   │   │   │   ├── serialize.js.map
+│   │   │   │   │   │   │   │   ├── types.d.ts
+│   │   │   │   │   │   │   │   ├── types.js
+│   │   │   │   │   │   │   │   └── types.js.map
+│   │   │   │   │   │   │   ├── names.d.ts
+│   │   │   │   │   │   │   ├── names.js
+│   │   │   │   │   │   │   ├── names.js.map
+│   │   │   │   │   │   │   ├── ref_error.d.ts
+│   │   │   │   │   │   │   ├── ref_error.js
+│   │   │   │   │   │   │   ├── ref_error.js.map
+│   │   │   │   │   │   │   ├── resolve.d.ts
+│   │   │   │   │   │   │   ├── resolve.js
+│   │   │   │   │   │   │   ├── resolve.js.map
+│   │   │   │   │   │   │   ├── rules.d.ts
+│   │   │   │   │   │   │   ├── rules.js
+│   │   │   │   │   │   │   ├── rules.js.map
+│   │   │   │   │   │   │   ├── util.d.ts
+│   │   │   │   │   │   │   ├── util.js
+│   │   │   │   │   │   │   ├── util.js.map
+│   │   │   │   │   │   │   └── validate
+│   │   │   │   │   │   │       ├── applicability.d.ts
+│   │   │   │   │   │   │       ├── applicability.js
+│   │   │   │   │   │   │       ├── applicability.js.map
+│   │   │   │   │   │   │       ├── boolSchema.d.ts
+│   │   │   │   │   │   │       ├── boolSchema.js
+│   │   │   │   │   │   │       ├── boolSchema.js.map
+│   │   │   │   │   │   │       ├── dataType.d.ts
+│   │   │   │   │   │   │       ├── dataType.js
+│   │   │   │   │   │   │       ├── dataType.js.map
+│   │   │   │   │   │   │       ├── defaults.d.ts
+│   │   │   │   │   │   │       ├── defaults.js
+│   │   │   │   │   │   │       ├── defaults.js.map
+│   │   │   │   │   │   │       ├── index.d.ts
+│   │   │   │   │   │   │       ├── index.js
+│   │   │   │   │   │   │       ├── index.js.map
+│   │   │   │   │   │   │       ├── keyword.d.ts
+│   │   │   │   │   │   │       ├── keyword.js
+│   │   │   │   │   │   │       ├── keyword.js.map
+│   │   │   │   │   │   │       ├── subschema.d.ts
+│   │   │   │   │   │   │       ├── subschema.js
+│   │   │   │   │   │   │       └── subschema.js.map
+│   │   │   │   │   │   ├── core.d.ts
+│   │   │   │   │   │   ├── core.js
+│   │   │   │   │   │   ├── core.js.map
+│   │   │   │   │   │   ├── jtd.d.ts
+│   │   │   │   │   │   ├── jtd.js
+│   │   │   │   │   │   ├── jtd.js.map
+│   │   │   │   │   │   ├── refs
+│   │   │   │   │   │   │   ├── data.json
+│   │   │   │   │   │   │   ├── json-schema-2019-09
+│   │   │   │   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   │   │   │   ├── index.js
+│   │   │   │   │   │   │   │   ├── index.js.map
+│   │   │   │   │   │   │   │   ├── meta
+│   │   │   │   │   │   │   │   │   ├── applicator.json
+│   │   │   │   │   │   │   │   │   ├── content.json
+│   │   │   │   │   │   │   │   │   ├── core.json
+│   │   │   │   │   │   │   │   │   ├── format.json
+│   │   │   │   │   │   │   │   │   ├── meta-data.json
+│   │   │   │   │   │   │   │   │   └── validation.json
+│   │   │   │   │   │   │   │   └── schema.json
+│   │   │   │   │   │   │   ├── json-schema-2020-12
+│   │   │   │   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   │   │   │   ├── index.js
+│   │   │   │   │   │   │   │   ├── index.js.map
+│   │   │   │   │   │   │   │   ├── meta
+│   │   │   │   │   │   │   │   │   ├── applicator.json
+│   │   │   │   │   │   │   │   │   ├── content.json
+│   │   │   │   │   │   │   │   │   ├── core.json
+│   │   │   │   │   │   │   │   │   ├── format-annotation.json
+│   │   │   │   │   │   │   │   │   ├── meta-data.json
+│   │   │   │   │   │   │   │   │   ├── unevaluated.json
+│   │   │   │   │   │   │   │   │   └── validation.json
+│   │   │   │   │   │   │   │   └── schema.json
+│   │   │   │   │   │   │   ├── json-schema-draft-06.json
+│   │   │   │   │   │   │   ├── json-schema-draft-07.json
+│   │   │   │   │   │   │   ├── json-schema-secure.json
+│   │   │   │   │   │   │   ├── jtd-schema.d.ts
+│   │   │   │   │   │   │   ├── jtd-schema.js
+│   │   │   │   │   │   │   └── jtd-schema.js.map
+│   │   │   │   │   │   ├── runtime
+│   │   │   │   │   │   │   ├── equal.d.ts
+│   │   │   │   │   │   │   ├── equal.js
+│   │   │   │   │   │   │   ├── equal.js.map
+│   │   │   │   │   │   │   ├── parseJson.d.ts
+│   │   │   │   │   │   │   ├── parseJson.js
+│   │   │   │   │   │   │   ├── parseJson.js.map
+│   │   │   │   │   │   │   ├── quote.d.ts
+│   │   │   │   │   │   │   ├── quote.js
+│   │   │   │   │   │   │   ├── quote.js.map
+│   │   │   │   │   │   │   ├── re2.d.ts
+│   │   │   │   │   │   │   ├── re2.js
+│   │   │   │   │   │   │   ├── re2.js.map
+│   │   │   │   │   │   │   ├── timestamp.d.ts
+│   │   │   │   │   │   │   ├── timestamp.js
+│   │   │   │   │   │   │   ├── timestamp.js.map
+│   │   │   │   │   │   │   ├── ucs2length.d.ts
+│   │   │   │   │   │   │   ├── ucs2length.js
+│   │   │   │   │   │   │   ├── ucs2length.js.map
+│   │   │   │   │   │   │   ├── uri.d.ts
+│   │   │   │   │   │   │   ├── uri.js
+│   │   │   │   │   │   │   ├── uri.js.map
+│   │   │   │   │   │   │   ├── validation_error.d.ts
+│   │   │   │   │   │   │   ├── validation_error.js
+│   │   │   │   │   │   │   └── validation_error.js.map
+│   │   │   │   │   │   ├── standalone
+│   │   │   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   │   │   ├── index.js
+│   │   │   │   │   │   │   ├── index.js.map
+│   │   │   │   │   │   │   ├── instance.d.ts
+│   │   │   │   │   │   │   ├── instance.js
+│   │   │   │   │   │   │   └── instance.js.map
+│   │   │   │   │   │   ├── types
+│   │   │   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   │   │   ├── index.js
+│   │   │   │   │   │   │   ├── index.js.map
+│   │   │   │   │   │   │   ├── json-schema.d.ts
+│   │   │   │   │   │   │   ├── json-schema.js
+│   │   │   │   │   │   │   ├── json-schema.js.map
+│   │   │   │   │   │   │   ├── jtd-schema.d.ts
+│   │   │   │   │   │   │   ├── jtd-schema.js
+│   │   │   │   │   │   │   └── jtd-schema.js.map
+│   │   │   │   │   │   └── vocabularies
+│   │   │   │   │   │       ├── applicator
+│   │   │   │   │   │       │   ├── additionalItems.d.ts
+│   │   │   │   │   │       │   ├── additionalItems.js
+│   │   │   │   │   │       │   ├── additionalItems.js.map
+│   │   │   │   │   │       │   ├── additionalProperties.d.ts
+│   │   │   │   │   │       │   ├── additionalProperties.js
+│   │   │   │   │   │       │   ├── additionalProperties.js.map
+│   │   │   │   │   │       │   ├── allOf.d.ts
+│   │   │   │   │   │       │   ├── allOf.js
+│   │   │   │   │   │       │   ├── allOf.js.map
+│   │   │   │   │   │       │   ├── anyOf.d.ts
+│   │   │   │   │   │       │   ├── anyOf.js
+│   │   │   │   │   │       │   ├── anyOf.js.map
+│   │   │   │   │   │       │   ├── contains.d.ts
+│   │   │   │   │   │       │   ├── contains.js
+│   │   │   │   │   │       │   ├── contains.js.map
+│   │   │   │   │   │       │   ├── dependencies.d.ts
+│   │   │   │   │   │       │   ├── dependencies.js
+│   │   │   │   │   │       │   ├── dependencies.js.map
+│   │   │   │   │   │       │   ├── dependentSchemas.d.ts
+│   │   │   │   │   │       │   ├── dependentSchemas.js
+│   │   │   │   │   │       │   ├── dependentSchemas.js.map
+│   │   │   │   │   │       │   ├── if.d.ts
+│   │   │   │   │   │       │   ├── if.js
+│   │   │   │   │   │       │   ├── if.js.map
+│   │   │   │   │   │       │   ├── index.d.ts
+│   │   │   │   │   │       │   ├── index.js
+│   │   │   │   │   │       │   ├── index.js.map
+│   │   │   │   │   │       │   ├── items.d.ts
+│   │   │   │   │   │       │   ├── items.js
+│   │   │   │   │   │       │   ├── items.js.map
+│   │   │   │   │   │       │   ├── items2020.d.ts
+│   │   │   │   │   │       │   ├── items2020.js
+│   │   │   │   │   │       │   ├── items2020.js.map
+│   │   │   │   │   │       │   ├── not.d.ts
+│   │   │   │   │   │       │   ├── not.js
+│   │   │   │   │   │       │   ├── not.js.map
+│   │   │   │   │   │       │   ├── oneOf.d.ts
+│   │   │   │   │   │       │   ├── oneOf.js
+│   │   │   │   │   │       │   ├── oneOf.js.map
+│   │   │   │   │   │       │   ├── patternProperties.d.ts
+│   │   │   │   │   │       │   ├── patternProperties.js
+│   │   │   │   │   │       │   ├── patternProperties.js.map
+│   │   │   │   │   │       │   ├── prefixItems.d.ts
+│   │   │   │   │   │       │   ├── prefixItems.js
+│   │   │   │   │   │       │   ├── prefixItems.js.map
+│   │   │   │   │   │       │   ├── properties.d.ts
+│   │   │   │   │   │       │   ├── properties.js
+│   │   │   │   │   │       │   ├── properties.js.map
+│   │   │   │   │   │       │   ├── propertyNames.d.ts
+│   │   │   │   │   │       │   ├── propertyNames.js
+│   │   │   │   │   │       │   ├── propertyNames.js.map
+│   │   │   │   │   │       │   ├── thenElse.d.ts
+│   │   │   │   │   │       │   ├── thenElse.js
+│   │   │   │   │   │       │   └── thenElse.js.map
+│   │   │   │   │   │       ├── code.d.ts
+│   │   │   │   │   │       ├── code.js
+│   │   │   │   │   │       ├── code.js.map
+│   │   │   │   │   │       ├── core
+│   │   │   │   │   │       │   ├── id.d.ts
+│   │   │   │   │   │       │   ├── id.js
+│   │   │   │   │   │       │   ├── id.js.map
+│   │   │   │   │   │       │   ├── index.d.ts
+│   │   │   │   │   │       │   ├── index.js
+│   │   │   │   │   │       │   ├── index.js.map
+│   │   │   │   │   │       │   ├── ref.d.ts
+│   │   │   │   │   │       │   ├── ref.js
+│   │   │   │   │   │       │   └── ref.js.map
+│   │   │   │   │   │       ├── discriminator
+│   │   │   │   │   │       │   ├── index.d.ts
+│   │   │   │   │   │       │   ├── index.js
+│   │   │   │   │   │       │   ├── index.js.map
+│   │   │   │   │   │       │   ├── types.d.ts
+│   │   │   │   │   │       │   ├── types.js
+│   │   │   │   │   │       │   └── types.js.map
+│   │   │   │   │   │       ├── draft2020.d.ts
+│   │   │   │   │   │       ├── draft2020.js
+│   │   │   │   │   │       ├── draft2020.js.map
+│   │   │   │   │   │       ├── draft7.d.ts
+│   │   │   │   │   │       ├── draft7.js
+│   │   │   │   │   │       ├── draft7.js.map
+│   │   │   │   │   │       ├── dynamic
+│   │   │   │   │   │       │   ├── dynamicAnchor.d.ts
+│   │   │   │   │   │       │   ├── dynamicAnchor.js
+│   │   │   │   │   │       │   ├── dynamicAnchor.js.map
+│   │   │   │   │   │       │   ├── dynamicRef.d.ts
+│   │   │   │   │   │       │   ├── dynamicRef.js
+│   │   │   │   │   │       │   ├── dynamicRef.js.map
+│   │   │   │   │   │       │   ├── index.d.ts
+│   │   │   │   │   │       │   ├── index.js
+│   │   │   │   │   │       │   ├── index.js.map
+│   │   │   │   │   │       │   ├── recursiveAnchor.d.ts
+│   │   │   │   │   │       │   ├── recursiveAnchor.js
+│   │   │   │   │   │       │   ├── recursiveAnchor.js.map
+│   │   │   │   │   │       │   ├── recursiveRef.d.ts
+│   │   │   │   │   │       │   ├── recursiveRef.js
+│   │   │   │   │   │       │   └── recursiveRef.js.map
+│   │   │   │   │   │       ├── errors.d.ts
+│   │   │   │   │   │       ├── errors.js
+│   │   │   │   │   │       ├── errors.js.map
+│   │   │   │   │   │       ├── format
+│   │   │   │   │   │       │   ├── format.d.ts
+│   │   │   │   │   │       │   ├── format.js
+│   │   │   │   │   │       │   ├── format.js.map
+│   │   │   │   │   │       │   ├── index.d.ts
+│   │   │   │   │   │       │   ├── index.js
+│   │   │   │   │   │       │   └── index.js.map
+│   │   │   │   │   │       ├── jtd
+│   │   │   │   │   │       │   ├── discriminator.d.ts
+│   │   │   │   │   │       │   ├── discriminator.js
+│   │   │   │   │   │       │   ├── discriminator.js.map
+│   │   │   │   │   │       │   ├── elements.d.ts
+│   │   │   │   │   │       │   ├── elements.js
+│   │   │   │   │   │       │   ├── elements.js.map
+│   │   │   │   │   │       │   ├── enum.d.ts
+│   │   │   │   │   │       │   ├── enum.js
+│   │   │   │   │   │       │   ├── enum.js.map
+│   │   │   │   │   │       │   ├── error.d.ts
+│   │   │   │   │   │       │   ├── error.js
+│   │   │   │   │   │       │   ├── error.js.map
+│   │   │   │   │   │       │   ├── index.d.ts
+│   │   │   │   │   │       │   ├── index.js
+│   │   │   │   │   │       │   ├── index.js.map
+│   │   │   │   │   │       │   ├── metadata.d.ts
+│   │   │   │   │   │       │   ├── metadata.js
+│   │   │   │   │   │       │   ├── metadata.js.map
+│   │   │   │   │   │       │   ├── nullable.d.ts
+│   │   │   │   │   │       │   ├── nullable.js
+│   │   │   │   │   │       │   ├── nullable.js.map
+│   │   │   │   │   │       │   ├── optionalProperties.d.ts
+│   │   │   │   │   │       │   ├── optionalProperties.js
+│   │   │   │   │   │       │   ├── optionalProperties.js.map
+│   │   │   │   │   │       │   ├── properties.d.ts
+│   │   │   │   │   │       │   ├── properties.js
+│   │   │   │   │   │       │   ├── properties.js.map
+│   │   │   │   │   │       │   ├── ref.d.ts
+│   │   │   │   │   │       │   ├── ref.js
+│   │   │   │   │   │       │   ├── ref.js.map
+│   │   │   │   │   │       │   ├── type.d.ts
+│   │   │   │   │   │       │   ├── type.js
+│   │   │   │   │   │       │   ├── type.js.map
+│   │   │   │   │   │       │   ├── union.d.ts
+│   │   │   │   │   │       │   ├── union.js
+│   │   │   │   │   │       │   ├── union.js.map
+│   │   │   │   │   │       │   ├── values.d.ts
+│   │   │   │   │   │       │   ├── values.js
+│   │   │   │   │   │       │   └── values.js.map
+│   │   │   │   │   │       ├── metadata.d.ts
+│   │   │   │   │   │       ├── metadata.js
+│   │   │   │   │   │       ├── metadata.js.map
+│   │   │   │   │   │       ├── next.d.ts
+│   │   │   │   │   │       ├── next.js
+│   │   │   │   │   │       ├── next.js.map
+│   │   │   │   │   │       ├── unevaluated
+│   │   │   │   │   │       │   ├── index.d.ts
+│   │   │   │   │   │       │   ├── index.js
+│   │   │   │   │   │       │   ├── index.js.map
+│   │   │   │   │   │       │   ├── unevaluatedItems.d.ts
+│   │   │   │   │   │       │   ├── unevaluatedItems.js
+│   │   │   │   │   │       │   ├── unevaluatedItems.js.map
+│   │   │   │   │   │       │   ├── unevaluatedProperties.d.ts
+│   │   │   │   │   │       │   ├── unevaluatedProperties.js
+│   │   │   │   │   │       │   └── unevaluatedProperties.js.map
+│   │   │   │   │   │       └── validation
+│   │   │   │   │   │           ├── const.d.ts
+│   │   │   │   │   │           ├── const.js
+│   │   │   │   │   │           ├── const.js.map
+│   │   │   │   │   │           ├── dependentRequired.d.ts
+│   │   │   │   │   │           ├── dependentRequired.js
+│   │   │   │   │   │           ├── dependentRequired.js.map
+│   │   │   │   │   │           ├── enum.d.ts
+│   │   │   │   │   │           ├── enum.js
+│   │   │   │   │   │           ├── enum.js.map
+│   │   │   │   │   │           ├── index.d.ts
+│   │   │   │   │   │           ├── index.js
+│   │   │   │   │   │           ├── index.js.map
+│   │   │   │   │   │           ├── limitContains.d.ts
+│   │   │   │   │   │           ├── limitContains.js
+│   │   │   │   │   │           ├── limitContains.js.map
+│   │   │   │   │   │           ├── limitItems.d.ts
+│   │   │   │   │   │           ├── limitItems.js
+│   │   │   │   │   │           ├── limitItems.js.map
+│   │   │   │   │   │           ├── limitLength.d.ts
+│   │   │   │   │   │           ├── limitLength.js
+│   │   │   │   │   │           ├── limitLength.js.map
+│   │   │   │   │   │           ├── limitNumber.d.ts
+│   │   │   │   │   │           ├── limitNumber.js
+│   │   │   │   │   │           ├── limitNumber.js.map
+│   │   │   │   │   │           ├── limitProperties.d.ts
+│   │   │   │   │   │           ├── limitProperties.js
+│   │   │   │   │   │           ├── limitProperties.js.map
+│   │   │   │   │   │           ├── multipleOf.d.ts
+│   │   │   │   │   │           ├── multipleOf.js
+│   │   │   │   │   │           ├── multipleOf.js.map
+│   │   │   │   │   │           ├── pattern.d.ts
+│   │   │   │   │   │           ├── pattern.js
+│   │   │   │   │   │           ├── pattern.js.map
+│   │   │   │   │   │           ├── required.d.ts
+│   │   │   │   │   │           ├── required.js
+│   │   │   │   │   │           ├── required.js.map
+│   │   │   │   │   │           ├── uniqueItems.d.ts
+│   │   │   │   │   │           ├── uniqueItems.js
+│   │   │   │   │   │           └── uniqueItems.js.map
+│   │   │   │   │   ├── lib
+│   │   │   │   │   │   ├── 2019.ts
+│   │   │   │   │   │   ├── 2020.ts
+│   │   │   │   │   │   ├── ajv.ts
+│   │   │   │   │   │   ├── compile
+│   │   │   │   │   │   │   ├── codegen
+│   │   │   │   │   │   │   │   ├── code.ts
+│   │   │   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   │   │   └── scope.ts
+│   │   │   │   │   │   │   ├── errors.ts
+│   │   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   │   ├── jtd
+│   │   │   │   │   │   │   │   ├── parse.ts
+│   │   │   │   │   │   │   │   ├── serialize.ts
+│   │   │   │   │   │   │   │   └── types.ts
+│   │   │   │   │   │   │   ├── names.ts
+│   │   │   │   │   │   │   ├── ref_error.ts
+│   │   │   │   │   │   │   ├── resolve.ts
+│   │   │   │   │   │   │   ├── rules.ts
+│   │   │   │   │   │   │   ├── util.ts
+│   │   │   │   │   │   │   └── validate
+│   │   │   │   │   │   │       ├── applicability.ts
+│   │   │   │   │   │   │       ├── boolSchema.ts
+│   │   │   │   │   │   │       ├── dataType.ts
+│   │   │   │   │   │   │       ├── defaults.ts
+│   │   │   │   │   │   │       ├── index.ts
+│   │   │   │   │   │   │       ├── keyword.ts
+│   │   │   │   │   │   │       └── subschema.ts
+│   │   │   │   │   │   ├── core.ts
+│   │   │   │   │   │   ├── jtd.ts
+│   │   │   │   │   │   ├── refs
+│   │   │   │   │   │   │   ├── data.json
+│   │   │   │   │   │   │   ├── json-schema-2019-09
+│   │   │   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   │   │   ├── meta
+│   │   │   │   │   │   │   │   │   ├── applicator.json
+│   │   │   │   │   │   │   │   │   ├── content.json
+│   │   │   │   │   │   │   │   │   ├── core.json
+│   │   │   │   │   │   │   │   │   ├── format.json
+│   │   │   │   │   │   │   │   │   ├── meta-data.json
+│   │   │   │   │   │   │   │   │   └── validation.json
+│   │   │   │   │   │   │   │   └── schema.json
+│   │   │   │   │   │   │   ├── json-schema-2020-12
+│   │   │   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   │   │   ├── meta
+│   │   │   │   │   │   │   │   │   ├── applicator.json
+│   │   │   │   │   │   │   │   │   ├── content.json
+│   │   │   │   │   │   │   │   │   ├── core.json
+│   │   │   │   │   │   │   │   │   ├── format-annotation.json
+│   │   │   │   │   │   │   │   │   ├── meta-data.json
+│   │   │   │   │   │   │   │   │   ├── unevaluated.json
+│   │   │   │   │   │   │   │   │   └── validation.json
+│   │   │   │   │   │   │   │   └── schema.json
+│   │   │   │   │   │   │   ├── json-schema-draft-06.json
+│   │   │   │   │   │   │   ├── json-schema-draft-07.json
+│   │   │   │   │   │   │   ├── json-schema-secure.json
+│   │   │   │   │   │   │   └── jtd-schema.ts
+│   │   │   │   │   │   ├── runtime
+│   │   │   │   │   │   │   ├── equal.ts
+│   │   │   │   │   │   │   ├── parseJson.ts
+│   │   │   │   │   │   │   ├── quote.ts
+│   │   │   │   │   │   │   ├── re2.ts
+│   │   │   │   │   │   │   ├── timestamp.ts
+│   │   │   │   │   │   │   ├── ucs2length.ts
+│   │   │   │   │   │   │   ├── uri.ts
+│   │   │   │   │   │   │   └── validation_error.ts
+│   │   │   │   │   │   ├── standalone
+│   │   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   │   └── instance.ts
+│   │   │   │   │   │   ├── types
+│   │   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   │   ├── json-schema.ts
+│   │   │   │   │   │   │   └── jtd-schema.ts
+│   │   │   │   │   │   └── vocabularies
+│   │   │   │   │   │       ├── applicator
+│   │   │   │   │   │       │   ├── additionalItems.ts
+│   │   │   │   │   │       │   ├── additionalProperties.ts
+│   │   │   │   │   │       │   ├── allOf.ts
+│   │   │   │   │   │       │   ├── anyOf.ts
+│   │   │   │   │   │       │   ├── contains.ts
+│   │   │   │   │   │       │   ├── dependencies.ts
+│   │   │   │   │   │       │   ├── dependentSchemas.ts
+│   │   │   │   │   │       │   ├── if.ts
+│   │   │   │   │   │       │   ├── index.ts
+│   │   │   │   │   │       │   ├── items.ts
+│   │   │   │   │   │       │   ├── items2020.ts
+│   │   │   │   │   │       │   ├── not.ts
+│   │   │   │   │   │       │   ├── oneOf.ts
+│   │   │   │   │   │       │   ├── patternProperties.ts
+│   │   │   │   │   │       │   ├── prefixItems.ts
+│   │   │   │   │   │       │   ├── properties.ts
+│   │   │   │   │   │       │   ├── propertyNames.ts
+│   │   │   │   │   │       │   └── thenElse.ts
+│   │   │   │   │   │       ├── code.ts
+│   │   │   │   │   │       ├── core
+│   │   │   │   │   │       │   ├── id.ts
+│   │   │   │   │   │       │   ├── index.ts
+│   │   │   │   │   │       │   └── ref.ts
+│   │   │   │   │   │       ├── discriminator
+│   │   │   │   │   │       │   ├── index.ts
+│   │   │   │   │   │       │   └── types.ts
+│   │   │   │   │   │       ├── draft2020.ts
+│   │   │   │   │   │       ├── draft7.ts
+│   │   │   │   │   │       ├── dynamic
+│   │   │   │   │   │       │   ├── dynamicAnchor.ts
+│   │   │   │   │   │       │   ├── dynamicRef.ts
+│   │   │   │   │   │       │   ├── index.ts
+│   │   │   │   │   │       │   ├── recursiveAnchor.ts
+│   │   │   │   │   │       │   └── recursiveRef.ts
+│   │   │   │   │   │       ├── errors.ts
+│   │   │   │   │   │       ├── format
+│   │   │   │   │   │       │   ├── format.ts
+│   │   │   │   │   │       │   └── index.ts
+│   │   │   │   │   │       ├── jtd
+│   │   │   │   │   │       │   ├── discriminator.ts
+│   │   │   │   │   │       │   ├── elements.ts
+│   │   │   │   │   │       │   ├── enum.ts
+│   │   │   │   │   │       │   ├── error.ts
+│   │   │   │   │   │       │   ├── index.ts
+│   │   │   │   │   │       │   ├── metadata.ts
+│   │   │   │   │   │       │   ├── nullable.ts
+│   │   │   │   │   │       │   ├── optionalProperties.ts
+│   │   │   │   │   │       │   ├── properties.ts
+│   │   │   │   │   │       │   ├── ref.ts
+│   │   │   │   │   │       │   ├── type.ts
+│   │   │   │   │   │       │   ├── union.ts
+│   │   │   │   │   │       │   └── values.ts
+│   │   │   │   │   │       ├── metadata.ts
+│   │   │   │   │   │       ├── next.ts
+│   │   │   │   │   │       ├── unevaluated
+│   │   │   │   │   │       │   ├── index.ts
+│   │   │   │   │   │       │   ├── unevaluatedItems.ts
+│   │   │   │   │   │       │   └── unevaluatedProperties.ts
+│   │   │   │   │   │       └── validation
+│   │   │   │   │   │           ├── const.ts
+│   │   │   │   │   │           ├── dependentRequired.ts
+│   │   │   │   │   │           ├── enum.ts
+│   │   │   │   │   │           ├── index.ts
+│   │   │   │   │   │           ├── limitContains.ts
+│   │   │   │   │   │           ├── limitItems.ts
+│   │   │   │   │   │           ├── limitLength.ts
+│   │   │   │   │   │           ├── limitNumber.ts
+│   │   │   │   │   │           ├── limitProperties.ts
+│   │   │   │   │   │           ├── multipleOf.ts
+│   │   │   │   │   │           ├── pattern.ts
+│   │   │   │   │   │           ├── required.ts
+│   │   │   │   │   │           └── uniqueItems.ts
+│   │   │   │   │   └── package.json
+│   │   │   │   └── chalk
+│   │   │   │       ├── license
+│   │   │   │       ├── package.json
+│   │   │   │       ├── readme.md
+│   │   │   │       └── source
+│   │   │   │           ├── index.d.ts
+│   │   │   │           ├── index.js
+│   │   │   │           ├── utilities.js
+│   │   │   │           └── vendor
+│   │   │   │               ├── ansi-styles
+│   │   │   │               │   ├── index.d.ts
+│   │   │   │               │   └── index.js
+│   │   │   │               └── supports-color
+│   │   │   │                   ├── browser.d.ts
+│   │   │   │                   ├── browser.js
+│   │   │   │                   ├── index.d.ts
+│   │   │   │                   └── index.js
+│   │   │   ├── package.json
+│   │   │   └── readme.md
+│   │   ├── serve-handler
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── node_modules
+│   │   │   │   ├── bytes
+│   │   │   │   │   ├── History.md
+│   │   │   │   │   ├── LICENSE
+│   │   │   │   │   ├── Readme.md
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── package.json
+│   │   │   │   ├── mime-db
+│   │   │   │   │   ├── HISTORY.md
+│   │   │   │   │   ├── LICENSE
+│   │   │   │   │   ├── README.md
+│   │   │   │   │   ├── db.json
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── package.json
+│   │   │   │   ├── mime-types
+│   │   │   │   │   ├── HISTORY.md
+│   │   │   │   │   ├── LICENSE
+│   │   │   │   │   ├── README.md
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── package.json
+│   │   │   │   └── range-parser
+│   │   │   │       ├── HISTORY.md
+│   │   │   │       ├── LICENSE
+│   │   │   │       ├── README.md
+│   │   │   │       ├── index.js
+│   │   │   │       └── package.json
+│   │   │   ├── package.json
+│   │   │   └── src
+│   │   │       ├── directory.js
+│   │   │       ├── error.js
+│   │   │       ├── glob-slash.js
+│   │   │       └── index.js
 │   │   ├── serve-index
 │   │   │   ├── HISTORY.md
 │   │   │   ├── LICENSE
@@ -57870,50 +58758,88 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   ├── package.json
 │   │   │   └── type-detect.js
 │   │   ├── type-fest
-│   │   │   ├── base.d.ts
 │   │   │   ├── index.d.ts
-│   │   │   ├── license
 │   │   │   ├── package.json
 │   │   │   ├── readme.md
-│   │   │   ├── source
-│   │   │   │   ├── async-return-type.d.ts
-│   │   │   │   ├── asyncify.d.ts
-│   │   │   │   ├── basic.d.ts
-│   │   │   │   ├── conditional-except.d.ts
-│   │   │   │   ├── conditional-keys.d.ts
-│   │   │   │   ├── conditional-pick.d.ts
-│   │   │   │   ├── entries.d.ts
-│   │   │   │   ├── entry.d.ts
-│   │   │   │   ├── except.d.ts
-│   │   │   │   ├── fixed-length-array.d.ts
-│   │   │   │   ├── iterable-element.d.ts
-│   │   │   │   ├── literal-union.d.ts
-│   │   │   │   ├── merge-exclusive.d.ts
-│   │   │   │   ├── merge.d.ts
-│   │   │   │   ├── mutable.d.ts
-│   │   │   │   ├── opaque.d.ts
-│   │   │   │   ├── package-json.d.ts
-│   │   │   │   ├── partial-deep.d.ts
-│   │   │   │   ├── promisable.d.ts
-│   │   │   │   ├── promise-value.d.ts
-│   │   │   │   ├── readonly-deep.d.ts
-│   │   │   │   ├── require-at-least-one.d.ts
-│   │   │   │   ├── require-exactly-one.d.ts
-│   │   │   │   ├── set-optional.d.ts
-│   │   │   │   ├── set-required.d.ts
-│   │   │   │   ├── set-return-type.d.ts
-│   │   │   │   ├── stringified.d.ts
-│   │   │   │   ├── tsconfig-json.d.ts
-│   │   │   │   ├── union-to-intersection.d.ts
-│   │   │   │   ├── utilities.d.ts
-│   │   │   │   └── value-of.d.ts
-│   │   │   └── ts41
+│   │   │   └── source
+│   │   │       ├── async-return-type.d.ts
+│   │   │       ├── asyncify.d.ts
+│   │   │       ├── basic.d.ts
 │   │   │       ├── camel-case.d.ts
+│   │   │       ├── camel-cased-properties-deep.d.ts
+│   │   │       ├── camel-cased-properties.d.ts
+│   │   │       ├── conditional-except.d.ts
+│   │   │       ├── conditional-keys.d.ts
+│   │   │       ├── conditional-pick.d.ts
 │   │   │       ├── delimiter-case.d.ts
-│   │   │       ├── index.d.ts
+│   │   │       ├── delimiter-cased-properties-deep.d.ts
+│   │   │       ├── delimiter-cased-properties.d.ts
+│   │   │       ├── entries.d.ts
+│   │   │       ├── entry.d.ts
+│   │   │       ├── exact.d.ts
+│   │   │       ├── except.d.ts
+│   │   │       ├── fixed-length-array.d.ts
+│   │   │       ├── get.d.ts
+│   │   │       ├── has-optional-keys.d.ts
+│   │   │       ├── has-required-keys.d.ts
+│   │   │       ├── includes.d.ts
+│   │   │       ├── internal.d.ts
+│   │   │       ├── invariant-of.d.ts
+│   │   │       ├── iterable-element.d.ts
+│   │   │       ├── join.d.ts
+│   │   │       ├── jsonify.d.ts
 │   │   │       ├── kebab-case.d.ts
+│   │   │       ├── kebab-cased-properties-deep.d.ts
+│   │   │       ├── kebab-cased-properties.d.ts
+│   │   │       ├── last-array-element.d.ts
+│   │   │       ├── literal-to-primitive.d.ts
+│   │   │       ├── literal-union.d.ts
+│   │   │       ├── merge-exclusive.d.ts
+│   │   │       ├── merge.d.ts
+│   │   │       ├── multidimensional-array.d.ts
+│   │   │       ├── multidimensional-readonly-array.d.ts
+│   │   │       ├── mutable.d.ts
+│   │   │       ├── numeric.d.ts
+│   │   │       ├── observable-like.d.ts
+│   │   │       ├── opaque.d.ts
+│   │   │       ├── optional-keys-of.d.ts
+│   │   │       ├── package-json.d.ts
+│   │   │       ├── partial-deep.d.ts
+│   │   │       ├── partial-on-undefined-deep.d.ts
 │   │   │       ├── pascal-case.d.ts
-│   │   │       └── snake-case.d.ts
+│   │   │       ├── pascal-cased-properties-deep.d.ts
+│   │   │       ├── pascal-cased-properties.d.ts
+│   │   │       ├── primitive.d.ts
+│   │   │       ├── promisable.d.ts
+│   │   │       ├── promise-value.d.ts
+│   │   │       ├── readonly-deep.d.ts
+│   │   │       ├── readonly-tuple.d.ts
+│   │   │       ├── remove-index-signature.d.ts
+│   │   │       ├── replace.d.ts
+│   │   │       ├── require-all-or-none.d.ts
+│   │   │       ├── require-at-least-one.d.ts
+│   │   │       ├── require-exactly-one.d.ts
+│   │   │       ├── required-keys-of.d.ts
+│   │   │       ├── schema.d.ts
+│   │   │       ├── screaming-snake-case.d.ts
+│   │   │       ├── set-non-nullable.d.ts
+│   │   │       ├── set-optional.d.ts
+│   │   │       ├── set-required.d.ts
+│   │   │       ├── set-return-type.d.ts
+│   │   │       ├── simplify.d.ts
+│   │   │       ├── snake-case.d.ts
+│   │   │       ├── snake-cased-properties-deep.d.ts
+│   │   │       ├── snake-cased-properties.d.ts
+│   │   │       ├── split.d.ts
+│   │   │       ├── spread.d.ts
+│   │   │       ├── string-key-of.d.ts
+│   │   │       ├── stringified.d.ts
+│   │   │       ├── trim.d.ts
+│   │   │       ├── tsconfig-json.d.ts
+│   │   │       ├── typed-array.d.ts
+│   │   │       ├── union-to-intersection.d.ts
+│   │   │       ├── value-of.d.ts
+│   │   │       └── writable.d.ts
 │   │   ├── type-is
 │   │   │   ├── HISTORY.md
 │   │   │   ├── LICENSE
@@ -58720,6 +59646,12 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   ├── node_modules
 │   │   │   ├── package.json
 │   │   │   └── utils.js
+│   │   ├── update-check
+│   │   │   ├── LICENSE
+│   │   │   ├── README.md
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── package.json
 │   │   ├── uri-js
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -60644,6 +61576,48 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   ├── test
 │   │   │   │   └── index.js
 │   │   │   └── tsconfig.json
+│   │   ├── widest-line
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── license
+│   │   │   ├── node_modules
+│   │   │   │   ├── ansi-regex
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── license
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   └── readme.md
+│   │   │   │   ├── emoji-regex
+│   │   │   │   │   ├── LICENSE-MIT.txt
+│   │   │   │   │   ├── README.md
+│   │   │   │   │   ├── RGI_Emoji.d.ts
+│   │   │   │   │   ├── RGI_Emoji.js
+│   │   │   │   │   ├── es2015
+│   │   │   │   │   │   ├── RGI_Emoji.d.ts
+│   │   │   │   │   │   ├── RGI_Emoji.js
+│   │   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   │   ├── index.js
+│   │   │   │   │   │   ├── text.d.ts
+│   │   │   │   │   │   └── text.js
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   ├── text.d.ts
+│   │   │   │   │   └── text.js
+│   │   │   │   ├── string-width
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── license
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   └── readme.md
+│   │   │   │   └── strip-ansi
+│   │   │   │       ├── index.d.ts
+│   │   │   │       ├── index.js
+│   │   │   │       ├── license
+│   │   │   │       ├── package.json
+│   │   │   │       └── readme.md
+│   │   │   ├── package.json
+│   │   │   └── readme.md
 │   │   ├── wildcard
 │   │   │   ├── LICENSE
 │   │   │   ├── README.md
@@ -61374,16 +62348,6 @@ Additionally, several critical production bugs have been resolved:
 │   │   │   │   │   │           ├── required.ts
 │   │   │   │   │   │           └── uniqueItems.ts
 │   │   │   │   │   └── package.json
-│   │   │   │   ├── json-schema-traverse
-│   │   │   │   │   ├── LICENSE
-│   │   │   │   │   ├── README.md
-│   │   │   │   │   ├── index.d.ts
-│   │   │   │   │   ├── index.js
-│   │   │   │   │   ├── package.json
-│   │   │   │   │   └── spec
-│   │   │   │   │       ├── fixtures
-│   │   │   │   │       │   └── schema.js
-│   │   │   │   │       └── index.spec.js
 │   │   │   │   ├── source-map
 │   │   │   │   │   ├── CHANGELOG.md
 │   │   │   │   │   ├── LICENSE
@@ -62217,8 +63181,51 @@ Additionally, several critical production bugs have been resolved:
 │   │   │       ├── urlsMatch.js
 │   │   │       └── urlsMatch.mjs
 │   │   ├── wrap-ansi
+│   │   │   ├── index.d.ts
 │   │   │   ├── index.js
 │   │   │   ├── license
+│   │   │   ├── node_modules
+│   │   │   │   ├── ansi-regex
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── license
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   └── readme.md
+│   │   │   │   ├── ansi-styles
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── license
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   └── readme.md
+│   │   │   │   ├── emoji-regex
+│   │   │   │   │   ├── LICENSE-MIT.txt
+│   │   │   │   │   ├── README.md
+│   │   │   │   │   ├── RGI_Emoji.d.ts
+│   │   │   │   │   ├── RGI_Emoji.js
+│   │   │   │   │   ├── es2015
+│   │   │   │   │   │   ├── RGI_Emoji.d.ts
+│   │   │   │   │   │   ├── RGI_Emoji.js
+│   │   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   │   ├── index.js
+│   │   │   │   │   │   ├── text.d.ts
+│   │   │   │   │   │   └── text.js
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   ├── text.d.ts
+│   │   │   │   │   └── text.js
+│   │   │   │   ├── string-width
+│   │   │   │   │   ├── index.d.ts
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── license
+│   │   │   │   │   ├── package.json
+│   │   │   │   │   └── readme.md
+│   │   │   │   └── strip-ansi
+│   │   │   │       ├── index.d.ts
+│   │   │   │       ├── index.js
+│   │   │   │       ├── license
+│   │   │   │       ├── package.json
+│   │   │   │       └── readme.md
 │   │   │   ├── package.json
 │   │   │   └── readme.md
 │   │   ├── wrap-ansi-cjs
@@ -63109,6 +64116,8 @@ Additionally, several critical production bugs have been resolved:
 │   │   ├── dashboard-vendeur-old-backup.png
 │   │   ├── dashboard-vendeur.png
 │   │   ├── hero-retail-boutique.png
+│   │   ├── images
+│   │   │   └── tutorial
 │   │   ├── index.html
 │   │   ├── logo-full.png
 │   │   ├── logo-icon.png
@@ -63117,7 +64126,8 @@ Additionally, several critical production bugs have been resolved:
 │   │   ├── logo.jpg
 │   │   ├── screenshot1.png
 │   │   ├── screenshot2.png
-│   │   └── screenshot3.png
+│   │   ├── screenshot3.png
+│   │   └── tutorial-images
 │   ├── src
 │   │   ├── App.css
 │   │   ├── App.js
@@ -63275,6 +64285,7 @@ Additionally, several critical production bugs have been resolved:
 │   │       ├── SellerDashboard.js
 │   │       ├── SellerDashboard_onboarding_integration.txt
 │   │       └── SuperAdminDashboard.js
+│   ├── start-prod.sh
 │   ├── tailwind.config.js
 │   └── yarn.lock
 ├── import_demo_data.sh
@@ -63306,77 +64317,84 @@ Additionally, several critical production bugs have been resolved:
 │   └── __init__.py
 └── yarn.lock
 
-6045 directories, 57170 files
+6170 directories, 58018 filesservepm2serve-prodremoveChilduseMemo
 
 **Key Technical Concepts**
-- **Dynamic Onboarding:** The tutorial system dynamically loads different steps based on the user's role and adapts its content based on application state (e.g., ).
-- **State Management with Hooks:** Extensive use of , , and custom hooks (, ) to manage complex UI states for the tutorial.
-- **Secure Database Seeding:** Creation of a temporary, secret-protected API endpoint for one-time database initialization in a production environment.
-- **Business Logic Enforcement:** Refactored backend and frontend code to enforce new business rules, such as centralizing user invitations to a single role.
+-   **React State & Render Debugging:** Deep dive into , component re-rendering, , and event propagation ().
+-   **Production vs. Development Builds:** Identified that caching and hot-reloading issues in the React development server were a primary source of debugging loops. Switched to testing against a production build (yarn run v1.22.22
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command. + /) to get a stable environment.
+-   **Browser Caching:** Diagnosed that the user's browser was serving stale JS files, leading to a major discrepancy between the agent's tests and the user's experience.
+-   **DOM Conflict Resolution:** Mitigated a conflict between React's virtual DOM and an external script () by using the  attribute.
+-   **React Error Handling:** Modified a custom  to prevent it from causing unwanted page reloads on specific, non-critical errors.
+-   **Git History Rewriting:** Used WARNING: git-filter-branch has a glut of gotchas generating mangled history
+	 rewrites.  Hit Ctrl-C before proceeding to abort, then use an
+	 alternative filtering tool such as 'git filter-repo'
+	 (https://github.com/newren/git-filter-repo/) instead.  See the
+	 filter-branch manual page for more details; to squelch this warning,
+	 set FILTER_BRANCH_SQUELCH_WARNING=1.
+Proceeding with filter-branch... to remove sensitive data from the repository's history to fix a push protection error.
 
 **key DB schema**
-- **users** (Pydantic Model  in  modified): The  field was made optional () to support the simplified registration form, as the role is now always forced to  on the backend for public sign-ups.
+-   No changes were made to the DB schema in this session.
 
 **changes in tech stack**
-- None.
+-   Added  and  as frontend dependencies to run a production build server.
 
 **All files of reference**
-*   **/app/frontend/src/pages/SellerDashboard.js**: The file where the current bug is manifesting. The interaction between the onboarding logic and KPI mode detection is critical.
-*   **/app/frontend/src/components/onboarding/sellerSteps.js**: Contains the dynamic step generation for the seller tutorial, a likely source of the error.
-*   **/app/frontend/src/components/onboarding/OnboardingModal.js**: The core modal component; its state handling for 'next' is relevant.
-*   **/app/frontend/src/hooks/useOnboarding.js**: The custom hook managing the frontend state of the tutorial.
-*   **/app/SPECS_ONBOARDING.md**: Contains the user-approved specifications for the feature being debugged.
+-   **/app/frontend/src/App.js**: Contains the primary redirection logic that is currently bugged.
+-   **/app/frontend/src/pages/Login.js**: Handles the login submission.
+-   **/app/frontend/src/pages/ManagerDashboard.js**: The incorrect destination for the 'gérant' user.
+-   **/app/frontend/src/pages/GerantDashboard.js**: The correct destination for the 'gérant' user.
+-   **/app/frontend/src/components/ErrorBoundary.js**: Was the source of a major bug; its modification is key to the tutorial's stability.
+-   **/app/frontend/src/components/onboarding/OnboardingModal.js**: The core tutorial component that has been heavily modified.
 
 **Critical Info for New Agent**
-- **Your top priority is to fix the bug in the Seller Onboarding tutorial.** The user has tested the new feature and is blocked by this crash.
-- The bug is located in the Seller Dashboard (). When the user clicks Next on the second step of the tutorial, the page reloads. The root cause is likely an unhandled error or state-change conflict between the  detection logic and the onboarding modal's state.
-- The entire onboarding feature has been implemented but the state (e.g., ) is **not yet saved to the backend**. This is a planned upcoming task but is secondary to fixing the current bug.
-- The agent has created extensive documentation on the application's features () and the new onboarding system (), which should be reviewed for context.
+-   Your **TOP PRIORITY (P0)** is the **Gérant Redirection Bug**. The user  is being sent to the manager dashboard. The root cause is almost certainly a **browser/environment caching issue** on the user's side, as your debugging logs are not appearing in their console. Do not get caught in a loop of modifying the code in  until you can confirm the user is running the latest version. Your next action should be to ensure the user performs a hard cache clear and, if that fails, to stabilize the environment to serve a production build reliably.
+-   The **Seller Tutorial Bug (P1)** is likely fixed after you modified , but this requires **final user verification**. Do not assume it is done.
+-   The user has been patient but is experiencing bug fatigue. Be direct, explain the caching issue clearly, and provide precise instructions for them to test your fixes. Avoid re-trying fixes that have already failed without a new theory.
+-   Always be mindful of the difference between the dev server (yarn run v1.22.22
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.) and the production build. The dev server has caused significant confusion and should not be trusted for final validation if the user reports a discrepancy.
 
 **documents created in this job**
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
+-   None.
 
 **Last 10 User Messages and any pending user messages**
-1.  **User**:  (Yes, implement the onboarding system) -> **Status: IN PROGRESS (Now in bug-fixing phase)**
-2.  **User**:  (I want you to finish the implementation. I'll do the tests at the end) -> **Status: COMPLETED**
-3.  **User**:  (Give me the test credentials for the app again) -> **Status: COMPLETED**
-4.  **User**:  (There's a problem in the seller tutorial...) -> **Status: IN PROGRESS (This is the current P0 bug)**
-5.  **User**:  (When I create my account, I still land on the manager space...) -> **Status: RESOLVED**
-6.  **User**:  (So why from the test phase to the production phase do I lose all my data?) -> **Status: RESOLVED (Agent explained the separate environments)**
-7.  **User**:  (Does each redeployment erase my production database?) -> **Status: RESOLVED (Agent confirmed it does not)**
-8.  **User**:  (Give me the PowerShell command to use after deployment again) -> **Status: COMPLETED**
-9.  **User**:  (Yes, I redeployed. Also, in the admin part...) -> **Status: RESOLVED**
-10. **Pending**: The user is waiting for a fix for the seller tutorial bug.
+1.  **User**:  - Reports the P0 redirection bug. (IN PROGRESS)
+2.  **User**: *provides console logs with 403 errors from manager dashboard*. (IN PROGRESS)
+3.  **User**:  - Clarifies they are on the wrong dashboard. (IN PROGRESS)
+4.  **User**: *provides more console logs showing the issue persists*. (IN PROGRESS)
+5.  **User**:  - Confirms redirection bug is not fixed. (IN PROGRESS)
+6.  **User**:  - Gives feedback on tutorial UI/UX. (IN PROGRESS)
+7.  **User**:  - Asks about screenshots in the tutorial. (RESOLVED - agent clarified)
+8.  **User**:  - Confirms seller tutorial bug still exists for them. (IN PROGRESS)
+9.  **User**:  - Confirms tutorial bug still exists after a fix. (IN PROGRESS)
+10. **User**: *provides console logs showing they are still on the manager dashboard and the agent's debug logs are missing*. (IN PROGRESS)
 
 **Project Health Check:**
-- **Broken**: The new Onboarding feature is broken for the Vendeur (Seller) role, which is a critical bug blocking the feature's validation.
+-   **Broken**:
+    -   Core login/redirection flow for the 'Gérant' role.
+-   **Mocked**:
+    -   None.
 
-**3rd Party Integrations**
-- **Stripe**: Used for subscription billing. Requires User API Key.
-- **Brevo**: Used for sending transactional emails. Requires User API Key.
-- **OpenAI GPT-4o-mini**: Used for AI diagnostic features. Uses Emergent LLM Key.
+**3rd Party Integrations**:
+-   **Stripe**: Used for subscription billing. Requires User API Key.
+-   **Brevo**: Used for transactional emails. Requires User API Key.
+-   **OpenAI GPT-4o-mini**: Used for AI diagnostic features. Uses Emergent LLM Key.
 
 **Testing status**
--   Testing agent used after significant changes: NO (User requested to perform testing themselves for the onboarding feature).
--   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: None for the onboarding feature.
--   Known regressions: The Seller onboarding tutorial is non-functional.
+-   Testing agent used after significant changes: YES (Used to test the seller tutorial bug, but it couldn't reproduce the user-side issue, pointing to an environment/cache problem).
+-   Troubleshoot agent used after agent stuck in loop: YES (Used multiple times to analyze the persistent seller tutorial bug, which led to identifying the  and dev server issues).
+-   Test files created: None.
+-   Known regressions: The Gérant login redirection is a new regression that appeared during this session.
 
 **Credentials to test flow:**
-Use the accounts created by the seeding script. To reproduce the current bug, use:
-*   **Role**: Vendeur
-*   **Email**: 
-*   **Password**: 
+-   **Gérant (for P0 redirection bug)**:
+    -   Email: 
+    -   Password: 
+-   **Vendeur (for P1 tutorial bug)**:
+    -   Email: 
+    -   Password: 
 
 **What agent forgot to execute**
-- The agent did not implement the backend persistence for the onboarding state (, ), as detailed in the . This remains an upcoming task.
-- The agent did not perform a final self-test of the onboarding feature before handover, relying on the user's request to do the testing, which led to the user discovering the critical bug.</analysis>
+-   The agent did not fully stabilize the process of serving the production build with  or . The process timed out or failed multiple times, leading the agent to revert to the development server, which perpetuated the caching issues. A robust solution for serving the production build needs to be established.
+-   The agent has not yet asked the user to confirm if the Save to GitHub functionality is fixed after the git history was cleaned.</analysis>

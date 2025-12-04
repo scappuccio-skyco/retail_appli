@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://user-guide-10.preview.emergentagent.com
+https://onboard-guide.preview.emergentagent.com
 
 ### Manager
 ```
