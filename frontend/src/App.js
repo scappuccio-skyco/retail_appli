@@ -81,8 +81,10 @@ function AppContent() {
     setUser(userData);
     
     // Redirection selon le rôle
+    console.log('🔍 User role for redirect:', userData.role, 'Type:', typeof userData.role);
     if (userData.role === 'gérant' || userData.role === 'gerant') {
       // Gérant → Dashboard Gérant
+      console.log('✅ Redirecting to gerant-dashboard');
       window.location.href = '/gerant-dashboard';
       return;
     }
