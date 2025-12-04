@@ -4,6 +4,8 @@ import axios from 'axios';
 import '@/App.css';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import SellerDashboard from './pages/SellerDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 import GerantDashboard from './pages/GerantDashboard';
