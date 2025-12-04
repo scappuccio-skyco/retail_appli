@@ -141,26 +141,19 @@ function getKpiStep(mode) {
     case 'VENDEUR_SAISIT':
       return {
         icon: '📝',
-        title: 'Saisissez vos KPI quotidiens',
+        title: 'Saisissez vos chiffres quotidiens',
         description: (
           <>
-            <div className="bg-green-50 border border-green-300 rounded p-3 mt-3 mb-3" data-emergent-ignore="true">
-              <p className="font-semibold text-sm mb-2">📍 Saisir mes KPI :</p>
-              <p className="text-sm">👉 <strong>Étape 1 :</strong> Sur votre dashboard, cherchez la carte "Mes KPI" ou "Mes Chiffres"</p>
-              <p className="text-sm">👉 <strong>Étape 2 :</strong> Cliquez sur le bouton "➕ Saisir mes chiffres du jour"</p>
-              <p className="text-sm">👉 <strong>Étape 3 :</strong> Remplissez le formulaire et cliquez sur "Valider"</p>
+            <div className="bg-green-50 border border-green-300 rounded p-2 mt-2 mb-2" data-emergent-ignore="true">
+              <p className="font-semibold mb-1">📍 Comment faire :</p>
+              <p>Dans "Mes tâches à faire", cliquez sur "Saisir mes chiffres du jour"</p>
             </div>
             
-            <p>Chaque jour, enregistrez vos résultats :</p>
-            <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-              <li>CA réalisé</li>
-              <li>Nombre de ventes</li>
-              <li>Panier moyen</li>
-            </ul>
-            <p className="mt-3">C'est essentiel pour recevoir du coaching IA personnalisé !</p>
+            <p>Enregistrez quotidiennement : CA réalisé, Nombre de ventes, Panier moyen</p>
+            <p className="mt-2">Essential pour recevoir du coaching IA personnalisé !</p>
           </>
         ),
-        tips: 'Plus vous êtes régulier, meilleurs seront vos insights IA.'
+        tips: 'Plus vous êtes régulier, meilleurs seront les conseils IA.'
       };
 
     case 'MANAGER_SAISIT':
