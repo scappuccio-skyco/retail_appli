@@ -7,27 +7,27 @@ export default function OnboardingStep({ step }) {
   if (!step) return null;
 
   return (
-    <div className="py-2">
+    <div className="py-1">
       {/* Icon */}
       {step.icon && (
-        <div className="text-3xl mb-3 text-center">
+        <div className="text-2xl mb-2 text-center">
           {step.icon}
         </div>
       )}
 
       {/* Title */}
-      <h2 className="text-xl font-bold text-gray-900 mb-3 text-center">
+      <h2 className="text-lg font-bold text-gray-900 mb-2 text-center">
         {step.title}
       </h2>
 
       {/* Description */}
-      <div className="text-sm text-gray-600 text-center space-y-2 mb-4">
+      <div className="text-xs text-gray-600 text-center space-y-1.5 mb-3">
         {step.description}
       </div>
 
       {/* Screenshot or illustration (optional) */}
       {step.image && (
-        <div className="bg-gray-100 rounded-lg p-3 mb-3">
+        <div className="bg-gray-100 rounded p-2 mb-2">
           <img 
             src={step.image} 
             alt={step.title}
@@ -38,9 +38,9 @@ export default function OnboardingStep({ step }) {
 
       {/* Tips (optional) */}
       {step.tips && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+        <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-2">
           <p className="text-xs text-blue-800">
-            💡 <strong>Conseil :</strong> {step.tips}
+            💡 {step.tips}
           </p>
         </div>
       )}
