@@ -7134,7 +7134,7 @@ async def add_ai_credits(user_id: str, credits_to_add: int, reason: str = "purch
 @api_router.get("/subscription/status")
 async def get_subscription_status(current_user: dict = Depends(get_current_user)):
     """Get current user's subscription status - using Workspace architecture"""
-    if current_user['role'] not in ['manager', 'gerant']:
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Only managers and gérants have subscriptions")
     
     # Get workspace
@@ -12795,7 +12795,7 @@ async def create_api_key(
     current_user: dict = Depends(get_current_user)
 ):
     """Create a new API key for integrations"""
-    if current_user['role'] not in ['manager', 'gerant']:
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Only managers and gerants can create API keys")
     
     # Generate unique key
@@ -12840,7 +12840,7 @@ async def create_api_key(
 @api_router.get("/manager/api-keys")
 async def list_api_keys(current_user: dict = Depends(get_current_user)):
     """List all API keys for current user"""
-    if current_user['role'] not in ['manager', 'gerant']:
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Only managers and gerants can list API keys")
     
     # Find keys
@@ -12855,7 +12855,7 @@ async def delete_api_key(
     current_user: dict = Depends(get_current_user)
 ):
     """Delete (deactivate) an API key"""
-    if current_user['role'] not in ['manager', 'gerant']:
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Only managers and gerants can delete API keys")
     
     # Verify ownership
@@ -12877,7 +12877,7 @@ async def regenerate_api_key(
     current_user: dict = Depends(get_current_user)
 ):
     """Regenerate an API key (creates new key, deactivates old)"""
-    if current_user['role'] not in ['manager', 'gerant']:
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Only managers and gerants can regenerate API keys")
     
     # Find old key
@@ -12931,7 +12931,7 @@ async def delete_api_key_permanent(
     current_user: dict = Depends(get_current_user)
 ):
     """Permanently delete an inactive API key"""
-    if current_user['role'] not in ['manager', 'gerant']:
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Only managers and gerants can delete API keys")
     
     # Find the key and verify ownership
