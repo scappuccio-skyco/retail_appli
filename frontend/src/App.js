@@ -120,6 +120,7 @@ function AppContent() {
     
     // Navigate to dashboard after successful login (Manager or Seller)
     // Using window.location for reliable redirect
+    console.log('⚠️ Fallback redirect to /dashboard for role:', userData.role);
     window.location.href = '/dashboard';
   };
 
