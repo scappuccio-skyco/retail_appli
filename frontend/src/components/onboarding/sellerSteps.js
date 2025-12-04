@@ -151,9 +151,9 @@ function getKpiStep(mode) {
           <>
             <div className="bg-green-50 border border-green-300 rounded p-3 mt-3 mb-3" data-emergent-ignore="true">
               <p className="font-semibold text-sm mb-2">📍 Saisir mes KPI :</p>
-              <p className="text-sm">1. Trouvez la section Mes KPI sur votre dashboard</p>
-              <p className="text-sm">2. Cliquez sur Saisir mes chiffres du jour</p>
-              <p className="text-sm">3. Remplissez le formulaire et validez</p>
+              <p className="text-sm">👉 <strong>Étape 1 :</strong> Sur votre dashboard, cherchez la carte "Mes KPI" ou "Mes Chiffres"</p>
+              <p className="text-sm">👉 <strong>Étape 2 :</strong> Cliquez sur le bouton "➕ Saisir mes chiffres du jour"</p>
+              <p className="text-sm">👉 <strong>Étape 3 :</strong> Remplissez le formulaire et cliquez sur "Valider"</p>
             </div>
             
             <p>Chaque jour, enregistrez vos résultats :</p>
