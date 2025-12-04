@@ -113,7 +113,8 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
     """
     Envoyer un email d'invitation à un Manager (invité par un Gérant)
     """
-    invitation_link = f"{FRONTEND_URL}/register/manager/{invitation_token}"
+    frontend_url = get_frontend_url()
+    invitation_link = f"{frontend_url}/register/manager/{invitation_token}"
     
     store_info = f" pour le magasin <strong>{store_name}</strong>" if store_name else ""
     
@@ -201,7 +202,8 @@ def send_seller_invitation_email(recipient_email: str, recipient_name: str, invi
     """
     Envoyer un email d'invitation à un Vendeur (invité par un Manager)
     """
-    invitation_link = f"{FRONTEND_URL}/register/seller/{invitation_token}"
+    frontend_url = get_frontend_url()
+    invitation_link = f"{frontend_url}/register/seller/{invitation_token}"
     
     store_info = f" du magasin <strong>{store_name}</strong>" if store_name else ""
     
