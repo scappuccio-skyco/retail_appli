@@ -65,25 +65,18 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
     // Étape 5 : Coaching IA
     {
       icon: '🤖',
-      title: 'Recevez du coaching IA',
+      title: 'Obtenez du coaching IA',
       description: (
         <>
-          <div className="bg-purple-50 border border-purple-300 rounded p-3 mt-3 mb-3" data-emergent-ignore="true">
-            <p className="font-semibold text-sm mb-2">📍 Accédez au Coach IA :</p>
-            <p className="text-sm">👉 <strong>Option 1 :</strong> Dans le menu latéral, cherchez l'icône 🤖 et cliquez sur "Mon Coach IA"</p>
-            <p className="text-sm">👉 <strong>Option 2 :</strong> Sur le dashboard, trouvez la carte ou section "Coaching" ou "Conseils IA"</p>
+          <div className="bg-purple-50 border border-purple-300 rounded p-2 mt-2 mb-2" data-emergent-ignore="true">
+            <p className="font-semibold mb-1">📍 Où trouver :</p>
+            <p>Cliquez sur la carte violette "Mon coach IA" sur votre dashboard</p>
           </div>
           
-          <p>L'IA analyse vos performances et vous donne des conseils personnalisés :</p>
-          <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li>Points forts à maintenir</li>
-            <li>Axes d'amélioration</li>
-            <li>Tactiques adaptées à votre profil</li>
-            <li>Plan d'action concret</li>
-          </ul>
+          <p>L'IA analyse vos performances et vous donne des conseils personnalisés : points forts, axes d'amélioration, tactiques adaptées.</p>
         </>
       ),
-      tips: 'Le coaching s\'améliore avec le temps, plus vous avez de données !'
+      tips: 'Plus vous avez de données, meilleurs sont les conseils !'
     },
 
     // Étape 6 : Challenges
