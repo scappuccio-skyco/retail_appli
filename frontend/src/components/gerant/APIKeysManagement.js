@@ -29,18 +29,10 @@ const APIKeysManagement = () => {
 
   const fetchStores = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/gerant/stores`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Erreur lors du chargement des magasins');
-
-      const data = await response.json();
+      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/gerant/stores`);
       // L'endpoint retourne directement un array, pas {stores: [...]}
-      setStores(Array.isArray(data) ? data : (data.stores || []));
+      setStores(Array.isArray(response.data) ? response.data : (response.data.stores || []));
     } catch (err) {
       console.error('Erreur chargement magasins:', err);
       setStores([]);
@@ -50,20 +42,12 @@ const APIKeysManagement = () => {
   const fetchAPIKeys = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Erreur lors du chargement des clés API');
-
-      const data = await response.json();
-      setApiKeys(data.api_keys || []);
+      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys`);
+      setApiKeys(response.data.api_keys || []);
       setError('');
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.detail || err.message);
     } finally {
       setLoading(false);
     }
