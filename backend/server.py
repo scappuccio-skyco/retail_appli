@@ -1496,6 +1496,10 @@ async def verify_reset_token(token: str):
     if isinstance(expires_at, str):
         expires_at = datetime.fromisoformat(expires_at)
     
+    # MongoDB returns naive datetimes, make them timezone-aware
+    if not hasattr(expires_at, 'tzinfo') or expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
     if expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Le lien de réinitialisation a expiré")
     
