@@ -9894,7 +9894,7 @@ async def update_gerant_trial(
 @api_router.post("/gerant/stores", response_model=Store)
 async def create_store(store_data: StoreCreate, current_user: dict = Depends(get_current_user)):
     """Créer un nouveau magasin (réservé aux gérants)"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Créer le magasin
@@ -9914,7 +9914,7 @@ async def create_store(store_data: StoreCreate, current_user: dict = Depends(get
 @api_router.get("/gerant/stores")
 async def get_gerant_stores(current_user: dict = Depends(get_current_user)):
     """Récupérer tous les magasins du gérant"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     stores = await db.stores.find(
@@ -9927,7 +9927,7 @@ async def get_gerant_stores(current_user: dict = Depends(get_current_user)):
 @api_router.get("/gerant/stores/{store_id}")
 async def get_store_details(store_id: str, current_user: dict = Depends(get_current_user)):
     """Récupérer les détails d'un magasin spécifique"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     store = await db.stores.find_one(
@@ -9947,7 +9947,7 @@ async def update_store(
     current_user: dict = Depends(get_current_user)
 ):
     """Mettre à jour un magasin"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le magasin appartient au gérant
@@ -9972,7 +9972,7 @@ async def update_store(
 @api_router.delete("/gerant/stores/{store_id}")
 async def delete_store(store_id: str, current_user: dict = Depends(get_current_user)):
     """Supprimer un magasin et suspendre automatiquement l'équipe"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le magasin appartient au gérant
@@ -10037,7 +10037,7 @@ async def delete_store(store_id: str, current_user: dict = Depends(get_current_u
 @api_router.get("/gerant/dashboard/stats")
 async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_user)):
     """Récupérer les statistiques globales du gérant (tous magasins)"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Récupérer tous les magasins actifs
@@ -10127,7 +10127,7 @@ async def get_store_stats(
     current_user: dict = Depends(get_current_user)
 ):
     """Récupérer les statistiques d'un magasin spécifique pour une période donnée"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le magasin appartient au gérant
@@ -10404,7 +10404,7 @@ async def get_store_stats(
 @api_router.get("/gerant/stores/{store_id}/managers")
 async def get_store_managers(store_id: str, current_user: dict = Depends(get_current_user)):
     """Récupérer les managers d'un magasin (exclut les managers supprimés)"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     managers = await db.users.find(
@@ -10421,7 +10421,7 @@ async def get_store_managers(store_id: str, current_user: dict = Depends(get_cur
 @api_router.get("/gerant/stores/{store_id}/sellers")
 async def get_store_sellers(store_id: str, current_user: dict = Depends(get_current_user)):
     """Récupérer les vendeurs d'un magasin (exclut les vendeurs supprimés)"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     sellers = await db.users.find(
@@ -10442,7 +10442,7 @@ async def assign_manager_to_store(
     current_user: dict = Depends(get_current_user)
 ):
     """Assigner un manager existant à un magasin"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le magasin existe et appartient au gérant
@@ -10469,7 +10469,7 @@ async def suspend_manager(
     current_user: dict = Depends(get_current_user)
 ):
     """Suspendre un manager (il ne peut plus se connecter)"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le manager existe et appartient au gérant
@@ -10511,7 +10511,7 @@ async def reactivate_manager(
     current_user: dict = Depends(get_current_user)
 ):
     """Réactiver un manager suspendu"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le manager existe et appartient au gérant
@@ -10580,7 +10580,7 @@ async def delete_manager_gerant(
     current_user: dict = Depends(get_current_user)
 ):
     """Supprimer définitivement un manager (soft delete)"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le manager existe et appartient au gérant
@@ -10631,7 +10631,7 @@ async def transfer_manager_to_store(
     current_user: dict = Depends(get_current_user)
 ):
     """Transférer un manager vers un autre magasin (les vendeurs restent)"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le manager existe et appartient au gérant
@@ -10701,7 +10701,7 @@ async def transfer_seller_to_store(
     current_user: dict = Depends(get_current_user)
 ):
     """Transférer un vendeur vers un autre magasin avec nouveau manager"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le vendeur existe et appartient au gérant
@@ -10773,7 +10773,7 @@ async def suspend_seller(
     current_user: dict = Depends(get_current_user)
 ):
     """Suspendre un vendeur (il ne peut plus se connecter)"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le vendeur existe et appartient au gérant
@@ -10826,7 +10826,7 @@ async def reactivate_seller(
     current_user: dict = Depends(get_current_user)
 ):
     """Réactiver un vendeur suspendu"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le vendeur existe et appartient au gérant
@@ -10907,7 +10907,7 @@ async def delete_seller_gerant(
     current_user: dict = Depends(get_current_user)
 ):
     """Supprimer définitivement un vendeur (soft delete)"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le vendeur existe et appartient au gérant
@@ -10943,7 +10943,7 @@ async def delete_seller_gerant(
 @api_router.get("/gerant/managers")
 async def get_all_managers(current_user: dict = Depends(get_current_user)):
     """Récupérer tous les managers du gérant"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     managers = await db.users.find(
@@ -10956,7 +10956,7 @@ async def get_all_managers(current_user: dict = Depends(get_current_user)):
 @api_router.get("/gerant/sellers")
 async def get_all_sellers(current_user: dict = Depends(get_current_user)):
     """Récupérer tous les vendeurs du gérant"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     sellers = await db.users.find(
@@ -10977,7 +10977,7 @@ async def create_gerant_invitation(
     current_user: dict = Depends(get_current_user)
 ):
     """Créer une invitation pour un manager ou vendeur (Gérant seulement)"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Valider le rôle
@@ -11140,7 +11140,7 @@ async def create_gerant_invitation(
 @api_router.get("/gerant/invitations")
 async def get_gerant_invitations(current_user: dict = Depends(get_current_user)):
     """Récupérer toutes les invitations du gérant"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     invitations = await db.gerant_invitations.find(
@@ -11300,7 +11300,7 @@ async def create_gerant_checkout_session(
     - 6-15 vendeurs actifs : 25€/vendeur  
     - >15 vendeurs : sur devis (erreur)
     """
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     try:
@@ -11421,7 +11421,7 @@ async def create_gerant_checkout_session(
 @api_router.get("/gerant/subscription/status")
 async def get_gerant_subscription_status(current_user: dict = Depends(get_current_user)):
     """Obtenir le statut de l'abonnement du gérant"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     try:
@@ -11729,7 +11729,7 @@ async def get_gerant_subscription_info(gerant_id: str):
 @api_router.get("/gerant/subscription/info")
 async def get_gerant_subscription_detailed_info(current_user: dict = Depends(get_current_user)):
     """Obtenir les informations détaillées d'abonnement avec quotas"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     return await get_gerant_subscription_info(current_user['id'])
@@ -11741,7 +11741,7 @@ async def upgrade_gerant_subscription(current_user: dict = Depends(get_current_u
     Mettre à niveau automatiquement l'abonnement gérant
     (Starter vers Professional quand on dépasse 5 vendeurs)
     """
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     try:
@@ -11829,7 +11829,7 @@ async def preview_gerant_seats_update(
     Prévisualiser le coût d'un changement de nombre de sièges
     sans effectuer la modification
     """
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     new_seats = request.seats
@@ -11971,7 +11971,7 @@ async def update_gerant_subscription_seats(
     Pendant l'essai : Mise à jour sans frais
     Abonnement actif : Proratisation appliquée automatiquement
     """
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     new_seats = request.seats
@@ -12450,7 +12450,7 @@ async def get_gerant_store_kpi_overview(
     current_user: dict = Depends(get_current_user)
 ):
     """Get consolidated store KPI overview for a specific store (Gérant only)"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le magasin appartient au gérant
@@ -12572,7 +12572,7 @@ async def get_gerant_store_kpi_history(
     current_user: dict = Depends(get_current_user)
 ):
     """Get historical KPI data for a specific store (Gérant only)"""
-    if current_user['role'] != 'gerant':
+    if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     # Vérifier que le magasin appartient au gérant
