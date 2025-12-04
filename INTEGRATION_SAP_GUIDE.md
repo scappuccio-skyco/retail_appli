@@ -55,7 +55,7 @@ rp_live_sk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
 
 **Via l'API** :
 ```bash
-curl -X GET "https://user-guide-10.preview.emergentagent.com/api/v1/integrations/my-stores" \
+curl -X GET "https://onboard-guide.preview.emergentagent.com/api/v1/integrations/my-stores" \
   -H "X-API-Key: rp_live_votre_cle_api_ici"
 ```
 
@@ -132,7 +132,7 @@ REPORT z_retail_performer_sync.
 PARAMETERS: p_date TYPE sy-datum DEFAULT sy-datum.
 
 DATA: lv_api_key TYPE string VALUE 'rp_live_votre_cle_api_ici',
-      lv_url     TYPE string VALUE 'https://user-guide-10.preview.emergentagent.com/api/v1/integrations/kpi/sync',
+      lv_url     TYPE string VALUE 'https://onboard-guide.preview.emergentagent.com/api/v1/integrations/kpi/sync',
       lv_json    TYPE string,
       lo_http    TYPE REF TO if_http_client.
 
@@ -183,7 +183,7 @@ WRITE: / 'Response:', lv_response.
 
 2. **Créer un Receiver Channel** :
    - Type : HTTP
-   - URL : `https://user-guide-10.preview.emergentagent.com/api/v1/integrations/kpi/sync`
+   - URL : `https://onboard-guide.preview.emergentagent.com/api/v1/integrations/kpi/sync`
    - Méthode : POST
    - Headers :
      ```
@@ -201,7 +201,7 @@ WRITE: / 'Response:', lv_response.
 
 ### 3.1 Endpoint de synchronisation
 
-**URL** : `POST https://user-guide-10.preview.emergentagent.com/api/v1/integrations/kpi/sync`
+**URL** : `POST https://onboard-guide.preview.emergentagent.com/api/v1/integrations/kpi/sync`
 
 **Headers** :
 ```
@@ -327,7 +327,7 @@ ENDIF.
 **Tester manuellement l'envoi depuis votre machine** :
 
 ```bash
-curl -X POST "https://user-guide-10.preview.emergentagent.com/api/v1/integrations/kpi/sync" \
+curl -X POST "https://onboard-guide.preview.emergentagent.com/api/v1/integrations/kpi/sync" \
   -H "X-API-Key: rp_live_votre_cle_api_ici" \
   -H "Content-Type: application/json" \
   -d '{
