@@ -48,22 +48,15 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
     // Étape 4 : Performances
     {
       icon: '📊',
-      title: 'Suivez vos performances',
+      title: 'Consultez vos performances',
       description: (
         <>
-          <div className="bg-blue-50 border border-blue-300 rounded p-3 mt-3 mb-3" data-emergent-ignore="true">
-            <p className="font-semibold text-sm mb-2">📍 Où trouver vos performances :</p>
-            <p className="text-sm">👉 <strong>Option 1 :</strong> Sur le dashboard, trouvez la section "Mes Performances" avec les graphiques</p>
-            <p className="text-sm">👉 <strong>Option 2 :</strong> Dans le menu latéral, cliquez sur "📈 Bilan" ou "📊 Performances"</p>
+          <div className="bg-orange-50 border border-orange-300 rounded p-2 mt-2 mb-2" data-emergent-ignore="true">
+            <p className="font-semibold mb-1">📍 Où trouver :</p>
+            <p>Cliquez sur la carte orange "Mes Performances" sur votre dashboard</p>
           </div>
           
-          <p>Consultez vos statistiques en temps réel :</p>
-          <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li>Évolution de votre CA</li>
-            <li>Taux de conversion</li>
-            <li>Comparaison avec vos objectifs</li>
-            <li>Classement dans l'équipe</li>
-          </ul>
+          <p>Consultez vos stats en temps réel : évolution du CA, taux de conversion, comparaison avec objectifs, classement équipe.</p>
         </>
       ),
       tips: 'Utilisez les graphiques pour identifier vos points forts !'
