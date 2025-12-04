@@ -3,6 +3,7 @@ import { Copy, Eye, EyeOff, Plus, Trash2, AlertCircle, CheckCircle } from 'lucid
 import CopyButton from './CopyButton';
 import StoreDropdown from './StoreDropdown';
 import APIDocModal from './APIDocModal';
+import axios from 'axios';
 
 const APIKeysManagement = () => {
   const [apiKeys, setApiKeys] = useState([]);
