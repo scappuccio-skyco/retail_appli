@@ -6926,7 +6926,7 @@ async def get_user_subscription(user_id: str) -> Optional[dict]:
     # For manager: count sellers under this manager (legacy support)
     # Uniquement les vendeurs actifs consomment des sièges
     user = await db.users.find_one({"id": user_id}, {"_id": 0, "role": 1, "id": 1})
-    if user and user.get('role') == 'gerant':
+    if user and user.get('role') in ['gerant', 'gérant']:
         seller_count = await db.users.count_documents({"gerant_id": user_id, "role": "seller", "status": "active"})
     else:
         seller_count = await db.users.count_documents({"manager_id": user_id, "role": "seller", "status": "active"})
@@ -6981,7 +6981,7 @@ async def check_can_add_seller(user_id: str) -> dict:
     # Get user role to determine how to count sellers
     # Uniquement les vendeurs actifs consomment des sièges
     user = await db.users.find_one({"id": user_id}, {"_id": 0, "role": 1})
-    if user and user.get('role') == 'gerant':
+    if user and user.get('role') in ['gerant', 'gérant']:
         seller_count = await db.users.count_documents({"gerant_id": user_id, "role": "seller", "status": "active"})
     else:
         seller_count = await db.users.count_documents({"manager_id": user_id, "role": "seller", "status": "active"})
@@ -7238,7 +7238,7 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
     
     # Count sellers - for gerant: count by gerant_id, for manager: count by workspace_id
     # Seulement les actifs consomment des sièges
-    if current_user['role'] == 'gerant':
+    if current_user['role'] in ['gerant', 'gérant']:
         seller_count = await db.users.count_documents({
             "gerant_id": current_user['id'], 
             "role": "seller",
@@ -12677,7 +12677,7 @@ async def get_store_info(
 ):
     """Get basic store information (accessible by managers and sellers)"""
     # Vérifier que l'utilisateur a accès à ce magasin
-    if current_user['role'] == 'gerant':
+    if current_user['role'] in ['gerant', 'gérant']:
         # Gérant peut accéder à tous ses magasins
         store = await db.stores.find_one(
             {"id": store_id, "gerant_id": current_user['id'], "active": True},
@@ -12812,7 +12812,7 @@ async def create_api_key(
         "id": key_id,
         "user_id": current_user['id'],
         "store_id": current_user.get('store_id'),
-        "gerant_id": current_user.get('id') if current_user['role'] == 'gerant' else None,
+        "gerant_id": current_user.get('id') if current_user['role'] in ['gerant', 'gérant'] else None,
         "key": api_key,
         "name": key_data.name,
         "permissions": key_data.permissions,
@@ -12944,7 +12944,7 @@ async def delete_api_key_permanent(
     if current_user['role'] == 'manager':
         if key.get('user_id') != current_user['id']:
             raise HTTPException(status_code=403, detail="Not authorized to delete this key")
-    elif current_user['role'] == 'gerant':
+    elif current_user['role'] in ['gerant', 'gérant']:
         if key.get('gerant_id') != current_user['id']:
             raise HTTPException(status_code=403, detail="Not authorized to delete this key")
     
