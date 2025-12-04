@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Mail, Lock, User, Eye, EyeOff, Building2, CheckCircle, XCircle } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -250,6 +250,17 @@ export default function Login({ onLogin }) {
                 </button>
               </div>
             </div>
+
+            {!isRegister && (
+              <div className="flex justify-end">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-[#1E40AF] hover:text-[#1E3A8A] font-medium transition-colors"
+                >
+                  Mot de passe oublié ?
+                </Link>
+              </div>
+            )}
 
             <button
               data-testid="submit-button"
