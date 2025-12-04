@@ -215,6 +215,12 @@ function AppContent() {
           }
         />
         
+        {/* Forgot Password Page */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        
+        {/* Reset Password Page */}
+        <Route path="/reset-password" element={<ResetPassword />} />
+        
         {/* Registration Pages - Public */}
         <Route path="/register/gerant/:token" element={<RegisterGerant />} />
         <Route path="/register/manager/:token" element={<RegisterManager />} />
