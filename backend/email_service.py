@@ -7,7 +7,10 @@ logger = logging.getLogger(__name__)
 
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'hello@retailperformerai.com')
 SENDER_NAME = os.environ.get('SENDER_NAME', 'Retail Performer AI')
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+
+def get_frontend_url():
+    """Get frontend URL from environment, ensuring it's always fresh"""
+    return os.environ.get('FRONTEND_URL', 'http://localhost:3000')
 
 
 def get_brevo_api_instance():
@@ -284,7 +287,8 @@ def send_password_reset_email(recipient_email: str, recipient_name: str, reset_t
     """
     Envoyer un email de réinitialisation de mot de passe
     """
-    reset_link = f"{FRONTEND_URL}/reset-password?token={reset_token}"
+    frontend_url = get_frontend_url()
+    reset_link = f"{frontend_url}/reset-password?token={reset_token}"
     
     html_content = f"""
     <!DOCTYPE html>
