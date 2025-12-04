@@ -43,17 +43,20 @@ class ErrorBoundary extends React.Component {
 
     // Erreur légitime - logger
     console.error('Erreur capturée par ErrorBoundary:', error, errorInfo);
+    
+    // Ignorer les erreurs removeChild provenant des modaux React
+    // Ces erreurs sont généralement bénignes et causées par des manipulations DOM externes
+    if (error.message && error.message.includes('removeChild')) {
+      console.warn('Erreur removeChild détectée et ignorée (probable conflit DOM externe):', error.message);
+      // Réinitialiser l'état pour ne pas bloquer l'UI
+      this.setState({ hasError: false, error: null, errorInfo: null });
+      return;
+    }
+    
     this.setState({
       error: error,
       errorInfo: errorInfo
     });
-    
-    // Auto-reload after 2 seconds if it's the removeChild error
-    if (error.message && error.message.includes('removeChild')) {
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    }
   }
 
   render() {
