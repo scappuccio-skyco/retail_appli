@@ -80,12 +80,10 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       title: 'Recevez du coaching IA',
       description: (
         <>
-          <div className="bg-purple-50 border-2 border-purple-400 rounded-lg p-4 mt-3 mb-4">
-            <p className="font-bold text-purple-800 mb-2">📍 Accédez au Coach IA :</p>
-            <ol className="list-decimal list-inside space-y-2 text-left text-purple-900">
-              <li>Cliquez sur <strong className="bg-purple-200 px-2 py-1 rounded">🤖 Mon Coach IA</strong> dans le menu</li>
-              <li>Ou trouvez la section <strong>"Coaching"</strong> sur votre dashboard</li>
-            </ol>
+          <div className="bg-purple-50 border border-purple-300 rounded p-3 mt-3 mb-3" data-emergent-ignore="true">
+            <p className="font-semibold text-sm mb-2">📍 Accédez au Coach IA :</p>
+            <p className="text-sm">1. Cliquez sur Mon Coach IA dans le menu</p>
+            <p className="text-sm">2. Ou trouvez la section Coaching sur votre dashboard</p>
           </div>
           
           <p>L'IA analyse vos performances et vous donne des conseils personnalisés :</p>
