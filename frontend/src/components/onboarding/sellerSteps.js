@@ -82,8 +82,8 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
         <>
           <div className="bg-purple-50 border border-purple-300 rounded p-3 mt-3 mb-3" data-emergent-ignore="true">
             <p className="font-semibold text-sm mb-2">📍 Accédez au Coach IA :</p>
-            <p className="text-sm">1. Cliquez sur Mon Coach IA dans le menu</p>
-            <p className="text-sm">2. Ou trouvez la section Coaching sur votre dashboard</p>
+            <p className="text-sm">👉 <strong>Option 1 :</strong> Dans le menu latéral, cherchez l'icône 🤖 et cliquez sur "Mon Coach IA"</p>
+            <p className="text-sm">👉 <strong>Option 2 :</strong> Sur le dashboard, trouvez la carte ou section "Coaching" ou "Conseils IA"</p>
           </div>
           
           <p>L'IA analyse vos performances et vous donne des conseils personnalisés :</p>
