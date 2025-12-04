@@ -103,13 +103,11 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       description: (
         <>
           <p>Vous êtes prêt à utiliser Retail Performer AI !</p>
-          <p className="mt-3">N'oubliez pas :</p>
-          <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li>Complétez votre diagnostic dès maintenant</li>
-            <li>Saisissez vos KPI tous les jours</li>
-            <li>Consultez vos conseils IA régulièrement</li>
-          </ul>
-          <p className="mt-3">Vous pouvez relancer ce tutoriel à tout moment via le bouton <strong>🎓 Tutoriel</strong>.</p>
+          <p className="mt-2 font-semibold">À faire maintenant :</p>
+          <p>1. Complétez votre diagnostic</p>
+          <p>2. Saisissez vos chiffres du jour</p>
+          <p>3. Consultez vos conseils IA</p>
+          <p className="mt-2">Relancez ce tutoriel via le bouton <strong>Tutoriel</strong> en haut.</p>
         </>
       ),
       tips: 'Bon courage et excellentes ventes ! 💪'
