@@ -1521,6 +1521,10 @@ async def reset_password(request: ResetPasswordRequest):
     if isinstance(expires_at, str):
         expires_at = datetime.fromisoformat(expires_at)
     
+    # Ensure both datetimes are timezone-aware for comparison
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
     if expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Le lien de réinitialisation a expiré")
     
