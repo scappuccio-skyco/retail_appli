@@ -27,24 +27,19 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       title: 'Complétez votre diagnostic',
       description: (
         <>
-          <p>Le diagnostic de compétences est votre <strong>première étape obligatoire</strong>.</p>
+          <p>Première étape importante pour débloquer toutes les fonctionnalités !</p>
           
-          <div className="bg-yellow-50 border border-yellow-300 rounded p-3 mt-3 mb-3" data-emergent-ignore="true">
-            <p className="font-semibold text-sm mb-2">📍 Comment y accéder :</p>
-            <p className="text-sm">👉 <strong>Étape 1 :</strong> En haut à droite, cliquez sur votre icône de profil (👤)</p>
-            <p className="text-sm">👉 <strong>Étape 2 :</strong> Dans le menu qui s'ouvre, trouvez "Diagnostic de compétences"</p>
-            <p className="text-sm">👉 <strong>Étape 3 :</strong> Cliquez sur "Commencer le diagnostic"</p>
+          <div className="bg-yellow-50 border border-yellow-300 rounded p-2 mt-2 mb-2" data-emergent-ignore="true">
+            <p className="font-semibold mb-1">📍 Comment faire :</p>
+            <p>1. Dans "Mes tâches à faire", cliquez sur "Complète ton diagnostic vendeur"</p>
+            <p className="mt-1">OU</p>
+            <p>2. Cliquez sur Profil (en haut à droite) puis "Diagnostic"</p>
           </div>
           
-          <p className="mt-3">Il permet de :</p>
-          <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li>Identifier votre profil de vendeur</li>
-            <li>Personnaliser votre coaching IA</li>
-            <li>Débloquer toutes les fonctionnalités</li>
-          </ul>
+          <p className="mt-2">Cela permet de personnaliser votre coaching IA et débloquer toutes les fonctionnalités.</p>
         </>
       ),
-      tips: 'Soyez honnête dans vos réponses, personne ne les jugera !'
+      tips: 'Soyez honnête, personne ne jugera vos réponses !'
     },
 
     // Étape 3 : KPI (ADAPTATIF)
