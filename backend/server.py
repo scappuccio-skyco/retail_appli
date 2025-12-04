@@ -1440,6 +1440,108 @@ async def register_with_invite(invite_data: RegisterWithInvite):
         "token": token
     }
 
+
+# ===== PASSWORD RESET ROUTES =====
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=8)
+
+@api_router.post("/auth/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest):
+    """Demander la réinitialisation du mot de passe"""
+    # Chercher l'utilisateur
+    user = await db.users.find_one({"email": request.email}, {"_id": 0})
+    
+    # Toujours retourner success pour éviter l'énumération d'emails
+    # Mais n'envoyer l'email que si l'utilisateur existe
+    if user:
+        # Générer un token de réinitialisation
+        reset_token = secrets.token_urlsafe(32)
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)  # 10 minutes
+        
+        # Stocker le token dans une collection dédiée
+        await db.password_resets.insert_one({
+            "user_id": user['id'],
+            "email": user['email'],
+            "token": reset_token,
+            "expires_at": expires_at,
+            "used": False,
+            "created_at": datetime.now(timezone.utc)
+        })
+        
+        # Envoyer l'email
+        from email_service import send_password_reset_email
+        send_password_reset_email(user['email'], user['name'], reset_token)
+    
+    return {
+        "message": "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation dans quelques instants."
+    }
+
+@api_router.get("/auth/reset-password/{token}")
+async def verify_reset_token(token: str):
+    """Vérifier la validité d'un token de réinitialisation"""
+    reset_request = await db.password_resets.find_one(
+        {"token": token, "used": False},
+        {"_id": 0}
+    )
+    
+    if not reset_request:
+        raise HTTPException(status_code=404, detail="Token invalide ou déjà utilisé")
+    
+    # Vérifier l'expiration
+    expires_at = reset_request['expires_at']
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Le lien de réinitialisation a expiré")
+    
+    return {
+        "valid": True,
+        "email": reset_request['email']
+    }
+
+@api_router.post("/auth/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    """Réinitialiser le mot de passe avec un token valide"""
+    # Vérifier le token
+    reset_request = await db.password_resets.find_one(
+        {"token": request.token, "used": False},
+        {"_id": 0}
+    )
+    
+    if not reset_request:
+        raise HTTPException(status_code=404, detail="Token invalide ou déjà utilisé")
+    
+    # Vérifier l'expiration
+    expires_at = reset_request['expires_at']
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Le lien de réinitialisation a expiré")
+    
+    # Mettre à jour le mot de passe
+    hashed_password = hash_password(request.new_password)
+    await db.users.update_one(
+        {"id": reset_request['user_id']},
+        {"$set": {"password": hashed_password}}
+    )
+    
+    # Marquer le token comme utilisé
+    await db.password_resets.update_one(
+        {"token": request.token},
+        {"$set": {"used": True, "used_at": datetime.now(timezone.utc)}}
+    )
+    
+    return {
+        "message": "Mot de passe réinitialisé avec succès"
+    }
+
+
 # ===== INVITATION ROUTES =====
 # DISABLED: Only gerant can invite managers and sellers
 # Managers can no longer invite sellers directly
