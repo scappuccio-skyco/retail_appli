@@ -38,7 +38,7 @@ const OnboardingModal = React.memo(function OnboardingModal({
       
       {/* Modal */}
       <div 
-        className="relative bg-white rounded-xl shadow-2xl max-w-xl w-full mx-4 max-h-[80vh] overflow-y-auto"
+        className="relative bg-white rounded-lg shadow-2xl max-w-md w-full mx-4 max-h-[75vh] overflow-y-auto"
         data-emergent-ignore="true"
         onClick={(e) => e.stopPropagation()}
       >
@@ -50,14 +50,14 @@ const OnboardingModal = React.memo(function OnboardingModal({
             e.stopPropagation();
             onClose();
           }}
-          className="absolute top-3 right-3 p-1.5 hover:bg-gray-100 rounded-full transition-colors z-10"
+          className="absolute top-2 right-2 p-1 hover:bg-gray-100 rounded-full transition-colors z-10"
           title="Fermer"
         >
-          <X className="w-4 h-4 text-gray-500" />
+          <X className="w-3.5 h-3.5 text-gray-400" />
         </button>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-4">
           {/* Progress bar */}
           <ProgressBar
             current={currentStep}
