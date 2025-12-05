@@ -148,8 +148,18 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         const sellers = usersRes.data;
         
         // Fetch KPI entries for all sellers
+        // Use start_date and end_date if available, otherwise use days
+        let kpiUrl;
+        if (startDate && endDate) {
+          const startStr = startDate.toISOString().split('T')[0];
+          const endStr = endDate.toISOString().split('T')[0];
+          kpiUrl = (sellerId) => `${API}/api/manager/kpi-entries/${sellerId}?start_date=${startStr}&end_date=${endStr}`;
+        } else {
+          kpiUrl = (sellerId) => `${API}/api/manager/kpi-entries/${sellerId}?days=${days}`;
+        }
+        
         const sellersDataPromises = sellers.map(seller =>
-          axios.get(`${API}/api/manager/kpi-entries/${seller.id}?days=${days}`, {
+          axios.get(kpiUrl(seller.id), {
             headers: { Authorization: `Bearer ${token}` }
           })
         );
