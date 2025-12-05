@@ -14,11 +14,21 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   const [showDailyAIModal, setShowDailyAIModal] = useState(false);
   const [showOverviewAIModal, setShowOverviewAIModal] = useState(false);
   
+  // Helper to get current week
+  const getCurrentWeek = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const firstDayOfYear = new Date(year, 0, 1);
+    const pastDaysOfYear = (now - firstDayOfYear) / 86400000;
+    const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    return `${year}-W${String(weekNum).padStart(2, '0')}`;
+  };
+
   // New states for global overview with charts
   const [viewMode, setViewMode] = useState('multi'); // 'week', 'month', 'multi'
   const [multiPeriod, setMultiPeriod] = useState('3months'); // '3months', '6months', '12months'
-  const [selectedWeek, setSelectedWeek] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedWeek, setSelectedWeek] = useState(getCurrentWeek());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0,7));
   const [historicalData, setHistoricalData] = useState([]);
   
   // Chart visibility filters
