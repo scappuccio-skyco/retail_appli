@@ -776,9 +776,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   📆 Vue Mensuelle
                 </button>
                 <button
-                  onClick={() => setViewMode('multi')}
+                  onClick={() => setViewMode('year')}
                   className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${
-                    viewMode === 'multi'
+                    viewMode === 'year'
                       ? 'border-orange-500 bg-orange-500 text-white shadow-md'
                       : 'border-gray-300 text-gray-700 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50'
                   }`}
