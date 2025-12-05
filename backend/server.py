@@ -5828,6 +5828,83 @@ async def get_daily_challenge_history(current_user: dict = Depends(get_current_u
     
     return challenges
 
+# ===== ONBOARDING PROGRESS ENDPOINTS =====
+@api_router.get("/onboarding/progress")
+async def get_onboarding_progress(current_user: dict = Depends(get_current_user)):
+    """Get the onboarding progress for the current user"""
+    try:
+        # Get onboarding progress from DB
+        progress = await db.onboarding_progress.find_one(
+            {"user_id": current_user['id']},
+            {"_id": 0}
+        )
+        
+        if not progress:
+            # Return default progress if not found
+            return {
+                "user_id": current_user['id'],
+                "current_step": 0,
+                "completed_steps": [],
+                "is_completed": False,
+                "last_updated": datetime.now(timezone.utc).isoformat()
+            }
+        
+        return progress
+    except Exception as e:
+        logging.error(f"Error getting onboarding progress: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/onboarding/progress")
+async def save_onboarding_progress(
+    progress_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Save or update the onboarding progress for the current user"""
+    try:
+        progress_doc = {
+            "user_id": current_user['id'],
+            "current_step": progress_data.get('current_step', 0),
+            "completed_steps": progress_data.get('completed_steps', []),
+            "is_completed": progress_data.get('is_completed', False),
+            "last_updated": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Upsert the progress
+        await db.onboarding_progress.update_one(
+            {"user_id": current_user['id']},
+            {"$set": progress_doc},
+            upsert=True
+        )
+        
+        return progress_doc
+    except Exception as e:
+        logging.error(f"Error saving onboarding progress: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/onboarding/complete")
+async def mark_onboarding_complete(current_user: dict = Depends(get_current_user)):
+    """Mark the onboarding as completed for the current user"""
+    try:
+        progress_doc = {
+            "user_id": current_user['id'],
+            "current_step": 0,
+            "completed_steps": [],
+            "is_completed": True,
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "last_updated": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.onboarding_progress.update_one(
+            {"user_id": current_user['id']},
+            {"$set": progress_doc},
+            upsert=True
+        )
+        
+        return {"success": True, "message": "Onboarding marked as complete"}
+    except Exception as e:
+        logging.error(f"Error marking onboarding complete: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # ===== MANAGER OBJECTIVES ENDPOINTS =====
 @api_router.get("/manager/objectives")
 async def get_manager_objectives(current_user: dict = Depends(get_current_user)):
