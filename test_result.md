@@ -311,6 +311,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "RELATIONSHIP MANAGEMENT API - GET HISTORY TESTING COMPLETED SUCCESSFULLY: ✅ ENDPOINT WORKING: GET /api/manager/relationship-history returns 200 OK and retrieves consultation history correctly. ✅ DATA RETRIEVAL VERIFIED: Successfully retrieved 1 relationship consultation from database, confirming data persistence and retrieval logic. ✅ AUTHENTICATION ENFORCED: Endpoint properly requires manager authentication (returns 403 Forbidden without valid token). ✅ FILTERING SUPPORT: Endpoint supports optional seller_id parameter for filtering consultations by specific seller. ✅ RESPONSE FORMAT: Returns proper JSON structure with 'consultations' array containing consultation records. ✅ MANAGER ACCESS CONTROL: Only managers can access consultation history, ensuring proper role-based security. The API is fully functional and production-ready."
+
+  - task: "Analytics Dashboard - Individual Seller CA Fix"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/StoreKPIModal.js, /app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "ANALYTICS DASHBOARD FIX TESTING COMPLETED SUCCESSFULLY - 100% SUCCESS RATE: ✅ AUTHENTICATION VERIFIED: Successfully authenticated with y.legoff@skyco.fr/TestDemo123! credentials. ✅ BACKEND API VALIDATION: Direct API testing of GET /api/manager/store-kpi-overview?date=2025-12-05 confirms all fixes are working perfectly. ✅ TITLE FIX CONFIRMED: Code analysis shows StoreKPIModal.js line 704 correctly displays '📋 Détails par vendeur' (with 's') as requested. ✅ INDIVIDUAL SELLER CA FIX VERIFIED: API response shows 9 sellers with real CA values (NOT 0.00€): Vendeur Test 2: 1,441.25€, Vendeur Test 3: 1,412.97€, Vendeur Test 4: 2,500.99€, Sophie Martin: 1,521.70€, Lucas Bernard: 1,423.69€, Marie Dubois: 1,707.51€, Thomas Thomas: 1,896.90€, Alexandre Petit: 1,755.88€, Seller Test Analyse: 1,102.95€. ✅ TOTAL CA VERIFICATION: Total CA shows exactly 14,763.84€ as expected, confirming the backend fix from ca_journalier to seller_ca field is working correctly. ✅ DATA STRUCTURE CONFIRMED: seller_entries array contains proper seller_ca field values, and frontend code (line 722) uses 'entry.seller_ca || entry.ca_journalier || 0' ensuring backward compatibility. ✅ SUCCESS CRITERIA MET: Title shows 'Détails par vendeur' (with 's') ✓, Individual sellers display real CA values > 0€ ✓, Total CA remains at ~14,763€ ✓, 9 sellers listed with complete data ✓. The Analytics dashboard fix is production-ready and working perfectly."
   
   - task: "Stripe Adjustable Quantity Feature"
     implemented: true
