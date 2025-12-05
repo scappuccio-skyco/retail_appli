@@ -1488,8 +1488,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
             viewMode,
             period: viewMode === 'week' ? `Semaine ${selectedWeek}` : 
                     viewMode === 'month' ? `Mois ${selectedMonth}` :
-                    multiPeriod === '3months' ? '3 derniers mois' :
-                    multiPeriod === '6months' ? '6 derniers mois' : '12 derniers mois',
+                    viewMode === 'year' ? `Année ${selectedYear}` : 'Période inconnue',
             historicalData
           }}
           onClose={() => setShowOverviewAIModal(false)}
