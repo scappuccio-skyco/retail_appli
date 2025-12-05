@@ -798,7 +798,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                 <button
                   onClick={() => {
                     setViewMode('week');
-                    setSelectedWeek(new Date().toISOString().split('T')[0].slice(0,8) + 'W' + Math.ceil(new Date().getDate() / 7).toString().padStart(2, '0'));
+                    if (!selectedWeek) setSelectedWeek(getCurrentWeek());
                   }}
                   className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${
                     viewMode === 'week'
