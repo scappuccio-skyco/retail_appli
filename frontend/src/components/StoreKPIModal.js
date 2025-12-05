@@ -211,6 +211,14 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
           .sort((a, b) => new Date(a.date) - new Date(b.date));
       }
 
+      // Filter data by date range if needed
+      if (startDate && endDate) {
+        historicalArray = historicalArray.filter(day => {
+          const dayDate = new Date(day.date);
+          return dayDate >= startDate && dayDate <= endDate;
+        });
+      }
+
       // Aggregate data based on period
       let aggregatedData = [];
       
