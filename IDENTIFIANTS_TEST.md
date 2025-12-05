@@ -8,20 +8,18 @@
 
 ## ✅ COMPTES DE TEST SIMPLIFIÉS (Créés pour vous)
 
-### 🏪 Gérant
-- **Email :** `gerant.test@demo.com`
-- **Mot de passe :** `test123`
-- **Rôle :** gérant
+**Comptes de démonstration (mot de passe : TestDemo123!) :**
+- `gerant.demo@test.fr` (Gérant) ✅ VALIDÉ
+- `manager.demo@test.fr` (Manager) ✅ VALIDÉ
+- `vendeur.demo@test.fr` (Vendeur) ✅ VALIDÉ
 
-### 👔 Manager
-- **Email :** `manager.test@demo.com`
-- **Mot de passe :** `test123`
-- **Rôle :** manager
+**Autres comptes (mot de passe : test123) :**
+- `gerant.test@demo.com` (Gérant)
+- `manager.test@demo.com` (Manager)
+- `vendeur.test@demo.com` (Vendeur)
+- `s.cappuccio@skyco.fr` (Gérant)
 
-### 👤 Vendeur
-- **Email :** `vendeur.test@demo.com`
-- **Mot de passe :** `test123`
-- **Rôle :** seller
+📄 Documentation complète : `/app/IDENTIFIANTS_TEST.md`
 
 ---
 
