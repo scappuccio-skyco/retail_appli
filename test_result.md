@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test de la persistance de l'onboarding pour un vendeur - Vérifier que la progression du tutoriel est automatiquement sauvegardée dans la base de données et restaurée lors de la prochaine connexion"
+user_problem_statement: "Test complet du graphique CA dans l'onglet Historique (toutes les vues) - Vérifier que les graphiques CA affichent des données > 0 après correction du bug ca_journalier vs seller_ca"
 
 backend:
   - task: "Multi-Store Management API Endpoints"
