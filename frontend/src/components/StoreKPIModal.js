@@ -83,13 +83,33 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     try {
       const token = localStorage.getItem('token');
       let days = 90; // default 3 months
+      let startDate = null;
+      let endDate = null;
       
-      if (viewMode === 'week') days = 7;
-      else if (viewMode === 'month') days = 30;
-      else if (viewMode === 'multi') {
+      if (viewMode === 'week' && selectedWeek) {
+        // Parse week format "YYYY-Wxx" to get start/end dates
+        const [year, week] = selectedWeek.split('-W');
+        const firstDayOfYear = new Date(parseInt(year), 0, 1);
+        const weekStart = new Date(firstDayOfYear);
+        weekStart.setDate(firstDayOfYear.getDate() + (parseInt(week) - 1) * 7);
+        startDate = new Date(weekStart);
+        endDate = new Date(weekStart);
+        endDate.setDate(weekStart.getDate() + 6);
+        days = 7;
+      } else if (viewMode === 'month' && selectedMonth) {
+        // Parse month format "YYYY-MM"
+        const [year, month] = selectedMonth.split('-');
+        startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+        endDate = new Date(parseInt(year), parseInt(month), 0); // Last day of month
+        days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+      } else if (viewMode === 'multi') {
         if (multiPeriod === '3months') days = 90;
         else if (multiPeriod === '6months') days = 180;
         else if (multiPeriod === '12months') days = 365;
+      } else if (viewMode === 'week') {
+        days = 7;
+      } else if (viewMode === 'month') {
+        days = 30;
       }
 
       let historicalArray = [];
