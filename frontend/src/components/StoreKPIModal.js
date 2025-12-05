@@ -230,102 +230,39 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       // Aggregate data based on period
       let aggregatedData = [];
       
-      if (viewMode === 'multi') {
-        if (multiPeriod === '3months') {
-          // Group by week
-          const weekMap = {};
-          historicalArray.forEach(day => {
-            const date = new Date(day.date);
-            const year = date.getFullYear();
-            const weekNum = Math.ceil((date.getDate() + new Date(year, date.getMonth(), 1).getDay()) / 7);
-            const weekKey = `${year}-S${String(weekNum).padStart(2, '0')}`;
-            
-            if (!weekMap[weekKey]) {
-              weekMap[weekKey] = {
-                date: weekKey,
-                seller_ca: 0,
-                seller_ventes: 0,
-                seller_clients: 0,
-                seller_articles: 0,
-                seller_prospects: 0,
-                count: 0
-              };
-            }
-            
-            weekMap[weekKey].seller_ca += day.seller_ca;
-            weekMap[weekKey].seller_ventes += day.seller_ventes;
-            weekMap[weekKey].seller_clients += day.seller_clients;
-            weekMap[weekKey].seller_articles += day.seller_articles;
-            weekMap[weekKey].seller_prospects += day.seller_prospects;
-            weekMap[weekKey].count++;
-          });
+      if (viewMode === 'year') {
+        // Year view: Group by month with French month names
+        const monthMap = {};
+        const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                           'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+        
+        historicalArray.forEach(day => {
+          const monthKey = day.date.substring(0, 7); // YYYY-MM
+          const [year, month] = monthKey.split('-');
+          const monthName = monthNames[parseInt(month) - 1];
           
-          aggregatedData = Object.values(weekMap).sort((a, b) => a.date.localeCompare(b.date));
-        } else if (multiPeriod === '6months') {
-          // Group by 2 weeks (bi-weekly)
-          const biWeekMap = {};
-          historicalArray.forEach(day => {
-            const date = new Date(day.date);
-            const year = date.getFullYear();
-            const weekNum = Math.ceil((date.getDate() + new Date(year, date.getMonth(), 1).getDay()) / 7);
-            const biWeekNum = Math.ceil(weekNum / 2);
-            const biWeekKey = `${year}-${String(date.getMonth() + 1).padStart(2, '0')}-B${biWeekNum}`;
-            
-            if (!biWeekMap[biWeekKey]) {
-              biWeekMap[biWeekKey] = {
-                date: biWeekKey,
-                seller_ca: 0,
-                seller_ventes: 0,
-                seller_clients: 0,
-                seller_articles: 0,
-                seller_prospects: 0,
-                count: 0
-              };
-            }
-            
-            biWeekMap[biWeekKey].seller_ca += day.seller_ca;
-            biWeekMap[biWeekKey].seller_ventes += day.seller_ventes;
-            biWeekMap[biWeekKey].seller_clients += day.seller_clients;
-            biWeekMap[biWeekKey].seller_articles += day.seller_articles;
-            biWeekMap[biWeekKey].seller_prospects += day.seller_prospects;
-            biWeekMap[biWeekKey].count++;
-          });
+          if (!monthMap[monthKey]) {
+            monthMap[monthKey] = {
+              date: monthName,
+              sortKey: monthKey,
+              seller_ca: 0,
+              seller_ventes: 0,
+              seller_clients: 0,
+              seller_articles: 0,
+              seller_prospects: 0,
+              count: 0
+            };
+          }
           
-          aggregatedData = Object.values(biWeekMap).sort((a, b) => a.date.localeCompare(b.date));
-        } else if (multiPeriod === '12months') {
-          // Group by month with French month names
-          const monthMap = {};
-          const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
-                             'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-          
-          historicalArray.forEach(day => {
-            const monthKey = day.date.substring(0, 7); // YYYY-MM
-            const [year, month] = monthKey.split('-');
-            const monthName = `${monthNames[parseInt(month) - 1]} ${year}`;
-            
-            if (!monthMap[monthKey]) {
-              monthMap[monthKey] = {
-                date: monthName,
-                sortKey: monthKey,
-                seller_ca: 0,
-                seller_ventes: 0,
-                seller_clients: 0,
-                seller_articles: 0,
-                seller_prospects: 0,
-                count: 0
-              };
-            }
-            
-            monthMap[monthKey].seller_ca += day.seller_ca;
-            monthMap[monthKey].seller_ventes += day.seller_ventes;
-            monthMap[monthKey].seller_clients += day.seller_clients;
-            monthMap[monthKey].seller_articles += day.seller_articles;
-            monthMap[monthKey].seller_prospects += day.seller_prospects;
-            monthMap[monthKey].count++;
-          });
-          
-          aggregatedData = Object.values(monthMap).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
-        }
+          monthMap[monthKey].seller_ca += day.seller_ca;
+          monthMap[monthKey].seller_ventes += day.seller_ventes;
+          monthMap[monthKey].seller_clients += day.seller_clients;
+          monthMap[monthKey].seller_articles += day.seller_articles;
+          monthMap[monthKey].seller_prospects += day.seller_prospects;
+          monthMap[monthKey].count++;
+        });
+        
+        aggregatedData = Object.values(monthMap).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
       } else {
         // For week and month views, keep daily data
         aggregatedData = historicalArray;
