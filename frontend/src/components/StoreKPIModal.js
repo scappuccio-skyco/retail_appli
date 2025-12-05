@@ -227,6 +227,34 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         });
       }
 
+      // Fill missing days for month view with zeros
+      if (viewMode === 'month' && startDate && endDate) {
+        const filledArray = [];
+        const existingDates = new Set(historicalArray.map(d => d.date));
+        
+        // Iterate through all days in the range
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+          const dateStr = d.toISOString().split('T')[0];
+          
+          const existing = historicalArray.find(item => item.date === dateStr);
+          if (existing) {
+            filledArray.push(existing);
+          } else {
+            // Add missing day with zeros
+            filledArray.push({
+              date: dateStr,
+              seller_ca: 0,
+              seller_ventes: 0,
+              seller_clients: 0,
+              seller_articles: 0,
+              seller_prospects: 0
+            });
+          }
+        }
+        
+        historicalArray = filledArray;
+      }
+
       // Aggregate data based on period
       let aggregatedData = [];
       
