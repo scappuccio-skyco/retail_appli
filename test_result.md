@@ -483,9 +483,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Multi-Store Management API Endpoints"
-    - "Gerant Dashboard - Intégration Modaux"
-    - "Gerant Modals Components"
+    - "Analytics Dashboard - CA Charts Historical Views Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
