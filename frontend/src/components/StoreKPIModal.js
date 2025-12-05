@@ -285,14 +285,20 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
           
           aggregatedData = Object.values(biWeekMap).sort((a, b) => a.date.localeCompare(b.date));
         } else if (multiPeriod === '12months') {
-          // Group by month
+          // Group by month with French month names
           const monthMap = {};
+          const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                             'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+          
           historicalArray.forEach(day => {
             const monthKey = day.date.substring(0, 7); // YYYY-MM
+            const [year, month] = monthKey.split('-');
+            const monthName = `${monthNames[parseInt(month) - 1]} ${year}`;
             
             if (!monthMap[monthKey]) {
               monthMap[monthKey] = {
-                date: monthKey,
+                date: monthName,
+                sortKey: monthKey,
                 seller_ca: 0,
                 seller_ventes: 0,
                 seller_clients: 0,
@@ -310,7 +316,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
             monthMap[monthKey].count++;
           });
           
-          aggregatedData = Object.values(monthMap).sort((a, b) => a.date.localeCompare(b.date));
+          aggregatedData = Object.values(monthMap).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
         }
       } else {
         // For week and month views, keep daily data
