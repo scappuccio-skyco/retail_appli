@@ -175,6 +175,18 @@ frontend:
         agent: "main"
         comment: "MODAUX GÉRANT DÉJÀ IMPLÉMENTÉS: ✅ CreateStoreModal.js - Formulaire complet (name, location, address, phone, opening_hours), validation, loading state, error handling. ✅ StoreDetailModal.js - Onglets Managers/Vendeurs, liste avec boutons Transférer, bouton Supprimer magasin, bouton Actualiser, fetch des équipes via API. ✅ ManagerTransferModal.js - Dropdown magasins filtrés (actifs seulement, excluant magasin actuel), warning sur vendeurs orphelins, affichage magasin actuel/nouveau. ✅ SellerTransferModal.js - Dropdown magasins, fetch dynamique des managers du magasin sélectionné, dropdown managers, validation (magasin + manager requis), affichage confirmation. ✅ DeleteStoreConfirmation.js - Processus 3 étapes (conséquences, conditions, confirmation), saisie nom magasin pour valider, messages d'avertissement détaillés. ✅ StoreCard.js - Affichage stats (managers_count, sellers_count, today_ca), statut actif/inactif, hover effects. ✅ TOUS PRÊTS POUR TESTS."
 
+  - task: "Manager Analytics Dashboard - KPI Bug Fix Verification"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/StoreKPIModal.js, /app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "ANALYTICS DASHBOARD TESTING COMPLETED SUCCESSFULLY - 100% SUCCESS RATE: ✅ CRITICAL BUG FIX VERIFIED: Manager y.legoff@skyco.fr login successful, CA Réalisé shows EXACTLY 14,763.84€ (NOT 0€), confirming the backend fix from ca_journalier to seller_ca field is working perfectly. ✅ DAILY VIEW (📅 Quotidien): Date 2025-12-05 selected, CA Réalisé: 14,763.84€ ✓, Nombre de Ventes: 116 ✓, Panier Moyen: 127.27€ ✓, 9 sellers displayed in detail section ✓. ✅ HISTORICAL VIEW (📊 Historique): All 3 view buttons present (Vue Hebdomadaire, Vue Mensuelle, Vue Annuelle) ✓. ✅ CRITICAL SUCCESS - VUE ANNUELLE: Year dropdown selector found (NOT old 3/6/12 month buttons), available years: 2025, year selection working (2024/2025 tested) ✓. ✅ VUE HEBDOMADAIRE: Week selector (input type='week') working, current week selection functional ✓. ✅ VUE MENSUELLE: Month selector (input type='month') working, December 2025 selection functional ✓. ✅ CHARTS: Recharts graphs loading correctly for all views ✓. ✅ NO ERRORS: Zero JavaScript console errors, no error messages on page ✓. ✅ ALL SUCCESS CRITERIA MET: CA > 0€ ✓, Seller data displayed ✓, Vue Annuelle has year dropdown (not 3/6/12 buttons) ✓, All graphs load ✓, No console errors ✓. The critical KPI bug has been completely resolved and all Analytics functionality is production-ready."
+
   - task: "Seller Onboarding Tutorial Modal - Bug Reproduction"
     implemented: true
     working: true
