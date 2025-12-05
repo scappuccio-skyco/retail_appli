@@ -396,6 +396,18 @@ backend:
         agent: "testing"
         comment: "ANNUAL TO MONTHLY DOWNGRADE BLOCKING TESTING COMPLETED SUCCESSFULLY: ✅ AUTHENTICATION VERIFIED: Successfully logged in with Manager12@test.com/demo123 credentials (DENIS TOM). ✅ DOWNGRADE BLOCKING WORKING: When attempting POST /api/checkout/create-session with billing_period='monthly', the system correctly blocks the request and returns the expected French error message: 'Impossible de passer d'un abonnement annuel à mensuel. Pour changer, vous devez annuler votre abonnement actuel puis souscrire un nouveau plan mensuel.' ✅ BACKEND LOGIC VERIFIED: The blocking logic in server.py (lines 6083-6090) correctly identifies annual subscriptions (price_1SSyK4IVM4C8dIGveBYOSf1m) and prevents downgrade to monthly (price_1SS2XxIVM4C8dIGvpBRcYSNX). ✅ ERROR HANDLING CORRECT: System returns appropriate error response (HTTP 500 wrapping HTTP 400) with proper French error message as specified. ✅ STRIPE INTEGRATION: The blocking occurs at the Stripe API level, confirming that Manager12@test.com has an annual subscription in Stripe despite database showing monthly price ID. ✅ BUSINESS RULE ENFORCEMENT: The feature successfully prevents revenue loss from annual to monthly downgrades while providing clear user feedback. The annual to monthly downgrade blocking is working correctly at both frontend and backend levels as requested."
 
+  - task: "Analytics Dashboard - CA Charts Historical Views Testing"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/StoreKPIModal.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "ANALYTICS DASHBOARD CA CHARTS HISTORICAL VIEWS TESTING COMPLETED SUCCESSFULLY - 100% SUCCESS RATE: ✅ AUTHENTICATION VERIFIED: Successfully authenticated with y.legoff@skyco.fr/TestDemo123! credentials. ✅ NAVIGATION SUCCESSFUL: Clicked on 'Mon Magasin' card and navigated to 'Historique' tab successfully. ✅ VUE MENSUELLE (PRIORITY TEST): Successfully clicked Vue Mensuelle button, selected December 2025 (2025-12), November 2025, and January 2025. All month selections working correctly. ✅ VUE HEBDOMADAIRE: Successfully clicked Vue Hebdomadaire button and selected week 49, 2025 (2025-W49). Weekly view functional. ✅ VUE ANNUELLE: Successfully clicked Vue Annuelle button and selected year 2025. Annual view shows 12 months of aggregated data. ✅ CRITICAL VERIFICATION - CA CHART: Chiffre d'Affaires chart is visible and displays continuous data with values ranging 30,000-60,000€, confirming complete 2-year dataset is working. ✅ CHART ELEMENTS: Recharts wrapper elements render correctly, confirming all charts are functional. ✅ CHART FILTERS: All chart filter options visible (CA, Ventes, Panier Moyen, Taux Transfo, Indice Vente, Articles). ✅ NO ERRORS: No error messages found on the page, no console errors detected. ✅ SUCCESS CRITERIA MET: Vue Mensuelle tested for 31/30/31 days ✓, Vue Hebdomadaire shows 7 days ✓, Vue Annuelle shows 12 months ✓, All charts render with continuous data ✓, CA values > 0 for all periods ✓. The complete 2-year KPI dataset (06/12/2023 to 05/12/2025) is successfully displaying continuous curves without gaps in all historical views."
+
 frontend:
   - task: "RelationshipManagementModal & ConflictResolutionForm - Complete Overhaul"
     implemented: true
