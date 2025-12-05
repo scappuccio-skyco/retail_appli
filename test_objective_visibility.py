@@ -8,7 +8,7 @@ import requests
 import json
 from datetime import datetime, timedelta
 
-BASE_URL = "https://onboard-guide.preview.emergentagent.com/api"
+BASE_URL = "https://dashview-enhance.preview.emergentagent.com/api"
 
 def login(email, password):
     """Login and return token"""

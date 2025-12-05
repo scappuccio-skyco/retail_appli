@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://onboard-guide.preview.emergentagent.com
+https://dashview-enhance.preview.emergentagent.com
 
 ### Manager
 ```
