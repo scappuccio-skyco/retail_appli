@@ -183,7 +183,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   seller_prospects: 0
                 };
               }
-              dateMap[entry.date].seller_ca += entry.ca_journalier || 0;
+              dateMap[entry.date].seller_ca += entry.seller_ca || entry.ca_journalier || 0;
               dateMap[entry.date].seller_ventes += entry.nb_ventes || 0;
               dateMap[entry.date].seller_clients += entry.nb_clients || 0;
               dateMap[entry.date].seller_articles += entry.nb_articles || 0;
