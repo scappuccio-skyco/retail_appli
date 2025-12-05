@@ -113,14 +113,11 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
         endDate = new Date(parseInt(year), parseInt(month), 0); // Last day of month
         days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-      } else if (viewMode === 'multi') {
-        if (multiPeriod === '3months') days = 90;
-        else if (multiPeriod === '6months') days = 180;
-        else if (multiPeriod === '12months') days = 365;
-      } else if (viewMode === 'week') {
-        days = 7;
-      } else if (viewMode === 'month') {
-        days = 30;
+      } else if (viewMode === 'year' && selectedYear) {
+        // Year view: get full year
+        startDate = new Date(selectedYear, 0, 1);
+        endDate = new Date(selectedYear, 11, 31);
+        days = 365;
       }
 
       let historicalArray = [];
