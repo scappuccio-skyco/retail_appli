@@ -701,7 +701,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   {/* Individual seller entries */}
                   {overviewData.seller_entries.length > 0 && (
                     <div className="bg-white rounded-lg p-3 border border-gray-200">
-                      <h3 className="text-sm font-bold text-gray-800 mb-2">📋 Détail par vendeur</h3>
+                      <h3 className="text-sm font-bold text-gray-800 mb-2">📋 Détails par vendeur</h3>
                       <div className="overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead className="bg-gray-50">
@@ -719,7 +719,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                                   {entry.seller_name || `Vendeur ${idx + 1}`}
                                 </td>
                                 <td className="px-4 py-1.5 text-center text-gray-700 whitespace-nowrap">
-                                  {entry.ca_journalier?.toFixed(2) || '0.00'} €
+                                  {(entry.seller_ca || entry.ca_journalier || 0).toFixed(2)} €
                                 </td>
                                 <td className="px-3 py-1.5 text-center text-gray-700 whitespace-nowrap">
                                   {entry.nb_ventes || 0}
