@@ -124,17 +124,17 @@ backend:
         comment: "BUG OBJECTID CORRIGÉ: ✅ FIX APPLIQUÉ: Ajout de la projection {\"_id\": 0} à la ligne 7842 du fichier server.py dans l'appel db.stores.find_one() pour exclure le champ ObjectId non sérialisable. ✅ VALIDATION: Test curl sur GET /api/gerant/stores/{store_id}/stats retourne maintenant 200 OK avec JSON valide. ✅ BACKEND REDÉMARRÉ: Service backend redémarré avec succès. ✅ SCREENSHOT PRIS: Dashboard Gérant charge correctement avec les 3 magasins (Paris, Lyon, Bordeaux). ✅ RÉSULTAT FINAL: 10/10 endpoints backend multi-store fonctionnent correctement. Tous les endpoints sont prêts pour les tests frontend."
 
 frontend:
-  - task: "SuperAdmin AI Assistant - Complete Testing"
+  - task: "Seller Onboarding Tutorial Persistence Testing"
     implemented: true
-    working: "NA"
-    file: "/app/frontend/src/components/superadmin/AIAssistant.js, /app/frontend/src/pages/SuperAdminDashboard.js"
+    working: true
+    file: "/app/frontend/src/components/onboarding/OnboardingModal.js, /app/frontend/src/hooks/useOnboarding.js, /app/backend/server.py"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
-      - working: "NA"
+      - working: true
         agent: "testing"
-        comment: "ASSISTANT IA SUPERADMIN - DÉBUT DES TESTS: ✅ COMPOSANTS IDENTIFIÉS: SuperAdminDashboard.js avec onglet 'Assistant IA' (icône Sparkles), AIAssistant.js avec interface chat complète (sidebar conversations, zone messages, input avec bouton envoi). ✅ BACKEND ENDPOINTS: 5 API endpoints implémentés pour chat GPT-5, gestion conversations, actions admin. ✅ CREDENTIALS: SuperAdmin créé (admin@retailperformer.com / admin). ✅ FONCTIONNALITÉS À TESTER: Login SuperAdmin, navigation onglet Assistant IA, interface chat, envoi messages, réponses IA (max 15s), historique conversations, nouvelle conversation, chargement conversations existantes. ✅ CRITÈRES SUCCÈS: Onglet accessible, interface complète, messages envoyés/reçus, conversations sauvegardées, navigation entre conversations, bouton Nouveau fonctionnel, pas d'erreurs JS console."
+        comment: "SELLER ONBOARDING TUTORIAL PERSISTENCE TESTING COMPLETED SUCCESSFULLY - 100% FUNCTIONALITY VERIFIED: ✅ AUTHENTICATION: Login vendeur1@test.com/TestDemo123! successful, dashboard loads correctly. ✅ TUTORIAL BUTTON ACCESS: Tutorial button found and functional in seller dashboard header. ✅ MODAL FUNCTIONALITY: Tutorial modal opens correctly with proper progress bar and navigation. ✅ STEP NAVIGATION: Successfully navigated through tutorial steps (1→2→3→4) with 'Suivant' button working correctly. ✅ PERSISTENCE VERIFICATION: CRITICAL SUCCESS - After page reload (F5), tutorial modal reopens at the exact saved step (step 3) instead of restarting at step 1. Progress bar correctly shows completed steps. ✅ COMPLETION BEHAVIOR: After completing full tutorial, subsequent opens correctly restart at step 1 as expected. ✅ BACKEND INTEGRATION: API endpoints working correctly - GET/POST /api/onboarding/progress returns 200 OK, progress data properly saved and retrieved from database. ✅ NAVIGATION WITHIN PERSISTED STATE: 'Précédent' and 'Suivant' buttons work correctly within saved tutorial state. ✅ NO ERRORS: Zero JavaScript console errors, no API failures, all functionality stable. ✅ SUCCESS CRITERIA MET: Modal opens correctly ✓, Navigation between steps works ✓, Progression is saved and restored after F5 ✓, Completed steps marked in progress bar ✓, After completion tutorial restarts at step 1 ✓, No console errors ✓. The onboarding persistence feature is production-ready and working perfectly."
 
   - task: "Manager TeamModal - Period Selector Functionality"
     implemented: true
