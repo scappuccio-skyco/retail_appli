@@ -5422,7 +5422,7 @@ async def get_store_kpi_overview(
     }
     
     for entry in seller_entries:
-        sellers_total["ca_journalier"] += entry.get("ca_journalier", 0)
+        sellers_total["ca_journalier"] += entry.get("seller_ca", entry.get("ca_journalier", 0))
         sellers_total["nb_ventes"] += entry.get("nb_ventes", 0)
         sellers_total["nb_clients"] += entry.get("nb_clients", 0)
         sellers_total["nb_articles"] += entry.get("nb_articles", 0)
