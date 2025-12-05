@@ -1122,6 +1122,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                             angle={-45}
                             textAnchor="end"
                             height={70}
+                            tickFormatter={formatChartDate}
                           />
                           <YAxis tick={{ fontSize: 12 }} />
                           <Tooltip />
