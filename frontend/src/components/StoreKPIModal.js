@@ -74,6 +74,29 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     manager_track_prospects: false
   });
 
+  // Format date for chart display (YYYY-MM-DD -> DD/MM/YYYY or Month name)
+  const formatChartDate = (dateStr) => {
+    if (!dateStr) return '';
+    
+    // If it's already a month name (e.g., "Janvier", "Février"), return as is
+    if (dateStr.match(/^[A-Za-zÀ-ÿ]+$/)) {
+      return dateStr;
+    }
+    
+    // If it's a week format (e.g., "2025-S49"), return as is
+    if (dateStr.includes('-S') || dateStr.includes('-B')) {
+      return dateStr;
+    }
+    
+    // Otherwise, convert YYYY-MM-DD to DD/MM/YYYY
+    try {
+      const [year, month, day] = dateStr.split('-');
+      return `${day}/${month}/${year}`;
+    } catch {
+      return dateStr;
+    }
+  };
+
   const fetchOverviewData = async () => {
     try {
       const token = localStorage.getItem('token');
