@@ -287,6 +287,15 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
           : 0
       }));
 
+      // Extract available years from the data
+      if (historicalArray.length > 0) {
+        const years = [...new Set(historicalArray.map(d => {
+          const year = new Date(d.date).getFullYear();
+          return year;
+        }))].sort((a, b) => b - a); // Sort descending (most recent first)
+        setAvailableYears(years);
+      }
+
       setHistoricalData(finalData);
     } catch (err) {
       console.error('Error fetching historical data:', err);
