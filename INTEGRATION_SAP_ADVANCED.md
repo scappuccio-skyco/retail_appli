@@ -182,7 +182,7 @@ AND stat2 = '3'; -- Actif
 REPORT z_retail_performer_bulk_sync.
 
 DATA: lv_api_key TYPE string VALUE 'rp_live_votre_cle_api_ici',
-      lv_url     TYPE string VALUE 'https://onboard-guide.preview.emergentagent.com/api/v1/integrations/bulk-provisioning',
+      lv_url     TYPE string VALUE 'https://dashview-enhance.preview.emergentagent.com/api/v1/integrations/bulk-provisioning',
       lv_json    TYPE string,
       lo_http    TYPE REF TO if_http_client.
 
