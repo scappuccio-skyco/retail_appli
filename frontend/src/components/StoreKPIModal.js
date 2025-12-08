@@ -32,6 +32,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0,7));
   const [historicalData, setHistoricalData] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
+  const [datesWithData, setDatesWithData] = useState([]);
   
   // Chart visibility filters
   const [visibleCharts, setVisibleCharts] = useState({
