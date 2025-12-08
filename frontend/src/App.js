@@ -260,6 +260,20 @@ function AppContent() {
           }
         />
         
+        {/* Manager View for Gerant - Allows gerant to access manager dashboard for a specific store */}
+        <Route
+          path="/manager-view"
+          element={
+            !user ? (
+              <Navigate to="/login" replace />
+            ) : (user.role !== 'gerant' && user.role !== 'gérant') ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <ManagerDashboard user={user} onLogout={handleLogout} />
+            )
+          }
+        />
+        
         {/* Diagnostic - Seller Only */}
         <Route
           path="/diagnostic"
