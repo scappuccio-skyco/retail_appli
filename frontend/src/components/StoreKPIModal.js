@@ -446,7 +446,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       const token = localStorage.getItem('token');
       if (storeId) {
         // Gérant view: fetch available years from API
-        const res = await axios.get(`${API}/gerant/stores/${storeId}/available-years`, {
+        const res = await axios.get(`${API}/api/gerant/stores/${storeId}/available-years`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data.years && res.data.years.length > 0) {
