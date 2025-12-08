@@ -80,7 +80,11 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${backendUrl}/api/gerant/users/${userId}`, {
+      const endpoint = userRole === 'manager' 
+        ? `${backendUrl}/api/gerant/managers/${userId}`
+        : `${backendUrl}/api/gerant/sellers/${userId}`;
+        
+      const response = await fetch(endpoint, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
