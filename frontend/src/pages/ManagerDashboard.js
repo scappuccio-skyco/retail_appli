@@ -361,7 +361,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const fetchActiveChallenges = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/manager/challenges/active`, {
+      const res = await axios.get(`${API}/manager/challenges/active${apiStoreIdParam}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setActiveChallenges(res.data);
