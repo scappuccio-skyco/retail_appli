@@ -39,18 +39,20 @@ export const gerantSteps = [
   // Étape 3 : Inviter du personnel
   {
     icon: '👥',
-    title: 'Invitez votre équipe',
+    title: 'Invitez et gérez votre équipe',
     description: (
       <>
-        <p>Vous êtes le seul à pouvoir inviter du personnel :</p>
+        <p className="text-blue-600 font-semibold">Deuxième étape : constituez votre équipe et gérez le personnel.</p>
+        <p className="mt-3">Vos actions en tant que gérant :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-          <li><strong>Managers</strong> : Géreront un magasin</li>
-          <li><strong>Vendeurs</strong> : Travailleront dans un magasin</li>
+          <li><strong>Inviter</strong> des managers et vendeurs par email</li>
+          <li><strong>Placer</strong> les utilisateurs dans les magasins</li>
+          <li><strong>Suspendre ou réactiver</strong> (mettre en veille) le personnel</li>
+          <li><strong>Valider ou supprimer</strong> les comptes utilisateurs</li>
         </ul>
-        <p className="mt-3">Chaque invitation génère un lien unique envoyé par email.</p>
       </>
     ),
-    tips: 'Assignez toujours les utilisateurs au bon magasin dès l\'invitation.'
+    tips: 'Chaque invitation génère un lien unique envoyé par email. Seul le gérant peut inviter et gérer le statut du personnel.'
   },
 
   // Étape 4 : Statistiques globales
