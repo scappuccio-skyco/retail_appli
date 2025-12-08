@@ -5056,10 +5056,7 @@ async def get_store_kpi_stats(
     seller_query["role"] = "seller"
     seller_query["status"] = {"$nin": ["deleted", "inactive"]}
     
-    sellers = await db.users.find(seller_query
-        "manager_id": current_user['id'],
-        "role": "seller"
-    }, {"_id": 0, "id": 1}).to_list(1000)
+    sellers = await db.users.find(seller_query, {"_id": 0, "id": 1}).to_list(1000)
     seller_ids = [s['id'] for s in sellers]
     
     # Get team sales (ventes)
