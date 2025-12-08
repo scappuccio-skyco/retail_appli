@@ -101,11 +101,24 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
     return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
   };
 
+  // Check if calendar should open upwards
+  const handleToggleCalendar = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      // Calendar height is approximately 400px, open upwards if not enough space below
+      setOpenUpwards(spaceBelow < 400 && spaceAbove > spaceBelow);
+    }
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div className="relative">
       {/* Date display button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        ref={buttonRef}
+        onClick={handleToggleCalendar}
         className="px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg hover:border-purple-400 focus:border-purple-400 focus:outline-none cursor-pointer bg-white font-medium text-gray-700 min-w-[140px] text-left flex items-center justify-between"
       >
         <span>📅 {displayDate()}</span>
