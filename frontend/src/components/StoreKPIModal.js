@@ -33,6 +33,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   const [historicalData, setHistoricalData] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
   const [datesWithData, setDatesWithData] = useState([]);
+  const [displayMode, setDisplayMode] = useState('chart'); // 'chart' or 'list'
+  const [displayedListItems, setDisplayedListItems] = useState(10); // For pagination
   
   // Chart visibility filters
   const [visibleCharts, setVisibleCharts] = useState({
