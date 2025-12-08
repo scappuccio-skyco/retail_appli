@@ -251,36 +251,13 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
               <p className="text-gray-600 mt-4">Chargement...</p>
             </div>
           ) : activeTab === 'performance' ? (
-            <div className="h-full flex flex-col">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-4 flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-blue-900 mb-1">🎯 Gérer ce magasin comme un Manager</p>
-                    <p className="text-xs text-blue-700">
-                      Accédez à l'espace complet : saisie KPI, objectifs, challenges, gestion d'équipe
-                    </p>
-                  </div>
-                  <a
-                    href={`/manager-view?store_id=${store.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-sm whitespace-nowrap ml-4"
-                  >
-                    <TrendingUp className="w-4 h-4" />
-                    Accéder à l'espace Manager
-                  </a>
-                </div>
-              </div>
-              <div className="flex-1 min-h-0">
-                <StoreKPIModal 
-                  onClose={() => console.log('Close not needed')} 
-                  onSuccess={() => onRefresh()}
-                  hideCloseButton={true}
-                  storeId={store.id}
-                  storeName={store.name}
-                />
-              </div>
-            </div>
+            <StoreKPIModal 
+              onClose={() => console.log('Close not needed')} 
+              onSuccess={() => onRefresh()}
+              hideCloseButton={true}
+              storeId={store.id}
+              storeName={store.name}
+            />
           ) : activeTab === 'managers' ? (
             <div key={`managers-${refreshKey}`} className="space-y-3">
               {managers.length === 0 && pendingInvitations.filter(inv => inv.role === 'manager').length === 0 ? (
