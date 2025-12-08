@@ -146,15 +146,15 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
             }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-2">
               <button
                 onClick={handlePrevMonth}
                 className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-600" />
+                <ChevronLeft className="w-4 h-4 text-gray-600" />
               </button>
               
-              <div className="text-sm font-bold text-gray-800">
+              <div className="text-xs font-bold text-gray-800">
                 {monthNames[month]} {year}
               </div>
               
@@ -162,12 +162,12 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
                 onClick={handleNextMonth}
                 className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <ChevronRight className="w-5 h-5 text-gray-600" />
+                <ChevronRight className="w-4 h-4 text-gray-600" />
               </button>
             </div>
 
             {/* Day names */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
+            <div className="grid grid-cols-7 gap-1 mb-1 text-xs">
               {dayNames.map((day) => (
                 <div key={day} className="text-center text-xs font-semibold text-gray-600 py-1">
                   {day}
