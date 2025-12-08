@@ -970,7 +970,38 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                 </div>
               )}
 
+              {/* Display Mode Toggle */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => {
+                    setDisplayMode('chart');
+                    setDisplayedListItems(10); // Reset pagination
+                  }}
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${
+                    displayMode === 'chart'
+                      ? 'border-purple-500 bg-purple-500 text-white shadow-md'
+                      : 'border-gray-300 text-gray-700 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50'
+                  }`}
+                >
+                  📊 Vue Graphique
+                </button>
+                <button
+                  onClick={() => {
+                    setDisplayMode('list');
+                    setDisplayedListItems(10); // Reset pagination
+                  }}
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${
+                    displayMode === 'list'
+                      ? 'border-purple-500 bg-purple-500 text-white shadow-md'
+                      : 'border-gray-300 text-gray-700 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50'
+                  }`}
+                >
+                  📋 Vue Liste
+                </button>
+              </div>
+
               {/* Chart Filters */}
+              {displayMode === 'chart' && (
               <div className="bg-white rounded-xl p-4 border-2 border-gray-200 shadow-sm">
                 <h3 className="text-md font-bold text-gray-800 mb-3 flex items-center gap-2">
                   🔍 Filtrer les graphiques
