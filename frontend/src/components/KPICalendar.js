@@ -189,7 +189,7 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
                     onClick={() => handleDayClick(day)}
                     disabled={!day}
                     className={`
-                      relative h-9 text-sm rounded-md transition-all
+                      relative h-7 text-xs rounded-md transition-all
                       ${!day ? 'invisible' : ''}
                       ${selected ? 'bg-purple-600 text-white font-bold ring-2 ring-purple-400 ring-offset-1' : ''}
                       ${!selected && today ? 'border-2 border-purple-600 font-bold text-purple-600' : ''}
