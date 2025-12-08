@@ -4,6 +4,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 export default function KPICalendar({ selectedDate, onDateChange, datesWithData = [] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
   const [isOpen, setIsOpen] = useState(false);
+  const [openUpwards, setOpenUpwards] = useState(false);
+  const buttonRef = React.useRef(null);
 
   const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
                       'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
