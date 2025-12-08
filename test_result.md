@@ -541,6 +541,18 @@ frontend:
         agent: "testing"
         comment: "AI ANALYSIS FEATURE TESTING COMPLETED SUCCESSFULLY - BACKEND API VERIFICATION: ✅ AUTHENTICATION VERIFIED: Successfully authenticated gérant user (gerant.demo@test.fr) via API call - login endpoint returns proper JWT token and user role 'gérant'. ✅ AI ANALYSIS ENDPOINT WORKING: Direct API testing of POST /api/manager/analyze-store-kpis confirms the endpoint accepts gérant role (backend code line 5264 allows 'manager', 'gerant', 'gérant'). ✅ AI GENERATION SUCCESSFUL: API call with test KPI data (CA: 15,000€, Ventes: 120, Panier Moyen: 125.50€, Taux Transformation: 15.2%) successfully generated AI analysis containing expected sections 'ANALYSE' and 'RECOMMANDATIONS'. ✅ RESPONSE STRUCTURE CORRECT: Analysis includes performance evaluation, key insights, and actionable recommendations as expected. Response time approximately 8-10 seconds which matches expected generation time. ✅ ROLE AUTHORIZATION CONFIRMED: Gérant role has proper access to AI analysis functionality - no 403 Forbidden errors detected. ✅ FRONTEND INTEGRATION READY: StoreKPIAIAnalysisModal.js component properly configured to call the endpoint and display analysis results. ✅ SUCCESS CRITERIA MET: AI modal functionality accessible ✓, Generate button functional ✓, Analysis generates without errors ✓, Analysis contains ANALYSE/RECOMMANDATIONS sections ✓, No error messages ✓. The AI Analysis feature is production-ready and working correctly for gérant users. Note: UI testing was limited due to browser automation issues, but backend API verification confirms full functionality."
 
+  - task: "Manager TeamModal - Vendeurs en veille Tab Testing"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/TeamModal.js, /app/backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "ONGLET 'VENDEURS EN VEILLE' IMPLÉMENTÉ: ✅ REMPLACEMENT TERMINÉ: L'onglet 'Vendeurs archivés' a été remplacé par 'Vendeurs en veille' dans TeamModal.js. ✅ ICÔNE MISE À JOUR: Utilisation de PauseCircle au lieu d'Archive pour l'icône de l'onglet. ✅ TEXTES ALIGNÉS: Titre 'Vendeurs en veille (X)' avec sous-titre 'Vendeurs temporairement suspendus - L'historique est conservé'. ✅ STATUT COHÉRENT: Affichage '⏸ En veille' pour les vendeurs avec status: 'suspended'. ✅ API BACKEND: Endpoint GET /api/manager/sellers/archived retourne uniquement les vendeurs avec status: 'suspended' (pas les supprimés). ✅ PARAMÈTRE STORE_ID: Support du paramètre store_id pour l'accès gérant multi-magasins. ✅ PRÊT POUR TESTS: Besoin de tester le flux complet depuis l'accès gérant → manager-view → TeamModal → onglet 'Vendeurs en veille'."
+
 metadata:
   created_by: "main_agent"
   version: "2.6"
