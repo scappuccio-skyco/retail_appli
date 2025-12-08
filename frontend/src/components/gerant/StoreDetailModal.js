@@ -464,7 +464,61 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                 </>
               )}
             </div>
-          )}
+          ) : activeTab === 'manager-access' ? (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-8">
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                    <TrendingUp className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                    Gérer ce magasin comme un Manager
+                  </h3>
+                  <p className="text-gray-600">
+                    Accédez à l'interface complète de gestion pour ce magasin
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
+                  <h4 className="font-semibold text-gray-800 mb-4">🎯 Fonctionnalités disponibles :</h4>
+                  <ul className="space-y-3 text-gray-700">
+                    <li className="flex items-start gap-3">
+                      <span className="text-blue-600 font-bold">✓</span>
+                      <span><strong>Saisir les KPI quotidiens</strong> du magasin et suivre les performances en temps réel</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-blue-600 font-bold">✓</span>
+                      <span><strong>Fixer des objectifs et challenges</strong> pour motiver votre équipe de vendeurs</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-blue-600 font-bold">✓</span>
+                      <span><strong>Gérer votre équipe de vendeurs</strong> : consulter leurs performances individuelles</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-blue-600 font-bold">✓</span>
+                      <span><strong>Faire des états des lieux</strong> et utiliser l'IA pour analyser les performances</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="text-center">
+                  <a
+                    href={`/manager-view?store_id=${store.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    <TrendingUp className="w-5 h-5" />
+                    Accéder à l'espace Manager
+                    <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">Nouvel onglet</span>
+                  </a>
+                  <p className="text-sm text-gray-500 mt-4">
+                    L'espace manager s'ouvrira dans un nouvel onglet
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* Footer Actions */}
