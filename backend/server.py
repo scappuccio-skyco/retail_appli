@@ -12730,20 +12730,20 @@ async def get_gerant_store_kpi_overview(
     
     # Aggregate totals from managers
     managers_total = {
-        "ca_journalier": sum(kpi.get("ca_journalier", 0) for kpi in manager_kpis_list),
-        "nb_ventes": sum(kpi.get("nb_ventes", 0) for kpi in manager_kpis_list),
-        "nb_clients": sum(kpi.get("nb_clients", 0) for kpi in manager_kpis_list),
-        "nb_articles": sum(kpi.get("nb_articles", 0) for kpi in manager_kpis_list),
-        "nb_prospects": sum(kpi.get("nb_prospects", 0) for kpi in manager_kpis_list)
+        "ca_journalier": sum((kpi.get("ca_journalier") or 0) for kpi in manager_kpis_list),
+        "nb_ventes": sum((kpi.get("nb_ventes") or 0) for kpi in manager_kpis_list),
+        "nb_clients": sum((kpi.get("nb_clients") or 0) for kpi in manager_kpis_list),
+        "nb_articles": sum((kpi.get("nb_articles") or 0) for kpi in manager_kpis_list),
+        "nb_prospects": sum((kpi.get("nb_prospects") or 0) for kpi in manager_kpis_list)
     }
     
     # Aggregate totals from sellers
     sellers_total = {
-        "ca_journalier": sum(entry.get("ca_journalier", 0) for entry in seller_entries),
-        "nb_ventes": sum(entry.get("nb_ventes", 0) for entry in seller_entries),
-        "nb_clients": sum(entry.get("nb_clients", 0) for entry in seller_entries),
-        "nb_articles": sum(entry.get("nb_articles", 0) for entry in seller_entries),
-        "nb_prospects": sum(entry.get("nb_prospects", 0) for entry in seller_entries),
+        "ca_journalier": sum((entry.get("seller_ca") or entry.get("ca_journalier") or 0) for entry in seller_entries),
+        "nb_ventes": sum((entry.get("nb_ventes") or 0) for entry in seller_entries),
+        "nb_clients": sum((entry.get("nb_clients") or 0) for entry in seller_entries),
+        "nb_articles": sum((entry.get("nb_articles") or 0) for entry in seller_entries),
+        "nb_prospects": sum((entry.get("nb_prospects") or 0) for entry in seller_entries),
         "nb_sellers_reported": len(seller_entries)
     }
     
