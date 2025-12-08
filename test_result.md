@@ -549,7 +549,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Custom KPI Calendar Component Testing"
+    - "Manager TeamModal - Vendeurs en veille Tab Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
