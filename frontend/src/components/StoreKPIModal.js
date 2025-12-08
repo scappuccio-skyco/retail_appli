@@ -1023,19 +1023,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               <div className="flex gap-2 mb-4">
                 <button
                   onClick={() => {
-                    setDisplayMode('chart');
-                    setDisplayedListItems(10); // Reset pagination
-                  }}
-                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${
-                    displayMode === 'chart'
-                      ? 'border-purple-500 bg-purple-500 text-white shadow-md'
-                      : 'border-gray-300 text-gray-700 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50'
-                  }`}
-                >
-                  📊 Vue Graphique
-                </button>
-                <button
-                  onClick={() => {
                     setDisplayMode('list');
                     setDisplayedListItems(10); // Reset pagination
                   }}
@@ -1045,7 +1032,20 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                       : 'border-gray-300 text-gray-700 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50'
                   }`}
                 >
-                  📋 Vue Liste
+                  📊 Vue Chiffrée
+                </button>
+                <button
+                  onClick={() => {
+                    setDisplayMode('chart');
+                    setDisplayedListItems(10); // Reset pagination
+                  }}
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 ${
+                    displayMode === 'chart'
+                      ? 'border-purple-500 bg-purple-500 text-white shadow-md'
+                      : 'border-gray-300 text-gray-700 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50'
+                  }`}
+                >
+                  📈 Vue Graphique
                 </button>
               </div>
 
