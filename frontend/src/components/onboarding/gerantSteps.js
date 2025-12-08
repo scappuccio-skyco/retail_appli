@@ -91,12 +91,11 @@ export const gerantSteps = [
         <p className="mt-3 font-semibold">Consultez et gérez votre formule d'abonnement :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
           <li>Plan actuel et nombre de sièges</li>
-          <li>Crédits IA restants</li>
           <li>Historique de facturation</li>
           <li>Upgrade/downgrade</li>
         </ul>
       </>
     ),
-    tips: 'Les sièges s\'ajustent automatiquement selon votre équipe.'
+    tips: 'Les sièges s\'ajustent automatiquement selon votre équipe. Les crédits IA sont maintenant illimités !'
   }
 ];
