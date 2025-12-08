@@ -216,7 +216,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              👔 Managers ({managers.length + pendingInvitations.filter(inv => inv.role === 'manager').length})
+              👔 Managers actifs ({managers.filter(m => m.status === 'active').length})
             </button>
             <button
               onClick={() => setActiveTab('sellers')}
@@ -226,7 +226,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              👥 Vendeurs ({sellers.length + pendingInvitations.filter(inv => inv.role === 'seller').length})
+              👥 Vendeurs actifs ({sellers.filter(s => s.status === 'active').length})
             </button>
           </div>
         </div>
