@@ -69,7 +69,7 @@ export default function RegisterSeller() {
         : `${API}/auth/register-with-invite`;
 
       await axios.post(endpoint, {
-        token,
+        invitation_token: token,
         name: formData.name,
         password: formData.password,
         phone: formData.phone
