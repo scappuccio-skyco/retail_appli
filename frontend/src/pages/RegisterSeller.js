@@ -78,7 +78,23 @@ export default function RegisterSeller() {
       toast.success('Compte créé avec succès ! Redirection...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur lors de l\'inscription');
+      console.error('Registration error:', error);
+      let errorMessage = 'Erreur lors de l\'inscription';
+      
+      if (error.response?.data?.detail) {
+        // Si detail est un tableau (erreurs de validation Pydantic)
+        if (Array.isArray(error.response.data.detail)) {
+          errorMessage = error.response.data.detail
+            .map(e => `${e.loc?.join(' > ') || 'Champ'}: ${e.msg}`)
+            .join(', ');
+        } else if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
       setSubmitting(false);
     }
   };
