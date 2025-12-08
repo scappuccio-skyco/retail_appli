@@ -81,7 +81,7 @@ Après avoir corrigé le bug de redirection Gérant, vous DEVEZ vider le cache d
 Pour tester un compte depuis le terminal :
 
 ```bash
-curl -X POST "https://retail-metrics-35.preview.emergentagent.com/api/auth/login" \
+curl -X POST "https://store-switcher.preview.emergentagent.com/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email":"gerant.test@demo.com","password":"test123"}'
 ```
