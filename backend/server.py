@@ -54,6 +54,24 @@ def anonymize_name_for_ai(full_name: str) -> str:
     # Garder uniquement le prénom (premier mot/groupe avant espace)
     first_name = full_name.strip().split()[0] if full_name.strip() else "Vendeur"
     return first_name
+
+# ============================================================================
+# HELPER FUNCTIONS FOR DATA FIELD CONSISTENCY
+# ============================================================================
+
+def get_ca_value(entry: dict, is_manager: bool = False) -> float:
+    """
+    Get CA value with consistent field naming.
+    - Sellers use 'seller_ca'
+    - Managers use 'ca_journalier'
+    This ensures data consistency across the application.
+    """
+    if is_manager:
+        return entry.get("ca_journalier", 0) or 0
+    else:
+        # For sellers, try seller_ca first (new standard), fallback to ca_journalier (legacy)
+        return entry.get("seller_ca", 0) or entry.get("ca_journalier", 0) or 0
+
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION = 24  # hours
 
