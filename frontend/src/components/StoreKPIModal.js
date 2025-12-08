@@ -756,7 +756,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   </div>
 
 
-                  {/* Données validées (fusion manager + vendeurs) */}
+                  {/* Données validées (fusion manager + vendeurs) - Only for Manager view */}
+                  {!storeId && (
                   <div className="bg-white rounded-lg p-4 border border-gray-200">
                     <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
                       <span>✅</span> Données Validées
