@@ -992,16 +992,16 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
               </>
               )}
 
-              {/* Section Vendeurs Archivés */}
+              {/* Section Vendeurs En Veille */}
               {showArchivedSellers && (
                 <div className="bg-white rounded-lg border border-gray-200">
                   <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-gray-200">
                     <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                      <Archive className="w-5 h-5 text-orange-600" />
-                      Vendeurs Archivés ({archivedSellers.length})
+                      <PauseCircle className="w-5 h-5 text-orange-600" />
+                      Vendeurs en veille ({archivedSellers.length})
                     </h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      Vendeurs en sommeil ou supprimés - L'historique est conservé
+                      Vendeurs temporairement suspendus - L'historique est conservé
                     </p>
                   </div>
 
