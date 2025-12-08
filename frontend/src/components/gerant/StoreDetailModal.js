@@ -341,6 +341,25 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                           <RefreshCw className="w-4 h-4" />
                           Transférer
                         </button>
+                        {seller.status === 'suspended' ? (
+                          <button
+                            onClick={() => handleToggleSuspend(seller.id, 'seller', seller.name, 'reactivate')}
+                            className="flex items-center gap-2 px-3 py-2 bg-white border-2 border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition-all text-sm font-semibold"
+                            title="Réactiver le vendeur"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                            Réactiver
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleToggleSuspend(seller.id, 'seller', seller.name, 'suspend')}
+                            className="flex items-center gap-2 px-3 py-2 bg-white border-2 border-orange-500 text-orange-600 rounded-lg hover:bg-orange-50 transition-all text-sm font-semibold"
+                            title="Suspendre le vendeur"
+                          >
+                            <Pause className="w-4 h-4" />
+                            Suspendre
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDeleteUser(seller.id, 'seller', seller.name)}
                           className="flex items-center gap-2 px-3 py-2 bg-white border-2 border-red-500 text-red-600 rounded-lg hover:bg-red-50 transition-all text-sm font-semibold"
