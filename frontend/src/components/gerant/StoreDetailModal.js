@@ -252,7 +252,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
               />
             </div>
           ) : activeTab === 'managers' ? (
-            <div className="space-y-3">
+            <div key={`managers-${refreshKey}`} className="space-y-3">
               {managers.length === 0 && pendingInvitations.filter(inv => inv.role === 'manager').length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Users className="w-12 h-12 mx-auto mb-2 text-gray-400" />
@@ -263,7 +263,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                   {/* Managers actifs */}
                   {managers.map((manager) => (
                     <div
-                      key={manager.id}
+                      key={`${manager.id}-${refreshKey}`}
                       className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200"
                     >
                       <div className="flex-1">
