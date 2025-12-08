@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://dashview-enhance.preview.emergentagent.com
+https://datawizard-6.preview.emergentagent.com
 
 ### Manager
 ```
