@@ -12810,39 +12810,18 @@ async def get_gerant_store_kpi_history(
     end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=days)
     
-    # Get all managers in this store
-    managers = await db.users.find({
+    # Get ALL KPI entries for this store directly by store_id
+    # This ensures data persistence even if managers/sellers change
+    seller_entries = await db.kpi_entries.find({
         "store_id": store_id,
-        "role": "manager",
-        "gerant_id": current_user['id']
-    }, {"_id": 0, "id": 1}).to_list(100)
+        "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
+    }, {"_id": 0}).to_list(10000)
     
-    manager_ids = [m['id'] for m in managers]
-    
-    # Get all sellers in this store
-    sellers = await db.users.find({
+    # Get manager KPIs for this store (if they exist)
+    manager_kpis = await db.manager_kpi.find({
         "store_id": store_id,
-        "role": "seller",
-        "gerant_id": current_user['id']
-    }, {"_id": 0, "id": 1}).to_list(100)
-    
-    seller_ids = [s['id'] for s in sellers]
-    
-    # Get manager KPIs for the period
-    manager_kpis = []
-    if manager_ids:
-        manager_kpis = await db.manager_kpis.find({
-            "manager_id": {"$in": manager_ids},
-            "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
-        }, {"_id": 0}).to_list(10000)
-    
-    # Get seller KPI entries for the period
-    seller_entries = []
-    if seller_ids:
-        seller_entries = await db.kpi_entries.find({
-            "seller_id": {"$in": seller_ids},
-            "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
-        }, {"_id": 0}).to_list(10000)
+        "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
+    }, {"_id": 0}).to_list(10000)
     
     # Aggregate data by date
     date_map = {}
