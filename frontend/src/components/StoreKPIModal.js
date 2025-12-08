@@ -658,21 +658,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               {/* Date selector and AI Analysis button */}
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <label className="text-sm font-semibold text-gray-700">📅 Date :</label>
-                  <input
-                    type="date"
-                    value={overviewDate}
-                    onChange={(e) => setOverviewDate(e.target.value)}
-                    onClick={(e) => {
-                      try {
-                        if (typeof e.target.showPicker === 'function') {
-                          e.target.showPicker();
-                        }
-                      } catch (error) {
-                        console.log('showPicker not supported');
-                      }
-                    }}
-                    className="px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer"
+                  <KPICalendar
+                    selectedDate={overviewDate}
+                    onDateChange={(date) => setOverviewDate(date)}
+                    datesWithData={datesWithData}
                   />
                 </div>
                 
