@@ -491,13 +491,13 @@ export default function ManagerDashboard({ user, onLogout }) {
   };
 
   const fetchData = async () => {
-    try {
+    try:
       const token = localStorage.getItem('token');
       const [sellersRes, invitesRes] = await Promise.all([
-        axios.get(`${API}/manager/sellers`, {
+        axios.get(`${API}/manager/sellers${apiStoreIdParam}`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get(`${API}/manager/invitations`, {
+        axios.get(`${API}/manager/invitations${apiStoreIdParam}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);
