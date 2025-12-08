@@ -1318,7 +1318,11 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                 </div>
               ) : displayMode === 'chart' ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-500">Chargement des données...</p>
+                  {loadingHistorical ? (
+                    <p className="text-gray-500">⏳ Chargement des données...</p>
+                  ) : (
+                    <p className="text-gray-500">📭 Aucune donnée disponible pour cette période</p>
+                  )}
                 </div>
               ) : null}
 
