@@ -43,7 +43,7 @@ export const gerantSteps = [
     description: (
       <>
         <p className="text-blue-600 font-semibold">Deuxième étape : constituez votre équipe et gérez le personnel.</p>
-        <p className="mt-3">Vos actions en tant que gérant :</p>
+        <p className="mt-3 font-semibold">Vos actions en tant que gérant :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
           <li><strong>Inviter</strong> des managers et vendeurs par email</li>
           <li><strong>Placer</strong> les utilisateurs dans les magasins</li>
