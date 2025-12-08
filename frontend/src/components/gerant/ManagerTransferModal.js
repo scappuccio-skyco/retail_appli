@@ -52,7 +52,7 @@ const ManagerTransferModal = ({ manager, stores, currentStoreId, onClose, onTran
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1 min-h-0">
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
               {error}
