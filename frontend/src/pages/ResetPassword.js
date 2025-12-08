@@ -179,6 +179,7 @@ export default function ResetPassword() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#1E40AF] focus:border-transparent transition-all"
                   placeholder="••••••••"
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
