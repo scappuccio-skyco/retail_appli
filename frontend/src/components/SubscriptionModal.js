@@ -37,7 +37,6 @@ const PLANS = {
     minSellers: 6,
     maxSellers: 15,
     subtitle: 'Magasins moyens',
-    isRecommended: true,
     mainFeatures: [
       'Dashboard Manager & Vendeur',
       'Diagnostic DISC complet',
