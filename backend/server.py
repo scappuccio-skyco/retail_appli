@@ -6232,21 +6232,34 @@ async def get_seller_challenges(current_user: dict = Depends(get_current_user)):
     return challenges
 
 @api_router.get("/manager/challenges/active")
-async def get_active_manager_challenges(current_user: dict = Depends(get_current_user)):
+async def get_active_manager_challenges(
+    store_id: str = None,
+    current_user: dict = Depends(get_current_user)
+):
     """Get only active collective challenges for display in manager dashboard"""
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access challenges")
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Determine effective store_id
+    effective_store_id = None
+    if store_id and current_user['role'] in ['gerant', 'gérant']:
+        effective_store_id = store_id
+    elif current_user.get('store_id'):
+        effective_store_id = current_user['store_id']
     
     today = datetime.now(timezone.utc).date().isoformat()
-    challenges = await db.challenges.find(
-        {
-            "manager_id": current_user['id'],
-            "type": "collective",
-            "status": "active",
-            "end_date": {"$gt": today}  # Only challenges that haven't ended yet (strict >)
-        },
-        {"_id": 0}
-    ).sort("start_date", 1).to_list(10)  # Sort by start_date to show upcoming first
+    
+    query = {
+        "type": "collective",
+        "status": "active",
+        "end_date": {"$gt": today}
+    }
+    if effective_store_id:
+        query["store_id"] = effective_store_id
+    elif current_user.get('id'):
+        query["manager_id"] = current_user['id']
+    
+    challenges = await db.challenges.find(query, {"_id": 0}).sort("start_date", 1).to_list(10)
     
     # Calculate progress for each challenge
     for challenge in challenges:
