@@ -12705,7 +12705,13 @@ async def get_gerant_store_kpi_overview(
     if not date:
         date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     
-    # Get all sellers in this store (for display purposes only)
+    # Get all managers and sellers in this store (for display purposes only)
+    managers = await db.users.find({
+        "store_id": store_id,
+        "role": "manager",
+        "status": "active"
+    }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+    
     sellers = await db.users.find({
         "store_id": store_id,
         "role": "seller",
