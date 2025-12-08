@@ -586,7 +586,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         </div>
 
         {/* Content */}
-        <div className="p-6 max-h-[600px] overflow-y-auto">
+        <div className="p-6 overflow-y-auto flex-1 min-h-0">
           {activeTab === 'daily' && (() => {
             // Variables pour gérer les deux structures de données (manager vs gérant)
             const managerData = overviewData?.manager_data || overviewData?.managers_data || {};
