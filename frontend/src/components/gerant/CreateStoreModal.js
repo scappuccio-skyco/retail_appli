@@ -21,7 +21,23 @@ const CreateStoreModal = ({ onClose, onCreate }) => {
       await onCreate(formData);
       onClose();
     } catch (err) {
-      setError(err.message || 'Erreur lors de la création du magasin');
+      console.error('Creation error:', err);
+      let errorMessage = 'Erreur lors de la création du magasin';
+      
+      if (err.response?.data?.detail) {
+        // Si detail est un tableau (erreurs de validation Pydantic)
+        if (Array.isArray(err.response.data.detail)) {
+          errorMessage = err.response.data.detail
+            .map(e => `${e.loc?.join(' > ') || 'Champ'}: ${e.msg}`)
+            .join(', ');
+        } else if (typeof err.response.data.detail === 'string') {
+          errorMessage = err.response.data.detail;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
