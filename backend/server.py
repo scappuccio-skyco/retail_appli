@@ -5522,28 +5522,41 @@ def format_seller_data(data):
 @api_router.get("/manager/store-kpi-overview")
 async def get_store_kpi_overview(
     date: str = None,
+    store_id: str = None,
     current_user: dict = Depends(get_current_user)
 ):
     """Get consolidated store KPI overview combining manager and sellers data"""
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access store overview")
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Determine effective store_id
+    effective_store_id = None
+    if store_id and current_user['role'] in ['gerant', 'gérant']:
+        effective_store_id = store_id
+    elif current_user.get('store_id'):
+        effective_store_id = current_user['store_id']
     
     if not date:
         date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     
-    # Get manager KPIs for the date (filter by manager_id AND current store_id for accuracy after transfers)
-    manager_kpi = await db.manager_kpis.find_one({
-        "manager_id": current_user['id'],
-        "store_id": current_user.get('store_id'),
-        "date": date
-    }, {"_id": 0})
+    # Get manager KPIs for the date
+    query = {"date": date}
+    if effective_store_id:
+        query["store_id"] = effective_store_id
+    elif current_user.get('id'):
+        query["manager_id"] = current_user['id']
     
-    # Get all active sellers in this manager's store
-    sellers = await db.users.find({
-        "store_id": current_user.get('store_id'),
+    manager_kpi = await db.manager_kpis.find_one(query, {"_id": 0})
+    
+    # Get all active sellers in this store
+    seller_query = {
         "role": "seller",
-        "status": "active"  # Filtre uniquement les vendeurs actifs
-    }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+        "status": "active"
+    }
+    if effective_store_id:
+        seller_query["store_id"] = effective_store_id
+    
+    sellers = await db.users.find(seller_query, {"_id": 0, "id": 1, "name": 1}).to_list(100)
     
     seller_ids = [s['id'] for s in sellers]
     
