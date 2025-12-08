@@ -366,7 +366,64 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     }
   };
 
+  // Fetch all dates with data (last 2 years) for calendar highlighting
+  const fetchDatesWithData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const days = 730; // 2 years
+      
+      if (storeId) {
+        // Gérant: Fetch aggregated data for the store
+        const historyRes = await axios.get(`${API}/api/gerant/stores/${storeId}/kpi-history?days=${days}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const rawData = Array.isArray(historyRes.data) ? historyRes.data : [];
+        // Extract dates that have actual data (non-zero values)
+        const dates = rawData
+          .filter(entry => 
+            (entry.ca_journalier && entry.ca_journalier > 0) || 
+            (entry.nb_ventes && entry.nb_ventes > 0)
+          )
+          .map(entry => entry.date);
+        setDatesWithData(dates);
+      } else {
+        // Manager: Fetch from seller entries
+        const usersRes = await axios.get(`${API}/api/manager/sellers`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const sellers = usersRes.data;
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - days);
+        
+        const sellersDataPromises = sellers.map(seller =>
+          axios.get(
+            `${API}/api/manager/kpi-entries/${seller.id}?start_date=${startDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
+        );
 
+        const sellersDataResponses = await Promise.all(sellersDataPromises);
+        
+        // Collect all unique dates with data
+        const allDates = new Set();
+        sellersDataResponses.forEach(response => {
+          const entries = response.data || [];
+          entries.forEach(entry => {
+            if ((entry.ca_journalier && entry.ca_journalier > 0) || (entry.nb_ventes && entry.nb_ventes > 0)) {
+              allDates.add(entry.date);
+            }
+          });
+        });
+        
+        setDatesWithData([...allDates]);
+      }
+    } catch (err) {
+      console.error('Error fetching dates with data:', err);
+    }
+  };
 
 
   useEffect(() => {
@@ -374,6 +431,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     if (!storeId) {
       fetchKPIConfig();
     }
+    // Fetch dates with data for calendar
+    fetchDatesWithData();
   }, [storeId]);
 
   useEffect(() => {
