@@ -621,18 +621,27 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                   )}
                 </div>
               )}
-              {subscriptionInfo.status === 'trial_expired' && (
+              {subscriptionInfo && subscriptionInfo.status === 'trial_expired' && (
                 <div>
                   <p className="text-orange-700 font-semibold">
-                    Essai gratuit terminé
+                    ⚠️ Essai gratuit terminé
                   </p>
                   <p className="text-sm text-gray-600 mt-1">
                     Choisissez un plan pour continuer à utiliser toutes les fonctionnalités
                   </p>
                 </div>
               )}
+              {subscriptionInfo && !['trialing', 'active', 'trial_expired'].includes(subscriptionInfo.status) && (
+                <div>
+                  <p className="text-gray-700">
+                    <span className="font-semibold">Statut:</span> {subscriptionInfo.status}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Contactez le support si vous avez des questions sur votre abonnement
+                  </p>
+                </div>
+              )}
             </div>
-          )}
 
           {/* Seat Management - For active subscriptions and trials */}
           {subscriptionInfo && (subscriptionInfo.status === 'active' || subscriptionInfo.status === 'trialing') && subscriptionInfo.subscription && (
