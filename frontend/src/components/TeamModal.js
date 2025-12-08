@@ -1038,9 +1038,9 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                 </div>
                               </td>
                               <td className="px-4 py-3 text-center">
-                                {seller.status === 'inactive' ? (
+                                {seller.status === 'suspended' ? (
                                   <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
-                                    En sommeil
+                                    ⏸ En veille
                                   </span>
                                 ) : (
                                   <span className="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-medium rounded-full">
