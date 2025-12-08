@@ -440,6 +440,24 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   };
 
 
+  // Fetch available years for the year selector
+  const fetchAvailableYears = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (storeId) {
+        // Gérant view: fetch available years from API
+        const res = await axios.get(`${API}/gerant/stores/${storeId}/available-years`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data.years && res.data.years.length > 0) {
+          setAvailableYears(res.data.years);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching available years:', err);
+    }
+  };
+
   useEffect(() => {
     // Only fetch KPI config for Manager view, not for Gérant view
     if (!storeId) {
@@ -447,6 +465,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     }
     // Fetch dates with data for calendar
     fetchDatesWithData();
+    // Fetch available years for year selector
+    fetchAvailableYears();
   }, [storeId]);
 
   useEffect(() => {
