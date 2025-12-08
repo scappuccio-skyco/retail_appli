@@ -1153,6 +1153,7 @@ export default function ManagerDashboard({ user, onLogout }) {
       {showTeamModal && (
         <TeamModal
           sellers={sellers}
+          storeIdParam={urlStoreId}
           onClose={() => setShowTeamModal(false)}
           onViewSellerDetail={(seller) => {
             setSelectedSeller(seller);
