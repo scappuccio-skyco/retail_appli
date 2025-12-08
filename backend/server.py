@@ -12859,11 +12859,11 @@ async def get_gerant_store_kpi_history(
                 "nb_articles": 0,
                 "nb_prospects": 0
             }
-        date_map[date]["ca_journalier"] += kpi.get("ca_journalier", 0)
-        date_map[date]["nb_ventes"] += kpi.get("nb_ventes", 0)
-        date_map[date]["nb_clients"] += kpi.get("nb_clients", 0)
-        date_map[date]["nb_articles"] += kpi.get("nb_articles", 0)
-        date_map[date]["nb_prospects"] += kpi.get("nb_prospects", 0)
+        date_map[date]["ca_journalier"] += kpi.get("ca_journalier") or 0
+        date_map[date]["nb_ventes"] += kpi.get("nb_ventes") or 0
+        date_map[date]["nb_clients"] += kpi.get("nb_clients") or 0
+        date_map[date]["nb_articles"] += kpi.get("nb_articles") or 0
+        date_map[date]["nb_prospects"] += kpi.get("nb_prospects") or 0
     
     # Add seller entries
     for entry in seller_entries:
@@ -12877,11 +12877,11 @@ async def get_gerant_store_kpi_history(
                 "nb_articles": 0,
                 "nb_prospects": 0
             }
-        date_map[date]["ca_journalier"] += entry.get("ca_journalier", 0)
-        date_map[date]["nb_ventes"] += entry.get("nb_ventes", 0)
-        date_map[date]["nb_clients"] += entry.get("nb_clients", 0)
-        date_map[date]["nb_articles"] += entry.get("nb_articles", 0)
-        date_map[date]["nb_prospects"] += entry.get("nb_prospects", 0)
+        date_map[date]["ca_journalier"] += entry.get("ca_journalier") or 0
+        date_map[date]["nb_ventes"] += entry.get("nb_ventes") or 0
+        date_map[date]["nb_clients"] += entry.get("nb_clients") or 0
+        date_map[date]["nb_articles"] += entry.get("nb_articles") or 0
+        date_map[date]["nb_prospects"] += entry.get("nb_prospects") or 0
     
     # Convert to sorted list
     historical_data = sorted(date_map.values(), key=lambda x: x['date'])
