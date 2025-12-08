@@ -929,17 +929,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                       : 'border-2 border-slate-200'
                   }`}
                 >
-                  {/* Recommended badge */}
-                  {isRecommended && (
-                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-10">
-                      <div className="bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
-                        <Star className="w-4 h-4" />
-                        RECOMMANDÉ
-                      </div>
-                    </div>
-                  )}
-
-                  <div className={`text-center mb-6 ${isRecommended ? 'pt-4' : ''}`}>
+                  <div className="text-center mb-6">
                     <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">{plan.name}</h3>
                     <p className="text-[#334155] mb-4">{plan.subtitle}</p>
                     {isEnterprise ? (
