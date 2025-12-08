@@ -805,6 +805,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                       <p className="text-gray-500 text-xs italic">Aucune donnée validée pour cette date</p>
                     )}
                   </div>
+                  )}
 
                   {/* Individual seller entries */}
                   {overviewData.seller_entries.length > 0 && (
