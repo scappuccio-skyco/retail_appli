@@ -4150,15 +4150,29 @@ async def get_latest_team_bilan(current_user: dict = Depends(get_current_user)):
     return {"status": "success", "bilan": bilan}
 
 @api_router.get("/manager/team-bilans/all")
-async def get_all_team_bilans(current_user: dict = Depends(get_current_user)):
+async def get_all_team_bilans(
+    store_id: str = None,
+    current_user: dict = Depends(get_current_user)
+):
     """Get all team bilans for the manager, sorted by date (most recent first)"""
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access team bilans")
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
     
-    bilans = await db.team_bilans.find(
-        {"manager_id": current_user['id']},
-        {"_id": 0}
-    ).sort("created_at", -1).to_list(length=None)
+    # Determine effective store_id
+    effective_store_id = None
+    if store_id and current_user['role'] in ['gerant', 'gérant']:
+        effective_store_id = store_id
+    elif current_user.get('store_id'):
+        effective_store_id = current_user['store_id']
+    
+    # Build query
+    query = {}
+    if effective_store_id:
+        query["store_id"] = effective_store_id
+    elif current_user.get('id'):
+        query["manager_id"] = current_user['id']
+    
+    bilans = await db.team_bilans.find(query, {"_id": 0}).sort("created_at", -1).to_list(length=None)
     
     # Convert datetime strings to datetime objects
     for bilan in bilans:
