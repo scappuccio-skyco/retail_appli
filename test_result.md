@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test complet du graphique CA dans l'onglet Historique (toutes les vues) - Vérifier que les graphiques CA affichent des données > 0 après correction du bug ca_journalier vs seller_ca"
+user_problem_statement: "Tester le flux complet de l'onglet 'Vendeurs en veille' dans l'espace Manager (TeamModal) - Vérifier l'alignement avec l'espace Gérant et la fonctionnalité complète de l'onglet remplacé 'Vendeurs archivés' par 'Vendeurs en veille'"
 
 backend:
   - task: "Multi-Store Management API Endpoints"
