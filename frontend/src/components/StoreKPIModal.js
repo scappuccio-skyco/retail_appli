@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import StoreKPIAIAnalysisModal from './StoreKPIAIAnalysisModal';
+import KPICalendar from './KPICalendar';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
