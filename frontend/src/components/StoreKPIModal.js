@@ -212,10 +212,11 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         const managerStartDate = new Date(today);
         managerStartDate.setDate(today.getDate() - days);
         
-        const managerKpiRes = await axios.get(
-          `${API}/api/manager/manager-kpi?start_date=${managerStartDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`,
-          { headers: { Authorization: `Bearer ${token}` }}
-        );
+        const managerKpiUrl = storeId 
+          ? `${API}/api/manager/manager-kpi?start_date=${managerStartDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}&store_id=${storeId}`
+          : `${API}/api/manager/manager-kpi?start_date=${managerStartDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`;
+        
+        const managerKpiRes = await axios.get(managerKpiUrl, { headers: { Authorization: `Bearer ${token}` }});
         
         // Aggregate data by date
         const dateMap = {};
