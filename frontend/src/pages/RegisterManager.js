@@ -57,7 +57,7 @@ export default function RegisterManager() {
 
     try {
       await axios.post(`${API}/auth/register-with-gerant-invite`, {
-        token,
+        invitation_token: token,
         name: formData.name,
         password: formData.password,
         phone: formData.phone
