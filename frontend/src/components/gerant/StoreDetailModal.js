@@ -126,6 +126,8 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
 
       if (response.ok) {
         const result = await response.json();
+        // Incrémenter refreshKey pour forcer un re-render complet et éviter l'erreur DOM
+        setRefreshKey(prev => prev + 1);
         // Recharger toutes les données de l'équipe
         await fetchStoreTeam();
         // Rafraîchir si besoin
