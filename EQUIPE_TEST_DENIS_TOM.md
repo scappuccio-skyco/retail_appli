@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://datawizard-6.preview.emergentagent.com
+https://retail-metrics-35.preview.emergentagent.com
 
 ### Manager
 ```
