@@ -491,7 +491,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   };
 
   const fetchData = async () => {
-    try:
+    try {
       const token = localStorage.getItem('token');
       const [sellersRes, invitesRes] = await Promise.all([
         axios.get(`${API}/manager/sellers${apiStoreIdParam}`, {
