@@ -1,0 +1,15 @@
+Liste des endpoints à modifier pour accepter store_id:
+
+1. /manager/objectives/active - DONE
+2. /manager/challenges/active
+3. /manager/kpi-config
+4. /manager/store-kpi/stats
+5. /manager-diagnostic/me
+6. /manager/seller/{sellerId}/stats
+7. /manager/kpi-entries/{sellerId}
+
+La logique standard à appliquer:
+- Ajouter paramètre: store_id: str = None
+- Auth: role in ['manager', 'gerant', 'gérant']
+- effective_store_id = store_id if (store_id and role gérant) else user.store_id
+- Utiliser effective_store_id dans les queries
