@@ -692,71 +692,53 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   </div>
 
 
-                  {/* Detailed comparison */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Manager data */}
-                    <div className="bg-white rounded-lg p-3 border border-gray-200">
-                      <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1.5">
-                        <span>👨‍💼</span> Données Manager{storeId && 's'}
-                      </h3>
-                      {hasManagerData ? (
-                        <div className="space-y-1.5">
-                          {managerData.ca_journalier > 0 && (
-                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                              <span className="text-xs text-gray-600">💰 CA Journalier</span>
-                              <span className="text-sm font-bold text-gray-800">{managerData.ca_journalier} €</span>
-                            </div>
-                          )}
-                          {managerData.nb_ventes > 0 && (
-                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                              <span className="text-xs text-gray-600">🛍️ Ventes</span>
-                              <span className="text-sm font-bold text-gray-800">{managerData.nb_ventes}</span>
-                            </div>
-                          )}
-                          {managerData.nb_articles > 0 && (
-                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                              <span className="text-xs text-gray-600">📦 Articles</span>
-                              <span className="text-sm font-bold text-gray-800">{managerData.nb_articles}</span>
-                            </div>
-                          )}
-                          {managerData.nb_prospects > 0 && (
-                            <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                              <span className="text-xs text-gray-600">🚶 Prospects</span>
-                              <span className="text-sm font-bold text-gray-800">{managerData.nb_prospects}</span>
-                            </div>
-                          )}
+                  {/* Données validées (fusion manager + vendeurs) */}
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
+                      <span>✅</span> Données Validées
+                    </h3>
+                    {(hasManagerData || overviewData.sellers_reported > 0) ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {/* CA */}
+                        <div className="flex flex-col items-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                          <span className="text-xs text-purple-700 font-semibold mb-1">💰 CA</span>
+                          <span className="text-lg font-bold text-purple-900">
+                            {((hasManagerData ? (managerData.ca_journalier || 0) : 0) + 
+                              (overviewData.sellers_data?.ca_journalier || 0)).toFixed(2)} €
+                          </span>
                         </div>
-                      ) : (
-                        <p className="text-gray-500 text-xs italic">Aucune donnée saisie pour cette date</p>
-                      )}
-                    </div>
-
-                    {/* Sellers aggregated data */}
-                    <div className="bg-white rounded-lg p-3 border border-gray-200">
-                      <h3 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1.5">
-                        <span>🧑‍💼</span> Données Vendeurs (Agrégées)
-                      </h3>
-                      {overviewData.sellers_reported > 0 ? (
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                            <span className="text-xs text-gray-600">💰 CA Journalier</span>
-                            <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.ca_journalier?.toFixed(2) || '0.00'} €</span>
-                          </div>
-                          
-                          <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                            <span className="text-xs text-gray-600">🛍️ Ventes</span>
-                            <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_ventes || 0}</span>
-                          </div>
-                          
-                          <div className="flex justify-between items-center py-1.5 border-b border-gray-100">
-                            <span className="text-xs text-gray-600">📦 Articles</span>
-                            <span className="text-sm font-bold text-gray-800">{overviewData.sellers_data.nb_articles || 0}</span>
-                          </div>
+                        
+                        {/* Ventes */}
+                        <div className="flex flex-col items-center p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
+                          <span className="text-xs text-green-700 font-semibold mb-1">🛍️ Ventes</span>
+                          <span className="text-lg font-bold text-green-900">
+                            {((hasManagerData ? (managerData.nb_ventes || 0) : 0) + 
+                              (overviewData.sellers_data?.nb_ventes || 0))}
+                          </span>
                         </div>
-                      ) : (
-                        <p className="text-gray-500 text-xs italic">Aucun vendeur n'a saisi ses KPIs pour cette date</p>
-                      )}
-                    </div>
+                        
+                        {/* Articles */}
+                        <div className="flex flex-col items-center p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border border-orange-200">
+                          <span className="text-xs text-orange-700 font-semibold mb-1">📦 Articles</span>
+                          <span className="text-lg font-bold text-orange-900">
+                            {((hasManagerData ? (managerData.nb_articles || 0) : 0) + 
+                              (overviewData.sellers_data?.nb_articles || 0))}
+                          </span>
+                        </div>
+                        
+                        {/* Prospects */}
+                        {(hasManagerData && managerData.nb_prospects > 0) && (
+                          <div className="flex flex-col items-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                            <span className="text-xs text-blue-700 font-semibold mb-1">🚶 Prospects</span>
+                            <span className="text-lg font-bold text-blue-900">
+                              {managerData.nb_prospects || 0}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-xs italic">Aucune donnée validée pour cette date</p>
+                    )}
                   </div>
 
                   {/* Individual seller entries */}
