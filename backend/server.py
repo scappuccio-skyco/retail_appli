@@ -5182,13 +5182,26 @@ async def create_or_update_manager_kpi(
 async def get_manager_kpis(
     start_date: str = None,
     end_date: str = None,
+    store_id: str = None,
     current_user: dict = Depends(get_current_user)
 ):
     """Get manager KPIs for a date range"""
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access their KPIs")
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
     
-    query = {"manager_id": current_user['id']}
+    # Determine effective store_id
+    effective_store_id = None
+    if store_id and current_user['role'] in ['gerant', 'gérant']:
+        effective_store_id = store_id
+    elif current_user.get('store_id'):
+        effective_store_id = current_user['store_id']
+    
+    # Build query
+    query = {}
+    if effective_store_id:
+        query["store_id"] = effective_store_id
+    elif current_user.get('id'):
+        query["manager_id"] = current_user['id']
     
     if start_date and end_date:
         query["date"] = {"$gte": start_date, "$lte": end_date}
