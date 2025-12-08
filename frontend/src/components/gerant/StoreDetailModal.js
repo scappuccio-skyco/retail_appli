@@ -271,7 +271,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                               ? 'bg-orange-100 text-orange-700' 
                               : 'bg-green-100 text-green-700'
                           }`}>
-                            {manager.status === 'suspended' ? '⏸ Suspendu' : '✓ Actif'}
+                            {manager.status === 'suspended' ? '⏸ En veille' : '✓ Actif'}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600">{manager.email}</p>
