@@ -13359,9 +13359,9 @@ async def get_integration_stats(
         {
             "$group": {
                 "_id": None,
-                "total_ca": {"$sum": "$ca_journalier"},
-                "total_ventes": {"$sum": "$nb_ventes"},
-                "total_articles": {"$sum": "$nb_articles"}
+                "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}}
             }
         }
     ]
