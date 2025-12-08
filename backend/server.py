@@ -4940,11 +4940,12 @@ async def get_manager_sync_mode(current_user: dict = Depends(get_current_user)):
 @api_router.post("/manager/store-kpi")
 async def create_or_update_store_kpi(
     store_kpi_data: StoreKPICreate,
+    store_id: str = None,
     current_user: dict = Depends(get_current_user)
 ):
     """Create or update store KPI (prospects) for a specific date"""
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can manage store KPIs")
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
     
     # Check if KPI exists for this date
     existing = await db.store_kpis.find_one({
