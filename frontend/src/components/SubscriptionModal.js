@@ -506,14 +506,35 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
             <h3 className="text-xl font-bold text-gray-800 mb-4">
               📊 Statut actuel
             </h3>
-            {!subscriptionInfo && (
+            {!subscriptionInfo || subscriptionInfo.status === 'no_subscription' ? (
               <div>
-                <p className="text-gray-700 font-semibold">Aucun abonnement actif</p>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-gray-700 font-semibold">
+                  {subscriptionInfo?.message || "Aucun abonnement configuré"}
+                </p>
+                <p className="text-sm text-gray-600 mt-2">
                   Choisissez un plan ci-dessous pour commencer
                 </p>
+                {subscriptionInfo?.active_sellers_count !== undefined && (
+                  <div className="mt-3 p-3 bg-white rounded-lg border border-blue-300">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-blue-600" />
+                        <span className="font-semibold text-gray-800">Vendeurs actifs actuels</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl font-bold text-blue-600">
+                          {subscriptionInfo.active_sellers_count}
+                        </span>
+                        <p className="text-xs text-gray-500 mt-0.5">vendeur{subscriptionInfo.active_sellers_count > 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">
+                      💡 Choisissez un plan adapté à votre nombre de vendeurs actifs
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
+            ) : null}
             {subscriptionInfo && subscriptionInfo.status === 'trialing' && (
                 <div>
                   <p className="text-gray-700">
