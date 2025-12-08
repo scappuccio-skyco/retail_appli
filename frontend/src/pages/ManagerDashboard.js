@@ -104,7 +104,7 @@ export default function ManagerDashboard({ user, onLogout }) {
       try {
         const token = localStorage.getItem('token');
         const API = `${BACKEND_URL}/api`;
-        const res = await axios.get(`${API}/seller/kpi-enabled`, {
+        const res = await axios.get(`${API}/seller/kpi-enabled${apiStoreIdParam}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
