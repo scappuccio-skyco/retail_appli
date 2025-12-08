@@ -355,8 +355,10 @@ class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     email: EmailStr
+    password: str
     role: str  # "gerant" | "manager" | "seller" | "it_admin"
     status: str = "active"  # active, inactive, deleted
+    phone: Optional[str] = None
     
     # Hiérarchie Multi-Store
     gerant_id: Optional[str] = None  # null si role = gerant
