@@ -529,7 +529,10 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const fetchManagerDiagnostic = async () => {
     try {
-      const res = await axios.get(`${API}/manager-diagnostic/me`);
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/manager-diagnostic/me${apiStoreIdParam}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (res.data.status === 'completed') {
         setManagerDiagnostic(res.data.diagnostic);
       }
