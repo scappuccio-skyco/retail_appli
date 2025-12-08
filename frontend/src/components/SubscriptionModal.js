@@ -669,13 +669,11 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                 <summary className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white cursor-pointer hover:from-green-600 hover:to-emerald-700 transition-all">
                   <h3 className="text-2xl font-bold flex items-center gap-3">
                     <Users className="w-7 h-7" />
-                    {subscriptionInfo.status === 'trialing' ? 'Ajuster mes sièges (Essai gratuit)' : 'Gérer mes sièges vendeurs'}
+                    Gérer mes sièges vendeurs
                     <span className="ml-auto text-sm font-normal opacity-75">▼ Cliquez pour développer</span>
                   </h3>
                   <p className="text-green-50 text-sm mt-1">
-                    {subscriptionInfo.status === 'trialing' 
-                      ? `Définissez votre capacité - ${subscriptionInfo.days_left || 0} jours d'essai restants` 
-                      : 'Ajustez votre capacité en temps réel'}
+                    Ajustez votre capacité en temps réel
                   </p>
                 </summary>
               
