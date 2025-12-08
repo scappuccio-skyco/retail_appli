@@ -125,14 +125,26 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       let endDate = null;
       
       if (viewMode === 'week' && selectedWeek) {
-        // Parse week format "YYYY-Wxx" to get start/end dates
+        // Parse week format "YYYY-Wxx" to get start/end dates (ISO 8601)
         const [year, week] = selectedWeek.split('-W');
-        const firstDayOfYear = new Date(parseInt(year), 0, 1);
-        const weekStart = new Date(firstDayOfYear);
-        weekStart.setDate(firstDayOfYear.getDate() + (parseInt(week) - 1) * 7);
-        startDate = new Date(weekStart);
-        endDate = new Date(weekStart);
-        endDate.setDate(weekStart.getDate() + 6);
+        const weekNum = parseInt(week);
+        const yearNum = parseInt(year);
+        
+        // ISO 8601: Week 1 is the first week with a Thursday
+        // Get January 4th (always in week 1)
+        const jan4 = new Date(yearNum, 0, 4);
+        // Get the Monday of that week
+        const firstMonday = new Date(jan4);
+        const dayOfWeek = jan4.getDay() || 7; // Convert Sunday=0 to 7
+        firstMonday.setDate(jan4.getDate() - (dayOfWeek - 1));
+        
+        // Calculate the Monday of the target week
+        startDate = new Date(firstMonday);
+        startDate.setDate(firstMonday.getDate() + (weekNum - 1) * 7);
+        
+        // End date is Sunday of that week
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
         days = 7;
       } else if (viewMode === 'month' && selectedMonth) {
         // Parse month format "YYYY-MM"
