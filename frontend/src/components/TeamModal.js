@@ -749,7 +749,7 @@ export default function TeamModal({ sellers, onClose, onViewSellerDetail, onData
                     {teamData.filter(seller => !hiddenSellerIds.includes(seller.id) && seller.status !== 'deleted' && seller.status !== 'inactive').length}
                   </div>
                   <div className="text-xs text-blue-600 mt-1">
-                    vendeur{teamData.filter(seller => !hiddenSellerIds.includes(seller.id) && (!seller.status || seller.status === 'active')).length > 1 ? 's' : ''} actif{teamData.filter(seller => !hiddenSellerIds.includes(seller.id) && (!seller.status || seller.status === 'active')).length > 1 ? 's' : ''}
+                    vendeur{teamData.filter(seller => !hiddenSellerIds.includes(seller.id) && seller.status !== 'deleted' && seller.status !== 'inactive').length > 1 ? 's' : ''}
                   </div>
                 </div>
 
