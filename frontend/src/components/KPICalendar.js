@@ -138,7 +138,7 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
           
           {/* Calendar */}
           <div 
-            className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 p-4 z-[9999] min-w-[320px]"
+            className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 p-3 z-[9999] min-w-[280px]"
             style={{
               top: openUpwards ? 'auto' : buttonRef.current?.getBoundingClientRect().bottom + 8 + 'px',
               bottom: openUpwards ? window.innerHeight - (buttonRef.current?.getBoundingClientRect().top - 8) + 'px' : 'auto',
