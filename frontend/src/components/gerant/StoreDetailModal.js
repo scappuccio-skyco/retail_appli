@@ -231,6 +231,15 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
             >
               👥 Vendeurs actifs ({sellers.filter(s => s.status === 'active').length})
             </button>
+            <a
+              href={`/manager-view?store_id=${store.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="py-3 px-4 font-semibold border-b-2 border-transparent text-blue-600 hover:text-blue-700 hover:border-blue-400 transition-colors flex items-center gap-2"
+            >
+              <TrendingUp className="w-4 h-4" />
+              Espace Manager
+            </a>
           </div>
         </div>
 
