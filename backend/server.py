@@ -10552,8 +10552,8 @@ async def get_store_stats(
         {
             "$group": {
                 "_id": None,
-                "total_ca": {"$sum": "$ca_journalier"},
-                "total_ventes": {"$sum": "$nb_ventes"}
+                "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}}
             }
         }
     ]).to_list(length=1)
