@@ -60,7 +60,12 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
   };
 
   const handleDeleteUser = async (userId, userRole, userName) => {
-    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ${userName} ?\n\nCette action est irréversible.`)) {
+    const roleLabel = userRole === 'manager' ? 'le manager' : 'le vendeur';
+    const warningMessage = userRole === 'manager'
+      ? `⚠️ ATTENTION : Suppression d'un Manager\n\nVous êtes sur le point de supprimer ${roleLabel} "${userName}".\n\n❗ Conséquences :\n- Le manager ne pourra plus se connecter\n- Ses données historiques seront conservées\n- Les vendeurs sous sa responsabilité resteront actifs\n\nCette action est IRRÉVERSIBLE.\n\nConfirmez-vous la suppression ?`
+      : `⚠️ ATTENTION : Suppression d'un Vendeur\n\nVous êtes sur le point de supprimer ${roleLabel} "${userName}".\n\n❗ Conséquences :\n- Le vendeur ne pourra plus se connecter\n- Ses KPIs et historique seront conservés\n- Ses données resteront visibles dans les rapports\n\nCette action est IRRÉVERSIBLE.\n\nConfirmez-vous la suppression ?`;
+    
+    if (!window.confirm(warningMessage)) {
       return;
     }
 
