@@ -11151,6 +11151,122 @@ async def delete_seller_gerant(
         "status": "deleted"
     }
 
+@api_router.patch("/gerant/sellers/{seller_id}/suspend")
+async def suspend_seller_gerant(
+    seller_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Suspendre un vendeur"""
+    if current_user['role'] not in ['gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    seller = await db.users.find_one(
+        {"id": seller_id, "gerant_id": current_user['id'], "role": "seller"},
+        {"_id": 0}
+    )
+    if not seller:
+        raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+    
+    if seller.get('status') == 'deleted':
+        raise HTTPException(status_code=400, detail="Impossible de suspendre un vendeur supprimé")
+    
+    if seller.get('status') == 'suspended':
+        raise HTTPException(status_code=400, detail="Le vendeur est déjà suspendu")
+    
+    await db.users.update_one(
+        {"id": seller_id},
+        {"$set": {"status": "suspended", "suspended_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"success": True, "message": f"Vendeur {seller['name']} suspendu avec succès", "status": "suspended"}
+
+@api_router.patch("/gerant/sellers/{seller_id}/reactivate")
+async def reactivate_seller_gerant(
+    seller_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Réactiver un vendeur suspendu"""
+    if current_user['role'] not in ['gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    seller = await db.users.find_one(
+        {"id": seller_id, "gerant_id": current_user['id'], "role": "seller"},
+        {"_id": 0}
+    )
+    if not seller:
+        raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+    
+    if seller.get('status') == 'deleted':
+        raise HTTPException(status_code=400, detail="Impossible de réactiver un vendeur supprimé")
+    
+    if seller.get('status') == 'active':
+        raise HTTPException(status_code=400, detail="Le vendeur est déjà actif")
+    
+    await db.users.update_one(
+        {"id": seller_id},
+        {"$set": {"status": "active", "reactivated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"success": True, "message": f"Vendeur {seller['name']} réactivé avec succès", "status": "active"}
+
+@api_router.patch("/gerant/managers/{manager_id}/suspend")
+async def suspend_manager_gerant(
+    manager_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Suspendre un manager"""
+    if current_user['role'] not in ['gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    manager = await db.users.find_one(
+        {"id": manager_id, "gerant_id": current_user['id'], "role": "manager"},
+        {"_id": 0}
+    )
+    if not manager:
+        raise HTTPException(status_code=404, detail="Manager non trouvé")
+    
+    if manager.get('status') == 'deleted':
+        raise HTTPException(status_code=400, detail="Impossible de suspendre un manager supprimé")
+    
+    if manager.get('status') == 'suspended':
+        raise HTTPException(status_code=400, detail="Le manager est déjà suspendu")
+    
+    await db.users.update_one(
+        {"id": manager_id},
+        {"$set": {"status": "suspended", "suspended_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"success": True, "message": f"Manager {manager['name']} suspendu avec succès", "status": "suspended"}
+
+@api_router.patch("/gerant/managers/{manager_id}/reactivate")
+async def reactivate_manager_gerant(
+    manager_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Réactiver un manager suspendu"""
+    if current_user['role'] not in ['gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    manager = await db.users.find_one(
+        {"id": manager_id, "gerant_id": current_user['id'], "role": "manager"},
+        {"_id": 0}
+    )
+    if not manager:
+        raise HTTPException(status_code=404, detail="Manager non trouvé")
+    
+    if manager.get('status') == 'deleted':
+        raise HTTPException(status_code=400, detail="Impossible de réactiver un manager supprimé")
+    
+    if manager.get('status') == 'active':
+        raise HTTPException(status_code=400, detail="Le manager est déjà actif")
+    
+    await db.users.update_one(
+        {"id": manager_id},
+        {"$set": {"status": "active", "reactivated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"success": True, "message": f"Manager {manager['name']} réactivé avec succès", "status": "active"}
+
 @api_router.get("/gerant/managers")
 async def get_all_managers(current_user: dict = Depends(get_current_user)):
     """Récupérer tous les managers actifs du gérant"""
