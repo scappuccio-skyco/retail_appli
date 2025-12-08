@@ -93,6 +93,8 @@ export default function ManagerDashboard({ user, onLogout }) {
   const urlParams = new URLSearchParams(window.location.search);
   const urlStoreId = urlParams.get('store_id');
   const effectiveStoreId = urlStoreId || user?.store_id;
+  // For API calls: add store_id param if gerant is accessing
+  const apiStoreIdParam = urlStoreId ? `?store_id=${urlStoreId}` : '';
   
   // Onboarding logic - Detect KPI mode
   const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
