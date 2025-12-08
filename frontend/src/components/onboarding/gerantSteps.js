@@ -61,7 +61,8 @@ export const gerantSteps = [
     title: 'Suivez vos performances',
     description: (
       <>
-        <p>Consultez les statistiques de toute votre entreprise :</p>
+        <p className="text-purple-600 font-semibold">Troisième étape : analysez les performances de votre entreprise.</p>
+        <p className="mt-3">Consultez les statistiques de toute votre entreprise :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
           <li>CA global et par magasin</li>
           <li>Classement des magasins</li>
@@ -70,7 +71,7 @@ export const gerantSteps = [
         </ul>
       </>
     ),
-    tips: 'Utilisez les filtres par période pour analyser les tendances.'
+    tips: 'Utilisez les filtres par période pour analyser les tendances. Les KPI sont saisis par les managers de chaque magasin.'
   },
 
   // Étape 5 : Abonnement
