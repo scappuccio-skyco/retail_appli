@@ -1007,8 +1007,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
 
                   {archivedSellers.length === 0 ? (
                     <div className="p-8 text-center text-gray-500">
-                      <Archive className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p>Aucun vendeur archivé</p>
+                      <PauseCircle className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                      <p>Aucun vendeur en veille</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
