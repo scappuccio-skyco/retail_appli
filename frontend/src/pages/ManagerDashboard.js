@@ -435,7 +435,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const fetchKpiConfig = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/manager/kpi-config`, {
+      const res = await axios.get(`${API}/manager/kpi-config${apiStoreIdParam}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setKpiConfig(res.data);
