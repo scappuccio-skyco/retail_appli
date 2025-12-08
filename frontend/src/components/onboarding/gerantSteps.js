@@ -24,16 +24,16 @@ export const gerantSteps = [
     title: 'Créez vos magasins',
     description: (
       <>
-        <p>Première étape : structurez votre entreprise en créant vos magasins.</p>
+        <p className="text-orange-600 font-semibold">Première étape : structurez votre entreprise en créant vos magasins.</p>
         <p className="mt-3">Pour chaque magasin :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
           <li>Nom et adresse</li>
-          <li>Configuration des KPI</li>
-          <li>Attribution d'un manager</li>
+          <li>Attribution d'un manager (ou vous-même si vous gérez directement)</li>
+          <li>Ajout de vendeurs</li>
         </ul>
       </>
     ),
-    tips: 'Vous pourrez ajouter, modifier ou supprimer des magasins à tout moment.'
+    tips: 'Vous pourrez ajouter, modifier ou supprimer des magasins à tout moment. Note : Vous pouvez être à la fois gérant ET manager d\'un ou plusieurs magasins.'
   },
 
   // Étape 3 : Inviter du personnel
