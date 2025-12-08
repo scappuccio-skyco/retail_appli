@@ -580,7 +580,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                       // Charger les vendeurs archivés
                       try {
                         const token = localStorage.getItem('token');
-                        const response = await axios.get(`${API}/manager/sellers/archived`, {
+                        const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
+                        const response = await axios.get(`${API}/manager/sellers/archived${storeParam}`, {
                           headers: { Authorization: `Bearer ${token}` }
                         });
                         setArchivedSellers(response.data);
