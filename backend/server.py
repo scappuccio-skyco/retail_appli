@@ -4767,11 +4767,26 @@ async def reset_manager_diagnostic(
 
 # ===== KPI CONFIGURATION ENDPOINTS =====
 @api_router.get("/manager/kpi-config")
-async def get_kpi_config(current_user: dict = Depends(get_current_user)):
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access KPI config")
+async def get_kpi_config(
+    store_id: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
     
-    config = await db.kpi_configs.find_one({"manager_id": current_user['id']}, {"_id": 0})
+    # Determine effective store_id
+    effective_store_id = None
+    if store_id and current_user['role'] in ['gerant', 'gérant']:
+        effective_store_id = store_id
+    elif current_user.get('store_id'):
+        effective_store_id = current_user['store_id']
+    
+    # Try to find by store_id first, then by manager_id
+    config = None
+    if effective_store_id:
+        config = await db.kpi_configs.find_one({"store_id": effective_store_id}, {"_id": 0})
+    if not config and current_user.get('id'):
+        config = await db.kpi_configs.find_one({"manager_id": current_user['id']}, {"_id": 0})
     
     if not config:
         # Create default config
