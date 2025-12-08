@@ -236,13 +236,23 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                         </div>
                         <p className="text-sm text-gray-600">{manager.email}</p>
                       </div>
-                      <button
-                        onClick={() => onTransferManager(manager)}
-                        className="flex items-center gap-2 px-3 py-2 bg-white border-2 border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 transition-all text-sm font-semibold"
-                      >
-                        <RefreshCw className="w-4 h-4" />
-                        Transférer
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => onTransferManager(manager)}
+                          className="flex items-center gap-2 px-3 py-2 bg-white border-2 border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 transition-all text-sm font-semibold"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                          Transférer
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(manager.id, 'manager', manager.name)}
+                          className="flex items-center gap-2 px-3 py-2 bg-white border-2 border-red-500 text-red-600 rounded-lg hover:bg-red-50 transition-all text-sm font-semibold"
+                          title="Supprimer le manager"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Supprimer
+                        </button>
+                      </div>
                     </div>
                   ))}
 
