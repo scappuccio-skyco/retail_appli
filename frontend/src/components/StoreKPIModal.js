@@ -1082,10 +1082,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                   </button>
                 </div>
               </div>
-
+              )}
 
               {/* Charts */}
-              {historicalData.length > 0 ? (
+              {displayMode === 'chart' && historicalData.length > 0 ? (
                 <div className="space-y-6">
                   {/* CA Chart */}
                   {visibleCharts.ca && (
