@@ -125,24 +125,20 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
 
       if (response.ok) {
         const result = await response.json();
-        // Recharger les données
-        if (userRole === 'manager') {
-          fetchManagers();
-        } else {
-          fetchSellers();
-        }
+        // Recharger toutes les données de l'équipe
+        await fetchStoreTeam();
         // Rafraîchir si besoin
         if (onRefresh) {
           onRefresh();
         }
-        alert(result.message || `${userRole === 'manager' ? 'Manager' : 'Vendeur'} ${action === 'suspend' ? 'suspendu' : 'réactivé'} avec succès`);
+        // Message de succès (pas d'alert pour éviter les erreurs DOM)
+        console.log(result.message || `${userRole === 'manager' ? 'Manager' : 'Vendeur'} ${action === 'suspend' ? 'suspendu' : 'réactivé'} avec succès`);
       } else {
         const error = await response.json();
-        alert(error.detail || `Erreur lors de ${actionLabel}`);
+        console.error(error.detail || `Erreur lors de ${actionLabel}`);
       }
     } catch (error) {
       console.error(`Erreur ${actionLabel}:`, error);
-      alert(`Erreur lors de ${actionLabel}`);
     }
   };
 
