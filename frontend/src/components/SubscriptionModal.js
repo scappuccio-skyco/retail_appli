@@ -502,12 +502,19 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
         {/* Content */}
         <div className="p-8">
           {/* Current Status */}
-          {subscriptionInfo && (
-            <div className="mb-8 p-6 bg-blue-50 rounded-xl border-2 border-blue-200">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                Statut actuel
-              </h3>
-              {subscriptionInfo.status === 'trialing' && (
+          <div className="mb-8 p-6 bg-blue-50 rounded-xl border-2 border-blue-200">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              📊 Statut actuel
+            </h3>
+            {!subscriptionInfo && (
+              <div>
+                <p className="text-gray-700 font-semibold">Aucun abonnement actif</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  Choisissez un plan ci-dessous pour commencer
+                </p>
+              </div>
+            )}
+            {subscriptionInfo && subscriptionInfo.status === 'trialing' && (
                 <div>
                   <p className="text-gray-700">
                     <span className="font-semibold">Essai gratuit - Plan {PLANS[currentPlan]?.name}</span> - {subscriptionInfo.days_left} jour{subscriptionInfo.days_left > 1 ? 's' : ''} restant{subscriptionInfo.days_left > 1 ? 's' : ''}
