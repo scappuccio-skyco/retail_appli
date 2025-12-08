@@ -12844,7 +12844,7 @@ async def get_gerant_store_kpi_history(
         date_map[date]["nb_articles"] += kpi.get("nb_articles") or 0
         date_map[date]["nb_prospects"] += kpi.get("nb_prospects") or 0
     
-    # Add seller entries
+    # Add seller entries (handle both seller_ca and ca_journalier field names)
     for entry in seller_entries:
         date = entry['date']
         if date not in date_map:
@@ -12856,7 +12856,9 @@ async def get_gerant_store_kpi_history(
                 "nb_articles": 0,
                 "nb_prospects": 0
             }
-        date_map[date]["ca_journalier"] += entry.get("ca_journalier") or 0
+        # Handle both field names for CA (seller_ca and ca_journalier)
+        ca_value = entry.get("seller_ca") or entry.get("ca_journalier") or 0
+        date_map[date]["ca_journalier"] += ca_value
         date_map[date]["nb_ventes"] += entry.get("nb_ventes") or 0
         date_map[date]["nb_clients"] += entry.get("nb_clients") or 0
         date_map[date]["nb_articles"] += entry.get("nb_articles") or 0
