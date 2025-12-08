@@ -68,9 +68,9 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-6 relative">
+        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-6 relative flex-shrink-0">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
@@ -84,7 +84,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 px-6">
+        <div className="border-b border-gray-200 px-6 flex-shrink-0">
           <div className="flex gap-4">
             <button
               onClick={() => setActiveTab('performance')}
@@ -120,7 +120,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[60vh]">
+        <div className="p-6 overflow-y-auto flex-1 min-h-0">
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
