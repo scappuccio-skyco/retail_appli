@@ -638,7 +638,7 @@ const GerantDashboard = ({ user, onLogout }) => {
                   <p className="text-2xl font-bold text-gray-800">{globalStats?.total_managers || 0}</p>
                   {globalStats?.suspended_managers > 0 && (
                     <p className="text-xs text-orange-600 mt-1">
-                      {globalStats.suspended_managers} suspendu{globalStats.suspended_managers > 1 ? 's' : ''}
+                      {globalStats.suspended_managers} en veille
                     </p>
                   )}
                 </div>
