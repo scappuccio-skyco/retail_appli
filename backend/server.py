@@ -342,9 +342,9 @@ class GerantInvitationCreate(BaseModel):
 class RegisterWithGerantInvite(BaseModel):
     """Modèle pour s'enregistrer avec une invitation Gérant"""
     name: str
-    email: EmailStr
     password: str
     invitation_token: str
+    phone: Optional[str] = None
 
 # ============================================
 # USER MODELS (Modified for Multi-Store)
