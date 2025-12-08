@@ -349,7 +349,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const fetchActiveObjectives = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/manager/objectives/active`, {
+      const res = await axios.get(`${API}/manager/objectives/active${apiStoreIdParam}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setActiveObjectives(res.data);
