@@ -126,15 +126,18 @@ backend:
 frontend:
   - task: "Custom KPI Calendar Component Testing"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/components/KPICalendar.js, /app/frontend/src/components/StoreKPIModal.js, /app/frontend/src/components/gerant/StoreDetailModal.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "CUSTOM KPI CALENDAR COMPONENT IMPLEMENTED: Added new KPICalendar component that highlights days with KPI data in green background. Component integrated into StoreKPIModal accessible from StoreDetailModal Performance tab. Features include: month/year navigation, green highlighting for days with data, today's date special border, date selection functionality, legend with 'Données' indicator, 'Aujourd'hui' button to jump to today. Calendar shows current month (December 2025) and allows clicking dates to select them. Need to test complete flow: login as gérant → navigate to store detail → Performance tab → calendar functionality."
+      - working: false
+        agent: "testing"
+        comment: "CUSTOM KPI CALENDAR COMPONENT TESTING FAILED - CRITICAL BACKEND API ISSUES: ❌ AUTHENTICATION SUCCESS: Successfully logged in as gérant with gerant.demo@test.fr credentials and reached Gérant Dashboard. ❌ CRITICAL ISSUE - API FAILURES: Multiple backend API endpoints failing with 'net::ERR_ABORTED' errors: GET /api/gerant/subscription/status, GET /api/gerant/dashboard/stats, GET /api/onboarding/progress. ❌ STORE MODAL ACCESS BLOCKED: Unable to access store detail modal because dashboard data is not loading properly due to API failures. Store card (Paris 19) is visible but clicking does not open modal due to missing store data. ❌ CALENDAR TESTING IMPOSSIBLE: Cannot test KPI Calendar component because the Performance tab within StoreDetailModal is inaccessible due to upstream API failures. ❌ ROOT CAUSE: Backend API endpoints are returning network errors, preventing proper dashboard initialization and store data loading. This blocks the entire test flow from login → store selection → Performance tab → calendar testing. ❌ IMPACT: Complete feature testing blocked by backend connectivity issues. The KPI Calendar component implementation appears to be in place based on code analysis, but functional testing cannot be completed until backend API issues are resolved."
 
   - task: "Gérant Dashboard Historical Data Loading - Backend Fix Verification"
     implemented: true
