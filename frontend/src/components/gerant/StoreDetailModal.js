@@ -27,20 +27,6 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
         setManagers([]);
       }
 
-      // Récupérer les vendeurs actifs
-      // Récupérer les managers
-      const managersResponse = await fetch(`${backendUrl}/api/gerant/stores/${store.id}/managers`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (managersResponse.ok) {
-        const managersData = await managersResponse.json();
-        console.log('Managers chargés:', managersData);
-        setManagers(managersData || []);
-      } else {
-        console.error('Erreur chargement managers:', managersResponse.status);
-        setManagers([]);
-      }
-
       // Récupérer les vendeurs
       const sellersResponse = await fetch(`${backendUrl}/api/gerant/stores/${store.id}/sellers`, {
         headers: { 'Authorization': `Bearer ${token}` }
