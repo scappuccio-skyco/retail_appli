@@ -579,7 +579,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                   <button
                     onClick={async () => {
                       setShowArchivedSellers(true);
-                      // Charger les vendeurs archivés
+                      // Charger les vendeurs en veille
                       try {
                         const token = localStorage.getItem('token');
                         const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
@@ -588,8 +588,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                         });
                         setArchivedSellers(response.data);
                       } catch (error) {
-                        console.error('Error fetching archived sellers:', error);
-                        toast.error('Erreur lors du chargement des vendeurs archivés');
+                        console.error('Error fetching suspended sellers:', error);
+                        toast.error('Erreur lors du chargement des vendeurs en veille');
                       }
                     }}
                     className={`px-4 py-2 font-medium transition-colors ${
@@ -599,8 +599,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <Archive className="w-4 h-4" />
-                      Vendeurs archivés
+                      <PauseCircle className="w-4 h-4" />
+                      Vendeurs en veille
                     </div>
                   </button>
                 </div>
