@@ -25,7 +25,7 @@ export const gerantSteps = [
     description: (
       <>
         <p className="text-orange-600 font-semibold">Première étape : structurez votre entreprise en créant vos magasins.</p>
-        <p className="mt-3">Pour chaque magasin :</p>
+        <p className="mt-3 font-semibold">Pour chaque magasin :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
           <li>Nom et adresse</li>
           <li>Attribution d'un manager (ou vous-même si vous gérez directement)</li>
