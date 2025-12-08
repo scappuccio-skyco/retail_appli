@@ -137,7 +137,7 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
           />
           
           {/* Calendar */}
-          <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 min-w-[320px]">
+          <div className={`absolute ${openUpwards ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 min-w-[320px]`}>
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <button
