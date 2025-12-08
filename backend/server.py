@@ -2148,17 +2148,28 @@ async def get_competences_history(current_user: dict = Depends(get_current_user)
 
 # ===== MANAGER ROUTES =====
 @api_router.get("/manager/sellers")
-async def get_sellers(current_user: dict = Depends(get_current_user)):
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access this")
+async def get_sellers(
+    store_id: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    # Allow managers and gérants (gérants can access with store_id parameter)
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
     
-    # Priority: store_id > workspace_id > manager_id
-    # A manager manages a store, so sellers in that store belong to this manager
-    # This allows for manager changes without losing seller data
-    if current_user.get('store_id'):
+    # Determine which store_id to use
+    effective_store_id = None
+    if store_id and current_user['role'] in ['gerant', 'gérant']:
+        # Gérant accessing specific store - use provided store_id
+        effective_store_id = store_id
+    elif current_user.get('store_id'):
+        # Manager accessing their own store
+        effective_store_id = current_user['store_id']
+    
+    # Priority: effective_store_id > workspace_id > manager_id
+    if effective_store_id:
         # Use store_id for filtering (most reliable for multi-store architecture)
         filter_query = {
-            "store_id": current_user['store_id'],
+            "store_id": effective_store_id,
             "role": "seller",
             "status": {"$nin": ["deleted", "inactive"]}
         }
