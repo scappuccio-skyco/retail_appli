@@ -12882,6 +12882,35 @@ async def get_gerant_store_kpi_history(
     return historical_data
 
 
+@api_router.get("/gerant/stores/{store_id}/available-years")
+async def get_store_available_years(
+    store_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get available years with KPI data for this store"""
+    if current_user['role'] not in ['gerant', 'gérant', 'manager']:
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    # Get distinct years from kpi_entries
+    kpi_years = await db.kpi_entries.distinct("date", {"store_id": store_id})
+    years_set = set()
+    for date_str in kpi_years:
+        if date_str and len(date_str) >= 4:
+            year = int(date_str[:4])
+            years_set.add(year)
+    
+    # Get distinct years from manager_kpi
+    manager_years = await db.manager_kpi.distinct("date", {"store_id": store_id})
+    for date_str in manager_years:
+        if date_str and len(date_str) >= 4:
+            year = int(date_str[:4])
+            years_set.add(year)
+    
+    # Sort descending (most recent first)
+    years = sorted(list(years_set), reverse=True)
+    
+    return {"years": years}
+
 # ============================================
 # STORE INFO ENDPOINT (For all authenticated users)
 # ============================================
