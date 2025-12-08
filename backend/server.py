@@ -6152,19 +6152,31 @@ async def update_objective_progress(
 
 
 @api_router.get("/manager/objectives/active")
-async def get_active_manager_objectives(current_user: dict = Depends(get_current_user)):
+async def get_active_manager_objectives(
+    store_id: str = None,
+    current_user: dict = Depends(get_current_user)
+):
     """Get only active objectives for display in manager dashboard"""
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access objectives")
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Determine effective store_id
+    effective_store_id = None
+    if store_id and current_user['role'] in ['gerant', 'gérant']:
+        effective_store_id = store_id
+    elif current_user.get('store_id'):
+        effective_store_id = current_user['store_id']
     
     today = datetime.now(timezone.utc).date().isoformat()
-    objectives = await db.manager_objectives.find(
-        {
-            "manager_id": current_user['id'],
-            "period_end": {"$gt": today}  # Only objectives that haven't ended yet (strict >)
-        },
-        {"_id": 0}
-    ).sort("period_start", 1).to_list(10)
+    
+    # Build query based on available identifiers
+    query = {"period_end": {"$gt": today}}
+    if effective_store_id:
+        query["store_id"] = effective_store_id
+    elif current_user.get('id'):
+        query["manager_id"] = current_user['id']
+    
+    objectives = await db.manager_objectives.find(query, {"_id": 0}).sort("period_start", 1).to_list(10)
     
     # Calculate progress for each objective
     for objective in objectives:
