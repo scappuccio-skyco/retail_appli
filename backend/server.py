@@ -3381,14 +3381,35 @@ async def get_kpi_definitions():
 
 # Seller: Check if KPIs are enabled
 @api_router.get("/seller/kpi-enabled")
-async def check_kpi_enabled(current_user: dict = Depends(get_current_user)):
-    if current_user['role'] != 'seller':
-        raise HTTPException(status_code=403, detail="Only sellers can access this endpoint")
+async def check_kpi_enabled(
+    store_id: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    # Allow sellers, managers, and gérants to check KPI status
+    if current_user['role'] not in ['seller', 'manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
     
-    if not current_user.get('manager_id'):
-        return {"enabled": False, "seller_input_kpis": SELLER_INPUT_KPIS}
+    # Determine manager_id or store_id to check
+    manager_id = None
+    effective_store_id = None
     
-    config = await db.kpi_configs.find_one({"manager_id": current_user['manager_id']}, {"_id": 0})
+    if current_user['role'] == 'seller':
+        manager_id = current_user.get('manager_id')
+        if not manager_id:
+            return {"enabled": False, "seller_input_kpis": SELLER_INPUT_KPIS}
+    elif store_id and current_user['role'] in ['gerant', 'gérant']:
+        effective_store_id = store_id
+    elif current_user.get('store_id'):
+        effective_store_id = current_user['store_id']
+    elif current_user['role'] == 'manager':
+        manager_id = current_user['id']
+    
+    # Find config by store_id or manager_id
+    config = None
+    if effective_store_id:
+        config = await db.kpi_configs.find_one({"store_id": effective_store_id}, {"_id": 0})
+    if not config and manager_id:
+        config = await db.kpi_configs.find_one({"manager_id": manager_id}, {"_id": 0})
     
     if not config:
         return {"enabled": False, "seller_input_kpis": SELLER_INPUT_KPIS}
