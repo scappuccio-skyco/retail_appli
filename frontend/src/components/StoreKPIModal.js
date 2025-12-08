@@ -380,6 +380,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     } catch (err) {
       console.error('Error fetching historical data:', err);
       toast.error('Erreur lors du chargement des données historiques');
+    } finally {
+      setLoadingHistorical(false); // Stop loading
     }
   };
 
