@@ -1474,7 +1474,11 @@ async def forgot_password(request: ForgotPasswordRequest):
         
         # Envoyer l'email
         from email_service import send_password_reset_email
-        send_password_reset_email(user['email'], user['name'], reset_token)
+        email_sent = send_password_reset_email(user['email'], user['name'], reset_token)
+        
+        if not email_sent:
+            logging.error(f"Failed to send password reset email to {user['email']}")
+            # Ne pas lever d'erreur pour éviter l'énumération d'emails
     
     return {
         "message": "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation dans quelques instants."
