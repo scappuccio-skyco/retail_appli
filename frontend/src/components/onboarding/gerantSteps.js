@@ -24,22 +24,23 @@ export const gerantSteps = [
     tips: 'Vous pourrez ajouter, modifier ou supprimer des magasins à tout moment.'
   },
 
-  // Étape 2 : Créer un magasin
+  // Étape 2 : Gérer comme manager
   {
-    icon: '🏪',
-    title: 'Créez vos magasins',
+    icon: '🎯',
+    title: 'Gérez vos magasins',
     description: (
       <>
-        <p className="text-orange-600 font-semibold">Première étape : structurez votre entreprise en créant vos magasins.</p>
-        <p className="mt-3 font-semibold">Pour chaque magasin :</p>
+        <p className="text-blue-600 font-semibold">Deuxième étape : accédez à l'espace manager de vos magasins.</p>
+        <p className="mt-3 font-semibold">En tant que manager d'un magasin, vous pouvez :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-          <li>Nom et adresse</li>
-          <li>Attribution d'un manager (ou vous-même si vous gérez directement)</li>
-          <li>Ajout de vendeurs</li>
+          <li>Saisir les KPI quotidiens</li>
+          <li>Fixer des objectifs et challenges</li>
+          <li>Faire des états des lieux avec vos équipes</li>
+          <li>Gérer les vendeurs du magasin</li>
         </ul>
       </>
     ),
-    tips: 'Vous pourrez ajouter, modifier ou supprimer des magasins à tout moment. Note : Vous pouvez être à la fois gérant ET manager d\'un ou plusieurs magasins.'
+    tips: 'Vous pouvez être à la fois gérant ET manager d\'un ou plusieurs magasins. Cliquez sur "Accéder à l\'espace Manager" dans le détail du magasin.'
   },
 
   // Étape 3 : Inviter du personnel
