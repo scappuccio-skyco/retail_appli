@@ -408,7 +408,10 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const fetchBilanForWeek = async (startDate, endDate, periode) => {
     try {
-      const res = await axios.get(`${API}/manager/team-bilans/all`);
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API}/manager/team-bilans/all${apiStoreIdParam}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (res.data.status === 'success' && res.data.bilans) {
         const bilan = res.data.bilans.find(b => b.periode === periode);
         if (bilan) {
