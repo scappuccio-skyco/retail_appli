@@ -81,7 +81,7 @@ export const gerantSteps = [
     description: (
       <>
         <p className="text-green-600 font-semibold">Dernière étape : maîtrisez votre abonnement et facturation.</p>
-        <p className="mt-3">Consultez et gérez votre formule d'abonnement :</p>
+        <p className="mt-3 font-semibold">Consultez et gérez votre formule d'abonnement :</p>
         <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
           <li>Plan actuel et nombre de sièges</li>
           <li>Crédits IA restants</li>
