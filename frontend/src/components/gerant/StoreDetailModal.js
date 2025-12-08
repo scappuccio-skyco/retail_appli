@@ -243,10 +243,24 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
             </div>
           ) : activeTab === 'performance' ? (
             <div className="h-full flex flex-col">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex-shrink-0">
-                <p className="text-sm text-blue-800">
-                  <span className="font-semibold">💡 Info :</span> En tant que gérant, vous avez accès à toutes les données de ce magasin. Pour saisir des KPI, assignez-vous comme manager du magasin ou utilisez un compte manager dédié.
-                </p>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-4 flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900 mb-1">🎯 Gérer ce magasin comme un Manager</p>
+                    <p className="text-xs text-blue-700">
+                      Accédez à l'espace complet : saisie KPI, objectifs, challenges, gestion d'équipe
+                    </p>
+                  </div>
+                  <a
+                    href={`/manager-view?store_id=${store.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-sm whitespace-nowrap ml-4"
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    Accéder à l'espace Manager
+                  </a>
+                </div>
               </div>
               <div className="flex-1 min-h-0">
                 <StoreKPIModal 
