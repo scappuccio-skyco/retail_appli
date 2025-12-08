@@ -11153,12 +11153,12 @@ async def delete_seller_gerant(
 
 @api_router.get("/gerant/managers")
 async def get_all_managers(current_user: dict = Depends(get_current_user)):
-    """Récupérer tous les managers du gérant"""
+    """Récupérer tous les managers actifs du gérant"""
     if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     managers = await db.users.find(
-        {"gerant_id": current_user['id'], "role": "manager"},
+        {"gerant_id": current_user['id'], "role": "manager", "status": "active"},
         {"_id": 0, "password": 0}
     ).to_list(length=None)
     
@@ -11166,12 +11166,12 @@ async def get_all_managers(current_user: dict = Depends(get_current_user)):
 
 @api_router.get("/gerant/sellers")
 async def get_all_sellers(current_user: dict = Depends(get_current_user)):
-    """Récupérer tous les vendeurs du gérant"""
+    """Récupérer tous les vendeurs actifs du gérant"""
     if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
     
     sellers = await db.users.find(
-        {"gerant_id": current_user['id'], "role": "seller"},
+        {"gerant_id": current_user['id'], "role": "seller", "status": "active"},
         {"_id": 0, "password": 0}
     ).to_list(length=None)
     
