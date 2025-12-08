@@ -11344,6 +11344,35 @@ async def get_gerant_invitations(current_user: dict = Depends(get_current_user))
     
     return invitations
 
+@api_router.delete("/gerant/invitations/{invitation_id}")
+async def cancel_gerant_invitation(
+    invitation_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Annuler une invitation du gérant"""
+    if current_user['role'] not in ['gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    
+    # Vérifier que l'invitation appartient bien au gérant
+    invitation = await db.gerant_invitations.find_one({
+        "id": invitation_id,
+        "gerant_id": current_user['id']
+    }, {"_id": 0})
+    
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation non trouvée")
+    
+    # Supprimer l'invitation
+    result = await db.gerant_invitations.delete_one({
+        "id": invitation_id,
+        "gerant_id": current_user['id']
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Invitation non trouvée")
+    
+    return {"success": True, "message": "Invitation annulée avec succès"}
+
 @api_router.get("/invitations/gerant/verify/{token}")
 async def verify_gerant_invitation(token: str):
     """Vérifier un token d'invitation Gérant"""
