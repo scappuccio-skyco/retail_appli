@@ -652,7 +652,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                   </p>
                 </div>
               )}
-              {subscriptionInfo && !['trialing', 'active', 'trial_expired'].includes(subscriptionInfo.status) && (
+              {subscriptionInfo && !['trialing', 'active', 'trial_expired', 'no_subscription', 'inactive'].includes(subscriptionInfo.status) && (
                 <div>
                   <p className="text-gray-700">
                     <span className="font-semibold">Statut:</span> {subscriptionInfo.status}
