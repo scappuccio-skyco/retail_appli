@@ -863,6 +863,20 @@ const GerantDashboard = ({ user, onLogout }) => {
             <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
               <Building2 className="w-6 h-6 text-orange-600" />
               Mes Magasins
+              <div className="relative group">
+                <Info className="w-5 h-5 text-gray-400 cursor-help" />
+                <div className="absolute left-0 top-8 hidden group-hover:block z-50 w-80 bg-white border border-gray-200 rounded-lg shadow-xl p-4">
+                  <p className="text-sm font-semibold text-gray-800 mb-2">Logique des badges de performance</p>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li><span className="font-semibold text-green-600">🔥 Excellent:</span> +20% vs moyenne OU +15% d'évolution</li>
+                    <li><span className="font-semibold text-blue-600">👍 Bon:</span> Au-dessus de la moyenne OU +5% d'évolution</li>
+                    <li><span className="font-semibold text-orange-600">⚡ Moyen:</span> -20% à 0% vs moyenne ET -10% à 0% d'évolution</li>
+                    <li><span className="font-semibold text-red-600">⚠️ À améliorer:</span> En dessous de -20% vs moyenne OU -10% d'évolution</li>
+                    <li><span className="font-semibold text-gray-600">⚪ Inactif:</span> CA &lt; 100€ (magasin sans activité)</li>
+                  </ul>
+                  <p className="text-xs text-gray-500 mt-2 italic">La moyenne exclut les magasins inactifs</p>
+                </div>
+              </div>
             </h2>
             <div className="flex gap-3">
               <button
