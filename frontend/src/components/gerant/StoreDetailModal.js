@@ -357,7 +357,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                 </>
               )}
             </div>
-          ) : (
+          ) : activeTab === 'sellers' ? (
             <div key={`sellers-${refreshKey}`} className="space-y-3">
               {sellers.length === 0 && pendingInvitations.filter(inv => inv.role === 'seller').length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
