@@ -11398,11 +11398,11 @@ async def register_with_gerant_invite(invite_data: RegisterWithGerantInvite):
     if invitation['status'] != 'pending':
         raise HTTPException(status_code=400, detail="Cette invitation n'est plus valide")
     
-    if invitation['email'] != invite_data.email:
-        raise HTTPException(status_code=400, detail="L'email ne correspond pas à l'invitation")
+    # Récupérer l'email depuis l'invitation
+    email = invitation['email']
     
     # Vérifier que l'email n'existe pas déjà
-    existing_user = await db.users.find_one({"email": invite_data.email}, {"_id": 0})
+    existing_user = await db.users.find_one({"email": email}, {"_id": 0})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email déjà enregistré")
     
@@ -11412,12 +11412,13 @@ async def register_with_gerant_invite(invite_data: RegisterWithGerantInvite):
     # Créer l'utilisateur
     user_obj = User(
         name=invite_data.name,
-        email=invite_data.email,
+        email=email,
         password=hashed_password,
         role=invitation['role'],
         manager_id=invitation.get('manager_id'),
         store_id=invitation['store_id'],
-        gerant_id=invitation['gerant_id']
+        gerant_id=invitation['gerant_id'],
+        phone=invite_data.phone
     )
     
     user_dict = user_obj.model_dump()
