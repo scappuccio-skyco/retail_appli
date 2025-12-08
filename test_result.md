@@ -510,7 +510,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "RelationshipManagementModal & ConflictResolutionForm - Complete Overhaul"
+    - "Gérant Dashboard Historical Data Loading - Backend Fix Verification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
