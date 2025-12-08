@@ -299,7 +299,7 @@ print(f"Invitation envoyée à {invitation['email']}")
 
 ## 🔗 LIENS UTILES
 
-- **Base URL Production :** `https://datawizard-6.preview.emergentagent.com/api`
+- **Base URL Production :** `https://retail-metrics-35.preview.emergentagent.com/api`
 - **Documentation Postman :** À venir
 - **Webhook Stripe :** `/api/stripe/webhook`
 
