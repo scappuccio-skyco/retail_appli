@@ -124,6 +124,18 @@ backend:
         comment: "BUG OBJECTID CORRIGÉ: ✅ FIX APPLIQUÉ: Ajout de la projection {\"_id\": 0} à la ligne 7842 du fichier server.py dans l'appel db.stores.find_one() pour exclure le champ ObjectId non sérialisable. ✅ VALIDATION: Test curl sur GET /api/gerant/stores/{store_id}/stats retourne maintenant 200 OK avec JSON valide. ✅ BACKEND REDÉMARRÉ: Service backend redémarré avec succès. ✅ SCREENSHOT PRIS: Dashboard Gérant charge correctement avec les 3 magasins (Paris, Lyon, Bordeaux). ✅ RÉSULTAT FINAL: 10/10 endpoints backend multi-store fonctionnent correctement. Tous les endpoints sont prêts pour les tests frontend."
 
 frontend:
+  - task: "Custom KPI Calendar Component Testing"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/KPICalendar.js, /app/frontend/src/components/StoreKPIModal.js, /app/frontend/src/components/gerant/StoreDetailModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "CUSTOM KPI CALENDAR COMPONENT IMPLEMENTED: Added new KPICalendar component that highlights days with KPI data in green background. Component integrated into StoreKPIModal accessible from StoreDetailModal Performance tab. Features include: month/year navigation, green highlighting for days with data, today's date special border, date selection functionality, legend with 'Données' indicator, 'Aujourd'hui' button to jump to today. Calendar shows current month (December 2025) and allows clicking dates to select them. Need to test complete flow: login as gérant → navigate to store detail → Performance tab → calendar functionality."
+
   - task: "Gérant Dashboard Historical Data Loading - Backend Fix Verification"
     implemented: true
     working: true
