@@ -89,6 +89,11 @@ export default function ManagerDashboard({ user, onLogout }) {
   const navigate = useNavigate();
   const { canEditKPIConfig, isReadOnly } = useSyncMode();
   
+  // Get store_id from URL query params (for gerant accessing as manager)
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlStoreId = urlParams.get('store_id');
+  const effectiveStoreId = urlStoreId || user?.store_id;
+  
   // Onboarding logic - Detect KPI mode
   const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
   
