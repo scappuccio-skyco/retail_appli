@@ -12705,46 +12705,34 @@ async def get_gerant_store_kpi_overview(
     if not date:
         date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     
-    # Get all managers in this store
-    managers = await db.users.find({
-        "store_id": store_id,
-        "role": "manager",
-        "gerant_id": current_user['id']
-    }, {"_id": 0, "id": 1}).to_list(100)
-    
-    manager_ids = [m['id'] for m in managers]
-    
-    # Get all sellers in this store
+    # Get all sellers in this store (for display purposes only)
     sellers = await db.users.find({
         "store_id": store_id,
         "role": "seller",
-        "status": "active",
-        "gerant_id": current_user['id']
+        "status": "active"
     }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
     
-    seller_ids = [s['id'] for s in sellers]
+    # Get ALL KPI entries for this store directly by store_id (not by user_id)
+    # This ensures data persistence even if users change
+    seller_entries = await db.kpi_entries.find({
+        "store_id": store_id,
+        "date": date
+    }, {"_id": 0}).to_list(100)
     
-    # Aggregate manager KPIs for the date
-    manager_kpis_list = []
-    if manager_ids:
-        manager_kpis_list = await db.manager_kpis.find({
-            "manager_id": {"$in": manager_ids},
-            "date": date
-        }, {"_id": 0}).to_list(100)
-    
-    # Aggregate seller KPI entries for the date
-    seller_entries = []
-    if seller_ids:
-        seller_entries = await db.kpi_entries.find({
-            "seller_id": {"$in": seller_ids},
-            "date": date
-        }, {"_id": 0}).to_list(100)
-    
-    # Enrich seller entries with names
+    # Enrich seller entries with names from current sellers
     for entry in seller_entries:
-        seller = next((s for s in sellers if s['id'] == entry['seller_id']), None)
+        seller = next((s for s in sellers if s['id'] == entry.get('seller_id')), None)
         if seller:
             entry['seller_name'] = seller['name']
+        else:
+            # If seller not found (deleted/changed), show generic name
+            entry['seller_name'] = entry.get('seller_name', 'Vendeur (historique)')
+    
+    # Get manager KPIs for this store (if they exist)
+    manager_kpis_list = await db.manager_kpi.find({
+        "store_id": store_id,
+        "date": date
+    }, {"_id": 0}).to_list(100)
     
     # Aggregate totals from managers
     managers_total = {
