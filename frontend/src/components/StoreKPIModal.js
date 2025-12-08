@@ -1325,12 +1325,18 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                                 <div className="flex items-center justify-between mb-3">
                                   <div className="flex items-center gap-2">
                                     <span className="text-lg font-bold text-purple-600">
-                                      📅 {new Date(entry.date + 'T00:00:00').toLocaleDateString('fr-FR', { 
-                                        weekday: 'long',
-                                        day: 'numeric', 
-                                        month: 'long', 
-                                        year: 'numeric' 
-                                      })}
+                                      📅 {
+                                        // For year view, date is month name (e.g., "Janvier")
+                                        // For other views, date is ISO format (e.g., "2025-12-08")
+                                        entry.date.includes('-') 
+                                          ? new Date(entry.date + 'T00:00:00').toLocaleDateString('fr-FR', { 
+                                              weekday: 'long',
+                                              day: 'numeric', 
+                                              month: 'long', 
+                                              year: 'numeric' 
+                                            })
+                                          : entry.date
+                                      }
                                     </span>
                                   </div>
                                   <span className="text-xs text-gray-500 font-medium">
