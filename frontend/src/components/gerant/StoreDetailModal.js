@@ -262,6 +262,13 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                           Envoyée le {new Date(invitation.created_at).toLocaleDateString('fr-FR')}
                         </p>
                       </div>
+                      <button
+                        onClick={() => handleCancelInvitation(invitation.id)}
+                        className="ml-4 px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Annuler l'invitation"
+                      >
+                        ✕ Annuler
+                      </button>
                     </div>
                   ))}
                 </>
