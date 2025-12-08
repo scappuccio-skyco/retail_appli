@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Users, TrendingUp, UserPlus, RefreshCw, Trash2 } from 'lucide-react';
+import { X, Users, TrendingUp, UserPlus, RefreshCw, Trash2, Pause } from 'lucide-react';
 import StoreKPIModal from '../StoreKPIModal';
 
 const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller, onDeleteStore, onRefresh }) => {
