@@ -1650,11 +1650,23 @@ async def reset_password(request: ResetPasswordRequest):
 #     return invitation
 
 @api_router.get("/manager/invitations")
-async def get_invitations(current_user: dict = Depends(get_current_user)):
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can view invitations")
+async def get_invitations(
+    store_id: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    # Allow managers and gérants
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
     
-    invitations = await db.invitations.find({"manager_id": current_user['id']}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    # Determine filter based on role and store_id
+    if store_id and current_user['role'] in ['gerant', 'gérant']:
+        # Gérant accessing specific store - filter by store_id
+        invitations = await db.invitations.find({"store_id": store_id}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    elif current_user['role'] == 'manager':
+        # Manager accessing their own invitations
+        invitations = await db.invitations.find({"manager_id": current_user['id']}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    else:
+        invitations = []
     
     for inv in invitations:
         if isinstance(inv.get('created_at'), str):
