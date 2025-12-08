@@ -2265,7 +2265,7 @@ async def get_archived_sellers(
     store_id: str = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Récupérer les vendeurs inactifs ou supprimés (archivés)"""
+    """Récupérer les vendeurs en veille (suspended) - Les suppressions sont gérées par le gérant"""
     if current_user['role'] not in ['manager', 'gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Access denied")
     
@@ -2276,10 +2276,10 @@ async def get_archived_sellers(
     elif current_user.get('store_id'):
         effective_store_id = current_user['store_id']
     
-    # Build query
+    # Build query - Only suspended sellers (not deleted/inactive, those are managed by gérant)
     filter_query = {
         "role": "seller",
-        "status": {"$in": ["inactive", "deleted"]}
+        "status": "suspended"  # Changed: only suspended, not deleted/inactive
     }
     
     # Priority: store_id > workspace_id > manager_id
@@ -2290,9 +2290,9 @@ async def get_archived_sellers(
     elif current_user.get('id'):
         filter_query["manager_id"] = current_user['id']
     
-    archived_sellers = await db.users.find(filter_query, {"_id": 0, "password": 0}).to_list(1000)
+    suspended_sellers = await db.users.find(filter_query, {"_id": 0, "password": 0}).to_list(1000)
     
-    return archived_sellers
+    return suspended_sellers
 
 @api_router.put("/manager/seller/{seller_id}/deactivate")
 async def deactivate_seller(seller_id: str, current_user: dict = Depends(get_current_user)):
