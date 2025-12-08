@@ -534,7 +534,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Gérant Dashboard Historical Data Loading - Backend Fix Verification"
+    - "Custom KPI Calendar Component Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
