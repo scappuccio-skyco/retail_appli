@@ -119,6 +119,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   };
 
   const fetchHistoricalData = async () => {
+    setLoadingHistorical(true); // Start loading
     try {
       const token = localStorage.getItem('token');
       let days = 90; // default 3 months
