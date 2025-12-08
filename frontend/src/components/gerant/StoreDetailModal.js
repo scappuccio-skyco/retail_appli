@@ -270,8 +270,12 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <p className="font-semibold text-gray-800">{manager.name}</p>
-                          <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                            ✓ Actif
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                            manager.status === 'suspended' 
+                              ? 'bg-orange-100 text-orange-700' 
+                              : 'bg-green-100 text-green-700'
+                          }`}>
+                            {manager.status === 'suspended' ? '⏸ Suspendu' : '✓ Actif'}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600">{manager.email}</p>
