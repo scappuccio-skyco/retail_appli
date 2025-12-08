@@ -218,17 +218,17 @@ export default function ResetPassword() {
             </div>
 
             {password && confirmPassword && (
-              <div className={`text-sm ${password === confirmPassword ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="text-sm">
                 {password === confirmPassword ? (
-                  <span className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-green-600">
                     <CheckCircle className="w-4 h-4" />
-                    Les mots de passe correspondent
-                  </span>
+                    <span>Les mots de passe correspondent</span>
+                  </div>
                 ) : (
-                  <span className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-red-600">
                     <XCircle className="w-4 h-4" />
-                    Les mots de passe ne correspondent pas
-                  </span>
+                    <span>Les mots de passe ne correspondent pas</span>
+                  </div>
                 )}
               </div>
             )}
