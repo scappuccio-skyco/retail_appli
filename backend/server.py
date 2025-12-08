@@ -5260,9 +5260,9 @@ async def analyze_store_kpis(
     request_data: dict,
     current_user: dict = Depends(get_current_user)
 ):
-    """Analyze store KPIs using AI"""
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access this endpoint")
+    """Analyze store KPIs using AI (accessible by managers and gérants)"""
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Accès réservé aux managers et gérants")
     
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
