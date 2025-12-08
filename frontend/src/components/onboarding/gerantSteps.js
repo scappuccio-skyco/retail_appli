@@ -11,11 +11,17 @@ export const gerantSteps = [
     title: 'Bienvenue dans votre espace Gérant',
     description: (
       <>
-        <p>Vous êtes le pilote de votre entreprise.</p>
-        <p className="mt-2">Ce tutoriel vous guide dans la gestion de votre structure.</p>
+        <p className="text-orange-600 font-semibold">Première étape : créez vos magasins.</p>
+        <p className="mt-3 font-semibold">Pour chaque magasin :</p>
+        <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+          <li>Nom de votre boutique</li>
+          <li>Adresse</li>
+          <li>Téléphone</li>
+          <li>Horaires d'ouverture</li>
+        </ul>
       </>
     ),
-    tips: 'Vous contrôlez toute l\'organisation de votre entreprise.'
+    tips: 'Vous pourrez ajouter, modifier ou supprimer des magasins à tout moment.'
   },
 
   // Étape 2 : Créer un magasin
