@@ -429,6 +429,16 @@ const GerantDashboard = ({ user, onLogout }) => {
     
     const relativePerformance = avgCA > 0 ? ((storeData.periodCA - avgCA) / avgCA) * 100 : 0;
     
+    // Cas spécial : magasin sans activité significative
+    if (storeData.periodCA < 100) {
+      return { 
+        type: 'weak', 
+        bgClass: 'bg-gray-500', 
+        icon: '⚪', 
+        label: 'Inactif' 
+      };
+    }
+    
     // Badge basé sur performance relative ET évolution
     if (relativePerformance > 20 || storeData.periodEvolution > 15) {
       return { 
