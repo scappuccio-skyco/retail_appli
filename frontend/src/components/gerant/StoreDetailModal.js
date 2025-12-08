@@ -101,6 +101,51 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
     }
   };
 
+  const handleToggleSuspend = async (userId, userRole, userName, action) => {
+    const roleLabel = userRole === 'manager' ? 'le manager' : 'le vendeur';
+    const actionLabel = action === 'suspend' ? 'suspendre' : 'réactiver';
+    const warningMessage = action === 'suspend'
+      ? `Suspendre ${roleLabel} "${userName}" ?\n\n⚠️ Conséquences :\n- ${userRole === 'manager' ? 'Le manager' : 'Le vendeur'} ne pourra plus se connecter\n- Ses données seront conservées\n- Vous pourrez le réactiver à tout moment\n\nConfirmez-vous ?`
+      : `Réactiver ${roleLabel} "${userName}" ?\n\n✅ ${userRole === 'manager' ? 'Le manager' : 'Le vendeur'} pourra à nouveau se connecter et accéder à l'application.\n\nConfirmez-vous ?`;
+    
+    if (!window.confirm(warningMessage)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const endpoint = userRole === 'manager' 
+        ? `${backendUrl}/api/gerant/managers/${userId}/${action}`
+        : `${backendUrl}/api/gerant/sellers/${userId}/${action}`;
+        
+      const response = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        // Recharger les données
+        if (userRole === 'manager') {
+          fetchManagers();
+        } else {
+          fetchSellers();
+        }
+        // Rafraîchir si besoin
+        if (onRefresh) {
+          onRefresh();
+        }
+        alert(result.message || `${userRole === 'manager' ? 'Manager' : 'Vendeur'} ${action === 'suspend' ? 'suspendu' : 'réactivé'} avec succès`);
+      } else {
+        const error = await response.json();
+        alert(error.detail || `Erreur lors de ${actionLabel}`);
+      }
+    } catch (error) {
+      console.error(`Erreur ${actionLabel}:`, error);
+      alert(`Erreur lors de ${actionLabel}`);
+    }
+  };
+
   const handleCancelInvitation = async (invitationId) => {
     if (!window.confirm('Êtes-vous sûr de vouloir annuler cette invitation ?')) {
       return;
