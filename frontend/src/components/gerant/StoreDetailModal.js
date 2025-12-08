@@ -242,14 +242,21 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
               <p className="text-gray-600 mt-4">Chargement...</p>
             </div>
           ) : activeTab === 'performance' ? (
-            <div className="h-full">
-              <StoreKPIModal 
-                onClose={() => console.log('Close not needed')} 
-                onSuccess={() => onRefresh()}
-                hideCloseButton={true}
-                storeId={store.id}
-                storeName={store.name}
-              />
+            <div className="h-full flex flex-col">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex-shrink-0">
+                <p className="text-sm text-blue-800">
+                  <span className="font-semibold">💡 Info :</span> En tant que gérant, vous avez accès à toutes les données de ce magasin. Pour saisir des KPI, assignez-vous comme manager du magasin ou utilisez un compte manager dédié.
+                </p>
+              </div>
+              <div className="flex-1 min-h-0">
+                <StoreKPIModal 
+                  onClose={() => console.log('Close not needed')} 
+                  onSuccess={() => onRefresh()}
+                  hideCloseButton={true}
+                  storeId={store.id}
+                  storeName={store.name}
+                />
+              </div>
             </div>
           ) : activeTab === 'managers' ? (
             <div key={`managers-${refreshKey}`} className="space-y-3">
