@@ -462,11 +462,12 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     // Only fetch KPI config for Manager view, not for Gérant view
     if (!storeId) {
       fetchKPIConfig();
+    } else {
+      // Fetch available years for year selector (Gérant only)
+      fetchAvailableYears();
     }
     // Fetch dates with data for calendar
     fetchDatesWithData();
-    // Fetch available years for year selector
-    fetchAvailableYears();
   }, [storeId]);
 
   useEffect(() => {
