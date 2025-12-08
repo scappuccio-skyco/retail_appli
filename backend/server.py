@@ -11792,9 +11792,76 @@ async def get_gerant_subscription_status(current_user: dict = Depends(get_curren
     try:
         # Récupérer les informations du gérant
         gerant = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        workspace_id = gerant.get('workspace_id')
+        
+        # PRIORITÉ 1: Vérifier le workspace (pour les essais gratuits sans Stripe)
+        if workspace_id:
+            workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0})
+            if workspace:
+                subscription_status = workspace.get('subscription_status')
+                
+                # Si en période d'essai dans le workspace
+                if subscription_status == 'trialing':
+                    trial_end = workspace.get('trial_end')
+                    if trial_end:
+                        if isinstance(trial_end, str):
+                            trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
+                        else:
+                            trial_end_dt = trial_end
+                        
+                        now = datetime.now(timezone.utc)
+                        days_left = max(0, (trial_end_dt - now).days)
+                        
+                        # Compter les vendeurs actifs
+                        active_sellers_count = await db.users.count_documents({
+                            "gerant_id": current_user['id'],
+                            "role": "seller",
+                            "status": "active"
+                        })
+                        
+                        # Déterminer le plan en fonction du nombre de vendeurs
+                        current_plan = 'starter'
+                        max_sellers = 5
+                        if active_sellers_count >= 16:
+                            current_plan = 'enterprise'
+                            max_sellers = None  # Illimité
+                        elif active_sellers_count >= 6:
+                            current_plan = 'professional'
+                            max_sellers = 15
+                        
+                        return {
+                            "has_subscription": True,
+                            "status": "trialing",
+                            "days_left": days_left,
+                            "trial_end": trial_end,
+                            "current_plan": current_plan,
+                            "used_seats": active_sellers_count,
+                            "subscription": {
+                                "seats": max_sellers or 999,  # Pour enterprise
+                                "billing_interval": "month"
+                            },
+                            "remaining_seats": (max_sellers - active_sellers_count) if max_sellers else 999,
+                            "message": f"Essai gratuit - {days_left} jour{'s' if days_left > 1 else ''} restant{'s' if days_left > 1 else ''}"
+                        }
+                
+                # Si l'essai est terminé
+                if subscription_status == 'trial_expired':
+                    return {
+                        "has_subscription": False,
+                        "status": "trial_expired",
+                        "message": "Essai gratuit terminé",
+                        "active_sellers_count": await db.users.count_documents({
+                            "gerant_id": current_user['id'],
+                            "role": "seller",
+                            "status": "active"
+                        })
+                    }
+        
+        # PRIORITÉ 2: Vérifier Stripe (pour les abonnements payants)
         stripe_customer_id = gerant.get('stripe_customer_id')
         
         if not stripe_customer_id:
+            # Pas de Stripe ET pas de workspace trialing = nouveau compte sans essai configuré
             return {
                 "has_subscription": False,
                 "status": "no_subscription", 
