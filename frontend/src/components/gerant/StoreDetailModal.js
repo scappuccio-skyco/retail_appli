@@ -8,6 +8,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
   const [sellers, setSellers] = useState([]);
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0); // Force re-render après changement de statut
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   const fetchStoreTeam = async () => {
