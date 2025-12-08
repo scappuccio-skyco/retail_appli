@@ -364,8 +364,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
           : 0
       }));
 
-      // Extract available years from the data
-      if (historicalArray.length > 0) {
+      // Extract available years from the data (only for Manager view)
+      // For Gérant view, years are fetched via API in fetchAvailableYears()
+      if (!storeId && historicalArray.length > 0) {
         const years = [...new Set(historicalArray.map(d => {
           const year = new Date(d.date).getFullYear();
           return year;
