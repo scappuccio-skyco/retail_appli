@@ -518,9 +518,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       onClick={hideCloseButton ? undefined : (e) => { if (e.target === e.currentTarget) { onClose(); } }} 
       className={hideCloseButton ? "w-full" : "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"}
     >
-      <div className={hideCloseButton ? "bg-white rounded-2xl w-full shadow-lg" : "bg-white rounded-2xl w-full max-w-4xl shadow-2xl"}>
+      <div className={hideCloseButton ? "bg-white rounded-2xl w-full shadow-lg max-h-[90vh] flex flex-col" : "bg-white rounded-2xl w-full max-w-4xl shadow-2xl max-h-[90vh] flex flex-col"}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 flex justify-between items-center rounded-t-2xl">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 flex justify-between items-center rounded-t-2xl flex-shrink-0">
           <div className="flex items-center gap-3">
             <TrendingUp className="w-7 h-7 text-white" />
             <h2 className="text-2xl font-bold text-white">🏪 {storeName || 'Mon Magasin'}</h2>
@@ -536,7 +536,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 bg-gray-50 pt-2">
+        <div className="border-b border-gray-200 bg-gray-50 pt-2 flex-shrink-0">
           <div className="flex gap-0.5 px-1 md:px-6 overflow-x-auto">
             <button
               onClick={() => setActiveTab('daily')}
