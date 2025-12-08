@@ -5428,11 +5428,11 @@ async def get_store_kpi_overview(
     }
     
     for entry in seller_entries:
-        sellers_total["ca_journalier"] += entry.get("seller_ca", entry.get("ca_journalier", 0))
-        sellers_total["nb_ventes"] += entry.get("nb_ventes", 0)
-        sellers_total["nb_clients"] += entry.get("nb_clients", 0)
-        sellers_total["nb_articles"] += entry.get("nb_articles", 0)
-        sellers_total["nb_prospects"] += entry.get("nb_prospects", 0)
+        sellers_total["ca_journalier"] += entry.get("seller_ca") or entry.get("ca_journalier") or 0
+        sellers_total["nb_ventes"] += entry.get("nb_ventes") or 0
+        sellers_total["nb_clients"] += entry.get("nb_clients") or 0
+        sellers_total["nb_articles"] += entry.get("nb_articles") or 0
+        sellers_total["nb_prospects"] += entry.get("nb_prospects") or 0
     
     # Get store prospects (separate collection) - filter by current store_id
     store_kpi = await db.store_kpis.find_one({
