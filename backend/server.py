@@ -4984,10 +4984,20 @@ async def get_store_kpis(
     return kpis
 
 @api_router.get("/manager/store-kpi/stats")
-async def get_store_kpi_stats(current_user: dict = Depends(get_current_user)):
+async def get_store_kpi_stats(
+    store_id: str = None,
+    current_user: dict = Depends(get_current_user)
+):
     """Get store KPI stats with transformation rate"""
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access store KPI stats")
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Determine effective store_id
+    effective_store_id = None
+    if store_id and current_user['role'] in ['gerant', 'gérant']:
+        effective_store_id = store_id
+    elif current_user.get('store_id'):
+        effective_store_id = current_user['store_id']
     
     today = datetime.now().strftime('%Y-%m-%d')
     
@@ -5000,24 +5010,39 @@ async def get_store_kpi_stats(current_user: dict = Depends(get_current_user)):
     month_start = today_date.replace(day=1).strftime('%Y-%m-%d')
     month_end = today_date.strftime('%Y-%m-%d')
     
+    # Build query based on available identifiers
+    query_base = {}
+    if effective_store_id:
+        query_base["store_id"] = effective_store_id
+    elif current_user.get('id'):
+        query_base["manager_id"] = current_user['id']
+    
     # Get store KPIs
     today_kpi = await db.store_kpis.find_one({
-        "manager_id": current_user['id'],
+        **query_base,
         "date": today
     }, {"_id": 0})
     
     week_kpis = await db.store_kpis.find({
-        "manager_id": current_user['id'],
+        **query_base,
         "date": {"$gte": week_start, "$lte": week_end}
     }, {"_id": 0}).to_list(1000)
     
     month_kpis = await db.store_kpis.find({
-        "manager_id": current_user['id'],
+        **query_base,
         "date": {"$gte": month_start, "$lte": month_end}
     }, {"_id": 0}).to_list(1000)
     
-    # Get sellers for this manager
-    sellers = await db.users.find({
+    # Get sellers for this store/manager
+    seller_query = {}
+    if effective_store_id:
+        seller_query["store_id"] = effective_store_id
+    elif current_user.get('id'):
+        seller_query["manager_id"] = current_user['id']
+    seller_query["role"] = "seller"
+    seller_query["status"] = {"$nin": ["deleted", "inactive"]}
+    
+    sellers = await db.users.find(seller_query
         "manager_id": current_user['id'],
         "role": "seller"
     }, {"_id": 0, "id": 1}).to_list(1000)
