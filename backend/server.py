@@ -3665,20 +3665,28 @@ async def get_seller_kpi_entries(
     seller_id: str, 
     days: int = 30, 
     start_date: str = None, 
-    end_date: str = None, 
+    end_date: str = None,
+    store_id: str = None,
     current_user: dict = Depends(get_current_user)
 ):
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access seller KPI entries")
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Determine effective store_id
+    effective_store_id = None
+    if store_id and current_user['role'] in ['gerant', 'gérant']:
+        effective_store_id = store_id
+    elif current_user.get('store_id'):
+        effective_store_id = current_user['store_id']
     
     # Verify seller belongs to this manager's store
     seller = await db.users.find_one({"id": seller_id, "role": "seller"}, {"_id": 0})
     if not seller:
         raise HTTPException(status_code=404, detail="Seller not found")
     
-    # Check if seller is in the same store as the manager
-    if seller.get('store_id') != current_user.get('store_id'):
-        raise HTTPException(status_code=403, detail="Seller not in your store")
+    # Check if seller is in the correct store
+    if effective_store_id and seller.get('store_id') != effective_store_id:
+        raise HTTPException(status_code=403, detail="Seller not in this store")
     
     # Build date query based on parameters
     if start_date and end_date:
