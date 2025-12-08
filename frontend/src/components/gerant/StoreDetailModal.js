@@ -59,6 +59,35 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
     }
   };
 
+  const handleCancelInvitation = async (invitationId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir annuler cette invitation ?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendUrl}/api/gerant/invitations/${invitationId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        // Mettre à jour la liste localement
+        setPendingInvitations(pendingInvitations.filter(inv => inv.id !== invitationId));
+        // Optionnel: rafraîchir si besoin
+        if (onRefresh) {
+          onRefresh();
+        }
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Erreur lors de l\'annulation de l\'invitation');
+      }
+    } catch (error) {
+      console.error('Erreur annulation invitation:', error);
+      alert('Erreur lors de l\'annulation de l\'invitation');
+    }
+  };
+
   useEffect(() => {
     if (store && store.id) {
       console.log('useEffect déclenché pour store:', store.id);
