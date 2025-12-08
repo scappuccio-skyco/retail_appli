@@ -73,6 +73,39 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
     }
   };
 
+  const handleDeleteUser = async (userId, userRole, userName) => {
+    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer ${userName} ?\n\nCette action est irréversible.`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendUrl}/api/gerant/users/${userId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        // Mettre à jour la liste localement
+        if (userRole === 'manager') {
+          setManagers(managers.filter(m => m.id !== userId));
+        } else if (userRole === 'seller') {
+          setSellers(sellers.filter(s => s.id !== userId));
+        }
+        // Rafraîchir si besoin
+        if (onRefresh) {
+          onRefresh();
+        }
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Erreur lors de la suppression');
+      }
+    } catch (error) {
+      console.error('Erreur suppression utilisateur:', error);
+      alert('Erreur lors de la suppression');
+    }
+  };
+
   const handleCancelInvitation = async (invitationId) => {
     if (!window.confirm('Êtes-vous sûr de vouloir annuler cette invitation ?')) {
       return;
