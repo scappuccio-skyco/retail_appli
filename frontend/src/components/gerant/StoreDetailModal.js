@@ -349,7 +349,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
               )}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div key={`sellers-${refreshKey}`} className="space-y-3">
               {sellers.length === 0 && pendingInvitations.filter(inv => inv.role === 'seller').length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Users className="w-12 h-12 mx-auto mb-2 text-gray-400" />
@@ -360,7 +360,7 @@ const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller,
                   {/* Vendeurs actifs */}
                   {sellers.map((seller) => (
                     <div
-                      key={seller.id}
+                      key={`${seller.id}-${refreshKey}`}
                       className="flex items-center justify-between p-4 bg-purple-50 rounded-lg border border-purple-200"
                     >
                       <div className="flex-1">
