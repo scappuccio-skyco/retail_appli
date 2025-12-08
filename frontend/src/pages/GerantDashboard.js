@@ -421,7 +421,12 @@ const GerantDashboard = ({ user, onLogout }) => {
     const storeData = rankedStores.find(s => s.id === store.id);
     if (!storeData) return null;
 
-    const avgCA = rankedStores.reduce((sum, s) => sum + s.periodCA, 0) / rankedStores.length;
+    // Exclure les magasins sans activité (CA < 100€) pour un calcul plus juste
+    const activeStores = rankedStores.filter(s => s.periodCA >= 100);
+    // Si pas assez de magasins actifs, utiliser tous les magasins
+    const storesForAvg = activeStores.length >= 2 ? activeStores : rankedStores;
+    const avgCA = storesForAvg.reduce((sum, s) => sum + s.periodCA, 0) / storesForAvg.length;
+    
     const relativePerformance = avgCA > 0 ? ((storeData.periodCA - avgCA) / avgCA) * 100 : 0;
     
     // Badge basé sur performance relative ET évolution
