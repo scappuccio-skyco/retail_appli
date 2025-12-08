@@ -1064,7 +1064,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                   >
                                     Voir historique
                                   </button>
-                                  {seller.status === 'inactive' && (
+                                  {seller.status === 'suspended' && (
                                     <button
                                       onClick={() => setConfirmModal({ isOpen: true, action: 'reactivate', seller })}
                                       className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors"
