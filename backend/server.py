@@ -2261,24 +2261,34 @@ async def get_sellers(
 
 
 @api_router.get("/manager/sellers/archived")
-async def get_archived_sellers(current_user: dict = Depends(get_current_user)):
+async def get_archived_sellers(
+    store_id: str = None,
+    current_user: dict = Depends(get_current_user)
+):
     """Récupérer les vendeurs inactifs ou supprimés (archivés)"""
-    if current_user['role'] != 'manager':
-        raise HTTPException(status_code=403, detail="Only managers can access this")
+    if current_user['role'] not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
     
-    # Filter by workspace_id for archived sellers
+    # Determine effective store_id
+    effective_store_id = None
+    if store_id and current_user['role'] in ['gerant', 'gérant']:
+        effective_store_id = store_id
+    elif current_user.get('store_id'):
+        effective_store_id = current_user['store_id']
+    
+    # Build query
     filter_query = {
-        "workspace_id": current_user.get('workspace_id'),
         "role": "seller",
         "status": {"$in": ["inactive", "deleted"]}
     }
     
-    if not current_user.get('workspace_id'):
-        # Fallback to manager_id for old data
-        filter_query = {
-            "manager_id": current_user['id'],
-            "status": {"$in": ["inactive", "deleted"]}
-        }
+    # Priority: store_id > workspace_id > manager_id
+    if effective_store_id:
+        filter_query["store_id"] = effective_store_id
+    elif current_user.get('workspace_id'):
+        filter_query["workspace_id"] = current_user.get('workspace_id')
+    elif current_user.get('id'):
+        filter_query["manager_id"] = current_user['id']
     
     archived_sellers = await db.users.find(filter_query, {"_id": 0, "password": 0}).to_list(1000)
     
