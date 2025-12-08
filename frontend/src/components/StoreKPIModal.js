@@ -582,21 +582,21 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       className={hideCloseButton ? "w-full" : "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"}
     >
       <div className={hideCloseButton ? "bg-white rounded-2xl w-full shadow-lg max-h-[90vh] flex flex-col" : "bg-white rounded-2xl w-full max-w-4xl shadow-2xl max-h-[90vh] flex flex-col"}>
-        {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 flex justify-between items-center rounded-t-2xl flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <TrendingUp className="w-7 h-7 text-white" />
-            <h2 className="text-2xl font-bold text-white">🏪 {storeName || 'Mon Magasin'}</h2>
-          </div>
-          {!hideCloseButton && (
+        {/* Header - Only show in Manager view (not in Gérant StoreDetailModal) */}
+        {!hideCloseButton && (
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 flex justify-between items-center rounded-t-2xl flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-7 h-7 text-white" />
+              <h2 className="text-2xl font-bold text-white">🏪 {storeName || 'Mon Magasin'}</h2>
+            </div>
             <button
               onClick={onClose}
               className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="border-b border-gray-200 bg-gray-50 pt-2 flex-shrink-0">
