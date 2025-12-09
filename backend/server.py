@@ -10621,6 +10621,77 @@ async def delete_store(store_id: str, current_user: dict = Depends(get_current_u
         "total_suspended": managers_count + sellers_count
     }
 
+@api_router.post("/admin/cleanup-database")
+async def cleanup_database(secret: str):
+    """
+    DANGER: Nettoie TOUTE la base de données SAUF le super_admin
+    Protégé par secret - À utiliser UNE SEULE FOIS
+    """
+    # Vérifier le secret
+    admin_secret = os.environ.get('ADMIN_CREATION_SECRET')
+    if not admin_secret or secret != admin_secret:
+        raise HTTPException(status_code=403, detail="Invalid secret")
+    
+    try:
+        deleted_counts = {}
+        
+        # 1. Supprimer tous les utilisateurs SAUF super_admin
+        result = await db.users.delete_many({"role": {"$ne": "super_admin"}})
+        deleted_counts["users"] = result.deleted_count
+        
+        # 2. Supprimer tous les workspaces
+        result = await db.workspaces.delete_many({})
+        deleted_counts["workspaces"] = result.deleted_count
+        
+        # 3. Supprimer tous les stores
+        result = await db.stores.delete_many({})
+        deleted_counts["stores"] = result.deleted_count
+        
+        # 4. Supprimer toutes les subscriptions
+        result = await db.subscriptions.delete_many({})
+        deleted_counts["subscriptions"] = result.deleted_count
+        
+        # 5. Supprimer tous les KPIs
+        result = await db.kpi_entries.delete_many({})
+        deleted_counts["kpi_entries"] = result.deleted_count
+        
+        # 6. Supprimer les KPIs managers
+        result = await db.manager_kpis.delete_many({})
+        deleted_counts["manager_kpis"] = result.deleted_count
+        
+        # 7. Supprimer les diagnostics
+        result = await db.diagnostics.delete_many({})
+        deleted_counts["diagnostics"] = result.deleted_count
+        
+        # 8. Supprimer les debriefs/analyses
+        result = await db.debriefs.delete_many({})
+        deleted_counts["debriefs"] = result.deleted_count
+        
+        # 9. Supprimer les évaluations
+        result = await db.evaluations.delete_many({})
+        deleted_counts["evaluations"] = result.deleted_count
+        
+        # 10. Supprimer les invitations
+        result = await db.invitations.delete_many({})
+        deleted_counts["invitations"] = result.deleted_count
+        
+        # 11. Supprimer les API keys
+        result = await db.api_keys.delete_many({})
+        deleted_counts["api_keys"] = result.deleted_count
+        
+        # Vérifier qu'il reste bien le super_admin
+        remaining_admin = await db.users.count_documents({"role": "super_admin"})
+        
+        return {
+            "success": True,
+            "message": "Base de données nettoyée avec succès",
+            "deleted": deleted_counts,
+            "remaining_super_admin": remaining_admin,
+            "warning": "⚠️ Cette opération est IRRÉVERSIBLE"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.post("/gerant/fix-my-data")
 async def fix_gerant_data(current_user: dict = Depends(get_current_gerant)):
     """Corriger les données du gérant : créer workspace si manquant, lier les stores"""
