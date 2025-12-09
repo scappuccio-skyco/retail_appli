@@ -99,7 +99,12 @@ DEFAULT_ADMIN_NAME=Super Admin
 
 ```env
 REACT_APP_BACKEND_URL=https://retailperformerai.com
+WDS_SOCKET_PORT=443
+REACT_APP_ENABLE_VISUAL_EDITS=false
+ENABLE_HEALTH_CHECK=false
 ```
+
+⚠️ **CRITIQUE** : Ne JAMAIS utiliser d'URLs Emergent (`*.emergent.host` ou `*.emergentagent.com`) dans `REACT_APP_BACKEND_URL` en production. Cela causera des erreurs CORS et empêchera l'application de fonctionner.
 
 ---
 
