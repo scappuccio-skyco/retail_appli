@@ -721,6 +721,17 @@ Pour toute question ou problème :
 
 ## Changelog
 
+### Version 1.2 (8 Déc 2025)
+- ✨ **Gestion complète des utilisateurs via API** :
+  - `POST /v1/integrations/stores` : Créer des magasins
+  - `POST /v1/integrations/stores/{store_id}/managers` : Créer des managers
+  - `POST /v1/integrations/stores/{store_id}/sellers` : Créer des vendeurs
+  - `PUT /v1/integrations/users/{user_id}` : Mettre à jour les utilisateurs
+- 🔐 Nouvelles permissions : `write:stores` et `write:users`
+- 📧 Invitations automatiques par email pour les nouveaux utilisateurs
+- 🔗 Support de l'`external_id` pour synchroniser avec vos systèmes externes
+- 📖 Documentation complète avec exemples Node.js
+
 ### Version 1.1 (27 Nov 2025)
 - ✨ Nouvel endpoint `/api/v1/integrations/my-stores` pour lister magasins + managers + vendeurs
 - ✨ Nouvel endpoint `/api/v1/integrations/my-stats` pour récupérer les statistiques agrégées
