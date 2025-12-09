@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Tester le flux complet de l'onglet 'Vendeurs en veille' dans l'espace Manager (TeamModal) - Vérifier l'alignement avec l'espace Gérant et la fonctionnalité complète de l'onglet remplacé 'Vendeurs archivés' par 'Vendeurs en veille'"
+user_problem_statement: "Tester les nouveaux endpoints API d'intégration pour la gestion des utilisateurs - 4 nouveaux endpoints permettant de créer des magasins, managers et vendeurs via API key"
 
 backend:
   - task: "Multi-Store Management API Endpoints"
