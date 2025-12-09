@@ -838,9 +838,9 @@ const GerantDashboard = ({ user, onLogout }) => {
                       <div className="flex items-center gap-2">
                         <div className="text-right">
                           <p className="text-sm font-bold text-gray-800">
-                            {storeData.periodCA.toLocaleString('fr-FR')} €
+                            {(storeData.periodCA || 0).toLocaleString('fr-FR')} €
                           </p>
-                          <p className="text-xs text-gray-500">{storeData.periodVentes} ventes</p>
+                          <p className="text-xs text-gray-500">{storeData.periodVentes || 0} ventes</p>
                         </div>
                         {storeData.periodEvolution !== 0 && (
                           <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${
