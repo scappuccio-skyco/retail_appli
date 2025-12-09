@@ -14008,6 +14008,58 @@ async def force_create_superadmin(secret: str):
         "password": "Check DEFAULT_ADMIN_PASSWORD in environment"
     }
 
+
+@api_router.post("/v1/admin/reset-superadmin")
+async def reset_superadmin_credentials(secret: str):
+    """
+    Endpoint temporaire pour réinitialiser les credentials du super_admin existant
+    Met à jour l'email et le mot de passe du compte super_admin
+    Utilisez le ADMIN_CREATION_SECRET pour sécuriser cet endpoint
+    """
+    admin_secret = os.environ.get('ADMIN_CREATION_SECRET')
+    if not admin_secret or secret != admin_secret:
+        raise HTTPException(status_code=403, detail="Invalid secret")
+    
+    # Trouver le super_admin existant
+    existing_superadmin = await db.users.find_one({"role": "super_admin"})
+    if not existing_superadmin:
+        raise HTTPException(status_code=404, detail="No super_admin account found in database")
+    
+    # Obtenir les nouvelles credentials depuis .env
+    new_email = os.environ.get('DEFAULT_ADMIN_EMAIL', 's.cappuccio@retailperformerai.com')
+    new_password = os.environ.get('DEFAULT_ADMIN_PASSWORD', 'RetailPerformer2025!')
+    new_name = os.environ.get('DEFAULT_ADMIN_NAME', 'Super Admin')
+    
+    # Hasher le nouveau mot de passe
+    hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+    # Mettre à jour le compte
+    update_result = await db.users.update_one(
+        {"role": "super_admin"},
+        {
+            "$set": {
+                "email": new_email,
+                "password": hashed_password,
+                "name": new_name,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    if update_result.modified_count == 0:
+        return {
+            "success": False,
+            "message": "Failed to update super_admin credentials"
+        }
+    
+    return {
+        "success": True,
+        "message": "Super admin credentials updated successfully",
+        "old_email": existing_superadmin.get('email'),
+        "new_email": new_email,
+        "new_password": "Check DEFAULT_ADMIN_PASSWORD in environment"
+    }
+
 @api_router.get("/v1/integrations/my-stores")
 async def get_my_integration_stores(
     api_key_data: dict = Depends(verify_api_key_integration)
