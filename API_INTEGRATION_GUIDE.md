@@ -103,7 +103,7 @@ X-API-Key: rp_live_votre_cle_api_ici
 
 **Configuration N8N** :
 1. **Method** : `GET`
-2. **URL** : `https://votre-domaine.com/api/v1/integrations/my-stores`
+2. **URL** : `https://retailperformerai.com/api/v1/integrations/my-stores`
 3. **Send Query Parameters** : ❌ **DÉSACTIVÉ** (pas de paramètres nécessaires)
 4. **Send Headers** : ✅ **ACTIVÉ**
    - Name: `X-API-Key`
@@ -181,7 +181,7 @@ X-API-Key: rp_live_votre_cle_api_ici
 
 **Configuration N8N** :
 1. **Method** : `GET`
-2. **URL** : `https://votre-domaine.com/api/v1/integrations/my-stats`
+2. **URL** : `https://retailperformerai.com/api/v1/integrations/my-stats`
 3. **Send Query Parameters** : ✅ **ACTIVÉ** (obligatoire)
    - `start_date` → `2025-01-01`
    - `end_date` → `2025-01-31`
@@ -200,7 +200,7 @@ X-API-Key: rp_live_votre_cle_api_ici
 import requests
 
 API_KEY = "rp_live_votre_cle_api_ici"
-BASE_URL = "https://votre-domaine.com/api"
+BASE_URL = "https://retailperformerai.com/api"
 
 headers = {"X-API-Key": API_KEY}
 params = {
@@ -229,7 +229,7 @@ else:
 const axios = require('axios');
 
 const API_KEY = 'rp_live_votre_cle_api_ici';
-const BASE_URL = 'https://votre-domaine.com/api';
+const BASE_URL = 'https://retailperformerai.com/api';
 
 async function getStats() {
   try {
@@ -324,7 +324,7 @@ from datetime import datetime
 
 # Configuration
 API_KEY = "rp_live_votre_cle_api_ici"
-BASE_URL = "https://votre-domaine.com/api"
+BASE_URL = "https://retailperformerai.com/api"
 
 # Headers
 headers = {
@@ -370,7 +370,7 @@ const axios = require('axios');
 
 // Configuration
 const API_KEY = 'rp_live_votre_cle_api_ici';
-const BASE_URL = 'https://votre-domaine.com/api';
+const BASE_URL = 'https://retailperformerai.com/api';
 
 // Fonction de synchronisation
 async function syncKPI() {
@@ -626,7 +626,7 @@ Content-Type: application/json
 ```javascript
 const axios = require('axios');
 
-const API_BASE_URL = 'https://votre-domaine.com/api/v1/integrations';
+const API_BASE_URL = 'https://retailperformerai.com/api/v1/integrations';
 const API_KEY = 'rp_live_votre_cle_api_ici';
 
 const api = axios.create({
