@@ -425,6 +425,17 @@ const GerantDashboard = ({ user, onLogout }) => {
     const activeStores = rankedStores.filter(s => s.periodCA >= 100);
     // Si pas assez de magasins actifs, utiliser tous les magasins
     const storesForAvg = activeStores.length >= 2 ? activeStores : rankedStores;
+    
+    // Protection contre division par zéro
+    if (storesForAvg.length === 0) {
+      return { 
+        type: 'weak', 
+        bgClass: 'bg-gray-500', 
+        icon: '⚪', 
+        label: 'Aucune donnée' 
+      };
+    }
+    
     const avgCA = storesForAvg.reduce((sum, s) => sum + s.periodCA, 0) / storesForAvg.length;
     
     const relativePerformance = avgCA > 0 ? ((storeData.periodCA - avgCA) / avgCA) * 100 : 0;
