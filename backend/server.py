@@ -13979,6 +13979,35 @@ async def get_my_integration_stats(
     }
 
 
+@api_router.post("/v1/admin/create-superadmin")
+async def force_create_superadmin(secret: str):
+    """
+    Endpoint temporaire pour créer le compte super_admin
+    Utilisez le ADMIN_CREATION_SECRET pour sécuriser cet endpoint
+    """
+    admin_secret = os.environ.get('ADMIN_CREATION_SECRET')
+    if not admin_secret or secret != admin_secret:
+        raise HTTPException(status_code=403, detail="Invalid secret")
+    
+    # Vérifier si un super_admin existe
+    existing_superadmin = await db.users.find_one({"role": "super_admin"}, {"_id": 0})
+    if existing_superadmin:
+        return {
+            "success": False,
+            "message": f"Super admin already exists: {existing_superadmin['email']}"
+        }
+    
+    # Créer le super_admin
+    from init_db import init_database
+    init_database()
+    
+    return {
+        "success": True,
+        "message": "Super admin created successfully",
+        "email": os.environ.get('DEFAULT_ADMIN_EMAIL', 's.cappuccio@retailperformerai.com'),
+        "password": "Check DEFAULT_ADMIN_PASSWORD in environment"
+    }
+
 @api_router.get("/v1/integrations/my-stores")
 async def get_my_integration_stores(
     api_key_data: dict = Depends(verify_api_key_integration)
