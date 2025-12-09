@@ -720,7 +720,15 @@ const GerantDashboard = ({ user, onLogout }) => {
                     Mois
                   </button>
                   <button
-                    onClick={() => { setPeriodType('year'); setPeriodOffset(-1); }}
+                    onClick={(e) => { 
+                      e.preventDefault(); 
+                      e.stopPropagation(); 
+                      // Defer state update to avoid conflict with external scripts
+                      setTimeout(() => {
+                        setPeriodType('year'); 
+                        setPeriodOffset(-1);
+                      }, 0);
+                    }}
                     className={`px-4 py-2 font-semibold rounded-lg transition-all ${
                       periodType === 'year'
                         ? 'bg-blue-600 text-white shadow-md'
