@@ -3553,8 +3553,8 @@ async def get_my_kpi_entries(days: int = None, current_user: dict = Depends(get_
         cursor = db.kpi_entries.find(
             {"seller_id": current_user['id']},
             {"_id": 0}
-        ).sort("date", -1)
-        seller_entries = await cursor.to_list(length=None)
+        ).sort("date", -1).limit(365)  # Limit to 1 year of data
+        seller_entries = await cursor.to_list(length=365)
     
     # Fetch manager's KPI entries if manager exists
     manager_entries_dict = {}
