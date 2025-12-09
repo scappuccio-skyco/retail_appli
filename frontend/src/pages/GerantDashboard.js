@@ -575,6 +575,13 @@ const GerantDashboard = ({ user, onLogout }) => {
               </button>
               <TutorialButton onClick={onboarding.open} />
               <button
+                onClick={fetchDbDebugInfo}
+                className="px-3 py-2 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-600 rounded-lg transition-all border border-yellow-500/50 text-sm"
+                title="Debug DB"
+              >
+                🔍
+              </button>
+              <button
                 onClick={handleLogoutClick}
                 className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:shadow-md transition-all"
               >
