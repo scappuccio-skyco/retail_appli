@@ -61,13 +61,14 @@ def init_database():
             # Insérer dans la DB
             db.users.insert_one(admin_user)
             
-            logger.info("✅ Compte super admin créé avec succès !")
+            logger.info("✅ Compte super_admin créé avec succès !")
             logger.info(f"   📧 Email: {default_admin_email}")
             logger.info(f"   🔑 Mot de passe: {default_admin_password}")
+            logger.info(f"   👤 Rôle: super_admin")
             logger.info("   ⚠️  IMPORTANT: Changez ce mot de passe après la première connexion !")
             
         else:
-            logger.info(f"✅ Compte(s) gérant déjà existant(s) ({gerant_count} gérant(s) trouvé(s))")
+            logger.info(f"✅ Compte(s) super_admin déjà existant(s) ({superadmin_count} super_admin(s) trouvé(s))")
             logger.info("   Aucune initialisation nécessaire.")
             
         client.close()
