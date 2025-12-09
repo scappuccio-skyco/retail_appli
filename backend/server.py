@@ -10595,8 +10595,27 @@ async def delete_store(store_id: str, current_user: dict = Depends(get_current_u
         "total_suspended": managers_count + sellers_count
     }
 
+@api_router.get("/gerant/debug-db")
+async def gerant_debug_database_info(current_user: dict = Depends(get_current_gerant)):
+    """Debug: Affiche les informations de la base de données pour le gérant"""
+    try:
+        return {
+            "mongo_url": os.environ.get('MONGO_URL', 'NOT_SET')[:50] + "...",
+            "db_name": os.environ.get('DB_NAME', 'NOT_SET'),
+            "backend_url": os.environ.get('BACKEND_URL', 'NOT_SET'),
+            "frontend_url": os.environ.get('FRONTEND_URL', 'NOT_SET'),
+            "environment": os.environ.get('ENVIRONMENT', 'NOT_SET'),
+            "user_role": current_user.get('role'),
+            "user_email": current_user.get('email'),
+            "total_stores": await db.stores.count_documents({"gerant_id": current_user['id']}),
+            "total_managers": await db.users.count_documents({"role": "manager"}),
+            "total_sellers": await db.users.count_documents({"role": "seller"}),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/gerant/dashboard/stats")
-async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_user)):
+async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_gerant)):
     """Récupérer les statistiques globales du gérant (tous magasins)"""
     if current_user['role'] not in ['gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
