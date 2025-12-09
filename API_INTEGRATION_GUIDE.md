@@ -14,10 +14,12 @@ Ce guide décrit comment connecter vos logiciels externes (caisse, ERP, etc.) à
 ### Créer une clé API
 1. Cliquez sur **"Créer une nouvelle clé API"**
 2. Remplissez le formulaire :
-   - **Nom** : Identifiant de la clé (ex: "Caisse Magasin Paris")
+   - **Nom** : Identifiant de la clé (ex: "Caisse Magasin Paris" ou "Système RH")
    - **Permissions** : Sélectionnez les permissions nécessaires
      - `write:kpi` : Écriture des KPI (CA, ventes, articles)
      - `read:stats` : Lecture des statistiques
+     - `write:stores` : Créer des magasins (gérants uniquement)
+     - `write:users` : Créer et modifier des managers et vendeurs
    - **Expiration** : Optionnel - nombre de jours avant expiration
 3. Cliquez sur **"Créer la clé"**
 4. **IMPORTANT** : Copiez immédiatement la clé générée - elle ne sera plus affichée
