@@ -118,9 +118,9 @@ TRIAL_AI_CREDITS = 100  # Crédits IA pour l'essai gratuit
 class RateLimiter:
     """
     Simple in-memory rate limiter for API keys
-    Limits: 100 requests per minute per API key
+    Configurable via API_RATE_LIMIT environment variable (default: 600 requests per minute)
     """
-    def __init__(self, requests_per_minute: int = 100):
+    def __init__(self, requests_per_minute: int = 600):
         self.requests_per_minute = requests_per_minute
         self.requests: Dict[str, List[float]] = defaultdict(list)
         self.cleanup_interval = 300  # Cleanup every 5 minutes
