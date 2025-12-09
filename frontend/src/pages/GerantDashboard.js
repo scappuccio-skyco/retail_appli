@@ -43,6 +43,24 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showInviteStaffModal, setShowInviteStaffModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [showDbDebug, setShowDbDebug] = useState(false);
+  const [dbDebugInfo, setDbDebugInfo] = useState(null);
+
+  const fetchDbDebugInfo = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/gerant/debug-db`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setDbDebugInfo(data);
+        setShowDbDebug(true);
+      }
+    } catch (error) {
+      console.error('Error fetching DB debug info:', error);
+    }
+  };
   
   // Onboarding
   const onboarding = useOnboarding(gerantSteps.length);
