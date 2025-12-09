@@ -149,6 +149,19 @@ openssl rand -base64 32
 
 ## Dépannage
 
+### Erreurs CORS : "Access to XMLHttpRequest has been blocked by CORS policy"
+
+**Cause** : L'URL du backend dans `/app/frontend/.env` est incorrecte.
+
+**Solution** :
+1. Ouvrir `/app/frontend/.env`
+2. Vérifier que `REACT_APP_BACKEND_URL=https://retailperformerai.com`
+3. Redémarrer le frontend : `sudo supervisorctl restart frontend`
+4. Vider le cache du navigateur (Ctrl + Shift + Delete)
+5. Recharger la page
+
+**Documentation complète** : Voir `/app/CORS_FIX_DOCUMENTATION.md`
+
 ### Le compte admin n'a pas été créé
 
 1. Vérifiez les logs du backend : `tail -f /var/log/supervisor/backend.err.log`
@@ -163,7 +176,20 @@ openssl rand -base64 32
    ```bash
    python3 /app/backend/init_db.py
    ```
-3. Réinitialisez le mot de passe manuellement si nécessaire
+3. Utilisez l'endpoint de réinitialisation si nécessaire (voir `/app/ADMIN_RESET_INSTRUCTIONS.md`)
+
+### Impossible de se connecter au super admin existant
+
+Si vous avez un compte super admin mais ne pouvez pas vous y connecter :
+
+1. Déployez le code le plus récent
+2. Utilisez l'endpoint de réinitialisation : 
+   ```bash
+   curl -X POST "https://retailperformerai.com/api/v1/admin/reset-superadmin?secret=Ogou56iACE-LK8rxQ_mjeOasxlk2uZ8b5ldMQMDz2_8"
+   ```
+3. Connectez-vous avec les nouvelles credentials
+
+**Documentation complète** : Voir `/app/ADMIN_RESET_INSTRUCTIONS.md`
 
 ---
 
