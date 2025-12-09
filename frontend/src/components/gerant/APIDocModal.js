@@ -137,7 +137,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-green-400">GET</div>
-                  <div className="text-blue-300">https://votre-domaine.com/api/v1/integrations/my-stats</div>
+                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/my-stats</div>
                   <div className="mt-2 text-gray-400">Query Params:</div>
                   <div className="text-yellow-300">start_date=2024-01-01&end_date=2024-01-31</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
