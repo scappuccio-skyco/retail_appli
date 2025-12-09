@@ -221,55 +221,6 @@ export default function SuperAdminDashboard() {
         </div>
       </div>
 
-      {/* DB Debug Modal */}
-      {showDbDebug && dbDebugInfo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowDbDebug(false)}>
-          <div className="bg-gradient-to-br from-purple-900 to-indigo-900 p-6 rounded-xl max-w-2xl w-full mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-bold text-white">🔍 Informations Base de Données</h3>
-              <button onClick={() => setShowDbDebug(false)} className="text-white hover:text-red-400">✕</button>
-            </div>
-            <div className="space-y-3 text-white">
-              <div className="bg-white/10 p-3 rounded">
-                <strong>Nom de la base :</strong> <span className="text-yellow-300">{dbDebugInfo.db_name}</span>
-              </div>
-              <div className="bg-white/10 p-3 rounded">
-                <strong>URL MongoDB :</strong> <span className="text-purple-300 text-sm break-all">{dbDebugInfo.mongo_url}</span>
-              </div>
-              <div className="bg-white/10 p-3 rounded">
-                <strong>Environment :</strong> <span className="text-blue-300">{dbDebugInfo.environment}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                <div className="bg-blue-500/20 p-3 rounded text-center">
-                  <div className="text-3xl font-bold">{dbDebugInfo.total_workspaces}</div>
-                  <div className="text-sm text-blue-200">Workspaces</div>
-                </div>
-                <div className="bg-green-500/20 p-3 rounded text-center">
-                  <div className="text-3xl font-bold">{dbDebugInfo.total_users}</div>
-                  <div className="text-sm text-green-200">Users</div>
-                </div>
-                <div className="bg-purple-500/20 p-3 rounded text-center">
-                  <div className="text-3xl font-bold">{dbDebugInfo.total_stores}</div>
-                  <div className="text-sm text-purple-200">Stores</div>
-                </div>
-                <div className="bg-orange-500/20 p-3 rounded text-center">
-                  <div className="text-3xl font-bold">{dbDebugInfo.gerants_count}</div>
-                  <div className="text-sm text-orange-200">Gérants</div>
-                </div>
-              </div>
-              <div className="mt-4 p-3 bg-yellow-500/20 border border-yellow-500/50 rounded">
-                <p className="text-sm text-yellow-200">
-                  💡 <strong>Attendu en production :</strong> 1 gérant, ~4-6 stores, ~16 users
-                </p>
-                <p className="text-sm text-yellow-200 mt-1">
-                  ⚠️ Si les chiffres ne correspondent pas, votre backend utilise peut-être une mauvaise base de données !
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* System Health Alert */}
       {health && health.status !== 'healthy' && (
         <div className={`mb-6 p-4 rounded-xl border-2 ${
