@@ -1,5 +1,13 @@
 # 📚 Documentation API - Retail Performer AI
 
+> **💡 Note importante** : Cette documentation couvre les endpoints avec **authentification JWT** (pour l'interface web).
+> 
+> **Pour l'intégration de systèmes externes** (ERP, caisse, etc.) avec **authentification par API Key**, consultez :
+> - 📘 **[API_INTEGRATION_GUIDE.md](./API_INTEGRATION_GUIDE.md)** - Intégration complète (KPI + gestion utilisateurs)
+> - 🏢 **[ENTERPRISE_API_DOCUMENTATION.md](./ENTERPRISE_API_DOCUMENTATION.md)** - API Enterprise (grandes entreprises)
+
+---
+
 ## 🔐 Authentification
 
 Tous les endpoints (sauf `/auth/login`, `/auth/register`, `/auth/forgot-password`) nécessitent un token JWT dans le header :
