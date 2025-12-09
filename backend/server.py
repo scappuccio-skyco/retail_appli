@@ -8919,7 +8919,7 @@ async def get_all_workspaces(current_admin: dict = Depends(get_super_admin)):
             sellers = await db.users.find({
                 "workspace_id": workspace['id'],
                 "role": "seller"
-            }, {"_id": 0, "password": 0, "id": 1, "email": 1, "name": 1, "status": 1}).to_list(100)
+            }, {"_id": 0, "password": 0}).to_list(100)
             
             # Compter les vendeurs actifs
             sellers_count = sum(1 for s in sellers if s.get('status') == 'active')
