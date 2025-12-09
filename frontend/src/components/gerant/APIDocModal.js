@@ -179,6 +179,18 @@ export default function APIDocModal({ isOpen, onClose }) {
                 <h4 className="text-lg font-bold text-orange-900 mb-3">
                   3. POST /api/v1/integrations/kpi ✍️
                 </h4>
+                
+                <div className="bg-purple-50 border-l-4 border-purple-500 p-3 mb-4">
+                  <p className="text-sm text-purple-900 font-semibold mb-2">
+                    💡 Plusieurs façons d'enregistrer les KPI :
+                  </p>
+                  <ul className="text-xs text-purple-800 ml-4 space-y-1">
+                    <li>• <strong>Via API (API Key)</strong> : <code className="bg-purple-200 px-1 rounded">/v1/integrations/kpi/sync</code> - Pour systèmes externes (caisse, ERP)</li>
+                    <li>• <strong>Via Web (JWT) - Vendeur</strong> : <code className="bg-purple-200 px-1 rounded">/seller/kpi-entry</code> - Le vendeur enregistre ses propres KPI</li>
+                    <li>• <strong>Via Web (JWT) - Manager</strong> : <code className="bg-purple-200 px-1 rounded">/manager/store-kpi</code> - Le manager enregistre les KPI de ses vendeurs</li>
+                  </ul>
+                </div>
+                
                 <p className="text-gray-700 mb-4">
                   Envoie les KPI journaliers d'un vendeur (CA, nombre de ventes, articles vendus, prospects).
                 </p>
