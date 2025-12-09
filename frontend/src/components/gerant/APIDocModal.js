@@ -212,7 +212,7 @@ curl -X POST "https://retailperformerai.com/api/v1/integrations/kpi" \\
                     <pre>{`import requests
 
 API_KEY = "rp_live_votre_cle"
-BASE_URL = "https://api.retailperformer.com/api/v1/integrations"
+BASE_URL = "https://retailperformerai.com/api/v1/integrations"
 
 # Récupérer les magasins
 response = requests.get(
