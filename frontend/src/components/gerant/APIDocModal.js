@@ -435,7 +435,7 @@ response = requests.post(
                 Pour toute question sur l'utilisation de l'API, contactez le support technique.
               </p>
               <a
-                href="mailto:support@retailperformerai.com"
+                href="mailto:contact@retailperformerai.com"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
               >
                 <ExternalLink className="w-4 h-4" />
