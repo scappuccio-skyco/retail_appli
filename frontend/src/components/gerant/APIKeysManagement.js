@@ -458,6 +458,64 @@ const APIKeysManagement = () => {
                       </span>
                     </div>
                   </label>
+                  
+                  <div className="border-t border-blue-200"></div>
+                  
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newKeyData.permissions.includes('write:stores')}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setNewKeyData({
+                            ...newKeyData,
+                            permissions: [...newKeyData.permissions, 'write:stores']
+                          });
+                        } else {
+                          setNewKeyData({
+                            ...newKeyData,
+                            permissions: newKeyData.permissions.filter(p => p !== 'write:stores')
+                          });
+                        }
+                      }}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-0.5 cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <span className="text-sm font-semibold text-gray-900 block">🏪 Créer des magasins</span>
+                      <span className="text-xs text-gray-600 block mt-0.5">
+                        Permet de <strong>créer</strong> de nouveaux magasins via l'API (gérants uniquement)
+                      </span>
+                    </div>
+                  </label>
+                  
+                  <div className="border-t border-blue-200"></div>
+                  
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newKeyData.permissions.includes('write:users')}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setNewKeyData({
+                            ...newKeyData,
+                            permissions: [...newKeyData.permissions, 'write:users']
+                          });
+                        } else {
+                          setNewKeyData({
+                            ...newKeyData,
+                            permissions: newKeyData.permissions.filter(p => p !== 'write:users')
+                          });
+                        }
+                      }}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-0.5 cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <span className="text-sm font-semibold text-gray-900 block">👥 Gérer les utilisateurs</span>
+                      <span className="text-xs text-gray-600 block mt-0.5">
+                        Permet de <strong>créer et modifier</strong> des managers et vendeurs via l'API
+                      </span>
+                    </div>
+                  </label>
                 </div>
                 <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
