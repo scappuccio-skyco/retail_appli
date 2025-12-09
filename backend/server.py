@@ -13721,41 +13721,81 @@ async def sync_kpi_integration(
     entries_updated = 0
     errors = []
     
+    # OPTIMIZATION: Collect all seller_ids and manager_ids upfront
+    seller_ids = [entry.seller_id for entry in data.kpi_entries if entry.seller_id]
+    manager_ids = [entry.manager_id for entry in data.kpi_entries if entry.manager_id]
+    
+    # OPTIMIZATION: Fetch all sellers in ONE query
+    valid_sellers = {}
+    if seller_ids:
+        sellers = await db.users.find({
+            "id": {"$in": seller_ids},
+            "role": "seller",
+            "store_id": data.store_id
+        }, {"_id": 0, "id": 1}).to_list(1000)
+        valid_sellers = {s["id"] for s in sellers}
+    
+    # OPTIMIZATION: Fetch all managers in ONE query
+    valid_managers = {}
+    if manager_ids:
+        managers = await db.users.find({
+            "id": {"$in": manager_ids},
+            "role": "manager",
+            "store_id": data.store_id
+        }, {"_id": 0, "id": 1}).to_list(100)
+        valid_managers = {m["id"] for m in managers}
+    
+    # OPTIMIZATION: Fetch all existing entries in ONE query for sellers
+    existing_seller_entries = {}
+    if seller_ids:
+        existing = await db.kpi_entries.find({
+            "seller_id": {"$in": seller_ids},
+            "date": data.date,
+            "source": data.source
+        }, {"_id": 0, "seller_id": 1}).to_list(1000)
+        existing_seller_entries = {e["seller_id"] for e in existing}
+    
+    # OPTIMIZATION: Fetch all existing entries in ONE query for managers
+    existing_manager_entries = {}
+    if manager_ids:
+        existing = await db.manager_kpis.find({
+            "manager_id": {"$in": manager_ids},
+            "date": data.date,
+            "source": data.source
+        }, {"_id": 0, "manager_id": 1}).to_list(100)
+        existing_manager_entries = {e["manager_id"] for e in existing}
+    
+    # OPTIMIZATION: Prepare bulk operations
+    from pymongo import UpdateOne, InsertOne
+    seller_operations = []
+    manager_operations = []
+    now = datetime.now(timezone.utc).isoformat()
+    
     for entry in data.kpi_entries:
         try:
-            # Determine if this is for a seller or manager
             if entry.seller_id:
-                # Verify seller exists and belongs to store
-                seller = await db.users.find_one({
-                    "id": entry.seller_id,
-                    "role": "seller",
-                    "store_id": data.store_id
-                })
-                if not seller:
+                # Validate seller exists
+                if entry.seller_id not in valid_sellers:
                     errors.append(f"Seller {entry.seller_id} not found in store {data.store_id}")
                     continue
                 
-                # Check if entry already exists
-                existing = await db.kpi_entries.find_one({
-                    "seller_id": entry.seller_id,
-                    "date": data.date,
-                    "source": data.source
-                })
-                
-                if existing:
-                    # Update existing entry
-                    await db.kpi_entries.update_one(
-                        {"seller_id": entry.seller_id, "date": data.date, "source": data.source},
-                        {"$set": {
-                            "ca_journalier": entry.ca_journalier,
-                            "nb_ventes": entry.nb_ventes,
-                            "nb_articles": entry.nb_articles,
-                            "updated_at": datetime.now(timezone.utc).isoformat()
-                        }}
+                # Check if we need to update or insert
+                if entry.seller_id in existing_seller_entries:
+                    # Prepare update operation
+                    seller_operations.append(
+                        UpdateOne(
+                            {"seller_id": entry.seller_id, "date": data.date, "source": data.source},
+                            {"$set": {
+                                "ca_journalier": entry.ca_journalier,
+                                "nb_ventes": entry.nb_ventes,
+                                "nb_articles": entry.nb_articles,
+                                "updated_at": now
+                            }}
+                        )
                     )
                     entries_updated += 1
                 else:
-                    # Create new entry
+                    # Prepare insert operation
                     kpi_entry = {
                         "id": str(uuid.uuid4()),
                         "seller_id": entry.seller_id,
@@ -13765,40 +13805,34 @@ async def sync_kpi_integration(
                         "nb_ventes": entry.nb_ventes,
                         "nb_articles": entry.nb_articles,
                         "source": data.source,
-                        "created_at": entry.timestamp or datetime.now(timezone.utc).isoformat()
+                        "created_at": entry.timestamp or now
                     }
-                    await db.kpi_entries.insert_one(kpi_entry)
+                    seller_operations.append(InsertOne(kpi_entry))
                     entries_created += 1
                     
             elif entry.manager_id:
-                # Similar logic for manager KPIs
-                manager = await db.users.find_one({
-                    "id": entry.manager_id,
-                    "role": "manager",
-                    "store_id": data.store_id
-                })
-                if not manager:
+                # Validate manager exists
+                if entry.manager_id not in valid_managers:
                     errors.append(f"Manager {entry.manager_id} not found in store {data.store_id}")
                     continue
                 
-                existing = await db.manager_kpis.find_one({
-                    "manager_id": entry.manager_id,
-                    "date": data.date,
-                    "source": data.source
-                })
-                
-                if existing:
-                    await db.manager_kpis.update_one(
-                        {"manager_id": entry.manager_id, "date": data.date, "source": data.source},
-                        {"$set": {
-                            "ca_journalier": entry.ca_journalier,
-                            "nb_ventes": entry.nb_ventes,
-                            "prospects": entry.prospects or 0,
-                            "updated_at": datetime.now(timezone.utc).isoformat()
-                        }}
+                # Check if we need to update or insert
+                if entry.manager_id in existing_manager_entries:
+                    # Prepare update operation
+                    manager_operations.append(
+                        UpdateOne(
+                            {"manager_id": entry.manager_id, "date": data.date, "source": data.source},
+                            {"$set": {
+                                "ca_journalier": entry.ca_journalier,
+                                "nb_ventes": entry.nb_ventes,
+                                "prospects": entry.prospects or 0,
+                                "updated_at": now
+                            }}
+                        )
                     )
                     entries_updated += 1
                 else:
+                    # Prepare insert operation
                     manager_kpi = {
                         "id": str(uuid.uuid4()),
                         "manager_id": entry.manager_id,
@@ -13808,15 +13842,29 @@ async def sync_kpi_integration(
                         "nb_ventes": entry.nb_ventes,
                         "prospects": entry.prospects or 0,
                         "source": data.source,
-                        "created_at": entry.timestamp or datetime.now(timezone.utc).isoformat()
+                        "created_at": entry.timestamp or now
                     }
-                    await db.manager_kpis.insert_one(manager_kpi)
+                    manager_operations.append(InsertOne(manager_kpi))
                     entries_created += 1
             else:
                 errors.append("Entry must have either seller_id or manager_id")
                 
         except Exception as e:
             errors.append(f"Error processing entry: {str(e)}")
+    
+    # OPTIMIZATION: Execute all operations in ONE bulk write for sellers
+    if seller_operations:
+        try:
+            await db.kpi_entries.bulk_write(seller_operations, ordered=False)
+        except Exception as e:
+            errors.append(f"Bulk write error for sellers: {str(e)}")
+    
+    # OPTIMIZATION: Execute all operations in ONE bulk write for managers
+    if manager_operations:
+        try:
+            await db.manager_kpis.bulk_write(manager_operations, ordered=False)
+        except Exception as e:
+            errors.append(f"Bulk write error for managers: {str(e)}")
     
     return {
         "status": "success" if entries_created + entries_updated > 0 else "partial_success",
