@@ -8897,7 +8897,7 @@ async def get_all_workspaces(current_admin: dict = Depends(get_super_admin)):
             action="access_workspaces_list",
             details={"view": "workspaces"}
         )
-        workspaces = await db.workspaces.find({}, {"_id": 0}).to_list(1000)
+        workspaces = await db.workspaces.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
         
         result = []
         for workspace in workspaces:
