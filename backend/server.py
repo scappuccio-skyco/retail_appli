@@ -8909,20 +8909,56 @@ async def get_all_workspaces(current_admin: dict = Depends(get_super_admin)):
                     "role": "gerant"
                 }, {"_id": 0, "password": 0})
             
-            # Récupérer le manager
-            manager = await db.users.find_one({
-                "workspace_id": workspace['id'],
-                "role": "manager"
-            }, {"_id": 0, "password": 0})
+            # Récupérer tous les stores du workspace
+            stores = await db.stores.find({
+                "gerant_id": workspace.get('gerant_id')
+            }, {"_id": 0}).to_list(100)
             
-            # Récupérer tous les vendeurs (pas seulement compter)
-            sellers = await db.users.find({
-                "workspace_id": workspace['id'],
-                "role": "seller"
-            }, {"_id": 0, "password": 0}).to_list(100)
+            # Pour chaque store, récupérer manager et vendeurs
+            stores_data = []
+            total_managers = 0
+            total_sellers = 0
+            total_active_sellers = 0
             
-            # Compter les vendeurs actifs
-            sellers_count = sum(1 for s in sellers if s.get('status') == 'active')
+            for store in stores:
+                # Récupérer le manager du store
+                manager = await db.users.find_one({
+                    "store_id": store['id'],
+                    "role": "manager"
+                }, {"_id": 0, "password": 0})
+                
+                # Récupérer tous les vendeurs du store
+                sellers = await db.users.find({
+                    "store_id": store['id'],
+                    "role": "seller"
+                }, {"_id": 0, "password": 0}).to_list(100)
+                
+                active_sellers = [s for s in sellers if s.get('status') == 'active']
+                
+                stores_data.append({
+                    "id": store.get('id'),
+                    "name": store.get('name'),
+                    "status": store.get('active', True),
+                    "manager": {
+                        "email": manager.get('email') if manager else None,
+                        "name": manager.get('name') if manager else None,
+                        "status": manager.get('status') if manager else None
+                    } if manager else None,
+                    "sellers": [
+                        {
+                            "email": seller.get('email'),
+                            "name": seller.get('name'),
+                            "status": seller.get('status', 'active')
+                        }
+                        for seller in sellers
+                    ],
+                    "sellers_count": len(active_sellers)
+                })
+                
+                if manager:
+                    total_managers += 1
+                total_sellers += len(sellers)
+                total_active_sellers += len(active_sellers)
             
             # Récupérer l'abonnement
             subscription = await db.subscriptions.find_one({
@@ -8935,22 +8971,15 @@ async def get_all_workspaces(current_admin: dict = Depends(get_super_admin)):
                 "status": workspace.get('status', 'active'),
                 "created_at": workspace.get('created_at'),
                 "gerant": {
+                    "id": gerant.get('id') if gerant else None,
                     "email": gerant.get('email') if gerant else None,
                     "name": gerant.get('name') if gerant else None
                 } if gerant else None,
-                "manager": {
-                    "email": manager.get('email') if manager else None,
-                    "name": manager.get('name') if manager else None
-                } if manager else None,
-                "sellers": [
-                    {
-                        "email": seller.get('email'),
-                        "name": seller.get('name'),
-                        "status": seller.get('status', 'active')
-                    }
-                    for seller in sellers
-                ],
-                "sellers_count": sellers_count,
+                "stores": stores_data,
+                "stores_count": len(stores_data),
+                "managers_count": total_managers,
+                "sellers_count": total_active_sellers,
+                "total_sellers": total_sellers,
                 "subscription": {
                     "plan": subscription.get('plan_type') if subscription else 'trial',
                     "status": subscription.get('status') if subscription else 'trial',
