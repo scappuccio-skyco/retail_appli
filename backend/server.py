@@ -13481,7 +13481,7 @@ async def verify_api_key_integration(request: Request):
         remaining = rate_limiter.get_remaining(api_key)
         raise HTTPException(
             status_code=429, 
-            detail=f"Rate limit exceeded. Maximum 100 requests per minute. Try again in a few seconds.",
+            detail=f"Rate limit exceeded. Maximum {API_RATE_LIMIT} requests per minute. Try again in a few seconds.",
             headers={"Retry-After": "60", "X-RateLimit-Remaining": str(remaining)}
         )
     
