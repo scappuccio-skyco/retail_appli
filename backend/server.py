@@ -8818,44 +8818,6 @@ async def get_super_admin(credentials: HTTPAuthorizationCredentials = Depends(se
     
     return user
 
-@api_router.get("/superadmin/debug-db")
-async def debug_database_info(current_admin: dict = Depends(get_super_admin)):
-    """Debug: Affiche les informations de la base de données utilisée"""
-    try:
-        # Chercher tous les gérants avec différentes variantes
-        gerants_sans_accent = await db.users.find({"role": "gerant"}, {"_id": 0, "email": 1, "name": 1}).to_list(10)
-        gerants_avec_accent = await db.users.find({"role": "gérant"}, {"_id": 0, "email": 1, "name": 1}).to_list(10)
-        
-        # Chercher spécifiquement s.cappuccio@skyco.fr
-        cappuccio_user = await db.users.find_one({"email": "s.cappuccio@skyco.fr"}, {"_id": 0, "password": 0})
-        
-        # Chercher tous les utilisateurs cappuccio
-        all_cappuccio = await db.users.find(
-            {"email": {"$regex": "cappuccio", "$options": "i"}}, 
-            {"_id": 0, "email": 1, "role": 1, "name": 1}
-        ).to_list(20)
-        
-        return {
-            "mongo_url": os.environ.get('MONGO_URL', 'NOT_SET')[:50] + "...",
-            "db_name": os.environ.get('DB_NAME', 'NOT_SET'),
-            "backend_url": os.environ.get('BACKEND_URL', 'NOT_SET'),
-            "frontend_url": os.environ.get('FRONTEND_URL', 'NOT_SET'),
-            "environment": os.environ.get('ENVIRONMENT', 'NOT_SET'),
-            "total_workspaces": await db.workspaces.count_documents({}),
-            "total_users": await db.users.count_documents({}),
-            "total_stores": await db.stores.count_documents({}),
-            "gerants_count_sans_accent": len(gerants_sans_accent),
-            "gerants_count_avec_accent": len(gerants_avec_accent),
-            "gerants_sans_accent": gerants_sans_accent,
-            "gerants_avec_accent": gerants_avec_accent,
-            "cappuccio_user_found": cappuccio_user is not None,
-            "cappuccio_user_role": cappuccio_user.get('role') if cappuccio_user else None,
-            "cappuccio_user_email": cappuccio_user.get('email') if cappuccio_user else None,
-            "all_cappuccio_users": all_cappuccio,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @api_router.get("/superadmin/stats")
 async def get_superadmin_stats(current_admin: dict = Depends(get_super_admin)):
     """Statistiques globales de la plateforme (métriques anonymisées)"""
