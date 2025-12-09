@@ -160,7 +160,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-orange-400">POST</div>
-                  <div className="text-blue-300">https://votre-domaine.com/api/v1/integrations/kpi</div>
+                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/kpi</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                   <div className="text-yellow-300">Content-Type: application/json</div>
