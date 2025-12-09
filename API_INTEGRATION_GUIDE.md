@@ -429,6 +429,93 @@ syncKPI();
 
 ---
 
+## Autres Méthodes d'Enregistrement des KPI 📝
+
+### Via l'Interface Web (Authentification JWT)
+
+Si vous développez une application web ou mobile, vous pouvez également utiliser les endpoints avec authentification JWT pour que les **vendeurs** et **managers** enregistrent les KPI directement.
+
+#### 1. Vendeur enregistre ses propres KPI
+
+**Endpoint** : `POST /api/seller/kpi-entry`
+
+**Authentification** : JWT Token (connexion vendeur)
+
+**Headers** :
+```
+Authorization: Bearer <jwt_token_vendeur>
+Content-Type: application/json
+```
+
+**Body** :
+```json
+{
+  "date": "2024-12-08",
+  "ca_journalier": 1250.50,
+  "nb_ventes": 12,
+  "nb_articles": 28,
+  "nb_prospects": 35
+}
+```
+
+**Réponse** (200 OK) :
+```json
+{
+  "message": "KPI entry created successfully",
+  "kpi_id": "kpi-uuid-123"
+}
+```
+
+---
+
+#### 2. Manager enregistre les KPI d'un vendeur
+
+**Endpoint** : `POST /api/manager/store-kpi`
+
+**Authentification** : JWT Token (connexion manager)
+
+**Headers** :
+```
+Authorization: Bearer <jwt_token_manager>
+Content-Type: application/json
+```
+
+**Body** :
+```json
+{
+  "seller_id": "uuid-du-vendeur",
+  "date": "2024-12-08",
+  "ca_journalier": 1250.50,
+  "nb_ventes": 12,
+  "nb_articles": 28,
+  "nb_prospects": 35
+}
+```
+
+**Réponse** (200 OK) :
+```json
+{
+  "message": "KPI created successfully",
+  "kpi_id": "kpi-uuid-123"
+}
+```
+
+---
+
+### 📊 Tableau Comparatif des Méthodes
+
+| Méthode | Endpoint | Authentification | Cas d'usage |
+|---------|----------|------------------|-------------|
+| **API Externe** | `/v1/integrations/kpi/sync` | API Key | Systèmes de caisse, ERP, automatisation |
+| **Vendeur (Web)** | `/seller/kpi-entry` | JWT Token | Application web/mobile pour vendeur |
+| **Manager (Web)** | `/manager/store-kpi` | JWT Token | Application web/mobile pour manager |
+
+**💡 Conseil** : 
+- Utilisez l'**API Key** pour les intégrations automatiques (caisse, ERP)
+- Utilisez le **JWT** pour les applications web/mobile où l'utilisateur se connecte
+
+---
+
 ## Gestion des Utilisateurs via API 👥
 
 ### Permissions requises
