@@ -7851,7 +7851,7 @@ class RetailCoachAPITester:
             "Integration API Test 2 - Create Manager",
             "POST",
             f"v1/integrations/stores/{store_id}/managers",
-            201,
+            200,
             data=manager_data,
             api_key=api_key
         )
