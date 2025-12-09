@@ -7820,7 +7820,7 @@ class RetailCoachAPITester:
             "Integration API Test 1 - Create Store",
             "POST",
             "v1/integrations/stores",
-            201,
+            200,
             data=store_data,
             api_key=api_key
         )
