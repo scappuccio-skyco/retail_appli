@@ -408,6 +408,290 @@ async function syncKPI() {
 syncKPI();
 ```
 
+---
+
+## Gestion des Utilisateurs via API 👥
+
+### Permissions requises
+
+Pour utiliser ces endpoints, votre clé API doit avoir les permissions suivantes :
+- `write:stores` : Créer des magasins (gérants uniquement)
+- `write:users` : Créer et modifier des managers et vendeurs
+
+### 1. Créer un magasin 🏪
+
+**Endpoint** : `POST /api/v1/integrations/stores`
+
+**Description** : Créer un nouveau magasin. **Réservé aux gérants uniquement**.
+
+**Headers** :
+```
+X-API-Key: rp_live_votre_cle_api_ici
+Content-Type: application/json
+```
+
+**Body** :
+```json
+{
+  "name": "Skyco Marseille",
+  "location": "13001 Marseille",
+  "address": "12 Rue de la République, 13001 Marseille",
+  "phone": "+33 4 91 00 00 00",
+  "opening_hours": "Lun-Sam: 9h-19h",
+  "external_id": "STORE_MRS_001"
+}
+```
+
+**Champs** :
+- `name` *(requis)* : Nom du magasin
+- `location` *(requis)* : Ville/code postal
+- `address` *(optionnel)* : Adresse complète
+- `phone` *(optionnel)* : Téléphone
+- `opening_hours` *(optionnel)* : Horaires d'ouverture
+- `external_id` *(optionnel)* : ID dans votre système externe (ERP, SAP, etc.)
+
+**Réponse** (201 Created) :
+```json
+{
+  "success": true,
+  "store_id": "c2dd1ada-d0a2-4a90-be81-644b7cb78bc7",
+  "store": {
+    "id": "c2dd1ada-d0a2-4a90-be81-644b7cb78bc7",
+    "name": "Skyco Marseille",
+    "location": "13001 Marseille",
+    "address": "12 Rue de la République, 13001 Marseille",
+    "phone": "+33 4 91 00 00 00",
+    "external_id": "STORE_MRS_001"
+  }
+}
+```
+
+---
+
+### 2. Créer un manager 👔
+
+**Endpoint** : `POST /api/v1/integrations/stores/{store_id}/managers`
+
+**Description** : Créer un nouveau manager pour un magasin spécifique.
+
+**Headers** :
+```
+X-API-Key: rp_live_votre_cle_api_ici
+Content-Type: application/json
+```
+
+**Body** :
+```json
+{
+  "name": "Sophie Martin",
+  "email": "sophie.martin@example.com",
+  "phone": "+33 6 12 34 56 78",
+  "external_id": "MGR_MRS_001",
+  "send_invitation": true
+}
+```
+
+**Champs** :
+- `name` *(requis)* : Nom complet du manager
+- `email` *(requis)* : Email professionnel
+- `phone` *(optionnel)* : Téléphone mobile
+- `external_id` *(optionnel)* : ID dans votre système externe
+- `send_invitation` *(optionnel, défaut: true)* : Envoyer un email d'invitation pour créer son compte
+
+**Réponse** (201 Created) :
+```json
+{
+  "success": true,
+  "manager_id": "72468398-620f-42d1-977c-bd250f4d440a",
+  "manager": {
+    "id": "72468398-620f-42d1-977c-bd250f4d440a",
+    "name": "Sophie Martin",
+    "email": "sophie.martin@example.com",
+    "phone": "+33 6 12 34 56 78",
+    "store_id": "c2dd1ada-d0a2-4a90-be81-644b7cb78bc7",
+    "external_id": "MGR_MRS_001",
+    "invitation_sent": true
+  }
+}
+```
+
+---
+
+### 3. Créer un vendeur 👤
+
+**Endpoint** : `POST /api/v1/integrations/stores/{store_id}/sellers`
+
+**Description** : Créer un nouveau vendeur pour un magasin spécifique.
+
+**Headers** :
+```
+X-API-Key: rp_live_votre_cle_api_ici
+Content-Type: application/json
+```
+
+**Body** :
+```json
+{
+  "name": "Lucas Bernard",
+  "email": "lucas.bernard@example.com",
+  "manager_id": "72468398-620f-42d1-977c-bd250f4d440a",
+  "phone": "+33 6 98 76 54 32",
+  "external_id": "SELLER_MRS_012",
+  "send_invitation": true
+}
+```
+
+**Champs** :
+- `name` *(requis)* : Nom complet du vendeur
+- `email` *(requis)* : Email professionnel
+- `manager_id` *(optionnel)* : ID du manager responsable. Si non fourni, un manager du magasin sera assigné automatiquement
+- `phone` *(optionnel)* : Téléphone mobile
+- `external_id` *(optionnel)* : ID dans votre système externe
+- `send_invitation` *(optionnel, défaut: true)* : Envoyer un email d'invitation pour créer son compte
+
+**Réponse** (201 Created) :
+```json
+{
+  "success": true,
+  "seller_id": "2a1c816b-fd21-463a-8a8f-bfe98616aeba",
+  "seller": {
+    "id": "2a1c816b-fd21-463a-8a8f-bfe98616aeba",
+    "name": "Lucas Bernard",
+    "email": "lucas.bernard@example.com",
+    "phone": "+33 6 98 76 54 32",
+    "store_id": "c2dd1ada-d0a2-4a90-be81-644b7cb78bc7",
+    "manager_id": "72468398-620f-42d1-977c-bd250f4d440a",
+    "external_id": "SELLER_MRS_012",
+    "invitation_sent": true
+  }
+}
+```
+
+---
+
+### 4. Mettre à jour un utilisateur 🔄
+
+**Endpoint** : `PUT /api/v1/integrations/users/{user_id}`
+
+**Description** : Mettre à jour les informations d'un manager ou vendeur.
+
+**Headers** :
+```
+X-API-Key: rp_live_votre_cle_api_ici
+Content-Type: application/json
+```
+
+**Body** :
+```json
+{
+  "name": "Lucas Bernard-Dupont",
+  "email": "lucas.dupont@example.com",
+  "phone": "+33 6 11 22 33 44",
+  "status": "active",
+  "external_id": "SELLER_MRS_012_NEW"
+}
+```
+
+**Champs** :
+- `name` *(optionnel)* : Nouveau nom
+- `email` *(optionnel)* : Nouvel email
+- `phone` *(optionnel)* : Nouveau téléphone
+- `status` *(optionnel)* : Statut (`active` | `suspended`)
+- `external_id` *(optionnel)* : Nouvel ID externe
+
+**Réponse** (200 OK) :
+```json
+{
+  "success": true,
+  "user_id": "2a1c816b-fd21-463a-8a8f-bfe98616aeba",
+  "user": {
+    "id": "2a1c816b-fd21-463a-8a8f-bfe98616aeba",
+    "name": "Lucas Bernard-Dupont",
+    "email": "lucas.dupont@example.com",
+    "role": "seller",
+    "status": "active",
+    "phone": "+33 6 11 22 33 44",
+    "store_id": "c2dd1ada-d0a2-4a90-be81-644b7cb78bc7",
+    "external_id": "SELLER_MRS_012_NEW"
+  }
+}
+```
+
+---
+
+### 5. Workflow complet - Exemple Node.js 📦
+
+```javascript
+const axios = require('axios');
+
+const API_BASE_URL = 'https://votre-domaine.com/api/v1/integrations';
+const API_KEY = 'rp_live_votre_cle_api_ici';
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'X-API-Key': API_KEY,
+    'Content-Type': 'application/json'
+  }
+});
+
+async function setupNewStore() {
+  try {
+    // 1. Créer le magasin
+    console.log('📍 Création du magasin...');
+    const storeResponse = await api.post('/stores', {
+      name: 'Skyco Bordeaux',
+      location: '33000 Bordeaux',
+      address: '25 Rue Sainte-Catherine, 33000 Bordeaux',
+      phone: '+33 5 56 00 00 00',
+      external_id: 'STORE_BDX_001'
+    });
+    
+    const storeId = storeResponse.data.store_id;
+    console.log('✅ Magasin créé:', storeId);
+    
+    // 2. Créer le manager
+    console.log('👔 Création du manager...');
+    const managerResponse = await api.post(`/stores/${storeId}/managers`, {
+      name: 'Marie Dubois',
+      email: 'marie.dubois@example.com',
+      phone: '+33 6 11 22 33 44',
+      external_id: 'MGR_BDX_001',
+      send_invitation: true
+    });
+    
+    const managerId = managerResponse.data.manager_id;
+    console.log('✅ Manager créé:', managerId);
+    
+    // 3. Créer plusieurs vendeurs
+    console.log('👥 Création des vendeurs...');
+    const sellers = [
+      { name: 'Thomas Thomas', email: 'thomas@example.com', external_id: 'SELLER_BDX_001' },
+      { name: 'Camille Robert', email: 'camille@example.com', external_id: 'SELLER_BDX_002' },
+      { name: 'Alexandre Petit', email: 'alex@example.com', external_id: 'SELLER_BDX_003' }
+    ];
+    
+    for (const seller of sellers) {
+      const sellerResponse = await api.post(`/stores/${storeId}/sellers`, {
+        ...seller,
+        manager_id: managerId,
+        send_invitation: true
+      });
+      console.log(`✅ Vendeur créé: ${seller.name} (${sellerResponse.data.seller_id})`);
+    }
+    
+    console.log('🎉 Configuration du magasin terminée !');
+    
+  } catch (error) {
+    console.error('❌ Erreur:', error.response?.data || error.message);
+  }
+}
+
+setupNewStore();
+```
+
+---
+
 ## Bonnes pratiques
 
 ### Sécurité
