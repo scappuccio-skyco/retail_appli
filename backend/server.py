@@ -1357,7 +1357,8 @@ async def register(user_data: UserCreate):
     user_dict.pop('workspace_name', None)
     user_dict['workspace_id'] = workspace_id
     
-    # Create User object for validation (with password)
+    # Create User object with predefined ID
+    user_dict['id'] = user_id
     user_obj = User(**user_dict)
     
     # Now convert to dict and replace with hashed password
