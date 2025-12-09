@@ -8900,18 +8900,28 @@ async def get_all_workspaces(current_admin: dict = Depends(get_super_admin)):
         
         result = []
         for workspace in workspaces:
+            # Récupérer le gérant (propriétaire)
+            gerant = None
+            if workspace.get('gerant_id'):
+                gerant = await db.users.find_one({
+                    "id": workspace['gerant_id'],
+                    "role": "gerant"
+                }, {"_id": 0, "password": 0})
+            
             # Récupérer le manager
             manager = await db.users.find_one({
                 "workspace_id": workspace['id'],
                 "role": "manager"
             }, {"_id": 0, "password": 0})
             
-            # Compter les vendeurs actifs
-            sellers_count = await db.users.count_documents({
+            # Récupérer tous les vendeurs (pas seulement compter)
+            sellers = await db.users.find({
                 "workspace_id": workspace['id'],
-                "role": "seller",
-                "status": "active"
-            })
+                "role": "seller"
+            }, {"_id": 0, "password": 0, "id": 1, "email": 1, "name": 1, "status": 1}).to_list(100)
+            
+            # Compter les vendeurs actifs
+            sellers_count = sum(1 for s in sellers if s.get('status') == 'active')
             
             # Récupérer l'abonnement
             subscription = await db.subscriptions.find_one({
@@ -8923,10 +8933,22 @@ async def get_all_workspaces(current_admin: dict = Depends(get_super_admin)):
                 "name": workspace.get('name', 'Sans nom'),
                 "status": workspace.get('status', 'active'),
                 "created_at": workspace.get('created_at'),
+                "gerant": {
+                    "email": gerant.get('email') if gerant else None,
+                    "name": gerant.get('name') if gerant else None
+                } if gerant else None,
                 "manager": {
                     "email": manager.get('email') if manager else None,
                     "name": manager.get('name') if manager else None
-                },
+                } if manager else None,
+                "sellers": [
+                    {
+                        "email": seller.get('email'),
+                        "name": seller.get('name'),
+                        "status": seller.get('status', 'active')
+                    }
+                    for seller in sellers
+                ],
                 "sellers_count": sellers_count,
                 "subscription": {
                     "plan": subscription.get('plan_type') if subscription else 'trial',
