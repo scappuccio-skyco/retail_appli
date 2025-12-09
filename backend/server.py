@@ -1068,6 +1068,17 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+async def get_current_gerant(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Get current user and verify they are a gérant"""
+    token = credentials.credentials
+    payload = decode_token(token)
+    user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user['role'] not in ['gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
+    return user
+
 # ===== STRIPE AUTO-UPGRADE UTILITY =====
 async def auto_update_stripe_subscription_quantity(gerant_id: str, reason: str = "seller_count_change"):
     """
