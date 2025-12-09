@@ -189,11 +189,11 @@ export default function APIDocModal({ isOpen, onClose }) {
                   <h4 className="font-semibold text-gray-900 mb-2">curl (Bash)</h4>
                   <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
                     <pre>{`# Récupérer les magasins
-curl -X GET "https://api.retailperformer.com/api/v1/integrations/my-stores" \\
+curl -X GET "https://retailperformerai.com/api/v1/integrations/my-stores" \\
   -H "X-API-Key: rp_live_votre_cle"
 
 # Envoyer des KPI
-curl -X POST "https://api.retailperformer.com/api/v1/integrations/kpi" \\
+curl -X POST "https://retailperformerai.com/api/v1/integrations/kpi" \\
   -H "X-API-Key: rp_live_votre_cle" \\
   -H "Content-Type: application/json" \\
   -d '{
