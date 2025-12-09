@@ -1337,11 +1337,14 @@ async def register(user_data: UserCreate):
     
     # Create user with workspace_id
     user_dict = user_data.model_dump()
-    user_dict.pop('password')
-    user_dict.pop('workspace_name', None)  # Remove workspace_name from user dict
-    user_dict['workspace_id'] = workspace_id  # Add workspace_id
+    # Remove workspace_name and prepare user data
+    user_dict.pop('workspace_name', None)
+    user_dict['workspace_id'] = workspace_id
+    
+    # Create User object for validation (with password)
     user_obj = User(**user_dict)
     
+    # Now convert to dict and replace with hashed password
     doc = user_obj.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     doc['password'] = hashed_pw
