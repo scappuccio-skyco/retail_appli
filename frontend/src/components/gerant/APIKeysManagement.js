@@ -310,8 +310,14 @@ const APIKeysManagement = () => {
                       key={perm}
                       className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium"
                       title={perm === 'write:kpi' 
-                        ? 'Permet d\'envoyer les données de ventes' 
-                        : 'Permet de récupérer les statistiques'}
+                        ? 'Permet d\'envoyer des données KPI' 
+                        : perm === 'read:stats'
+                        ? 'Permet de lire les statistiques'
+                        : perm === 'write:stores'
+                        ? 'Permet de créer des magasins'
+                        : perm === 'write:users'
+                        ? 'Permet de gérer les utilisateurs'
+                        : ''}
                     >
                       {permLabel}
                     </span>
