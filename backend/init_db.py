@@ -29,11 +29,11 @@ def init_database():
         client = MongoClient(mongo_url)
         db = client[db_name]
         
-        # Vérifier si des utilisateurs existent
-        user_count = db.users.count_documents({})
+        # Vérifier si un compte gérant (admin) existe
+        gerant_count = db.users.count_documents({"role": "gerant"})
         
-        if user_count == 0:
-            logger.info("🔍 Aucun utilisateur trouvé dans la base de données")
+        if gerant_count == 0:
+            logger.info("🔍 Aucun compte gérant (admin) trouvé dans la base de données")
             logger.info("🚀 Création du compte super admin par défaut...")
             
             # Hasher le mot de passe
