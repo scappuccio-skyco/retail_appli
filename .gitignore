@@ -153,3 +153,5 @@ frontend/node_modules/.cache/default-development/28.pack
 -e 
 -e 
 # Environment files
+# NOTE: .env files are NOT ignored for Emergent deployment
+# The platform automatically manages environment variables during deployment
