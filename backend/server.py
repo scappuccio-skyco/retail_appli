@@ -420,6 +420,7 @@ class Workspace(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str  # Nom de l'entreprise (unique)
+    gerant_id: Optional[str] = None  # ID du gérant propriétaire
     stripe_customer_id: Optional[str] = None  # ID du customer Stripe
     stripe_subscription_id: Optional[str] = None  # ID de l'abonnement Stripe actif
     stripe_subscription_item_id: Optional[str] = None  # ID de l'item pour modifier quantity
