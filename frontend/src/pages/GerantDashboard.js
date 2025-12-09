@@ -495,43 +495,6 @@ const GerantDashboard = ({ user, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-orange-50 to-white">
-      {/* DB Debug Modal */}
-      {showDbDebug && dbDebugInfo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowDbDebug(false)}>
-          <div className="bg-white p-6 rounded-xl max-w-2xl w-full mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-bold text-gray-800">🔍 Info Base de Données (Gérant)</h3>
-              <button onClick={() => setShowDbDebug(false)} className="text-gray-500 hover:text-red-500">✕</button>
-            </div>
-            <div className="space-y-3">
-              <div className="bg-gray-100 p-3 rounded">
-                <strong>Nom de la base :</strong> <span className="text-blue-600">{dbDebugInfo.db_name}</span>
-              </div>
-              <div className="bg-gray-100 p-3 rounded">
-                <strong>URL MongoDB :</strong> <span className="text-sm break-all text-gray-600">{dbDebugInfo.mongo_url}</span>
-              </div>
-              <div className="bg-gray-100 p-3 rounded">
-                <strong>Utilisateur :</strong> {dbDebugInfo.user_email} ({dbDebugInfo.user_role})
-              </div>
-              <div className="grid grid-cols-3 gap-3 mt-4">
-                <div className="bg-orange-100 p-3 rounded text-center">
-                  <div className="text-3xl font-bold text-orange-600">{dbDebugInfo.total_stores}</div>
-                  <div className="text-sm text-orange-700">Stores</div>
-                </div>
-                <div className="bg-blue-100 p-3 rounded text-center">
-                  <div className="text-3xl font-bold text-blue-600">{dbDebugInfo.total_managers}</div>
-                  <div className="text-sm text-blue-700">Managers</div>
-                </div>
-                <div className="bg-purple-100 p-3 rounded text-center">
-                  <div className="text-3xl font-bold text-purple-600">{dbDebugInfo.total_sellers}</div>
-                  <div className="text-sm text-purple-700">Vendeurs</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
       {/* CSS pour animation de glissement */}
       <style>{`
         @keyframes slideIn {
