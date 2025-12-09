@@ -525,9 +525,9 @@ export default function SuperAdminDashboard() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/20">
-                    <th className="text-left p-3 text-purple-200 font-semibold">Entreprise</th>
-                    <th className="text-left p-3 text-purple-200 font-semibold">Gérant</th>
-                    <th className="text-left p-3 text-purple-200 font-semibold">Manager</th>
+                    <th className="text-left p-3 text-purple-200 font-semibold">Workspace / Gérant</th>
+                    <th className="text-left p-3 text-purple-200 font-semibold">Magasins</th>
+                    <th className="text-left p-3 text-purple-200 font-semibold">Managers</th>
                     <th className="text-left p-3 text-purple-200 font-semibold">Vendeurs</th>
                     <th className="text-left p-3 text-purple-200 font-semibold">Plan</th>
                     <th className="text-left p-3 text-purple-200 font-semibold">Statut</th>
@@ -538,47 +538,30 @@ export default function SuperAdminDashboard() {
                   {workspaces
                     .filter(workspace => showDeletedWorkspaces || workspace.status !== 'deleted')
                     .map((workspace) => (
-                    <tr key={workspace.id} className="border-b border-white/10 hover:bg-white/5">
-                      <td className="p-3 text-white font-medium">{workspace.name}</td>
-                      <td className="p-3 text-purple-200">
-                        {workspace.gerant ? (
-                          <>
-                            {workspace.gerant.name}
-                            <br />
-                            <span className="text-xs text-purple-300">{workspace.gerant.email}</span>
-                          </>
-                        ) : (
-                          <span className="text-xs text-gray-400">Aucun gérant</span>
-                        )}
-                      </td>
-                      <td className="p-3 text-purple-200">
-                        {workspace.manager ? (
-                          <>
-                            {workspace.manager.name}
-                            <br />
-                            <span className="text-xs text-purple-300">{workspace.manager.email}</span>
-                          </>
-                        ) : (
-                          <span className="text-xs text-gray-400">Aucun manager</span>
-                        )}
-                      </td>
-                      <td className="p-3 text-white">
-                        <div>
-                          <span className="font-medium">{workspace.sellers_count} actif{workspace.sellers_count > 1 ? 's' : ''}</span>
-                          {workspace.sellers && workspace.sellers.length > 0 && (
-                            <div className="mt-1 text-xs text-purple-300 space-y-1">
-                              {workspace.sellers.map((seller, idx) => (
-                                <div key={idx} className={seller.status !== 'active' ? 'opacity-50' : ''}>
-                                  {seller.name} - {seller.email}
-                                  {seller.status !== 'active' && (
-                                    <span className="ml-1 text-orange-300">({seller.status})</span>
-                                  )}
-                                </div>
-                              ))}
+                    <React.Fragment key={workspace.id}>
+                      <tr className="border-b border-white/10 hover:bg-white/5 bg-purple-900/20">
+                        <td className="p-3">
+                          <div className="text-white font-bold">{workspace.name}</div>
+                          {workspace.gerant ? (
+                            <div className="text-xs text-purple-300 mt-1">
+                              👤 {workspace.gerant.name} - {workspace.gerant.email}
                             </div>
+                          ) : (
+                            <div className="text-xs text-gray-400 mt-1">❌ Aucun gérant</div>
                           )}
-                        </div>
-                      </td>
+                        </td>
+                        <td className="p-3 text-white">
+                          <div className="font-medium">{workspace.stores_count || 0} magasin{(workspace.stores_count || 0) > 1 ? 's' : ''}</div>
+                        </td>
+                        <td className="p-3 text-white">
+                          <div className="font-medium">{workspace.managers_count || 0} manager{(workspace.managers_count || 0) > 1 ? 's' : ''}</div>
+                        </td>
+                        <td className="p-3 text-white">
+                          <div className="font-medium">{workspace.sellers_count || 0} actif{(workspace.sellers_count || 0) > 1 ? 's' : ''}</div>
+                          {workspace.total_sellers > workspace.sellers_count && (
+                            <div className="text-xs text-gray-400">({workspace.total_sellers} total)</div>
+                          )}
+                        </td>
                       <td className="p-3">
                         <div className="flex items-center gap-2">
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
