@@ -202,12 +202,6 @@ export default function SuperAdminDashboard() {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={fetchDbDebugInfo}
-              className="px-4 py-2 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-lg transition-all border border-yellow-500/50"
-            >
-              🔍 Debug DB
-            </button>
-            <button
               onClick={() => {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
