@@ -10619,17 +10619,42 @@ async def delete_store(store_id: str, current_user: dict = Depends(get_current_u
 async def gerant_debug_database_info(current_user: dict = Depends(get_current_gerant)):
     """Debug: Affiche les informations de la base de données pour le gérant"""
     try:
+        # Récupérer VOS stores
+        my_stores = await db.stores.find({"gerant_id": current_user['id']}, {"_id": 0, "id": 1}).to_list(100)
+        my_store_ids = [s['id'] for s in my_stores]
+        
+        # Compter VOS managers (dans VOS stores)
+        my_managers = await db.users.count_documents({"store_id": {"$in": my_store_ids}, "role": "manager"})
+        
+        # Compter VOS vendeurs (dans VOS stores)
+        my_sellers = await db.users.count_documents({"store_id": {"$in": my_store_ids}, "role": "seller"})
+        
+        # Compter TOUS les users de la base (pour comparaison)
+        all_managers = await db.users.count_documents({"role": "manager"})
+        all_sellers = await db.users.count_documents({"role": "seller"})
+        all_gerants = await db.users.count_documents({"role": "gerant"})
+        
+        # Chercher si vous avez un workspace
+        my_workspace = await db.workspaces.find_one({"gerant_id": current_user['id']}, {"_id": 0, "id": 1, "name": 1})
+        
         return {
             "mongo_url": os.environ.get('MONGO_URL', 'NOT_SET')[:50] + "...",
             "db_name": os.environ.get('DB_NAME', 'NOT_SET'),
-            "backend_url": os.environ.get('BACKEND_URL', 'NOT_SET'),
-            "frontend_url": os.environ.get('FRONTEND_URL', 'NOT_SET'),
-            "environment": os.environ.get('ENVIRONMENT', 'NOT_SET'),
             "user_role": current_user.get('role'),
+            "user_role_exact": repr(current_user.get('role')),  # Voir les caractères exacts
             "user_email": current_user.get('email'),
-            "total_stores": await db.stores.count_documents({"gerant_id": current_user['id']}),
-            "total_managers": await db.users.count_documents({"role": "manager"}),
-            "total_sellers": await db.users.count_documents({"role": "seller"}),
+            "user_id": current_user.get('id'),
+            
+            "MY_stores": len(my_stores),
+            "MY_managers": my_managers,
+            "MY_sellers": my_sellers,
+            "my_workspace": my_workspace.get('name') if my_workspace else None,
+            "my_workspace_id": my_workspace.get('id') if my_workspace else None,
+            
+            "ALL_stores_in_db": await db.stores.count_documents({}),
+            "ALL_managers_in_db": all_managers,
+            "ALL_sellers_in_db": all_sellers,
+            "ALL_gerants_in_db": all_gerants,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
