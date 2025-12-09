@@ -85,20 +85,45 @@ export default function APIDocModal({ isOpen, onClose }) {
                   <thead className="bg-gray-100">
                     <tr>
                       <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Endpoint</th>
-                      <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Retourne</th>
-                      <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Cas d'usage</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Type</th>
+                      <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Description</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td className="border border-gray-300 px-4 py-2 font-mono text-sm bg-purple-50">/my-stores</td>
-                      <td className="border border-gray-300 px-4 py-2 text-sm">Magasins + Personnel (IDs, noms, emails)</td>
-                      <td className="border border-gray-300 px-4 py-2 text-sm">Obtenir les IDs pour envoyer des KPI</td>
+                      <td className="border border-gray-300 px-4 py-2 font-mono text-xs bg-purple-50">/my-stores</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">GET</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">Lister magasins + personnel (IDs)</td>
                     </tr>
                     <tr>
-                      <td className="border border-gray-300 px-4 py-2 font-mono text-sm bg-green-50">/my-stats</td>
+                      <td className="border border-gray-300 px-4 py-2 font-mono text-xs bg-green-50">/my-stats</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">GET</td>
                       <td className="border border-gray-300 px-4 py-2 text-sm">Statistiques (CA, ventes, articles)</td>
-                      <td className="border border-gray-300 px-4 py-2 text-sm">Analyser les performances</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-4 py-2 font-mono text-xs bg-orange-50">/kpi/sync</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">POST</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">Synchroniser les KPI journaliers</td>
+                    </tr>
+                    <tr className="bg-blue-50">
+                      <td className="border border-gray-300 px-4 py-2 font-mono text-xs font-bold">/stores</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm font-semibold">POST</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">Créer un magasin</td>
+                    </tr>
+                    <tr className="bg-blue-50">
+                      <td className="border border-gray-300 px-4 py-2 font-mono text-xs font-bold">/stores/{'{'}id{'}'}/managers</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm font-semibold">POST</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">Créer un manager</td>
+                    </tr>
+                    <tr className="bg-blue-50">
+                      <td className="border border-gray-300 px-4 py-2 font-mono text-xs font-bold">/stores/{'{'}id{'}'}/sellers</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm font-semibold">POST</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">Créer un vendeur</td>
+                    </tr>
+                    <tr className="bg-blue-50">
+                      <td className="border border-gray-300 px-4 py-2 font-mono text-xs font-bold">/users/{'{'}id{'}'}</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm font-semibold">PUT</td>
+                      <td className="border border-gray-300 px-4 py-2 text-sm">Mettre à jour un utilisateur</td>
                     </tr>
                   </tbody>
                 </table>
