@@ -64,7 +64,7 @@ Bienvenue ! Retail Performer AI propose plusieurs APIs selon vos besoins d'inté
 
 ```bash
 # Créer un magasin
-curl -X POST https://votre-domaine.com/api/v1/integrations/stores \
+curl -X POST https://retailperformerai.com/api/v1/integrations/stores \
   -H "X-API-Key: rp_live_votre_cle" \
   -H "Content-Type: application/json" \
   -d '{
