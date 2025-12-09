@@ -10617,9 +10617,6 @@ async def gerant_debug_database_info(current_user: dict = Depends(get_current_ge
 @api_router.get("/gerant/dashboard/stats")
 async def get_gerant_dashboard_stats(current_user: dict = Depends(get_current_gerant)):
     """Récupérer les statistiques globales du gérant (tous magasins)"""
-    if current_user['role'] not in ['gerant', 'gérant']:
-        raise HTTPException(status_code=403, detail="Accès réservé aux gérants")
-    
     # Récupérer tous les magasins actifs
     stores = await db.stores.find(
         {"gerant_id": current_user['id'], "active": True},
