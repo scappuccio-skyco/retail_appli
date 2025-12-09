@@ -89,6 +89,9 @@ STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
 # Emergent LLM
 EMERGENT_LLM_KEY=your-emergent-llm-key
 
+# API Rate Limiting
+API_RATE_LIMIT=600
+
 # Admin par défaut
 DEFAULT_ADMIN_EMAIL=s.cappuccio@retailperformerai.com
 DEFAULT_ADMIN_PASSWORD=RetailPerformer2025!
