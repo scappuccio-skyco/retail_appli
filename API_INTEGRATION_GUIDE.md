@@ -263,9 +263,15 @@ getStats();
 
 #### 3. Synchroniser les KPI journaliers
 
-**Endpoint** : `POST /api/v1/integrations/kpi/sync`
+> **💡 Plusieurs façons d'enregistrer les KPI :**
+> - **Via API (API Key)** : `POST /v1/integrations/kpi/sync` - Pour systèmes externes (caisse, ERP)
+> - **Via Interface Web (JWT)** : 
+>   - Vendeur : `POST /seller/kpi-entry` - Le vendeur enregistre ses propres KPI
+>   - Manager : `POST /manager/store-kpi` - Le manager enregistre les KPI de ses vendeurs
 
-**Description** : Envoyez les KPI journaliers d'un ou plusieurs vendeurs
+**Endpoint API** : `POST /api/v1/integrations/kpi/sync`
+
+**Description** : Envoyez les KPI journaliers d'un ou plusieurs vendeurs depuis vos systèmes externes (caisse, ERP)
 
 **Headers** :
 ```
