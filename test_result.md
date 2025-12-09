@@ -558,7 +558,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Manager TeamModal - Vendeurs en veille Tab Testing"
+    - "Integration API Endpoints for User Management"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
