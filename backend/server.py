@@ -8801,6 +8801,24 @@ async def get_super_admin(credentials: HTTPAuthorizationCredentials = Depends(se
     
     return user
 
+@api_router.get("/superadmin/debug-db")
+async def debug_database_info(current_admin: dict = Depends(get_super_admin)):
+    """Debug: Affiche les informations de la base de données utilisée"""
+    try:
+        return {
+            "mongo_url": os.environ.get('MONGO_URL', 'NOT_SET')[:50] + "...",
+            "db_name": os.environ.get('DB_NAME', 'NOT_SET'),
+            "backend_url": os.environ.get('BACKEND_URL', 'NOT_SET'),
+            "frontend_url": os.environ.get('FRONTEND_URL', 'NOT_SET'),
+            "environment": os.environ.get('ENVIRONMENT', 'NOT_SET'),
+            "total_workspaces": await db.workspaces.count_documents({}),
+            "total_users": await db.users.count_documents({}),
+            "total_stores": await db.stores.count_documents({}),
+            "gerants_count": await db.users.count_documents({"role": "gerant"}),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/superadmin/stats")
 async def get_superadmin_stats(current_admin: dict = Depends(get_super_admin)):
     """Statistiques globales de la plateforme (métriques anonymisées)"""
