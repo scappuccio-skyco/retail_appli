@@ -4545,7 +4545,7 @@ async def get_all_seller_bilans(current_user: dict = Depends(get_current_user)):
     bilans = await db.seller_bilans.find(
         {"seller_id": current_user['id']},
         {"_id": 0}
-    ).sort("created_at", -1).to_list(length=None)
+    ).sort("created_at", -1).limit(100).to_list(length=100)  # Limit to last 100 bilans
     
     # Convert datetime strings to datetime objects
     for bilan in bilans:
