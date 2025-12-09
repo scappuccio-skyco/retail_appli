@@ -10615,6 +10615,53 @@ async def delete_store(store_id: str, current_user: dict = Depends(get_current_u
         "total_suspended": managers_count + sellers_count
     }
 
+@api_router.post("/gerant/fix-my-data")
+async def fix_gerant_data(current_user: dict = Depends(get_current_gerant)):
+    """Corriger les données du gérant : créer workspace si manquant, lier les stores"""
+    try:
+        fixes_applied = []
+        
+        # 1. Vérifier si le gérant a un workspace
+        workspace = await db.workspaces.find_one({"gerant_id": current_user['id']})
+        
+        if not workspace:
+            # Créer un workspace pour ce gérant
+            from uuid import uuid4
+            workspace_id = str(uuid4())
+            workspace = {
+                "id": workspace_id,
+                "name": f"Workspace {current_user.get('name', current_user.get('email'))}",
+                "gerant_id": current_user['id'],
+                "status": "active",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.workspaces.insert_one(workspace)
+            fixes_applied.append("✅ Workspace créé")
+        else:
+            fixes_applied.append(f"✅ Workspace existe déjà: {workspace.get('name')}")
+        
+        # 2. Vérifier combien de stores sont liés
+        my_stores = await db.stores.count_documents({"gerant_id": current_user['id']})
+        fixes_applied.append(f"✅ {my_stores} stores liés à votre gerant_id")
+        
+        # 3. Compter managers et vendeurs
+        stores = await db.stores.find({"gerant_id": current_user['id']}, {"_id": 0, "id": 1}).to_list(100)
+        store_ids = [s['id'] for s in stores]
+        managers = await db.users.count_documents({"store_id": {"$in": store_ids}, "role": "manager"})
+        sellers = await db.users.count_documents({"store_id": {"$in": store_ids}, "role": "seller"})
+        
+        fixes_applied.append(f"✅ {managers} managers dans vos stores")
+        fixes_applied.append(f"✅ {sellers} vendeurs dans vos stores")
+        
+        return {
+            "success": True,
+            "fixes_applied": fixes_applied,
+            "workspace_id": workspace.get('id') if workspace else None,
+            "workspace_name": workspace.get('name') if workspace else None
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/gerant/debug-db")
 async def gerant_debug_database_info(current_user: dict = Depends(get_current_gerant)):
     """Debug: Affiche les informations de la base de données pour le gérant"""
