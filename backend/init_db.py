@@ -42,13 +42,13 @@ def init_database():
                 bcrypt.gensalt()
             ).decode('utf-8')
             
-            # Créer l'utilisateur super_admin
+            # Créer l'utilisateur gérant (propriétaire d'entreprise)
             admin_user = {
                 "id": str(uuid4()),
                 "name": default_admin_name,
                 "email": default_admin_email,
                 "password": hashed_password,
-                "role": "super_admin",
+                "role": "gerant",
                 "status": "active",
                 "created_at": datetime.now(timezone.utc),
                 "phone": None,
