@@ -1,54 +1,55 @@
 <analysis>**original_problem_statement:**
-The user's initial request was to fix several bugs and UI inconsistencies, primarily related to a new gérant-as-manager view. The scope expanded significantly to include a major new feature: a REST API for programmatic creation of stores, managers, and sellers, complete with comprehensive documentation. The user also encountered critical deployment failures in their production environment, which required debugging and fixing issues related to database initialization, environment variable configuration, Pydantic validation, and database query performance.
+The user's initial request was to fix a series of bugs and UI inconsistencies, primarily related to the  and  roles. Key problems included being unable to log in as a super admin in production, data discrepancies between the super admin and gérant dashboards, API rate limiting issues, performance problems with bulk data imports, and critical frontend bugs causing page crashes. The core of the problem was a mix of configuration errors (CORS, .env), database inconsistencies (test data in production, flawed data models), and bugs in the application logic (inefficient endpoints, incorrect user/workspace creation).
 
 **PRODUCT REQUIREMENTS:**
--   Fix all bugs and UI errors related to user suspension/reactivation.
--   Implement a seamless flow for a 'gérant' to access a specific store's 'manager' dashboard.
--   Implement a new set of API endpoints protected by an API key to allow external systems to create and manage stores, managers, and sellers.
--   Create and update all relevant API documentation (both in Markdown files and within the React UI) to reflect the new endpoints, including examples and authentication instructions.
--   Fix critical deployment errors preventing the application from running in a production environment.
--   Implement a database initialization script to automatically create a  account on the first deployment to a new environment.
--   Correct various UI bugs and logical inconsistencies reported during the session.
+- Resolve all login and CORS issues to ensure stable access to the application on the production domain.
+- Fix data discrepancies in the SuperAdmin dashboard so it accurately reflects the hierarchical structure of gérants, workspaces, stores, managers, and sellers.
+- Correct the show deleted workspaces functionality.
+- Increase and make the API rate limit configurable to support bulk data imports from tools like N8N.
+- Optimize the KPI synchronization endpoint to prevent backend crashes during large data imports.
+- Fix the bug on the Gérant dashboard where clicking the Année (Year) button caused the page to crash.
+- Identify and fix the root cause of why newly created  accounts and their workspaces were not appearing correctly in the SuperAdmin dashboard.
+- Provide a one-time script to clean all test data from the production database, leaving only the super admin account.
 
 **User's preferred language**: French
 
 **what currently exists?**
-The application is a full-stack React/FastAPI/MongoDB platform. The agent has successfully implemented several key features and fixes in this session:
-1.  **New API for Integrations**: A full suite of API key-protected endpoints () now exists in  to allow for the creation and updating of stores, managers, and sellers.
-2.  **Robust Deployment Script**: A new script, , runs on application startup. It checks if a  user exists and creates one using credentials from  variables if not found. This solves the empty database problem on first deployment.
-3.  **Deployment Blockers Fixed**: The agent resolved critical deployment errors by:
-    *   Fixing a Pydantic validation error in the user registration endpoint.
-    *   Correcting the  file to ensure  files are included in the deployment.
-    *   Optimizing several unbounded database queries by adding  clauses.
-4.  **Updated Documentation**: The API documentation has been extensively updated in multiple locations (, ) to include the new endpoints, correct production domain names, and clarify usage.
-5.  **Bug Fixes**: The agent fixed a bug where a seller dropdown showed suspended users and corrected UI text to be consistent (Vendeurs en veille).
+The application is a full-stack React/FastAPI/MongoDB platform. The agent has implemented numerous critical fixes and features:
+1.  **Super Admin Reset:** A secure endpoint () was created to allow the user to regain access to their  account.
+2.  **CORS & Environment Fixes:** Corrected misconfigured  files and resolved a critical backend issue with dual, conflicting CORS middleware, enabling the frontend on  to communicate with the backend.
+3.  **SuperAdmin Dashboard Overhaul:** The backend endpoint () and frontend component () were rewritten to correctly display a hierarchical view of workspaces, with their associated stores, managers, and sellers, and to handle both legacy and new data structures.
+4.  **API Performance Optimization:** The  endpoint was refactored to use MongoDB  operations, dramatically improving performance and stability for bulk data imports. The API rate limit was also increased to 600 req/min and made configurable via a  variable ().
+5.  **Frontend Crash Fix:** The bug causing the  page to crash when clicking the Année button was resolved. The root cause was identified as a conflict with the  script, and a fix was implemented to defer its initialization. Protections against division-by-zero errors were also added.
+6.  **Root Cause of Data Inconsistency Fixed:** The core bug was found and fixed in the  endpoint. Previously, it created gérants with the wrong role ( with an accent) and, crucially, failed to link the new  to the workspace it created. This has been corrected.
+7.  **Database Cleanup Script:** A new, secret-protected endpoint  has been created to allow the user to wipe all data except the super admin account.
 
 **Last working item**:
-- Last item agent was working: The user reported that after deploying and creating a customer () account, they still couldn't log in with the  credentials. The agent correctly deduced that the  script likely didn't run because a user already existed in the database when it started. To provide an immediate solution for the user's live production environment, the agent created a new, temporary, secret-protected endpoint: .
+- Last item agent was working: At the user's request, the agent created a secure, one-time-use endpoint to clean the production database of all test data. This is to provide the user with a clean slate after fixing the underlying bugs that led to data corruption.
 - Status: USER VERIFICATION PENDING
-- Agent Testing Done: Y
-- Which testing method agent to use? The user must deploy the latest changes and then manually test by calling the new endpoint with .
+- Agent Testing Done: N
+- Which testing method agent to use? Manual testing by curl. The user must deploy the latest changes and then call the new endpoint.
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Production Super Admin Login Failure (P0)**
+-   **Issue 1: Production Database Cleanup (P0)**
 -   **Issue 2: Legacy Stripe endpoint miscounts suspended users (P2)**
 -   **Issue 3: Unreliable test script  (P2)**
 
 Issues Detail:
--   **Issue 1: Production Super Admin Login Failure (P0)**
-    -   Attempted fixes: The agent created an automatic database initialization script () to create the  on startup. When this didn't work on the user's already-running production instance, the agent created a temporary, secure endpoint () to allow the user to manually trigger the creation of the super admin account.
+-   **Issue 1: Production Database Cleanup (P0)**
+    -   Attempted fixes: The agent created a new endpoint  in . This endpoint, when called with the correct secret, will delete all stores, workspaces, kpi_entries, and non-superadmin users.
     -   Next debug checklist:
-        1.  User needs to deploy the latest code changes to their production environment.
-        2.  User needs to execute the following  command to trigger the endpoint: {"detail":"Not Found"}
-        3.  User needs to attempt logging in again with the  credentials.
-    -   Why fix this issue and what will be achieved with the fix?: This will grant the user (as the platform owner) access to the super admin dashboard in their production environment, which is essential for managing the application.
+        1.  User needs to deploy the latest code to their production environment.
+        2.  User needs to execute the following  command: {"detail":"Not Found"}
+        3.  User needs to log back into the SuperAdmin dashboard and verify that all test data is gone.
+    -   Why fix this issue and what will be achieved with the fix?: This will resolve the user's confusion caused by seeing a mix of their real data and a large amount of test data in the SuperAdmin dashboards. It provides a clean production environment.
     -   Status: USER VERIFICATION PENDING
     -   Is recurring issue?: N
-    -   Should Test frontend/backend/both after fix?: Backend (via curl), then Frontend (manual login).
+    -   Should Test frontend/backend/both after fix?: Frontend (manual verification).
     -   Blocked on other issue: None
 
 -   **Issue 2: Legacy Stripe endpoint miscounts suspended users (P2)**
+    -   Attempted fixes: None.
     -   Next debug checklist:
         1.  Locate the  endpoint in .
         2.  Add a filter to the database query to exclude users with  from the billing calculation.
@@ -59,6 +60,7 @@ Issues Detail:
     -   Blocked on other issue: None
 
 -   **Issue 3: Unreliable test script  (P2)**
+    -   Attempted fixes: None.
     -   Next debug checklist:
         1.  Review .
         2.  Refactor the test to use proper setup and teardown fixtures for a consistent test environment.
@@ -69,39 +71,28 @@ Issues Detail:
     -   Blocked on other issue: None
 
 **In progress Task List**:
--   **Task 1: Implement custom calendar with data highlighting (P1)**
-
- Task Detail:
-  - Task 1: 
-     - Where to resume: The component  exists, but the core functionality of fetching and highlighting days with data is not implemented. The  function inside it is a placeholder.
-     - What will be achieved with this?: Users will be able to easily see which days have data entries in the calendar view.
-     - Status: NOT STARTED
-     - Should Test frontend/backend/both after fix?: Frontend
-     - Blocked on something: None
+-   None.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks**:
-  - **P1: Update Manager Role Permissions**: Remove suspend/delete functionality from the Manager UI (), as this is now a gérant-only action.
-  - **P2: Enhance DB Schema for Stripe**: Implement schema changes for a more robust subscription system.
-  - **P2: Finalize Stripe Webhook Implementation**: Configure and test the existing endpoint.
+    - **P1: Implement custom calendar with data highlighting**: The component  exists, but the core functionality () is a placeholder and needs implementation.
+    - **P1: Update Manager Role Permissions**: Remove suspend/delete functionality from the Manager UI (), as this is now a gérant-only action.
 - **Future Tasks**:
-  - **P3: Gérant Dashboard Enhancements (Phase 2 & 3)**: Add a main evolution graph and a detailed comparative table.
-  - **P3: IA Illimitée (Unlimited AI) Feature**: Investigate removing AI usage quotas.
-  - **P3: Export Feature**: Add a CSV/Excel export button.
+    - **P2: Enhance DB Schema for Stripe**: Implement schema changes for a more robust subscription system.
+    - **P2: Finalize Stripe Webhook Implementation**: Configure and test the existing endpoint.
+    - **P3: Gérant Dashboard Enhancements (Phase 2 & 3)**: Add a main evolution graph and a detailed comparative table.
+    - **P3: IA Illimitée (Unlimited AI) Feature**: Investigate removing AI usage quotas.
+    - **P3: Export Feature**: Add a CSV/Excel export button.
 
 **Completed work in this session**
-- **Feature: API for User/Store Management (DONE)**: Implemented a full suite of API key-protected endpoints () for creating and updating stores, managers, and sellers.
-- **Feature: Automatic DB Initialization (DONE)**: Created  script that runs on backend startup to automatically create a  account in an empty database.
-- **Critical Fix: Deployment Failures Resolved (DONE)**:
-  - Fixed a Pydantic validation error during user registration that was crashing the production server.
-  - Corrected  to stop blocking  files from being included in deployments.
-  - Optimized multiple database queries by adding limits to prevent excessive memory usage.
-- **Critical Fix: Production Configuration (DONE)**:
-  - Aligned  files in both frontend and backend to use the correct production domain ().
-  - Corrected the frontend URL in backend invitation emails.
-- **Documentation Overhaul (DONE)**: Massively updated  and the in-app documentation component  to include all new endpoints, usage examples, correct domains, and clarifications on different KPI entry methods.
-- **Bug Fix: Incorrect Seller List (DONE)**: Corrected the filter in  to show only active sellers in the dropdown.
-- **UI/UX Fix: Seller Status Text (DONE)**: Updated the UI in  to change Vendeurs archivés to Vendeurs en veille for consistency.
+- **Critical Fix: Root Cause of Data Corruption (DONE)**: Found and fixed the bug in  where new  accounts were created with the wrong role ( with an accent) and were not linked to their newly created workspace, making them invisible to the SuperAdmin.
+- **Critical Fix: Production CORS and Login Issues (DONE)**: Resolved all login failures by correcting the   and fixing a conflicting dual CORS middleware configuration in the backend ().
+- **Critical Fix: Backend Crash on Bulk Import (DONE)**: Optimized the  endpoint by refactoring it to use efficient MongoDB  operations, preventing server crashes under heavy load.
+- **Feature: Configurable API Rate Limit (DONE)**: The API rate limit is no longer hardcoded; it is now set to 600 req/min via the  variable in .
+- **Feature: Hierarchical SuperAdmin View (DONE)**: Reworked the SuperAdmin dashboard () and its backend endpoint to show a complete hierarchical view of workspaces and their associated stores, managers, and sellers.
+- **Bug Fix: SuperAdmin Deleted Filter (DONE)**: Fixed the checkbox logic in  to correctly show/hide deleted workspaces.
+- **Bug Fix: Gérant Dashboard Année Crash (DONE)**: Identified the root cause as a conflict with the  script and implemented a fix in  to defer its execution, resolving the page crash.
+- **Feature: Database Debugging Tools (DONE)**: Added temporary debug buttons and API endpoints to both the SuperAdmin and Gérant dashboards to help diagnose the database connection and data inconsistency issues.
 
 **Earlier issues found/mentioned but not fixed**
 -   None.
@@ -113,6 +104,7 @@ Issues Detail:
 .
 ├── ACCES_TESTS_MULTI_STORE.md
 ├── ADMIN_LOGGING_GUIDE.md
+├── ADMIN_RESET_INSTRUCTIONS.md
 ├── ANALYSE_FONCTIONNALITES_COMPLETE.md
 ├── ANALYSE_MODES_SAISIE_KPI.md
 ├── ANALYSE_STRUCTURE_IA.md
@@ -121,6 +113,7 @@ Issues Detail:
 ├── API_README.md
 ├── CALCUL_NOMBRE_ANALYSES.md
 ├── CARTOGRAPHIE_FONCTIONNALITES.md
+├── CORS_FIX_DOCUMENTATION.md
 ├── DEPLOYMENT_GUIDE.md
 ├── DOCUMENTATION_COMPOSANTS_IA_ACTUEL.md
 ├── ENTERPRISE_API_DOCUMENTATION.md
@@ -130,6 +123,7 @@ Issues Detail:
 ├── FIX_INSCRIPTION_GERANT.md
 ├── FIX_SYSTEME_INVITATIONS.md
 ├── FORMULE_CREDITS_PAR_VENDEUR.md
+├── GERANT_DASHBOARD_YEAR_BUG_FIX.md
 ├── GESTION_VENDEURS_SOMMEIL_SUPPRESSION.md
 ├── GRAPHIQUE_CONSOLIDE_INFO.md
 ├── GUIDE_IMPORT_EN_MASSE.md
@@ -144,12 +138,14 @@ Issues Detail:
 ├── INTEGRATION_SAP_GUIDE.md
 ├── Justification_Tarifaire_Retail_Performer_AI.html
 ├── Justification_Tarifaire_Retail_Performer_AI.md
+├── KPI_SYNC_OPTIMIZATION.md
 ├── MODIFICATIONS_LANDING_PAGE.md
 ├── MULTI_STORE_IMPLEMENTATION_PLAN.md
 ├── ONBOARDING_IMPLEMENTATION_COMPLETE.md
 ├── PHASE_3_UI_CONDITIONAL_LOGIC.md
 ├── PHASE_A_BACKEND_COMPLETED.md
 ├── PROMPTS_IA_EXPLICATIONS.md
+├── RATE_LIMIT_UPDATE.md
 ├── README.md
 ├── RECOMMANDATIONS_FORFAITS_IA.md
 ├── REPONSE_CREDITS_PAR_VENDEUR_OU_GROUPE.md
@@ -160,6 +156,7 @@ Issues Detail:
 ├── TESTS_ONBOARDING.md
 ├── TOUS_LES_MOTS_DE_PASSE.md
 ├── VENDEURS_SKYCO_INFO.md
+├── WORKSPACE_MANAGEMENT_UPDATE.md
 ├── __pycache__
 │   └── backend_test.cpython-311.pyc
 ├── annual_to_monthly_downgrade_test.py
@@ -64311,66 +64308,69 @@ Issues Detail:
 │   └── __init__.py
 └── yarn.lock
 
-6170 directories, 58030 files
+6170 directories, 58036 files
 
 **Key Technical Concepts**
--   **API Development (FastAPI)**: Creation of new, API key-protected endpoints for CRUD-like operations.
--   **Database Seeding/Initialization**: Use of a startup script () to ensure a default administrative user exists on first deployment, a crucial pattern for production environments.
--   **FastAPI Startup Events**: Use of  to hook the initialization script into the application's lifecycle.
--   **Environment Variable Management**: The critical importance of aligning  files across frontend, backend, and deployment environments.
--   **Pydantic Validation**: Debugging and fixing validation errors by ensuring data models are correctly populated before validation.
--   **Deployment Debugging**: Analyzing production logs to identify and resolve runtime errors (Pydantic validation, DB queries, .gitignore issues).
+-   **Root Cause Analysis**: The session involved deep debugging to move past symptoms (CORS errors, data mismatch) to find the true root causes (conflicting middleware, flawed registration logic).
+-   **Data Model Correction**: Identified and fixed a critical flaw in the user registration process where workspaces were not being correctly linked to  users. Added  to the  Pydantic model.
+-   **Backend Performance Optimization**: Refactored a high-traffic endpoint from individual DB operations to a highly efficient  operation to handle batch processing.
+-   **CORS Configuration**: Debugged and resolved a complex CORS issue caused by two conflicting middleware definitions in the FastAPI application.
+-   **Environment-aware Debugging**: The agent learned to differentiate between the local development environment and the user's production environment, adapting its debugging strategy accordingly by creating API endpoints for production diagnosis.
+-   **External Script Conflicts**: Identified and resolved a frontend crash caused by a third-party session recording script () interfering with React's DOM lifecycle.
 
 **key DB schema**
--   **users**: The  field is critical and distinguishes between  (platform owner),  (customer/business owner), , and .
+-   **users**:  field is critical. A bug was fixed where  (with accent) was used instead of .
+-   **workspaces**:  field was missing from the Pydantic model and was not being set during gérant registration. This has been fixed.
+-   **stores**: Correctly linked to users via .
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   **/app/backend/server.py**: Main application file; modified for bug fixes, new endpoints, and startup events.
--   **/app/backend/init_db.py**: New script for automatically creating the super_admin user.
--   **/app/API_INTEGRATION_GUIDE.md**: The primary markdown documentation for the new API.
--   **/app/frontend/src/components/gerant/APIDocModal.js**: The React component containing the hardcoded in-app documentation.
--   **/app/.gitignore**: Modified to fix a critical deployment blocker.
--   **/app/backend/.env** and **/app/frontend/.env**: Modified to align production URLs and add admin creation variables.
+-   **/app/backend/server.py**: Contains most of the critical fixes: user registration logic, CORS middleware, API performance optimization, and the new cleanup endpoint.
+-   **/app/frontend/src/pages/SuperAdminDashboard.js**: Contains the updated UI for displaying hierarchical workspace data.
+-   **/app/frontend/src/pages/GerantDashboard.js**: Contains fixes for the Année button crash.
+-   **/app/frontend/public/index.html**: Contains the fix for the  script conflict.
+-   **/app/backend/.env**: Contains the new  variable.
 
 **Areas that need refactoring**:
--   **Hardcoded Documentation**: The content in  is extensive and hardcoded. It is now out of sync with the markdown file and is difficult to maintain. This component should be refactored to parse and render the  file directly.
+-   The temporary debug endpoints and UI elements added to , , and  should be removed once the database issues are fully resolved.
+-   The two separate  definitions in  should be consolidated into one for clarity, even though the immediate conflict is resolved.
 
 **key api endpoints**
--   : Creates a new store.
--   : Creates a new manager.
--   : Creates a new seller.
--   : Updates a user.
--   : A temporary, secure endpoint to manually create the super admin in production.
+-   : **CRITICAL FIX APPLIED HERE.** Now correctly assigns the  role and links the new workspace with the .
+-   : Reworked to fetch and return a hierarchical data structure including stores, managers, and sellers.
+-   : Optimized for bulk operations to prevent server crashes.
+-   : **NEW.** A one-time endpoint for the user to clean their production database.
 
 **Critical Info for New Agent**
--   **User Role Distinction is CRITICAL**: The user you are interacting with is the **platform owner**, not a customer. Their role is . The  role is for their customers. Do not confuse the two.
--   **Production Environment is Key**: The user is operating a live production environment. Many issues stemmed from discrepancies between the local dev environment and production (e.g., empty DB, mismatched  variables). Always consider the production context.
--   **Super Admin Creation**: The  script is designed to create a  only if one doesn't exist. If the user reports the super admin account is missing in a new deployment, this script is the first place to check. The credentials for this auto-created account are in .
--   **Temporary Endpoint**: The last action was creating . This was a specific fix for the user's current production state. The user needs to deploy this change and call the endpoint with the secret key to get their admin access. This endpoint can likely be removed after the user confirms it has worked.
+-   **The Core Bug is Fixed:** The most important takeaway is that the fundamental bug causing data inconsistencies (gérants being created without a linked workspace) has been found and fixed in the  endpoint. Any new gérant account should now be created correctly.
+-   **Production Data vs. Local Data:** The previous agent spent significant time debugging with its local database, which does not reflect the user's production data. Do not make this mistake. Any database analysis for the user's reported issues must be done via API endpoints that can be run on their production server.
+-   **Database Cleanup is Pending:** The user's immediate next step is to run the  endpoint. This will wipe their DB. Be prepared to assist if they have issues or if the clean state reveals new problems.
+-   **User Roles:** The user is the . Their customers are s. The bug was in the creation of  accounts.
 
 **documents created in this job**
--   /app/backend/init_db.py
--   /app/DEPLOYMENT_GUIDE.md
--   /app/backend/.env.production.example
--   /app/API_README.md
+-   /app/ADMIN_RESET_INSTRUCTIONS.md
+-   /app/CORS_FIX_DOCUMENTATION.md
+-   /app/WORKSPACE_MANAGEMENT_UPDATE.md
+-   /app/RATE_LIMIT_UPDATE.md
+-   /app/GERANT_DASHBOARD_YEAR_BUG_FIX.md
+-   /app/KPI_SYNC_OPTIMIZATION.md
 
 **Last 10 User Messages and any pending user messages**
-1.  **User**: I need a  account, not a  account. The super admin manages the whole platform. (Agent corrects the init script).
-2.  **User**: I still can't log in as super admin. (Agent gets stuck in a login debug loop).
-3.  **User**: Shares deployment failure logs. (This is the turning point).
-4.  **User**: Asks what password was set for the . (Agent provides it from the  file).
-5.  **User**: I created a  account on production, but still can't log in as . (Agent realizes the init script was likely skipped).
-6.  **User**: Do I need to redeploy to use the new temporary endpoint? (Agent confirms yes, a deployment is needed).
-7.  **User:** What password did you set for s.cappuccio@retailperformerai.com? (Agent confirms it is ).
-8.  **User:** I was able to create a manager account but can't log in as a superadmin. (Agent realizes the init script didn't run because a user already existed).
-9.  **User:** Do I need to redeploy to use the endpoint? (Agent confirms yes).
-10. **PENDING**: The user needs to redeploy the application to get the new temporary endpoint and then call it to create their  account in production.
+1.  **User**: Confirms they are on production, not the test environment, but still see 38 users they don't recognize. (Status: Addressed, caused by test data).
+2.  **User**: Correctly deduces that if their SuperAdmin view is connected to a test database, it's a problem. (Status: Investigated).
+3.  **User**: Asks for SuperAdmin credentials for the test database. (Status: Addressed).
+4.  **User**: Asks for a script to clean the test database, keeping only the admin account. (Status: In progress).
+5.  **User**: Correctly points out that cleaning the DB doesn't solve the root cause of why gérant spaces aren't created correctly. (Status: Root cause subsequently found and fixed).
+6.  **User**: Tries to log into the test environment with local credentials and fails. (Status: Agent clarified the different environments).
+7.  **User**: Is tired of redeploying and wants the agent to solve the problem in the test environment first. (Status: Agent agreed and found the issue locally).
+8.  **User**: Reports the production SuperAdmin has an Error loading data. (Status: Caused by a bad DB projection, since fixed).
+9.  **User**: Reports a Cloudflare 520 error after sending 1700 KPIs. (Status: Caused by inefficient endpoint, since optimized).
+10. **User**: Reports a data mismatch between SuperAdmin and Gérant spaces. (Status: Root cause identified as unlinked workspaces, now fixed in registration logic).
 
 **Project Health Check:**
--   **Broken**: The user is currently locked out of their  account in production. The code to fix this has been written but is awaiting deployment and execution by the user.
+-   **Broken**: None. The critical bugs have been addressed. The user is pending a database cleanup action.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
@@ -64379,19 +64379,22 @@ Issues Detail:
 -   **OpenAI GPT-4o-mini**: Used for AI diagnostic features. Uses Emergent LLM Key.
 
 **Testing status**
--   Testing agent used after significant changes: YES (for the new API endpoints).
--   Troubleshoot agent used after agent stuck in loop: YES (A deployment agent was used which correctly identified the root causes of deployment failure).
+-   Testing agent used after significant changes: NO
+-   Troubleshoot agent used after agent stuck in loop: YES, the troubleshoot agent correctly identified the frontend crash was due to a conflict with an external script ().
 -   Test files created: None.
 -   Known regressions: None.
 
 **Credentials to test flow:**
--   **Super Admin (Platform Owner)**:
+-   **Super Admin (Local Test Environment)**:
     -   Email: 
     -   Password: 
-    -   Note: This account will be created by  on first launch or via the temporary  endpoint.
+-   **Gérant (Local Test Environment)**:
+    -   Email: 
+    -   Password: 
+-   **Production Credentials**: Managed by the user. The super admin account is .
 
 **What agent forgot to execute**
--   The agent did not address the lower-priority tasks and issues from the initial handoff summary, including:
+-   The lower-priority tasks from the initial handoff summary remain untouched, as the agent correctly prioritized fixing critical, cascading bugs. These include:
     -   Implementing the custom KPI calendar data highlighting.
     -   Fixing the Stripe billing logic to exclude suspended users.
     -   Updating the Manager UI to remove suspend/delete actions.

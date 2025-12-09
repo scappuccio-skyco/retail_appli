@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://retail-api-fix-1.preview.emergentagent.com
+https://dashboardfix.preview.emergentagent.com
 
 ### Manager
 ```
