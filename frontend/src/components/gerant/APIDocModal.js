@@ -180,7 +180,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                   3. POST /api/v1/integrations/kpi ✍️
                 </h4>
                 <p className="text-gray-700 mb-4">
-                  Envoie les KPI journaliers d'un vendeur (CA, nombre de ventes, articles vendus).
+                  Envoie les KPI journaliers d'un vendeur (CA, nombre de ventes, articles vendus, prospects).
                 </p>
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
@@ -195,11 +195,30 @@ export default function APIDocModal({ isOpen, onClose }) {
   "date": "2024-01-15",
   "ca_journalier": 1250.50,
   "nb_ventes": 12,
-  "nb_articles": 28
+  "nb_articles": 28,
+  "prospects": 35
 }`}</pre>
                 </div>
 
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-3">
+                  <p className="text-sm text-blue-900">
+                    <strong>📊 Champs disponibles :</strong>
+                  </p>
+                  <ul className="text-xs text-blue-800 mt-2 ml-4 space-y-1">
+                    <li>• <code className="bg-blue-200 px-1 rounded">seller_id</code> <span className="text-red-600">(requis)</span> : ID du vendeur</li>
+                    <li>• <code className="bg-blue-200 px-1 rounded">date</code> <span className="text-red-600">(requis)</span> : Date YYYY-MM-DD</li>
+                    <li>• <code className="bg-blue-200 px-1 rounded">ca_journalier</code> <span className="text-red-600">(requis)</span> : Chiffre d'affaires en €</li>
+                    <li>• <code className="bg-blue-200 px-1 rounded">nb_ventes</code> <span className="text-red-600">(requis)</span> : Nombre de ventes</li>
+                    <li>• <code className="bg-blue-200 px-1 rounded">nb_articles</code> <span className="text-red-600">(requis)</span> : Nombre d'articles vendus</li>
+                    <li>• <code className="bg-blue-200 px-1 rounded">prospects</code> <span className="text-green-600">(optionnel)</span> : Nombre de prospects/clients entrés dans le magasin (flux entrant)</li>
+                  </ul>
+                </div>
+
                 <p className="text-sm text-gray-600 italic">
+                  💡 <strong>Le champ "prospects"</strong> permet de calculer automatiquement le <strong>taux de transformation</strong> = (nb_ventes / prospects) × 100
+                </p>
+                
+                <p className="text-sm text-gray-600 italic mt-2">
                   ⚠️ Utilisez l'endpoint <code className="bg-gray-200 px-1 rounded">/my-stores</code> pour récupérer les seller_id
                 </p>
               </div>
