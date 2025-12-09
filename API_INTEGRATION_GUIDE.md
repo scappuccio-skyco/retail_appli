@@ -300,6 +300,17 @@ Content-Type: application/json
 }
 ```
 
+**Champs du body :**
+- `store_id` *(requis)* : ID du magasin
+- `date` *(requis)* : Date au format YYYY-MM-DD
+- `kpi_entries` *(requis)* : Liste des KPI des vendeurs
+  - `seller_id` *(requis)* : ID du vendeur
+  - `ca_journalier` *(requis)* : Chiffre d'affaires journalier en €
+  - `nb_ventes` *(requis)* : Nombre de ventes réalisées
+  - `nb_articles` *(requis)* : Nombre d'articles vendus
+  - `prospects` *(optionnel)* : Nombre de prospects entrés dans le magasin (flux entrant) - Permet de calculer le **taux de transformation** = (nb_ventes / prospects) × 100
+- `source` *(optionnel)* : Identifiant de la source des données (ex: "caisse_v2", "erp_sap")
+
 **Réponse** (200 OK) :
 ```json
 {
