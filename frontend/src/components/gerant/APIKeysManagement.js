@@ -299,7 +299,11 @@ const APIKeysManagement = () => {
                   const permLabel = perm === 'write:kpi' 
                     ? '📝 Écriture KPI' 
                     : perm === 'read:stats' 
-                    ? '📊 Lecture stats' 
+                    ? '📊 Lecture stats'
+                    : perm === 'write:stores'
+                    ? '🏪 Créer magasins'
+                    : perm === 'write:users'
+                    ? '👥 Gérer utilisateurs'
                     : perm;
                   return (
                     <span
