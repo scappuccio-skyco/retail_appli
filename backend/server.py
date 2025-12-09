@@ -14074,6 +14074,355 @@ async def get_my_integration_stores(
         "total_sellers": sum(s['sellers_count'] for s in stores_with_sellers)
     }
 
+
+# ============================================
+# API INTEGRATION ENDPOINTS - User Management
+# ============================================
+
+@api_router.post("/v1/integrations/stores")
+async def create_store_api(
+    store_data: APIStoreCreate,
+    api_key_data: dict = Depends(verify_api_key_integration)
+):
+    """
+    Créer un nouveau magasin via API
+    Requires API Key with 'write:stores' permission
+    Réservé aux gérants uniquement
+    """
+    # Verify permissions
+    if "write:stores" not in api_key_data.get('permissions', []):
+        raise HTTPException(status_code=403, detail="Insufficient permissions. Requires 'write:stores'")
+    
+    # Verify gerant role
+    gerant_id = api_key_data.get('gerant_id')
+    if not gerant_id:
+        raise HTTPException(status_code=403, detail="Only gérants can create stores")
+    
+    # Create store
+    store = Store(
+        name=store_data.name,
+        location=store_data.location,
+        gerant_id=gerant_id,
+        address=store_data.address,
+        phone=store_data.phone,
+        opening_hours=store_data.opening_hours,
+        external_id=store_data.external_id,
+        sync_mode="api_sync"
+    )
+    
+    await db.stores.insert_one(store.model_dump())
+    
+    return {
+        "success": True,
+        "store_id": store.id,
+        "store": {
+            "id": store.id,
+            "name": store.name,
+            "location": store.location,
+            "address": store.address,
+            "phone": store.phone,
+            "external_id": store.external_id
+        }
+    }
+
+
+@api_router.post("/v1/integrations/stores/{store_id}/managers")
+async def create_manager_api(
+    store_id: str,
+    manager_data: APIManagerCreate,
+    api_key_data: dict = Depends(verify_api_key_integration)
+):
+    """
+    Créer un nouveau manager pour un magasin via API
+    Requires API Key with 'write:users' permission
+    """
+    # Verify permissions
+    if "write:users" not in api_key_data.get('permissions', []):
+        raise HTTPException(status_code=403, detail="Insufficient permissions. Requires 'write:users'")
+    
+    # Verify store exists and access
+    store = await db.stores.find_one({"id": store_id, "active": True}, {"_id": 0})
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+    
+    # Verify API key has access to this store
+    gerant_id = api_key_data.get('gerant_id')
+    if gerant_id:
+        if store.get('gerant_id') != gerant_id:
+            raise HTTPException(status_code=403, detail="API key does not have access to this store")
+    else:
+        raise HTTPException(status_code=403, detail="Only gérants can create managers")
+    
+    # Check if email already exists
+    existing_user = await db.users.find_one({"email": manager_data.email}, {"_id": 0})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create manager user
+    manager = User(
+        name=manager_data.name,
+        email=manager_data.email,
+        password=bcrypt.hashpw("TempPassword123!".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),  # Temporary password
+        role="manager",
+        status="active",
+        phone=manager_data.phone,
+        gerant_id=gerant_id,
+        store_id=store_id,
+        external_id=manager_data.external_id,
+        sync_mode="api_sync"
+    )
+    
+    await db.users.insert_one(manager.model_dump())
+    
+    # Send invitation email if requested
+    if manager_data.send_invitation:
+        try:
+            gerant = await db.users.find_one({"id": gerant_id}, {"_id": 0})
+            # Create invitation token
+            invitation = GerantInvitation(
+                name=manager.name,
+                email=manager.email,
+                role="manager",
+                gerant_id=gerant_id,
+                gerant_name=gerant.get('name', 'Gérant'),
+                store_id=store_id,
+                store_name=store['name']
+            )
+            await db.gerant_invitations.insert_one(invitation.model_dump())
+            
+            # Send invitation email
+            await send_manager_invitation_email(
+                manager.email,
+                manager.name,
+                gerant.get('name', 'Gérant'),
+                store['name'],
+                invitation.token
+            )
+        except Exception as e:
+            # Log error but don't fail the creation
+            print(f"Failed to send invitation email: {e}")
+    
+    return {
+        "success": True,
+        "manager_id": manager.id,
+        "manager": {
+            "id": manager.id,
+            "name": manager.name,
+            "email": manager.email,
+            "phone": manager.phone,
+            "store_id": store_id,
+            "external_id": manager.external_id,
+            "invitation_sent": manager_data.send_invitation
+        }
+    }
+
+
+@api_router.post("/v1/integrations/stores/{store_id}/sellers")
+async def create_seller_api(
+    store_id: str,
+    seller_data: APISellerCreate,
+    api_key_data: dict = Depends(verify_api_key_integration)
+):
+    """
+    Créer un nouveau vendeur pour un magasin via API
+    Requires API Key with 'write:users' permission
+    """
+    # Verify permissions
+    if "write:users" not in api_key_data.get('permissions', []):
+        raise HTTPException(status_code=403, detail="Insufficient permissions. Requires 'write:users'")
+    
+    # Verify store exists and access
+    store = await db.stores.find_one({"id": store_id, "active": True}, {"_id": 0})
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+    
+    # Verify API key has access to this store
+    gerant_id = api_key_data.get('gerant_id')
+    store_ids = api_key_data.get('store_ids')
+    
+    if gerant_id:
+        if store.get('gerant_id') != gerant_id:
+            raise HTTPException(status_code=403, detail="API key does not have access to this store")
+    elif store_ids is not None:
+        if store_id not in store_ids:
+            raise HTTPException(status_code=403, detail="API key does not have access to this store")
+    
+    # Check if email already exists
+    existing_user = await db.users.find_one({"email": seller_data.email}, {"_id": 0})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Verify manager if provided
+    manager_id = seller_data.manager_id
+    if manager_id:
+        manager = await db.users.find_one({
+            "id": manager_id,
+            "role": "manager",
+            "store_id": store_id
+        }, {"_id": 0})
+        if not manager:
+            raise HTTPException(status_code=404, detail="Manager not found in this store")
+    else:
+        # Find a manager in the store
+        manager = await db.users.find_one({
+            "role": "manager",
+            "store_id": store_id,
+            "status": "active"
+        }, {"_id": 0})
+        if manager:
+            manager_id = manager['id']
+    
+    # Create seller user
+    seller = User(
+        name=seller_data.name,
+        email=seller_data.email,
+        password=bcrypt.hashpw("TempPassword123!".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),  # Temporary password
+        role="seller",
+        status="active",
+        phone=seller_data.phone,
+        gerant_id=store.get('gerant_id'),
+        store_id=store_id,
+        manager_id=manager_id,
+        external_id=seller_data.external_id,
+        sync_mode="api_sync"
+    )
+    
+    await db.users.insert_one(seller.model_dump())
+    
+    # Send invitation email if requested
+    if seller_data.send_invitation:
+        try:
+            gerant = await db.users.find_one({"id": gerant_id}, {"_id": 0})
+            manager_info = await db.users.find_one({"id": manager_id}, {"_id": 0}) if manager_id else None
+            
+            # Create invitation token
+            invitation = GerantInvitation(
+                name=seller.name,
+                email=seller.email,
+                role="seller",
+                gerant_id=gerant_id or store.get('gerant_id'),
+                gerant_name=gerant.get('name', 'Gérant') if gerant else 'Gérant',
+                store_id=store_id,
+                store_name=store['name'],
+                manager_id=manager_id,
+                manager_name=manager_info.get('name') if manager_info else None
+            )
+            await db.gerant_invitations.insert_one(invitation.model_dump())
+            
+            # Send invitation email
+            await send_seller_invitation_email(
+                seller.email,
+                seller.name,
+                gerant.get('name', 'Gérant') if gerant else 'Gérant',
+                store['name'],
+                manager_info.get('name') if manager_info else 'Manager',
+                invitation.token
+            )
+        except Exception as e:
+            # Log error but don't fail the creation
+            print(f"Failed to send invitation email: {e}")
+    
+    return {
+        "success": True,
+        "seller_id": seller.id,
+        "seller": {
+            "id": seller.id,
+            "name": seller.name,
+            "email": seller.email,
+            "phone": seller.phone,
+            "store_id": store_id,
+            "manager_id": manager_id,
+            "external_id": seller.external_id,
+            "invitation_sent": seller_data.send_invitation
+        }
+    }
+
+
+@api_router.put("/v1/integrations/users/{user_id}")
+async def update_user_api(
+    user_id: str,
+    user_data: APIUserUpdate,
+    api_key_data: dict = Depends(verify_api_key_integration)
+):
+    """
+    Mettre à jour un utilisateur (manager ou seller) via API
+    Requires API Key with 'write:users' permission
+    """
+    # Verify permissions
+    if "write:users" not in api_key_data.get('permissions', []):
+        raise HTTPException(status_code=403, detail="Insufficient permissions. Requires 'write:users'")
+    
+    # Find user
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify access to user's store
+    user_store_id = user.get('store_id')
+    gerant_id = api_key_data.get('gerant_id')
+    store_ids = api_key_data.get('store_ids')
+    
+    if user_store_id:
+        store = await db.stores.find_one({"id": user_store_id}, {"_id": 0})
+        if not store:
+            raise HTTPException(status_code=404, detail="User's store not found")
+        
+        if gerant_id:
+            if store.get('gerant_id') != gerant_id:
+                raise HTTPException(status_code=403, detail="API key does not have access to this user's store")
+        elif store_ids is not None:
+            if user_store_id not in store_ids:
+                raise HTTPException(status_code=403, detail="API key does not have access to this user's store")
+    
+    # Prepare update data
+    update_data = {}
+    if user_data.name is not None:
+        update_data["name"] = user_data.name
+    if user_data.email is not None:
+        # Check if new email already exists
+        existing = await db.users.find_one({"email": user_data.email, "id": {"$ne": user_id}}, {"_id": 0})
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already in use")
+        update_data["email"] = user_data.email
+    if user_data.phone is not None:
+        update_data["phone"] = user_data.phone
+    if user_data.status is not None:
+        if user_data.status not in ["active", "suspended"]:
+            raise HTTPException(status_code=400, detail="Status must be 'active' or 'suspended'")
+        update_data["status"] = user_data.status
+        if user_data.status == "suspended":
+            update_data["deactivated_at"] = datetime.now(timezone.utc)
+    if user_data.external_id is not None:
+        update_data["external_id"] = user_data.external_id
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    
+    # Update user
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": update_data}
+    )
+    
+    # Get updated user
+    updated_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    
+    return {
+        "success": True,
+        "user_id": user_id,
+        "user": {
+            "id": updated_user['id'],
+            "name": updated_user['name'],
+            "email": updated_user['email'],
+            "role": updated_user['role'],
+            "status": updated_user['status'],
+            "phone": updated_user.get('phone'),
+            "store_id": updated_user.get('store_id'),
+            "external_id": updated_user.get('external_id')
+        }
+    }
+
+
 # ============================================================================
 # TEMPORARY ADMIN CREATION ENDPOINT (SECURE)
 # ============================================================================
