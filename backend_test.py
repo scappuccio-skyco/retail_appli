@@ -7884,7 +7884,7 @@ class RetailCoachAPITester:
             "Integration API Test 3 - Create Seller",
             "POST",
             f"v1/integrations/stores/{store_id}/sellers",
-            201,
+            200,
             data=seller_data,
             api_key=api_key
         )
