@@ -842,7 +842,7 @@ const GerantDashboard = ({ user, onLogout }) => {
                           </p>
                           <p className="text-xs text-gray-500">{storeData.periodVentes || 0} ventes</p>
                         </div>
-                        {storeData.periodEvolution !== 0 && (
+                        {storeData.periodEvolution !== 0 && isFinite(storeData.periodEvolution) && (
                           <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${
                             storeData.periodEvolution > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                           }`}>
