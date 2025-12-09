@@ -67,7 +67,8 @@ def init_database():
             logger.info("   ⚠️  IMPORTANT: Changez ce mot de passe après la première connexion !")
             
         else:
-            logger.info(f"✅ Base de données déjà initialisée ({user_count} utilisateur(s) trouvé(s))")
+            logger.info(f"✅ Compte(s) gérant déjà existant(s) ({gerant_count} gérant(s) trouvé(s))")
+            logger.info("   Aucune initialisation nécessaire.")
             
         client.close()
         return True
