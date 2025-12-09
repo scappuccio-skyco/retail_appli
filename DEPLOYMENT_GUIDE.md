@@ -114,12 +114,15 @@ ENABLE_HEALTH_CHECK=false
 
 - [ ] Configurer les variables d'environnement dans `.env`
 - [ ] Vérifier que `MONGO_URL` pointe vers la bonne base de données
-- [ ] Configurer `FRONTEND_URL` et `REACT_APP_BACKEND_URL` avec le bon domaine
+- [ ] **CRITIQUE** : Vérifier que `REACT_APP_BACKEND_URL` = `https://retailperformerai.com` (pas d'URL Emergent !)
+- [ ] **CRITIQUE** : Vérifier que `FRONTEND_URL` = `https://retailperformerai.com`
 - [ ] (Optionnel) Personnaliser `DEFAULT_ADMIN_EMAIL` et `DEFAULT_ADMIN_PASSWORD`
 
 ### Après le Déploiement
 
 - [ ] Vérifier les logs de démarrage pour confirmer la création du compte admin
+- [ ] Vider le cache du navigateur et recharger la page
+- [ ] Vérifier dans la console (F12) qu'il n'y a pas d'erreurs CORS
 - [ ] Se connecter avec les credentials par défaut
 - [ ] **Changer immédiatement le mot de passe** dans les paramètres du profil
 - [ ] Créer des magasins et inviter des managers/vendeurs
