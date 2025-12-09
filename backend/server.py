@@ -173,7 +173,8 @@ class RateLimiter:
         return max(0, self.requests_per_minute - len(recent_requests))
 
 # Initialize rate limiter
-rate_limiter = RateLimiter(requests_per_minute=100)
+API_RATE_LIMIT = int(os.environ.get('API_RATE_LIMIT', 600))
+rate_limiter = RateLimiter(requests_per_minute=API_RATE_LIMIT)
 
 # AI Credits Formula: 150 (manager base) + (30 × number of seats)
 MANAGER_BASE_CREDITS = 150  # Base credits for manager analyses
