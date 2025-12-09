@@ -180,6 +180,139 @@ export default function APIDocModal({ isOpen, onClose }) {
               </div>
             </section>
 
+            {/* Gestion des Utilisateurs */}
+            <section className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-blue-500">👥 Gestion des Utilisateurs via API</h3>
+              
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                <p className="text-sm text-blue-900">
+                  <strong>Permissions requises :</strong> <code className="bg-blue-200 px-2 py-1 rounded">write:stores</code> (pour créer des magasins) 
+                  et <code className="bg-blue-200 px-2 py-1 rounded">write:users</code> (pour gérer les utilisateurs)
+                </p>
+              </div>
+
+              {/* Endpoint 4 : POST /stores */}
+              <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
+                <h4 className="text-lg font-bold text-blue-900 mb-3">
+                  4. POST /api/v1/integrations/stores 🏪
+                </h4>
+                <p className="text-gray-700 mb-4">
+                  Créer un nouveau magasin. <strong className="text-red-600">Réservé aux gérants uniquement.</strong>
+                </p>
+                
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
+                  <div className="text-blue-400">POST</div>
+                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/stores</div>
+                  <div className="mt-2 text-gray-400">Headers:</div>
+                  <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
+                  <div className="text-yellow-300">Content-Type: application/json</div>
+                  <div className="mt-2 text-gray-400">Body:</div>
+                  <pre className="text-green-300 mt-1">{`{
+  "name": "Skyco Marseille",
+  "location": "13001 Marseille",
+  "address": "12 Rue de la République",
+  "phone": "+33 4 91 00 00 00",
+  "external_id": "STORE_MRS_001"
+}`}</pre>
+                </div>
+
+                <p className="text-sm text-gray-600 italic">
+                  Retourne : <code className="bg-gray-200 px-1 rounded">store_id</code> du magasin créé
+                </p>
+              </div>
+
+              {/* Endpoint 5 : POST /managers */}
+              <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
+                <h4 className="text-lg font-bold text-indigo-900 mb-3">
+                  5. POST /api/v1/integrations/stores/{'{'}store_id{'}'}/managers 👔
+                </h4>
+                <p className="text-gray-700 mb-4">
+                  Créer un nouveau manager pour un magasin spécifique.
+                </p>
+                
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
+                  <div className="text-indigo-400">POST</div>
+                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/stores/{'{'}<span className="text-yellow-300">store_id</span>{'}'}/managers</div>
+                  <div className="mt-2 text-gray-400">Headers:</div>
+                  <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
+                  <div className="text-yellow-300">Content-Type: application/json</div>
+                  <div className="mt-2 text-gray-400">Body:</div>
+                  <pre className="text-green-300 mt-1">{`{
+  "name": "Sophie Martin",
+  "email": "sophie.martin@example.com",
+  "phone": "+33 6 12 34 56 78",
+  "external_id": "MGR_MRS_001",
+  "send_invitation": true
+}`}</pre>
+                </div>
+
+                <p className="text-sm text-gray-600 italic">
+                  📧 Un email d'invitation sera envoyé si <code className="bg-gray-200 px-1 rounded">send_invitation: true</code>
+                </p>
+              </div>
+
+              {/* Endpoint 6 : POST /sellers */}
+              <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
+                <h4 className="text-lg font-bold text-purple-900 mb-3">
+                  6. POST /api/v1/integrations/stores/{'{'}store_id{'}'}/sellers 👤
+                </h4>
+                <p className="text-gray-700 mb-4">
+                  Créer un nouveau vendeur pour un magasin spécifique.
+                </p>
+                
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
+                  <div className="text-purple-400">POST</div>
+                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/stores/{'{'}<span className="text-yellow-300">store_id</span>{'}'}/sellers</div>
+                  <div className="mt-2 text-gray-400">Headers:</div>
+                  <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
+                  <div className="text-yellow-300">Content-Type: application/json</div>
+                  <div className="mt-2 text-gray-400">Body:</div>
+                  <pre className="text-green-300 mt-1">{`{
+  "name": "Lucas Bernard",
+  "email": "lucas.bernard@example.com",
+  "manager_id": "uuid-du-manager",
+  "phone": "+33 6 98 76 54 32",
+  "external_id": "SELLER_MRS_012",
+  "send_invitation": true
+}`}</pre>
+                </div>
+
+                <p className="text-sm text-gray-600 italic">
+                  💡 Si <code className="bg-gray-200 px-1 rounded">manager_id</code> n'est pas fourni, un manager sera automatiquement assigné
+                </p>
+              </div>
+
+              {/* Endpoint 7 : PUT /users */}
+              <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
+                <h4 className="text-lg font-bold text-green-900 mb-3">
+                  7. PUT /api/v1/integrations/users/{'{'}user_id{'}'} 🔄
+                </h4>
+                <p className="text-gray-700 mb-4">
+                  Mettre à jour les informations d'un manager ou vendeur (nom, email, statut, etc.)
+                </p>
+                
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
+                  <div className="text-green-400">PUT</div>
+                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/users/{'{'}<span className="text-yellow-300">user_id</span>{'}'}</div>
+                  <div className="mt-2 text-gray-400">Headers:</div>
+                  <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
+                  <div className="text-yellow-300">Content-Type: application/json</div>
+                  <div className="mt-2 text-gray-400">Body:</div>
+                  <pre className="text-green-300 mt-1">{`{
+  "name": "Lucas Bernard-Dupont",
+  "email": "lucas.dupont@example.com",
+  "phone": "+33 6 11 22 33 44",
+  "status": "suspended",
+  "external_id": "SELLER_MRS_012_NEW"
+}`}</pre>
+                </div>
+
+                <p className="text-sm text-gray-600 italic">
+                  ⏸️ Utilisez <code className="bg-gray-200 px-1 rounded">status: "suspended"</code> pour mettre un utilisateur en veille
+                </p>
+              </div>
+            </section>
+
             {/* Exemples de code */}
             <section className="mb-8 bg-gray-50 p-6 rounded-lg">
               <h3 className="text-xl font-bold text-gray-900 mb-4">💻 Exemples de code</h3>
