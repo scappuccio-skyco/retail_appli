@@ -1,5 +1,14 @@
 # 🏢 Documentation API Enterprise - Retail Performer
 
+> **💡 Besoin d'une intégration simple avec API Key ?**
+> 
+> Si vous cherchez à intégrer vos systèmes de caisse ou ERP avec une **authentification par API Key** (plus simple), consultez :
+> - 📘 **[API_INTEGRATION_GUIDE.md](./API_INTEGRATION_GUIDE.md)** - Intégration KPI + gestion utilisateurs via API Key
+> 
+> Cette documentation **Enterprise** est destinée aux grandes entreprises nécessitant un provisionnement automatique avancé.
+
+---
+
 ## Vue d'ensemble
 
 Cette API permet aux grandes entreprises d'intégrer Retail Performer avec leurs systèmes ERP/SAP via un provisionnement automatique des utilisateurs et magasins.
