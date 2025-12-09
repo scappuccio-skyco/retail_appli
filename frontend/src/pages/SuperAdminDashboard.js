@@ -28,6 +28,27 @@ export default function SuperAdminDashboard() {
   const [logFilters, setLogFilters] = useState({ level: '', type: '', hours: 24 });
   const [auditFilters, setAuditFilters] = useState({ action: '', admin_emails: [], days: 7 });
   const [showDeletedWorkspaces, setShowDeletedWorkspaces] = useState(false);
+  const [dbDebugInfo, setDbDebugInfo] = useState(null);
+  const [showDbDebug, setShowDbDebug] = useState(false);
+
+  const fetchDbDebugInfo = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/superadmin/debug-db`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setDbDebugInfo(data);
+        setShowDbDebug(true);
+      }
+    } catch (error) {
+      console.error('Error fetching DB debug info:', error);
+      alert('Erreur lors de la récupération des informations de debug');
+    }
+  };
 
   useEffect(() => {
     fetchData();
