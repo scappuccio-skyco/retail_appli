@@ -3569,7 +3569,7 @@ async def get_my_kpi_entries(days: int = None, current_user: dict = Depends(get_
             cursor = db.manager_kpis.find(
                 {"manager_id": manager_id},
                 {"_id": 0}
-            ).sort("date", -1)
+            ).sort("date", -1).limit(365)  # Limit to 1 year of data
             manager_entries = await cursor.to_list(length=None)
         
         # Create a dictionary with date as key for quick lookup
