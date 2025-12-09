@@ -2064,8 +2064,8 @@ async def get_debriefs(current_user: dict = Depends(get_current_user)):
     if current_user['role'] == 'seller':
         debriefs = await db.debriefs.find({"seller_id": current_user['id']}, {"_id": 0}).sort("created_at", -1).to_list(1000)
     else:
-        # Manager sees all their sellers' debriefs
-        sellers = await db.users.find({"manager_id": current_user['id']}, {"_id": 0}).to_list(1000)
+        # Manager sees all their sellers' debriefs (only fetch seller IDs)
+        sellers = await db.users.find({"manager_id": current_user['id']}, {"_id": 0, "id": 1}).to_list(1000)
         seller_ids = [s['id'] for s in sellers]
         debriefs = await db.debriefs.find({"seller_id": {"$in": seller_ids}}, {"_id": 0}).sort("created_at", -1).to_list(1000)
     
