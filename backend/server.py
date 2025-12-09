@@ -1310,8 +1310,11 @@ async def register(user_data: UserCreate):
     
     workspace_id = None
     
-    # Créer le workspace pour le gérant
-    if user_data.role == "gérant":
+    # Generate user ID first (needed for workspace.gerant_id)
+    user_id = str(uuid.uuid4())
+    
+    # Créer le workspace pour le gerant
+    if user_data.role == "gerant":
         trial_start = datetime.now(timezone.utc)
         trial_end = trial_start + timedelta(days=TRIAL_DAYS)
         
@@ -1322,7 +1325,8 @@ async def register(user_data: UserCreate):
             trial_end=trial_end,
             ai_credits_remaining=TRIAL_AI_CREDITS,
             ai_credits_used_this_month=0,
-            last_credit_reset=trial_start
+            last_credit_reset=trial_start,
+            gerant_id=user_id  # LIER LE GÉRANT AU WORKSPACE
         )
         
         workspace_doc = workspace.model_dump()
