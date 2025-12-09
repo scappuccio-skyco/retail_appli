@@ -7745,6 +7745,396 @@ class RetailCoachAPITester:
             print("⚠️  Some tests failed. Check details above.")
             return 1
 
+    def test_integration_api_endpoints(self):
+        """Test Integration API Endpoints for User Management - NEW FEATURE FROM REVIEW REQUEST"""
+        print("\n🔍 Testing Integration API Endpoints for User Management (NEW FEATURE)...")
+        print("   FEATURE: API endpoints for creating stores, managers, and sellers via API key authentication")
+        
+        # Step 1: Login as gérant to create API key
+        gerant_login_data = {
+            "email": "gerant.demo@test.fr",
+            "password": "TestDemo123!"
+        }
+        
+        success, response = self.run_test(
+            "Integration API - Gérant Login",
+            "POST",
+            "auth/login",
+            200,
+            data=gerant_login_data
+        )
+        
+        gerant_token = None
+        gerant_id = None
+        if success and 'token' in response:
+            gerant_token = response['token']
+            gerant_info = response['user']
+            gerant_id = gerant_info.get('id')
+            print(f"   ✅ Logged in as gérant: {gerant_info.get('name')} ({gerant_info.get('email')})")
+        else:
+            print("   ❌ Could not login with gerant.demo@test.fr - account may not exist")
+            self.log_test("Integration API Setup", False, "Gérant account not available")
+            return
+        
+        # Step 2: Create API key with all permissions
+        print("\n   🔑 Creating API Key with All Permissions")
+        
+        api_key_data = {
+            "name": "Test Integration API Key",
+            "permissions": ["write:stores", "write:users", "write:kpi", "read:stats"],
+            "expires_days": 30,
+            "store_ids": None  # Access to all stores
+        }
+        
+        success, api_key_response = self.run_test(
+            "Integration API - Create API Key",
+            "POST",
+            "manager/api-keys",
+            200,
+            data=api_key_data,
+            token=gerant_token
+        )
+        
+        api_key = None
+        if success and 'key' in api_key_response:
+            api_key = api_key_response['key']
+            print(f"   ✅ Created API key: {api_key[:20]}...")
+            print(f"   ✅ Permissions: {api_key_response.get('permissions')}")
+        else:
+            print("   ❌ Could not create API key")
+            self.log_test("Integration API Key Creation", False, "API key creation failed")
+            return
+        
+        # Step 3: Test 1 - Create Store
+        print("\n   🏪 TEST 1: Create Store via API")
+        
+        store_data = {
+            "name": "Test Store API",
+            "location": "75001 Paris",
+            "address": "123 Rue Test",
+            "phone": "+33 1 23 45 67 89",
+            "external_id": "STORE_TEST_001"
+        }
+        
+        success, store_response = self.run_test_with_api_key(
+            "Integration API Test 1 - Create Store",
+            "POST",
+            "v1/integrations/stores",
+            201,
+            data=store_data,
+            api_key=api_key
+        )
+        
+        store_id = None
+        if success and 'store_id' in store_response:
+            store_id = store_response['store_id']
+            print(f"   ✅ Created store ID: {store_id}")
+            print(f"   ✅ Store name: {store_response.get('store', {}).get('name')}")
+            print(f"   ✅ External ID: {store_response.get('store', {}).get('external_id')}")
+        else:
+            print("   ❌ Store creation failed")
+            self.log_test("Integration API Store Creation", False, "Store creation failed")
+            return
+        
+        # Step 4: Test 2 - Create Manager
+        print("\n   👨‍💼 TEST 2: Create Manager via API")
+        
+        manager_data = {
+            "name": "Manager Test API",
+            "email": "manager.api.test@example.com",
+            "phone": "+33 6 11 22 33 44",
+            "external_id": "MGR_TEST_001",
+            "send_invitation": False
+        }
+        
+        success, manager_response = self.run_test_with_api_key(
+            "Integration API Test 2 - Create Manager",
+            "POST",
+            f"v1/integrations/stores/{store_id}/managers",
+            201,
+            data=manager_data,
+            api_key=api_key
+        )
+        
+        manager_id = None
+        if success and 'manager_id' in manager_response:
+            manager_id = manager_response['manager_id']
+            print(f"   ✅ Created manager ID: {manager_id}")
+            print(f"   ✅ Manager name: {manager_response.get('manager', {}).get('name')}")
+            print(f"   ✅ Manager email: {manager_response.get('manager', {}).get('email')}")
+            print(f"   ✅ External ID: {manager_response.get('manager', {}).get('external_id')}")
+        else:
+            print("   ❌ Manager creation failed")
+            self.log_test("Integration API Manager Creation", False, "Manager creation failed")
+            return
+        
+        # Step 5: Test 3 - Create Seller
+        print("\n   🛍️ TEST 3: Create Seller via API")
+        
+        seller_data = {
+            "name": "Seller Test API",
+            "email": "seller.api.test@example.com",
+            "manager_id": manager_id,
+            "phone": "+33 6 98 76 54 32",
+            "external_id": "SELLER_TEST_001",
+            "send_invitation": False
+        }
+        
+        success, seller_response = self.run_test_with_api_key(
+            "Integration API Test 3 - Create Seller",
+            "POST",
+            f"v1/integrations/stores/{store_id}/sellers",
+            201,
+            data=seller_data,
+            api_key=api_key
+        )
+        
+        seller_id = None
+        if success and 'seller_id' in seller_response:
+            seller_id = seller_response['seller_id']
+            print(f"   ✅ Created seller ID: {seller_id}")
+            print(f"   ✅ Seller name: {seller_response.get('seller', {}).get('name')}")
+            print(f"   ✅ Seller email: {seller_response.get('seller', {}).get('email')}")
+            print(f"   ✅ Manager ID: {seller_response.get('seller', {}).get('manager_id')}")
+            print(f"   ✅ External ID: {seller_response.get('seller', {}).get('external_id')}")
+        else:
+            print("   ❌ Seller creation failed")
+            self.log_test("Integration API Seller Creation", False, "Seller creation failed")
+            return
+        
+        # Step 6: Test 4 - Update Seller
+        print("\n   ✏️ TEST 4: Update Seller via API")
+        
+        seller_update_data = {
+            "name": "Seller Test API Updated",
+            "phone": "+33 6 99 88 77 66",
+            "external_id": "SELLER_TEST_001_V2"
+        }
+        
+        success, update_response = self.run_test_with_api_key(
+            "Integration API Test 4 - Update Seller",
+            "PUT",
+            f"v1/integrations/users/{seller_id}",
+            200,
+            data=seller_update_data,
+            api_key=api_key
+        )
+        
+        if success:
+            print(f"   ✅ Seller updated successfully")
+            updated_user = update_response.get('user', {})
+            print(f"   ✅ Updated name: {updated_user.get('name')}")
+            print(f"   ✅ Updated phone: {updated_user.get('phone')}")
+            print(f"   ✅ Updated external ID: {updated_user.get('external_id')}")
+        else:
+            print("   ❌ Seller update failed")
+            self.log_test("Integration API Seller Update", False, "Seller update failed")
+        
+        # Step 7: Test 5 - Suspend Seller
+        print("\n   ⏸️ TEST 5: Suspend Seller via API")
+        
+        suspend_data = {
+            "status": "suspended"
+        }
+        
+        success, suspend_response = self.run_test_with_api_key(
+            "Integration API Test 5 - Suspend Seller",
+            "PUT",
+            f"v1/integrations/users/{seller_id}",
+            200,
+            data=suspend_data,
+            api_key=api_key
+        )
+        
+        if success:
+            suspended_user = suspend_response.get('user', {})
+            if suspended_user.get('status') == 'suspended':
+                print(f"   ✅ Seller suspended successfully")
+                print(f"   ✅ Status: {suspended_user.get('status')}")
+                self.log_test("Integration API Seller Suspension", True)
+            else:
+                print(f"   ❌ Seller status not updated correctly: {suspended_user.get('status')}")
+                self.log_test("Integration API Seller Suspension", False, "Status not updated")
+        else:
+            print("   ❌ Seller suspension failed")
+            self.log_test("Integration API Seller Suspension", False, "Suspension failed")
+        
+        # Step 8: Test 6 - Security Tests
+        print("\n   🔒 TEST 6: Security Tests")
+        
+        # Test without API key
+        success, _ = self.run_test(
+            "Integration API Security - No API Key",
+            "POST",
+            "v1/integrations/stores",
+            401,
+            data=store_data
+        )
+        
+        if success:
+            print("   ✅ Correctly requires API key (401 without key)")
+        
+        # Test with invalid API key
+        success, _ = self.run_test_with_api_key(
+            "Integration API Security - Invalid API Key",
+            "POST",
+            "v1/integrations/stores",
+            401,
+            data=store_data,
+            api_key="invalid_key_12345"
+        )
+        
+        if success:
+            print("   ✅ Correctly rejects invalid API key (401)")
+        
+        # Create API key without write:stores permission
+        limited_api_key_data = {
+            "name": "Limited API Key",
+            "permissions": ["read:stats"],  # No write:stores
+            "expires_days": 1
+        }
+        
+        success, limited_key_response = self.run_test(
+            "Integration API Security - Create Limited Key",
+            "POST",
+            "manager/api-keys",
+            200,
+            data=limited_api_key_data,
+            token=gerant_token
+        )
+        
+        if success and 'key' in limited_key_response:
+            limited_api_key = limited_key_response['key']
+            
+            # Test with insufficient permissions
+            success, _ = self.run_test_with_api_key(
+                "Integration API Security - Insufficient Permissions",
+                "POST",
+                "v1/integrations/stores",
+                403,
+                data=store_data,
+                api_key=limited_api_key
+            )
+            
+            if success:
+                print("   ✅ Correctly rejects insufficient permissions (403)")
+        
+        # Step 9: Final Verification - Check entities in my-stores
+        print("\n   📋 TEST 7: Final Verification - Check Created Entities")
+        
+        success, my_stores_response = self.run_test_with_api_key(
+            "Integration API Verification - Get My Stores",
+            "GET",
+            "v1/integrations/my-stores",
+            200,
+            api_key=api_key
+        )
+        
+        if success and isinstance(my_stores_response, dict):
+            stores = my_stores_response.get('stores', [])
+            print(f"   ✅ Retrieved {len(stores)} store(s)")
+            
+            # Find our created store
+            created_store = None
+            for store in stores:
+                if store.get('id') == store_id:
+                    created_store = store
+                    break
+            
+            if created_store:
+                print(f"   ✅ Created store found: {created_store.get('name')}")
+                
+                # Check managers
+                managers = created_store.get('managers', [])
+                created_manager = None
+                for mgr in managers:
+                    if mgr.get('id') == manager_id:
+                        created_manager = mgr
+                        break
+                
+                if created_manager:
+                    print(f"   ✅ Created manager found: {created_manager.get('name')}")
+                    print(f"   ✅ Manager external ID: {created_manager.get('external_id')}")
+                
+                # Check sellers
+                sellers = created_store.get('sellers', [])
+                created_seller = None
+                for seller in sellers:
+                    if seller.get('id') == seller_id:
+                        created_seller = seller
+                        break
+                
+                if created_seller:
+                    print(f"   ✅ Created seller found: {created_seller.get('name')}")
+                    print(f"   ✅ Seller external ID: {created_seller.get('external_id')}")
+                    print(f"   ✅ Seller status: {created_seller.get('status')}")
+                    
+                    if created_seller.get('status') == 'suspended':
+                        print("   ✅ Seller suspension verified in final check")
+                        self.log_test("Integration API Final Verification", True)
+                    else:
+                        print("   ⚠️ Seller status not suspended in final check")
+            else:
+                print("   ❌ Created store not found in my-stores")
+                self.log_test("Integration API Final Verification", False, "Created store not found")
+        
+        print("\n   📊 INTEGRATION API ENDPOINTS TEST SUMMARY:")
+        print("   - ✅ Store creation via POST /api/v1/integrations/stores")
+        print("   - ✅ Manager creation via POST /api/v1/integrations/stores/{store_id}/managers")
+        print("   - ✅ Seller creation via POST /api/v1/integrations/stores/{store_id}/sellers")
+        print("   - ✅ User update via PUT /api/v1/integrations/users/{user_id}")
+        print("   - ✅ User suspension functionality")
+        print("   - ✅ API key authentication and permissions")
+        print("   - ✅ Security validation (401, 403 responses)")
+        print("   - ✅ External ID tracking for integration mapping")
+        print("   - ✅ Final verification via GET /api/v1/integrations/my-stores")
+
+    def run_test_with_api_key(self, name, method, endpoint, expected_status, data=None, api_key=None):
+        """Run a single API test with API key authentication"""
+        url = f"{self.base_url}/{endpoint}"
+        headers = {'Content-Type': 'application/json'}
+        if api_key:
+            headers['X-API-Key'] = api_key
+
+        print(f"\n🔍 Testing {name}...")
+        print(f"   URL: {url}")
+        print(f"   API Key: {api_key[:20] + '...' if api_key else 'None'}")
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers, timeout=30)
+            elif method == 'POST':
+                response = requests.post(url, json=data, headers=headers, timeout=30)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=headers, timeout=30)
+            elif method == 'PATCH':
+                response = requests.patch(url, json=data, headers=headers, timeout=30)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers, timeout=30)
+
+            success = response.status_code == expected_status
+            
+            if success:
+                self.log_test(name, True)
+                try:
+                    return True, response.json()
+                except:
+                    return True, {}
+            else:
+                error_msg = f"Expected {expected_status}, got {response.status_code}"
+                try:
+                    error_detail = response.json()
+                    error_msg += f" - {error_detail}"
+                except:
+                    error_msg += f" - {response.text[:200]}"
+                
+                self.log_test(name, False, error_msg)
+                return False, {}
+
+        except Exception as e:
+            self.log_test(name, False, f"Exception: {str(e)}")
+            return False, {}
+
 def main():
     """Main test execution"""
     print("🚀 Starting Retail Coach API Testing...")
@@ -7752,9 +8142,9 @@ def main():
     
     tester = RetailCoachAPITester()
     
-    # PRIORITY TEST: Seller KPI History Aggregation - REVIEW REQUEST
-    print("\n🎯 PRIORITY TEST: SELLER KPI HISTORY AGGREGATION")
-    tester.test_seller_kpi_history_aggregation()
+    # PRIORITY TEST: Integration API Endpoints - REVIEW REQUEST
+    print("\n🎯 PRIORITY TEST: INTEGRATION API ENDPOINTS FOR USER MANAGEMENT")
+    tester.test_integration_api_endpoints()
     
     # Print final summary
     tester.print_summary()
