@@ -1292,9 +1292,9 @@ async def register(user_data: UserCreate):
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Force role to 'gérant' for public registration
-    # Managers and sellers are invited by gérant
-    user_data.role = "gérant"
+    # Force role to 'gerant' for public registration
+    # Managers and sellers are invited by gerant
+    user_data.role = "gerant"
     
     # Vérifier que le nom d'entreprise est fourni
     if not user_data.workspace_name:
