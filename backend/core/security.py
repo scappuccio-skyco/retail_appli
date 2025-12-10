@@ -260,3 +260,37 @@ async def get_super_admin(
         raise HTTPException(status_code=403, detail="Super admin access required")
     
     return user
+
+
+async def get_gerant_or_manager(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+) -> dict:
+    """
+    Dependency to get current user and verify they are a gérant OR manager
+    
+    Used for endpoints that should be accessible to both roles
+    
+    Args:
+        credentials: HTTP Bearer token
+        
+    Returns:
+        User dict (gérant or manager)
+        
+    Raises:
+        HTTPException: If not a gérant or manager
+    """
+    from core.database import get_db
+    
+    token = credentials.credentials
+    payload = decode_token(token)
+    
+    db = await get_db()
+    user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0, "password": 0})
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user['role'] not in ['gerant', 'gérant', 'manager']:
+        raise HTTPException(status_code=403, detail="Accès réservé aux gérants et managers")
+    
+    return user
