@@ -13912,7 +13912,15 @@ async def sync_kpi_integration(
     """
     Sync KPI data from external systems (POS, ERP, etc.)
     Requires API Key authentication via X-API-Key header
+    Maximum 100 items per request for optimal performance
     """
+    # Security: Limit batch size to prevent overload
+    if len(data.kpi_entries) > 100:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Maximum 100 KPI entries per request. Received {len(data.kpi_entries)}. Please split your data into smaller batches."
+        )
+    
     # Verify permissions
     if "write:kpi" not in api_key_data.get('permissions', []):
         raise HTTPException(status_code=403, detail="Insufficient permissions. Requires 'write:kpi'")
