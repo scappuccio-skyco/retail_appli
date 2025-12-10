@@ -5,7 +5,7 @@ from typing import Dict
 from models.stores import StoreCreate, StoreUpdate
 from services.store_service import StoreService
 from api.dependencies import get_store_service
-from core.security import get_current_gerant
+from core.security import get_current_gerant, get_gerant_or_manager
 
 router = APIRouter(prefix="/stores", tags=["Stores & Workspaces"])
 
@@ -70,15 +70,19 @@ async def get_my_stores(
 @router.get("/{store_id}/hierarchy")
 async def get_store_hierarchy(
     store_id: str,
-    current_user: Dict = Depends(get_current_gerant),
+    current_user: Dict = Depends(get_gerant_or_manager),
     store_service: StoreService = Depends(get_store_service)
 ):
     """
     Get store with full hierarchy (manager + sellers)
     
+    Accessible by:
+    - Gérant who owns the store
+    - Manager assigned to the store
+    
     Args:
         store_id: Store ID
-        current_user: Authenticated gérant
+        current_user: Authenticated gérant or manager
         store_service: Store service instance
         
     Returns:
@@ -90,8 +94,21 @@ async def get_store_hierarchy(
         if not hierarchy:
             raise HTTPException(status_code=404, detail="Store not found")
         
-        # Verify ownership
-        if hierarchy['store'].get('gerant_id') != current_user['id']:
+        # Verify access rights
+        store = hierarchy['store']
+        user_role = current_user.get('role')
+        
+        # Gérant: must own the store
+        if user_role in ['gerant', 'gérant']:
+            if store.get('gerant_id') != current_user['id']:
+                raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Manager: must be assigned to this store
+        elif user_role == 'manager':
+            if current_user.get('store_id') != store_id:
+                raise HTTPException(status_code=403, detail="Access denied: not your store")
+        
+        else:
             raise HTTPException(status_code=403, detail="Access denied")
         
         return hierarchy
