@@ -3490,6 +3490,13 @@ async def create_kpi_entry(entry_data: KPIEntryCreate, current_user: dict = Depe
     }, {"_id": 0})
     
     if existing:
+        # Check if entry is locked (from API/POS system)
+        if existing.get('locked', False):
+            raise HTTPException(
+                status_code=403, 
+                detail="Ces données proviennent de votre logiciel de caisse et ne peuvent pas être modifiées manuellement."
+            )
+        
         # Update existing entry
         await db.kpi_entries.update_one(
             {"seller_id": current_user['id'], "date": entry_data.date},
