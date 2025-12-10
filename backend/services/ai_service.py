@@ -2,7 +2,12 @@
 import os
 import json
 from typing import Dict, List, Optional
-from emergentintegrations import OpenAI
+
+try:
+    from emergentintegrations.openai import get_client
+except ImportError:
+    # Fallback if emergentintegrations not properly configured
+    get_client = None
 
 from core.config import settings
 
