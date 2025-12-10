@@ -127,6 +127,20 @@ def get_diagnostic_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> Diagno
     return DiagnosticService(db)
 
 
+def get_seller_service() -> SellerService:
+    """
+    Get SellerService instance (database access via internal db reference)
+    
+    Usage in routes:
+        @router.get("/tasks")
+        async def get_tasks(
+            seller_service: SellerService = Depends(get_seller_service)
+        ):
+            return await seller_service.get_seller_tasks(...)
+    """
+    return SellerService()
+
+
 # Note: Add more service dependencies here as needed:
 # - get_challenge_service()
 # etc.
