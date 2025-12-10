@@ -7,7 +7,7 @@ import requests
 import json
 
 def test_manager_accounts():
-    base_url = "https://pymongo-secure.preview.emergentagent.com/api"
+    base_url = "https://monolith-to-clean.preview.emergentagent.com/api"
     
     # List of potential manager accounts to test
     manager_accounts = [
@@ -61,7 +61,7 @@ def test_manager_accounts():
                     "plan": "professional",
                     "quantity": 8,
                     "billing_period": "monthly",
-                    "origin_url": "https://pymongo-secure.preview.emergentagent.com/dashboard"
+                    "origin_url": "https://monolith-to-clean.preview.emergentagent.com/dashboard"
                 }
                 
                 downgrade_response = requests.post(f"{base_url}/checkout/create-session",

@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://pymongo-secure.preview.emergentagent.com
+https://monolith-to-clean.preview.emergentagent.com
 
 ### Manager
 ```
