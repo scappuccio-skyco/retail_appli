@@ -15171,6 +15171,11 @@ logger = logging.getLogger(__name__)
 async def startup_db_init():
     """Initialize database with default admin user if needed"""
     try:
+        # Force MongoDB connection on startup to avoid delay on first request
+        logger.info("Establishing MongoDB connection...")
+        await db.command('ping')
+        logger.info("✅ MongoDB connection established successfully")
+        
         from init_db import init_database
         init_database()
     except Exception as e:
