@@ -8,7 +8,6 @@ from typing import Dict, List
 from services.seller_service import SellerService
 from api.dependencies import get_seller_service
 from core.security import get_current_seller
-from core.database import database
 
 router = APIRouter(prefix="/seller", tags=["Seller"])
 
