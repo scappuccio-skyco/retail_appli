@@ -901,6 +901,8 @@ class KPIEntry(BaseModel):
     taux_transformation: Optional[float] = None  # Can be calculated if prospects are tracked
     indice_vente: float = 0  # Articles / ventes (UPT)
     comment: Optional[str] = None
+    source: str = "manual"  # "manual" (saisie utilisateur) ou "api" (logiciel de caisse)
+    locked: bool = False  # True si provient de l'API (non modifiable)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class KPIEntryCreate(BaseModel):
