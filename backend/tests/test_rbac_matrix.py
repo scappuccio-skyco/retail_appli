@@ -242,8 +242,8 @@ class RBACTester:
         self.log_result("Gérant", "Access subscription status", 200, status)
         
         # Test NEGATIVE: Should NOT access admin routes
-        status, data = self.make_request('GET', '/api/admin/workspaces', token)
-        self.log_result("Gérant", "DENIED /api/admin/workspaces", 403, status, "(Isolation test)")
+        status, data = self.make_request('GET', '/api/superadmin/workspaces', token)
+        self.log_result("Gérant", "DENIED /api/superadmin/workspaces", 403, status, "(Isolation test)")
     
     def test_manager(self):
         """Test Manager role with isolation"""
