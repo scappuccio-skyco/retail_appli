@@ -13959,7 +13959,7 @@ async def sync_kpi_integration(
         existing = await db.kpi_entries.find({
             "seller_id": {"$in": seller_ids},
             "date": data.date,
-            "source": data.source
+            "source": "api"  # Always use "api" as source for integrations
         }, {"_id": 0, "seller_id": 1}).to_list(1000)
         existing_seller_entries = {e["seller_id"] for e in existing}
     
