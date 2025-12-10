@@ -13,6 +13,33 @@ from core.security import get_current_user, get_current_seller, get_current_mana
 router = APIRouter(prefix="/kpi", tags=["KPI Management"])
 
 
+# ===== SELLER UTILS =====
+
+@router.get("/seller/kpi-enabled")
+async def check_kpi_enabled(
+    current_user: Dict = Depends(get_current_seller),
+    kpi_service: KPIService = Depends(get_kpi_service)
+):
+    """
+    Check if KPI entry is enabled for current seller
+    
+    Checks store configuration to see if manual KPI entry is allowed
+    Returns whether seller can submit KPIs manually
+    """
+    try:
+        store_id = current_user.get('store_id')
+        
+        # If no store, KPI entry is enabled by default
+        if not store_id:
+            return {"enabled": True, "sync_mode": "manual"}
+        
+        # Check store sync mode
+        result = await kpi_service.check_kpi_entry_enabled(store_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ===== SELLER KPI ENDPOINTS =====
 
 @router.post("/seller/entry")
