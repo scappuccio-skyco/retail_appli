@@ -213,7 +213,11 @@ CREDIT_PACK_PRICE = 25.0  # 25€ pour 5000 crédits
 # Security
 security = HTTPBearer()
 
-app = FastAPI()
+app = FastAPI(
+    debug=False,  # SECURITY: Disable debug mode in production
+    docs_url="/docs" if os.environ.get('ENVIRONMENT') != 'production' else None,  # Hide docs in production
+    redoc_url="/redoc" if os.environ.get('ENVIRONMENT') != 'production' else None
+)
 
 # Configure CORS middleware
 app.add_middleware(
