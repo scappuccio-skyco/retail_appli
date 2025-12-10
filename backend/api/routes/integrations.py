@@ -180,3 +180,19 @@ async def sync_kpi_data(
         raise
     except Exception as e:
         raise HTTPException(status_code=400, detail="Database write operation failed")
+
+
+# Legacy endpoint alias for backward compatibility with N8N
+@router.post("/v1/kpi/sync")
+async def sync_kpi_data_legacy(
+    data: KPISyncRequest,
+    api_key: Dict = Depends(verify_api_key),
+    kpi_service: KPIService = Depends(get_kpi_service)
+):
+    """
+    Legacy endpoint for N8N compatibility
+    Redirects to main sync endpoint
+    
+    Full path: /api/integrations/v1/kpi/sync
+    """
+    return await sync_kpi_data(data, api_key, kpi_service)
