@@ -6,14 +6,12 @@ from datetime import datetime, timezone
 from typing import List, Dict, Optional
 from uuid import uuid4
 
-from core.database import database
-
 
 class SellerService:
     """Service for seller-specific operations"""
     
-    def __init__(self):
-        self.db = database.get_db()
+    def __init__(self, db):
+        self.db = db
     
     # ===== TASKS =====
     
