@@ -168,13 +168,10 @@ async def get_all_stores_kpis(
         List of store KPI summaries
     """
     try:
-        # Get gérant's stores
         from repositories.store_repository import StoreRepository
-        from core.database import get_db
         
-        db = await get_db()
-        store_repo = StoreRepository(db)
-        
+        # Use service's db connection
+        store_repo = StoreRepository(kpi_service.db)
         stores = await store_repo.find_by_gerant(current_user['id'])
         
         # Aggregate KPIs for each store
