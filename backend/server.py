@@ -13985,7 +13985,7 @@ async def sync_kpi_integration(
         existing = await db.manager_kpis.find({
             "manager_id": {"$in": manager_ids},
             "date": data.date,
-            "source": data.source
+            "source": "api"  # Always use "api" as source for integrations
         }, {"_id": 0, "manager_id": 1}).to_list(100)
         existing_manager_entries = {e["manager_id"] for e in existing}
     
