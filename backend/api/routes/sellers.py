@@ -64,7 +64,8 @@ async def get_active_seller_objectives(
 
 @router.get("/objectives/all")
 async def get_all_seller_objectives(
-    current_user: Dict = Depends(get_current_seller)
+    current_user: Dict = Depends(get_current_seller),
+    seller_service: SellerService = Depends(get_seller_service)
 ) -> Dict:
     """
     Get all team objectives (active and inactive) for seller
@@ -74,14 +75,12 @@ async def get_all_seller_objectives(
     """
     try:
         # Get seller's manager
-        db = database.get_db()
-        user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
         
         if not user or not user.get('manager_id'):
             return {"active": [], "inactive": []}
         
-        # Create service instance and fetch all objectives
-        seller_service = SellerService()
+        # Fetch all objectives
         result = await seller_service.get_seller_objectives_all(
             current_user['id'], 
             user['manager_id']
