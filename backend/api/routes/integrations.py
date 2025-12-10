@@ -33,8 +33,8 @@ async def create_api_key(
         
         # Calculate expiration
         expires_at = None
-        if key_data.expires_in_days:
-            expires_at = datetime.now(timezone.utc).timestamp() + (key_data.expires_in_days * 86400)
+        if key_data.expires_days:
+            expires_at = datetime.now(timezone.utc).timestamp() + (key_data.expires_days * 86400)
         
         # Store key
         key_doc = {
