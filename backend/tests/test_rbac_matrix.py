@@ -131,12 +131,12 @@ class RBACTester:
         
         self.tokens['super_admin'] = token
         
-        # Test admin access
-        status, data = self.make_request('GET', '/api/admin/workspaces', token)
-        self.log_result("Super Admin", "Access /api/admin/workspaces", 200, status)
+        # Test admin access (using correct /api/superadmin prefix)
+        status, data = self.make_request('GET', '/api/superadmin/workspaces', token)
+        self.log_result("Super Admin", "Access /api/superadmin/workspaces", 200, status)
         
-        status, data = self.make_request('GET', '/api/admin/stats', token)
-        self.log_result("Super Admin", "Access /api/admin/stats", 200, status)
+        status, data = self.make_request('GET', '/api/superadmin/stats', token)
+        self.log_result("Super Admin", "Access /api/superadmin/stats", 200, status)
         
         # Test user info
         status, data = self.make_request('GET', '/api/auth/me', token)
