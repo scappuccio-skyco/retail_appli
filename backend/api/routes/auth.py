@@ -13,6 +13,7 @@ from models.users import (
 )
 from services.auth_service import AuthService
 from api.dependencies import get_auth_service
+from core.security import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
