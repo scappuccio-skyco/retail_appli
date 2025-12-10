@@ -84,7 +84,7 @@ class RBACTester:
             return response.status_code, token
         return response.status_code, None
     
-    def make_request(self, method: str, endpoint: str, token: str = None, json_data: dict = None) -> Tuple[int, dict]:
+    def make_request(self, method: str, endpoint: str, token: str = None, json_data: dict = None, params: dict = None) -> Tuple[int, dict]:
         """Make authenticated API request"""
         headers = {}
         if token:
@@ -94,7 +94,7 @@ class RBACTester:
         
         try:
             if method == 'GET':
-                response = requests.get(url, headers=headers)
+                response = requests.get(url, headers=headers, params=params)
             elif method == 'POST':
                 response = requests.post(url, headers=headers, json=json_data)
             else:
@@ -326,7 +326,11 @@ class RBACTester:
         self.log_result("Manager", "Access own store hierarchy", 200, status)
         
         # Test access to KPI summary for store
-        status, data = self.make_request('GET', '/api/kpi/manager/store-summary', token)
+        params = {
+            "start_date": "2025-12-01",
+            "end_date": "2025-12-31"
+        }
+        status, data = self.make_request('GET', '/api/kpi/manager/store-summary', token, params=params)
         self.log_result("Manager", "Access store KPI summary", 200, status)
         
         # Test ISOLATION: Should NOT access admin routes
@@ -377,11 +381,15 @@ class RBACTester:
         self.tokens['seller'] = token
         
         # Test access to own KPIs
-        status, data = self.make_request('GET', '/api/kpi/seller/entries', token)
+        params = {
+            "start_date": "2025-12-01",
+            "end_date": "2025-12-31"
+        }
+        status, data = self.make_request('GET', '/api/kpi/seller/entries', token, params=params)
         self.log_result("Seller", "Access own KPI entries", 200, status)
         
         # Test KPI summary
-        status, data = self.make_request('GET', '/api/kpi/seller/summary', token)
+        status, data = self.make_request('GET', '/api/kpi/seller/summary', token, params=params)
         self.log_result("Seller", "Access KPI summary", 200, status)
         
         # Test create KPI entry
