@@ -337,8 +337,8 @@ class RBACTester:
         self.log_result("Manager", "Access store KPI summary", 200, status)
         
         # Test ISOLATION: Should NOT access admin routes
-        status, data = self.make_request('GET', '/api/admin/workspaces', token)
-        self.log_result("Manager", "DENIED /api/admin/workspaces", 403, status, "(Isolation test)")
+        status, data = self.make_request('GET', '/api/superadmin/workspaces', token)
+        self.log_result("Manager", "DENIED /api/superadmin/workspaces", 403, status, "(Isolation test)")
     
     def test_seller(self):
         """Test Seller role"""
