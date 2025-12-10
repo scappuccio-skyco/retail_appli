@@ -321,8 +321,12 @@ class RBACTester:
         
         self.tokens['manager'] = token
         
+        # Get manager's actual store_id from DB
+        manager_doc = self.db.users.find_one({"id": manager_id}, {"_id": 0, "store_id": 1})
+        manager_store_id = manager_doc.get('store_id') if manager_doc else store1_id
+        
         # Test access to store hierarchy (includes sellers)
-        status, data = self.make_request('GET', f'/api/stores/{store1_id}/hierarchy', token)
+        status, data = self.make_request('GET', f'/api/stores/{manager_store_id}/hierarchy', token)
         self.log_result("Manager", "Access own store hierarchy", 200, status)
         
         # Test access to KPI summary for store
