@@ -75,14 +75,7 @@ async def get_seller_kpis(
         List of KPI entries
     """
     try:
-        # Get entries from repository
-        from repositories.kpi_repository import KPIRepository
-        from core.database import get_db
-        
-        db = await get_db()
-        kpi_repo = KPIRepository(db)
-        
-        entries = await kpi_repo.find_by_date_range(
+        entries = await kpi_service.kpi_repo.find_by_date_range(
             seller_id=current_user['id'],
             start_date=start_date,
             end_date=end_date
