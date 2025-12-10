@@ -13992,12 +13992,14 @@ async def sync_kpi_integration(
                     # Prepare update operation
                     seller_operations.append(
                         UpdateOne(
-                            {"seller_id": entry.seller_id, "date": data.date, "source": data.source},
+                            {"seller_id": entry.seller_id, "date": data.date, "source": "api"},
                             {"$set": {
                                 "ca_journalier": entry.ca_journalier,
                                 "nb_ventes": entry.nb_ventes,
                                 "nb_articles": entry.nb_articles,
                                 "nb_prospects": entry.prospects or 0,
+                                "source": "api",
+                                "locked": True,
                                 "updated_at": now
                             }}
                         )
