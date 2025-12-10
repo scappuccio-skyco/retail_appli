@@ -120,7 +120,8 @@ async def get_seller_objectives_history(
 
 @router.get("/challenges")
 async def get_seller_challenges(
-    current_user: Dict = Depends(get_current_seller)
+    current_user: Dict = Depends(get_current_seller),
+    seller_service: SellerService = Depends(get_seller_service)
 ) -> List[Dict]:
     """
     Get all challenges (collective + individual) for seller
@@ -128,14 +129,12 @@ async def get_seller_challenges(
     """
     try:
         # Get seller's manager
-        db = database.get_db()
-        user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
         
         if not user or not user.get('manager_id'):
             return []
         
-        # Create service instance and fetch challenges
-        seller_service = SellerService()
+        # Fetch challenges
         challenges = await seller_service.get_seller_challenges(
             current_user['id'], 
             user['manager_id']
