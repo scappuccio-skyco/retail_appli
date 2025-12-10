@@ -102,13 +102,18 @@ async def verify_api_key(x_api_key: str = Header(...), db: AsyncIOMotorDatabase 
     raise HTTPException(status_code=401, detail="Invalid or inactive API Key")
 
 
-@router.post("/v1/kpi/sync")
+@router.post("/kpi/sync")
 async def sync_kpi_data(
     data: KPISyncRequest,
     api_key: Dict = Depends(verify_api_key),
     kpi_service: KPIService = Depends(get_kpi_service)
 ):
-    """Sync KPI data from external systems (POS, ERP, etc.)"""
+    """
+    Sync KPI data from external systems (POS, ERP, etc.)
+    
+    IMPORTANT: Full path is /api/integrations/kpi/sync
+    Legacy path /api/v1/integrations/kpi/sync supported via alias below
+    """
     try:
         # Limit to 100 items per request
         if len(data.kpi_entries) > 100:
