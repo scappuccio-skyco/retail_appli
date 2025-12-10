@@ -8,6 +8,8 @@ from api.routes.integrations import router as integrations_router
 from api.routes.gerant import router as gerant_router
 from api.routes.onboarding import router as onboarding_router
 from api.routes.enterprise import router as enterprise_router
+from api.routes.manager import router as manager_router
+from api.routes.diagnostics import router as diagnostics_router
 
 # List of all routers to include in main app
 routers = [
@@ -20,6 +22,8 @@ routers = [
     gerant_router,
     onboarding_router,
     enterprise_router,
+    manager_router,
+    diagnostics_router,
 ]
 
 __all__ = ['routers']
