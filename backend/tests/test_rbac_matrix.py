@@ -327,8 +327,7 @@ class RBACTester:
         
         # Test access to KPI summary for store
         params = {
-            "start_date": "2025-12-01",
-            "end_date": "2025-12-31"
+            "date": "2025-12-10"
         }
         status, data = self.make_request('GET', '/api/kpi/manager/store-summary', token, params=params)
         self.log_result("Manager", "Access store KPI summary", 200, status)
