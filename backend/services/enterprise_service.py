@@ -495,7 +495,13 @@ class EnterpriseService:
         mode: str,
         api_key_id: str
     ) -> Dict:
-        """Bulk import stores"""
+        """
+        Bulk import stores with optimized batch operations
+        
+        Performance: Uses bulk_write with ordered=False for maximum throughput
+        """
+        from pymongo import UpdateOne, InsertOne
+        
         results = {
             "total_processed": 0,
             "created": 0,
@@ -503,6 +509,35 @@ class EnterpriseService:
             "failed": 0,
             "errors": []
         }
+        
+        # PHASE 1: Pre-load existing stores (1 query for all)
+        external_ids = [s.get('external_id') for s in stores if s.get('external_id')]
+        store_names = [s.get('name') for s in stores if s.get('name')]
+        
+        query = {"$or": []}
+        if external_ids:
+            query["$or"].append({"external_id": {"$in": external_ids}})
+        if store_names:
+            query["$or"].append({
+                "name": {"$in": store_names},
+                "enterprise_account_id": enterprise_id
+            })
+        
+        existing_stores_map = {}
+        if query["$or"]:
+            existing_stores_cursor = self.store_repo.collection.find(
+                query,
+                {"_id": 0, "id": 1, "name": 1, "external_id": 1, "location": 1}
+            )
+            for store in await existing_stores_cursor.to_list(length=None):
+                if store.get('external_id'):
+                    existing_stores_map[store['external_id']] = store
+                else:
+                    existing_stores_map[store['name']] = store
+        
+        # PHASE 2: Build bulk operations list in memory
+        bulk_operations = []
+        sync_logs_batch = []
         
         for store_data in stores:
             results["total_processed"] += 1
@@ -517,15 +552,9 @@ class EnterpriseService:
                     })
                     continue
                 
-                # Find by external_id or name
-                query = {}
-                if store_data.get('external_id'):
-                    query['external_id'] = store_data['external_id']
-                else:
-                    query['name'] = store_data['name']
-                    query['enterprise_account_id'] = enterprise_id
-                
-                existing_store = await self.store_repo.find_one(query, {"_id": 0})
+                # Find existing store by external_id or name
+                lookup_key = store_data.get('external_id') or store_data['name']
+                existing_store = existing_stores_map.get(lookup_key)
                 
                 if existing_store:
                     # Update mode
@@ -543,19 +572,29 @@ class EnterpriseService:
                         if store_data.get('phone'):
                             update_fields['phone'] = store_data['phone']
                         
-                        await self.store_repo.collection.update_one(
-                            {"id": existing_store['id']},
-                            {"$set": update_fields}
+                        # Add to bulk operations
+                        bulk_operations.append(
+                            UpdateOne(
+                                {"id": existing_store['id']},
+                                {"$set": update_fields}
+                            )
                         )
                         
                         results["updated"] += 1
                         
-                        await self.log_sync_operation(
-                            enterprise_id, "api", "store_updated", "success",
-                            "store", existing_store['id'],
-                            details={"name": store_data['name']},
-                            initiated_by=f"api_key:{api_key_id}"
-                        )
+                        # Prepare log for batch insert
+                        sync_logs_batch.append({
+                            "id": str(uuid4()),
+                            "enterprise_account_id": enterprise_id,
+                            "sync_type": "api",
+                            "operation": "store_updated",
+                            "status": "success",
+                            "resource_type": "store",
+                            "resource_id": existing_store['id'],
+                            "details": {"name": store_data['name']},
+                            "initiated_by": f"api_key:{api_key_id}",
+                            "timestamp": datetime.now(timezone.utc).isoformat()
+                        })
                     else:
                         results["failed"] += 1
                         results["errors"].append({
@@ -565,8 +604,9 @@ class EnterpriseService:
                 else:
                     # Create mode
                     if mode in ["create_only", "create_or_update"]:
+                        store_id = str(uuid4())
                         new_store = {
-                            "id": str(uuid4()),
+                            "id": store_id,
                             "name": store_data['name'],
                             "location": store_data.get('location', ''),
                             "enterprise_account_id": enterprise_id,
@@ -579,15 +619,23 @@ class EnterpriseService:
                             "updated_at": datetime.now(timezone.utc).isoformat()
                         }
                         
-                        await self.store_repo.insert_one(new_store)
+                        # Add to bulk operations
+                        bulk_operations.append(InsertOne(new_store))
                         results["created"] += 1
                         
-                        await self.log_sync_operation(
-                            enterprise_id, "api", "store_created", "success",
-                            "store", new_store['id'],
-                            details={"name": store_data['name']},
-                            initiated_by=f"api_key:{api_key_id}"
-                        )
+                        # Prepare log for batch insert
+                        sync_logs_batch.append({
+                            "id": str(uuid4()),
+                            "enterprise_account_id": enterprise_id,
+                            "sync_type": "api",
+                            "operation": "store_created",
+                            "status": "success",
+                            "resource_type": "store",
+                            "resource_id": store_id,
+                            "details": {"name": store_data['name']},
+                            "initiated_by": f"api_key:{api_key_id}",
+                            "timestamp": datetime.now(timezone.utc).isoformat()
+                        })
                     else:
                         results["failed"] += 1
                         results["errors"].append({
@@ -601,7 +649,25 @@ class EnterpriseService:
                     "name": store_data.get('name', 'unknown'),
                     "error": str(e)
                 })
-                logger.error(f"Error importing store {store_data.get('name')}: {str(e)}")
+                logger.error(f"Error preparing store {store_data.get('name')}: {str(e)}")
+        
+        # PHASE 3: Execute bulk write (ordered=False for performance)
+        if bulk_operations:
+            try:
+                await self.store_repo.collection.bulk_write(
+                    bulk_operations,
+                    ordered=False  # Continue on error, don't block entire batch
+                )
+                logger.info(f"✅ Bulk store import: {results['created']} created, {results['updated']} updated")
+            except Exception as e:
+                logger.error(f"Bulk write error (some ops may have succeeded): {str(e)}")
+        
+        # PHASE 4: Insert sync logs in batch
+        if sync_logs_batch:
+            try:
+                await self.sync_log_repo.collection.insert_many(sync_logs_batch, ordered=False)
+            except Exception as e:
+                logger.error(f"Batch log insert error: {str(e)}")
         
         # Log global operation
         await self.log_sync_operation(
