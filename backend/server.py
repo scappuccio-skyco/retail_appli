@@ -757,6 +757,8 @@ class ManagerKPI(BaseModel):
     nb_clients: Optional[int] = None
     nb_articles: Optional[int] = None
     nb_prospects: Optional[int] = None
+    source: str = "manual"  # "manual" (saisie utilisateur) ou "api" (logiciel de caisse)
+    locked: bool = False  # True si provient de l'API (non modifiable)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
