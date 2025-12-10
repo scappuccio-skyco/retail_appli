@@ -30,7 +30,10 @@ class AIService:
     """Service for AI operations with Emergent LLM"""
     
     def __init__(self):
-        self.client = OpenAI(api_key=EMERGENT_KEY)
+        if get_client:
+            self.client = get_client(api_key=EMERGENT_KEY)
+        else:
+            self.client = None
     
     async def generate_diagnostic(
         self,
