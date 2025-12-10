@@ -92,7 +92,8 @@ async def get_all_seller_objectives(
 
 @router.get("/objectives/history")
 async def get_seller_objectives_history(
-    current_user: Dict = Depends(get_current_seller)
+    current_user: Dict = Depends(get_current_seller),
+    seller_service: SellerService = Depends(get_seller_service)
 ) -> List[Dict]:
     """
     Get completed objectives (past period_end date) for seller
@@ -100,14 +101,12 @@ async def get_seller_objectives_history(
     """
     try:
         # Get seller's manager
-        db = database.get_db()
-        user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
         
         if not user or not user.get('manager_id'):
             return []
         
-        # Create service instance and fetch history
-        seller_service = SellerService()
+        # Fetch history
         objectives = await seller_service.get_seller_objectives_history(
             current_user['id'], 
             user['manager_id']
