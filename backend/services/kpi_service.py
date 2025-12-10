@@ -14,6 +14,27 @@ class KPIService:
         self.user_repo = UserRepository(db)
         self.db = db
     
+    async def check_kpi_entry_enabled(self, store_id: str) -> dict:
+        """Check if KPI entry is enabled for a store"""
+        store = await self.db.stores.find_one({"id": store_id}, {"_id": 0, "sync_mode": 1})
+        
+        if not store:
+            return {"enabled": True, "sync_mode": "manual"}
+        
+        sync_mode = store.get("sync_mode", "manual")
+        
+        # If sync mode is api_sync, manual entry might be disabled
+        if sync_mode == "api_sync":
+            config = await self.db.kpi_configs.find_one(
+                {"store_id": store_id},
+                {"_id": 0, "saisie_enabled": 1}
+            )
+            
+            if config and not config.get("saisie_enabled", True):
+                return {"enabled": False, "sync_mode": sync_mode, "reason": "External sync configured"}
+        
+        return {"enabled": True, "sync_mode": sync_mode}
+    
     def calculate_kpis(self, raw_data: Dict) -> Dict:
         """
         Calculate KPI metrics from raw data
