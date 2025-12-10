@@ -10,6 +10,8 @@ from services.auth_service import AuthService
 from services.kpi_service import KPIService
 from services.ai_service import AIService
 from services.store_service import StoreService
+from services.gerant_service import GerantService
+from services.onboarding_service import OnboardingService
 
 
 # ===== SERVICE DEPENDENCIES =====
@@ -70,8 +72,35 @@ def get_store_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> StoreServic
     return StoreService(db)
 
 
+def get_gerant_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> GerantService:
+    """
+    Get GerantService instance with database dependency
+    
+    Usage in routes:
+        @router.get("/dashboard/stats")
+        async def get_stats(
+            gerant_service: GerantService = Depends(get_gerant_service)
+        ):
+            return await gerant_service.get_dashboard_stats(...)
+    """
+    return GerantService(db)
+
+
+def get_onboarding_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> OnboardingService:
+    """
+    Get OnboardingService instance with database dependency
+    
+    Usage in routes:
+        @router.get("/progress")
+        async def get_progress(
+            onboarding_service: OnboardingService = Depends(get_onboarding_service)
+        ):
+            return await onboarding_service.get_progress(...)
+    """
+    return OnboardingService(db)
+
+
 # Note: Add more service dependencies here as needed:
-# - get_subscription_service()
 # - get_diagnostic_service()
 # - get_challenge_service()
 # etc.
