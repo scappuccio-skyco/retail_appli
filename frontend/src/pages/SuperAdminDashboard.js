@@ -547,19 +547,35 @@ export default function SuperAdminDashboard() {
                     .filter(workspace => showDeletedWorkspaces || workspace.status !== 'deleted')
                     .map((workspace) => (
                     <React.Fragment key={workspace.id}>
-                      <tr className="border-b border-white/10 hover:bg-white/5 bg-purple-900/20">
+                      <tr className="border-b border-white/10 hover:bg-white/5 bg-purple-900/20 cursor-pointer">
                         <td className="p-3">
-                          <div className="text-white font-bold">{workspace.name}</div>
-                          {workspace.gerant ? (
-                            <div className="text-xs text-purple-300 mt-1">
-                              👤 {workspace.gerant.name} - {workspace.gerant.email}
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => toggleWorkspace(workspace.id)}
+                              className="text-purple-300 hover:text-white transition-colors"
+                              title={expandedWorkspaces[workspace.id] ? "Masquer les détails" : "Afficher les détails"}
+                            >
+                              {expandedWorkspaces[workspace.id] ? '▼' : '▶'}
+                            </button>
+                            <div>
+                              <div className="text-white font-bold">{workspace.name}</div>
+                              {workspace.gerant ? (
+                                <div className="text-xs text-purple-300 mt-1">
+                                  👤 {workspace.gerant.name} - {workspace.gerant.email}
+                                </div>
+                              ) : (
+                                <div className="text-xs text-gray-400 mt-1">❌ Aucun gérant</div>
+                              )}
                             </div>
-                          ) : (
-                            <div className="text-xs text-gray-400 mt-1">❌ Aucun gérant</div>
-                          )}
+                          </div>
                         </td>
                         <td className="p-3 text-white">
-                          <div className="font-medium">{workspace.stores_count || 0} magasin{(workspace.stores_count || 0) > 1 ? 's' : ''}</div>
+                          <button
+                            onClick={() => toggleWorkspace(workspace.id)}
+                            className="font-medium hover:text-purple-300 transition-colors"
+                          >
+                            {workspace.stores_count || 0} magasin{(workspace.stores_count || 0) > 1 ? 's' : ''}
+                          </button>
                         </td>
                         <td className="p-3 text-white">
                           <div className="font-medium">{workspace.managers_count || 0} manager{(workspace.managers_count || 0) > 1 ? 's' : ''}</div>
