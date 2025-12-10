@@ -14011,6 +14011,7 @@ async def sync_kpi_integration(
                         "ca_journalier": entry.ca_journalier,
                         "nb_ventes": entry.nb_ventes,
                         "nb_articles": entry.nb_articles,
+                        "nb_prospects": entry.prospects or 0,
                         "source": data.source,
                         "created_at": entry.timestamp or now
                     }
