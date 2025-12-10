@@ -13,6 +13,7 @@ from services.store_service import StoreService
 from services.gerant_service import GerantService
 from services.onboarding_service import OnboardingService
 from services.enterprise_service import EnterpriseService
+from services.manager_service import ManagerService, DiagnosticService
 
 
 # ===== SERVICE DEPENDENCIES =====
@@ -115,7 +116,16 @@ def get_enterprise_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> Enterp
     return EnterpriseService(db)
 
 
+def get_manager_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> ManagerService:
+    """Get ManagerService instance with database dependency"""
+    return ManagerService(db)
+
+
+def get_diagnostic_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> DiagnosticService:
+    """Get DiagnosticService instance with database dependency"""
+    return DiagnosticService(db)
+
+
 # Note: Add more service dependencies here as needed:
-# - get_diagnostic_service()
 # - get_challenge_service()
 # etc.
