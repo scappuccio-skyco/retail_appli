@@ -5187,6 +5187,13 @@ async def create_or_update_manager_kpi(
     }, {"_id": 0})
     
     if existing:
+        # Check if entry is locked (from API/POS system)
+        if existing.get('locked', False):
+            raise HTTPException(
+                status_code=403, 
+                detail="Ces données proviennent de votre logiciel de caisse et ne peuvent pas être modifiées manuellement."
+            )
+        
         # Update existing
         update_data = {
             "store_id": current_user.get('store_id'),
