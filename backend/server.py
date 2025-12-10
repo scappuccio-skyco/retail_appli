@@ -14090,21 +14090,24 @@ async def sync_kpi_integration(
                 errors.append("Entry must have either seller_id or manager_id")
                 
         except Exception as e:
-            errors.append(f"Error processing entry: {str(e)}")
+            logger.error(f"Error processing entry: {str(e)}")  # Log pour debug interne
+            errors.append("Failed to process one or more entries")  # Message générique
     
     # OPTIMIZATION: Execute all operations in ONE bulk write for sellers
     if seller_operations:
         try:
             await db.kpi_entries.bulk_write(seller_operations, ordered=False)
         except Exception as e:
-            errors.append(f"Bulk write error for sellers: {str(e)}")
+            logger.error(f"Bulk write error for sellers: {str(e)}")  # Log pour debug interne
+            errors.append("Database write operation failed")  # Message générique
     
     # OPTIMIZATION: Execute all operations in ONE bulk write for managers
     if manager_operations:
         try:
             await db.manager_kpis.bulk_write(manager_operations, ordered=False)
         except Exception as e:
-            errors.append(f"Bulk write error for managers: {str(e)}")
+            logger.error(f"Bulk write error for managers: {str(e)}")  # Log pour debug interne
+            errors.append("Database write operation failed")  # Message générique
     
     return {
         "status": "success" if entries_created + entries_updated > 0 else "partial_success",
