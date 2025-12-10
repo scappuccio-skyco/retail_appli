@@ -1,104 +1,97 @@
 <analysis>**original_problem_statement:**
-The user's initial request was to fix a series of bugs and UI inconsistencies, primarily related to the  and  roles. Key problems included being unable to log in as a super admin in production, data discrepancies between the super admin and gérant dashboards, API rate limiting issues, performance problems with bulk data imports, and critical frontend bugs causing page crashes. The core of the problem was a mix of configuration errors (CORS, .env), database inconsistencies (test data in production, flawed data models), and bugs in the application logic (inefficient endpoints, incorrect user/workspace creation).
+The user's initial problem was multi-faceted, starting with a request to remove temporary debug buttons from the UI. This quickly escalated as the user deployed changes and uncovered a series of critical production issues:
+1.  **Data Persistence:** A previously-created database cleanup script had not been run, leaving the production DB full of test data.
+2.  **Recurring Bugs:** The Année button crash and a login page input delay, both supposedly fixed, reappeared in production.
+3.  **Configuration Hell:** Critical CORS errors and failed password reset emails plagued the production environment due to incorrect environment variable settings for the custom domain.
+4.  **New Features & Bugs:** The user requested an accordion view for workspaces and discovered that the  KPI field was not being saved from their N8N integration.
+5.  **Data Integrity:** The user required that all data submitted via the API be locked and immutable.
+6.  **Performance Crash:** A large data import (4300 items) caused the backend to crash with a Cloudflare 520 error.
+7.  **Security & Technical Debt:** After fixing the performance, the user requested a full security audit and then ordered a complete refactoring of the backend from a single monolithic  file into a professional Clean Architecture to address massive technical debt.
 
 **PRODUCT REQUIREMENTS:**
-- Resolve all login and CORS issues to ensure stable access to the application on the production domain.
-- Fix data discrepancies in the SuperAdmin dashboard so it accurately reflects the hierarchical structure of gérants, workspaces, stores, managers, and sellers.
-- Correct the show deleted workspaces functionality.
-- Increase and make the API rate limit configurable to support bulk data imports from tools like N8N.
-- Optimize the KPI synchronization endpoint to prevent backend crashes during large data imports.
-- Fix the bug on the Gérant dashboard where clicking the Année (Year) button caused the page to crash.
-- Identify and fix the root cause of why newly created  accounts and their workspaces were not appearing correctly in the SuperAdmin dashboard.
-- Provide a one-time script to clean all test data from the production database, leaving only the super admin account.
+-   Refactor the entire backend into a Clean Architecture (Models, Repositories, Services, API routes).
+-   Fix all performance bottlenecks to handle large data imports (>10,000 items) without crashing.
+-   Conduct and pass a security audit (Auth, NoSQL Injection, Error Handling).
+-   Implement a locking mechanism to make API-submitted data read-only.
+-   Fix all recurring frontend bugs (Année button, login delay).
+-   Guide the user to correctly configure their production environment (CORS, Backend URL).
+-   Implement a collapsible accordion UI for workspaces in the SuperAdmin dashboard.
+-   Ensure the  KPI field is correctly saved from API calls.
+-   Remove all temporary debug UI and endpoints.
 
 **User's preferred language**: French
 
 **what currently exists?**
-The application is a full-stack React/FastAPI/MongoDB platform. The agent has implemented numerous critical fixes and features:
-1.  **Super Admin Reset:** A secure endpoint () was created to allow the user to regain access to their  account.
-2.  **CORS & Environment Fixes:** Corrected misconfigured  files and resolved a critical backend issue with dual, conflicting CORS middleware, enabling the frontend on  to communicate with the backend.
-3.  **SuperAdmin Dashboard Overhaul:** The backend endpoint () and frontend component () were rewritten to correctly display a hierarchical view of workspaces, with their associated stores, managers, and sellers, and to handle both legacy and new data structures.
-4.  **API Performance Optimization:** The  endpoint was refactored to use MongoDB  operations, dramatically improving performance and stability for bulk data imports. The API rate limit was also increased to 600 req/min and made configurable via a  variable ().
-5.  **Frontend Crash Fix:** The bug causing the  page to crash when clicking the Année button was resolved. The root cause was identified as a conflict with the  script, and a fix was implemented to defer its initialization. Protections against division-by-zero errors were also added.
-6.  **Root Cause of Data Inconsistency Fixed:** The core bug was found and fixed in the  endpoint. Previously, it created gérants with the wrong role ( with an accent) and, crucially, failed to link the new  to the workspace it created. This has been corrected.
-7.  **Database Cleanup Script:** A new, secret-protected endpoint  has been created to allow the user to wipe all data except the super admin account.
+The agent has successfully executed a massive, user-directed refactoring of the entire backend. The monolithic  has been dismantled and replaced with a professional Clean Architecture.
+-   ****: Contains configuration (), database connection (), and security logic ().
+-   ****: Contains all 73 Pydantic models, cleanly separated into 11 domain-specific files (e.g., , ).
+-   ****: A data access layer using a  pattern for standardized CRUD operations on MongoDB collections.
+-   ****: The business logic layer, containing services like  and , which orchestrate logic and use repositories.
+-   ****: The presentation layer with thin API routes that use Dependency Injection to call services.
+-   ****: The new, clean application entrypoint that assembles all the components.
+
+Performance has been dramatically improved by adding critical MongoDB indexes and increasing the backend capacity to 4 Uvicorn workers. A security audit was performed, and vulnerabilities related to error message leakage were fixed.
 
 **Last working item**:
-- Last item agent was working: At the user's request, the agent created a secure, one-time-use endpoint to clean the production database of all test data. This is to provide the user with a clean slate after fixing the underlying bugs that led to data corruption.
-- Status: USER VERIFICATION PENDING
-- Agent Testing Done: N
-- Which testing method agent to use? Manual testing by curl. The user must deploy the latest changes and then call the new endpoint.
-- User Testing Done: N
+-   Last item agent was working: Completing the final phase of the full backend refactoring. This involved migrating the last remaining API routes into the new structure and creating the new  entrypoint to tie everything together.
+-   Status: IN PROGRESS
+-   Agent Testing Done: N
+-   Which testing method agent to use? both. A full regression suite is mandatory.
+    -   **Backend Testing Agent:** To create unit and integration tests for the new  and  layers to validate business logic and data access.
+    -   **Frontend Testing Agent:** To run comprehensive E2E tests (login, creating data, viewing dashboards, KPI sync) to ensure no regressions were introduced by the massive backend overhaul.
+-   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Production Database Cleanup (P0)**
--   **Issue 2: Legacy Stripe endpoint miscounts suspended users (P2)**
--   **Issue 3: Unreliable test script  (P2)**
+-   **Issue 1: Full-Stack Regression After Refactor (P0)**
 
 Issues Detail:
--   **Issue 1: Production Database Cleanup (P0)**
-    -   Attempted fixes: The agent created a new endpoint  in . This endpoint, when called with the correct secret, will delete all stores, workspaces, kpi_entries, and non-superadmin users.
+-   **Issue 1: Full-Stack Regression After Refactor (P0)**
+    -   Attempted fixes: The entire backend architecture was changed. While individual modules were tested for syntax and imports, no functional end-to-end testing has been performed.
     -   Next debug checklist:
-        1.  User needs to deploy the latest code to their production environment.
-        2.  User needs to execute the following  command: {"detail":"Not Found"}
-        3.  User needs to log back into the SuperAdmin dashboard and verify that all test data is gone.
-    -   Why fix this issue and what will be achieved with the fix?: This will resolve the user's confusion caused by seeing a mix of their real data and a large amount of test data in the SuperAdmin dashboards. It provides a clean production environment.
-    -   Status: USER VERIFICATION PENDING
+        1.  Invoke the **backend testing agent** to create a test suite covering the core services (, , ).
+        2.  Invoke the **frontend testing agent** to run critical user flows: login, creating a gérant, submitting KPIs via the UI, and verifying dashboard data.
+        3.  Manually execute a  command against the  endpoint with a large payload (>100 items) to confirm performance and security improvements are intact.
+        4.  Review supervisor logs for any startup errors from the new 4-worker configuration.
+    -   Why fix this issue and what will be achieved with the fix?: To validate that the massive refactoring effort was successful and did not introduce any breaking changes or regressions. This is essential before moving on to new features.
+    -   Status: TESTING PENDING
     -   Is recurring issue?: N
-    -   Should Test frontend/backend/both after fix?: Frontend (manual verification).
-    -   Blocked on other issue: None
-
--   **Issue 2: Legacy Stripe endpoint miscounts suspended users (P2)**
-    -   Attempted fixes: None.
-    -   Next debug checklist:
-        1.  Locate the  endpoint in .
-        2.  Add a filter to the database query to exclude users with  from the billing calculation.
-    -   Why fix this issue and what will be achieved with the fix?: To ensure accurate billing for customers.
-    -   Status: NOT STARTED
-    -   Is recurring issue?: N
-    -   Should Test frontend/backend/both after fix?: Backend
-    -   Blocked on other issue: None
-
--   **Issue 3: Unreliable test script  (P2)**
-    -   Attempted fixes: None.
-    -   Next debug checklist:
-        1.  Review .
-        2.  Refactor the test to use proper setup and teardown fixtures for a consistent test environment.
-    -   Why fix this issue and what will be achieved with the fix?: To ensure CI/CD reliability.
-    -   Status: NOT STARTED
-    -   Is recurring issue?: N
-    -   Should Test frontend/backend/both after fix?: Backend
+    -   Should Test frontend/backend/both after fix?: Both
     -   Blocked on other issue: None
 
 **In progress Task List**:
--   None.
+-   **Task 1: Complete and Validate Backend Refactoring (P0)**
+    -   Where to resume: The structural refactoring is complete. The next step is to initiate a comprehensive testing phase using both backend and frontend testing agents.
+    -   What will be achieved with this?: A stable, scalable, and maintainable production-ready backend.
+    -   Status: IN PROGRESS
+    -   Should Test frontend/backend/both after fix?: Both
+    -   Blocked on something: None
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks**:
-    - **P1: Implement custom calendar with data highlighting**: The component  exists, but the core functionality () is a placeholder and needs implementation.
-    - **P1: Update Manager Role Permissions**: Remove suspend/delete functionality from the Manager UI (), as this is now a gérant-only action.
+    - **P1: Implement Frontend Indicator for Locked KPIs**: Add a visual cue (e.g., a lock icon) in the UI to show that a KPI entry came from the API and cannot be edited.
+    - **P1: Implement Custom Calendar Data Highlighting**: The component  needs its  function to be implemented to highlight dates with data.
+    - **P2: Update Manager Role Permissions**: Remove suspend/delete functionality from the Manager UI ().
+    - **P2: Fix Legacy Stripe Billing Logic**: Correct the  endpoint to exclude suspended users from the billing calculation.
 - **Future Tasks**:
-    - **P2: Enhance DB Schema for Stripe**: Implement schema changes for a more robust subscription system.
     - **P2: Finalize Stripe Webhook Implementation**: Configure and test the existing endpoint.
     - **P3: Gérant Dashboard Enhancements (Phase 2 & 3)**: Add a main evolution graph and a detailed comparative table.
     - **P3: IA Illimitée (Unlimited AI) Feature**: Investigate removing AI usage quotas.
-    - **P3: Export Feature**: Add a CSV/Excel export button.
+    - **P3: Export Feature**: Add a CSV/Excel export button to dashboards.
 
 **Completed work in this session**
-- **Critical Fix: Root Cause of Data Corruption (DONE)**: Found and fixed the bug in  where new  accounts were created with the wrong role ( with an accent) and were not linked to their newly created workspace, making them invisible to the SuperAdmin.
-- **Critical Fix: Production CORS and Login Issues (DONE)**: Resolved all login failures by correcting the   and fixing a conflicting dual CORS middleware configuration in the backend ().
-- **Critical Fix: Backend Crash on Bulk Import (DONE)**: Optimized the  endpoint by refactoring it to use efficient MongoDB  operations, preventing server crashes under heavy load.
-- **Feature: Configurable API Rate Limit (DONE)**: The API rate limit is no longer hardcoded; it is now set to 600 req/min via the  variable in .
-- **Feature: Hierarchical SuperAdmin View (DONE)**: Reworked the SuperAdmin dashboard () and its backend endpoint to show a complete hierarchical view of workspaces and their associated stores, managers, and sellers.
-- **Bug Fix: SuperAdmin Deleted Filter (DONE)**: Fixed the checkbox logic in  to correctly show/hide deleted workspaces.
-- **Bug Fix: Gérant Dashboard Année Crash (DONE)**: Identified the root cause as a conflict with the  script and implemented a fix in  to defer its execution, resolving the page crash.
-- **Feature: Database Debugging Tools (DONE)**: Added temporary debug buttons and API endpoints to both the SuperAdmin and Gérant dashboards to help diagnose the database connection and data inconsistency issues.
-
-**Earlier issues found/mentioned but not fixed**
--   None.
-
-**Known issue recurrence from previous fork**
--   None.
+- **Architecture: Full Backend Refactoring (DONE)**: Migrated the entire backend from a 15,000-line monolithic  to a professional Clean Architecture with distinct , , , and  layers.
+- **Performance: Critical DB Indexing (DONE)**: Identified and fixed the root cause of backend crashes by creating necessary MongoDB indexes, improving query times from ~1000ms to ~1.6ms.
+- **Performance: Increased Backend Capacity (DONE)**: Configured the backend to run with 4 Uvicorn workers, quadrupling its ability to handle concurrent requests.
+- **Security: Full Audit and Hardening (DONE)**: Performed a security audit, fixed a data leak vulnerability in error responses, and confirmed protection against NoSQL injection and unauthorized API access.
+- **Feature: API Data Locking (DONE)**: Implemented logic to add  and  flags to all data submitted via the KPI sync endpoint and blocked any manual modification attempts.
+- **Bug Fix:  KPI Not Saving (DONE)**: Corrected the  endpoint to properly save the  field for sellers.
+- **Bug Fix: Recurring UI Issues (DONE)**:
+    - Re-fixed the Année button crash by correctly deferring the  script in .
+    - Fixed the login page input delay by forcing an immediate MongoDB connection on application startup.
+- **Feature: Accordion UI (DONE)**: Implemented a collapsible accordion view for workspaces in the .
+- **Ops: Production Guidance (DONE)**: Successfully guided the user to run the database cleanup script and provided a comprehensive list of environment variables to fix production CORS issues.
+- **Cleanup: Removed Debug Components (DONE)**: Deleted all temporary debug buttons and API endpoints from the frontend and backend.
+- **CI/CD: Git Secret Leak (Identified)**: Identified that a Brevo API key was committed to Git history, blocking pushes, and provided the user with steps to resolve it (revoke key, use ).
 
 **Code Architecture**
 .
@@ -153,6 +146,7 @@ Issues Detail:
 ├── SIMULATION_COUTS_IA.md
 ├── SPECS_ONBOARDING.md
 ├── STRIPE_FIX_GUIDE.md
+├── SYNTHESE_TECHNIQUE_ARCHITECTURE.md
 ├── TESTS_ONBOARDING.md
 ├── TOUS_LES_MOTS_DE_PASSE.md
 ├── VENDEURS_SKYCO_INFO.md
@@ -169,8 +163,38 @@ Issues Detail:
 │   │   ├── init_db.cpython-311.pyc
 │   │   └── server.cpython-311.pyc
 │   ├── add_kpi_data.py
+│   ├── api
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-311.pyc
+│   │   │   └── dependencies.cpython-311.pyc
+│   │   ├── dependencies.py
+│   │   └── routes
+│   │       ├── __init__.py
+│   │       ├── __pycache__
+│   │       │   ├── __init__.cpython-311.pyc
+│   │       │   ├── ai.cpython-311.pyc
+│   │       │   ├── auth.cpython-311.pyc
+│   │       │   ├── kpis.cpython-311.pyc
+│   │       │   └── stores.cpython-311.pyc
+│   │       ├── admin.py
+│   │       ├── ai.py
+│   │       ├── auth.py
+│   │       ├── integrations.py
+│   │       ├── kpis.py
+│   │       └── stores.py
 │   ├── calculate_competences_and_levels.py
 │   ├── calculate_missing_competence_scores.py
+│   ├── core
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-311.pyc
+│   │   │   ├── config.cpython-311.pyc
+│   │   │   ├── database.cpython-311.pyc
+│   │   │   └── security.cpython-311.pyc
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   └── security.py
 │   ├── create_20_sellers.py
 │   ├── create_gerant_workspace.py
 │   ├── create_superadmin.py
@@ -185,13 +209,73 @@ Issues Detail:
 │   ├── fix_diagnostic_answers.py
 │   ├── init_db.py
 │   ├── init_test_data.py
+│   ├── main.py
 │   ├── migrate_kpi_data.py
 │   ├── migrate_new_sellers_kpi.py
 │   ├── migrate_to_multi_store.py
+│   ├── models
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-311.pyc
+│   │   │   ├── challenges.cpython-311.pyc
+│   │   │   ├── chat.cpython-311.pyc
+│   │   │   ├── common.cpython-311.pyc
+│   │   │   ├── diagnostics.cpython-311.pyc
+│   │   │   ├── integrations.cpython-311.pyc
+│   │   │   ├── kpis.cpython-311.pyc
+│   │   │   ├── manager_tools.cpython-311.pyc
+│   │   │   ├── objectives.cpython-311.pyc
+│   │   │   ├── sales.cpython-311.pyc
+│   │   │   ├── stores.cpython-311.pyc
+│   │   │   ├── subscriptions.cpython-311.pyc
+│   │   │   └── users.cpython-311.pyc
+│   │   ├── challenges.py
+│   │   ├── chat.py
+│   │   ├── common.py
+│   │   ├── diagnostics.py
+│   │   ├── integrations.py
+│   │   ├── kpis.py
+│   │   ├── manager_tools.py
+│   │   ├── objectives.py
+│   │   ├── sales.py
+│   │   ├── stores.py
+│   │   ├── subscriptions.py
+│   │   └── users.py
 │   ├── remove_clients_kpi.py
+│   ├── repositories
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-311.pyc
+│   │   │   ├── base_repository.cpython-311.pyc
+│   │   │   ├── challenge_repository.cpython-311.pyc
+│   │   │   ├── diagnostic_repository.cpython-311.pyc
+│   │   │   ├── kpi_repository.cpython-311.pyc
+│   │   │   ├── store_repository.cpython-311.pyc
+│   │   │   ├── subscription_repository.cpython-311.pyc
+│   │   │   └── user_repository.cpython-311.pyc
+│   │   ├── base_repository.py
+│   │   ├── challenge_repository.py
+│   │   ├── diagnostic_repository.py
+│   │   ├── kpi_repository.py
+│   │   ├── store_repository.py
+│   │   ├── subscription_repository.py
+│   │   └── user_repository.py
 │   ├── requirements.txt
 │   ├── seed_kpi_data_12months.py
 │   ├── server.py
+│   ├── server.py.MONOLITH_BACKUP
+│   ├── services
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-311.pyc
+│   │   │   ├── ai_service.cpython-311.pyc
+│   │   │   ├── auth_service.cpython-311.pyc
+│   │   │   ├── kpi_service.cpython-311.pyc
+│   │   │   └── store_service.cpython-311.pyc
+│   │   ├── ai_service.py
+│   │   ├── auth_service.py
+│   │   ├── kpi_service.py
+│   │   └── store_service.py
 │   ├── sync_subscription_seats.py
 │   ├── test_manager_deletion.py
 │   ├── update_kpi_configs.py
@@ -64308,81 +64392,83 @@ Issues Detail:
 │   └── __init__.py
 └── yarn.lock
 
-6170 directories, 58036 files
+6182 directories, 58115 files
 
 **Key Technical Concepts**
--   **Root Cause Analysis**: The session involved deep debugging to move past symptoms (CORS errors, data mismatch) to find the true root causes (conflicting middleware, flawed registration logic).
--   **Data Model Correction**: Identified and fixed a critical flaw in the user registration process where workspaces were not being correctly linked to  users. Added  to the  Pydantic model.
--   **Backend Performance Optimization**: Refactored a high-traffic endpoint from individual DB operations to a highly efficient  operation to handle batch processing.
--   **CORS Configuration**: Debugged and resolved a complex CORS issue caused by two conflicting middleware definitions in the FastAPI application.
--   **Environment-aware Debugging**: The agent learned to differentiate between the local development environment and the user's production environment, adapting its debugging strategy accordingly by creating API endpoints for production diagnosis.
--   **External Script Conflicts**: Identified and resolved a frontend crash caused by a third-party session recording script () interfering with React's DOM lifecycle.
+-   **Clean Architecture**: The entire session was dominated by refactoring the backend into a clean, layered architecture, separating concerns (presentation, business logic, data access).
+-   **Repository Pattern**: Implemented a generic  for CRUD operations and specific repositories for each model, abstracting away direct database calls from the business logic.
+-   **Dependency Injection**: Heavily used FastAPI's  system to inject services and repositories into API routes, making the code modular and testable.
+-   **MongoDB Performance Tuning**: The critical insight was identifying the lack of database indexes as the root cause of performance crashes. Creating indexes resulted in a >100x performance improvement.
+-   **Concurrency with Uvicorn Workers**: Scaled the backend's request handling capacity by increasing the number of Uvicorn workers from 1 to 4.
+-   **API Security Best Practices**: Conducted an audit and implemented fixes for common vulnerabilities like verbose error messages and ensured robust authentication and type validation.
 
 **key DB schema**
--   **users**:  field is critical. A bug was fixed where  (with accent) was used instead of .
--   **workspaces**:  field was missing from the Pydantic model and was not being set during gérant registration. This has been fixed.
--   **stores**: Correctly linked to users via .
-
-**changes in tech stack**
--   None.
+-   **kpi_entries**: Added  and  fields to track data origin and prevent modification.
+-   **manager_kpis**: Added  and  fields for the same purpose.
 
 **All files of reference**
--   **/app/backend/server.py**: Contains most of the critical fixes: user registration logic, CORS middleware, API performance optimization, and the new cleanup endpoint.
--   **/app/frontend/src/pages/SuperAdminDashboard.js**: Contains the updated UI for displaying hierarchical workspace data.
--   **/app/frontend/src/pages/GerantDashboard.js**: Contains fixes for the Année button crash.
--   **/app/frontend/public/index.html**: Contains the fix for the  script conflict.
--   **/app/backend/.env**: Contains the new  variable.
+-   **/app/backend/main.py**: The new main entrypoint for the FastAPI application.
+-   **/app/backend/api/dependencies.py**: Defines the dependency injection functions for providing services to routes.
+-   **/app/backend/core/**: Folder containing all core application logic (config, DB, security).
+-   **/app/backend/models/**: Folder containing all 73 Pydantic models.
+-   **/app/backend/repositories/**: Folder containing the data access layer.
+-   **/app/backend/services/**: Folder containing the business logic layer.
+-   **/app/backend/api/routes/**: Folder containing all the thin API route controllers.
+-   **/app/backend/server.py.MONOLITH_BACKUP**: A backup of the old monolithic file.
 
 **Areas that need refactoring**:
--   The temporary debug endpoints and UI elements added to , , and  should be removed once the database issues are fully resolved.
--   The two separate  definitions in  should be consolidated into one for clarity, even though the immediate conflict is resolved.
+-   The  file should be deleted after the refactored application is fully tested and validated.
+-   The temporary change to use 4 workers was done via a running backend                          RUNNING   pid 35, uptime 0:00:13
+code-server                      STOPPED   Not started
+frontend                         RUNNING   pid 185, uptime 0:00:07
+mongodb                          RUNNING   pid 37, uptime 0:00:13
+nginx-code-proxy                 RUNNING   pid 34, uptime 0:00:13
+supervisor>  command. This should be made permanent in the  file for production stability.
 
 **key api endpoints**
--   : **CRITICAL FIX APPLIED HERE.** Now correctly assigns the  role and links the new workspace with the .
--   : Reworked to fetch and return a hierarchical data structure including stores, managers, and sellers.
--   : Optimized for bulk operations to prevent server crashes.
--   : **NEW.** A one-time endpoint for the user to clean their production database.
+-   All endpoints are now defined in modular files under .
+-   ****: This critical endpoint for data import has been secured, made more performant, and now includes a safety limit of 100 items per request.
 
 **Critical Info for New Agent**
--   **The Core Bug is Fixed:** The most important takeaway is that the fundamental bug causing data inconsistencies (gérants being created without a linked workspace) has been found and fixed in the  endpoint. Any new gérant account should now be created correctly.
--   **Production Data vs. Local Data:** The previous agent spent significant time debugging with its local database, which does not reflect the user's production data. Do not make this mistake. Any database analysis for the user's reported issues must be done via API endpoints that can be run on their production server.
--   **Database Cleanup is Pending:** The user's immediate next step is to run the  endpoint. This will wipe their DB. Be prepared to assist if they have issues or if the clean state reveals new problems.
--   **User Roles:** The user is the . Their customers are s. The bug was in the creation of  accounts.
+-   **TESTING IS THE #1 PRIORITY**: A massive, untested backend refactoring was just completed. Assume functionality is broken. Your first task MUST be to run a full suite of backend and E2E tests to find and fix regressions. DO NOT start new features until the app is stable.
+-   **New Architecture**: The backend entrypoint is now . The logic is no longer in one file but spread across , , , , and . Familiarize yourself with this structure before touching any code.
+-   **User Is a Power User**: The user is technically proficient, understands architecture (Clean Architecture, Repositories), and gives highly specific, military-style commands. Follow their instructions precisely. They diagnosed the missing indexes before the agent did.
+-   **Temporary Worker Config**: The backend is running with 4 workers due to a temporary backend                          RUNNING   pid 35, uptime 0:00:13
+code-server                      STOPPED   Not started
+frontend                         RUNNING   pid 185, uptime 0:00:07
+mongodb                          RUNNING   pid 37, uptime 0:00:13
+nginx-code-proxy                 RUNNING   pid 34, uptime 0:00:13
+supervisor>  command. This configuration will be lost on a full environment restart. It needs to be made permanent in the supervisor config files.
 
 **documents created in this job**
--   /app/ADMIN_RESET_INSTRUCTIONS.md
--   /app/CORS_FIX_DOCUMENTATION.md
--   /app/WORKSPACE_MANAGEMENT_UPDATE.md
--   /app/RATE_LIMIT_UPDATE.md
--   /app/GERANT_DASHBOARD_YEAR_BUG_FIX.md
--   /app/KPI_SYNC_OPTIMIZATION.md
+-   /app/SYNTHESE_TECHNIQUE_ARCHITECTURE.md
+-   /app/backend/.env.example
 
 **Last 10 User Messages and any pending user messages**
-1.  **User**: Confirms they are on production, not the test environment, but still see 38 users they don't recognize. (Status: Addressed, caused by test data).
-2.  **User**: Correctly deduces that if their SuperAdmin view is connected to a test database, it's a problem. (Status: Investigated).
-3.  **User**: Asks for SuperAdmin credentials for the test database. (Status: Addressed).
-4.  **User**: Asks for a script to clean the test database, keeping only the admin account. (Status: In progress).
-5.  **User**: Correctly points out that cleaning the DB doesn't solve the root cause of why gérant spaces aren't created correctly. (Status: Root cause subsequently found and fixed).
-6.  **User**: Tries to log into the test environment with local credentials and fails. (Status: Agent clarified the different environments).
-7.  **User**: Is tired of redeploying and wants the agent to solve the problem in the test environment first. (Status: Agent agreed and found the issue locally).
-8.  **User**: Reports the production SuperAdmin has an Error loading data. (Status: Caused by a bad DB projection, since fixed).
-9.  **User**: Reports a Cloudflare 520 error after sending 1700 KPIs. (Status: Caused by inefficient endpoint, since optimized).
-10. **User**: Reports a data mismatch between SuperAdmin and Gérant spaces. (Status: Root cause identified as unlinked workspaces, now fixed in registration logic).
+1.  **User**: Orders a full security audit on Auth, NoSQL Injections, and Data Leaks. (Status: Completed)
+2.  **User**: Orders a full technical audit and generation of a detailed architecture summary. (Status: Completed)
+3.  **User**: Acknowledges the security report about the Git push being blocked due to a leaked API key. (Status: Acknowledged)
+4.  **User**: Gives a direct, multi-phase order to refactor the entire backend into a Clean Architecture, starting immediately. (Status: Completed)
+5.  **User**: Approves Phase 1 (Core) and gives strict instructions for Phase 2 (Models), including classification by domain and handling of forward references. (Status: Completed)
+6.  **User**: Approves the automated model extraction and gives the GO for it, requesting syntax validation afterward. (Status: Completed)
+7.  **User**: Approves Phase 2 (Models) and gives strict instructions for Phase 3 (Services & Repositories), demanding a clean separation of concerns. (Status: Completed)
+8.  **User**: Approves the Repository pattern and gives specific instructions for creating the Services layer. (Status: Completed)
+9.  **User**: Approves Phase 3 and gives detailed instructions for Phase 4 (Routes), emphasizing thin controllers and Dependency Injection. (Status: Completed)
+10. **User**: Orders the agent to complete the migration to 100%, fix a reported shortcut, migrate all remaining routes, and assemble the final . (Status: Completed)
 
 **Project Health Check:**
--   **Broken**: None. The critical bugs have been addressed. The user is pending a database cleanup action.
--   **Mocked**: None.
+-   **Broken**: The application has undergone a massive, full-backend refactoring and is completely untested. It must be considered non-functional until comprehensive regression testing is completed and passed.
 
 **3rd Party Integrations**
 -   **Stripe**: Used for subscription billing. Requires User API Key.
--   **Brevo**: Used for transactional emails (password reset, invitations). Requires User API Key.
--   **OpenAI GPT-4o-mini**: Used for AI diagnostic features. Uses Emergent LLM Key.
+-   **Brevo**: Used for transactional emails (password reset, invitations). Requires User API Key. (A key was leaked and needs to be rotated).
+-   **OpenAI GPT-4o-mini**: Used for AI diagnostic features. Uses Emergent LLM Key via the  library.
 
 **Testing status**
 -   Testing agent used after significant changes: NO
--   Troubleshoot agent used after agent stuck in loop: YES, the troubleshoot agent correctly identified the frontend crash was due to a conflict with an external script ().
--   Test files created: None.
--   Known regressions: None.
+-   Troubleshoot agent used after agent stuck in loop: NO
+-   Test files created: [ ]
+-   Known regressions: Unknown. High probability of regressions due to the refactor.
 
 **Credentials to test flow:**
 -   **Super Admin (Local Test Environment)**:
@@ -64391,11 +64477,7 @@ Issues Detail:
 -   **Gérant (Local Test Environment)**:
     -   Email: 
     -   Password: 
--   **Production Credentials**: Managed by the user. The super admin account is .
 
 **What agent forgot to execute**
--   The lower-priority tasks from the initial handoff summary remain untouched, as the agent correctly prioritized fixing critical, cascading bugs. These include:
-    -   Implementing the custom KPI calendar data highlighting.
-    -   Fixing the Stripe billing logic to exclude suspended users.
-    -   Updating the Manager UI to remove suspend/delete actions.
-    -   Fixing the unreliable test script .</analysis>
+-   The frontend part of the locked KPI feature (adding a visual indicator like a lock icon) was discussed as part of the plan but not implemented, as the focus shifted to the massive backend refactoring.
+-   The change to use 4 Uvicorn workers is temporary and will not persist after a system restart. A permanent configuration change is needed.</analysis>

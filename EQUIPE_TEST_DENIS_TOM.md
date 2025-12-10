@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://dashboardfix.preview.emergentagent.com
+https://pymongo-secure.preview.emergentagent.com
 
 ### Manager
 ```
