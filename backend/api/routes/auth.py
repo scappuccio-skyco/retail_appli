@@ -155,3 +155,17 @@ async def reset_password(
         return {"message": "Mot de passe réinitialisé avec succès"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/me")
+async def get_me(current_user: dict = Depends(get_current_user)):
+    """
+    Get current authenticated user information
+    
+    Args:
+        current_user: Current authenticated user from JWT token
+        
+    Returns:
+        User information without password
+    """
+    return current_user
