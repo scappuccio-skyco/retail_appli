@@ -14014,7 +14014,8 @@ async def sync_kpi_integration(
                         "nb_ventes": entry.nb_ventes,
                         "nb_articles": entry.nb_articles,
                         "nb_prospects": entry.prospects or 0,
-                        "source": data.source,
+                        "source": "api",  # Force source as "api" for integration
+                        "locked": True,   # Lock data from API
                         "created_at": entry.timestamp or now
                     }
                     seller_operations.append(InsertOne(kpi_entry))
