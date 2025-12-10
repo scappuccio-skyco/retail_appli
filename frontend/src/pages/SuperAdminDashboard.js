@@ -28,6 +28,14 @@ export default function SuperAdminDashboard() {
   const [logFilters, setLogFilters] = useState({ level: '', type: '', hours: 24 });
   const [auditFilters, setAuditFilters] = useState({ action: '', admin_emails: [], days: 7 });
   const [showDeletedWorkspaces, setShowDeletedWorkspaces] = useState(false);
+  const [expandedWorkspaces, setExpandedWorkspaces] = useState({});
+
+  const toggleWorkspace = (workspaceId) => {
+    setExpandedWorkspaces(prev => ({
+      ...prev,
+      [workspaceId]: !prev[workspaceId]
+    }));
+  };
 
   useEffect(() => {
     fetchData();
