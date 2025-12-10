@@ -650,8 +650,8 @@ export default function SuperAdminDashboard() {
                       </td>
                     </tr>
                     
-                    {/* Afficher les stores sous le workspace */}
-                    {workspace.stores && workspace.stores.length > 0 && workspace.stores.map((store, storeIdx) => (
+                    {/* Afficher les stores sous le workspace (accordéon) */}
+                    {expandedWorkspaces[workspace.id] && workspace.stores && workspace.stores.length > 0 && workspace.stores.map((store, storeIdx) => (
                       <tr key={`${workspace.id}-store-${storeIdx}`} className="border-b border-white/5 bg-white/5">
                         <td className="p-3 pl-8">
                           <div className="text-sm text-purple-200">
