@@ -14,6 +14,7 @@ from services.gerant_service import GerantService
 from services.onboarding_service import OnboardingService
 from services.enterprise_service import EnterpriseService
 from services.manager_service import ManagerService, DiagnosticService
+from services.seller_service import SellerService
 
 
 # ===== SERVICE DEPENDENCIES =====
