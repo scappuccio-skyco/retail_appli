@@ -14050,11 +14050,13 @@ async def sync_kpi_integration(
                     # Prepare update operation
                     manager_operations.append(
                         UpdateOne(
-                            {"manager_id": entry.manager_id, "date": data.date, "source": data.source},
+                            {"manager_id": entry.manager_id, "date": data.date, "source": "api"},
                             {"$set": {
                                 "ca_journalier": entry.ca_journalier,
                                 "nb_ventes": entry.nb_ventes,
-                                "prospects": entry.prospects or 0,
+                                "nb_prospects": entry.prospects or 0,
+                                "source": "api",
+                                "locked": True,
                                 "updated_at": now
                             }}
                         )
@@ -14069,8 +14071,9 @@ async def sync_kpi_integration(
                         "date": data.date,
                         "ca_journalier": entry.ca_journalier,
                         "nb_ventes": entry.nb_ventes,
-                        "prospects": entry.prospects or 0,
-                        "source": data.source,
+                        "nb_prospects": entry.prospects or 0,
+                        "source": "api",
+                        "locked": True,
                         "created_at": entry.timestamp or now
                     }
                     manager_operations.append(InsertOne(manager_kpi))
