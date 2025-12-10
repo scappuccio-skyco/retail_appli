@@ -21,6 +21,207 @@ class GerantService:
         self.user_repo = UserRepository(db)
         self.store_repo = StoreRepository(db)
     
+    async def get_all_stores(self, gerant_id: str) -> list:
+        """Get all active stores for a gérant"""
+        stores = await self.store_repo.find_many(
+            {"gerant_id": gerant_id, "active": True},
+            {"_id": 0}
+        )
+        return stores
+    
+    async def get_all_managers(self, gerant_id: str) -> list:
+        """Get all managers (active and suspended, excluding deleted)"""
+        managers = await self.user_repo.find_many(
+            {
+                "gerant_id": gerant_id,
+                "role": "manager",
+                "status": {"$ne": "deleted"}
+            },
+            {"_id": 0, "password": 0}
+        )
+        return managers
+    
+    async def get_all_sellers(self, gerant_id: str) -> list:
+        """Get all sellers (active and suspended, excluding deleted)"""
+        sellers = await self.user_repo.find_many(
+            {
+                "gerant_id": gerant_id,
+                "role": "seller",
+                "status": {"$ne": "deleted"}
+            },
+            {"_id": 0, "password": 0}
+        )
+        return sellers
+    
+    async def get_store_stats(
+        self,
+        store_id: str,
+        gerant_id: str,
+        period_type: str = 'week',
+        period_offset: int = 0
+    ) -> Dict:
+        """
+        Get detailed statistics for a specific store
+        
+        Args:
+            store_id: Store ID
+            gerant_id: Gérant ID (for ownership verification)
+            period_type: 'week', 'month', or 'year'
+            period_offset: Number of periods to offset (0=current, -1=previous, etc.)
+        """
+        from datetime import timedelta
+        
+        # Verify store ownership
+        store = await self.store_repo.find_one(
+            {"id": store_id, "gerant_id": gerant_id},
+            {"_id": 0}
+        )
+        
+        if not store:
+            raise ValueError("Store not found or access denied")
+        
+        # Count managers and sellers
+        managers_count = await self.user_repo.count({
+            "store_id": store_id,
+            "role": "manager",
+            "status": "active"
+        })
+        
+        sellers_count = await self.user_repo.count({
+            "store_id": store_id,
+            "role": "seller",
+            "status": "active"
+        })
+        
+        # Calculate today's KPIs
+        today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        
+        # Sellers KPIs today
+        sellers_today = await self.db.kpi_entries.aggregate([
+            {"$match": {"store_id": store_id, "date": today}},
+            {"$group": {
+                "_id": None,
+                "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}}
+            }}
+        ]).to_list(1)
+        
+        # Managers KPIs today
+        managers_today = await self.db.manager_kpis.aggregate([
+            {"$match": {"store_id": store_id, "date": today}},
+            {"$group": {
+                "_id": None,
+                "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}}
+            }}
+        ]).to_list(1)
+        
+        sellers_ca = sellers_today[0].get("total_ca", 0) if sellers_today else 0
+        sellers_ventes = sellers_today[0].get("total_ventes", 0) if sellers_today else 0
+        sellers_articles = sellers_today[0].get("total_articles", 0) if sellers_today else 0
+        
+        managers_ca = managers_today[0].get("total_ca", 0) if managers_today else 0
+        managers_ventes = managers_today[0].get("total_ventes", 0) if managers_today else 0
+        managers_articles = managers_today[0].get("total_articles", 0) if managers_today else 0
+        
+        # Calculate period dates
+        today_date = datetime.now(timezone.utc)
+        
+        if period_type == 'week':
+            days_since_monday = today_date.weekday()
+            current_monday = today_date - timedelta(days=days_since_monday)
+            target_monday = current_monday + timedelta(weeks=period_offset)
+            target_sunday = target_monday + timedelta(days=6)
+            period_start = target_monday.strftime('%Y-%m-%d')
+            period_end = target_sunday.strftime('%Y-%m-%d')
+            prev_start = (target_monday - timedelta(weeks=1)).strftime('%Y-%m-%d')
+            prev_end = (target_monday - timedelta(days=1)).strftime('%Y-%m-%d')
+        elif period_type == 'month':
+            target_month = today_date.replace(day=1) + timedelta(days=32 * period_offset)
+            target_month = target_month.replace(day=1)
+            period_start = target_month.strftime('%Y-%m-%d')
+            next_month = target_month.replace(day=28) + timedelta(days=4)
+            period_end = (next_month.replace(day=1) - timedelta(days=1)).strftime('%Y-%m-%d')
+            prev_month = target_month - timedelta(days=1)
+            prev_start = prev_month.replace(day=1).strftime('%Y-%m-%d')
+            prev_end = (target_month - timedelta(days=1)).strftime('%Y-%m-%d')
+        elif period_type == 'year':
+            target_year = today_date.year + period_offset
+            period_start = f"{target_year}-01-01"
+            period_end = f"{target_year}-12-31"
+            prev_start = f"{target_year-1}-01-01"
+            prev_end = f"{target_year-1}-12-31"
+        else:
+            raise ValueError("Invalid period_type. Must be 'week', 'month', or 'year'")
+        
+        # Get period KPIs
+        period_sellers = await self.db.kpi_entries.aggregate([
+            {"$match": {"store_id": store_id, "date": {"$gte": period_start, "$lte": period_end}}},
+            {"$group": {
+                "_id": None,
+                "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}}
+            }}
+        ]).to_list(1)
+        
+        period_managers = await self.db.manager_kpis.aggregate([
+            {"$match": {"store_id": store_id, "date": {"$gte": period_start, "$lte": period_end}}},
+            {"$group": {
+                "_id": None,
+                "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}}
+            }}
+        ]).to_list(1)
+        
+        period_ca = (period_sellers[0].get("total_ca", 0) if period_sellers else 0) + \
+                    (period_managers[0].get("total_ca", 0) if period_managers else 0)
+        period_ventes = (period_sellers[0].get("total_ventes", 0) if period_sellers else 0) + \
+                        (period_managers[0].get("total_ventes", 0) if period_managers else 0)
+        
+        # Get previous period KPIs for evolution
+        prev_sellers = await self.db.kpi_entries.aggregate([
+            {"$match": {"store_id": store_id, "date": {"$gte": prev_start, "$lte": prev_end}}},
+            {"$group": {"_id": None, "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}}}}
+        ]).to_list(1)
+        
+        prev_managers = await self.db.manager_kpis.aggregate([
+            {"$match": {"store_id": store_id, "date": {"$gte": prev_start, "$lte": prev_end}}},
+            {"$group": {"_id": None, "total_ca": {"$sum": {"$ifNull": ["$ca_journalier", 0]}}}}
+        ]).to_list(1)
+        
+        prev_ca = (prev_sellers[0].get("total_ca", 0) if prev_sellers else 0) + \
+                  (prev_managers[0].get("total_ca", 0) if prev_managers else 0)
+        
+        # Calculate evolution
+        ca_evolution = ((period_ca - prev_ca) / prev_ca * 100) if prev_ca > 0 else 0
+        
+        return {
+            "store": store,
+            "managers_count": managers_count,
+            "sellers_count": sellers_count,
+            "today": {
+                "total_ca": sellers_ca + managers_ca,
+                "total_ventes": sellers_ventes + managers_ventes,
+                "total_articles": sellers_articles + managers_articles
+            },
+            "period": {
+                "type": period_type,
+                "offset": period_offset,
+                "start": period_start,
+                "end": period_end,
+                "ca": period_ca,
+                "ventes": period_ventes,
+                "ca_evolution": round(ca_evolution, 2)
+            },
+            "previous_period": {
+                "start": prev_start,
+                "end": prev_end,
+                "ca": prev_ca
+            }
+        }
+    
     async def get_dashboard_stats(self, gerant_id: str) -> Dict:
         """
         Get aggregated dashboard statistics for a gérant
