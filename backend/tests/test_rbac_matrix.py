@@ -407,6 +407,28 @@ class RBACTester:
         expected = status if status in [200, 400] else 200
         self.log_result("Seller", "Create KPI entry", expected, status)
         
+        # Test NEW SELLER ROUTES (objectives, challenges, tasks)
+        status, data = self.make_request('GET', '/api/seller/tasks', token)
+        self.log_result("Seller", "Access seller tasks", 200, status)
+        
+        status, data = self.make_request('GET', '/api/seller/objectives/active', token)
+        self.log_result("Seller", "Access active objectives", 200, status)
+        
+        status, data = self.make_request('GET', '/api/seller/objectives/all', token)
+        self.log_result("Seller", "Access all objectives", 200, status)
+        
+        status, data = self.make_request('GET', '/api/seller/objectives/history', token)
+        self.log_result("Seller", "Access objectives history", 200, status)
+        
+        status, data = self.make_request('GET', '/api/seller/challenges', token)
+        self.log_result("Seller", "Access seller challenges", 200, status)
+        
+        status, data = self.make_request('GET', '/api/seller/challenges/active', token)
+        self.log_result("Seller", "Access active challenges", 200, status)
+        
+        status, data = self.make_request('GET', '/api/seller/challenges/history', token)
+        self.log_result("Seller", "Access challenges history", 200, status)
+        
         # Test NEGATIVE: Should NOT access admin or gerant routes
         status, data = self.make_request('GET', '/api/admin/workspaces', token)
         self.log_result("Seller", "DENIED /api/admin/workspaces", 403, status, "(Isolation test)")
