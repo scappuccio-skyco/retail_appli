@@ -430,8 +430,8 @@ class RBACTester:
         self.log_result("Seller", "Access challenges history", 200, status)
         
         # Test NEGATIVE: Should NOT access admin or gerant routes
-        status, data = self.make_request('GET', '/api/admin/workspaces', token)
-        self.log_result("Seller", "DENIED /api/admin/workspaces", 403, status, "(Isolation test)")
+        status, data = self.make_request('GET', '/api/superadmin/workspaces', token)
+        self.log_result("Seller", "DENIED /api/superadmin/workspaces", 403, status, "(Isolation test)")
         
         status, data = self.make_request('GET', '/api/gerant/dashboard/stats', token)
         self.log_result("Seller", "DENIED /api/gerant/dashboard/stats", 403, status, "(Isolation test)")
