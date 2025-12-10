@@ -12,6 +12,7 @@ from services.ai_service import AIService
 from services.store_service import StoreService
 from services.gerant_service import GerantService
 from services.onboarding_service import OnboardingService
+from services.enterprise_service import EnterpriseService
 
 
 # ===== SERVICE DEPENDENCIES =====
@@ -98,6 +99,20 @@ def get_onboarding_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> Onboar
             return await onboarding_service.get_progress(...)
     """
     return OnboardingService(db)
+
+
+def get_enterprise_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> EnterpriseService:
+    """
+    Get EnterpriseService instance with database dependency
+    
+    Usage in routes:
+        @router.post("/users/bulk-import")
+        async def bulk_import(
+            enterprise_service: EnterpriseService = Depends(get_enterprise_service)
+        ):
+            return await enterprise_service.bulk_import_users(...)
+    """
+    return EnterpriseService(db)
 
 
 # Note: Add more service dependencies here as needed:
