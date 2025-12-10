@@ -2,7 +2,7 @@
 Gérant-specific Routes
 Dashboard stats, subscription status, and workspace management
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from datetime import datetime, timezone
 
 from core.security import get_current_gerant
