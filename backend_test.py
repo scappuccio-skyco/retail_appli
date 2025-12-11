@@ -81,7 +81,7 @@ class CleanArchitectureAPITester:
         # Test Gérant login
         gerant_data = {
             "email": "gerant.demo@test.fr",
-            "password": "demo123"
+            "password": "password123"
         }
         
         success, response = self.run_test(
