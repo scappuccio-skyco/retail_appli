@@ -50,8 +50,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [displayedSellerCount, setDisplayedSellerCount] = useState(5);
-  const [hoveredButton, setHoveredButton] = useState(null); // Pour les tooltips des boutons d'action
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, action: null, seller: null }); // Modal de confirmation
   const [showArchivedSellers, setShowArchivedSellers] = useState(false); // Afficher vendeurs archivés
   const [archivedSellers, setArchivedSellers] = useState([]); // Liste des vendeurs archivés
   const [hiddenSellerIds, setHiddenSellerIds] = useState([]); // IDs des vendeurs à masquer temporairement
