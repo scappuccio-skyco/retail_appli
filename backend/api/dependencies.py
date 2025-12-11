@@ -61,6 +61,23 @@ def get_ai_service() -> AIService:
     return AIService()
 
 
+# AI Data Service (for AI routes with database access)
+from services.ai_service import AIDataService
+
+def get_ai_data_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> AIDataService:
+    """
+    Get AIDataService instance with database dependency
+    
+    Usage in routes:
+        @router.post("/daily-challenge")
+        async def generate_challenge(
+            ai_data_service: AIDataService = Depends(get_ai_data_service)
+        ):
+            return await ai_data_service.generate_daily_challenge_with_data(...)
+    """
+    return AIDataService(db)
+
+
 def get_store_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> StoreService:
     """
     Get StoreService instance with database dependency
