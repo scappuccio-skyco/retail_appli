@@ -262,7 +262,8 @@ async def delete_api_key(
 @router.post("/api-keys/{key_id}/regenerate")
 async def regenerate_api_key(
     key_id: str,
-    current_user: dict = Depends(verify_manager_or_gerant)
+    current_user: dict = Depends(verify_manager_or_gerant),
+    api_key_service: APIKeyService = Depends(get_api_key_service)
 ):
     """
     Regenerate an API key (creates new key, deactivates old)
@@ -270,68 +271,19 @@ async def regenerate_api_key(
     Accessible by both Manager and Gérant roles
     Useful when key is compromised or needs rotation
     """
-    from uuid import uuid4
-    from datetime import datetime, timezone
-    import secrets
-    from core.database import database
-    
-    db = database.db
-    
-    # Generate secure API key
-    def generate_api_key() -> str:
-        random_part = secrets.token_urlsafe(32)
-        return f"rp_live_{random_part}"
-    
-    # Find old key
-    old_key = await db.api_keys.find_one({"id": key_id, "user_id": current_user['id']})
-    if not old_key:
-        raise HTTPException(status_code=404, detail="API key not found")
-    
-    # Deactivate old key
-    await db.api_keys.update_one(
-        {"id": key_id},
-        {"$set": {"active": False, "regenerated_at": datetime.now(timezone.utc).isoformat()}}
-    )
-    
-    # Create new key with same settings
-    new_api_key = generate_api_key()
-    new_key_id = str(uuid4())
-    
-    new_key_record = {
-        "id": new_key_id,
-        "user_id": current_user['id'],
-        "store_id": old_key.get('store_id'),
-        "gerant_id": old_key.get('gerant_id'),
-        "key": new_api_key,
-        "name": old_key['name'],
-        "permissions": old_key['permissions'],
-        "store_ids": old_key.get('store_ids'),  # Preserve store access
-        "active": True,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "last_used_at": None,
-        "expires_at": old_key.get('expires_at'),
-        "previous_key_id": key_id
-    }
-    
-    await db.api_keys.insert_one(new_key_record)
-    
-    return {
-        "id": new_key_id,
-        "name": new_key_record["name"],
-        "key": new_api_key,  # Only shown at regeneration
-        "permissions": new_key_record["permissions"],
-        "active": True,
-        "created_at": new_key_record["created_at"],
-        "last_used_at": None,
-        "expires_at": new_key_record.get("expires_at"),
-        "store_ids": new_key_record.get("store_ids")
-    }
+    try:
+        return await api_key_service.regenerate_api_key(key_id, current_user['id'])
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.delete("/api-keys/{key_id}/permanent")
 async def delete_api_key_permanent(
     key_id: str,
-    current_user: dict = Depends(verify_manager_or_gerant)
+    current_user: dict = Depends(verify_manager_or_gerant),
+    api_key_service: APIKeyService = Depends(get_api_key_service)
 ):
     """
     Permanently delete an inactive API key
@@ -339,15 +291,18 @@ async def delete_api_key_permanent(
     Accessible by both Manager and Gérant roles
     Can only delete keys that have been deactivated first
     """
-    from core.database import database
-    
-    db = database.db
-    
-    # Find the key and verify ownership
-    key = await db.api_keys.find_one({"id": key_id}, {"_id": 0})
-    
-    if not key:
-        raise HTTPException(status_code=404, detail="API key not found")
+    try:
+        return await api_key_service.delete_api_key_permanent(
+            key_id, 
+            current_user['id'],
+            current_user['role']
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     
     # Verify ownership
     if current_user['role'] == 'manager':
