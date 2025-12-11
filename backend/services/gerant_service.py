@@ -1051,7 +1051,13 @@ class GerantService:
         if db_subscription.get('trial_end'):
             trial_end = db_subscription['trial_end']
             now = datetime.now(timezone.utc)
-            trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
+            if isinstance(trial_end, str):
+                trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
+            else:
+                trial_end_dt = trial_end
+            # Gérer les dates naive vs aware
+            if trial_end_dt.tzinfo is None:
+                trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
             days_left = max(0, (trial_end_dt - now).days)
         
         status = 'trialing' if days_left and days_left > 0 else 'active'
