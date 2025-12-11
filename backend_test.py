@@ -383,28 +383,28 @@ class ManagerDashboardAndSuperAdminTester:
                     print(f"   ❌ REGRESSION: {endpoint} returned non-200 status")
 
     def run_all_tests(self):
-        """Run all Clean Architecture tests"""
-        print("🚀 STARTING CLEAN ARCHITECTURE REFACTORING TESTS")
-        print("=" * 60)
+        """Run all Manager Dashboard and SuperAdmin Subscriptions tests"""
+        print("🚀 STARTING MANAGER DASHBOARD & SUPERADMIN SUBSCRIPTIONS TESTS")
+        print("=" * 70)
         
         # Test authentication first
         self.test_authentication()
         
-        # Test all route categories
-        self.test_gerant_routes()
-        self.test_superadmin_routes()
-        self.test_integration_routes()
+        # Test the two specific fixes
+        self.test_manager_dashboard_fix()
+        self.test_superadmin_subscriptions_fix()
+        self.test_seller_kpi_enabled_endpoint()
         
         # Test security
         self.test_authentication_security()
         
-        # Test Clean Architecture compliance
-        self.test_clean_architecture_endpoints()
+        # Test critical endpoints for 500 errors
+        self.test_critical_endpoints_no_500_errors()
         
         # Print summary
-        print("\n" + "=" * 60)
-        print("📊 CLEAN ARCHITECTURE TEST SUMMARY")
-        print("=" * 60)
+        print("\n" + "=" * 70)
+        print("📊 MANAGER DASHBOARD & SUPERADMIN SUBSCRIPTIONS TEST SUMMARY")
+        print("=" * 70)
         print(f"Total Tests: {self.tests_run}")
         print(f"Passed: {self.tests_passed}")
         print(f"Failed: {self.tests_run - self.tests_passed}")
@@ -417,13 +417,13 @@ class ManagerDashboardAndSuperAdminTester:
             for test in failed_tests:
                 print(f"   • {test['test']}: {test['details']}")
         
-        print("\n🎯 CLEAN ARCHITECTURE VERIFICATION:")
+        print("\n🎯 FIX VERIFICATION:")
         if self.tests_passed >= self.tests_run * 0.8:  # 80% pass rate
-            print("✅ Clean Architecture refactoring appears successful!")
-            print("✅ Routes → Services → Repositories pattern working")
+            print("✅ Manager Dashboard 404 errors fix appears successful!")
+            print("✅ SuperAdmin Subscriptions Details endpoint working!")
             print("✅ No major regressions detected")
         else:
-            print("❌ Clean Architecture refactoring has issues!")
+            print("❌ Some fixes have issues!")
             print("❌ Multiple endpoints failing - needs investigation")
         
         return self.tests_passed >= self.tests_run * 0.8
