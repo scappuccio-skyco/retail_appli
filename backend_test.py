@@ -313,18 +313,18 @@ class CleanArchitectureAPITester:
         
         # Test 1: Access gérant endpoint without token
         success, response = self.run_test(
-            "Gérant Endpoint - No Auth (Expected 401/403)",
+            "Gérant Endpoint - No Auth (Expected 403)",
             "GET",
             "gerant/dashboard/stats",
-            401  # or 403
+            403
         )
         
         # Test 2: Access superadmin endpoint without token
         success, response = self.run_test(
-            "SuperAdmin Endpoint - No Auth (Expected 401/403)",
+            "SuperAdmin Endpoint - No Auth (Expected 403)",
             "GET",
             "superadmin/workspaces",
-            401  # or 403
+            403
         )
         
         # Test 3: Access superadmin endpoint with gérant token (should fail)
