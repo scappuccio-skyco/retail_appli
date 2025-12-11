@@ -299,6 +299,167 @@ class ManagerDashboardAndSuperAdminTester:
         if success:
             print(f"   ✅ Platform stats retrieved successfully")
 
+    def test_gerant_dashboard_endpoints(self):
+        """Test Gérant Dashboard User Management Endpoints"""
+        print("\n👑 TESTING GÉRANT DASHBOARD USER MANAGEMENT")
+        
+        if not self.gerant_token:
+            self.log_test("Gérant Dashboard Tests", False, "No gérant token available")
+            return
+        
+        # Test 1: GET /api/gerant/sellers - get list of sellers
+        success, sellers_response = self.run_test(
+            "Gérant Get All Sellers",
+            "GET",
+            "gerant/sellers",
+            200,
+            token=self.gerant_token
+        )
+        
+        seller_id = None
+        if success and isinstance(sellers_response, list) and len(sellers_response) > 0:
+            seller_id = sellers_response[0].get('id')
+            print(f"   ✅ Found {len(sellers_response)} sellers, testing with seller: {seller_id}")
+            
+            # Display seller info
+            for seller in sellers_response[:3]:  # Show first 3 sellers
+                print(f"   📋 Seller: {seller.get('name')} ({seller.get('email')}) - Status: {seller.get('status')}")
+        else:
+            print("   ⚠️ No sellers found to test suspend/reactivate operations")
+        
+        # Test 2: GET /api/gerant/managers - get list of managers
+        success, managers_response = self.run_test(
+            "Gérant Get All Managers",
+            "GET",
+            "gerant/managers",
+            200,
+            token=self.gerant_token
+        )
+        
+        manager_id = None
+        if success and isinstance(managers_response, list) and len(managers_response) > 0:
+            manager_id = managers_response[0].get('id')
+            print(f"   ✅ Found {len(managers_response)} managers, testing with manager: {manager_id}")
+            
+            # Display manager info
+            for manager in managers_response[:3]:  # Show first 3 managers
+                print(f"   📋 Manager: {manager.get('name')} ({manager.get('email')}) - Status: {manager.get('status')}")
+        else:
+            print("   ⚠️ No managers found to test suspend/reactivate operations")
+        
+        # Test 3: Test seller suspend/reactivate operations
+        if seller_id:
+            # Test suspend seller
+            success, suspend_response = self.run_test(
+                "Gérant Suspend Seller",
+                "PATCH",
+                f"gerant/sellers/{seller_id}/suspend",
+                200,
+                token=self.gerant_token
+            )
+            
+            if success:
+                print(f"   ✅ Seller suspended successfully: {suspend_response.get('message', 'No message')}")
+                
+                # Test reactivate seller
+                success, reactivate_response = self.run_test(
+                    "Gérant Reactivate Seller",
+                    "PATCH",
+                    f"gerant/sellers/{seller_id}/reactivate",
+                    200,
+                    token=self.gerant_token
+                )
+                
+                if success:
+                    print(f"   ✅ Seller reactivated successfully: {reactivate_response.get('message', 'No message')}")
+        
+        # Test 4: Test manager suspend/reactivate operations
+        if manager_id:
+            # Test suspend manager
+            success, suspend_response = self.run_test(
+                "Gérant Suspend Manager",
+                "PATCH",
+                f"gerant/managers/{manager_id}/suspend",
+                200,
+                token=self.gerant_token
+            )
+            
+            if success:
+                print(f"   ✅ Manager suspended successfully: {suspend_response.get('message', 'No message')}")
+                
+                # Test reactivate manager
+                success, reactivate_response = self.run_test(
+                    "Gérant Reactivate Manager",
+                    "PATCH",
+                    f"gerant/managers/{manager_id}/reactivate",
+                    200,
+                    token=self.gerant_token
+                )
+                
+                if success:
+                    print(f"   ✅ Manager reactivated successfully: {reactivate_response.get('message', 'No message')}")
+        
+        # Test 5: GET /api/gerant/invitations - list all invitations
+        success, invitations_response = self.run_test(
+            "Gérant Get All Invitations",
+            "GET",
+            "gerant/invitations",
+            200,
+            token=self.gerant_token
+        )
+        
+        if success and isinstance(invitations_response, list):
+            print(f"   ✅ Found {len(invitations_response)} invitations")
+            
+            # Check if invitation to cappuccioseb+h@gmail.com exists
+            target_email = "cappuccioseb+h@gmail.com"
+            target_invitation = None
+            for invitation in invitations_response:
+                if invitation.get('email') == target_email:
+                    target_invitation = invitation
+                    break
+            
+            if target_invitation:
+                print(f"   ✅ Found invitation to {target_email}: Status {target_invitation.get('status')}")
+            else:
+                print(f"   ⚠️ No invitation found for {target_email}")
+                
+            # Display recent invitations
+            for invitation in invitations_response[:3]:  # Show first 3 invitations
+                print(f"   📧 Invitation: {invitation.get('email')} ({invitation.get('role')}) - Status: {invitation.get('status')}")
+        
+        # Test 6: Test invalid user IDs (should return 404)
+        success, response = self.run_test(
+            "Gérant Suspend Invalid Seller (Expected 404)",
+            "PATCH",
+            "gerant/sellers/invalid-seller-id/suspend",
+            404,
+            token=self.gerant_token
+        )
+        
+        success, response = self.run_test(
+            "Gérant Suspend Invalid Manager (Expected 404)",
+            "PATCH",
+            "gerant/managers/invalid-manager-id/suspend",
+            404,
+            token=self.gerant_token
+        )
+        
+        # Test 7: Test without authentication (should fail)
+        success, response = self.run_test(
+            "Gérant Sellers - No Auth (Expected 403)",
+            "GET",
+            "gerant/sellers",
+            403
+        )
+        
+        success, response = self.run_test(
+            "Gérant Managers - No Auth (Expected 403)",
+            "GET",
+            "gerant/managers",
+            403
+        )
+
     def test_seller_kpi_enabled_endpoint(self):
         """Test Seller KPI Enabled Endpoint"""
         print("\n🔗 TESTING SELLER KPI ENABLED ENDPOINT")
