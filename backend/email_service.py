@@ -290,7 +290,7 @@ def send_password_reset_email(recipient_email: str, recipient_name: str, reset_t
     """
     Envoyer un email de réinitialisation de mot de passe
     """
-    frontend_url = get_frontend_url()
+    frontend_url = get_frontend_url().rstrip('/')  # Remove trailing slash to avoid double //
     reset_link = f"{frontend_url}/reset-password?token={reset_token}"
     
     html_content = f"""
