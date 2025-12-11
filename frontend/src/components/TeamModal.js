@@ -1,9 +1,8 @@
 import React, { useState, useEffect, startTransition } from 'react';
 import axios from 'axios';
-import { X, Users, TrendingUp, Target, Award, AlertCircle, Info, PauseCircle, PlayCircle, Trash2, Archive, RefreshCw } from 'lucide-react';
+import { X, Users, TrendingUp, Target, Award, AlertCircle, Info, PauseCircle, Archive, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import TeamAIAnalysisModal from './TeamAIAnalysisModal';
-import ConfirmActionModal from './ConfirmActionModal';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
