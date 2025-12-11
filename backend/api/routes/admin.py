@@ -1,6 +1,7 @@
 """SuperAdmin Routes - Clean Architecture"""
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Dict
+from datetime import datetime, timezone, timedelta
 
 from core.security import get_super_admin
 from services.admin_service import AdminService
@@ -41,38 +42,22 @@ async def get_platform_stats(
 
 
 @router.get("/logs")
-async def get_system_logs(
+async def get_logs(
     limit: int = Query(50, ge=1, le=1000),
     days: int = Query(7, ge=1, le=90),
     current_user: Dict = Depends(get_super_admin),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    admin_service: AdminService = Depends(get_admin_service)
 ):
     """
-    Get system logs for monitoring
+    Get system logs for monitoring (alias for /system-logs with days param)
     
     Args:
         limit: Maximum number of logs to return (1-1000)
         days: Number of days to look back (1-90)
     """
     try:
-        # Calculate date threshold
-        date_threshold = datetime.now(timezone.utc) - timedelta(days=days)
-        
-        # Query sync logs (from Enterprise sync operations)
-        sync_logs = await db.sync_logs.find(
-            {"timestamp": {"$gte": date_threshold.isoformat()}},
-            {"_id": 0}
-        ).sort("timestamp", -1).limit(limit).to_list(limit)
-        
-        # You can also add other log sources here
-        # For now, return sync logs as system logs
-        
-        return {
-            "logs": sync_logs,
-            "total": len(sync_logs),
-            "days": days,
-            "limit": limit
-        }
+        hours = days * 24
+        return await admin_service.get_system_logs(hours=hours, limit=limit)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
