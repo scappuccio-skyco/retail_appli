@@ -227,6 +227,9 @@ function AppContent() {
         <Route path="/register/manager/:token" element={<RegisterManager />} />
         <Route path="/register/seller/:token" element={<RegisterSeller />} />
         
+        {/* Invitation Page - Public */}
+        <Route path="/invitation/:token" element={<InvitationPage />} />
+        
         {/* Dashboard - Protected */}
         <Route
           path="/dashboard"
