@@ -24,8 +24,17 @@ app = FastAPI(
     redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None
 )
 
-# Configure CORS
-allowed_origins = settings.CORS_ORIGINS.split(",") if "," in settings.CORS_ORIGINS else [settings.CORS_ORIGINS]
+# Configure CORS - CRITICAL for production
+# Parse CORS origins from environment
+if settings.CORS_ORIGINS == "*":
+    # Wildcard not allowed with credentials
+    logger.warning("CORS_ORIGINS set to '*' - this is insecure and may not work with credentials!")
+    allowed_origins = ["*"]
+else:
+    # Parse comma-separated list and strip whitespace
+    allowed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
+
+logger.info(f"CORS allowed origins: {allowed_origins}")
 
 app.add_middleware(
     CORSMiddleware,
