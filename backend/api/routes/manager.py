@@ -75,7 +75,10 @@ async def get_subscription_status(
                 else:
                     trial_end_dt = trial_end
                 
+                # Gérer les dates naive vs aware
                 now = datetime.now(timezone.utc)
+                if trial_end_dt.tzinfo is None:
+                    trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
                 
                 if now < trial_end_dt:
                     days_left = (trial_end_dt - now).days
