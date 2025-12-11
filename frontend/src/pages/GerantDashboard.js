@@ -901,25 +901,25 @@ const GerantDashboard = ({ user, onLogout }) => {
 
         {/* Mes Magasins */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              <Building2 className="w-6 h-6 text-orange-600" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
               Mes Magasins
             </h2>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               <button
                 onClick={() => setShowInviteStaffModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm sm:text-base font-semibold rounded-xl hover:shadow-lg transition-all"
               >
-                <Users className="w-5 h-5" />
-                Inviter du Personnel
+                <Users className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden xs:inline">Inviter du</span> Personnel
               </button>
               <button
                 onClick={() => setShowCreateStoreModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm sm:text-base font-semibold rounded-xl hover:shadow-lg transition-all"
               >
-                <Plus className="w-5 h-5" />
-                Nouveau Magasin
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden xs:inline">Nouveau</span> Magasin
               </button>
             </div>
           </div>
