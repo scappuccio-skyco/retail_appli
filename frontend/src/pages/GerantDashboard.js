@@ -691,11 +691,18 @@ const GerantDashboard = ({ user, onLogout }) => {
                 <div className="flex-1">
                   <p className="text-sm text-gray-600">Managers actifs</p>
                   <p className="text-2xl font-bold text-gray-800">{globalStats?.total_managers || 0}</p>
-                  {globalStats?.suspended_managers > 0 && (
-                    <p className="text-xs text-orange-600 mt-1">
-                      {globalStats.suspended_managers} en veille
-                    </p>
-                  )}
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {pendingInvitations.managers > 0 && (
+                      <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                        +{pendingInvitations.managers} en attente
+                      </span>
+                    )}
+                    {globalStats?.suspended_managers > 0 && (
+                      <span className="text-xs text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">
+                        {globalStats.suspended_managers} en veille
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -709,11 +716,18 @@ const GerantDashboard = ({ user, onLogout }) => {
                 <div className="flex-1">
                   <p className="text-sm text-gray-600">Vendeurs actifs</p>
                   <p className="text-2xl font-bold text-gray-800">{globalStats?.total_sellers || 0}</p>
-                  {globalStats?.suspended_sellers > 0 && (
-                    <p className="text-xs text-orange-600 mt-1">
-                      {globalStats.suspended_sellers} en veille
-                    </p>
-                  )}
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {pendingInvitations.sellers > 0 && (
+                      <span className="text-xs text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
+                        +{pendingInvitations.sellers} en attente
+                      </span>
+                    )}
+                    {globalStats?.suspended_sellers > 0 && (
+                      <span className="text-xs text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">
+                        {globalStats.suspended_sellers} en veille
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
