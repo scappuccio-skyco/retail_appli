@@ -192,10 +192,11 @@ class AuthService:
         
         await self.user_repo.insert_one(user)
         
-        # Mark invitation as used
-        await self.db.invitations.update_one(
+        # Mark invitation as used in the correct collection
+        collection = self.db.gerant_invitations if invitation_collection == "gerant_invitations" else self.db.invitations
+        await collection.update_one(
             {"token": invitation_token},
-            {"$set": {"status": "accepted", "used_at": datetime.now(timezone.utc)}}
+            {"$set": {"status": "accepted", "used_at": datetime.now(timezone.utc).isoformat()}}
         )
         
         # Generate token
