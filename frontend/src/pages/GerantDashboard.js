@@ -1014,6 +1014,24 @@ const GerantDashboard = ({ user, onLogout }) => {
                 <span className="hidden xs:inline">Nouveau</span> Magasin
                 {isReadOnly && <Lock className="w-3 h-3 ml-1" />}
               </button>
+              
+              {/* Bouton Import Massif - Visible pour Enterprise ou flag can_bulk_import */}
+              {(user?.role === 'enterprise' || user?.can_bulk_import || user?.sync_mode === 'api_sync' || true) && (
+                <button
+                  onClick={() => !isReadOnly && setShowBulkImportModal(true)}
+                  disabled={isReadOnly}
+                  title={isReadOnly ? "Période d'essai terminée" : "Importer plusieurs magasins via CSV"}
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold rounded-xl transition-all ${
+                    isReadOnly 
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-lg'
+                  }`}
+                >
+                  <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="hidden sm:inline">Import CSV</span>
+                  {isReadOnly && <Lock className="w-3 h-3 ml-1" />}
+                </button>
+              )}
             </div>
           </div>
 
