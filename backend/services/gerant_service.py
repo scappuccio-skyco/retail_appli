@@ -140,6 +140,9 @@ class GerantService:
         """Create a new store for a gérant"""
         from uuid import uuid4
         
+        # === GUARD CLAUSE: Check subscription access ===
+        await self.check_gerant_active_access(gerant_id)
+        
         name = store_data.get('name')
         if not name:
             raise ValueError("Le nom du magasin est requis")
