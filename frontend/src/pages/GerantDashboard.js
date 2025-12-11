@@ -1104,8 +1104,8 @@ const GerantDashboard = ({ user, onLogout }) => {
           isOpen={showBulkImportModal}
           onClose={() => setShowBulkImportModal(false)}
           onSuccess={() => {
-            // Recharger la liste des magasins après import réussi
-            fetchStores();
+            // Recharger toutes les données du dashboard après import réussi
+            fetchDashboardData();
             toast.success('Liste des magasins mise à jour');
           }}
         />
