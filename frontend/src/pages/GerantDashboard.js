@@ -658,6 +658,27 @@ const GerantDashboard = ({ user, onLogout }) => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* === BANNIÈRE MODE LECTURE SEULE === */}
+        {isReadOnly && (
+          <div className="mb-6 bg-amber-50 border-2 border-amber-300 rounded-xl p-4 flex items-center gap-3">
+            <div className="p-2 bg-amber-100 rounded-lg">
+              <Lock className="w-6 h-6 text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-amber-800">Mode lecture seule</h3>
+              <p className="text-amber-700 text-sm">
+                Votre période d'essai est terminée. Souscrivez à un abonnement pour débloquer toutes les fonctionnalités.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowSubscriptionModal(true)}
+              className="px-4 py-2 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors"
+            >
+              Voir les offres
+            </button>
+          </div>
+        )}
+
         {activeView === 'api' ? (
           <APIKeysManagement />
         ) : activeView === 'staff' ? (
