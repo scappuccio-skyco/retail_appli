@@ -331,11 +331,11 @@ class ManagerDashboardAndSuperAdminTester:
         """Test authentication and authorization security"""
         print("\n🔒 TESTING AUTHENTICATION SECURITY")
         
-        # Test 1: Access gérant endpoint without token
+        # Test 1: Access manager endpoint without token
         success, response = self.run_test(
-            "Gérant Endpoint - No Auth (Expected 403)",
+            "Manager Endpoint - No Auth (Expected 403)",
             "GET",
-            "gerant/dashboard/stats",
+            "manager/store-kpi-overview",
             403
         )
         
@@ -343,18 +343,18 @@ class ManagerDashboardAndSuperAdminTester:
         success, response = self.run_test(
             "SuperAdmin Endpoint - No Auth (Expected 403)",
             "GET",
-            "superadmin/workspaces",
+            "superadmin/subscriptions/overview",
             403
         )
         
-        # Test 3: Access superadmin endpoint with gérant token (should fail)
-        if self.gerant_token:
+        # Test 3: Access superadmin endpoint with manager token (should fail)
+        if self.manager_token:
             success, response = self.run_test(
-                "SuperAdmin Endpoint - Gérant Token (Expected 403)",
+                "SuperAdmin Endpoint - Manager Token (Expected 403)",
                 "GET",
-                "superadmin/workspaces",
+                "superadmin/subscriptions/overview",
                 403,
-                token=self.gerant_token
+                token=self.manager_token
             )
 
     def test_clean_architecture_endpoints(self):
