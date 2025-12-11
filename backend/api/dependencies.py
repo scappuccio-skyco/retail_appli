@@ -141,6 +141,25 @@ def get_seller_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> SellerServ
     return SellerService(db)
 
 
+# Integration Service
+from services.integration_service import IntegrationService
+from repositories.integration_repository import IntegrationRepository
+
+def get_integration_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> IntegrationService:
+    """
+    Get IntegrationService instance with database dependency
+    
+    Usage in routes:
+        @router.post("/api-keys")
+        async def create_key(
+            integration_service: IntegrationService = Depends(get_integration_service)
+        ):
+            return await integration_service.create_api_key(...)
+    """
+    integration_repo = IntegrationRepository(db)
+    return IntegrationService(integration_repo)
+
+
 # Note: Add more service dependencies here as needed:
 # - get_challenge_service()
 # etc.
