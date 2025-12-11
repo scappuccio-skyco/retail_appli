@@ -142,8 +142,29 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [storeName, setStoreName] = useState('');
   
   // Onboarding logic
-  const { isReadOnly } = useSyncMode();
+  const { isReadOnly, isSubscriptionExpired } = useSyncMode();
   const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
+  
+  // Fonction pour ouvrir le modal KPI avec vérification de l'abonnement
+  const handleOpenKPIModal = (entry = null) => {
+    if (isSubscriptionExpired) {
+      toast.error("Abonnement magasin suspendu. Contactez votre gérant.", {
+        duration: 4000,
+        icon: '🔒'
+      });
+      return;
+    }
+    if (isReadOnly) {
+      toast.info("Mode lecture seule - Saisie KPI désactivée", {
+        duration: 3000
+      });
+      return;
+    }
+    if (entry) {
+      setEditingKPI(entry);
+    }
+    setShowKPIModal(true);
+  };
   
   // Detect KPI mode for adaptive onboarding
   useEffect(() => {
