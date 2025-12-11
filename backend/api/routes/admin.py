@@ -19,69 +19,13 @@ def get_admin_service(db = Depends(get_db)) -> AdminService:
 
 
 @router.get("/workspaces")
-async def get_all_workspaces(
+async def get_workspaces(
     current_user: Dict = Depends(get_super_admin),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    admin_service: AdminService = Depends(get_admin_service)
 ):
-    """Get all workspaces with hierarchy (stores, managers, sellers)"""
+    """Get all workspaces with details"""
     try:
-        workspaces = await db.workspaces.find({}, {"_id": 0}).to_list(1000)
-        
-        for workspace in workspaces:
-            # Get gérant info
-            if workspace.get('gerant_id'):
-                gerant = await db.users.find_one(
-                    {"id": workspace['gerant_id']},
-                    {"_id": 0, "password": 0}
-                )
-                workspace['gerant'] = gerant
-            
-            # Get stores for this workspace
-            stores = await db.stores.find(
-                {"gerant_id": workspace.get('gerant_id')},
-                {"_id": 0}
-            ).to_list(100)
-            
-            workspace['stores'] = stores
-            workspace['stores_count'] = len(stores)
-            
-            # Get users count
-            managers_count = await db.users.count_documents({
-                "gerant_id": workspace.get('gerant_id'),
-                "role": "manager"
-            })
-            sellers_count = await db.users.count_documents({
-                "gerant_id": workspace.get('gerant_id'),
-                "role": "seller"
-            })
-            
-            workspace['managers_count'] = managers_count
-            workspace['sellers_count'] = sellers_count
-            
-            # CRITICAL: FORCE subscription object - NEVER null, NEVER undefined
-            # Frontend WILL crash if subscription or subscription.plan is missing
-            # This MUST be an object with a plan field, no exceptions
-            
-            # Start with default values
-            default_subscription = {
-                "plan": "free",
-                "status": "active",
-                "created_at": workspace.get('created_at'),
-                "trial_ends_at": workspace.get('trial_ends_at')
-            }
-            
-            # If workspace has subscription data in DB, use it
-            if workspace.get('subscription') and isinstance(workspace['subscription'], dict):
-                # Subscription exists as dict, ensure it has plan field
-                workspace['subscription']['plan'] = workspace['subscription'].get('plan') or workspace.get('subscription_plan', 'free')
-                workspace['subscription']['status'] = workspace['subscription'].get('status') or workspace.get('subscription_status', 'active')
-            else:
-                # No subscription or it's null/invalid, force default
-                workspace['subscription'] = default_subscription
-                workspace['subscription']['plan'] = workspace.get('subscription_plan', 'free')
-                workspace['subscription']['status'] = workspace.get('subscription_status', 'active')
-        
-        return workspaces
+        return await admin_service.get_workspaces_with_details()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
