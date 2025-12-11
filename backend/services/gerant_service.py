@@ -29,6 +29,140 @@ class GerantService:
         )
         return stores
     
+    async def create_store(self, store_data: Dict, gerant_id: str) -> Dict:
+        """Create a new store for a gérant"""
+        from uuid import uuid4
+        
+        name = store_data.get('name')
+        if not name:
+            raise ValueError("Le nom du magasin est requis")
+        
+        # Check for duplicate name
+        existing = await self.store_repo.find_one({
+            "gerant_id": gerant_id,
+            "name": name,
+            "active": True
+        })
+        if existing:
+            raise ValueError("Un magasin avec ce nom existe déjà")
+        
+        store = {
+            "id": str(uuid4()),
+            "name": name,
+            "location": store_data.get('location', ''),
+            "address": store_data.get('address', ''),
+            "phone": store_data.get('phone', ''),
+            "opening_hours": store_data.get('opening_hours', ''),
+            "gerant_id": gerant_id,
+            "active": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await self.db.stores.insert_one(store)
+        
+        # Remove _id for return
+        store.pop('_id', None)
+        return store
+    
+    async def delete_store(self, store_id: str, gerant_id: str) -> Dict:
+        """Soft delete a store (set active=False)"""
+        store = await self.store_repo.find_one({
+            "id": store_id,
+            "gerant_id": gerant_id
+        })
+        
+        if not store:
+            raise ValueError("Magasin non trouvé")
+        
+        # Soft delete - set active to False
+        await self.db.stores.update_one(
+            {"id": store_id},
+            {"$set": {
+                "active": False,
+                "deleted_at": datetime.now(timezone.utc).isoformat(),
+                "deleted_by": gerant_id
+            }}
+        )
+        
+        # Suspend all staff in this store
+        await self.db.users.update_many(
+            {"store_id": store_id, "status": "active"},
+            {"$set": {
+                "status": "suspended",
+                "suspended_reason": "Store deleted",
+                "suspended_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return {"message": "Magasin supprimé avec succès"}
+    
+    async def update_store(self, store_id: str, store_data: Dict, gerant_id: str) -> Dict:
+        """Update store information"""
+        store = await self.store_repo.find_one({
+            "id": store_id,
+            "gerant_id": gerant_id,
+            "active": True
+        })
+        
+        if not store:
+            raise ValueError("Magasin non trouvé ou inactif")
+        
+        update_fields = {}
+        for field in ['name', 'location', 'address', 'phone', 'opening_hours']:
+            if field in store_data:
+                update_fields[field] = store_data[field]
+        
+        if update_fields:
+            update_fields['updated_at'] = datetime.now(timezone.utc).isoformat()
+            await self.db.stores.update_one(
+                {"id": store_id},
+                {"$set": update_fields}
+            )
+        
+        # Return updated store
+        updated_store = await self.store_repo.find_one({"id": store_id}, {"_id": 0})
+        return updated_store
+    
+    async def transfer_manager_to_store(self, manager_id: str, transfer_data: Dict, gerant_id: str) -> Dict:
+        """Transfer a manager to another store"""
+        new_store_id = transfer_data.get('new_store_id')
+        if not new_store_id:
+            raise ValueError("new_store_id est requis")
+        
+        # Verify manager belongs to this gérant
+        manager = await self.user_repo.find_one({
+            "id": manager_id,
+            "gerant_id": gerant_id,
+            "role": "manager"
+        })
+        if not manager:
+            raise ValueError("Manager non trouvé")
+        
+        # Verify new store belongs to this gérant and is active
+        new_store = await self.store_repo.find_one({
+            "id": new_store_id,
+            "gerant_id": gerant_id,
+            "active": True
+        })
+        if not new_store:
+            raise ValueError("Nouveau magasin non trouvé ou inactif")
+        
+        # Update manager's store
+        await self.db.users.update_one(
+            {"id": manager_id},
+            {"$set": {
+                "store_id": new_store_id,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return {
+            "message": f"Manager transféré vers {new_store.get('name')}",
+            "manager_id": manager_id,
+            "new_store_id": new_store_id
+        }
+    
     async def get_all_managers(self, gerant_id: str) -> list:
         """Get all managers (active and suspended, excluding deleted)"""
         managers = await self.user_repo.find_many(
