@@ -160,6 +160,23 @@ def get_integration_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> Integ
     return IntegrationService(integration_repo)
 
 
+# API Key Service (for manager routes)
+from services.manager_service import APIKeyService
+
+def get_api_key_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> APIKeyService:
+    """
+    Get APIKeyService instance with database dependency
+    
+    Usage in routes:
+        @router.post("/api-keys")
+        async def create_key(
+            api_key_service: APIKeyService = Depends(get_api_key_service)
+        ):
+            return await api_key_service.create_api_key(...)
+    """
+    return APIKeyService(db)
+
+
 # Note: Add more service dependencies here as needed:
 # - get_challenge_service()
 # etc.
