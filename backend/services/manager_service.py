@@ -205,3 +205,229 @@ class DiagnosticService:
         )
         
         return diagnostic
+
+
+class APIKeyService:
+    """Service for API key management operations"""
+    
+    def __init__(self, db):
+        self.db = db
+    
+    async def create_api_key(
+        self,
+        user_id: str,
+        store_id: Optional[str],
+        gerant_id: Optional[str],
+        name: str,
+        permissions: List[str],
+        store_ids: Optional[List[str]] = None,
+        expires_days: Optional[int] = None
+    ) -> Dict:
+        """
+        Create a new API key
+        
+        Args:
+            user_id: User ID owning the key
+            store_id: Store ID (for manager)
+            gerant_id: Gérant ID (if applicable)
+            name: Friendly name for the key
+            permissions: List of permissions
+            store_ids: Optional list of specific store IDs
+            expires_days: Optional expiration in days
+            
+        Returns:
+            Dict with key details (including the key itself, shown only once)
+        """
+        from uuid import uuid4
+        import secrets
+        
+        # Generate secure API key
+        random_part = secrets.token_urlsafe(32)
+        api_key = f"rp_live_{random_part}"
+        
+        # Calculate expiration
+        expires_at = None
+        if expires_days:
+            expires_at = (datetime.now(timezone.utc) + timedelta(days=expires_days)).isoformat()
+        
+        # Create record
+        key_id = str(uuid4())
+        key_record = {
+            "id": key_id,
+            "user_id": user_id,
+            "store_id": store_id,
+            "gerant_id": gerant_id,
+            "key": api_key,
+            "name": name,
+            "permissions": permissions,
+            "store_ids": store_ids,
+            "active": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "last_used_at": None,
+            "expires_at": expires_at
+        }
+        
+        await self.db.api_keys.insert_one(key_record)
+        
+        return {
+            "id": key_id,
+            "name": name,
+            "key": api_key,  # Only shown at creation
+            "permissions": permissions,
+            "active": True,
+            "created_at": key_record["created_at"],
+            "last_used_at": None,
+            "expires_at": expires_at,
+            "store_ids": store_ids
+        }
+    
+    async def list_api_keys(self, user_id: str) -> Dict:
+        """
+        List all API keys for a user (without the actual key value)
+        
+        Args:
+            user_id: User ID
+            
+        Returns:
+            Dict with api_keys list
+        """
+        keys = await self.db.api_keys.find(
+            {"user_id": user_id},
+            {"_id": 0, "key": 0}  # Don't return _id or actual key
+        ).to_list(100)
+        
+        return {"api_keys": keys}
+    
+    async def deactivate_api_key(self, key_id: str, user_id: str) -> Dict:
+        """
+        Deactivate an API key (soft delete)
+        
+        Args:
+            key_id: API key ID
+            user_id: User ID for ownership verification
+            
+        Returns:
+            Success message
+            
+        Raises:
+            ValueError: If key not found
+        """
+        # Verify ownership
+        key = await self.db.api_keys.find_one({"id": key_id, "user_id": user_id})
+        if not key:
+            raise ValueError("API key not found")
+        
+        # Deactivate instead of delete (for audit)
+        await self.db.api_keys.update_one(
+            {"id": key_id},
+            {"$set": {"active": False, "deleted_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        return {"message": "API key deactivated successfully"}
+    
+    async def regenerate_api_key(self, key_id: str, user_id: str) -> Dict:
+        """
+        Regenerate an API key (creates new key, deactivates old)
+        
+        Args:
+            key_id: API key ID
+            user_id: User ID for ownership verification
+            
+        Returns:
+            New key details
+            
+        Raises:
+            ValueError: If key not found
+        """
+        from uuid import uuid4
+        import secrets
+        
+        # Find old key
+        old_key = await self.db.api_keys.find_one({"id": key_id, "user_id": user_id})
+        if not old_key:
+            raise ValueError("API key not found")
+        
+        # Deactivate old key
+        await self.db.api_keys.update_one(
+            {"id": key_id},
+            {"$set": {"active": False, "regenerated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        # Generate new key
+        random_part = secrets.token_urlsafe(32)
+        new_api_key = f"rp_live_{random_part}"
+        new_key_id = str(uuid4())
+        
+        new_key_record = {
+            "id": new_key_id,
+            "user_id": user_id,
+            "store_id": old_key.get('store_id'),
+            "gerant_id": old_key.get('gerant_id'),
+            "key": new_api_key,
+            "name": old_key['name'],
+            "permissions": old_key['permissions'],
+            "store_ids": old_key.get('store_ids'),
+            "active": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "last_used_at": None,
+            "expires_at": old_key.get('expires_at'),
+            "previous_key_id": key_id
+        }
+        
+        await self.db.api_keys.insert_one(new_key_record)
+        
+        return {
+            "id": new_key_id,
+            "name": new_key_record["name"],
+            "key": new_api_key,  # Only shown at regeneration
+            "permissions": new_key_record["permissions"],
+            "active": True,
+            "created_at": new_key_record["created_at"],
+            "last_used_at": None,
+            "expires_at": new_key_record.get("expires_at"),
+            "store_ids": new_key_record.get("store_ids")
+        }
+    
+    async def delete_api_key_permanent(
+        self,
+        key_id: str,
+        user_id: str,
+        role: str
+    ) -> Dict:
+        """
+        Permanently delete an inactive API key
+        
+        Args:
+            key_id: API key ID
+            user_id: User ID for ownership verification
+            role: User role (manager, gerant)
+            
+        Returns:
+            Success message
+            
+        Raises:
+            ValueError: If key not found or not authorized
+        """
+        # Find the key
+        key = await self.db.api_keys.find_one({"id": key_id}, {"_id": 0})
+        
+        if not key:
+            raise ValueError("API key not found")
+        
+        # Verify ownership based on role
+        if role == 'manager':
+            if key.get('user_id') != user_id:
+                raise PermissionError("Not authorized to delete this key")
+        elif role in ['gerant', 'gérant']:
+            if key.get('gerant_id') != user_id:
+                raise PermissionError("Not authorized to delete this key")
+        
+        # Only allow deletion of inactive keys
+        if key.get('active'):
+            raise ValueError("Cannot permanently delete an active key. Deactivate it first.")
+        
+        # Permanently delete
+        await self.db.api_keys.delete_one({"id": key_id})
+        
+        return {"success": True, "message": "API key permanently deleted"}
+
