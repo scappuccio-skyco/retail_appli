@@ -692,3 +692,111 @@ async def create_gerant_checkout_session(
     except Exception as e:
         logger.error(f"Erreur création session checkout: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la création de la session: {str(e)}")
+
+
+
+# ===== BULK IMPORT STORES (Fusion Enterprise → Gérant) =====
+
+from typing import List
+
+class BulkStoreImportRequest(BaseModel):
+    """Request body pour l'import massif de magasins"""
+    stores: List[Dict]  # Liste de {name, location, address, phone, external_id}
+    mode: str = "create_or_update"  # "create_only" | "update_only" | "create_or_update"
+
+class BulkImportResponse(BaseModel):
+    """Response de l'import massif"""
+    success: bool
+    total_processed: int
+    created: int
+    updated: int
+    failed: int
+    errors: List[Dict] = []
+
+
+@router.post("/stores/import-bulk", response_model=BulkImportResponse)
+async def bulk_import_stores(
+    request: BulkStoreImportRequest,
+    current_user: dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """
+    Import massif de magasins pour un Gérant.
+    
+    Cette fonctionnalité était auparavant réservée à l'espace Enterprise.
+    Elle permet d'importer plusieurs magasins en une seule opération.
+    
+    Sécurité:
+    - Réservé aux Gérants avec abonnement actif
+    - Option future: limiter aux comptes avec flag 'can_bulk_import'
+    
+    Modes disponibles:
+    - create_only: Ne crée que les nouveaux magasins
+    - update_only: Ne met à jour que les magasins existants
+    - create_or_update: Crée ou met à jour selon l'existence
+    
+    Exemple de payload:
+    ```json
+    {
+        "stores": [
+            {"name": "Magasin Paris", "location": "Paris", "address": "123 rue..."},
+            {"name": "Magasin Lyon", "location": "Lyon"}
+        ],
+        "mode": "create_or_update"
+    }
+    ```
+    """
+    try:
+        # Vérifier que le gérant a un workspace
+        workspace_id = current_user.get('workspace_id')
+        if not workspace_id:
+            raise HTTPException(
+                status_code=400, 
+                detail="Aucun espace de travail associé. Créez d'abord un magasin manuellement."
+            )
+        
+        # Validation du mode
+        if request.mode not in ["create_only", "update_only", "create_or_update"]:
+            raise HTTPException(
+                status_code=400,
+                detail="Mode invalide. Utilisez: create_only, update_only, ou create_or_update"
+            )
+        
+        # Validation des données
+        if not request.stores:
+            raise HTTPException(
+                status_code=400,
+                detail="La liste des magasins est vide"
+            )
+        
+        if len(request.stores) > 500:
+            raise HTTPException(
+                status_code=400,
+                detail="Maximum 500 magasins par import. Divisez votre fichier."
+            )
+        
+        # Exécuter l'import
+        results = await gerant_service.bulk_import_stores(
+            gerant_id=current_user['id'],
+            workspace_id=workspace_id,
+            stores=request.stores,
+            mode=request.mode
+        )
+        
+        logger.info(f"✅ Import massif par {current_user['email']}: {results['created']} créés, {results['updated']} mis à jour, {results['failed']} échecs")
+        
+        return BulkImportResponse(
+            success=results['failed'] == 0,
+            total_processed=results['total_processed'],
+            created=results['created'],
+            updated=results['updated'],
+            failed=results['failed'],
+            errors=results['errors'][:20]  # Limiter les erreurs retournées
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur import massif: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'import: {str(e)}")
+
