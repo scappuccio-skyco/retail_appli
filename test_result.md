@@ -1697,3 +1697,27 @@ agent_communication:
 - api/routes/manager.py: 8 violations
 - api/routes/ai.py: 3 violations
 
+
+  - task: "Manager Dashboard 404 Errors Fix"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/api/routes/manager.py, /app/backend/api/routes/sellers.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "MANAGER DASHBOARD FIX APPLIED: 1) Removed duplicate verify_manager_or_gerant function from manager.py (was defined at line 23-27 and again at line 338-342). 2) Backend successfully restarted with 16 routes for /manager. Ready for testing login as Manager (y.legoff@skyco.fr / TestDemo123!) and verify dashboard loads without 404 errors."
+
+  - task: "SuperAdmin Subscriptions Details Endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/api/routes/admin.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW ENDPOINT ADDED: GET /api/superadmin/subscriptions/{gerant_id}/details - Returns detailed subscription info for a specific gérant including: gerant info, subscription details, sellers count (active/suspended/total), recent transactions, and AI credits usage. This fixes the 404 error in StripeSubscriptionsView.js when clicking to expand a gérant's details. Ready for testing as SuperAdmin (superadmin-e1@test.com / TestSuper123!)."
