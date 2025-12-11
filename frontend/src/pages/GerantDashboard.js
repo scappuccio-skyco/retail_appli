@@ -149,7 +149,7 @@ const GerantDashboard = ({ user, onLogout }) => {
       );
       
       const weekPromises = storesList.map(store =>
-        fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=week&period_offset=-1`, {
+        fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=week&period_offset=-2`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }).then(res => res.json())
       );
