@@ -176,6 +176,10 @@ async def get_dates_with_data(
     """
     Get list of dates that have KPI data for the manager's store
     Used for calendar highlighting
+    
+    Returns:
+        - dates: list of dates with any KPI data
+        - lockedDates: list of dates with locked/validated KPI entries (from API/POS)
     """
     store_id = current_user.get('store_id')
     if not store_id:
@@ -198,7 +202,14 @@ async def get_dates_with_data(
     
     all_dates = sorted(set(dates) | set(manager_dates))
     
-    return {"dates": all_dates}
+    # Get locked dates (from API/POS imports - cannot be edited manually)
+    locked_query = {**query, "locked": True}
+    locked_dates = await db.kpi_entries.distinct("date", locked_query)
+    
+    return {
+        "dates": all_dates,
+        "lockedDates": sorted(locked_dates)
+    }
 
 
 @router.get("/available-years")
