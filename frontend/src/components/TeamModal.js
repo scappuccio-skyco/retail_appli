@@ -1454,19 +1454,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
         />
       )}
 
-      {/* Modal de confirmation */}
-      <ConfirmActionModal
-        isOpen={confirmModal.isOpen}
-        onClose={() => setConfirmModal({ isOpen: false, action: null, seller: null })}
-        onConfirm={() => {
-          // Actions de suspension/suppression retirées - Réservées au Gérant
-          if (confirmModal.action === 'reactivate') {
-            handleReactivate(confirmModal.seller.id);
-          }
-        }}
-        action={confirmModal.action}
-        sellerName={confirmModal.seller?.name}
-      />
+      {/* Modal de confirmation - RETIRÉ - Actions de gestion des vendeurs réservées exclusivement au Gérant */}
     </div>
   );
 }
