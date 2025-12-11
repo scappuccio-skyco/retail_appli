@@ -185,6 +185,7 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
               {days.map((day, index) => {
                 const dayDate = day ? formatDate(new Date(year, month, day)) : null;
                 const dataExists = day && hasData(dayDate);
+                const locked = day && isLocked(dayDate);
                 const selected = isSelectedDay(day);
                 const today = isToday(day);
 
@@ -193,17 +194,26 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
                     key={index}
                     onClick={() => handleDayClick(day)}
                     disabled={!day}
+                    title={locked ? "Données importées (non modifiable)" : ""}
                     className={`
                       relative h-7 text-xs rounded-md transition-all
                       ${!day ? 'invisible' : ''}
                       ${selected ? 'bg-purple-600 text-white font-bold ring-2 ring-purple-400 ring-offset-1' : ''}
                       ${!selected && today ? 'border-2 border-purple-600 font-bold text-purple-600' : ''}
-                      ${!selected && !today && dataExists ? 'bg-green-100 text-green-800 font-semibold hover:bg-green-200' : ''}
-                      ${!selected && !today && !dataExists ? 'text-gray-700 hover:bg-gray-100' : ''}
+                      ${!selected && !today && locked ? 'bg-amber-100 text-amber-800 font-semibold hover:bg-amber-200' : ''}
+                      ${!selected && !today && dataExists && !locked ? 'bg-green-100 text-green-800 font-semibold hover:bg-green-200' : ''}
+                      ${!selected && !today && !dataExists && !locked ? 'text-gray-700 hover:bg-gray-100' : ''}
                     `}
                   >
                     {day}
-                    {dataExists && !selected && (
+                    {/* Indicateur cadenas pour les jours verrouillés */}
+                    {locked && !selected && (
+                      <div className="absolute -top-0.5 -right-0.5">
+                        <Lock className="w-2.5 h-2.5 text-amber-600" />
+                      </div>
+                    )}
+                    {/* Dot pour les jours avec données (non verrouillés) */}
+                    {dataExists && !locked && !selected && (
                       <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2">
                         <div className="w-1 h-1 bg-green-600 rounded-full"></div>
                       </div>
