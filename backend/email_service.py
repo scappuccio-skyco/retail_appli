@@ -10,7 +10,7 @@ SENDER_NAME = os.environ.get('SENDER_NAME', 'Retail Performer AI')
 
 def get_frontend_url():
     """Get frontend URL from environment, ensuring it's always fresh"""
-    return os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+    return os.environ.get('FRONTEND_URL', 'https://retailperformerai.com')
 
 
 def get_brevo_api_instance():
