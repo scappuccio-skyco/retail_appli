@@ -141,28 +141,42 @@ const GerantDashboard = ({ user, onLogout }) => {
     try {
       const token = localStorage.getItem('token');
       
-      // Pour les cartes, afficher l'année en cours (données complètes)
-      const storesStatsPromises = storesList.map(store =>
+      // Récupérer deux jeux de données: année courante ET dernière semaine complète
+      const yearPromises = storesList.map(store =>
         fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=year&period_offset=0`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }).then(res => res.json())
       );
       
-      const storesStatsArray = await Promise.all(storesStatsPromises);
+      const weekPromises = storesList.map(store =>
+        fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=week&period_offset=-1`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).then(res => res.json())
+      );
+      
+      const [yearStatsArray, weekStatsArray] = await Promise.all([
+        Promise.all(yearPromises),
+        Promise.all(weekPromises)
+      ]);
+      
       const statsMap = {};
-      storesStatsArray.forEach((stats, index) => {
-        // Map API response to StoreCard expected format
-        statsMap[storesList[index].id] = {
-          managers_count: stats.managers_count || 0,
-          sellers_count: stats.sellers_count || 0,
-          month_ca: stats.period?.ca || 0,
-          month_ventes: stats.period?.ventes || 0,
-          period_ca: stats.period?.ca || 0,
-          period_ventes: stats.period?.ventes || 0,
-          prev_period_ca: stats.previous_period?.ca || 0,
-          week_ca: stats.period?.ca || 0,
-          today_ca: stats.today?.total_ca || 0,
-          today_ventes: stats.today?.total_ventes || 0
+      storesList.forEach((store, index) => {
+        const yearStats = yearStatsArray[index];
+        const weekStats = weekStatsArray[index];
+        
+        statsMap[store.id] = {
+          managers_count: yearStats.managers_count || 0,
+          sellers_count: yearStats.sellers_count || 0,
+          // Données annuelles pour "CA Année"
+          month_ca: yearStats.period?.ca || 0,
+          month_ventes: yearStats.period?.ventes || 0,
+          // Données hebdomadaires pour "Dernière semaine complète"
+          period_ca: weekStats.period?.ca || 0,
+          period_ventes: weekStats.period?.ventes || 0,
+          prev_period_ca: weekStats.previous_period?.ca || 0,
+          week_ca: weekStats.period?.ca || 0,
+          today_ca: yearStats.today?.total_ca || 0,
+          today_ventes: yearStats.today?.total_ventes || 0
         };
       });
       setStoresStats(statsMap);
