@@ -150,16 +150,25 @@ class AuthService:
         Raises:
             Exception: If invitation invalid or expired
         """
-        # Find invitation
-        invitation = await self.db.invitations.find_one(
+        # Find invitation in gerant_invitations first
+        invitation = await self.db.gerant_invitations.find_one(
             {"token": invitation_token},
             {"_id": 0}
         )
+        invitation_collection = "gerant_invitations"
+        
+        # Fallback to old invitations collection
+        if not invitation:
+            invitation = await self.db.invitations.find_one(
+                {"token": invitation_token},
+                {"_id": 0}
+            )
+            invitation_collection = "invitations"
         
         if not invitation:
             raise Exception("Invitation invalide ou expirée")
         
-        if invitation['status'] != 'pending':
+        if invitation.get('status') != 'pending':
             raise Exception("Cette invitation a déjà été utilisée")
         
         # Verify email matches
