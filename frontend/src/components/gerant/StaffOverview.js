@@ -272,18 +272,32 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
         {/* Action Buttons */}
         <div className="flex gap-3">
           <button
-            onClick={onOpenInviteModal}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+            onClick={() => !isReadOnly && onOpenInviteModal()}
+            disabled={isReadOnly}
+            title={isReadOnly ? "Période d'essai terminée" : "Inviter du personnel"}
+            className={`flex items-center gap-2 px-4 py-2 font-semibold rounded-xl transition-all ${
+              isReadOnly 
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg'
+            }`}
           >
             <Users className="w-5 h-5" />
             Inviter du Personnel
+            {isReadOnly && <Lock className="w-3 h-3 ml-1" />}
           </button>
           <button
-            onClick={onOpenCreateStoreModal}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+            onClick={() => !isReadOnly && onOpenCreateStoreModal()}
+            disabled={isReadOnly}
+            title={isReadOnly ? "Période d'essai terminée" : "Créer un magasin"}
+            className={`flex items-center gap-2 px-4 py-2 font-semibold rounded-xl transition-all ${
+              isReadOnly 
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg'
+            }`}
           >
             <Building2 className="w-5 h-5" />
             Créer un Magasin
+            {isReadOnly && <Lock className="w-3 h-3 ml-1" />}
           </button>
         </div>
       </div>
