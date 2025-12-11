@@ -854,7 +854,7 @@ export default function SuperAdminDashboard() {
                     </div>
                     <div className="text-white font-medium mb-1">
                       <span className="px-2 py-1 bg-purple-600/30 rounded text-sm">
-                        {log.action.replace(/_/g, ' ').toUpperCase()}
+                        {(log.action || 'unknown').replace(/_/g, ' ').toUpperCase()}
                       </span>
                     </div>
                     {log.workspace_id && (
