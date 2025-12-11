@@ -1042,15 +1042,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                   >
                                     Voir historique
                                   </button>
-                                  {seller.status === 'suspended' && (
-                                    <button
-                                      onClick={() => setConfirmModal({ isOpen: true, action: 'reactivate', seller })}
-                                      className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors"
-                                      title="Réactiver"
-                                    >
-                                      <PlayCircle className="w-4 h-4" />
-                                    </button>
-                                  )}
+                                  {/* Réactivation réservée au Gérant - bouton retiré pour le Manager */}
                                 </div>
                               </td>
                             </tr>
