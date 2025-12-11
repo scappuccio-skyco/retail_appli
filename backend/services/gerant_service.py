@@ -1258,6 +1258,9 @@ class GerantService:
         from uuid import uuid4
         import os
         
+        # === GUARD CLAUSE: Check subscription access ===
+        await self.check_gerant_active_access(gerant_id)
+        
         name = invitation_data.get('name')
         email = invitation_data.get('email')
         role = invitation_data.get('role')
