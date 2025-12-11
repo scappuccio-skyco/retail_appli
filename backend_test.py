@@ -97,10 +97,10 @@ class ManagerDashboardAndSuperAdminTester:
             self.manager_user = response.get('user', {})
             print(f"   ✅ Manager logged in: {self.manager_user.get('email')}")
         
-        # Test SuperAdmin login (superadmin-e1@test.com / TestSuper123!)
+        # Test SuperAdmin login (s.cappuccio@retailperformerai.com / RetailPerformer2025!)
         superadmin_data = {
-            "email": "superadmin-e1@test.com",
-            "password": "TestSuper123!"
+            "email": "s.cappuccio@retailperformerai.com",
+            "password": "RetailPerformer2025!"
         }
         
         success, response = self.run_test(
