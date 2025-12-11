@@ -141,9 +141,9 @@ const GerantDashboard = ({ user, onLogout }) => {
     try {
       const token = localStorage.getItem('token');
       
-      // Pour les cartes, afficher le mois courant
+      // Pour les cartes, afficher le mois précédent (qui a plus de chances d'avoir des données)
       const storesStatsPromises = storesList.map(store =>
-        fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=month&period_offset=0`, {
+        fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=month&period_offset=-1`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }).then(res => res.json())
       );
