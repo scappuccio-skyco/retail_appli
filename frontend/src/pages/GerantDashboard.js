@@ -186,7 +186,13 @@ const GerantDashboard = ({ user, onLogout }) => {
       const rankingStatsArray = await Promise.all(rankingStatsPromises);
       const statsMap = {};
       rankingStatsArray.forEach((stats, index) => {
-        statsMap[storesList[index].id] = stats;
+        // Map API response to expected format for ranking
+        statsMap[storesList[index].id] = {
+          period_ca: stats.period?.ca || 0,
+          period_ventes: stats.period?.ventes || 0,
+          prev_period_ca: stats.previous_period?.ca || 0,
+          ca_evolution: stats.period?.ca_evolution || 0
+        };
       });
       setRankingStats(statsMap);
     } catch (err) {
