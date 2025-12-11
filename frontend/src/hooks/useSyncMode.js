@@ -5,6 +5,28 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 /**
+ * Décode le payload d'un JWT (sans vérification de signature)
+ * @param {string} token - Le JWT token
+ * @returns {object|null} - Le payload décodé ou null si erreur
+ */
+const decodeJWTPayload = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error('Error decoding JWT:', e);
+    return null;
+  }
+};
+
+/**
  * Hook pour vérifier si l'utilisateur est en mode synchronisation automatique (Enterprise)
  * ET si l'abonnement du gérant parent est actif.
  * 
@@ -29,14 +51,19 @@ export const useSyncMode = () => {
 
   useEffect(() => {
     const fetchSyncMode = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          setLoading(false);
-          return;
-        }
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-        // Récupérer le mode sync
+      // Décoder le JWT pour obtenir le rôle utilisateur
+      const payload = decodeJWTPayload(token);
+      const userRole = payload?.role || null;
+      console.log('🔐 useSyncMode - Decoded role from JWT:', userRole);
+
+      // Récupérer le mode sync (seulement pour les rôles qui en ont besoin)
+      try {
         const response = await axios.get(`${API}/manager/sync-mode`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -55,28 +82,29 @@ export const useSyncMode = () => {
       }
 
       // Vérifier le statut de l'abonnement du gérant parent (pour vendeurs/managers)
-      try {
-        const token = localStorage.getItem('token');
-        const userRole = localStorage.getItem('userRole');
-        
-        if (token && (userRole === 'seller' || userRole === 'manager')) {
+      if (userRole === 'seller' || userRole === 'manager') {
+        try {
           const endpoint = userRole === 'seller' 
             ? `${API}/seller/subscription-status`
             : `${API}/manager/subscription-status`;
+          
+          console.log('📡 useSyncMode - Fetching subscription status from:', endpoint);
           
           const subResponse = await axios.get(endpoint, {
             headers: { Authorization: `Bearer ${token}` }
           });
           
+          console.log('✅ useSyncMode - Subscription response:', subResponse.data);
+          
           setParentSubscriptionStatus(subResponse.data.status);
           setIsSubscriptionExpired(subResponse.data.isReadOnly === true);
+        } catch (error) {
+          console.error('Error fetching subscription status:', error);
+          // En cas d'erreur, on reste permissif (pas de blocage)
         }
-      } catch (error) {
-        console.error('Error fetching subscription status:', error);
-        // En cas d'erreur, on reste permissif (pas de blocage)
-      } finally {
-        setLoading(false);
       }
+      
+      setLoading(false);
     };
 
     fetchSyncMode();
