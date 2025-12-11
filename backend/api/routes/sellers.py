@@ -2,14 +2,63 @@
 Seller Routes
 API endpoints for seller-specific features (tasks, objectives, challenges)
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Dict, List
 
 from services.seller_service import SellerService
-from api.dependencies import get_seller_service
-from core.security import get_current_seller
+from api.dependencies import get_seller_service, get_db
+from core.security import get_current_seller, get_current_user
 
 router = APIRouter(prefix="/seller", tags=["Seller"])
+
+
+# ===== KPI ENABLED CHECK =====
+
+@router.get("/kpi-enabled")
+async def check_kpi_enabled(
+    store_id: str = Query(None),
+    current_user: Dict = Depends(get_current_user),
+    db = Depends(get_db)
+):
+    """
+    Check if KPI input is enabled for seller
+    Used to determine if sellers can input their own KPIs or if manager does it
+    """
+    # Allow sellers, managers, and gérants to check KPI status
+    if current_user['role'] not in ['seller', 'manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    SELLER_INPUT_KPIS = ['ca_journalier', 'nb_ventes', 'nb_clients', 'nb_articles', 'nb_prospects']
+    
+    # Determine manager_id or store_id to check
+    manager_id = None
+    effective_store_id = store_id
+    
+    if current_user['role'] == 'seller':
+        manager_id = current_user.get('manager_id')
+        if not manager_id:
+            return {"enabled": False, "seller_input_kpis": SELLER_INPUT_KPIS}
+    elif store_id and current_user['role'] in ['gerant', 'gérant']:
+        effective_store_id = store_id
+    elif current_user.get('store_id'):
+        effective_store_id = current_user['store_id']
+    elif current_user['role'] == 'manager':
+        manager_id = current_user['id']
+    
+    # Find config by store_id or manager_id
+    config = None
+    if effective_store_id:
+        config = await db.kpi_configs.find_one({"store_id": effective_store_id}, {"_id": 0})
+    if not config and manager_id:
+        config = await db.kpi_configs.find_one({"manager_id": manager_id}, {"_id": 0})
+    
+    if not config:
+        return {"enabled": False, "seller_input_kpis": SELLER_INPUT_KPIS}
+    
+    return {
+        "enabled": config.get('enabled', True),
+        "seller_input_kpis": SELLER_INPUT_KPIS
+    }
 
 
 # ===== TASKS =====
