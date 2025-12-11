@@ -14,7 +14,7 @@ const STORE_COLOR_CONFIG = [
   { name: 'indigo', from: '#6366f1', via: '#4f46e5', to: '#4338ca', accent: 'text-indigo-600 border-indigo-600' },
 ];
 
-const StoreDetailModal = ({ store, colorIndex = 0, onClose, onTransferManager, onTransferSeller, onDeleteStore, onRefresh }) => {
+const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, onTransferManager, onTransferSeller, onDeleteStore, onRefresh }) => {
   const colorConfig = STORE_COLOR_CONFIG[colorIndex % STORE_COLOR_CONFIG.length];
   const [activeTab, setActiveTab] = useState('performance');
   const [managers, setManagers] = useState([]);
