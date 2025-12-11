@@ -236,6 +236,17 @@ const GerantDashboard = ({ user, onLogout }) => {
           await fetchRankingData(data.stores);
         }
       }
+
+      // Récupérer les invitations en attente
+      const invitationsResponse = await fetch(`${backendUrl}/api/gerant/invitations`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (invitationsResponse.ok) {
+        const invitations = await invitationsResponse.json();
+        const pendingManagers = invitations.filter(inv => inv.status === 'pending' && inv.role === 'manager').length;
+        const pendingSellers = invitations.filter(inv => inv.status === 'pending' && inv.role === 'seller').length;
+        setPendingInvitations({ managers: pendingManagers, sellers: pendingSellers });
+      }
     } catch (error) {
       console.error('Erreur chargement données:', error);
     } finally {
