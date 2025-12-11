@@ -603,7 +603,11 @@ class GerantService:
                         else:
                             trial_end_dt = trial_end
                         
+                        # Gérer les dates naive vs aware
                         now = datetime.now(timezone.utc)
+                        if trial_end_dt.tzinfo is None:
+                            trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
+                        
                         days_left = max(0, (trial_end_dt - now).days)
                         
                         # Count active sellers
