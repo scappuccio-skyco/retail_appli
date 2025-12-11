@@ -135,6 +135,36 @@ backend:
         agent: "testing"
         comment: "INTEGRATION API ENDPOINTS TESTING COMPLETED SUCCESSFULLY - SUCCESS RATE 92.9% (13/14 tests passed): ✅ AUTHENTICATION: Login gérant.demo@test.fr successful, API key creation working with all permissions (write:stores, write:users, write:kpi, read:stats). ✅ STORE CREATION: POST /api/v1/integrations/stores creates store successfully with external_id 'STORE_TEST_001', returns store_id and complete store object. ✅ MANAGER CREATION: POST /api/v1/integrations/stores/{store_id}/managers creates manager successfully with external_id 'MGR_TEST_001', email manager.api.test@example.com, returns manager_id. ✅ SELLER CREATION: POST /api/v1/integrations/stores/{store_id}/sellers creates seller successfully with external_id 'SELLER_TEST_001', email seller.api.test@example.com, linked to created manager. ✅ USER UPDATE: PUT /api/v1/integrations/users/{user_id} updates seller name, phone, and external_id successfully. ✅ USER SUSPENSION: PUT /api/v1/integrations/users/{user_id} with status='suspended' successfully suspends seller. ✅ SECURITY VALIDATION: Correctly returns 401 without API key, 401 with invalid API key, 403 with insufficient permissions (read:stats only). ✅ API KEY MANAGEMENT: Creation of limited API keys working, permission validation enforced. ❌ Minor: Final verification via GET /api/v1/integrations/my-stores shows 4 stores but created store not found (possible timing/filtering issue). OVERALL: All 4 core integration endpoints working perfectly, external_id tracking functional, security properly implemented."
 
+  - task: "Manager Dashboard 404 Errors Fix"
+    implemented: true
+    working: true
+    file: "/app/backend/api/routes/manager.py, /app/backend/api/routes/sellers.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "MANAGER DASHBOARD 404 ERRORS FIX IMPLEMENTED: Fixed critical 404 errors preventing Manager Dashboard from loading properly. Key endpoints fixed: GET /api/manager/store-kpi-overview (returns KPI data for manager's store), GET /api/seller/kpi-enabled (checks if KPI input is enabled), GET /api/manager/sellers (lists sellers in manager's store), GET /api/manager/objectives/active (active objectives), GET /api/manager/challenges/active (active challenges). All endpoints now properly handle authentication, store assignment validation, and return correct data structures for dashboard components."
+      - working: true
+        agent: "testing"
+        comment: "MANAGER DASHBOARD 404 ERRORS FIX TESTING COMPLETED SUCCESSFULLY - 100% SUCCESS RATE (23/23 tests passed): ✅ AUTHENTICATION VERIFIED: Successfully authenticated with y.legoff@skyco.fr/TestDemo123! credentials as specified in review request. ✅ CRITICAL FIX #1 - STORE KPI OVERVIEW: GET /api/manager/store-kpi-overview returns 200 OK with complete data structure (date, store_id, totals, derived KPIs, sellers_submitted). Tested both current date and specific date (2025-12-05) - both working correctly. ✅ CRITICAL FIX #2 - SELLER KPI ENABLED: GET /api/seller/kpi-enabled returns 200 OK with proper structure (enabled: false, seller_input_kpis array). Works with and without store_id parameter. ✅ DASHBOARD COMPONENTS DATA: All supporting endpoints working - GET /api/manager/sellers (2 sellers found), GET /api/manager/objectives/active (0 objectives), GET /api/manager/challenges/active (0 challenges). ✅ SECURITY VERIFIED: All endpoints properly require authentication (403 without token), role-based access control working correctly. ✅ NO 404 ERRORS: All previously failing endpoints now return 200 OK instead of 404 Not Found. ✅ DATA STRUCTURES VALIDATED: All responses contain expected fields and proper data types for frontend consumption. The Manager Dashboard 404 errors have been completely resolved and all endpoints are production-ready."
+
+  - task: "SuperAdmin Subscriptions Details Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/api/routes/admin.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "SUPERADMIN SUBSCRIPTIONS DETAILS ENDPOINT IMPLEMENTED: Added new GET /api/superadmin/subscriptions/{gerant_id}/details endpoint for SuperAdmin Dashboard. Provides detailed subscription information including: gérant details (name, email, created_at), subscription object (status, plan, billing info), sellers count (active, suspended, total), recent transactions (last 20), AI credits usage. Endpoint supports proper authentication, error handling for invalid gérant IDs (404), and comprehensive data aggregation from multiple collections."
+      - working: true
+        agent: "testing"
+        comment: "SUPERADMIN SUBSCRIPTIONS DETAILS ENDPOINT TESTING COMPLETED SUCCESSFULLY - 100% SUCCESS RATE (23/23 tests passed): ✅ AUTHENTICATION VERIFIED: Successfully authenticated with superadmin-test@retailperformer.com/SuperAdmin123! credentials. ✅ NEW ENDPOINT WORKING: GET /api/superadmin/subscriptions/{gerant_id}/details returns 200 OK with complete data structure. Tested with real gérant ID (580eb001-a1a5-4c40-af4a-4fe19109c543) from subscriptions overview. ✅ COMPREHENSIVE DATA RETURNED: Gérant info (Directeur Skyco, gerant@skyco.fr), Sellers breakdown (2 active, 1 suspended, 14 total), Transactions (0 recent), AI Credits Used (10). ✅ ERROR HANDLING VERIFIED: Invalid gérant ID correctly returns 404 Not Found as expected. ✅ SUPPORTING ENDPOINTS: GET /api/superadmin/subscriptions/overview working (6 subscriptions found), GET /api/superadmin/workspaces (50 workspaces), GET /api/superadmin/stats - all returning proper data. ✅ SECURITY ENFORCED: All SuperAdmin endpoints require proper authentication (403 without token), role-based access control prevents manager access (403 with manager token). ✅ DATA STRUCTURE VALIDATED: All required fields present (gerant, subscription, sellers, transactions, ai_credits_used) with proper data types. The new SuperAdmin Subscriptions Details endpoint is fully functional and production-ready for the Abonnements tab in SuperAdmin Dashboard."
+
 frontend:
   - task: "Custom KPI Calendar Component Testing"
     implemented: true
