@@ -271,9 +271,10 @@ async def list_api_keys(
     
     db = database.get_db()
     
-    # Find keys
+    # Find keys - CRITICAL: Exclude _id to avoid MongoDB ObjectId serialization issues
     query = {"user_id": current_user['id']}
-    keys = await db.api_keys.find(query, {"_id": 0, "key": 0}).to_list(100)  # Don't return the actual key
+    keys_cursor = db.api_keys.find(query, {"_id": 0, "key": 0})  # Don't return _id or actual key
+    keys = await keys_cursor.to_list(100)
     
     return {"api_keys": keys}
 
