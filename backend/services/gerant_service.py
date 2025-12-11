@@ -1260,24 +1260,39 @@ class GerantService:
         </html>
         """
         
+        # Get sender email from environment
+        sender_email = env_vars.get('SENDER_EMAIL') or os.environ.get('SENDER_EMAIL', 'hello@retailperformerai.com')
+        sender_name = env_vars.get('SENDER_NAME') or os.environ.get('SENDER_NAME', 'Retail Performer AI')
+        
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
+                payload = {
+                    "sender": {"name": sender_name, "email": sender_email},
+                    "to": [{"email": invitation['email'], "name": invitation['name']}],
+                    "subject": f"🎉 Invitation à rejoindre {invitation['store_name']}",
+                    "htmlContent": email_content
+                }
+                
+                logger.info(f"📧 Sending email via Brevo:")
+                logger.info(f"   - From: {sender_name} <{sender_email}>")
+                logger.info(f"   - To: {invitation['name']} <{invitation['email']}>")
+                logger.info(f"   - Subject: Invitation à rejoindre {invitation['store_name']}")
+                
                 response = await client.post(
                     "https://api.brevo.com/v3/smtp/email",
                     headers={
                         "api-key": brevo_api_key,
                         "Content-Type": "application/json"
                     },
-                    json={
-                        "sender": {"name": "Retail Coach", "email": "noreply@retailperformer.com"},
-                        "to": [{"email": invitation['email'], "name": invitation['name']}],
-                        "subject": f"🎉 Invitation à rejoindre {invitation['store_name']}",
-                        "htmlContent": email_content
-                    }
+                    json=payload
                 )
                 
                 if response.status_code in [200, 201]:
+                    response_data = response.json() if response.text else {}
+                    message_id = response_data.get('messageId', 'N/A')
                     logger.info(f"✅ Email sent successfully to {invitation['email']}")
+                    logger.info(f"   - Brevo Response: {response.status_code}")
+                    logger.info(f"   - Message ID: {message_id}")
                 else:
                     logger.error(f"❌ Brevo API error ({response.status_code}): {response.text}")
         except Exception as e:
