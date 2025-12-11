@@ -443,13 +443,23 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <div className="relative">
                       <button
-                        onClick={() => setActionMenuOpen(actionMenuOpen === user.id ? null : user.id)}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        onClick={() => {
+                          if (isReadOnly) {
+                            toast.error("Période d'essai terminée. Contactez votre administrateur.");
+                            return;
+                          }
+                          setActionMenuOpen(actionMenuOpen === user.id ? null : user.id);
+                        }}
+                        className={`p-2 rounded-lg transition-colors ${
+                          isReadOnly ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+                        }`}
+                        title={isReadOnly ? "Période d'essai terminée" : "Actions"}
                       >
                         <MoreVertical className="w-5 h-5 text-gray-600" />
+                        {isReadOnly && <Lock className="w-3 h-3 absolute -top-1 -right-1 text-gray-400" />}
                       </button>
 
-                      {actionMenuOpen === user.id && (
+                      {actionMenuOpen === user.id && !isReadOnly && (
                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                           {(user.status || 'active') === 'active' && (
                             <>
