@@ -197,8 +197,8 @@ const StoreDetailModal = ({ store, colorIndex = 0, onClose, onTransferManager, o
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] shadow-2xl flex flex-col">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-6 relative flex-shrink-0">
+        {/* Header - couleur dynamique */}
+        <div className={`bg-gradient-to-br ${colors.gradient} p-6 relative flex-shrink-0 rounded-t-2xl`}>
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
@@ -218,7 +218,7 @@ const StoreDetailModal = ({ store, colorIndex = 0, onClose, onTransferManager, o
               onClick={() => setActiveTab('performance')}
               className={`py-3 px-4 font-semibold border-b-2 transition-colors ${
                 activeTab === 'performance'
-                  ? 'border-purple-600 text-purple-600'
+                  ? colors.accent
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -228,7 +228,7 @@ const StoreDetailModal = ({ store, colorIndex = 0, onClose, onTransferManager, o
               onClick={() => setActiveTab('managers')}
               className={`py-3 px-4 font-semibold border-b-2 transition-colors ${
                 activeTab === 'managers'
-                  ? 'border-purple-600 text-purple-600'
+                  ? colors.accent
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -238,7 +238,7 @@ const StoreDetailModal = ({ store, colorIndex = 0, onClose, onTransferManager, o
               onClick={() => setActiveTab('sellers')}
               className={`py-3 px-4 font-semibold border-b-2 transition-colors ${
                 activeTab === 'sellers'
-                  ? 'border-purple-600 text-purple-600'
+                  ? colors.accent
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -248,7 +248,7 @@ const StoreDetailModal = ({ store, colorIndex = 0, onClose, onTransferManager, o
               onClick={() => setActiveTab('manager-access')}
               className={`py-3 px-4 font-semibold border-b-2 transition-colors flex items-center gap-2 ${
                 activeTab === 'manager-access'
-                  ? 'border-blue-600 text-blue-600'
+                  ? colors.accent
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -262,7 +262,7 @@ const StoreDetailModal = ({ store, colorIndex = 0, onClose, onTransferManager, o
         <div className="p-6 overflow-y-auto flex-1 min-h-0">
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+              <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${colors.spinner} mx-auto`}></div>
               <p className="text-gray-600 mt-4">Chargement...</p>
             </div>
           ) : activeTab === 'performance' ? (
