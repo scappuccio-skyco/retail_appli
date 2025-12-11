@@ -449,3 +449,97 @@ async def resend_invitation(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ===== MANAGER SUSPEND/REACTIVATE/DELETE ROUTES =====
+
+@router.patch("/managers/{manager_id}/suspend")
+async def suspend_manager(
+    manager_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """Suspend a manager"""
+    try:
+        return await gerant_service.suspend_user(manager_id, current_user['id'], 'manager')
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/managers/{manager_id}/reactivate")
+async def reactivate_manager(
+    manager_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """Reactivate a suspended manager"""
+    try:
+        return await gerant_service.reactivate_user(manager_id, current_user['id'], 'manager')
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/managers/{manager_id}")
+async def delete_manager(
+    manager_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """Soft delete a manager (set status to 'deleted')"""
+    try:
+        return await gerant_service.delete_user(manager_id, current_user['id'], 'manager')
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===== SELLER SUSPEND/REACTIVATE/DELETE ROUTES =====
+
+@router.patch("/sellers/{seller_id}/suspend")
+async def suspend_seller(
+    seller_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """Suspend a seller"""
+    try:
+        return await gerant_service.suspend_user(seller_id, current_user['id'], 'seller')
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/sellers/{seller_id}/reactivate")
+async def reactivate_seller(
+    seller_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """Reactivate a suspended seller"""
+    try:
+        return await gerant_service.reactivate_user(seller_id, current_user['id'], 'seller')
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/sellers/{seller_id}")
+async def delete_seller(
+    seller_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """Soft delete a seller (set status to 'deleted')"""
+    try:
+        return await gerant_service.delete_user(seller_id, current_user['id'], 'seller')
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
