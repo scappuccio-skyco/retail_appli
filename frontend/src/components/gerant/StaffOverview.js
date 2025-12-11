@@ -556,16 +556,15 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
                       {inv.created_at ? new Date(inv.created_at).toLocaleDateString('fr-FR', {
                         day: '2-digit',
                         month: 'short',
-                        year: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit'
                       }) : 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <td className="px-4 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
                         {inv.status === 'pending' && (
                           <>
