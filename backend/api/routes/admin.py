@@ -49,18 +49,28 @@ async def get_all_workspaces(
             workspace['managers_count'] = managers_count
             workspace['sellers_count'] = sellers_count
             
-            # CRITICAL: Ensure subscription object exists with plan field
-            # Frontend expects workspace.subscription.plan
-            if 'subscription' not in workspace or workspace['subscription'] is None:
-                workspace['subscription'] = {
-                    "plan": workspace.get('subscription_plan', 'free'),
-                    "status": workspace.get('subscription_status', 'trialing'),
-                    "created_at": workspace.get('created_at'),
-                    "trial_ends_at": workspace.get('trial_ends_at')
-                }
-            elif 'plan' not in workspace['subscription']:
-                # If subscription exists but no plan field, add it
+            # CRITICAL: FORCE subscription object - NEVER null, NEVER undefined
+            # Frontend WILL crash if subscription or subscription.plan is missing
+            # This MUST be an object with a plan field, no exceptions
+            
+            # Start with default values
+            default_subscription = {
+                "plan": "free",
+                "status": "active",
+                "created_at": workspace.get('created_at'),
+                "trial_ends_at": workspace.get('trial_ends_at')
+            }
+            
+            # If workspace has subscription data in DB, use it
+            if workspace.get('subscription') and isinstance(workspace['subscription'], dict):
+                # Subscription exists as dict, ensure it has plan field
+                workspace['subscription']['plan'] = workspace['subscription'].get('plan') or workspace.get('subscription_plan', 'free')
+                workspace['subscription']['status'] = workspace['subscription'].get('status') or workspace.get('subscription_status', 'active')
+            else:
+                # No subscription or it's null/invalid, force default
+                workspace['subscription'] = default_subscription
                 workspace['subscription']['plan'] = workspace.get('subscription_plan', 'free')
+                workspace['subscription']['status'] = workspace.get('subscription_status', 'active')
         
         return workspaces
     except Exception as e:
