@@ -77,7 +77,7 @@ class ManagerDashboardAndSuperAdminTester:
             return False, {}
 
     def test_authentication(self):
-        """Test authentication for both roles"""
+        """Test authentication for all roles"""
         print("\n🔐 TESTING AUTHENTICATION")
         
         # Test Manager login (y.legoff@skyco.fr / TestDemo123!)
@@ -98,6 +98,25 @@ class ManagerDashboardAndSuperAdminTester:
             self.manager_token = response['token']
             self.manager_user = response.get('user', {})
             print(f"   ✅ Manager logged in: {self.manager_user.get('email')}")
+        
+        # Test Gérant login (gerant@skyco.fr / Gerant123!)
+        gerant_data = {
+            "email": "gerant@skyco.fr",
+            "password": "Gerant123!"
+        }
+        
+        success, response = self.run_test(
+            "Gérant Authentication",
+            "POST",
+            "auth/login",
+            200,
+            data=gerant_data
+        )
+        
+        if success and 'token' in response:
+            self.gerant_token = response['token']
+            self.gerant_user = response.get('user', {})
+            print(f"   ✅ Gérant logged in: {self.gerant_user.get('email')}")
         
         # Test SuperAdmin login (superadmin-test@retailperformer.com / SuperAdmin123!)
         superadmin_data = {
