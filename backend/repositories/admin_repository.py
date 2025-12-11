@@ -4,14 +4,13 @@ Database access layer for SuperAdmin operations
 """
 from typing import List, Dict, Optional
 from datetime import datetime, timezone, timedelta
-from repositories.base_repository import BaseRepository
 
 
-class AdminRepository(BaseRepository):
+class AdminRepository:
     """Repository for SuperAdmin database operations"""
     
     def __init__(self, db):
-        super().__init__(db)
+        self.db = db
     
     async def get_all_workspaces(self) -> List[Dict]:
         """Get all workspaces"""
