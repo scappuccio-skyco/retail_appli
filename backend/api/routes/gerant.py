@@ -149,32 +149,13 @@ async def get_store_stats(
 async def get_store_managers(
     store_id: str,
     current_user: Dict = Depends(get_current_gerant),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service)
 ):
-    """
-    Get all managers for a specific store (exclude deleted)
-    
-    Security: Verify that the store belongs to the current gérant
-    """
-    # Verify store ownership
-    store = await db.stores.find_one(
-        {"id": store_id, "gerant_id": current_user['id'], "active": True},
-        {"_id": 0}
-    )
-    if not store:
-        raise HTTPException(status_code=404, detail="Magasin non trouvé ou accès non autorisé")
-    
-    # Get managers (exclude deleted ones)
-    managers = await db.users.find(
-        {
-            "store_id": store_id, 
-            "role": "manager",
-            "status": {"$ne": "deleted"}
-        },
-        {"_id": 0, "password": 0}
-    ).to_list(100)
-    
-    return managers
+    """Get all managers for a specific store"""
+    try:
+        return await gerant_service.get_store_managers(store_id, current_user['id'])
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 
