@@ -962,18 +962,32 @@ const GerantDashboard = ({ user, onLogout }) => {
             </h2>
             <div className="flex flex-wrap gap-2 sm:gap-3">
               <button
-                onClick={() => setShowInviteStaffModal(true)}
-                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm sm:text-base font-semibold rounded-xl hover:shadow-lg transition-all"
+                onClick={() => !isReadOnly && setShowInviteStaffModal(true)}
+                disabled={isReadOnly}
+                title={isReadOnly ? "Période d'essai terminée" : "Inviter du personnel"}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold rounded-xl transition-all ${
+                  isReadOnly 
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg'
+                }`}
               >
                 <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden xs:inline">Inviter du</span> Personnel
+                {isReadOnly && <Lock className="w-3 h-3 ml-1" />}
               </button>
               <button
-                onClick={() => setShowCreateStoreModal(true)}
-                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm sm:text-base font-semibold rounded-xl hover:shadow-lg transition-all"
+                onClick={() => !isReadOnly && setShowCreateStoreModal(true)}
+                disabled={isReadOnly}
+                title={isReadOnly ? "Période d'essai terminée" : "Créer un nouveau magasin"}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold rounded-xl transition-all ${
+                  isReadOnly 
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg'
+                }`}
               >
                 <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden xs:inline">Nouveau</span> Magasin
+                {isReadOnly && <Lock className="w-3 h-3 ml-1" />}
               </button>
             </div>
           </div>
@@ -983,8 +997,14 @@ const GerantDashboard = ({ user, onLogout }) => {
               <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-4">Aucun magasin pour le moment</p>
               <button
-                onClick={() => setShowCreateStoreModal(true)}
-                className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                onClick={() => !isReadOnly && setShowCreateStoreModal(true)}
+                disabled={isReadOnly}
+                title={isReadOnly ? "Période d'essai terminée" : ""}
+                className={`px-6 py-3 font-semibold rounded-xl transition-all ${
+                  isReadOnly 
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg'
+                }`}
               >
                 Créer votre premier magasin
               </button>
