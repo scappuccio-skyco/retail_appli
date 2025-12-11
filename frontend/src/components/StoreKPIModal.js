@@ -165,7 +165,15 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
       if (storeId) {
         // Gérant: Fetch aggregated data for the store
-        const historyRes = await axios.get(`${API}/api/gerant/stores/${storeId}/kpi-history?days=${days}`, {
+        // Build URL with start_date and end_date for better filtering
+        let url = `${API}/api/gerant/stores/${storeId}/kpi-history?days=${days}`;
+        if (startDate && endDate) {
+          const startStr = startDate.toISOString().split('T')[0];
+          const endStr = endDate.toISOString().split('T')[0];
+          url = `${API}/api/gerant/stores/${storeId}/kpi-history?start_date=${startStr}&end_date=${endStr}`;
+        }
+        
+        const historyRes = await axios.get(url, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
