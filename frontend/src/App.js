@@ -11,7 +11,8 @@ import ManagerDashboard from './pages/ManagerDashboard';
 import GerantDashboard from './pages/GerantDashboard';
 import ManagerSettings from './pages/ManagerSettings';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
-import ITAdminDashboard from './pages/ITAdminDashboard';
+// DEPRECATED: Import massif fusionné dans GerantDashboard - Phase 3 Fusion Enterprise
+// import ITAdminDashboard from './pages/ITAdminDashboard';
 import RegisterGerant from './pages/RegisterGerant';
 import RegisterManager from './pages/RegisterManager';
 import RegisterSeller from './pages/RegisterSeller';
