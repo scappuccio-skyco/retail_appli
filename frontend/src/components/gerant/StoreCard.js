@@ -2,13 +2,28 @@ import React from 'react';
 import { Building2, Users, TrendingUp, MapPin } from 'lucide-react';
 import Sparkline from './Sparkline';
 
-const StoreCard = ({ store, stats, badge, sparklineData, onClick }) => {
+// Palette de couleurs pour différencier les magasins
+const STORE_COLORS = [
+  { from: 'from-orange-500', via: 'via-orange-600', to: 'to-orange-700', border: 'hover:border-orange-400', bg: 'bg-orange-50', text: 'text-orange-600' },
+  { from: 'from-blue-500', via: 'via-blue-600', to: 'to-blue-700', border: 'hover:border-blue-400', bg: 'bg-blue-50', text: 'text-blue-600' },
+  { from: 'from-purple-500', via: 'via-purple-600', to: 'to-purple-700', border: 'hover:border-purple-400', bg: 'bg-purple-50', text: 'text-purple-600' },
+  { from: 'from-emerald-500', via: 'via-emerald-600', to: 'to-emerald-700', border: 'hover:border-emerald-400', bg: 'bg-emerald-50', text: 'text-emerald-600' },
+  { from: 'from-pink-500', via: 'via-pink-600', to: 'to-pink-700', border: 'hover:border-pink-400', bg: 'bg-pink-50', text: 'text-pink-600' },
+  { from: 'from-cyan-500', via: 'via-cyan-600', to: 'to-cyan-700', border: 'hover:border-cyan-400', bg: 'bg-cyan-50', text: 'text-cyan-600' },
+  { from: 'from-amber-500', via: 'via-amber-600', to: 'to-amber-700', border: 'hover:border-amber-400', bg: 'bg-amber-50', text: 'text-amber-600' },
+  { from: 'from-indigo-500', via: 'via-indigo-600', to: 'to-indigo-700', border: 'hover:border-indigo-400', bg: 'bg-indigo-50', text: 'text-indigo-600' },
+];
+
+const StoreCard = ({ store, stats, badge, sparklineData, onClick, colorIndex = 0 }) => {
+  // Utiliser l'index pour choisir une couleur (avec modulo pour boucler)
+  const colors = STORE_COLORS[colorIndex % STORE_COLORS.length];
+  
   return (
     <div
       onClick={onClick}
-      className="glass-morphism rounded-xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
+      className={`glass-morphism rounded-xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent ${colors.border}`}
     >
-      <div className="relative h-24 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 overflow-hidden">
+      <div className={`relative h-24 bg-gradient-to-br ${colors.from} ${colors.via} ${colors.to} overflow-hidden`}>
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <Building2 className="w-12 h-12 text-white opacity-80" />
@@ -43,9 +58,9 @@ const StoreCard = ({ store, stats, badge, sparklineData, onClick }) => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-3">
-          <div className="bg-blue-50 rounded-lg p-2">
+          <div className={`${colors.bg} rounded-lg p-2`}>
             <div className="flex items-center gap-1 mb-1">
-              <Users className="w-3 h-3 text-blue-600" />
+              <Users className={`w-3 h-3 ${colors.text}`} />
               <span className="text-xs text-gray-600">Managers</span>
             </div>
             <p className="text-xl font-bold text-blue-600">
