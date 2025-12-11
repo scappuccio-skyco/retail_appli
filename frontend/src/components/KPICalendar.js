@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Lock } from 'lucide-react';
 
-export default function KPICalendar({ selectedDate, onDateChange, datesWithData = [] }) {
+export default function KPICalendar({ selectedDate, onDateChange, datesWithData = [], lockedDates = [] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
   const [isOpen, setIsOpen] = useState(false);
   const [openUpwards, setOpenUpwards] = useState(false);
@@ -22,6 +22,11 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
   // Check if a date has data
   const hasData = (dateStr) => {
     return datesWithData.includes(dateStr);
+  };
+
+  // Check if a date is locked (from API/POS)
+  const isLocked = (dateStr) => {
+    return lockedDates.includes(dateStr);
   };
 
   // Get days in month
