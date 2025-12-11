@@ -437,3 +437,123 @@ async def get_store_available_years(
     
     return {"years": years}
 
+
+
+
+# ===== SELLER MANAGEMENT ROUTES =====
+
+@router.post("/sellers/{seller_id}/transfer")
+async def transfer_seller_to_store(
+    seller_id: str,
+    transfer_data: Dict,
+    current_user: Dict = Depends(get_current_gerant),
+    db: AsyncIOMotorDatabase = Depends(get_db)
+):
+    """
+    Transfer a seller to another store with a new manager
+    
+    Args:
+        seller_id: Seller user ID
+        transfer_data: {
+            "new_store_id": "store_uuid",
+            "new_manager_id": "manager_uuid"
+        }
+    
+    Security:
+        - Verifies seller belongs to current gérant
+        - Verifies new store belongs to current gérant
+        - Verifies new store is active
+        - Verifies new manager exists in new store
+    
+    Auto-reactivation:
+        - If seller was suspended due to inactive store, automatically reactivates
+    """
+    from datetime import datetime, timezone
+    from models.sellers import SellerTransfer
+    
+    # Validate input
+    try:
+        transfer = SellerTransfer(**transfer_data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid transfer data: {str(e)}")
+    
+    # Verify seller exists and belongs to current gérant
+    seller = await db.users.find_one({
+        "id": seller_id,
+        "gerant_id": current_user['id'],
+        "role": "seller"
+    }, {"_id": 0})
+    
+    if not seller:
+        raise HTTPException(status_code=404, detail="Vendeur non trouvé ou accès non autorisé")
+    
+    # Verify new store exists, is active, and belongs to current gérant
+    new_store = await db.stores.find_one({
+        "id": transfer.new_store_id,
+        "gerant_id": current_user['id']
+    }, {"_id": 0})
+    
+    if not new_store:
+        raise HTTPException(status_code=404, detail="Nouveau magasin non trouvé ou accès non autorisé")
+    
+    if not new_store.get('active', False):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Le magasin '{new_store['name']}' est inactif. Impossible de transférer vers un magasin inactif."
+        )
+    
+    # Verify new manager exists and is in the new store
+    new_manager = await db.users.find_one({
+        "id": transfer.new_manager_id,
+        "store_id": transfer.new_store_id,
+        "role": "manager",
+        "status": "active"
+    }, {"_id": 0})
+    
+    if not new_manager:
+        raise HTTPException(
+            status_code=404,
+            detail="Manager non trouvé dans ce magasin ou manager inactif"
+        )
+    
+    # Prepare update fields
+    update_fields = {
+        "store_id": transfer.new_store_id,
+        "manager_id": transfer.new_manager_id,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    unset_fields = {}
+    
+    # Auto-reactivation if seller was suspended due to inactive store
+    if seller.get('status') == 'suspended' and seller.get('suspended_reason', '').startswith('Magasin'):
+        update_fields["status"] = "active"
+        update_fields["reactivated_at"] = datetime.now(timezone.utc).isoformat()
+        unset_fields = {
+            "suspended_at": "",
+            "suspended_by": "",
+            "suspended_reason": ""
+        }
+    
+    # Execute transfer
+    update_operation = {"$set": update_fields}
+    if unset_fields:
+        update_operation["$unset"] = unset_fields
+    
+    await db.users.update_one(
+        {"id": seller_id},
+        update_operation
+    )
+    
+    # Build response message
+    message = f"Vendeur transféré avec succès vers {new_store['name']}"
+    if update_fields.get("status") == "active":
+        message += " et réactivé automatiquement"
+    
+    return {
+        "success": True,
+        "message": message,
+        "new_store": new_store['name'],
+        "new_manager": new_manager['name'],
+        "reactivated": update_fields.get("status") == "active"
+    }
+
