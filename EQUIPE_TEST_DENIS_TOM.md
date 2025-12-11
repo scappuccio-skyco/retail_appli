@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://api-resolution.preview.emergentagent.com
+https://backend-overhaul-6.preview.emergentagent.com
 
 ### Manager
 ```
