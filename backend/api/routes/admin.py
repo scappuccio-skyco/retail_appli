@@ -511,23 +511,27 @@ async def resend_invitation(
         
         # Try to send email using Brevo if available
         email_sent = False
+        email_error = None
         try:
             import sib_api_v3_sdk
             from sib_api_v3_sdk.rest import ApiException
             import os
             
             brevo_key = os.environ.get('BREVO_API_KEY')
+            sender_email = os.environ.get('SENDER_EMAIL', 'hello@retailperformerai.com')
+            
             if brevo_key:
                 configuration = sib_api_v3_sdk.Configuration()
                 configuration.api_key['api-key'] = brevo_key
                 api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
                 
-                frontend_url = os.environ.get('FRONTEND_URL', 'https://app.retail-performer.com')
-                invite_link = f"{frontend_url}/invitation/{invitation['token']}"
+                # Use the preview URL or configured frontend URL
+                frontend_url = os.environ.get('FRONTEND_URL', 'https://pythonclean.preview.emergentagent.com')
+                invite_link = f"{frontend_url}/invitation/{invitation.get('token', 'invalid')}"
                 
                 send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
                     to=[{"email": recipient_email, "name": recipient_name}],
-                    sender={"email": "noreply@retail-performer.com", "name": "Retail Performer"},
+                    sender={"email": sender_email, "name": "Retail Performer"},
                     subject=f"[Rappel] Invitation à rejoindre Retail Performer",
                     html_content=f"""
                     <html>
@@ -549,11 +553,15 @@ async def resend_invitation(
                     """
                 )
                 
-                api_instance.send_transac_email(send_smtp_email)
+                result = api_instance.send_transac_email(send_smtp_email)
                 email_sent = True
+                print(f"Email resend successful to {recipient_email}, message_id: {result.message_id}")
+        except ApiException as api_err:
+            email_error = f"Brevo API error: {api_err.status} - {api_err.body}"
+            print(email_error)
         except Exception as e:
-            # Log but don't fail - email service might not be configured
-            print(f"Email service error (non-fatal): {e}")
+            email_error = f"Email service error: {str(e)}"
+            print(email_error)
         
         # Update invitation with resend timestamp
         await db.gerant_invitations.update_one(
