@@ -1060,21 +1060,28 @@ const GerantDashboard = ({ user, onLogout }) => {
         <StoreDetailModal
           store={selectedStore}
           colorIndex={selectedStoreColorIndex}
+          isReadOnly={isReadOnly}
           onClose={() => {
             setShowStoreDetailModal(false);
             setSelectedStore(null);
           }}
           onTransferManager={(manager) => {
-            setSelectedManager(manager);
-            setShowManagerTransferModal(true);
+            if (!isReadOnly) {
+              setSelectedManager(manager);
+              setShowManagerTransferModal(true);
+            }
           }}
           onTransferSeller={(seller) => {
-            setSelectedSeller(seller);
-            setShowSellerTransferModal(true);
+            if (!isReadOnly) {
+              setSelectedSeller(seller);
+              setShowSellerTransferModal(true);
+            }
           }}
           onDeleteStore={(store) => {
-            setSelectedStore(store);
-            setShowDeleteConfirmation(true);
+            if (!isReadOnly) {
+              setSelectedStore(store);
+              setShowDeleteConfirmation(true);
+            }
           }}
           onRefresh={fetchDashboardData}
         />
