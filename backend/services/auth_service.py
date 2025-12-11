@@ -199,7 +199,7 @@ class AuthService:
     
     async def request_password_reset(self, email: str) -> str:
         """
-        Generate password reset token
+        Generate password reset token and send email
         
         Args:
             email: User email
@@ -225,6 +225,17 @@ class AuthService:
             "created_at": datetime.now(timezone.utc),
             "expires_at": datetime.now(timezone.utc).timestamp() + 3600  # 1 hour
         })
+        
+        # CRITICAL: Send password reset email
+        try:
+            from email_service import send_password_reset_email
+            recipient_name = user.get('name', 'Utilisateur')
+            send_password_reset_email(email, recipient_name, reset_token)
+        except Exception as e:
+            # Log error but don't fail the request
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send password reset email to {email}: {e}")
         
         return reset_token
     
