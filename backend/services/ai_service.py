@@ -159,3 +159,86 @@ Jours travaillés: {kpi_summary['days_count']}"""
             
         except Exception as e:
             return f"Bilan pour {seller_data['name']}: Performance en cours d'analyse."
+
+
+class AIDataService:
+    """
+    Service for AI operations with database access
+    Handles data retrieval for AI features
+    """
+    
+    def __init__(self, db):
+        self.db = db
+        self.ai_service = AIService()
+    
+    async def get_seller_diagnostic(self, seller_id: str) -> Dict:
+        """Get diagnostic profile for a seller"""
+        diagnostic = await self.db.diagnostics.find_one(
+            {"seller_id": seller_id},
+            {"_id": 0}
+        )
+        
+        if not diagnostic:
+            return {"style": "Adaptateur", "level": 3}
+        
+        return diagnostic
+    
+    async def get_recent_kpis(self, seller_id: str, limit: int = 7) -> List[Dict]:
+        """Get recent KPI entries for a seller"""
+        kpis = await self.db.kpi_entries.find(
+            {"seller_id": seller_id},
+            {"_id": 0}
+        ).sort("date", -1).limit(limit).to_list(limit)
+        
+        return kpis
+    
+    async def generate_daily_challenge_with_data(self, seller_id: str) -> Dict:
+        """
+        Generate daily challenge by fetching data and using AI service
+        
+        Args:
+            seller_id: Seller ID
+            
+        Returns:
+            Daily challenge dict
+        """
+        # Get diagnostic
+        diagnostic = await self.get_seller_diagnostic(seller_id)
+        
+        # Get recent KPIs
+        recent_kpis = await self.get_recent_kpis(seller_id, 7)
+        
+        # Generate challenge using AI service
+        return await self.ai_service.generate_daily_challenge(
+            seller_profile=diagnostic,
+            recent_kpis=recent_kpis
+        )
+    
+    async def generate_seller_bilan_with_data(
+        self, 
+        seller_id: str,
+        seller_data: Dict,
+        days: int = 30
+    ) -> Dict:
+        """
+        Generate seller bilan by fetching data and using AI service
+        
+        Args:
+            seller_id: Seller ID
+            seller_data: Seller user data
+            days: Number of days to analyze
+            
+        Returns:
+            Bilan dict
+        """
+        # Get KPIs for the period
+        kpis = await self.get_recent_kpis(seller_id, days)
+        
+        # Generate bilan using AI service
+        bilan = await self.ai_service.generate_seller_bilan(
+            seller_data=seller_data,
+            kpis=kpis
+        )
+        
+        return {"bilan": bilan}
+
