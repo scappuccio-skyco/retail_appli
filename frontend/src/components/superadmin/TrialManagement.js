@@ -10,6 +10,7 @@ export default function TrialManagement() {
   const [gerants, setGerants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [editingTrial, setEditingTrial] = useState(null);
   const [newTrialEnd, setNewTrialEnd] = useState('');
 
