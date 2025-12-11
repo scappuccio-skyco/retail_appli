@@ -981,6 +981,7 @@ const GerantDashboard = ({ user, onLogout }) => {
                     badge={badge}
                     sparklineData={sparklineData}
                     onClick={() => handleStoreClick(store)}
+                    colorIndex={index}
                   />
                 );
               })}
