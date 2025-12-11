@@ -245,6 +245,24 @@ class RBACTester:
         status, data = self.make_request('GET', '/api/manager/api-keys', token)
         self.log_result("Gérant", "Access API Keys list", 200, status, "(Integration management)")
         
+        # Test STORE DETAIL ROUTES (critical for frontend navigation)
+        # Get stores first to extract a store_id
+        status, stores_data = self.make_request('GET', '/api/gerant/stores', token)
+        if status == 200 and stores_data:
+            store_id = stores_data[0]['id']
+            
+            status, data = self.make_request('GET', f'/api/gerant/stores/{store_id}/managers', token)
+            self.log_result("Gérant", f"Access store managers", 200, status, "(Store detail)")
+            
+            status, data = self.make_request('GET', f'/api/gerant/stores/{store_id}/kpi-overview', token)
+            self.log_result("Gérant", f"Access store KPI overview", 200, status, "(Store detail)")
+            
+            status, data = self.make_request('GET', f'/api/gerant/stores/{store_id}/available-years', token)
+            self.log_result("Gérant", f"Access store available years", 200, status, "(Store detail)")
+            
+            status, data = self.make_request('GET', f'/api/gerant/stores/{store_id}/kpi-history?days=7', token)
+            self.log_result("Gérant", f"Access store KPI history", 200, status, "(Store detail)")
+        
         # Test NEGATIVE: Should NOT access admin routes
         status, data = self.make_request('GET', '/api/superadmin/workspaces', token)
         self.log_result("Gérant", "DENIED /api/superadmin/workspaces", 403, status, "(Isolation test)")
