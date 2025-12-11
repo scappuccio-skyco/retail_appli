@@ -2,7 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { X, Users, TrendingUp, UserPlus, RefreshCw, Trash2, Pause } from 'lucide-react';
 import StoreKPIModal from '../StoreKPIModal';
 
-const StoreDetailModal = ({ store, onClose, onTransferManager, onTransferSeller, onDeleteStore, onRefresh }) => {
+// Palette de couleurs - doit correspondre à celle de StoreCard
+const STORE_COLORS = [
+  { gradient: 'from-orange-500 via-orange-600 to-orange-700', accent: 'border-orange-600 text-orange-600', spinner: 'border-orange-600' },
+  { gradient: 'from-blue-500 via-blue-600 to-blue-700', accent: 'border-blue-600 text-blue-600', spinner: 'border-blue-600' },
+  { gradient: 'from-purple-500 via-purple-600 to-purple-700', accent: 'border-purple-600 text-purple-600', spinner: 'border-purple-600' },
+  { gradient: 'from-emerald-500 via-emerald-600 to-emerald-700', accent: 'border-emerald-600 text-emerald-600', spinner: 'border-emerald-600' },
+  { gradient: 'from-pink-500 via-pink-600 to-pink-700', accent: 'border-pink-600 text-pink-600', spinner: 'border-pink-600' },
+  { gradient: 'from-cyan-500 via-cyan-600 to-cyan-700', accent: 'border-cyan-600 text-cyan-600', spinner: 'border-cyan-600' },
+  { gradient: 'from-amber-500 via-amber-600 to-amber-700', accent: 'border-amber-600 text-amber-600', spinner: 'border-amber-600' },
+  { gradient: 'from-indigo-500 via-indigo-600 to-indigo-700', accent: 'border-indigo-600 text-indigo-600', spinner: 'border-indigo-600' },
+];
+
+const StoreDetailModal = ({ store, colorIndex = 0, onClose, onTransferManager, onTransferSeller, onDeleteStore, onRefresh }) => {
+  const colors = STORE_COLORS[colorIndex % STORE_COLORS.length];
   const [activeTab, setActiveTab] = useState('performance');
   const [managers, setManagers] = useState([]);
   const [sellers, setSellers] = useState([]);
