@@ -409,7 +409,6 @@ async def resend_invitation(
 ):
     """Resend an invitation email"""
     from uuid import uuid4
-    from services.email_service import EmailService
     
     try:
         invitation = await db.gerant_invitations.find_one({"id": invitation_id}, {"_id": 0})
@@ -421,42 +420,59 @@ async def resend_invitation(
         recipient_email = invitation['email']
         role = invitation.get('role', 'manager')
         
-        # Send email using EmailService
+        # Try to send email using Brevo if available
+        email_sent = False
         try:
-            email_service = EmailService()
+            import sib_api_v3_sdk
+            from sib_api_v3_sdk.rest import ApiException
+            import os
             
-            if role == 'manager':
-                await email_service.send_manager_invitation(
-                    recipient_email=recipient_email,
-                    recipient_name=recipient_name,
-                    invitation_token=invitation['token'],
-                    gerant_name=invitation.get('gerant_name', 'Votre gérant'),
-                    store_name=invitation.get('store_name', 'Votre magasin')
-                )
-            elif role == 'seller':
-                await email_service.send_seller_invitation(
-                    recipient_email=recipient_email,
-                    recipient_name=recipient_name,
-                    invitation_token=invitation['token'],
-                    manager_name=invitation.get('manager_name', 'Votre manager'),
-                    store_name=invitation.get('store_name', 'Votre magasin')
-                )
-            else:
-                # Generic invitation for gérant role
-                await email_service.send_gerant_invitation(
-                    recipient_email=recipient_email,
-                    recipient_name=recipient_name,
-                    invitation_token=invitation['token'],
-                    store_name=invitation.get('store_name', 'Votre magasin')
+            brevo_key = os.environ.get('BREVO_API_KEY')
+            if brevo_key:
+                configuration = sib_api_v3_sdk.Configuration()
+                configuration.api_key['api-key'] = brevo_key
+                api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+                
+                frontend_url = os.environ.get('FRONTEND_URL', 'https://app.retail-performer.com')
+                invite_link = f"{frontend_url}/invitation/{invitation['token']}"
+                
+                send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+                    to=[{"email": recipient_email, "name": recipient_name}],
+                    sender={"email": "noreply@retail-performer.com", "name": "Retail Performer"},
+                    subject=f"[Rappel] Invitation à rejoindre Retail Performer",
+                    html_content=f"""
+                    <html>
+                    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h2 style="color: #6366f1;">Rappel: Invitation à rejoindre Retail Performer</h2>
+                        <p>Bonjour {recipient_name},</p>
+                        <p>Ceci est un rappel pour votre invitation à rejoindre Retail Performer en tant que <strong>{role}</strong>.</p>
+                        <p>Cliquez sur le bouton ci-dessous pour accepter votre invitation :</p>
+                        <p style="text-align: center; margin: 30px 0;">
+                            <a href="{invite_link}" style="background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                                Accepter l'invitation
+                            </a>
+                        </p>
+                        <p style="color: #666; font-size: 12px;">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br/>{invite_link}</p>
+                        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                        <p style="color: #999; font-size: 11px;">Cet email a été envoyé par Retail Performer. Si vous n'êtes pas concerné, ignorez ce message.</p>
+                    </body>
+                    </html>
+                    """
                 )
                 
+                api_instance.send_transac_email(send_smtp_email)
+                email_sent = True
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Erreur lors de l'envoi de l'email: {str(e)}")
+            # Log but don't fail - email service might not be configured
+            print(f"Email service error (non-fatal): {e}")
         
         # Update invitation with resend timestamp
         await db.gerant_invitations.update_one(
             {"id": invitation_id},
-            {"$set": {"last_resent_at": datetime.now(timezone.utc).isoformat()}}
+            {"$set": {
+                "last_resent_at": datetime.now(timezone.utc).isoformat(),
+                "resend_count": (invitation.get('resend_count', 0) + 1)
+            }}
         )
         
         # Log action
@@ -469,11 +485,16 @@ async def resend_invitation(
             "details": {
                 "invitation_id": invitation_id,
                 "email": recipient_email,
-                "role": role
+                "role": role,
+                "email_sent": email_sent
             }
         })
         
-        return {"success": True, "message": f"Invitation renvoyée à {recipient_email}"}
+        if email_sent:
+            return {"success": True, "message": f"Invitation renvoyée à {recipient_email}"}
+        else:
+            return {"success": True, "message": f"Invitation marquée comme renvoyée (email non configuré)", "warning": "Email service not configured"}
+            
     except HTTPException:
         raise
     except Exception as e:
