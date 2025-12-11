@@ -33,6 +33,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   const [historicalData, setHistoricalData] = useState([]);
   const [availableYears, setAvailableYears] = useState([]);
   const [datesWithData, setDatesWithData] = useState([]);
+  const [lockedDates, setLockedDates] = useState([]); // Dates verrouillées (import API/POS)
   const [displayMode, setDisplayMode] = useState('chart'); // 'chart' or 'list'
   const [displayedListItems, setDisplayedListItems] = useState(10); // For pagination
   const [loadingHistorical, setLoadingHistorical] = useState(false); // Loading state for historical data
