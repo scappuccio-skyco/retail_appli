@@ -196,3 +196,63 @@ async def remove_super_admin(
     return {"message": "Super admin supprimé avec succès"}
 
 
+# ===== INVITATIONS MANAGEMENT =====
+
+@router.get("/invitations")
+async def get_all_invitations(
+    status: str = Query(None),
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """Get all gérant invitations"""
+    try:
+        query = {}
+        if status:
+            query["status"] = status
+        
+        invitations = await db.gerant_invitations.find(query, {"_id": 0}).to_list(1000)
+        
+        # Enrich with gérant info
+        for invite in invitations:
+            gerant = await db.users.find_one(
+                {"id": invite.get("gerant_id")}, 
+                {"_id": 0, "name": 1, "email": 1}
+            )
+            if gerant:
+                invite["gerant_name"] = gerant.get("name", "N/A")
+                invite["gerant_email"] = gerant.get("email", "N/A")
+        
+        return invitations
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/invitations/{invitation_id}")
+async def delete_invitation(
+    invitation_id: str,
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """Delete an invitation"""
+    from uuid import uuid4
+    
+    invitation = await db.gerant_invitations.find_one({"id": invitation_id}, {"_id": 0})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation non trouvée")
+    
+    await db.gerant_invitations.delete_one({"id": invitation_id})
+    
+    # Log action
+    await db.audit_logs.insert_one({
+        "id": str(uuid4()),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "action": "delete_invitation",
+        "admin_email": current_user['email'],
+        "admin_name": current_user.get('name', 'Admin'),
+        "details": {"invitation_id": invitation_id}
+    })
+    
+    return {"message": "Invitation supprimée avec succès"}
+
+
+
