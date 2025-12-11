@@ -48,6 +48,18 @@ class StoreService:
         await self.store_repo.insert_one(store)
         return store
     
+    async def get_stores_by_gerant(self, gerant_id: str) -> List[Dict]:
+        """
+        Get all stores for a gérant
+        
+        Args:
+            gerant_id: Gérant user ID
+            
+        Returns:
+            List of stores
+        """
+        return await self.store_repo.find_by_gerant(gerant_id)
+    
     async def get_store_hierarchy(self, store_id: str) -> Dict:
         """
         Get complete store hierarchy with users
