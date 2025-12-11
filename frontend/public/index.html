@@ -13,6 +13,16 @@
             (function() {
                 console.log('[MetaMask Filter] Initializing error suppression...');
                 
+                // PATCH REMOVECHILD - Éviter les erreurs de traducteur
+                var originalRemoveChild = Node.prototype.removeChild;
+                Node.prototype.removeChild = function(child) {
+                    if (child && child.parentNode === this) {
+                        return originalRemoveChild.call(this, child);
+                    }
+                    console.warn('[DOM] removeChild ignoré - noeud modifié par extension');
+                    return child;
+                };
+                
                 // ÉTAPE 1: Désactiver complètement l'overlay React en production
                 if (typeof window !== 'undefined') {
                     window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = {
