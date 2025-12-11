@@ -990,4 +990,152 @@ class GerantService:
             }
         }
     # Duplicate methods removed - moved to earlier in the file
+    
+    # ===== INVITATION METHODS =====
+    
+    async def send_invitation(self, invitation_data: Dict, gerant_id: str) -> Dict:
+        """
+        Send an invitation to a new manager or seller.
+        
+        Args:
+            invitation_data: Contains name, email, role, store_id
+            gerant_id: ID of the gérant sending the invitation
+        """
+        from uuid import uuid4
+        import os
+        
+        name = invitation_data.get('name')
+        email = invitation_data.get('email')
+        role = invitation_data.get('role')
+        store_id = invitation_data.get('store_id')
+        
+        if not all([name, email, role, store_id]):
+            raise ValueError("Tous les champs sont requis: name, email, role, store_id")
+        
+        if role not in ['manager', 'seller']:
+            raise ValueError("Le rôle doit être 'manager' ou 'seller'")
+        
+        # Verify store belongs to this gérant
+        store = await self.store_repo.find_one(
+            {"id": store_id, "gerant_id": gerant_id, "active": True}
+        )
+        if not store:
+            raise ValueError("Magasin non trouvé ou inactif")
+        
+        # Check if email already exists
+        existing_user = await self.user_repo.find_one({"email": email})
+        if existing_user:
+            raise ValueError("Un utilisateur avec cet email existe déjà")
+        
+        # Check for pending invitation
+        existing_invitation = await self.db.gerant_invitations.find_one({
+            "email": email,
+            "status": "pending"
+        })
+        if existing_invitation:
+            raise ValueError("Une invitation est déjà en attente pour cet email")
+        
+        # Create invitation
+        invitation_id = str(uuid4())
+        token = str(uuid4())
+        
+        invitation = {
+            "id": invitation_id,
+            "token": token,
+            "email": email,
+            "name": name,
+            "role": role,
+            "store_id": store_id,
+            "store_name": store.get('name'),
+            "gerant_id": gerant_id,
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "expires_at": (datetime.now(timezone.utc).replace(hour=0, minute=0, second=0) + 
+                         __import__('datetime').timedelta(days=7)).isoformat()
+        }
+        
+        await self.db.gerant_invitations.insert_one(invitation)
+        
+        # Send email
+        try:
+            await self._send_invitation_email(invitation)
+        except Exception as e:
+            logger.error(f"Failed to send invitation email: {e}")
+            # Continue even if email fails - invitation is created
+        
+        return {
+            "message": "Invitation envoyée avec succès",
+            "invitation_id": invitation_id
+        }
+    
+    async def _send_invitation_email(self, invitation: Dict):
+        """Send invitation email using Brevo"""
+        import httpx
+        
+        brevo_api_key = os.environ.get('BREVO_API_KEY')
+        frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+        
+        if not brevo_api_key:
+            logger.warning("BREVO_API_KEY not set, skipping email")
+            return
+        
+        role_text = "Manager" if invitation['role'] == 'manager' else "Vendeur"
+        invitation_link = f"{frontend_url}/invitation/{invitation['token']}"
+        
+        email_content = f"""
+        <h2>Invitation à rejoindre l'équipe</h2>
+        <p>Bonjour {invitation['name']},</p>
+        <p>Vous avez été invité(e) à rejoindre l'équipe de <strong>{invitation['store_name']}</strong> en tant que <strong>{role_text}</strong>.</p>
+        <p>Cliquez sur le lien ci-dessous pour créer votre compte et accéder à la plateforme :</p>
+        <p><a href="{invitation_link}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Accepter l'invitation</a></p>
+        <p>Ce lien expire dans 7 jours.</p>
+        <p>Cordialement,<br>L'équipe Retail Coach</p>
+        """
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={
+                    "api-key": brevo_api_key,
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "sender": {"name": "Retail Coach", "email": "noreply@retailperformer.com"},
+                    "to": [{"email": invitation['email'], "name": invitation['name']}],
+                    "subject": f"Invitation à rejoindre {invitation['store_name']}",
+                    "htmlContent": email_content
+                }
+            )
+            
+            if response.status_code not in [200, 201]:
+                logger.error(f"Brevo API error: {response.text}")
+    
+    async def get_invitations(self, gerant_id: str) -> list:
+        """Get all invitations sent by this gérant"""
+        invitations = await self.db.gerant_invitations.find(
+            {"gerant_id": gerant_id},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(100)
+        
+        return invitations
+    
+    async def cancel_invitation(self, invitation_id: str, gerant_id: str) -> Dict:
+        """Cancel a pending invitation"""
+        invitation = await self.db.gerant_invitations.find_one({
+            "id": invitation_id,
+            "gerant_id": gerant_id
+        })
+        
+        if not invitation:
+            raise ValueError("Invitation non trouvée")
+        
+        if invitation.get('status') != 'pending':
+            raise ValueError("Seules les invitations en attente peuvent être annulées")
+        
+        await self.db.gerant_invitations.update_one(
+            {"id": invitation_id},
+            {"$set": {"status": "cancelled", "cancelled_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        return {"message": "Invitation annulée"}
 
