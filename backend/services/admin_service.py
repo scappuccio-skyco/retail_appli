@@ -152,22 +152,65 @@ class AdminService:
         # Get logs from repository
         logs = await self.admin_repo.get_system_logs(time_threshold, limit)
         
+        # Normalize logs to ensure required fields exist
+        normalized_logs = []
+        all_actions = set()
+        all_admins = []
+        admin_emails_seen = set()
+        
+        for log in logs:
+            # Ensure action field exists (CRITICAL for frontend .replace())
+            action = log.get('action') or log.get('type') or log.get('level') or 'system_event'
+            admin_email = log.get('admin_email') or log.get('email') or 'system@retailperformer.com'
+            admin_name = log.get('admin_name') or log.get('name') or 'System'
+            
+            normalized_log = {
+                "id": log.get('id', str(len(normalized_logs))),
+                "timestamp": str(log.get('timestamp') or log.get('created_at') or now.isoformat()),
+                "action": str(action),  # CRITICAL: Never None
+                "admin_email": str(admin_email),
+                "admin_name": str(admin_name),
+                "workspace_id": log.get('workspace_id'),
+                "details": log.get('details') or {},
+                "level": log.get('level', 'info'),
+                "message": log.get('message', '')
+            }
+            normalized_logs.append(normalized_log)
+            all_actions.add(action)
+            
+            if admin_email not in admin_emails_seen:
+                admin_emails_seen.add(admin_email)
+                all_admins.append({
+                    "email": admin_email,
+                    "name": admin_name
+                })
+        
         # If no logs found in DB, return mock logs for display
-        if not logs:
-            logs = [
+        if not normalized_logs:
+            mock_actions = ['user_login', 'workspace_created', 'subscription_updated', 'system_health_check']
+            normalized_logs = [
                 {
+                    "id": str(i),
                     "timestamp": (now - timedelta(minutes=i*10)).isoformat(),
+                    "action": mock_actions[i % len(mock_actions)],  # CRITICAL: Always has action
+                    "admin_email": "system@retailperformer.com",
+                    "admin_name": "System",
+                    "workspace_id": None,
+                    "details": {},
                     "level": "info" if i % 3 != 0 else "warning",
-                    "message": f"System health check - All services operational" if i % 3 == 0 else f"User login activity detected",
-                    "source": "system",
-                    "details": {}
+                    "message": f"System event #{i}"
                 }
                 for i in range(min(10, limit))
             ]
+            all_actions = set(mock_actions)
+            all_admins = [{"email": "system@retailperformer.com", "name": "System"}]
         
         return {
-            "logs": logs,
-            "total": len(logs),
+            "logs": normalized_logs,
+            "total": len(normalized_logs),
             "period_hours": hours,
-            "timestamp": now.isoformat()
+            "timestamp": now.isoformat(),
+            "available_actions": sorted(list(all_actions)),
+            "available_admins": all_admins
         }
+
