@@ -4,13 +4,13 @@ import { toast } from 'sonner';
 import { 
   Users, UserCog, Search, Filter, Building2, Mail, Phone, 
   MoreVertical, Trash2, Ban, CheckCircle, ArrowRightLeft, X,
-  Clock, RefreshCw, Send
+  Clock, RefreshCw, Send, Lock
 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCreateStoreModal }) {
+export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCreateStoreModal, isReadOnly = false }) {
   const [activeTab, setActiveTab] = useState('managers');
   const [managers, setManagers] = useState([]);
   const [sellers, setSellers] = useState([]);
