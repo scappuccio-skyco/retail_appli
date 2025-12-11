@@ -724,6 +724,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                     selectedDate={overviewDate}
                     onDateChange={(date) => setOverviewDate(date)}
                     datesWithData={datesWithData}
+                    lockedDates={lockedDates}
                   />
                 </div>
                 
