@@ -265,8 +265,11 @@ class AuthService:
         if not reset:
             raise Exception("Token invalide ou expiré")
         
-        # Check expiration
-        if datetime.now(timezone.utc).timestamp() > reset['expires_at']:
+        # Check expiration (CRITICAL: Compare datetime objects, not timestamps)
+        now_utc = datetime.now(timezone.utc)
+        expires_at = datetime.fromisoformat(reset['expires_at'])
+        
+        if now_utc > expires_at:
             raise Exception("Token expiré")
         
         # Update password
