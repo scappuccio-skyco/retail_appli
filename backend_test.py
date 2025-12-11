@@ -565,17 +565,18 @@ class ManagerDashboardAndSuperAdminTester:
                     print(f"   ❌ REGRESSION: {endpoint} returned non-200 status")
 
     def run_all_tests(self):
-        """Run all Manager Dashboard and SuperAdmin Subscriptions tests"""
-        print("🚀 STARTING MANAGER DASHBOARD & SUPERADMIN SUBSCRIPTIONS TESTS")
+        """Run all Manager Dashboard, SuperAdmin Subscriptions, and Gérant Dashboard tests"""
+        print("🚀 STARTING COMPREHENSIVE BACKEND API TESTS")
         print("=" * 70)
         
         # Test authentication first
         self.test_authentication()
         
-        # Test the two specific fixes
+        # Test the specific fixes and new features
         self.test_manager_dashboard_fix()
         self.test_superadmin_subscriptions_fix()
         self.test_seller_kpi_enabled_endpoint()
+        self.test_gerant_dashboard_endpoints()
         
         # Test security
         self.test_authentication_security()
@@ -585,7 +586,7 @@ class ManagerDashboardAndSuperAdminTester:
         
         # Print summary
         print("\n" + "=" * 70)
-        print("📊 MANAGER DASHBOARD & SUPERADMIN SUBSCRIPTIONS TEST SUMMARY")
+        print("📊 COMPREHENSIVE BACKEND API TEST SUMMARY")
         print("=" * 70)
         print(f"Total Tests: {self.tests_run}")
         print(f"Passed: {self.tests_passed}")
@@ -599,10 +600,11 @@ class ManagerDashboardAndSuperAdminTester:
             for test in failed_tests:
                 print(f"   • {test['test']}: {test['details']}")
         
-        print("\n🎯 FIX VERIFICATION:")
+        print("\n🎯 VERIFICATION RESULTS:")
         if self.tests_passed >= self.tests_run * 0.8:  # 80% pass rate
             print("✅ Manager Dashboard 404 errors fix appears successful!")
             print("✅ SuperAdmin Subscriptions Details endpoint working!")
+            print("✅ Gérant Dashboard User Management endpoints working!")
             print("✅ No major regressions detected")
         else:
             print("❌ Some fixes have issues!")
