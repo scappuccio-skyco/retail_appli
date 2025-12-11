@@ -3,7 +3,7 @@ Manager Service
 Business logic for manager operations (team management, KPIs, diagnostics)
 """
 from typing import Dict, List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import logging
 
 from repositories.user_repository import UserRepository
