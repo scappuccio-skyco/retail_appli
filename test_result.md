@@ -573,7 +573,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Integration API Endpoints for User Management"
+    - "Clean Architecture Refactoring - Routes → Services → Repositories"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
