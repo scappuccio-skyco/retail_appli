@@ -116,103 +116,81 @@ class ManagerDashboardAndSuperAdminTester:
             self.superadmin_user = response.get('user', {})
             print(f"   ✅ SuperAdmin logged in: {self.superadmin_user.get('email')}")
 
-    def test_gerant_routes(self):
-        """Test all Gérant routes from Clean Architecture"""
-        print("\n🏪 TESTING GÉRANT ROUTES (Clean Architecture)")
+    def test_manager_dashboard_fix(self):
+        """Test Manager Dashboard 404 Errors Fix"""
+        print("\n🏪 TESTING MANAGER DASHBOARD 404 ERRORS FIX")
         
-        if not self.gerant_token:
-            self.log_test("Gérant Routes", False, "No gérant token available")
+        if not self.manager_token:
+            self.log_test("Manager Dashboard Fix", False, "No manager token available")
             return
         
-        # Test 1: GET /api/gerant/dashboard/stats
+        # Test 1: GET /api/manager/store-kpi-overview
         success, response = self.run_test(
-            "Gérant Dashboard Stats",
+            "Manager Store KPI Overview",
             "GET",
-            "gerant/dashboard/stats",
+            "manager/store-kpi-overview",
             200,
-            token=self.gerant_token
+            token=self.manager_token
         )
         
         if success:
             # Verify response structure
-            expected_fields = ['total_stores', 'total_managers', 'total_sellers']
+            expected_fields = ['date', 'store_id', 'totals', 'derived', 'sellers_submitted']
             missing_fields = [f for f in expected_fields if f not in response]
             if missing_fields:
-                self.log_test("Dashboard Stats Structure", False, f"Missing fields: {missing_fields}")
+                self.log_test("Store KPI Overview Structure", False, f"Missing fields: {missing_fields}")
             else:
-                print(f"   ✅ Stats: {response.get('total_stores')} stores, {response.get('total_managers')} managers, {response.get('total_sellers')} sellers")
+                print(f"   ✅ KPI Overview: Store {response.get('store_id')}, Date {response.get('date')}")
+                print(f"   ✅ Totals: CA {response.get('totals', {}).get('ca_journalier', 0)}€, Ventes {response.get('totals', {}).get('nb_ventes', 0)}")
+                print(f"   ✅ Sellers submitted: {response.get('sellers_submitted', 0)}")
         
-        # Test 2: GET /api/gerant/subscription/status
+        # Test 2: GET /api/manager/store-kpi-overview with specific date
         success, response = self.run_test(
-            "Gérant Subscription Status",
+            "Manager Store KPI Overview - Specific Date",
             "GET",
-            "gerant/subscription/status",
+            "manager/store-kpi-overview?date=2025-12-05",
             200,
-            token=self.gerant_token
+            token=self.manager_token
         )
         
         if success:
-            expected_fields = ['has_access', 'status', 'plan']
-            missing_fields = [f for f in expected_fields if f not in response]
-            if missing_fields:
-                self.log_test("Subscription Status Structure", False, f"Missing fields: {missing_fields}")
-            else:
-                print(f"   ✅ Subscription: {response.get('status')} - {response.get('plan')}")
+            print(f"   ✅ KPI Overview for 2025-12-05: CA {response.get('totals', {}).get('ca_journalier', 0)}€")
         
-        # Test 3: GET /api/gerant/stores
-        success, stores_response = self.run_test(
-            "Gérant Stores List",
-            "GET",
-            "gerant/stores",
-            200,
-            token=self.gerant_token
-        )
-        
-        store_id = None
-        if success and isinstance(stores_response, list) and len(stores_response) > 0:
-            store_id = stores_response[0].get('id')
-            print(f"   ✅ Found {len(stores_response)} stores, testing with store: {store_id}")
-            
-            # Test 4: GET /api/gerant/stores/{store_id}/kpi-history
-            if store_id:
-                success, response = self.run_test(
-                    "Store KPI History",
-                    "GET",
-                    f"gerant/stores/{store_id}/kpi-history",
-                    200,
-                    token=self.gerant_token
-                )
-                
-                if success and isinstance(response, list):
-                    print(f"   ✅ KPI History: {len(response)} entries")
-                
-                # Test 5: GET /api/gerant/stores/{store_id}/available-years
-                success, response = self.run_test(
-                    "Store Available Years",
-                    "GET",
-                    f"gerant/stores/{store_id}/available-years",
-                    200,
-                    token=self.gerant_token
-                )
-                
-                if success and isinstance(response, list):
-                    print(f"   ✅ Available years: {response}")
-        
-        # Test 6: POST /api/gerant/sellers/{seller_id}/transfer (need a seller ID first)
-        # This would require getting sellers first, but we'll test the endpoint structure
-        test_transfer_data = {
-            "new_store_id": "test-store-id",
-            "new_manager_id": "test-manager-id"
-        }
-        
+        # Test 3: GET /api/manager/sellers
         success, response = self.run_test(
-            "Seller Transfer (Expected 404)",
-            "POST",
-            "gerant/sellers/test-seller-id/transfer",
-            404,  # Expected since test-seller-id doesn't exist
-            data=test_transfer_data,
-            token=self.gerant_token
+            "Manager Sellers List",
+            "GET",
+            "manager/sellers",
+            200,
+            token=self.manager_token
         )
+        
+        if success and isinstance(response, list):
+            print(f"   ✅ Found {len(response)} sellers in manager's store")
+        
+        # Test 4: GET /api/manager/objectives/active
+        success, response = self.run_test(
+            "Manager Active Objectives",
+            "GET",
+            "manager/objectives/active",
+            200,
+            token=self.manager_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   ✅ Found {len(response)} active objectives")
+        
+        # Test 5: GET /api/manager/challenges/active
+        success, response = self.run_test(
+            "Manager Active Challenges",
+            "GET",
+            "manager/challenges/active",
+            200,
+            token=self.manager_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   ✅ Found {len(response)} active challenges")
 
     def test_superadmin_routes(self):
         """Test all SuperAdmin routes from Clean Architecture"""
