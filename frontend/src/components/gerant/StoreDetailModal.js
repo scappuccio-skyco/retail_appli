@@ -16,10 +16,6 @@ const STORE_COLOR_CONFIG = [
 
 const StoreDetailModal = ({ store, colorIndex = 0, onClose, onTransferManager, onTransferSeller, onDeleteStore, onRefresh }) => {
   const colorConfig = STORE_COLOR_CONFIG[colorIndex % STORE_COLOR_CONFIG.length];
-  
-  // Debug log
-  console.log('StoreDetailModal colorIndex:', colorIndex, 'color:', colorConfig.name, 'from:', colorConfig.from);
-  
   const [activeTab, setActiveTab] = useState('performance');
   const [managers, setManagers] = useState([]);
   const [sellers, setSellers] = useState([]);
