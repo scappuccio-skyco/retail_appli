@@ -1638,3 +1638,45 @@ agent_communication:
 
   - agent: "main"
     message: "🏆 RBAC VALIDATION COMPLETE - 100% SUCCESS ACHIEVED: ✅ ALL 5 USER SPACES VALIDATED: 1) 👑 Super Admin (100%): Login ✓, Access workspaces ✓, Access stats ✓, User info ✓. 2) 💼 Enterprise/Grand Compte (100%): Login ✓, Dashboard stats ✓, Subscription info ✓. 3) 👔 Gérant (100%): Login ✓, Dashboard stats ✓, Subscription status ✓, Isolation test (DENIED admin access) ✓. 4) 🏪 Manager (100%): Login ✓, Access own store hierarchy ✓, Access KPI summary ✓, Isolation test (DENIED admin access) ✓. 5) 👤 Seller (100%): Login ✓, Access own KPI entries ✓, KPI summary ✓, Create KPI entry ✓, Isolation tests (DENIED admin & gérant access) ✓. ✅ CRITICAL FIX APPLIED: Modified /api/stores/{store_id}/hierarchy to accept both Gérant AND Manager roles (created get_gerant_or_manager dependency in security.py). Manager can now access hierarchy of their assigned store. ✅ PERMISSION ISOLATION VERIFIED: Cross-role access correctly blocked (403 errors). ✅ TOTAL: 21/21 tests passed (100%). Clean Architecture refactoring completed WITHOUT breaking RBAC. All user spaces functional and secure. System ready for production deployment."
+
+---
+## Session: 2025-12-11 - Final Architecture Refactoring (Fork)
+
+### Completed Tasks:
+1. **gerant.py Refactoring (P0)**: ✅ COMPLETE
+   - Refactored `get_store_kpi_history` to use `GerantService`
+   - Refactored `get_store_available_years` to use `GerantService`  
+   - Refactored `transfer_seller_to_store` to use `GerantService`
+   - Removed all direct DB imports (motor, get_db)
+   - 0 violations remaining
+
+2. **integrations.py Refactoring (P1)**: ✅ COMPLETE
+   - Created `IntegrationRepository` and `IntegrationService`
+   - Refactored `create_api_key` and `list_api_keys` to use service
+   - Refactored `verify_api_key` to use service
+   - Added dependency injection via `get_integration_service`
+   - 0 violations remaining
+
+3. **admin.py Fix**: ✅ COMPLETE
+   - Fixed `/logs` route that had direct DB access
+   - Fixed `AdminRepository` initialization error (removed BaseRepository inheritance)
+   - 0 violations remaining
+
+### Test Results:
+- RBAC Matrix Test: **29/29 (100%)** ✅
+- All 5 roles tested: Super Admin, Enterprise, Gérant, Manager, Seller
+
+### Files Modified:
+- /app/backend/api/routes/gerant.py
+- /app/backend/api/routes/integrations.py
+- /app/backend/api/routes/admin.py
+- /app/backend/services/gerant_service.py (added 3 methods)
+- /app/backend/services/integration_service.py (NEW)
+- /app/backend/repositories/integration_repository.py (NEW)
+- /app/backend/repositories/admin_repository.py (fixed)
+- /app/backend/api/dependencies.py (added get_integration_service)
+
+### Remaining Violations (P2-P3):
+- api/routes/manager.py: 8 violations
+- api/routes/ai.py: 3 violations
+
