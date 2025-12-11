@@ -1205,44 +1205,73 @@ class GerantService:
     async def _send_invitation_email(self, invitation: Dict):
         """Send invitation email using Brevo"""
         import httpx
+        from dotenv import dotenv_values
         
-        brevo_api_key = os.environ.get('BREVO_API_KEY')
-        frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+        # Load from .env file directly
+        env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+        env_vars = dotenv_values(env_path)
+        
+        brevo_api_key = env_vars.get('BREVO_API_KEY') or os.environ.get('BREVO_API_KEY')
+        frontend_url = env_vars.get('FRONTEND_URL') or os.environ.get('FRONTEND_URL', 'http://localhost:3000')
         
         if not brevo_api_key:
             logger.warning("BREVO_API_KEY not set, skipping email")
             return
         
+        logger.info(f"Sending invitation email to {invitation['email']}")
+        
         role_text = "Manager" if invitation['role'] == 'manager' else "Vendeur"
         invitation_link = f"{frontend_url}/invitation/{invitation['token']}"
         
         email_content = f"""
-        <h2>Invitation à rejoindre l'équipe</h2>
-        <p>Bonjour {invitation['name']},</p>
-        <p>Vous avez été invité(e) à rejoindre l'équipe de <strong>{invitation['store_name']}</strong> en tant que <strong>{role_text}</strong>.</p>
-        <p>Cliquez sur le lien ci-dessous pour créer votre compte et accéder à la plateforme :</p>
-        <p><a href="{invitation_link}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Accepter l'invitation</a></p>
-        <p>Ce lien expire dans 7 jours.</p>
-        <p>Cordialement,<br>L'équipe Retail Coach</p>
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"></head>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0;">
+                <h1 style="color: white; margin: 0; text-align: center;">Retail Coach</h1>
+            </div>
+            <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
+                <h2 style="color: #1f2937;">Invitation à rejoindre l'équipe</h2>
+                <p style="color: #4b5563;">Bonjour <strong>{invitation['name']}</strong>,</p>
+                <p style="color: #4b5563;">Vous avez été invité(e) à rejoindre l'équipe de <strong>{invitation['store_name']}</strong> en tant que <strong>{role_text}</strong>.</p>
+                <p style="color: #4b5563;">Cliquez sur le bouton ci-dessous pour créer votre compte et accéder à la plateforme :</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{invitation_link}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Accepter l'invitation</a>
+                </div>
+                <p style="color: #9ca3af; font-size: 14px;">Ce lien expire dans 7 jours.</p>
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+                <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+                    Cet email a été envoyé par Retail Coach.<br>
+                    Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet email.
+                </p>
+            </div>
+        </body>
+        </html>
         """
         
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                "https://api.brevo.com/v3/smtp/email",
-                headers={
-                    "api-key": brevo_api_key,
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "sender": {"name": "Retail Coach", "email": "noreply@retailperformer.com"},
-                    "to": [{"email": invitation['email'], "name": invitation['name']}],
-                    "subject": f"Invitation à rejoindre {invitation['store_name']}",
-                    "htmlContent": email_content
-                }
-            )
-            
-            if response.status_code not in [200, 201]:
-                logger.error(f"Brevo API error: {response.text}")
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    "https://api.brevo.com/v3/smtp/email",
+                    headers={
+                        "api-key": brevo_api_key,
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "sender": {"name": "Retail Coach", "email": "noreply@retailperformer.com"},
+                        "to": [{"email": invitation['email'], "name": invitation['name']}],
+                        "subject": f"🎉 Invitation à rejoindre {invitation['store_name']}",
+                        "htmlContent": email_content
+                    }
+                )
+                
+                if response.status_code in [200, 201]:
+                    logger.info(f"✅ Email sent successfully to {invitation['email']}")
+                else:
+                    logger.error(f"❌ Brevo API error ({response.status_code}): {response.text}")
+        except Exception as e:
+            logger.error(f"❌ Failed to send email: {str(e)}")
     
     async def get_invitations(self, gerant_id: str) -> list:
         """Get all invitations sent by this gérant"""
