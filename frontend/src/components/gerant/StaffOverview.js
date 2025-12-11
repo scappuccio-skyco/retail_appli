@@ -231,8 +231,24 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
     });
   };
 
+  const filterInvitations = () => {
+    return invitations.filter(inv => {
+      const matchesSearch = 
+        inv.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inv.email?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStore = storeFilter === 'all' || inv.store_id === storeFilter;
+      const matchesStatus = invitationStatusFilter === 'all' || inv.status === invitationStatusFilter;
+
+      return matchesSearch && matchesStore && matchesStatus;
+    });
+  };
+
   const filteredManagers = filterUsers(managers);
   const filteredSellers = filterUsers(sellers);
+  const filteredInvitations = filterInvitations();
+  
+  const pendingInvitationsCount = invitations.filter(i => i.status === 'pending').length;
 
   if (loading) {
     return (
