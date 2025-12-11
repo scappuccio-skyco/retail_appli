@@ -562,11 +562,15 @@ class GerantCheckoutRequest(BaseModel):
     origin_url: str  # URL d'origine pour les redirections
 
 
+from api.dependencies import get_db
+from motor.motor_asyncio import AsyncIOMotorDatabase
+
+
 @router.post("/stripe/checkout")
 async def create_gerant_checkout_session(
     checkout_data: GerantCheckoutRequest,
     current_user: dict = Depends(get_current_gerant),
-    gerant_service: GerantService = Depends(get_gerant_service)
+    db: AsyncIOMotorDatabase = Depends(get_db)
 ):
     """
     Créer une session de checkout Stripe pour un gérant.
@@ -576,9 +580,6 @@ async def create_gerant_checkout_session(
     - >15 vendeurs : sur devis (erreur)
     """
     try:
-        from api.dependencies import get_db
-        db = get_db()
-        
         STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
         if not STRIPE_API_KEY:
             raise HTTPException(status_code=500, detail="Configuration Stripe manquante")
