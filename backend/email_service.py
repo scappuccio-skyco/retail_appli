@@ -24,7 +24,7 @@ def send_gerant_invitation_email(recipient_email: str, recipient_name: str, invi
     """
     Envoyer un email d'invitation à un nouveau Gérant
     """
-    frontend_url = get_frontend_url()
+    frontend_url = get_frontend_url().rstrip('/')  # Remove trailing slash to avoid double //
     invitation_link = f"{frontend_url}/register/gerant/{invitation_token}"
     
     html_content = f"""
