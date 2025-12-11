@@ -111,24 +111,24 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div data-testid="login-page" className="min-h-screen bg-gradient-to-br from-cyan-600 via-blue-600 to-indigo-700 flex items-center justify-center p-4">
+    <div data-testid="login-page" className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/20">
+        <div className="glass-morphism rounded-3xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <img 
               src="/logo-retail-performer-blue.png" 
               alt="Retail Performer AI" 
-              className="h-24 mx-auto mb-4 object-contain bg-white/90 rounded-xl p-2"
+              className="h-24 mx-auto mb-4 object-contain"
             />
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-3xl font-bold text-[#1E40AF] mb-2">
               Retail Performer AI
             </h1>
             {inviteInfo ? (
-              <p className="text-white/80">
+              <p className="text-gray-600">
                 Rejoignez l'équipe de {inviteInfo.manager_name}
               </p>
             ) : (
-              <p className="text-white/80">
+              <p className="text-gray-600">
                 {isRegister ? 'Créez votre compte Gérant' : 'Connectez-vous'}
               </p>
             )}
@@ -138,7 +138,7 @@ export default function Login({ onLogin }) {
             {isRegister && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Nom complet
                   </label>
                   <div className="relative">
