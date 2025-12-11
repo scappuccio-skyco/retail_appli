@@ -50,6 +50,7 @@ const GerantDashboard = ({ user, onLogout }) => {
   
   // Selected items for modals
   const [selectedStore, setSelectedStore] = useState(null);
+  const [selectedStoreColorIndex, setSelectedStoreColorIndex] = useState(0);
   const [selectedManager, setSelectedManager] = useState(null);
   const [selectedSeller, setSelectedSeller] = useState(null);
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
