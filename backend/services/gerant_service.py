@@ -1312,3 +1312,43 @@ class GerantService:
         
         return {"message": "Invitation annulée"}
 
+    async def resend_invitation(self, invitation_id: str, gerant_id: str) -> Dict:
+        """Resend an invitation email"""
+        from uuid import uuid4
+        
+        invitation = await self.db.gerant_invitations.find_one({
+            "id": invitation_id,
+            "gerant_id": gerant_id
+        })
+        
+        if not invitation:
+            raise ValueError("Invitation non trouvée")
+        
+        if invitation.get('status') not in ['pending', 'expired']:
+            raise ValueError("Seules les invitations en attente ou expirées peuvent être renvoyées")
+        
+        # Generate new token and update expiration
+        new_token = str(uuid4())
+        new_expiry = (datetime.now(timezone.utc).replace(hour=0, minute=0, second=0) + timedelta(days=7)).isoformat()
+        
+        await self.db.gerant_invitations.update_one(
+            {"id": invitation_id},
+            {"$set": {
+                "token": new_token,
+                "status": "pending",
+                "expires_at": new_expiry,
+                "resent_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Refresh invitation data with new token
+        invitation['token'] = new_token
+        
+        # Send email
+        try:
+            await self._send_invitation_email(invitation)
+            return {"message": "Invitation renvoyée avec succès"}
+        except Exception as e:
+            logger.error(f"Failed to resend invitation email: {e}")
+            return {"message": "Invitation mise à jour mais email non envoyé"}
+
