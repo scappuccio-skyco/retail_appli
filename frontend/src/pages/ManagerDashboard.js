@@ -644,8 +644,14 @@ export default function ManagerDashboard({ user, onLogout }) {
       kpi: dashboardFilters.showKPI && (
         <div
           key="kpi"
-          onClick={() => setShowStoreKPIModal(true)}
-          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400"
+          onClick={() => {
+            if (isSubscriptionExpired) {
+              toast.error("Abonnement magasin suspendu. Contactez votre gérant.", { duration: 4000, icon: '🔒' });
+              return;
+            }
+            setShowStoreKPIModal(true);
+          }}
+          className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-orange-400 ${isSubscriptionExpired ? 'opacity-60' : ''}`}
           style={{ order: getSectionOrder('kpi') }}
         >
           <div className="relative h-56 overflow-hidden">
@@ -661,7 +667,9 @@ export default function ManagerDashboard({ user, onLogout }) {
               </div>
               <h3 className="text-2xl font-bold text-white text-center mb-2">🏪 Mon Magasin</h3>
               <p className="text-sm text-white opacity-90 text-center">Performances globales du point de vente</p>
-              <p className="text-xs text-white opacity-80 mt-3">Cliquer pour voir les détails →</p>
+              <p className="text-xs text-white opacity-80 mt-3">
+                {isSubscriptionExpired ? '🔒 Lecture seule' : 'Cliquer pour voir les détails →'}
+              </p>
             </div>
           </div>
         </div>
@@ -669,8 +677,14 @@ export default function ManagerDashboard({ user, onLogout }) {
       team: dashboardFilters.showTeam && (
         <div
           key="team"
-          onClick={() => setShowTeamModal(true)}
-          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-cyan-400"
+          onClick={() => {
+            if (isSubscriptionExpired) {
+              toast.error("Abonnement magasin suspendu. Contactez votre gérant.", { duration: 4000, icon: '🔒' });
+              return;
+            }
+            setShowTeamModal(true);
+          }}
+          className={`glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-cyan-400 ${isSubscriptionExpired ? 'opacity-60' : ''}`}
           style={{ order: getSectionOrder('team') }}
         >
           <div className="relative h-56 overflow-hidden">
