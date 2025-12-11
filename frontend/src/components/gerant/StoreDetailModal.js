@@ -19,6 +19,10 @@ const StoreDetailModal = ({ store, colorIndex = 0, onClose, onTransferManager, o
   const headerGradientStyle = {
     background: `linear-gradient(to bottom right, ${colorConfig.from}, ${colorConfig.via}, ${colorConfig.to})`
   };
+  
+  // Debug log
+  console.log('StoreDetailModal colorIndex:', colorIndex, 'color:', colorConfig.name);
+  
   const [activeTab, setActiveTab] = useState('performance');
   const [managers, setManagers] = useState([]);
   const [sellers, setSellers] = useState([]);
