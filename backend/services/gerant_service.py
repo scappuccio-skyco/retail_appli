@@ -73,7 +73,10 @@ class GerantService:
                 else:
                     trial_end_dt = trial_end
                 
+                # Gérer les dates naive vs aware
                 now = datetime.now(timezone.utc)
+                if trial_end_dt.tzinfo is None:
+                    trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
                 
                 # Allow access if trial_end is today or in the future
                 if now <= trial_end_dt:
