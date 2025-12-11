@@ -325,7 +325,7 @@ async def regenerate_api_key(
     import secrets
     from core.database import database
     
-    db = database.get_db()
+    db = database.db
     
     # Generate secure API key
     def generate_api_key() -> str:
