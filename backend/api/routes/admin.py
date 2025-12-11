@@ -33,85 +33,11 @@ async def get_workspaces(
 @router.get("/stats")
 async def get_platform_stats(
     current_user: Dict = Depends(get_super_admin),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    admin_service: AdminService = Depends(get_admin_service)
 ):
-    """Get platform-wide statistics - STRUCTURE ADAPTED FOR FRONTEND"""
+    """Get platform-wide statistics"""
     try:
-        # Workspaces stats
-        total_workspaces = await db.workspaces.count_documents({})
-        active_workspaces = await db.workspaces.count_documents({"subscription_status": "active"})
-        trial_workspaces = await db.workspaces.count_documents({"subscription_status": "trialing"})
-        
-        # Users stats
-        total_active_users = await db.users.count_documents({"status": "active"})
-        active_managers = await db.users.count_documents({"role": "manager", "status": "active"})
-        active_sellers = await db.users.count_documents({"role": "seller", "status": "active"})
-        inactive_users = await db.users.count_documents({"status": "suspended"})
-        
-        # Usage stats (AI operations)
-        total_diagnostics = await db.diagnostics.count_documents({})
-        
-        # Try to get AI operations from different collections
-        total_ai_operations = 0
-        try:
-            # Count AI consultations (relationship advice)
-            ai_consultations = await db.relationship_consultations.count_documents({})
-            total_ai_operations += ai_consultations
-        except:
-            pass
-        
-        # Revenue stats
-        active_subscriptions = await db.workspaces.count_documents({
-            "subscription_status": "active"
-        })
-        trial_subscriptions = await db.workspaces.count_documents({
-            "subscription_status": "trialing"
-        })
-        
-        # Calculate MRR (Monthly Recurring Revenue)
-        mrr = active_subscriptions * 29  # Average price per subscription
-        
-        # Activity stats (recent signups and analyses)
-        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
-        recent_signups = await db.users.count_documents({
-            "created_at": {"$gte": seven_days_ago}
-        })
-        
-        # Recent analyses (diagnostics created in last 7 days)
-        recent_analyses = await db.diagnostics.count_documents({
-            "created_at": {"$gte": seven_days_ago.isoformat()}
-        })
-        
-        # CRITICAL: Return structure matching frontend expectations
-        stats = {
-            "workspaces": {
-                "total": total_workspaces,
-                "active": active_workspaces,
-                "trial": trial_workspaces
-            },
-            "users": {
-                "total_active": total_active_users,
-                "active_managers": active_managers,
-                "active_sellers": active_sellers,
-                "inactive": inactive_users
-            },
-            "usage": {
-                "total_ai_operations": total_ai_operations,
-                "analyses_ventes": 0,  # Placeholder - implement if needed
-                "diagnostics": total_diagnostics
-            },
-            "revenue": {
-                "mrr": mrr,
-                "active_subscriptions": active_subscriptions,
-                "trial_subscriptions": trial_subscriptions
-            },
-            "activity": {
-                "recent_signups_7d": recent_signups,
-                "recent_analyses_7d": recent_analyses
-            },
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        return stats
+        return await admin_service.get_platform_stats()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
