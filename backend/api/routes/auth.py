@@ -150,7 +150,7 @@ async def reset_password(
     try:
         await auth_service.reset_password(
             token=request.token,
-            new_password=request.password
+            new_password=request.new_password
         )
         return {"message": "Mot de passe réinitialisé avec succès"}
     except Exception as e:
