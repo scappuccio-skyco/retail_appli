@@ -889,16 +889,7 @@ const GerantDashboard = ({ user, onLogout }) => {
                             {storeData.periodEvolution > 0 ? '↗' : '↘'} {Math.abs(storeData.periodEvolution).toFixed(0)}%
                           </div>
                         )}
-                        {badge && (
-                          <div className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            badge.type === 'excellent' ? 'bg-green-100 text-green-700' :
-                            badge.type === 'good' ? 'bg-blue-100 text-blue-700' :
-                            badge.type === 'average' ? 'bg-orange-100 text-orange-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>
-                            {badge.icon} {badge.label}
-                          </div>
-                        )}
+                        {/* Badges de performance supprimés à la demande utilisateur */}
                       </div>
                     </div>
                   );
