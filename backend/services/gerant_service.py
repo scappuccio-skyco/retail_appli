@@ -1599,3 +1599,166 @@ class GerantService:
         
         return {"message": f"{role.capitalize()} supprimé avec succès"}
 
+
+    # ============================================
+    # BULK IMPORT OPERATIONS (Migré depuis EnterpriseService)
+    # ============================================
+    
+    async def bulk_import_stores(
+        self,
+        gerant_id: str,
+        workspace_id: str,
+        stores: list,
+        mode: str = "create_or_update"
+    ) -> Dict:
+        """
+        Import massif de magasins pour un Gérant.
+        
+        Adapté depuis EnterpriseService pour utiliser workspace_id au lieu de enterprise_account_id.
+        
+        Args:
+            gerant_id: ID du gérant effectuant l'import
+            workspace_id: ID du workspace du gérant
+            stores: Liste de dictionnaires magasin [{name, location, address, phone, external_id}, ...]
+            mode: "create_only" | "update_only" | "create_or_update"
+            
+        Returns:
+            Dict avec résultats: total_processed, created, updated, failed, errors
+        """
+        from pymongo import UpdateOne, InsertOne
+        from uuid import uuid4
+        
+        # === GUARD CLAUSE: Check subscription access ===
+        await self.check_gerant_active_access(gerant_id)
+        
+        results = {
+            "total_processed": 0,
+            "created": 0,
+            "updated": 0,
+            "failed": 0,
+            "errors": []
+        }
+        
+        if not stores:
+            return results
+        
+        # PHASE 1: Pre-load existing stores (1 query for all)
+        store_names = [s.get('name') for s in stores if s.get('name')]
+        external_ids = [s.get('external_id') for s in stores if s.get('external_id')]
+        
+        query = {"$or": [], "workspace_id": workspace_id}
+        if store_names:
+            query["$or"].append({"name": {"$in": store_names}})
+        if external_ids:
+            query["$or"].append({"external_id": {"$in": external_ids}})
+        
+        existing_stores_map = {}
+        if query["$or"]:
+            existing_stores_cursor = self.store_repo.collection.find(
+                query,
+                {"_id": 0, "id": 1, "name": 1, "external_id": 1, "location": 1}
+            )
+            for store in await existing_stores_cursor.to_list(length=None):
+                if store.get('external_id'):
+                    existing_stores_map[store['external_id']] = store
+                existing_stores_map[store['name']] = store
+        
+        # PHASE 2: Build bulk operations list in memory
+        bulk_operations = []
+        
+        for store_data in stores:
+            results["total_processed"] += 1
+            
+            try:
+                # Validation
+                if not store_data.get('name'):
+                    results["failed"] += 1
+                    results["errors"].append({
+                        "name": store_data.get('name', 'unknown'),
+                        "error": "Champ requis manquant: name"
+                    })
+                    continue
+                
+                # Find existing store by external_id or name
+                lookup_key = store_data.get('external_id') or store_data['name']
+                existing_store = existing_stores_map.get(lookup_key)
+                
+                if existing_store:
+                    # Update mode
+                    if mode in ["update_only", "create_or_update"]:
+                        update_fields = {
+                            "name": store_data['name'],
+                            "location": store_data.get('location', existing_store.get('location', '')),
+                            "active": True,
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }
+                        
+                        if store_data.get('address'):
+                            update_fields['address'] = store_data['address']
+                        if store_data.get('phone'):
+                            update_fields['phone'] = store_data['phone']
+                        if store_data.get('external_id'):
+                            update_fields['external_id'] = store_data['external_id']
+                        
+                        bulk_operations.append(
+                            UpdateOne(
+                                {"id": existing_store['id']},
+                                {"$set": update_fields}
+                            )
+                        )
+                        results["updated"] += 1
+                    else:
+                        results["failed"] += 1
+                        results["errors"].append({
+                            "name": store_data['name'],
+                            "error": "Le magasin existe déjà (mode=create_only)"
+                        })
+                else:
+                    # Create mode
+                    if mode in ["create_only", "create_or_update"]:
+                        store_id = str(uuid4())
+                        new_store = {
+                            "id": store_id,
+                            "name": store_data['name'],
+                            "location": store_data.get('location', ''),
+                            "workspace_id": workspace_id,
+                            "gerant_id": gerant_id,
+                            "active": True,
+                            "address": store_data.get('address'),
+                            "phone": store_data.get('phone'),
+                            "external_id": store_data.get('external_id'),
+                            "created_at": datetime.now(timezone.utc).isoformat(),
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }
+                        
+                        bulk_operations.append(InsertOne(new_store))
+                        results["created"] += 1
+                    else:
+                        results["failed"] += 1
+                        results["errors"].append({
+                            "name": store_data['name'],
+                            "error": "Le magasin n'existe pas (mode=update_only)"
+                        })
+                        
+            except Exception as e:
+                results["failed"] += 1
+                results["errors"].append({
+                    "name": store_data.get('name', 'unknown'),
+                    "error": str(e)
+                })
+                logger.error(f"Erreur import magasin {store_data.get('name')}: {str(e)}")
+        
+        # PHASE 3: Execute bulk write (ordered=False for performance)
+        if bulk_operations:
+            try:
+                await self.store_repo.collection.bulk_write(
+                    bulk_operations,
+                    ordered=False  # Continue on error
+                )
+                logger.info(f"✅ Import massif magasins: {results['created']} créés, {results['updated']} mis à jour")
+            except Exception as e:
+                logger.error(f"Erreur bulk write: {str(e)}")
+                # Some operations may have succeeded
+        
+        return results
+
