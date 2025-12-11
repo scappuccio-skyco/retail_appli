@@ -429,6 +429,6 @@ class ManagerDashboardAndSuperAdminTester:
         return self.tests_passed >= self.tests_run * 0.8
 
 if __name__ == "__main__":
-    tester = CleanArchitectureAPITester()
+    tester = ManagerDashboardAndSuperAdminTester()
     success = tester.run_all_tests()
     sys.exit(0 if success else 1)
