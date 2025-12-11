@@ -680,12 +680,13 @@ const GerantDashboard = ({ user, onLogout }) => {
         )}
 
         {activeView === 'api' ? (
-          <APIKeysManagement />
+          <APIKeysManagement isReadOnly={isReadOnly} />
         ) : activeView === 'staff' ? (
           <StaffOverview 
             onRefresh={fetchDashboardData}
-            onOpenInviteModal={() => setShowInviteStaffModal(true)}
-            onOpenCreateStoreModal={() => setShowCreateStoreModal(true)}
+            onOpenInviteModal={() => !isReadOnly && setShowInviteStaffModal(true)}
+            onOpenCreateStoreModal={() => !isReadOnly && setShowCreateStoreModal(true)}
+            isReadOnly={isReadOnly}
           />
         ) : (
           <>
