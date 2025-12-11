@@ -154,7 +154,3 @@ async def sync_kpi_data_legacy(
     Full path: /api/integrations/v1/kpi/sync
     """
     return await sync_kpi_data(data, api_key, kpi_service)
-
-
-# Import at the top was missing
-from core.security import get_current_gerant
