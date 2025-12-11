@@ -1398,6 +1398,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           onRegenerate={regenerateBilan}
           generatingBilan={generatingBilan}
           initialTab={initialTab}
+          isReadOnly={isSubscriptionExpired}
           onEditKPI={(entry) => {
             handleOpenKPIModal(entry);
             setShowPerformanceModal(false); // Ferme le modal Performance pour ouvrir l'édition
