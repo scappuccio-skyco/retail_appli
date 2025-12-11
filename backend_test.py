@@ -6,10 +6,10 @@ from datetime import datetime
 class CleanArchitectureAPITester:
     def __init__(self, base_url="https://pythonclean.preview.emergentagent.com/api"):
         self.base_url = base_url
-        self.seller_token = None
-        self.manager_token = None
-        self.seller_user = None
-        self.manager_user = None
+        self.gerant_token = None
+        self.superadmin_token = None
+        self.gerant_user = None
+        self.superadmin_user = None
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
