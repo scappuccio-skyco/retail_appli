@@ -100,69 +100,13 @@ async def health_check(
 @router.get("/system-logs")
 async def get_system_logs(
     limit: int = Query(100, ge=1, le=1000),
-    hours: int = Query(24, ge=1, le=168),  # Max 1 week
+    hours: int = Query(24, ge=1, le=168),
     current_user: Dict = Depends(get_super_admin),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    admin_service: AdminService = Depends(get_admin_service)
 ):
-    """
-    Get system logs filtered by time window
-    
-    Args:
-        limit: Maximum number of logs to return (default: 100, max: 1000)
-        hours: Number of hours to look back (default: 24, max: 168)
-    
-    Returns:
-        List of system logs with timestamp, level, message, etc.
-    """
+    """Get system logs filtered by time window"""
     try:
-        # Calculate time window
-        now = datetime.now(timezone.utc)
-        time_threshold = now - timedelta(hours=hours)
-        
-        # Try to get logs from different possible collections
-        logs = []
-        
-        # Try 'system_logs' collection
-        try:
-            system_logs = await db.system_logs.find(
-                {"timestamp": {"$gte": time_threshold.isoformat()}},
-                {"_id": 0}
-            ).sort("timestamp", -1).limit(limit).to_list(limit)
-            logs.extend(system_logs)
-        except:
-            pass
-        
-        # Try 'logs' collection as fallback
-        if not logs:
-            try:
-                app_logs = await db.logs.find(
-                    {"timestamp": {"$gte": time_threshold.isoformat()}},
-                    {"_id": 0}
-                ).sort("timestamp", -1).limit(limit).to_list(limit)
-                logs.extend(app_logs)
-            except:
-                pass
-        
-        # If no logs found in DB, return mock recent activity logs
-        if not logs:
-            # Generate some sample system logs for display
-            logs = [
-                {
-                    "timestamp": (now - timedelta(minutes=i*10)).isoformat(),
-                    "level": "info" if i % 3 != 0 else "warning",
-                    "message": f"System health check - All services operational" if i % 3 == 0 else f"User login activity detected",
-                    "source": "system",
-                    "details": {}
-                }
-                for i in range(min(10, limit))
-            ]
-        
-        return {
-            "logs": logs,
-            "total": len(logs),
-            "period_hours": hours,
-            "timestamp": now.isoformat()
-        }
+        return await admin_service.get_system_logs(hours=hours, limit=limit)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
