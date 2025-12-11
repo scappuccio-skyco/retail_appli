@@ -104,7 +104,7 @@ async def get_super_admins(
     """Get all super admins"""
     admins = await db.users.find(
         {"role": "super_admin"},
-        {"_id": 0, "password_hash": 0}
+        {"_id": 0, "password_hash": 0, "password": 0}  # Exclude both password fields
     ).to_list(100)
     
     return {"admins": admins}
