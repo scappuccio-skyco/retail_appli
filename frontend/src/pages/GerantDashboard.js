@@ -141,9 +141,9 @@ const GerantDashboard = ({ user, onLogout }) => {
     try {
       const token = localStorage.getItem('token');
       
-      // Pour les cartes, toujours afficher la dernière semaine complète (week, offset=-1)
+      // Pour les cartes, afficher le mois courant
       const storesStatsPromises = storesList.map(store =>
-        fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=week&period_offset=-1`, {
+        fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=month&period_offset=0`, {
           headers: { 'Authorization': `Bearer ${token}` }
         }).then(res => res.json())
       );
@@ -151,7 +151,19 @@ const GerantDashboard = ({ user, onLogout }) => {
       const storesStatsArray = await Promise.all(storesStatsPromises);
       const statsMap = {};
       storesStatsArray.forEach((stats, index) => {
-        statsMap[storesList[index].id] = stats;
+        // Map API response to StoreCard expected format
+        statsMap[storesList[index].id] = {
+          managers_count: stats.managers_count || 0,
+          sellers_count: stats.sellers_count || 0,
+          month_ca: stats.period?.ca || 0,
+          month_ventes: stats.period?.ventes || 0,
+          period_ca: stats.period?.ca || 0,
+          period_ventes: stats.period?.ventes || 0,
+          prev_period_ca: stats.previous_period?.ca || 0,
+          week_ca: stats.period?.ca || 0,
+          today_ca: stats.today?.total_ca || 0,
+          today_ventes: stats.today?.total_ventes || 0
+        };
       });
       setStoresStats(statsMap);
     } catch (err) {
