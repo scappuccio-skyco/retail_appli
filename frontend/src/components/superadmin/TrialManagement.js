@@ -140,7 +140,7 @@ export default function TrialManagement() {
         </div>
 
         {/* Search Bar */}
-        <div className="relative mb-6">
+        <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
@@ -149,6 +149,73 @@ export default function TrialManagement() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
+        </div>
+
+        {/* Status Filter Buttons */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          <button
+            onClick={() => setStatusFilter('all')}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+              statusFilter === 'all'
+                ? 'bg-gray-800 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Tous ({statusCounts.all})
+          </button>
+          <button
+            onClick={() => setStatusFilter('active_trial')}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+              statusFilter === 'active_trial'
+                ? 'bg-blue-600 text-white'
+                : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5 inline mr-1" />
+            En essai ({statusCounts.active_trial})
+          </button>
+          <button
+            onClick={() => setStatusFilter('expiring_soon')}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+              statusFilter === 'expiring_soon'
+                ? 'bg-orange-500 text-white'
+                : 'bg-orange-50 text-orange-600 hover:bg-orange-100'
+            }`}
+          >
+            <AlertCircle className="w-3.5 h-3.5 inline mr-1" />
+            Expire bientôt ({statusCounts.expiring_soon})
+          </button>
+          <button
+            onClick={() => setStatusFilter('expired')}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+              statusFilter === 'expired'
+                ? 'bg-red-600 text-white'
+                : 'bg-red-50 text-red-600 hover:bg-red-100'
+            }`}
+          >
+            Expiré ({statusCounts.expired})
+          </button>
+          <button
+            onClick={() => setStatusFilter('no_trial')}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+              statusFilter === 'no_trial'
+                ? 'bg-gray-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Aucun essai ({statusCounts.no_trial})
+          </button>
+          <button
+            onClick={() => setStatusFilter('subscribed')}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+              statusFilter === 'subscribed'
+                ? 'bg-green-600 text-white'
+                : 'bg-green-50 text-green-600 hover:bg-green-100'
+            }`}
+          >
+            <CheckCircle className="w-3.5 h-3.5 inline mr-1" />
+            Abonnés ({statusCounts.subscribed})
+          </button>
         </div>
 
         {/* Gerants List */}
