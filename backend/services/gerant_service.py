@@ -547,6 +547,226 @@ class GerantService:
             "remaining_seats": max(0, quantity - active_sellers_count)
         }
     
+    async def get_store_kpi_history(self, store_id: str, gerant_id: str, days: int = 30) -> list:
+        """
+        Get historical KPI data for a specific store
+        
+        Args:
+            store_id: Store identifier
+            gerant_id: Gérant ID for ownership verification
+            days: Number of days to retrieve (default: 30)
+        
+        Returns:
+            List of daily aggregated KPI data sorted by date
+        """
+        from datetime import timedelta
+        
+        # Verify store ownership
+        store = await self.store_repo.find_one(
+            {"id": store_id, "gerant_id": gerant_id, "active": True},
+            {"_id": 0}
+        )
+        if not store:
+            raise ValueError("Magasin non trouvé ou accès non autorisé")
+        
+        # Calculate date range
+        end_date = datetime.now(timezone.utc)
+        start_date = end_date - timedelta(days=days)
+        
+        # Get ALL KPI entries for this store directly by store_id
+        seller_entries = await self.db.kpi_entries.find({
+            "store_id": store_id,
+            "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
+        }, {"_id": 0}).to_list(10000)
+        
+        # Get manager KPIs for this store
+        manager_kpis = await self.db.manager_kpi.find({
+            "store_id": store_id,
+            "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
+        }, {"_id": 0}).to_list(10000)
+        
+        # Aggregate data by date
+        date_map = {}
+        
+        # Add manager KPIs
+        for kpi in manager_kpis:
+            date = kpi['date']
+            if date not in date_map:
+                date_map[date] = {
+                    "date": date,
+                    "ca_journalier": 0,
+                    "nb_ventes": 0,
+                    "nb_clients": 0,
+                    "nb_articles": 0,
+                    "nb_prospects": 0
+                }
+            date_map[date]["ca_journalier"] += kpi.get("ca_journalier") or 0
+            date_map[date]["nb_ventes"] += kpi.get("nb_ventes") or 0
+            date_map[date]["nb_clients"] += kpi.get("nb_clients") or 0
+            date_map[date]["nb_articles"] += kpi.get("nb_articles") or 0
+            date_map[date]["nb_prospects"] += kpi.get("nb_prospects") or 0
+        
+        # Add seller entries
+        for entry in seller_entries:
+            date = entry['date']
+            if date not in date_map:
+                date_map[date] = {
+                    "date": date,
+                    "ca_journalier": 0,
+                    "nb_ventes": 0,
+                    "nb_clients": 0,
+                    "nb_articles": 0,
+                    "nb_prospects": 0
+                }
+            # Handle both field names for CA
+            ca_value = entry.get("seller_ca") or entry.get("ca_journalier") or 0
+            date_map[date]["ca_journalier"] += ca_value
+            date_map[date]["nb_ventes"] += entry.get("nb_ventes") or 0
+            date_map[date]["nb_clients"] += entry.get("nb_clients") or 0
+            date_map[date]["nb_articles"] += entry.get("nb_articles") or 0
+            date_map[date]["nb_prospects"] += entry.get("nb_prospects") or 0
+        
+        # Convert to sorted list
+        historical_data = sorted(date_map.values(), key=lambda x: x['date'])
+        
+        return historical_data
+
+    async def get_store_available_years(self, store_id: str, gerant_id: str) -> Dict:
+        """
+        Get available years with KPI data for this store
+        
+        Returns dict with 'years' list (integers) in descending order (most recent first)
+        Used for date filter dropdowns in the frontend
+        """
+        # Verify store ownership
+        store = await self.store_repo.find_one(
+            {"id": store_id, "gerant_id": gerant_id, "active": True},
+            {"_id": 0}
+        )
+        if not store:
+            raise ValueError("Magasin non trouvé ou accès non autorisé")
+        
+        # Get distinct years from kpi_entries
+        kpi_years = await self.db.kpi_entries.distinct("date", {"store_id": store_id})
+        years_set = set()
+        for date_str in kpi_years:
+            if date_str and len(date_str) >= 4:
+                year = int(date_str[:4])
+                years_set.add(year)
+        
+        # Get distinct years from manager_kpi
+        manager_years = await self.db.manager_kpi.distinct("date", {"store_id": store_id})
+        for date_str in manager_years:
+            if date_str and len(date_str) >= 4:
+                year = int(date_str[:4])
+                years_set.add(year)
+        
+        # Sort descending (most recent first)
+        years = sorted(list(years_set), reverse=True)
+        
+        return {"years": years}
+
+    async def transfer_seller_to_store(
+        self, 
+        seller_id: str, 
+        transfer_data: Dict, 
+        gerant_id: str
+    ) -> Dict:
+        """
+        Transfer a seller to another store with a new manager
+        
+        Args:
+            seller_id: Seller user ID
+            transfer_data: {"new_store_id": "...", "new_manager_id": "..."}
+            gerant_id: Current gérant ID for authorization
+        
+        Returns:
+            Dict with success status and message
+        """
+        from models.sellers import SellerTransfer
+        
+        # Validate input
+        try:
+            transfer = SellerTransfer(**transfer_data)
+        except Exception as e:
+            raise ValueError(f"Invalid transfer data: {str(e)}")
+        
+        # Verify seller exists and belongs to current gérant
+        seller = await self.user_repo.find_one({
+            "id": seller_id,
+            "gerant_id": gerant_id,
+            "role": "seller"
+        }, {"_id": 0})
+        
+        if not seller:
+            raise ValueError("Vendeur non trouvé ou accès non autorisé")
+        
+        # Verify new store exists, is active, and belongs to current gérant
+        new_store = await self.store_repo.find_one({
+            "id": transfer.new_store_id,
+            "gerant_id": gerant_id
+        }, {"_id": 0})
+        
+        if not new_store:
+            raise ValueError("Nouveau magasin non trouvé ou accès non autorisé")
+        
+        if not new_store.get('active', False):
+            raise ValueError(
+                f"Le magasin '{new_store['name']}' est inactif. Impossible de transférer vers un magasin inactif."
+            )
+        
+        # Verify new manager exists and is in the new store
+        new_manager = await self.user_repo.find_one({
+            "id": transfer.new_manager_id,
+            "store_id": transfer.new_store_id,
+            "role": "manager",
+            "status": "active"
+        }, {"_id": 0})
+        
+        if not new_manager:
+            raise ValueError("Manager non trouvé dans ce magasin ou manager inactif")
+        
+        # Prepare update fields
+        update_fields = {
+            "store_id": transfer.new_store_id,
+            "manager_id": transfer.new_manager_id,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        unset_fields = {}
+        
+        # Auto-reactivation if seller was suspended due to inactive store
+        if seller.get('status') == 'suspended' and seller.get('suspended_reason', '').startswith('Magasin'):
+            update_fields["status"] = "active"
+            update_fields["reactivated_at"] = datetime.now(timezone.utc).isoformat()
+            unset_fields = {
+                "suspended_at": "",
+                "suspended_by": "",
+                "suspended_reason": ""
+            }
+        
+        # Execute transfer
+        update_operation = {"$set": update_fields}
+        if unset_fields:
+            update_operation["$unset"] = unset_fields
+        
+        await self.db.users.update_one(
+            {"id": seller_id},
+            update_operation
+        )
+        
+        # Build response message
+        message = f"Vendeur transféré avec succès vers {new_store['name']}"
+        if update_fields.get("status") == "active":
+            message += " et réactivé automatiquement"
+        
+        return {
+            "success": True,
+            "message": message,
+            "new_store": new_store['name'],
+            "new_manager": new_manager['name'],
+            "reactivated": update_fields.get("status") == "active"
+        }
+
     async def _format_db_subscription(self, db_subscription: Dict, gerant_id: str) -> Dict:
         """Format database subscription data"""
         active_sellers_count = await self.user_repo.count({
