@@ -2,7 +2,7 @@
 Gérant Service
 Business logic for gérant dashboard, subscription, and workspace management
 """
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 from datetime import datetime, timezone, timedelta
 import logging
 import os
@@ -20,6 +20,80 @@ class GerantService:
         self.db = db
         self.user_repo = UserRepository(db)
         self.store_repo = StoreRepository(db)
+    
+    async def check_subscription_access(self, gerant_id: str) -> Tuple[bool, str, str]:
+        """
+        Check if gérant has active subscription access for write operations.
+        
+        Returns:
+            Tuple of (has_access: bool, status: str, message: str)
+            - has_access: True if user can perform write operations
+            - status: 'active', 'trialing', 'trial_expired', 'expired', 'no_subscription'
+            - message: Human-readable message
+        """
+        # Get gérant info
+        gerant = await self.user_repo.find_one(
+            {"id": gerant_id},
+            {"_id": 0}
+        )
+        
+        if not gerant:
+            return (False, "no_user", "Utilisateur non trouvé")
+        
+        workspace_id = gerant.get('workspace_id')
+        
+        if not workspace_id:
+            return (False, "no_workspace", "Aucun espace de travail")
+        
+        workspace = await self.db.workspaces.find_one(
+            {"id": workspace_id},
+            {"_id": 0}
+        )
+        
+        if not workspace:
+            return (False, "no_workspace", "Espace de travail non trouvé")
+        
+        subscription_status = workspace.get('subscription_status', 'inactive')
+        
+        # Active subscription - full access
+        if subscription_status == 'active':
+            return (True, "active", "Abonnement actif")
+        
+        # In trial period - check if still valid
+        if subscription_status == 'trialing':
+            trial_end = workspace.get('trial_end')
+            if trial_end:
+                if isinstance(trial_end, str):
+                    trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
+                else:
+                    trial_end_dt = trial_end
+                
+                now = datetime.now(timezone.utc)
+                
+                if now < trial_end_dt:
+                    days_left = (trial_end_dt - now).days
+                    return (True, "trialing", f"Essai gratuit - {days_left} jours restants")
+                else:
+                    # Trial has expired - update status in DB
+                    await self.db.workspaces.update_one(
+                        {"id": workspace_id},
+                        {"$set": {
+                            "subscription_status": "trial_expired",
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }}
+                    )
+                    return (False, "trial_expired", "Votre essai gratuit est terminé")
+        
+        # Trial expired
+        if subscription_status == 'trial_expired':
+            return (False, "trial_expired", "Votre essai gratuit est terminé")
+        
+        # Canceled or past_due
+        if subscription_status in ['canceled', 'past_due']:
+            return (False, subscription_status, "Abonnement annulé ou en retard de paiement")
+        
+        # Default: no access
+        return (False, "inactive", "Aucun abonnement actif")
     
     async def get_all_stores(self, gerant_id: str) -> list:
         """Get all active stores for a gérant"""
