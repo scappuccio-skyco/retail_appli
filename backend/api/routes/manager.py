@@ -4,10 +4,11 @@ Team management, KPIs, objectives, challenges for managers
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
+from datetime import datetime, timezone, timedelta
 
 from core.security import get_current_user
 from services.manager_service import ManagerService, APIKeyService
-from api.dependencies import get_manager_service, get_api_key_service
+from api.dependencies import get_manager_service, get_api_key_service, get_db
 
 router = APIRouter(prefix="/manager", tags=["Manager"])
 
@@ -17,6 +18,154 @@ async def verify_manager(current_user: dict = Depends(get_current_user)) -> dict
     if current_user.get('role') != 'manager':
         raise HTTPException(status_code=403, detail="Access restricted to managers")
     return current_user
+
+
+async def verify_manager_or_gerant(current_user: dict = Depends(get_current_user)) -> dict:
+    """Verify current user is a manager or gérant"""
+    if current_user.get('role') not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access restricted to managers and gérants")
+    return current_user
+
+
+# ===== STORE KPI OVERVIEW =====
+
+@router.get("/store-kpi-overview")
+async def get_store_kpi_overview(
+    date: str = Query(None),
+    current_user: dict = Depends(verify_manager),
+    db = Depends(get_db)
+):
+    """
+    Get KPI overview for manager's store on a specific date
+    Returns aggregated KPIs for all sellers
+    """
+    store_id = current_user.get('store_id')
+    if not store_id:
+        raise HTTPException(status_code=400, detail="Manager not assigned to a store")
+    
+    # Use provided date or today
+    target_date = date or datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    # Get all KPI entries for the store on this date
+    kpi_entries = await db.kpi_entries.find({
+        "store_id": store_id,
+        "date": target_date
+    }, {"_id": 0}).to_list(1000)
+    
+    # Also get manager KPIs
+    manager_kpis = await db.manager_kpi.find({
+        "store_id": store_id,
+        "date": target_date
+    }, {"_id": 0}).to_list(100)
+    
+    # Aggregate totals
+    total_ca = sum(e.get('ca_journalier') or e.get('seller_ca') or 0 for e in kpi_entries)
+    total_ca += sum(k.get('ca_journalier') or 0 for k in manager_kpis)
+    
+    total_ventes = sum(e.get('nb_ventes') or 0 for e in kpi_entries)
+    total_ventes += sum(k.get('nb_ventes') or 0 for k in manager_kpis)
+    
+    total_clients = sum(e.get('nb_clients') or 0 for e in kpi_entries)
+    total_clients += sum(k.get('nb_clients') or 0 for k in manager_kpis)
+    
+    total_articles = sum(e.get('nb_articles') or 0 for e in kpi_entries)
+    total_articles += sum(k.get('nb_articles') or 0 for k in manager_kpis)
+    
+    total_prospects = sum(e.get('nb_prospects') or 0 for e in kpi_entries)
+    total_prospects += sum(k.get('nb_prospects') or 0 for k in manager_kpis)
+    
+    # Count sellers who have submitted
+    sellers_submitted = len(set(e.get('seller_id') for e in kpi_entries if e.get('seller_id')))
+    
+    # Calculate derived KPIs
+    panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
+    taux_transformation = (total_ventes / total_clients * 100) if total_clients > 0 else 0
+    indice_vente = total_articles / total_ventes if total_ventes > 0 else 0
+    
+    return {
+        "date": target_date,
+        "store_id": store_id,
+        "totals": {
+            "ca_journalier": total_ca,
+            "nb_ventes": total_ventes,
+            "nb_clients": total_clients,
+            "nb_articles": total_articles,
+            "nb_prospects": total_prospects
+        },
+        "derived": {
+            "panier_moyen": round(panier_moyen, 2),
+            "taux_transformation": round(taux_transformation, 2),
+            "indice_vente": round(indice_vente, 2)
+        },
+        "sellers_submitted": sellers_submitted,
+        "entries_count": len(kpi_entries) + len(manager_kpis)
+    }
+
+
+@router.get("/dates-with-data")
+async def get_dates_with_data(
+    year: int = Query(None),
+    month: int = Query(None),
+    current_user: dict = Depends(verify_manager),
+    db = Depends(get_db)
+):
+    """
+    Get list of dates that have KPI data for the manager's store
+    Used for calendar highlighting
+    """
+    store_id = current_user.get('store_id')
+    if not store_id:
+        raise HTTPException(status_code=400, detail="Manager not assigned to a store")
+    
+    # Build date filter
+    query = {"store_id": store_id}
+    if year and month:
+        # Filter by specific month
+        start_date = f"{year}-{month:02d}-01"
+        if month == 12:
+            end_date = f"{year + 1}-01-01"
+        else:
+            end_date = f"{year}-{month + 1:02d}-01"
+        query["date"] = {"$gte": start_date, "$lt": end_date}
+    
+    # Get distinct dates with data
+    dates = await db.kpi_entries.distinct("date", query)
+    manager_dates = await db.manager_kpi.distinct("date", query)
+    
+    all_dates = sorted(set(dates) | set(manager_dates))
+    
+    return {"dates": all_dates}
+
+
+@router.get("/available-years")
+async def get_available_years(
+    current_user: dict = Depends(verify_manager),
+    db = Depends(get_db)
+):
+    """
+    Get list of years that have KPI data for the manager's store
+    Used for year filter dropdown
+    """
+    store_id = current_user.get('store_id')
+    if not store_id:
+        raise HTTPException(status_code=400, detail="Manager not assigned to a store")
+    
+    # Get distinct dates
+    dates = await db.kpi_entries.distinct("date", {"store_id": store_id})
+    manager_dates = await db.manager_kpi.distinct("date", {"store_id": store_id})
+    
+    all_dates = set(dates) | set(manager_dates)
+    
+    # Extract years
+    years = set()
+    for date_str in all_dates:
+        if date_str and len(date_str) >= 4:
+            try:
+                years.add(int(date_str[:4]))
+            except:
+                pass
+    
+    return {"years": sorted(list(years), reverse=True)}
 
 
 @router.get("/sellers")
