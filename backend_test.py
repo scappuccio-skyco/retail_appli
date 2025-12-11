@@ -92,8 +92,8 @@ class CleanArchitectureAPITester:
             data=gerant_data
         )
         
-        if success and 'access_token' in response:
-            self.gerant_token = response['access_token']
+        if success and 'token' in response:
+            self.gerant_token = response['token']
             self.gerant_user = response.get('user', {})
             print(f"   ✅ Gérant logged in: {self.gerant_user.get('email')}")
         
@@ -111,8 +111,8 @@ class CleanArchitectureAPITester:
             data=superadmin_data
         )
         
-        if success and 'access_token' in response:
-            self.superadmin_token = response['access_token']
+        if success and 'token' in response:
+            self.superadmin_token = response['token']
             self.superadmin_user = response.get('user', {})
             print(f"   ✅ SuperAdmin logged in: {self.superadmin_user.get('email')}")
 
