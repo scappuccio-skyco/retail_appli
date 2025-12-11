@@ -475,6 +475,26 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
     );
   }
 
+  // If subscriptionInfo is still null after loading (fetch error), show a fallback
+  if (!subscriptionInfo) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8 text-center">
+          <div className="text-red-500 text-lg font-semibold mb-4">
+            Impossible de charger les informations d'abonnement
+          </div>
+          <p className="text-gray-600 mb-4">Veuillez réessayer dans quelques instants.</p>
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
     {/* Main Subscription Modal - hide when quantity modal is open */}
