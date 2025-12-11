@@ -64,7 +64,7 @@ class GerantService:
         if subscription_status == 'active':
             return True
         
-        # In trial period - check if still valid
+        # In trial period - check if still valid (including the last day)
         if subscription_status == 'trialing':
             trial_end = workspace.get('trial_end')
             if trial_end:
@@ -75,7 +75,8 @@ class GerantService:
                 
                 now = datetime.now(timezone.utc)
                 
-                if now < trial_end_dt:
+                # Allow access if trial_end is today or in the future
+                if now <= trial_end_dt:
                     return True
                 else:
                     # Trial has expired - update status in DB
