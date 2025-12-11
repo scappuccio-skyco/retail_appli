@@ -656,56 +656,43 @@ class GerantService:
                         "active_sellers_count": active_sellers_count
                     }
         
-        # PRIORITY 2: Check Stripe subscription
+        # PRIORITY 2: Check Stripe subscription (if customer ID exists)
         stripe_customer_id = gerant.get('stripe_customer_id')
         
-        if not stripe_customer_id:
-            # No Stripe AND no trialing workspace = new account without trial
-            active_sellers_count = await self.user_repo.count({
-                "gerant_id": gerant_id,
-                "role": "seller",
-                "status": "active"
-            })
-            return {
-                "has_subscription": False,
-                "status": "no_subscription",
-                "message": "Aucun abonnement trouvé",
-                "active_sellers_count": active_sellers_count
-            }
-        
-        # Check Stripe API
-        try:
-            import stripe as stripe_lib
-            stripe_lib.api_key = os.environ.get('STRIPE_API_KEY')
-            
-            # Get active subscriptions
-            subscriptions = stripe_lib.Subscription.list(
-                customer=stripe_customer_id,
-                status='active',
-                limit=10
-            )
-            
-            active_subscription = None
-            for sub in subscriptions.data:
-                if not sub.get('cancel_at_period_end', False):
-                    active_subscription = sub
-                    break
-            
-            if not active_subscription:
-                # Check for trialing subscriptions
-                trial_subs = stripe_lib.Subscription.list(
+        if stripe_customer_id:
+            # Check Stripe API
+            try:
+                import stripe as stripe_lib
+                stripe_lib.api_key = os.environ.get('STRIPE_API_KEY')
+                
+                # Get active subscriptions
+                subscriptions = stripe_lib.Subscription.list(
                     customer=stripe_customer_id,
-                    status='trialing',
-                    limit=1
+                    status='active',
+                    limit=10
                 )
-                if trial_subs.data:
-                    active_subscription = trial_subs.data[0]
-            
-            if active_subscription:
-                return await self._format_stripe_subscription(active_subscription, gerant_id)
-            
-        except Exception as e:
-            logger.warning(f"Stripe API error: {e}")
+                
+                active_subscription = None
+                for sub in subscriptions.data:
+                    if not sub.get('cancel_at_period_end', False):
+                        active_subscription = sub
+                        break
+                
+                if not active_subscription:
+                    # Check for trialing subscriptions
+                    trial_subs = stripe_lib.Subscription.list(
+                        customer=stripe_customer_id,
+                        status='trialing',
+                        limit=1
+                    )
+                    if trial_subs.data:
+                        active_subscription = trial_subs.data[0]
+                
+                if active_subscription:
+                    return await self._format_stripe_subscription(active_subscription, gerant_id)
+                
+            except Exception as e:
+                logger.warning(f"Stripe API error: {e}")
         
         # PRIORITY 3: Check local database subscription
         db_subscription = await self.db.subscriptions.find_one(
