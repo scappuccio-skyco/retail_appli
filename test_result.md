@@ -140,12 +140,14 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Gérant Suspend/Reactivate Endpoints"
-    - "Gérant Invitations System"
+    - "Read-Only Mode Seller/Manager Dashboard Frontend"
+    - "KPI Entry Blocking on Trial Expiration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "main"
+    message: "Testing Read-Only Mode for Seller and Manager dashboards. Credentials to use: Seller: emma.petit@test.com / TestDemo123! (trial expired), Manager: y.legoff@skyco.fr / TestDemo123! (trial expired). Both should show yellow alert banner and block KPI entry. Test the PerformanceModal 'Saisir mes chiffres' tab - it should be disabled with lock icon."
   - agent: "testing"
     message: "✅ ALL GÉRANT DASHBOARD BACKEND TESTS PASSED (35/35 - 100% success rate). All suspend/reactivate endpoints for sellers and managers working correctly. Invitation system operational with cappuccioseb+h@gmail.com invitation found. Authentication security properly implemented. No backend issues detected."
