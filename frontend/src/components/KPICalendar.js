@@ -225,14 +225,20 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
 
             {/* Legend & Actions */}
             <div className="mt-4 pt-3 border-t border-gray-200">
-              <div className="flex items-center justify-between gap-2 text-xs text-gray-600 mb-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600 mb-2">
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-green-100 rounded border border-green-300"></div>
-                  <span>: Données</span>
+                  <span>Données</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-amber-100 rounded border border-amber-300 relative">
+                    <Lock className="w-2 h-2 text-amber-600 absolute -top-0.5 -right-0.5" />
+                  </div>
+                  <span>Verrouillé</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 border-2 border-purple-600 rounded"></div>
-                  <span>: N/D</span>
+                  <span>Auj.</span>
                 </div>
               </div>
               <button
@@ -245,7 +251,7 @@ export default function KPICalendar({ selectedDate, onDateChange, datesWithData 
                 onClick={() => setIsOpen(false)}
                 className="w-full px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-md transition-colors font-medium mt-1"
               >
-                Effacer
+                Fermer
               </button>
             </div>
           </div>
