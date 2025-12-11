@@ -192,7 +192,7 @@ async def get_store_kpi_history(
     store_id: str,
     days: int = 30,
     current_user: Dict = Depends(get_current_gerant),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service)
 ):
     """
     Get historical KPI data for a specific store
@@ -206,84 +206,19 @@ async def get_store_kpi_history(
     
     Security: Verify that the store belongs to the current gérant
     """
-    from datetime import datetime, timezone, timedelta
-    
-    # Verify store ownership
-    store = await db.stores.find_one(
-        {"id": store_id, "gerant_id": current_user['id'], "active": True},
-        {"_id": 0}
-    )
-    if not store:
-        raise HTTPException(status_code=404, detail="Magasin non trouvé ou accès non autorisé")
-    
-    # Calculate date range
-    end_date = datetime.now(timezone.utc)
-    start_date = end_date - timedelta(days=days)
-    
-    # Get ALL KPI entries for this store directly by store_id
-    seller_entries = await db.kpi_entries.find({
-        "store_id": store_id,
-        "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
-    }, {"_id": 0}).to_list(10000)
-    
-    # Get manager KPIs for this store
-    manager_kpis = await db.manager_kpi.find({
-        "store_id": store_id,
-        "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
-    }, {"_id": 0}).to_list(10000)
-    
-    # Aggregate data by date
-    date_map = {}
-    
-    # Add manager KPIs
-    for kpi in manager_kpis:
-        date = kpi['date']
-        if date not in date_map:
-            date_map[date] = {
-                "date": date,
-                "ca_journalier": 0,
-                "nb_ventes": 0,
-                "nb_clients": 0,
-                "nb_articles": 0,
-                "nb_prospects": 0
-            }
-        date_map[date]["ca_journalier"] += kpi.get("ca_journalier") or 0
-        date_map[date]["nb_ventes"] += kpi.get("nb_ventes") or 0
-        date_map[date]["nb_clients"] += kpi.get("nb_clients") or 0
-        date_map[date]["nb_articles"] += kpi.get("nb_articles") or 0
-        date_map[date]["nb_prospects"] += kpi.get("nb_prospects") or 0
-    
-    # Add seller entries
-    for entry in seller_entries:
-        date = entry['date']
-        if date not in date_map:
-            date_map[date] = {
-                "date": date,
-                "ca_journalier": 0,
-                "nb_ventes": 0,
-                "nb_clients": 0,
-                "nb_articles": 0,
-                "nb_prospects": 0
-            }
-        # Handle both field names for CA
-        ca_value = entry.get("seller_ca") or entry.get("ca_journalier") or 0
-        date_map[date]["ca_journalier"] += ca_value
-        date_map[date]["nb_ventes"] += entry.get("nb_ventes") or 0
-        date_map[date]["nb_clients"] += entry.get("nb_clients") or 0
-        date_map[date]["nb_articles"] += entry.get("nb_articles") or 0
-        date_map[date]["nb_prospects"] += entry.get("nb_prospects") or 0
-    
-    # Convert to sorted list
-    historical_data = sorted(date_map.values(), key=lambda x: x['date'])
-    
-    return historical_data
+    try:
+        return await gerant_service.get_store_kpi_history(store_id, current_user['id'], days)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/stores/{store_id}/available-years")
 async def get_store_available_years(
     store_id: str,
     current_user: Dict = Depends(get_current_gerant),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service)
 ):
     """
     Get available years with KPI data for this store
@@ -293,33 +228,12 @@ async def get_store_available_years(
     
     Security: Verify that the store belongs to the current gérant
     """
-    # Verify store ownership
-    store = await db.stores.find_one(
-        {"id": store_id, "gerant_id": current_user['id'], "active": True},
-        {"_id": 0}
-    )
-    if not store:
-        raise HTTPException(status_code=404, detail="Magasin non trouvé ou accès non autorisé")
-    
-    # Get distinct years from kpi_entries
-    kpi_years = await db.kpi_entries.distinct("date", {"store_id": store_id})
-    years_set = set()
-    for date_str in kpi_years:
-        if date_str and len(date_str) >= 4:
-            year = int(date_str[:4])
-            years_set.add(year)
-    
-    # Get distinct years from manager_kpi
-    manager_years = await db.manager_kpi.distinct("date", {"store_id": store_id})
-    for date_str in manager_years:
-        if date_str and len(date_str) >= 4:
-            year = int(date_str[:4])
-            years_set.add(year)
-    
-    # Sort descending (most recent first)
-    years = sorted(list(years_set), reverse=True)
-    
-    return {"years": years}
+    try:
+        return await gerant_service.get_store_available_years(store_id, current_user['id'])
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 
@@ -331,7 +245,7 @@ async def transfer_seller_to_store(
     seller_id: str,
     transfer_data: Dict,
     current_user: Dict = Depends(get_current_gerant),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service)
 ):
     """
     Transfer a seller to another store with a new manager
@@ -352,92 +266,19 @@ async def transfer_seller_to_store(
     Auto-reactivation:
         - If seller was suspended due to inactive store, automatically reactivates
     """
-    from datetime import datetime, timezone
-    from models.sellers import SellerTransfer
-    
-    # Validate input
     try:
-        transfer = SellerTransfer(**transfer_data)
+        return await gerant_service.transfer_seller_to_store(
+            seller_id, transfer_data, current_user['id']
+        )
+    except ValueError as e:
+        # Determine appropriate status code based on error message
+        error_msg = str(e)
+        if "Invalid transfer data" in error_msg:
+            raise HTTPException(status_code=400, detail=error_msg)
+        elif "inactif" in error_msg:
+            raise HTTPException(status_code=400, detail=error_msg)
+        else:
+            raise HTTPException(status_code=404, detail=error_msg)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid transfer data: {str(e)}")
-    
-    # Verify seller exists and belongs to current gérant
-    seller = await db.users.find_one({
-        "id": seller_id,
-        "gerant_id": current_user['id'],
-        "role": "seller"
-    }, {"_id": 0})
-    
-    if not seller:
-        raise HTTPException(status_code=404, detail="Vendeur non trouvé ou accès non autorisé")
-    
-    # Verify new store exists, is active, and belongs to current gérant
-    new_store = await db.stores.find_one({
-        "id": transfer.new_store_id,
-        "gerant_id": current_user['id']
-    }, {"_id": 0})
-    
-    if not new_store:
-        raise HTTPException(status_code=404, detail="Nouveau magasin non trouvé ou accès non autorisé")
-    
-    if not new_store.get('active', False):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Le magasin '{new_store['name']}' est inactif. Impossible de transférer vers un magasin inactif."
-        )
-    
-    # Verify new manager exists and is in the new store
-    new_manager = await db.users.find_one({
-        "id": transfer.new_manager_id,
-        "store_id": transfer.new_store_id,
-        "role": "manager",
-        "status": "active"
-    }, {"_id": 0})
-    
-    if not new_manager:
-        raise HTTPException(
-            status_code=404,
-            detail="Manager non trouvé dans ce magasin ou manager inactif"
-        )
-    
-    # Prepare update fields
-    update_fields = {
-        "store_id": transfer.new_store_id,
-        "manager_id": transfer.new_manager_id,
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    unset_fields = {}
-    
-    # Auto-reactivation if seller was suspended due to inactive store
-    if seller.get('status') == 'suspended' and seller.get('suspended_reason', '').startswith('Magasin'):
-        update_fields["status"] = "active"
-        update_fields["reactivated_at"] = datetime.now(timezone.utc).isoformat()
-        unset_fields = {
-            "suspended_at": "",
-            "suspended_by": "",
-            "suspended_reason": ""
-        }
-    
-    # Execute transfer
-    update_operation = {"$set": update_fields}
-    if unset_fields:
-        update_operation["$unset"] = unset_fields
-    
-    await db.users.update_one(
-        {"id": seller_id},
-        update_operation
-    )
-    
-    # Build response message
-    message = f"Vendeur transféré avec succès vers {new_store['name']}"
-    if update_fields.get("status") == "active":
-        message += " et réactivé automatiquement"
-    
-    return {
-        "success": True,
-        "message": message,
-        "new_store": new_store['name'],
-        "new_manager": new_manager['name'],
-        "reactivated": update_fields.get("status") == "active"
-    }
+        raise HTTPException(status_code=500, detail=str(e))
 
