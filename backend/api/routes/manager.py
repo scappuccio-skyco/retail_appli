@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
 
 from core.security import get_current_user
-from services.manager_service import ManagerService
-from api.dependencies import get_manager_service
+from services.manager_service import ManagerService, APIKeyService
+from api.dependencies import get_manager_service, get_api_key_service
 
 router = APIRouter(prefix="/manager", tags=["Manager"])
 
