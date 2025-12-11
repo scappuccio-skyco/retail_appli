@@ -73,6 +73,15 @@ async def sync_kpi_data(
     Legacy path /api/v1/integrations/kpi/sync supported via alias below
     """
     try:
+        # === GUARD CLAUSE: Check subscription access ===
+        from services.gerant_service import GerantService
+        from core.database import get_database
+        db = get_database()
+        gerant_service = GerantService(db)
+        gerant_id = api_key.get('user_id')
+        if gerant_id:
+            await gerant_service.check_gerant_active_access(gerant_id)
+        
         # Limit to 100 items per request
         if len(data.kpi_entries) > 100:
             raise HTTPException(
