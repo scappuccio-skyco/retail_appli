@@ -87,7 +87,7 @@ const ProgressIndicator = ({ label, emoji, target, progress, type = 'currency', 
 
 export default function ManagerDashboard({ user, onLogout }) {
   const navigate = useNavigate();
-  const { canEditKPIConfig, isReadOnly } = useSyncMode();
+  const { canEditKPIConfig, isReadOnly, isSubscriptionExpired } = useSyncMode();
   
   // Get store_id from URL query params (for gerant accessing as manager)
   const urlParams = new URLSearchParams(window.location.search);
