@@ -935,30 +935,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                 Voir détail
                               </button>
                               
-                              {/* Actions de suspension/suppression retirées - Réservées au Gérant */}
-                              {seller.status === 'inactive' || seller.status === 'suspended' ? (
-                                <div className="relative">
-                                  <button
-                                    onClick={() => setConfirmModal({ isOpen: true, action: 'reactivate', seller })}
-                                    onMouseEnter={() => setHoveredButton(`reactivate-${seller.id}`)}
-                                    onMouseLeave={() => setHoveredButton(null)}
-                                    className="p-2 bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors relative"
-                                  >
-                                    <PlayCircle className="w-4 h-4" />
-                                  </button>
-                                  {hoveredButton === `reactivate-${seller.id}` && (
-                                    <div className="absolute right-full top-1/2 transform -translate-y-1/2 mr-2 z-[9999] w-72 bg-gray-900 text-white text-xs rounded-lg shadow-2xl p-3 pointer-events-none whitespace-nowrap">
-                                      <div className="font-bold mb-2 text-green-400">🟢 Réactiver</div>
-                                      <div className="text-gray-300 space-y-1">
-                                        <div>• Consomme 1 siège</div>
-                                        <div>• Le vendeur peut se reconnecter</div>
-                                        <div>• Historique intact</div>
-                                      </div>
-                                      <div className="absolute left-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-l-gray-900"></div>
-                                    </div>
-                                  )}
-                                </div>
-                              ) : null}
+                              {/* Actions de suspension/suppression/réactivation - RÉSERVÉES EXCLUSIVEMENT AU GÉRANT */}
+                              {/* Un Manager ne peut ni suspendre, ni supprimer, ni réactiver un vendeur */}
                             </div>
                           </td>
                         </tr>
