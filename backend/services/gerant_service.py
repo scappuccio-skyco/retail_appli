@@ -1352,3 +1352,112 @@ class GerantService:
             logger.error(f"Failed to resend invitation email: {e}")
             return {"message": "Invitation mise à jour mais email non envoyé"}
 
+    # ===== USER SUSPEND/REACTIVATE/DELETE METHODS =====
+    
+    async def suspend_user(self, user_id: str, gerant_id: str, role: str) -> Dict:
+        """
+        Suspend a manager or seller
+        
+        Args:
+            user_id: User ID to suspend
+            gerant_id: Gérant ID for authorization
+            role: 'manager' or 'seller'
+        """
+        user = await self.user_repo.find_one({
+            "id": user_id,
+            "gerant_id": gerant_id,
+            "role": role
+        })
+        
+        if not user:
+            raise ValueError(f"{role.capitalize()} non trouvé")
+        
+        if user.get('status') == 'suspended':
+            raise ValueError(f"Ce {role} est déjà suspendu")
+        
+        if user.get('status') == 'deleted':
+            raise ValueError(f"Ce {role} a été supprimé")
+        
+        await self.db.users.update_one(
+            {"id": user_id},
+            {"$set": {
+                "status": "suspended",
+                "suspended_at": datetime.now(timezone.utc).isoformat(),
+                "suspended_by": gerant_id,
+                "suspended_reason": "Suspendu par le gérant"
+            }}
+        )
+        
+        return {"message": f"{role.capitalize()} suspendu avec succès"}
+    
+    async def reactivate_user(self, user_id: str, gerant_id: str, role: str) -> Dict:
+        """
+        Reactivate a suspended manager or seller
+        
+        Args:
+            user_id: User ID to reactivate
+            gerant_id: Gérant ID for authorization
+            role: 'manager' or 'seller'
+        """
+        user = await self.user_repo.find_one({
+            "id": user_id,
+            "gerant_id": gerant_id,
+            "role": role
+        })
+        
+        if not user:
+            raise ValueError(f"{role.capitalize()} non trouvé")
+        
+        if user.get('status') != 'suspended':
+            raise ValueError(f"Ce {role} n'est pas suspendu")
+        
+        await self.db.users.update_one(
+            {"id": user_id},
+            {
+                "$set": {
+                    "status": "active",
+                    "reactivated_at": datetime.now(timezone.utc).isoformat(),
+                    "reactivated_by": gerant_id
+                },
+                "$unset": {
+                    "suspended_at": "",
+                    "suspended_by": "",
+                    "suspended_reason": ""
+                }
+            }
+        )
+        
+        return {"message": f"{role.capitalize()} réactivé avec succès"}
+    
+    async def delete_user(self, user_id: str, gerant_id: str, role: str) -> Dict:
+        """
+        Soft delete a manager or seller (set status to 'deleted')
+        
+        Args:
+            user_id: User ID to delete
+            gerant_id: Gérant ID for authorization
+            role: 'manager' or 'seller'
+        """
+        user = await self.user_repo.find_one({
+            "id": user_id,
+            "gerant_id": gerant_id,
+            "role": role
+        })
+        
+        if not user:
+            raise ValueError(f"{role.capitalize()} non trouvé")
+        
+        if user.get('status') == 'deleted':
+            raise ValueError(f"Ce {role} a déjà été supprimé")
+        
+        await self.db.users.update_one(
+            {"id": user_id},
+            {"$set": {
+                "status": "deleted",
+                "deleted_at": datetime.now(timezone.utc).isoformat(),
+                "deleted_by": gerant_id
+            }}
+        )
+        
+        return {"message": f"{role.capitalize()} supprimé avec succès"}
+
