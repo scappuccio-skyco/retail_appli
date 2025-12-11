@@ -682,6 +682,138 @@ async def resend_invitation(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ===== TRIAL MANAGEMENT =====
+
+@router.get("/gerants/trials")
+async def get_gerants_trials(
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """
+    Get all gérants with their trial information.
+    Used by TrialManagement component.
+    """
+    try:
+        # Get all gérants
+        gerants = await db.users.find(
+            {"role": "gerant"},
+            {"_id": 0, "password_hash": 0, "password": 0}
+        ).to_list(None)
+        
+        result = []
+        for gerant in gerants:
+            # Get subscription info
+            subscription = await db.subscriptions.find_one(
+                {"user_id": gerant['id']},
+                {"_id": 0}
+            )
+            
+            # Count active sellers
+            active_sellers_count = await db.users.count_documents({
+                "gerant_id": gerant['id'],
+                "role": "seller",
+                "status": "active"
+            })
+            
+            result.append({
+                "id": gerant['id'],
+                "name": gerant.get('name', 'N/A'),
+                "email": gerant.get('email', 'N/A'),
+                "created_at": gerant.get('created_at'),
+                "trial_end": subscription.get('trial_end') if subscription else None,
+                "trial_start": subscription.get('trial_start') if subscription else None,
+                "has_subscription": subscription.get('status') == 'active' if subscription else False,
+                "subscription_status": subscription.get('status') if subscription else None,
+                "active_sellers_count": active_sellers_count
+            })
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/gerants/{gerant_id}/trial")
+async def update_gerant_trial(
+    gerant_id: str,
+    trial_data: Dict,
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """
+    Update trial end date for a gérant.
+    """
+    from uuid import uuid4
+    
+    try:
+        # Verify gérant exists
+        gerant = await db.users.find_one({"id": gerant_id, "role": "gerant"})
+        if not gerant:
+            raise HTTPException(status_code=404, detail="Gérant non trouvé")
+        
+        # Get or create subscription
+        subscription = await db.subscriptions.find_one({"user_id": gerant_id})
+        
+        new_trial_end = trial_data.get('trial_end')
+        if not new_trial_end:
+            raise HTTPException(status_code=400, detail="trial_end est requis")
+        
+        # Parse and validate date
+        try:
+            from datetime import datetime
+            trial_end_date = datetime.fromisoformat(new_trial_end.replace('Z', '+00:00'))
+        except:
+            # Try parsing as simple date
+            trial_end_date = datetime.strptime(new_trial_end, '%Y-%m-%d')
+        
+        if subscription:
+            # Update existing subscription
+            await db.subscriptions.update_one(
+                {"user_id": gerant_id},
+                {"$set": {
+                    "trial_end": trial_end_date.isoformat(),
+                    "status": "trialing",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+        else:
+            # Create new subscription with trial
+            await db.subscriptions.insert_one({
+                "id": str(uuid4()),
+                "user_id": gerant_id,
+                "plan": "trial",
+                "status": "trialing",
+                "trial_start": datetime.now(timezone.utc).isoformat(),
+                "trial_end": trial_end_date.isoformat(),
+                "current_period_start": datetime.now(timezone.utc).isoformat(),
+                "current_period_end": trial_end_date.isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "ai_credits_remaining": 100,
+                "seats": 5
+            })
+        
+        # Log action
+        await db.audit_logs.insert_one({
+            "id": str(uuid4()),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "action": "update_trial",
+            "admin_email": current_user['email'],
+            "admin_name": current_user.get('name', 'Admin'),
+            "details": {
+                "gerant_id": gerant_id,
+                "gerant_email": gerant.get('email'),
+                "new_trial_end": new_trial_end
+            }
+        })
+        
+        return {"message": "Période d'essai mise à jour avec succès", "trial_end": trial_end_date.isoformat()}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ===== STRIPE SUBSCRIPTIONS OVERVIEW =====
 
 @router.get("/subscriptions/{gerant_id}/details")
