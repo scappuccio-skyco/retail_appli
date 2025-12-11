@@ -331,7 +331,7 @@ async def chat_with_ai_assistant(
     current_user: Dict = Depends(get_super_admin),
     db = Depends(get_db)
 ):
-    """Send a message to the AI assistant"""
+    """Send a message to the AI assistant with real platform data context"""
     from uuid import uuid4
     import os
     
@@ -360,6 +360,81 @@ async def chat_with_ai_assistant(
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
+        # ===== FETCH REAL PLATFORM DATA =====
+        # Count users by role
+        total_users = await db.users.count_documents({})
+        total_gerants = await db.users.count_documents({"role": "gerant"})
+        total_managers = await db.users.count_documents({"role": "manager"})
+        total_sellers = await db.users.count_documents({"role": "seller"})
+        active_sellers = await db.users.count_documents({"role": "seller", "status": "active"})
+        suspended_users = await db.users.count_documents({"status": "suspended"})
+        
+        # Count stores
+        total_stores = await db.stores.count_documents({})
+        active_stores = await db.stores.count_documents({"active": True})
+        
+        # Subscriptions
+        total_subscriptions = await db.subscriptions.count_documents({})
+        active_subscriptions = await db.subscriptions.count_documents({"status": "active"})
+        trial_subscriptions = await db.subscriptions.count_documents({"status": "trialing"})
+        
+        # KPIs (last 30 days)
+        thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).strftime('%Y-%m-%d')
+        recent_kpis = await db.kpi_entries.count_documents({"date": {"$gte": thirty_days_ago}})
+        
+        # Invitations
+        pending_invitations = await db.gerant_invitations.count_documents({"status": "pending"})
+        
+        # Recent activity
+        recent_logins = await db.users.count_documents({
+            "last_login": {"$gte": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()}
+        })
+        
+        # Top performing stores (if data available)
+        top_stores_pipeline = [
+            {"$match": {"date": {"$gte": thirty_days_ago}}},
+            {"$group": {"_id": "$store_id", "total_ca": {"$sum": "$ca_journalier"}, "total_ventes": {"$sum": "$nb_ventes"}}},
+            {"$sort": {"total_ca": -1}},
+            {"$limit": 5}
+        ]
+        top_stores_data = await db.kpi_entries.aggregate(top_stores_pipeline).to_list(5)
+        
+        # Build platform data context
+        platform_context = f"""
+=== DONNÉES EN TEMPS RÉEL DE LA PLATEFORME (à {datetime.now().strftime('%d/%m/%Y %H:%M')}) ===
+
+📊 UTILISATEURS:
+- Total: {total_users} utilisateurs
+- Gérants: {total_gerants}
+- Managers: {total_managers}  
+- Vendeurs: {total_sellers} ({active_sellers} actifs, {total_sellers - active_sellers} inactifs)
+- Utilisateurs suspendus: {suspended_users}
+- Connexions récentes (7 jours): {recent_logins}
+
+🏪 MAGASINS:
+- Total: {total_stores} magasins
+- Actifs: {active_stores}
+- Inactifs: {total_stores - active_stores}
+
+💳 ABONNEMENTS:
+- Total: {total_subscriptions}
+- Actifs (payants): {active_subscriptions}
+- En essai (trial): {trial_subscriptions}
+
+📈 ACTIVITÉ (30 derniers jours):
+- Entrées KPI enregistrées: {recent_kpis}
+- Invitations en attente: {pending_invitations}
+
+"""
+        
+        # Add top stores if available
+        if top_stores_data:
+            platform_context += "🏆 TOP 5 MAGASINS (CA sur 30 jours):\n"
+            for i, store in enumerate(top_stores_data, 1):
+                store_info = await db.stores.find_one({"id": store["_id"]}, {"_id": 0, "name": 1})
+                store_name = store_info.get("name", store["_id"]) if store_info else store["_id"]
+                platform_context += f"   {i}. {store_name}: {store['total_ca']:.0f}€ CA, {store['total_ventes']} ventes\n"
+        
         # Get conversation history for context
         previous_messages = await db.ai_messages.find(
             {"conversation_id": conversation_id},
@@ -367,10 +442,10 @@ async def chat_with_ai_assistant(
         ).sort("timestamp", 1).to_list(20)
         
         # Build context from history
-        context = ""
-        for msg in previous_messages[-8:]:  # Last 8 messages for context
+        history_context = ""
+        for msg in previous_messages[-6:]:  # Last 6 messages
             role = "User" if msg["role"] == "user" else "Assistant"
-            context += f"{role}: {msg['content']}\n"
+            history_context += f"{role}: {msg['content']}\n"
         
         # Generate AI response using Emergent LLM
         ai_response = "Désolé, je n'ai pas pu générer une réponse."
@@ -380,20 +455,28 @@ async def chat_with_ai_assistant(
             
             llm_key = os.environ.get('EMERGENT_LLM_KEY', 'sk-emergent-dB388Be0647671cF21')
             
-            system_prompt = """Tu es l'assistant IA de la plateforme Retail Performer, dédié aux Super Administrateurs.
+            system_prompt = f"""Tu es l'assistant IA expert de la plateforme Retail Performer, dédié aux Super Administrateurs.
+
+{platform_context}
+
+Tu as accès aux données ci-dessus en temps réel. Utilise-les pour répondre aux questions avec précision.
 
 Tu peux aider avec:
-- L'analyse des données de la plateforme (utilisateurs, abonnements, KPIs)
-- Les questions sur la gestion des gérants, managers et vendeurs
-- Les conseils sur la performance commerciale
-- L'explication des fonctionnalités de l'application
-- Le diagnostic des problèmes techniques
+- L'analyse des données et statistiques de la plateforme
+- L'identification des tendances et problèmes
+- Les recommandations pour améliorer les performances
+- L'explication des fonctionnalités
+- Le diagnostic des problèmes
 
-Contexte de la conversation précédente:
-""" + context + """
+Historique de la conversation:
+{history_context}
 
-Réponds de manière concise et professionnelle en français.
-Si tu ne connais pas la réponse, dis-le clairement."""
+INSTRUCTIONS:
+- Réponds de manière précise en utilisant les données réelles ci-dessus
+- Donne des chiffres concrets quand c'est pertinent
+- Fais des analyses et recommandations basées sur les données
+- Sois concis et professionnel
+- Réponds en français"""
             
             chat = LlmChat(
                 api_key=llm_key,
@@ -407,7 +490,7 @@ Si tu ne connais pas la réponse, dis-le clairement."""
             
         except Exception as ai_error:
             print(f"AI Error: {ai_error}")
-            ai_response = f"Je rencontre actuellement des difficultés techniques. Erreur: {str(ai_error)[:100]}"
+            ai_response = f"Je rencontre des difficultés techniques. Erreur: {str(ai_error)[:100]}"
         
         # Save AI response
         await db.ai_messages.insert_one({
