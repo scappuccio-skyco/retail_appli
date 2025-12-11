@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://backend-overhaul-6.preview.emergentagent.com
+https://trial-readonlymode.preview.emergentagent.com
 
 ### Manager
 ```
