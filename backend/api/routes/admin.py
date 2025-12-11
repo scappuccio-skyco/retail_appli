@@ -255,6 +255,48 @@ async def delete_invitation(
     return {"message": "Invitation supprimée avec succès"}
 
 
+@router.patch("/invitations/{invitation_id}")
+async def update_invitation(
+    invitation_id: str,
+    update_data: Dict,
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """Update an invitation"""
+    from uuid import uuid4
+    
+    invitation = await db.gerant_invitations.find_one({"id": invitation_id}, {"_id": 0})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation non trouvée")
+    
+    # Allowed fields to update
+    allowed_fields = ['email', 'role', 'store_name', 'status', 'name']
+    update_fields = {k: v for k, v in update_data.items() if k in allowed_fields and v is not None}
+    
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="Aucun champ valide à mettre à jour")
+    
+    # Add updated_at timestamp
+    update_fields['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.gerant_invitations.update_one(
+        {"id": invitation_id},
+        {"$set": update_fields}
+    )
+    
+    # Log action
+    await db.audit_logs.insert_one({
+        "id": str(uuid4()),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "action": "update_invitation",
+        "admin_email": current_user['email'],
+        "admin_name": current_user.get('name', 'Admin'),
+        "details": {"invitation_id": invitation_id, "updated_fields": list(update_fields.keys())}
+    })
+    
+    return {"message": "Invitation mise à jour avec succès"}
+
+
 # ===== AI ASSISTANT ENDPOINTS =====
 
 @router.get("/ai-assistant/conversations")
