@@ -218,12 +218,15 @@ class AuthService:
         # Generate reset token
         reset_token = secrets.token_urlsafe(32)
         
-        # Save token to database
+        # Save token to database (CRITICAL: All dates in UTC ISO format for consistency)
+        now_utc = datetime.now(timezone.utc)
+        expires_at_utc = now_utc + timedelta(hours=1)
+        
         await self.db.password_resets.insert_one({
             "email": email,
             "token": reset_token,
-            "created_at": datetime.now(timezone.utc),
-            "expires_at": datetime.now(timezone.utc).timestamp() + 3600  # 1 hour
+            "created_at": now_utc.isoformat(),
+            "expires_at": expires_at_utc.isoformat()  # 1 hour from now
         })
         
         # CRITICAL: Send password reset email
