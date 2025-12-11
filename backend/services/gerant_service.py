@@ -595,3 +595,301 @@ class GerantService:
             "used_seats": active_sellers_count,
             "remaining_seats": max(0, quantity - active_sellers_count)
         }
+
+    
+    # ===== STORE DETAIL METHODS (for Store Detail Pages) =====
+    
+    async def get_store_managers(self, store_id: str, gerant_id: str) -> list:
+        """
+        Get all managers for a specific store (exclude deleted)
+        
+        Security: Verifies store ownership
+        """
+        # Verify store ownership
+        store = await self.db.stores.find_one(
+            {"id": store_id, "gerant_id": gerant_id, "active": True},
+            {"_id": 0}
+        )
+        if not store:
+            raise Exception("Magasin non trouvé ou accès non autorisé")
+        
+        # Get managers (exclude deleted ones)
+        managers = await self.db.users.find(
+            {
+                "store_id": store_id, 
+                "role": "manager",
+                "status": {"$ne": "deleted"}
+            },
+            {"_id": 0, "password": 0}
+        ).to_list(100)
+        
+        return managers
+    
+    async def get_store_sellers(self, store_id: str, gerant_id: str) -> list:
+        """
+        Get all sellers for a specific store (exclude deleted)
+        
+        Security: Verifies store ownership
+        """
+        # Verify store ownership
+        store = await self.db.stores.find_one(
+            {"id": store_id, "gerant_id": gerant_id, "active": True},
+            {"_id": 0}
+        )
+        if not store:
+            raise Exception("Magasin non trouvé ou accès non autorisé")
+        
+        # Get sellers (exclude deleted ones)
+        sellers = await self.db.users.find(
+            {
+                "store_id": store_id, 
+                "role": "seller",
+                "status": {"$ne": "deleted"}
+            },
+            {"_id": 0, "password": 0}
+        ).to_list(1000)
+        
+        return sellers
+    
+    async def get_store_kpi_overview(self, store_id: str, gerant_id: str, date: str = None) -> Dict:
+        """
+        Get consolidated store KPI overview for a specific date
+        
+        Returns:
+        - Store info
+        - Manager aggregated data
+        - Seller aggregated data
+        - Individual seller entries
+        - Calculated KPIs (panier moyen, taux transformation, indice vente)
+        
+        Security: Verifies store ownership
+        """
+        from datetime import datetime, timezone
+        
+        # Verify store ownership
+        store = await self.db.stores.find_one(
+            {"id": store_id, "gerant_id": gerant_id, "active": True},
+            {"_id": 0}
+        )
+        if not store:
+            raise Exception("Magasin non trouvé ou accès non autorisé")
+        
+        # Default to today
+        if not date:
+            date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        
+        # Get all managers and sellers in this store
+        managers = await self.db.users.find({
+            "store_id": store_id,
+            "role": "manager",
+            "status": "active"
+        }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+        
+        sellers = await self.db.users.find({
+            "store_id": store_id,
+            "role": "seller",
+            "status": "active"
+        }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+        
+        # Get ALL KPI entries for this store directly by store_id
+        seller_entries = await self.db.kpi_entries.find({
+            "store_id": store_id,
+            "date": date
+        }, {"_id": 0}).to_list(100)
+        
+        # Enrich seller entries with names
+        for entry in seller_entries:
+            seller = next((s for s in sellers if s['id'] == entry.get('seller_id')), None)
+            if seller:
+                entry['seller_name'] = seller['name']
+            else:
+                entry['seller_name'] = entry.get('seller_name', 'Vendeur (historique)')
+        
+        # Get manager KPIs for this store
+        manager_kpis_list = await self.db.manager_kpi.find({
+            "store_id": store_id,
+            "date": date
+        }, {"_id": 0}).to_list(100)
+        
+        # Aggregate totals from managers
+        managers_total = {
+            "ca_journalier": sum((kpi.get("ca_journalier") or 0) for kpi in manager_kpis_list),
+            "nb_ventes": sum((kpi.get("nb_ventes") or 0) for kpi in manager_kpis_list),
+            "nb_clients": sum((kpi.get("nb_clients") or 0) for kpi in manager_kpis_list),
+            "nb_articles": sum((kpi.get("nb_articles") or 0) for kpi in manager_kpis_list),
+            "nb_prospects": sum((kpi.get("nb_prospects") or 0) for kpi in manager_kpis_list)
+        }
+        
+        # Aggregate totals from sellers
+        sellers_total = {
+            "ca_journalier": sum((entry.get("seller_ca") or entry.get("ca_journalier") or 0) for entry in seller_entries),
+            "nb_ventes": sum((entry.get("nb_ventes") or 0) for entry in seller_entries),
+            "nb_clients": sum((entry.get("nb_clients") or 0) for entry in seller_entries),
+            "nb_articles": sum((entry.get("nb_articles") or 0) for entry in seller_entries),
+            "nb_prospects": sum((entry.get("nb_prospects") or 0) for entry in seller_entries),
+            "nb_sellers_reported": len(seller_entries)
+        }
+        
+        # Calculate store totals
+        total_ca = managers_total["ca_journalier"] + sellers_total["ca_journalier"]
+        total_ventes = managers_total["nb_ventes"] + sellers_total["nb_ventes"]
+        total_clients = managers_total["nb_clients"] + sellers_total["nb_clients"]
+        total_articles = managers_total["nb_articles"] + sellers_total["nb_articles"]
+        total_prospects = managers_total["nb_prospects"] + sellers_total["nb_prospects"]
+        
+        # Calculate derived KPIs
+        calculated_kpis = {
+            "panier_moyen": round(total_ca / total_ventes, 2) if total_ventes > 0 else None,
+            "taux_transformation": round((total_ventes / total_prospects) * 100, 2) if total_prospects > 0 else None,
+            "indice_vente": round(total_articles / total_ventes, 2) if total_ventes > 0 else None
+        }
+        
+        return {
+            "date": date,
+            "store": store,
+            "managers_data": managers_total,
+            "sellers_data": sellers_total,
+            "seller_entries": seller_entries,
+            "total_managers": len(managers),
+            "total_sellers": len(sellers),
+            "sellers_reported": len(seller_entries),
+            "calculated_kpis": calculated_kpis,
+            "totals": {
+                "ca": total_ca,
+                "ventes": total_ventes,
+                "clients": total_clients,
+                "articles": total_articles,
+                "prospects": total_prospects
+            },
+            "kpi_config": {
+                "seller_track_ca": True,
+                "seller_track_ventes": True,
+                "seller_track_clients": True,
+                "seller_track_articles": True,
+                "seller_track_prospects": True
+            }
+        }
+    
+    async def get_store_kpi_history(self, store_id: str, gerant_id: str, days: int = 30) -> list:
+        """
+        Get historical KPI data for a specific store
+        
+        Args:
+            store_id: Store identifier
+            gerant_id: Gérant ID for security check
+            days: Number of days to retrieve (default: 30)
+        
+        Returns:
+            List of daily aggregated KPI data sorted by date
+        
+        Security: Verifies store ownership
+        """
+        from datetime import datetime, timezone, timedelta
+        
+        # Verify store ownership
+        store = await self.db.stores.find_one(
+            {"id": store_id, "gerant_id": gerant_id, "active": True},
+            {"_id": 0}
+        )
+        if not store:
+            raise Exception("Magasin non trouvé ou accès non autorisé")
+        
+        # Calculate date range
+        end_date = datetime.now(timezone.utc)
+        start_date = end_date - timedelta(days=days)
+        
+        # Get ALL KPI entries for this store directly by store_id
+        seller_entries = await self.db.kpi_entries.find({
+            "store_id": store_id,
+            "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
+        }, {"_id": 0}).to_list(10000)
+        
+        # Get manager KPIs for this store
+        manager_kpis = await self.db.manager_kpi.find({
+            "store_id": store_id,
+            "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
+        }, {"_id": 0}).to_list(10000)
+        
+        # Aggregate data by date
+        date_map = {}
+        
+        # Add manager KPIs
+        for kpi in manager_kpis:
+            date = kpi['date']
+            if date not in date_map:
+                date_map[date] = {
+                    "date": date,
+                    "ca_journalier": 0,
+                    "nb_ventes": 0,
+                    "nb_clients": 0,
+                    "nb_articles": 0,
+                    "nb_prospects": 0
+                }
+            date_map[date]["ca_journalier"] += kpi.get("ca_journalier") or 0
+            date_map[date]["nb_ventes"] += kpi.get("nb_ventes") or 0
+            date_map[date]["nb_clients"] += kpi.get("nb_clients") or 0
+            date_map[date]["nb_articles"] += kpi.get("nb_articles") or 0
+            date_map[date]["nb_prospects"] += kpi.get("nb_prospects") or 0
+        
+        # Add seller entries
+        for entry in seller_entries:
+            date = entry['date']
+            if date not in date_map:
+                date_map[date] = {
+                    "date": date,
+                    "ca_journalier": 0,
+                    "nb_ventes": 0,
+                    "nb_clients": 0,
+                    "nb_articles": 0,
+                    "nb_prospects": 0
+                }
+            # Handle both field names for CA
+            ca_value = entry.get("seller_ca") or entry.get("ca_journalier") or 0
+            date_map[date]["ca_journalier"] += ca_value
+            date_map[date]["nb_ventes"] += entry.get("nb_ventes") or 0
+            date_map[date]["nb_clients"] += entry.get("nb_clients") or 0
+            date_map[date]["nb_articles"] += entry.get("nb_articles") or 0
+            date_map[date]["nb_prospects"] += entry.get("nb_prospects") or 0
+        
+        # Convert to sorted list
+        historical_data = sorted(date_map.values(), key=lambda x: x['date'])
+        
+        return historical_data
+    
+    async def get_store_available_years(self, store_id: str, gerant_id: str) -> Dict:
+        """
+        Get available years with KPI data for this store
+        
+        Returns list of years (integers) in descending order (most recent first)
+        Used for date filter dropdowns in the frontend
+        
+        Security: Verifies store ownership
+        """
+        # Verify store ownership
+        store = await self.db.stores.find_one(
+            {"id": store_id, "gerant_id": gerant_id, "active": True},
+            {"_id": 0}
+        )
+        if not store:
+            raise Exception("Magasin non trouvé ou accès non autorisé")
+        
+        # Get distinct years from kpi_entries
+        kpi_years = await self.db.kpi_entries.distinct("date", {"store_id": store_id})
+        years_set = set()
+        for date_str in kpi_years:
+            if date_str and len(date_str) >= 4:
+                year = int(date_str[:4])
+                years_set.add(year)
+        
+        # Get distinct years from manager_kpi
+        manager_years = await self.db.manager_kpi.distinct("date", {"store_id": store_id})
+        for date_str in manager_years:
+            if date_str and len(date_str) >= 4:
+                year = int(date_str[:4])
+                years_set.add(year)
+        
+        # Sort descending (most recent first)
+        years = sorted(list(years_set), reverse=True)
+        
+        return {"years": years}
+
