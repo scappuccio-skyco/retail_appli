@@ -15,6 +15,7 @@ import ITAdminDashboard from './pages/ITAdminDashboard';
 import RegisterGerant from './pages/RegisterGerant';
 import RegisterManager from './pages/RegisterManager';
 import RegisterSeller from './pages/RegisterSeller';
+import InvitationPage from './pages/InvitationPage';
 import DiagnosticForm from './components/DiagnosticFormScrollable';
 import DiagnosticResult from './components/DiagnosticResult';
 import ErrorBoundary from './components/ErrorBoundary';
