@@ -334,12 +334,7 @@ async def get_active_challenges(
 # ===== API KEYS MANAGEMENT =====
 # NOTE: These routes are accessible by both Manager AND Gérant roles
 # The frontend uses /api/manager/api-keys for both roles
-
-async def verify_manager_or_gerant(current_user: dict = Depends(get_current_user)) -> dict:
-    """Verify current user is a manager or gérant"""
-    if current_user.get('role') not in ['manager', 'gerant', 'gérant']:
-        raise HTTPException(status_code=403, detail="Only managers and gérants can manage API keys")
-    return current_user
+# Uses verify_manager_or_gerant defined at the top of this file
 
 
 @router.post("/api-keys")
