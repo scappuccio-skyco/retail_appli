@@ -357,24 +357,22 @@ class ManagerDashboardAndSuperAdminTester:
                 token=self.manager_token
             )
 
-    def test_clean_architecture_endpoints(self):
-        """Test that Clean Architecture endpoints return 200 OK (not 500)"""
-        print("\n🏗️ TESTING CLEAN ARCHITECTURE - NO 500 ERRORS")
+    def test_critical_endpoints_no_500_errors(self):
+        """Test that critical endpoints return 200 OK (not 500)"""
+        print("\n🏗️ TESTING CRITICAL ENDPOINTS - NO 500 ERRORS")
         
         critical_endpoints = [
-            ("gerant/dashboard/stats", self.gerant_token),
-            ("gerant/subscription/status", self.gerant_token),
-            ("gerant/stores", self.gerant_token),
+            ("manager/store-kpi-overview", self.manager_token),
+            ("seller/kpi-enabled", self.manager_token),
+            ("superadmin/subscriptions/overview", self.superadmin_token),
             ("superadmin/workspaces", self.superadmin_token),
-            ("superadmin/stats", self.superadmin_token),
-            ("superadmin/logs", self.superadmin_token),
-            ("integrations/api-keys", self.gerant_token)
+            ("superadmin/stats", self.superadmin_token)
         ]
         
         for endpoint, token in critical_endpoints:
             if token:
                 success, response = self.run_test(
-                    f"Clean Architecture - {endpoint}",
+                    f"Critical Endpoint - {endpoint}",
                     "GET",
                     endpoint,
                     200,
