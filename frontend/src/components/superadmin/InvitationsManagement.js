@@ -111,10 +111,16 @@ const InvitationsManagement = () => {
   };
 
   const getRoleBadge = (role) => {
-    const isManager = role === 'manager' || role === 'gerant' || role === 'gérant';
+    const roleMap = {
+      gerant: { bg: 'bg-indigo-100', text: 'text-indigo-700', label: 'Gérant' },
+      gérant: { bg: 'bg-indigo-100', text: 'text-indigo-700', label: 'Gérant' },
+      manager: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Manager' },
+      seller: { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Vendeur' }
+    };
+    const badge = roleMap[role] || { bg: 'bg-gray-100', text: 'text-gray-700', label: role };
     return (
-      <span className={`px-2 py-0.5 rounded text-xs font-medium ${isManager ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-        {isManager ? 'Gérant' : 'Vendeur'}
+      <span className={`px-2 py-0.5 rounded text-xs font-medium ${badge.bg} ${badge.text}`}>
+        {badge.label}
       </span>
     );
   };
