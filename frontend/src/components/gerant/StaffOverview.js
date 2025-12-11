@@ -3,7 +3,8 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { 
   Users, UserCog, Search, Filter, Building2, Mail, Phone, 
-  MoreVertical, Trash2, Ban, CheckCircle, ArrowRightLeft, X 
+  MoreVertical, Trash2, Ban, CheckCircle, ArrowRightLeft, X,
+  Clock, RefreshCw, Send
 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -14,13 +15,16 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
   const [managers, setManagers] = useState([]);
   const [sellers, setSellers] = useState([]);
   const [stores, setStores] = useState([]);
+  const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [storeFilter, setStoreFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('active'); // Par défaut : afficher uniquement les actifs
+  const [invitationStatusFilter, setInvitationStatusFilter] = useState('pending');
   const [actionMenuOpen, setActionMenuOpen] = useState(null);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [resendingInvitation, setResendingInvitation] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -32,20 +36,53 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [managersRes, sellersRes, storesRes] = await Promise.all([
+      const [managersRes, sellersRes, storesRes, invitationsRes] = await Promise.all([
         axios.get(`${API}/gerant/managers`, { headers }),
         axios.get(`${API}/gerant/sellers`, { headers }),
-        axios.get(`${API}/gerant/stores`, { headers })
+        axios.get(`${API}/gerant/stores`, { headers }),
+        axios.get(`${API}/gerant/invitations`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       setManagers(managersRes.data || []);
       setSellers(sellersRes.data || []);
       setStores(storesRes.data || []);
+      setInvitations(invitationsRes.data || []);
     } catch (error) {
       toast.error('Erreur lors du chargement des données');
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendInvitation = async (invitationId) => {
+    setResendingInvitation(invitationId);
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      await axios.post(`${API}/gerant/invitations/${invitationId}/resend`, {}, { headers });
+      toast.success('Invitation renvoyée avec succès !');
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors du renvoi de l\'invitation');
+    } finally {
+      setResendingInvitation(null);
+    }
+  };
+
+  const handleCancelInvitation = async (invitationId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir annuler cette invitation ?')) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      await axios.delete(`${API}/gerant/invitations/${invitationId}`, { headers });
+      toast.success('Invitation annulée');
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de l\'annulation');
     }
   };
 
