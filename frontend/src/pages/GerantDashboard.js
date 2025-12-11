@@ -55,6 +55,12 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [selectedSeller, setSelectedSeller] = useState(null);
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
 
+  // === MODE LECTURE SEULE : Calcul basé sur l'état de l'abonnement ===
+  const isReadOnly = subscriptionInfo?.status === 'trial_expired' || 
+                     subscriptionInfo?.status === 'expired' ||
+                     subscriptionInfo?.status === 'canceled' ||
+                     subscriptionInfo?.has_subscription === false;
+
   // Helper: Calculer les dates de début et fin selon le type de période
   const getPeriodDates = (type = 'week', offset = 0) => {
     const now = new Date();
