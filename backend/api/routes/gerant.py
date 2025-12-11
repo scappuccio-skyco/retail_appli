@@ -434,3 +434,18 @@ async def cancel_invitation(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.post("/invitations/{invitation_id}/resend")
+async def resend_invitation(
+    invitation_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """Resend an invitation email"""
+    try:
+        return await gerant_service.resend_invitation(invitation_id, current_user['id'])
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
