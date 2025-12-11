@@ -608,8 +608,8 @@ async def resend_invitation(
                 configuration.api_key['api-key'] = brevo_key
                 api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
                 
-                # Use the preview URL or configured frontend URL
-                frontend_url = os.environ.get('FRONTEND_URL', 'https://pythonclean.preview.emergentagent.com')
+                # Use the frontend URL from environment
+                frontend_url = os.environ.get('FRONTEND_URL', 'https://retailperformerai.com')
                 invite_link = f"{frontend_url}/invitation/{invitation.get('token', 'invalid')}"
                 
                 send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
