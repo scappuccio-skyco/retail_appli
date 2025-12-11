@@ -8,6 +8,7 @@ from models.integrations import APIKeyCreate, KPISyncRequest
 from services.kpi_service import KPIService
 from services.integration_service import IntegrationService
 from api.dependencies import get_kpi_service, get_integration_service
+from core.security import get_current_gerant
 
 router = APIRouter(prefix="/integrations", tags=["Integrations"])
 
