@@ -269,7 +269,7 @@ async def list_api_keys(
     """
     from core.database import database
     
-    db = database.get_db()
+    db = database.db
     
     # Find keys - CRITICAL: Exclude _id to avoid MongoDB ObjectId serialization issues
     query = {"user_id": current_user['id']}
