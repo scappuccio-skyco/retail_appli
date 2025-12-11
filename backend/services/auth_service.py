@@ -57,10 +57,80 @@ class AuthService:
         # Remove password from response
         user_data = {k: v for k, v in user.items() if k != 'password'}
         
-        return {
+        # === HÉRITAGE DU STATUT D'ABONNEMENT DU GÉRANT PARENT ===
+        # Pour les vendeurs et managers, récupérer le statut de l'abonnement du gérant
+        parent_subscription_status = None
+        is_read_only = False
+        
+        if user.get('role') in ['seller', 'manager']:
+            gerant_id = user.get('gerant_id')
+            if gerant_id:
+                parent_sub = await self._get_parent_subscription_status(gerant_id)
+                parent_subscription_status = parent_sub.get('status')
+                is_read_only = parent_sub.get('is_read_only', False)
+        
+        response = {
             "token": token,
             "user": user_data
         }
+        
+        # Ajouter le statut parent si applicable
+        if parent_subscription_status:
+            response["parent_subscription_status"] = parent_subscription_status
+            response["is_read_only"] = is_read_only
+        
+        return response
+    
+    async def _get_parent_subscription_status(self, gerant_id: str) -> Dict:
+        """
+        Récupère le statut de l'abonnement du gérant parent.
+        
+        Returns:
+            Dict avec status et is_read_only
+        """
+        # Récupérer le gérant
+        gerant = await self.user_repo.find_one(
+            {"id": gerant_id},
+            {"_id": 0}
+        )
+        
+        if not gerant:
+            return {"status": "unknown", "is_read_only": True}
+        
+        workspace_id = gerant.get('workspace_id')
+        if not workspace_id:
+            return {"status": "no_workspace", "is_read_only": True}
+        
+        workspace = await self.db.workspaces.find_one(
+            {"id": workspace_id},
+            {"_id": 0}
+        )
+        
+        if not workspace:
+            return {"status": "workspace_not_found", "is_read_only": True}
+        
+        subscription_status = workspace.get('subscription_status', 'inactive')
+        
+        # Abonnement actif = accès complet
+        if subscription_status == 'active':
+            return {"status": "active", "is_read_only": False}
+        
+        # Essai en cours = vérifier la date
+        if subscription_status == 'trialing':
+            trial_end = workspace.get('trial_end')
+            if trial_end:
+                if isinstance(trial_end, str):
+                    trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
+                else:
+                    trial_end_dt = trial_end
+                
+                now = datetime.now(timezone.utc)
+                
+                if now <= trial_end_dt:
+                    return {"status": "trialing", "is_read_only": False}
+        
+        # Tous les autres cas = lecture seule
+        return {"status": subscription_status or "expired", "is_read_only": True}
     
     async def register_gerant(
         self,
