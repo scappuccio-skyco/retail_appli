@@ -310,3 +310,49 @@ async def get_seller_challenges_history(
         return challenges
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch challenges history: {str(e)}")
+
+
+
+# ===== CALENDAR DATA =====
+
+@router.get("/dates-with-data")
+async def get_seller_dates_with_data(
+    year: int = Query(None),
+    month: int = Query(None),
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Get list of dates that have KPI data for the seller
+    Used for calendar highlighting
+    
+    Returns:
+        - dates: list of dates with any KPI data
+        - lockedDates: list of dates with locked/validated KPI entries (from API/POS)
+    """
+    seller_id = current_user['id']
+    
+    # Build date filter
+    query = {"seller_id": seller_id}
+    if year and month:
+        start_date = f"{year}-{month:02d}-01"
+        if month == 12:
+            end_date = f"{year + 1}-01-01"
+        else:
+            end_date = f"{year}-{month + 1:02d}-01"
+        query["date"] = {"$gte": start_date, "$lt": end_date}
+    
+    # Get distinct dates with data
+    dates = await db.kpi_entries.distinct("date", query)
+    
+    all_dates = sorted(set(dates))
+    
+    # Get locked dates (from API/POS imports - cannot be edited manually)
+    locked_query = {**query, "locked": True}
+    locked_dates = await db.kpi_entries.distinct("date", locked_query)
+    
+    return {
+        "dates": all_dates,
+        "lockedDates": sorted(locked_dates)
+    }
+
