@@ -196,7 +196,8 @@ async def verify_manager_or_gerant(current_user: dict = Depends(get_current_user
 @router.post("/api-keys")
 async def create_api_key(
     key_data: dict,
-    current_user: dict = Depends(verify_manager_or_gerant)
+    current_user: dict = Depends(verify_manager_or_gerant),
+    api_key_service: APIKeyService = Depends(get_api_key_service)
 ):
     """
     Create a new API key for integrations
@@ -204,57 +205,21 @@ async def create_api_key(
     Accessible by both Manager and Gérant roles
     Used for external integrations (N8N, Zapier, etc.)
     """
-    from uuid import uuid4
-    from datetime import datetime, timezone, timedelta
-    import secrets
-    from core.database import database
-    from models.api_keys import APIKeyResponse
-    
-    db = database.db
-    
-    # Generate secure API key
-    def generate_api_key() -> str:
-        random_part = secrets.token_urlsafe(32)
-        return f"rp_live_{random_part}"
-    
-    # Generate unique key
-    api_key = generate_api_key()
-    
-    # Calculate expiration
-    expires_at = None
-    if key_data.get('expires_days'):
-        expires_at = (datetime.now(timezone.utc) + timedelta(days=key_data['expires_days'])).isoformat()
-    
-    # Create record
-    key_id = str(uuid4())
-    key_record = {
-        "id": key_id,
-        "user_id": current_user['id'],
-        "store_id": current_user.get('store_id'),
-        "gerant_id": current_user.get('id') if current_user['role'] in ['gerant', 'gérant'] else None,
-        "key": api_key,
-        "name": key_data.get('name', 'API Key'),
-        "permissions": key_data.get('permissions', ["write:kpi", "read:stats"]),
-        "store_ids": key_data.get('store_ids'),  # None = all stores
-        "active": True,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "last_used_at": None,
-        "expires_at": expires_at
-    }
-    
-    await db.api_keys.insert_one(key_record)
-    
-    return {
-        "id": key_id,
-        "name": key_record["name"],
-        "key": api_key,  # Only shown at creation
-        "permissions": key_record["permissions"],
-        "active": True,
-        "created_at": key_record["created_at"],
-        "last_used_at": None,
-        "expires_at": expires_at,
-        "store_ids": key_record.get("store_ids")
-    }
+    try:
+        gerant_id = current_user.get('id') if current_user['role'] in ['gerant', 'gérant'] else None
+        
+        result = await api_key_service.create_api_key(
+            user_id=current_user['id'],
+            store_id=current_user.get('store_id'),
+            gerant_id=gerant_id,
+            name=key_data.get('name', 'API Key'),
+            permissions=key_data.get('permissions', ["write:kpi", "read:stats"]),
+            store_ids=key_data.get('store_ids'),
+            expires_days=key_data.get('expires_days')
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/api-keys")
