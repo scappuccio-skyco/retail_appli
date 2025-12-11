@@ -201,7 +201,7 @@ const StoreDetailModal = ({ store, colorIndex = 0, onClose, onTransferManager, o
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] shadow-2xl flex flex-col">
         {/* Header - couleur dynamique */}
-        <div className={`bg-gradient-to-br ${colors.gradient} p-6 relative flex-shrink-0 rounded-t-2xl`}>
+        <div className={`${colors.bg} p-6 relative flex-shrink-0 rounded-t-2xl`}>
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
