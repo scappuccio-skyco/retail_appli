@@ -80,7 +80,7 @@ class CleanArchitectureAPITester:
         
         # Test Gérant login
         gerant_data = {
-            "email": "gerant-test@retailperformer.com",
+            "email": "gerant.demo@test.fr",
             "password": "password"
         }
         
