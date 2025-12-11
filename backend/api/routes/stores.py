@@ -55,13 +55,7 @@ async def get_my_stores(
         List of stores
     """
     try:
-        from repositories.store_repository import StoreRepository
-        from core.database import get_db
-        
-        db = await get_db()
-        store_repo = StoreRepository(db)
-        
-        stores = await store_repo.find_by_gerant(current_user['id'])
+        stores = await store_service.get_stores_by_gerant(current_user['id'])
         return stores
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
