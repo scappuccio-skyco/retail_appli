@@ -3,7 +3,7 @@ import sys
 import json
 from datetime import datetime
 
-class RetailCoachAPITester:
+class CleanArchitectureAPITester:
     def __init__(self, base_url="https://pythonclean.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.seller_token = None
