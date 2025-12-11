@@ -417,6 +417,12 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
           )
           .map(entry => entry.date);
         setDatesWithData(dates);
+        
+        // Extract locked dates (from API/POS imports)
+        const locked = rawData
+          .filter(entry => entry.locked === true)
+          .map(entry => entry.date);
+        setLockedDates(locked);
       } else {
         // Manager: Fetch from seller entries
         const usersRes = await axios.get(`${API}/api/manager/sellers`, {
