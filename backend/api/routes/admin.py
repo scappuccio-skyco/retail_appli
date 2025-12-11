@@ -399,4 +399,85 @@ async def delete_conversation(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ===== RESEND INVITATION =====
+
+@router.post("/invitations/{invitation_id}/resend")
+async def resend_invitation(
+    invitation_id: str,
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """Resend an invitation email"""
+    from uuid import uuid4
+    from services.email_service import EmailService
+    
+    try:
+        invitation = await db.gerant_invitations.find_one({"id": invitation_id}, {"_id": 0})
+        if not invitation:
+            raise HTTPException(status_code=404, detail="Invitation non trouvée")
+        
+        # Get recipient info
+        recipient_name = invitation.get('name', invitation['email'].split('@')[0])
+        recipient_email = invitation['email']
+        role = invitation.get('role', 'manager')
+        
+        # Send email using EmailService
+        try:
+            email_service = EmailService()
+            
+            if role == 'manager':
+                await email_service.send_manager_invitation(
+                    recipient_email=recipient_email,
+                    recipient_name=recipient_name,
+                    invitation_token=invitation['token'],
+                    gerant_name=invitation.get('gerant_name', 'Votre gérant'),
+                    store_name=invitation.get('store_name', 'Votre magasin')
+                )
+            elif role == 'seller':
+                await email_service.send_seller_invitation(
+                    recipient_email=recipient_email,
+                    recipient_name=recipient_name,
+                    invitation_token=invitation['token'],
+                    manager_name=invitation.get('manager_name', 'Votre manager'),
+                    store_name=invitation.get('store_name', 'Votre magasin')
+                )
+            else:
+                # Generic invitation for gérant role
+                await email_service.send_gerant_invitation(
+                    recipient_email=recipient_email,
+                    recipient_name=recipient_name,
+                    invitation_token=invitation['token'],
+                    store_name=invitation.get('store_name', 'Votre magasin')
+                )
+                
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Erreur lors de l'envoi de l'email: {str(e)}")
+        
+        # Update invitation with resend timestamp
+        await db.gerant_invitations.update_one(
+            {"id": invitation_id},
+            {"$set": {"last_resent_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        # Log action
+        await db.audit_logs.insert_one({
+            "id": str(uuid4()),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "action": "resend_invitation",
+            "admin_email": current_user['email'],
+            "admin_name": current_user.get('name', 'Admin'),
+            "details": {
+                "invitation_id": invitation_id,
+                "email": recipient_email,
+                "role": role
+            }
+        })
+        
+        return {"success": True, "message": f"Invitation renvoyée à {recipient_email}"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
