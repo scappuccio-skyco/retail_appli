@@ -477,6 +477,103 @@ async def resend_invitation(
         
         # Log action
         await db.audit_logs.insert_one({
+
+
+# ===== STRIPE SUBSCRIPTIONS OVERVIEW =====
+
+@router.get("/subscriptions/overview")
+async def get_subscriptions_overview(
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """
+    Vue d'ensemble de tous les abonnements Stripe des gérants.
+    Affiche statuts, paiements, prorations, etc.
+    """
+    try:
+        # Get all gérants
+        gerants = await db.users.find(
+            {"role": "gerant"},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "stripe_customer_id": 1, "created_at": 1}
+        ).to_list(None)
+        
+        subscriptions_data = []
+        
+        for gerant in gerants:
+            # Get subscription
+            subscription = await db.subscriptions.find_one(
+                {"user_id": gerant['id']},
+                {"_id": 0}
+            )
+            
+            # Count active sellers
+            active_sellers_count = await db.users.count_documents({
+                "gerant_id": gerant['id'],
+                "role": "seller",
+                "status": "active"
+            })
+            
+            # Get last transaction
+            last_transaction = await db.payment_transactions.find_one(
+                {"user_id": gerant['id']},
+                {"_id": 0},
+                sort=[("created_at", -1)]
+            )
+            
+            # Get AI credits usage
+            team_members = await db.users.find(
+                {"gerant_id": gerant['id']},
+                {"_id": 0, "id": 1}
+            ).to_list(None)
+            
+            team_ids = [member['id'] for member in team_members]
+            
+            ai_credits_total = 0
+            if team_ids:
+                pipeline = [
+                    {"$match": {"user_id": {"$in": team_ids}}},
+                    {"$group": {"_id": None, "total": {"$sum": "$credits_consumed"}}}
+                ]
+                result = await db.ai_usage_logs.aggregate(pipeline).to_list(None)
+                if result:
+                    ai_credits_total = result[0]['total']
+            
+            subscriptions_data.append({
+                "gerant": {
+                    "id": gerant['id'],
+                    "name": gerant.get('name', 'N/A'),
+                    "email": gerant.get('email', 'N/A'),
+                    "created_at": gerant.get('created_at')
+                },
+                "subscription": subscription,
+                "active_sellers_count": active_sellers_count,
+                "last_transaction": last_transaction,
+                "ai_credits_used": ai_credits_total
+            })
+        
+        # Global stats
+        total_gerants = len(gerants)
+        active_subscriptions = sum(1 for s in subscriptions_data if s['subscription'] and s['subscription'].get('status') in ['active', 'trialing'])
+        trialing_subscriptions = sum(1 for s in subscriptions_data if s['subscription'] and s['subscription'].get('status') == 'trialing')
+        total_mrr = sum(
+            s['subscription'].get('seats', 0) * s['subscription'].get('price_per_seat', 0)
+            for s in subscriptions_data
+            if s['subscription'] and s['subscription'].get('status') == 'active'
+        )
+        
+        return {
+            "summary": {
+                "total_gerants": total_gerants,
+                "active_subscriptions": active_subscriptions,
+                "trialing_subscriptions": trialing_subscriptions,
+                "total_mrr": round(total_mrr, 2)
+            },
+            "subscriptions": subscriptions_data
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
             "id": str(uuid4()),
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "action": "resend_invitation",
