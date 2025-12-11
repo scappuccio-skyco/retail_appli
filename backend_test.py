@@ -8,8 +8,10 @@ class ManagerDashboardAndSuperAdminTester:
         self.base_url = base_url
         self.manager_token = None
         self.superadmin_token = None
+        self.gerant_token = None
         self.manager_user = None
         self.superadmin_user = None
+        self.gerant_user = None
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
