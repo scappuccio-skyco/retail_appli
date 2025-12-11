@@ -684,6 +684,97 @@ async def resend_invitation(
 
 # ===== STRIPE SUBSCRIPTIONS OVERVIEW =====
 
+@router.get("/subscriptions/{gerant_id}/details")
+async def get_subscription_details(
+    gerant_id: str,
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """
+    Get detailed subscription info for a specific gérant.
+    Includes subscription details, sellers count, and recent transactions.
+    """
+    try:
+        # Get the gérant
+        gerant = await db.users.find_one(
+            {"id": gerant_id, "role": "gerant"},
+            {"_id": 0}
+        )
+        
+        if not gerant:
+            raise HTTPException(status_code=404, detail="Gérant non trouvé")
+        
+        # Get subscription
+        subscription = await db.subscriptions.find_one(
+            {"user_id": gerant_id},
+            {"_id": 0}
+        )
+        
+        # Get sellers count (active and suspended)
+        active_sellers = await db.users.count_documents({
+            "gerant_id": gerant_id,
+            "role": "seller",
+            "status": "active"
+        })
+        
+        suspended_sellers = await db.users.count_documents({
+            "gerant_id": gerant_id,
+            "role": "seller",
+            "status": "suspended"
+        })
+        
+        total_sellers = await db.users.count_documents({
+            "gerant_id": gerant_id,
+            "role": "seller"
+        })
+        
+        # Get recent transactions (last 20)
+        transactions = await db.payment_transactions.find(
+            {"user_id": gerant_id},
+            {"_id": 0}
+        ).sort("created_at", -1).limit(20).to_list(20)
+        
+        # Get AI credits usage
+        team_members = await db.users.find(
+            {"gerant_id": gerant_id},
+            {"_id": 0, "id": 1}
+        ).to_list(None)
+        
+        team_ids = [member['id'] for member in team_members]
+        
+        ai_credits_total = 0
+        if team_ids:
+            pipeline = [
+                {"$match": {"user_id": {"$in": team_ids}}},
+                {"$group": {"_id": None, "total": {"$sum": "$credits_consumed"}}}
+            ]
+            result = await db.ai_usage_logs.aggregate(pipeline).to_list(None)
+            if result:
+                ai_credits_total = result[0]['total']
+        
+        return {
+            "gerant": {
+                "id": gerant['id'],
+                "name": gerant.get('name', 'N/A'),
+                "email": gerant.get('email', 'N/A'),
+                "created_at": gerant.get('created_at')
+            },
+            "subscription": subscription,
+            "sellers": {
+                "active": active_sellers,
+                "suspended": suspended_sellers,
+                "total": total_sellers
+            },
+            "transactions": transactions,
+            "ai_credits_used": ai_credits_total
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/subscriptions/overview")
 async def get_subscriptions_overview(
     current_user: Dict = Depends(get_super_admin),
