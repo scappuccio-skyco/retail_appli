@@ -134,6 +134,15 @@ window.addEventListener('error', (event) => {
     event.stopImmediatePropagation();
     return false;
   }
+  
+  // Ignorer les erreurs removeChild (conflit traducteur/DOM)
+  if (event.message && event.message.includes('removeChild')) {
+    console.warn('Erreur removeChild détectée et ignorée (probable conflit DOM externe):', event.message);
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    return false;
+  }
 }, true); // Utiliser la phase de capture
 
 // Gestionnaire pour les promesses non gérées
@@ -143,11 +152,13 @@ window.addEventListener('unhandledrejection', (event) => {
     (event.reason && event.reason.message && (
       event.reason.message.includes('MetaMask') ||
       event.reason.message.includes('chrome-extension') ||
-      event.reason.message.includes('Failed to connect')
+      event.reason.message.includes('Failed to connect') ||
+      event.reason.message.includes('removeChild')
     )) ||
     (event.reason && typeof event.reason === 'string' && (
       event.reason.includes('MetaMask') ||
-      event.reason.includes('chrome-extension')
+      event.reason.includes('chrome-extension') ||
+      event.reason.includes('removeChild')
     ));
   
   if (isExtensionError) {
@@ -156,6 +167,17 @@ window.addEventListener('unhandledrejection', (event) => {
     return;
   }
 });
+
+// Patch pour éviter les erreurs removeChild causées par les traducteurs
+const originalRemoveChild = Node.prototype.removeChild;
+Node.prototype.removeChild = function(child) {
+  if (child && child.parentNode === this) {
+    return originalRemoveChild.call(this, child);
+  }
+  // Si le noeud n'est pas un enfant, ne rien faire (probablement modifié par un traducteur)
+  console.warn('removeChild ignoré - noeud déjà modifié par une extension externe');
+  return child;
+};
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<App />);
