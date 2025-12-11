@@ -278,49 +278,54 @@ class ManagerDashboardAndSuperAdminTester:
         if success:
             print(f"   ✅ Platform stats retrieved successfully")
 
-    def test_integration_routes(self):
-        """Test Integration routes from Clean Architecture"""
-        print("\n🔗 TESTING INTEGRATION ROUTES (Clean Architecture)")
+    def test_seller_kpi_enabled_endpoint(self):
+        """Test Seller KPI Enabled Endpoint"""
+        print("\n🔗 TESTING SELLER KPI ENABLED ENDPOINT")
         
-        if not self.gerant_token:
-            self.log_test("Integration Routes", False, "No gérant token available")
+        if not self.manager_token:
+            self.log_test("Seller KPI Enabled", False, "No manager token available")
             return
         
-        # Test 1: POST /api/integrations/api-keys (create API key)
-        api_key_data = {
-            "name": "Test API Key",
-            "permissions": ["read:stores", "write:kpi"],
-            "expires_days": 30
-        }
-        
+        # Test 1: GET /api/seller/kpi-enabled (with manager token)
         success, response = self.run_test(
-            "Create API Key",
-            "POST",
-            "integrations/api-keys",
-            200,
-            data=api_key_data,
-            token=self.gerant_token
-        )
-        
-        created_api_key = None
-        if success:
-            created_api_key = response.get('api_key')
-            print(f"   ✅ API Key created: {created_api_key[:20]}...")
-        
-        # Test 2: GET /api/integrations/api-keys (list API keys)
-        success, response = self.run_test(
-            "List API Keys",
+            "Seller KPI Enabled Check",
             "GET",
-            "integrations/api-keys",
+            "seller/kpi-enabled",
             200,
-            token=self.gerant_token
+            token=self.manager_token
         )
         
-        if success and isinstance(response, list):
-            print(f"   ✅ Found {len(response)} API keys")
-            if len(response) > 0:
-                key_info = response[0]
-                print(f"   ✅ Sample key: {key_info.get('name')} - {key_info.get('permissions')}")
+        if success:
+            # Verify response structure
+            expected_fields = ['enabled', 'seller_input_kpis']
+            missing_fields = [f for f in expected_fields if f not in response]
+            if missing_fields:
+                self.log_test("KPI Enabled Structure", False, f"Missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ KPI Enabled: {response.get('enabled')}")
+                print(f"   ✅ Seller Input KPIs: {response.get('seller_input_kpis')}")
+        
+        # Test 2: GET /api/seller/kpi-enabled with store_id parameter
+        if self.manager_user and self.manager_user.get('store_id'):
+            store_id = self.manager_user['store_id']
+            success, response = self.run_test(
+                "Seller KPI Enabled - With Store ID",
+                "GET",
+                f"seller/kpi-enabled?store_id={store_id}",
+                200,
+                token=self.manager_token
+            )
+            
+            if success:
+                print(f"   ✅ KPI Enabled for store {store_id}: {response.get('enabled')}")
+        
+        # Test 3: Test without authentication (should fail)
+        success, response = self.run_test(
+            "Seller KPI Enabled - No Auth (Expected 403)",
+            "GET",
+            "seller/kpi-enabled",
+            403
+        )
 
     def test_authentication_security(self):
         """Test authentication and authorization security"""
