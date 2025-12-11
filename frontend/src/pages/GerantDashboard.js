@@ -26,6 +26,7 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [globalStats, setGlobalStats] = useState(null);
   const [storesStats, setStoresStats] = useState({}); // Pour les cartes (toujours semaine -1)
   const [rankingStats, setRankingStats] = useState({}); // Pour le classement (période sélectionnée)
+  const [pendingInvitations, setPendingInvitations] = useState({ managers: 0, sellers: 0 });
   const [loading, setLoading] = useState(true);
   
   // View state
