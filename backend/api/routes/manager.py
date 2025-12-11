@@ -293,7 +293,7 @@ async def delete_api_key(
     from datetime import datetime, timezone
     from core.database import database
     
-    db = database.get_db()
+    db = database.db
     
     # Verify ownership
     key = await db.api_keys.find_one({"id": key_id, "user_id": current_user['id']})
