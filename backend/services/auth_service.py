@@ -3,7 +3,7 @@ Authentication Service
 Handles user login, registration, password reset
 """
 from typing import Optional, Dict
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from uuid import uuid4
 import secrets
 
