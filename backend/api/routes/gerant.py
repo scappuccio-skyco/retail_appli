@@ -178,125 +178,13 @@ async def get_store_kpi_overview(
     store_id: str,
     date: str = None,
     current_user: Dict = Depends(get_current_gerant),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service)
 ):
-    """
-    Get consolidated store KPI overview for a specific date
-    
-    Returns:
-    - Store info
-    - Manager aggregated data
-    - Seller aggregated data
-    - Individual seller entries
-    - Calculated KPIs (panier moyen, taux transformation, indice vente)
-    
-    Security: Verify that the store belongs to the current gérant
-    """
-    from datetime import datetime, timezone
-    
-    # Verify store ownership
-    store = await db.stores.find_one(
-        {"id": store_id, "gerant_id": current_user['id'], "active": True},
-        {"_id": 0}
-    )
-    if not store:
-        raise HTTPException(status_code=404, detail="Magasin non trouvé ou accès non autorisé")
-    
-    # Default to today
-    if not date:
-        date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    
-    # Get all managers and sellers in this store
-    managers = await db.users.find({
-        "store_id": store_id,
-        "role": "manager",
-        "status": "active"
-    }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
-    
-    sellers = await db.users.find({
-        "store_id": store_id,
-        "role": "seller",
-        "status": "active"
-    }, {"_id": 0, "id": 1, "name": 1}).to_list(100)
-    
-    # Get ALL KPI entries for this store directly by store_id
-    seller_entries = await db.kpi_entries.find({
-        "store_id": store_id,
-        "date": date
-    }, {"_id": 0}).to_list(100)
-    
-    # Enrich seller entries with names
-    for entry in seller_entries:
-        seller = next((s for s in sellers if s['id'] == entry.get('seller_id')), None)
-        if seller:
-            entry['seller_name'] = seller['name']
-        else:
-            entry['seller_name'] = entry.get('seller_name', 'Vendeur (historique)')
-    
-    # Get manager KPIs for this store
-    manager_kpis_list = await db.manager_kpi.find({
-        "store_id": store_id,
-        "date": date
-    }, {"_id": 0}).to_list(100)
-    
-    # Aggregate totals from managers
-    managers_total = {
-        "ca_journalier": sum((kpi.get("ca_journalier") or 0) for kpi in manager_kpis_list),
-        "nb_ventes": sum((kpi.get("nb_ventes") or 0) for kpi in manager_kpis_list),
-        "nb_clients": sum((kpi.get("nb_clients") or 0) for kpi in manager_kpis_list),
-        "nb_articles": sum((kpi.get("nb_articles") or 0) for kpi in manager_kpis_list),
-        "nb_prospects": sum((kpi.get("nb_prospects") or 0) for kpi in manager_kpis_list)
-    }
-    
-    # Aggregate totals from sellers
-    sellers_total = {
-        "ca_journalier": sum((entry.get("seller_ca") or entry.get("ca_journalier") or 0) for entry in seller_entries),
-        "nb_ventes": sum((entry.get("nb_ventes") or 0) for entry in seller_entries),
-        "nb_clients": sum((entry.get("nb_clients") or 0) for entry in seller_entries),
-        "nb_articles": sum((entry.get("nb_articles") or 0) for entry in seller_entries),
-        "nb_prospects": sum((entry.get("nb_prospects") or 0) for entry in seller_entries),
-        "nb_sellers_reported": len(seller_entries)
-    }
-    
-    # Calculate store totals
-    total_ca = managers_total["ca_journalier"] + sellers_total["ca_journalier"]
-    total_ventes = managers_total["nb_ventes"] + sellers_total["nb_ventes"]
-    total_clients = managers_total["nb_clients"] + sellers_total["nb_clients"]
-    total_articles = managers_total["nb_articles"] + sellers_total["nb_articles"]
-    total_prospects = managers_total["nb_prospects"] + sellers_total["nb_prospects"]
-    
-    # Calculate derived KPIs
-    calculated_kpis = {
-        "panier_moyen": round(total_ca / total_ventes, 2) if total_ventes > 0 else None,
-        "taux_transformation": round((total_ventes / total_prospects) * 100, 2) if total_prospects > 0 else None,
-        "indice_vente": round(total_articles / total_ventes, 2) if total_ventes > 0 else None
-    }
-    
-    return {
-        "date": date,
-        "store": store,
-        "managers_data": managers_total,
-        "sellers_data": sellers_total,
-        "seller_entries": seller_entries,
-        "total_managers": len(managers),
-        "total_sellers": len(sellers),
-        "sellers_reported": len(seller_entries),
-        "calculated_kpis": calculated_kpis,
-        "totals": {
-            "ca": total_ca,
-            "ventes": total_ventes,
-            "clients": total_clients,
-            "articles": total_articles,
-            "prospects": total_prospects
-        },
-        "kpi_config": {
-            "seller_track_ca": True,
-            "seller_track_ventes": True,
-            "seller_track_clients": True,
-            "seller_track_articles": True,
-            "seller_track_prospects": True
-        }
-    }
+    """Get consolidated store KPI overview for a specific date"""
+    try:
+        return await gerant_service.get_store_kpi_overview(store_id, current_user['id'], date)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/stores/{store_id}/kpi-history")
