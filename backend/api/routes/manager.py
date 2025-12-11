@@ -224,7 +224,8 @@ async def create_api_key(
 
 @router.get("/api-keys")
 async def list_api_keys(
-    current_user: dict = Depends(verify_manager_or_gerant)
+    current_user: dict = Depends(verify_manager_or_gerant),
+    api_key_service: APIKeyService = Depends(get_api_key_service)
 ):
     """
     List all API keys for current user
@@ -232,22 +233,17 @@ async def list_api_keys(
     Accessible by both Manager and Gérant roles
     Returns list of API keys (without the actual key value for security)
     """
-    from core.database import database
-    
-    db = database.db
-    
-    # Find keys - CRITICAL: Exclude _id to avoid MongoDB ObjectId serialization issues
-    query = {"user_id": current_user['id']}
-    keys_cursor = db.api_keys.find(query, {"_id": 0, "key": 0})  # Don't return _id or actual key
-    keys = await keys_cursor.to_list(100)
-    
-    return {"api_keys": keys}
+    try:
+        return await api_key_service.list_api_keys(current_user['id'])
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.delete("/api-keys/{key_id}")
 async def delete_api_key(
     key_id: str,
-    current_user: dict = Depends(verify_manager_or_gerant)
+    current_user: dict = Depends(verify_manager_or_gerant),
+    api_key_service: APIKeyService = Depends(get_api_key_service)
 ):
     """
     Delete (deactivate) an API key
@@ -255,23 +251,12 @@ async def delete_api_key(
     Accessible by both Manager and Gérant roles
     Deactivates the key instead of deleting for audit trail
     """
-    from datetime import datetime, timezone
-    from core.database import database
-    
-    db = database.db
-    
-    # Verify ownership
-    key = await db.api_keys.find_one({"id": key_id, "user_id": current_user['id']})
-    if not key:
-        raise HTTPException(status_code=404, detail="API key not found")
-    
-    # Deactivate instead of delete (for audit)
-    await db.api_keys.update_one(
-        {"id": key_id},
-        {"$set": {"active": False, "deleted_at": datetime.now(timezone.utc).isoformat()}}
-    )
-    
-    return {"message": "API key deactivated successfully"}
+    try:
+        return await api_key_service.deactivate_api_key(key_id, current_user['id'])
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/api-keys/{key_id}/regenerate")
