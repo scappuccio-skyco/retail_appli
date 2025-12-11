@@ -6,6 +6,7 @@ from typing import Dict, Optional, Tuple
 from datetime import datetime, timezone, timedelta
 import logging
 import os
+from fastapi import HTTPException
 
 from repositories.user_repository import UserRepository
 from repositories.store_repository import StoreRepository
@@ -21,15 +22,19 @@ class GerantService:
         self.user_repo = UserRepository(db)
         self.store_repo = StoreRepository(db)
     
-    async def check_subscription_access(self, gerant_id: str) -> Tuple[bool, str, str]:
+    async def check_gerant_active_access(self, gerant_id: str) -> bool:
         """
-        Check if gérant has active subscription access for write operations.
+        Guard clause: Check if gérant has active subscription for write operations.
+        Raises HTTPException 403 if trial expired or no active subscription.
         
+        Args:
+            gerant_id: Gérant user ID
+            
         Returns:
-            Tuple of (has_access: bool, status: str, message: str)
-            - has_access: True if user can perform write operations
-            - status: 'active', 'trialing', 'trial_expired', 'expired', 'no_subscription'
-            - message: Human-readable message
+            True if access is granted
+            
+        Raises:
+            HTTPException 403 if access denied
         """
         # Get gérant info
         gerant = await self.user_repo.find_one(
@@ -38,12 +43,12 @@ class GerantService:
         )
         
         if not gerant:
-            return (False, "no_user", "Utilisateur non trouvé")
+            raise HTTPException(status_code=403, detail="Utilisateur non trouvé")
         
         workspace_id = gerant.get('workspace_id')
         
         if not workspace_id:
-            return (False, "no_workspace", "Aucun espace de travail")
+            raise HTTPException(status_code=403, detail="Aucun espace de travail associé")
         
         workspace = await self.db.workspaces.find_one(
             {"id": workspace_id},
@@ -51,13 +56,13 @@ class GerantService:
         )
         
         if not workspace:
-            return (False, "no_workspace", "Espace de travail non trouvé")
+            raise HTTPException(status_code=403, detail="Espace de travail non trouvé")
         
         subscription_status = workspace.get('subscription_status', 'inactive')
         
         # Active subscription - full access
         if subscription_status == 'active':
-            return (True, "active", "Abonnement actif")
+            return True
         
         # In trial period - check if still valid
         if subscription_status == 'trialing':
@@ -71,8 +76,7 @@ class GerantService:
                 now = datetime.now(timezone.utc)
                 
                 if now < trial_end_dt:
-                    days_left = (trial_end_dt - now).days
-                    return (True, "trialing", f"Essai gratuit - {days_left} jours restants")
+                    return True
                 else:
                     # Trial has expired - update status in DB
                     await self.db.workspaces.update_one(
@@ -82,18 +86,47 @@ class GerantService:
                             "updated_at": datetime.now(timezone.utc).isoformat()
                         }}
                     )
-                    return (False, "trial_expired", "Votre essai gratuit est terminé")
+                    raise HTTPException(
+                        status_code=403, 
+                        detail="Votre période d'essai est terminée. Veuillez souscrire à un abonnement pour continuer."
+                    )
         
-        # Trial expired
-        if subscription_status == 'trial_expired':
-            return (False, "trial_expired", "Votre essai gratuit est terminé")
+        # Trial expired or other inactive status
+        raise HTTPException(
+            status_code=403, 
+            detail="Votre période d'essai est terminée. Veuillez souscrire à un abonnement pour continuer."
+        )
+    
+    async def check_user_write_access(self, user_id: str) -> bool:
+        """
+        Guard clause for Sellers/Managers: Get parent Gérant and check access.
         
-        # Canceled or past_due
-        if subscription_status in ['canceled', 'past_due']:
-            return (False, subscription_status, "Abonnement annulé ou en retard de paiement")
+        Args:
+            user_id: User ID (seller or manager)
+            
+        Returns:
+            True if access is granted
+            
+        Raises:
+            HTTPException 403 if access denied
+        """
+        user = await self.user_repo.find_one(
+            {"id": user_id},
+            {"_id": 0}
+        )
         
-        # Default: no access
-        return (False, "inactive", "Aucun abonnement actif")
+        if not user:
+            raise HTTPException(status_code=403, detail="Utilisateur non trouvé")
+        
+        # Get parent gérant_id
+        gerant_id = user.get('gerant_id')
+        
+        if not gerant_id:
+            # Safety: If no parent chain, deny by default
+            raise HTTPException(status_code=403, detail="Accès refusé: chaîne de parenté non trouvée")
+        
+        # Delegate to gérant check
+        return await self.check_gerant_active_access(gerant_id)
     
     async def get_all_stores(self, gerant_id: str) -> list:
         """Get all active stores for a gérant"""
