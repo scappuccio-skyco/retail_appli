@@ -299,6 +299,32 @@ async def get_store_available_years(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ===== MANAGER MANAGEMENT ROUTES =====
+
+@router.post("/managers/{manager_id}/transfer")
+async def transfer_manager_to_store(
+    manager_id: str,
+    transfer_data: Dict,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """
+    Transfer a manager to another store
+    
+    Args:
+        manager_id: Manager user ID
+        transfer_data: {
+            "new_store_id": "store_uuid"
+        }
+    """
+    try:
+        return await gerant_service.transfer_manager_to_store(
+            manager_id, transfer_data, current_user['id']
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ===== SELLER MANAGEMENT ROUTES =====
