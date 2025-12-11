@@ -68,10 +68,53 @@ export default function TrialManagement() {
     return diff;
   };
 
-  const filteredGerants = gerants.filter(g => 
-    g.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    g.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getGerantStatus = (gerant) => {
+    if (gerant.has_subscription) return 'subscribed';
+    if (!gerant.trial_end) return 'no_trial';
+    const daysRemaining = calculateDaysRemaining(gerant.trial_end);
+    if (daysRemaining < 0) return 'expired';
+    if (daysRemaining <= 7) return 'expiring_soon';
+    return 'active_trial';
+  };
+
+  const filteredGerants = gerants.filter(g => {
+    // Search filter
+    const matchesSearch = g.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      g.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Status filter
+    if (statusFilter === 'all') return matchesSearch;
+    
+    const status = getGerantStatus(g);
+    
+    switch (statusFilter) {
+      case 'active_trial':
+        return matchesSearch && (status === 'active_trial' || status === 'expiring_soon');
+      case 'expiring_soon':
+        return matchesSearch && status === 'expiring_soon';
+      case 'expired':
+        return matchesSearch && status === 'expired';
+      case 'no_trial':
+        return matchesSearch && status === 'no_trial';
+      case 'subscribed':
+        return matchesSearch && status === 'subscribed';
+      default:
+        return matchesSearch;
+    }
+  });
+
+  // Count by status for filter badges
+  const statusCounts = {
+    all: gerants.length,
+    active_trial: gerants.filter(g => {
+      const status = getGerantStatus(g);
+      return status === 'active_trial' || status === 'expiring_soon';
+    }).length,
+    expiring_soon: gerants.filter(g => getGerantStatus(g) === 'expiring_soon').length,
+    expired: gerants.filter(g => getGerantStatus(g) === 'expired').length,
+    no_trial: gerants.filter(g => getGerantStatus(g) === 'no_trial').length,
+    subscribed: gerants.filter(g => getGerantStatus(g) === 'subscribed').length
+  };
 
   if (loading) {
     return (
