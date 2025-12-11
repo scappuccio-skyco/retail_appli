@@ -4,12 +4,74 @@ API endpoints for seller-specific features (tasks, objectives, challenges)
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Dict, List
+from datetime import datetime, timezone
 
 from services.seller_service import SellerService
 from api.dependencies import get_seller_service, get_db
 from core.security import get_current_seller, get_current_user
 
 router = APIRouter(prefix="/seller", tags=["Seller"])
+
+
+# ===== SUBSCRIPTION ACCESS CHECK =====
+
+@router.get("/subscription-status")
+async def get_seller_subscription_status(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Check if the seller's gérant has an active subscription.
+    Returns isReadOnly: true if trial expired.
+    """
+    try:
+        gerant_id = current_user.get('gerant_id')
+        
+        if not gerant_id:
+            return {"isReadOnly": True, "status": "no_gerant", "message": "Aucun gérant associé"}
+        
+        # Get gérant info
+        gerant = await db.users.find_one({"id": gerant_id}, {"_id": 0})
+        
+        if not gerant:
+            return {"isReadOnly": True, "status": "gerant_not_found", "message": "Gérant non trouvé"}
+        
+        workspace_id = gerant.get('workspace_id')
+        
+        if not workspace_id:
+            return {"isReadOnly": True, "status": "no_workspace", "message": "Aucun espace de travail"}
+        
+        workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0})
+        
+        if not workspace:
+            return {"isReadOnly": True, "status": "workspace_not_found", "message": "Espace de travail non trouvé"}
+        
+        subscription_status = workspace.get('subscription_status', 'inactive')
+        
+        # Active subscription
+        if subscription_status == 'active':
+            return {"isReadOnly": False, "status": "active", "message": "Abonnement actif"}
+        
+        # In trial period
+        if subscription_status == 'trialing':
+            trial_end = workspace.get('trial_end')
+            if trial_end:
+                if isinstance(trial_end, str):
+                    trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
+                else:
+                    trial_end_dt = trial_end
+                
+                now = datetime.now(timezone.utc)
+                
+                if now < trial_end_dt:
+                    days_left = (trial_end_dt - now).days
+                    return {"isReadOnly": False, "status": "trialing", "message": f"Essai gratuit - {days_left} jours restants", "daysLeft": days_left}
+        
+        # Trial expired or inactive
+        return {"isReadOnly": True, "status": "trial_expired", "message": "Période d'essai terminée. Contactez votre administrateur."}
+        
+    except Exception as e:
+        return {"isReadOnly": True, "status": "error", "message": str(e)}
 
 
 # ===== KPI ENABLED CHECK =====
