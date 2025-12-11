@@ -3,7 +3,7 @@ Gérant Service
 Business logic for gérant dashboard, subscription, and workspace management
 """
 from typing import Dict, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import logging
 import os
 
