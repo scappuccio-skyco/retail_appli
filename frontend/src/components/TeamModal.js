@@ -283,47 +283,9 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
   };
 
   // Gérer la désactivation d'un vendeur
-  // FONCTIONS RETIRÉES - Actions de suspension/suppression réservées au Gérant
-  // handleDeactivate et handleDelete ont été supprimées
-
-  // Gérer la réactivation d'un vendeur
-  const handleReactivate = async (sellerId) => {
-    // Fermer le modal de confirmation immédiatement
-    setConfirmModal({ isOpen: false, action: null, seller: null });
-    
-    try {
-      const token = localStorage.getItem('token');
-      
-      // Retirer de la liste archivée immédiatement
-      setArchivedSellers(prev => prev.filter(s => s.id !== sellerId));
-      
-      await axios.put(`${API}/manager/seller/${sellerId}/reactivate`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success('Vendeur réactivé avec succès');
-      
-      // Refresh des données
-      await refreshSellersData();
-      
-      // Notifier le parent pour recharger ses données
-      if (onDataUpdate) {
-        await onDataUpdate();
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur lors de la réactivation');
-      // Recharger les archivés en cas d'erreur
-      try {
-        const token = localStorage.getItem('token');
-        const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
-        const response = await axios.get(`${API}/manager/sellers/archived${storeParam}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setArchivedSellers(response.data);
-      } catch (err) {
-        console.error('Error restoring archived sellers:', err);
-      }
-    }
-  };
+  // FONCTIONS RETIRÉES - Actions de suspension/suppression/réactivation RÉSERVÉES EXCLUSIVEMENT AU GÉRANT
+  // handleDeactivate, handleDelete et handleReactivate ont été supprimées
+  // Un Manager ne peut pas modifier le statut d'un vendeur
 
   const prepareChartData = async () => {
     try {
