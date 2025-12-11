@@ -30,7 +30,8 @@ export default function PerformanceModal({
   kpiConfig,
   currentWeekOffset,
   onWeekChange,
-  initialTab = 'bilan'
+  initialTab = 'bilan',
+  isReadOnly = false
 }) {
   const [activeTab, setActiveTab] = useState(initialTab); // 'bilan', 'kpi', or 'saisie'
   const [displayedKpiCount, setDisplayedKpiCount] = useState(20); // Start with 20 entries
