@@ -313,16 +313,30 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
             ))}
           </select>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="all">Tous les statuts</option>
-            <option value="active">Actif</option>
-            <option value="suspended">Suspendu</option>
-            <option value="deleted">Supprimé</option>
-          </select>
+          {activeTab === 'invitations' ? (
+            <select
+              value={invitationStatusFilter}
+              onChange={(e) => setInvitationStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="pending">En attente</option>
+              <option value="accepted">Acceptée</option>
+              <option value="expired">Expirée</option>
+              <option value="cancelled">Annulée</option>
+            </select>
+          ) : (
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="active">Actif</option>
+              <option value="suspended">Suspendu</option>
+              <option value="deleted">Supprimé</option>
+            </select>
+          )}
         </div>
       </div>
 
@@ -352,10 +366,27 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
               <Users className="w-5 h-5" />
               Vendeurs ({filteredSellers.length})
             </button>
+            <button
+              onClick={() => setActiveTab('invitations')}
+              className={`flex items-center gap-2 px-6 py-4 font-medium border-b-2 transition-colors ${
+                activeTab === 'invitations'
+                  ? 'border-orange-600 text-orange-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Clock className="w-5 h-5" />
+              En attente
+              {pendingInvitationsCount > 0 && (
+                <span className="ml-1 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full">
+                  {pendingInvitationsCount}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
-        {/* Table */}
+        {/* Table for Managers/Sellers */}
+        {activeTab !== 'invitations' && (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
