@@ -56,30 +56,31 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
 
   // === MODE LECTURE SEULE : Calcul basé sur l'état de l'abonnement ===
-  // Le mode est en lecture seule si :
-  // - trial expiré (trial_end dans le passé)
-  // - pas d'abonnement actif
-  // - statut canceled/expired
+  // Accès autorisé si :
+  // - Abonnement actif (status === 'active')
+  // - Essai en cours avec trial_end dans le futur
   const isReadOnly = (() => {
     if (!subscriptionInfo) return false; // Attendre les données
     
     const status = subscriptionInfo.status;
     
-    // Si abonnement actif, pas de lecture seule
+    // Abonnement actif = accès complet
     if (status === 'active') return false;
     
-    // Si trial en cours mais expiré (days_left <= 0 ou trial_end passé)
+    // Essai en cours = vérifier si trial_end est dans le futur
     if (status === 'trialing') {
-      if (subscriptionInfo.days_left <= 0) return true;
       if (subscriptionInfo.trial_end) {
         const trialEndDate = new Date(subscriptionInfo.trial_end);
-        if (trialEndDate < new Date()) return true;
+        const now = new Date();
+        // Si trial_end est dans le futur (ou aujourd'hui) = accès autorisé
+        if (trialEndDate >= now) return false;
       }
-      return false;
+      // Pas de date ou date passée = lecture seule
+      return true;
     }
     
     // Tous les autres statuts = lecture seule
-    return ['trial_expired', 'expired', 'canceled', 'inactive', 'past_due'].includes(status);
+    return true;
   })();
 
   // Helper: Calculer les dates de début et fin selon le type de période
