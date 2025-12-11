@@ -192,6 +192,9 @@ class AuthService:
         
         await self.user_repo.insert_one(user)
         
+        # Remove MongoDB _id if present (added by insert_one)
+        user.pop('_id', None)
+        
         # Mark invitation as used in the correct collection
         collection = self.db.gerant_invitations if invitation_collection == "gerant_invitations" else self.db.invitations
         await collection.update_one(
