@@ -493,31 +493,31 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
         {/* Invitations Table */}
         {activeTab === 'invitations' && (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[1000px]">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rôle</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Magasin</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date d'envoi</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">Nom</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-24">Rôle</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Magasin</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-24">Statut</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">Date d'envoi</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase w-48">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredInvitations.map((inv) => (
                   <tr key={inv.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">{inv.name}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center text-gray-600">
-                        <Mail className="w-4 h-4 mr-2" />
-                        {inv.email}
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="flex items-center text-gray-600 text-sm">
+                        <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <span className="truncate max-w-[180px]">{inv.email}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         inv.role === 'manager' 
                           ? 'bg-purple-100 text-purple-700' 
@@ -526,8 +526,8 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
                         {inv.role === 'manager' ? 'Manager' : 'Vendeur'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center text-gray-600">
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="flex items-center text-gray-600 text-sm">
                         <Building2 className="w-4 h-4 mr-2" />
                         {inv.store_name || getStoreName(inv.store_id)}
                       </div>
