@@ -67,7 +67,7 @@ const StoreCard = ({ store, stats, badge, sparklineData, onClick }) => {
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-2">
           <div className="flex items-center gap-1 mb-1">
             <TrendingUp className="w-3 h-3 text-green-600" />
-            <span className="text-xs text-gray-600">CA du Mois</span>
+            <span className="text-xs text-gray-600">CA Année</span>
           </div>
           <p className="text-xl font-bold text-green-600">
             {stats?.month_ca ? `${stats.month_ca.toLocaleString('fr-FR')} €` : '0 €'}
