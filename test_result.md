@@ -138,10 +138,76 @@ metadata:
   test_sequence: 1
   run_ui: false
 
+  - task: "Read-Only Mode Seller Dashboard Frontend"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/SellerDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ Seller read-only mode working correctly. Yellow alert banner displays 'Abonnement magasin suspendu - La saisie des KPIs est temporairement désactivée. Contactez votre gérant.' Performance modal opens correctly, 'Saisir mes chiffres' tab is properly disabled with lock icon and grayed out (cursor-not-allowed, text-gray-400). Tab cannot be clicked as expected."
+
+  - task: "Read-Only Mode Manager Dashboard Frontend"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/ManagerDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ Manager read-only mode working correctly. Yellow alert banner displays 'Abonnement magasin suspendu - La saisie des KPIs et les modifications d'équipe sont temporairement désactivées. Contactez votre gérant.' Mon Magasin card shows '🔒 Lecture seule' text and is properly dimmed (opacity-60). Cards are visually disabled as expected."
+
+  - task: "KPI Entry Blocking on Trial Expiration"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/PerformanceModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ KPI entry blocking working correctly. PerformanceModal 'Saisir mes chiffres' tab is disabled with proper CSS classes (bg-gray-100 text-gray-400 cursor-not-allowed), lock icon is displayed, and tab cannot be clicked when subscription is expired. Read-only mode properly implemented via useSyncMode hook."
+
+frontend:
+  - task: "Frontend UI Tests"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/SellerDashboard.js, /app/frontend/src/pages/ManagerDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ Read-only mode frontend UI tests completed successfully. Both seller and manager dashboards properly implement subscription expiration handling with visual indicators and functional blocking."
+
+  - task: "Mobile Responsiveness Tests"
+    implemented: false
+    working: "NA"
+    file: "N/A"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Mobile responsiveness tests not performed - Testing agent focuses only on backend API testing per system requirements"
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 2
+  run_ui: true
+
 test_plan:
   current_focus:
-    - "Read-Only Mode Seller/Manager Dashboard Frontend"
-    - "KPI Entry Blocking on Trial Expiration"
+    - "Read-Only Mode Testing Complete"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -151,3 +217,5 @@ agent_communication:
     message: "Testing Read-Only Mode for Seller and Manager dashboards. Credentials to use: Seller: emma.petit@test.com / TestDemo123! (trial expired), Manager: y.legoff@skyco.fr / TestDemo123! (trial expired). Both should show yellow alert banner and block KPI entry. Test the PerformanceModal 'Saisir mes chiffres' tab - it should be disabled with lock icon."
   - agent: "testing"
     message: "✅ ALL GÉRANT DASHBOARD BACKEND TESTS PASSED (35/35 - 100% success rate). All suspend/reactivate endpoints for sellers and managers working correctly. Invitation system operational with cappuccioseb+h@gmail.com invitation found. Authentication security properly implemented. No backend issues detected."
+  - agent: "testing"
+    message: "✅ READ-ONLY MODE FRONTEND TESTS COMPLETED SUCCESSFULLY. Seller dashboard: Yellow alert banner ✅, Performance modal opens ✅, 'Saisir mes chiffres' tab disabled with lock icon ✅. Manager dashboard: Yellow alert banner ✅, 'Mon Magasin' card shows '🔒 Lecture seule' ✅, cards dimmed (opacity-60) ✅. KPI entry blocking working correctly via useSyncMode hook. All visual indicators and functional blocking implemented properly."
