@@ -1238,12 +1238,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           onClose={() => setShowKPIHistoryModal(false)}
           onNewKPI={() => {
             setShowKPIHistoryModal(false);
-            setShowKPIModal(true);
+            handleOpenKPIModal();
           }}
           onEditKPI={(entry) => {
-            setEditingKPI(entry);
             setShowKPIHistoryModal(false);
-            setShowKPIModal(true);
+            handleOpenKPIModal(entry);
           }}
         />
       )}
