@@ -576,8 +576,8 @@ async def create_gerant_checkout_session(
     - >15 vendeurs : sur devis (erreur)
     """
     try:
-        from core.database import get_database
-        db = get_database()
+        from api.dependencies import get_db
+        db = get_db()
         
         STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
         if not STRIPE_API_KEY:
