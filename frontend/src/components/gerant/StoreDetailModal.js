@@ -2,23 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { X, Users, TrendingUp, UserPlus, RefreshCw, Trash2, Pause } from 'lucide-react';
 import StoreKPIModal from '../StoreKPIModal';
 
-// Mapping des couleurs selon l'index - classes complètes pour TailwindCSS
-const getHeaderStyle = (colorIndex) => {
-  const styles = [
-    { bg: 'bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700', accent: 'border-orange-600 text-orange-600', spinner: 'border-orange-600' },
-    { bg: 'bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700', accent: 'border-blue-600 text-blue-600', spinner: 'border-blue-600' },
-    { bg: 'bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700', accent: 'border-purple-600 text-purple-600', spinner: 'border-purple-600' },
-    { bg: 'bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700', accent: 'border-emerald-600 text-emerald-600', spinner: 'border-emerald-600' },
-    { bg: 'bg-gradient-to-br from-pink-500 via-pink-600 to-pink-700', accent: 'border-pink-600 text-pink-600', spinner: 'border-pink-600' },
-    { bg: 'bg-gradient-to-br from-cyan-500 via-cyan-600 to-cyan-700', accent: 'border-cyan-600 text-cyan-600', spinner: 'border-cyan-600' },
-    { bg: 'bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700', accent: 'border-amber-600 text-amber-600', spinner: 'border-amber-600' },
-    { bg: 'bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700', accent: 'border-indigo-600 text-indigo-600', spinner: 'border-indigo-600' },
-  ];
-  return styles[colorIndex % styles.length];
-};
+// Mapping des couleurs selon l'index - couleurs de base pour le gradient
+const STORE_COLOR_CONFIG = [
+  { name: 'orange', from: '#f97316', via: '#ea580c', to: '#c2410c', accent: 'text-orange-600 border-orange-600' },
+  { name: 'blue', from: '#3b82f6', via: '#2563eb', to: '#1d4ed8', accent: 'text-blue-600 border-blue-600' },
+  { name: 'purple', from: '#a855f7', via: '#9333ea', to: '#7e22ce', accent: 'text-purple-600 border-purple-600' },
+  { name: 'emerald', from: '#10b981', via: '#059669', to: '#047857', accent: 'text-emerald-600 border-emerald-600' },
+  { name: 'pink', from: '#ec4899', via: '#db2777', to: '#be185d', accent: 'text-pink-600 border-pink-600' },
+  { name: 'cyan', from: '#06b6d4', via: '#0891b2', to: '#0e7490', accent: 'text-cyan-600 border-cyan-600' },
+  { name: 'amber', from: '#f59e0b', via: '#d97706', to: '#b45309', accent: 'text-amber-600 border-amber-600' },
+  { name: 'indigo', from: '#6366f1', via: '#4f46e5', to: '#4338ca', accent: 'text-indigo-600 border-indigo-600' },
+];
 
 const StoreDetailModal = ({ store, colorIndex = 0, onClose, onTransferManager, onTransferSeller, onDeleteStore, onRefresh }) => {
-  const colors = getHeaderStyle(colorIndex);
+  const colorConfig = STORE_COLOR_CONFIG[colorIndex % STORE_COLOR_CONFIG.length];
+  const headerGradientStyle = {
+    background: `linear-gradient(to bottom right, ${colorConfig.from}, ${colorConfig.via}, ${colorConfig.to})`
+  };
   const [activeTab, setActiveTab] = useState('performance');
   const [managers, setManagers] = useState([]);
   const [sellers, setSellers] = useState([]);
