@@ -590,7 +590,8 @@ async def resend_invitation(
         if email_sent:
             return {"success": True, "message": f"Invitation renvoyée à {recipient_email}"}
         else:
-            return {"success": True, "message": f"Invitation marquée comme renvoyée (email non configuré)", "warning": "Email service not configured"}
+            error_msg = email_error if email_error else "Email service not configured"
+            return {"success": False, "message": f"Échec de l'envoi à {recipient_email}", "error": error_msg}
             
     except HTTPException:
         raise
