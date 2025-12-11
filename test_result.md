@@ -603,7 +603,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Clean Architecture Refactoring - Routes → Services → Repositories"
+    - "Manager Dashboard 404 Errors Fix"
+    - "SuperAdmin Subscriptions Details Endpoint"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
