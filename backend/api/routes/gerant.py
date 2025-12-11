@@ -281,3 +281,60 @@ async def transfer_seller_to_store(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ===== INVITATION ROUTES =====
+
+@router.post("/invitations")
+async def send_invitation(
+    invitation_data: Dict,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """
+    Send an invitation to a new manager or seller.
+    
+    Args:
+        invitation_data: {
+            "name": "John Doe",
+            "email": "john@example.com",
+            "role": "manager" | "seller",
+            "store_id": "store_uuid"
+        }
+    """
+    try:
+        result = await gerant_service.send_invitation(
+            invitation_data, current_user['id']
+        )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/invitations")
+async def get_invitations(
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """Get all invitations sent by this gérant"""
+    try:
+        return await gerant_service.get_invitations(current_user['id'])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/invitations/{invitation_id}")
+async def cancel_invitation(
+    invitation_id: str,
+    current_user: Dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """Cancel a pending invitation"""
+    try:
+        return await gerant_service.cancel_invitation(invitation_id, current_user['id'])
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
