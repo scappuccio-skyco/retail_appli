@@ -241,6 +241,10 @@ class RBACTester:
         status, data = self.make_request('GET', '/api/gerant/subscription/status', token)
         self.log_result("Gérant", "Access subscription status", 200, status)
         
+        # Test API Keys management (critical for integrations)
+        status, data = self.make_request('GET', '/api/manager/api-keys', token)
+        self.log_result("Gérant", "Access API Keys list", 200, status, "(Integration management)")
+        
         # Test NEGATIVE: Should NOT access admin routes
         status, data = self.make_request('GET', '/api/superadmin/workspaces', token)
         self.log_result("Gérant", "DENIED /api/superadmin/workspaces", 403, status, "(Isolation test)")
