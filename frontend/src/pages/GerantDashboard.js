@@ -1098,6 +1098,19 @@ const GerantDashboard = ({ user, onLogout }) => {
         />
       )}
 
+      {/* Modal Import Massif de Magasins */}
+      {showBulkImportModal && (
+        <BulkStoreImportModal
+          isOpen={showBulkImportModal}
+          onClose={() => setShowBulkImportModal(false)}
+          onSuccess={() => {
+            // Recharger la liste des magasins après import réussi
+            fetchStores();
+            toast.success('Liste des magasins mise à jour');
+          }}
+        />
+      )}
+
       {showStoreDetailModal && selectedStore && (
         <StoreDetailModal
           store={selectedStore}
