@@ -730,7 +730,7 @@ export default function SuperAdminDashboard() {
                   <option value="" className="bg-gray-800 text-white">Toutes les actions</option>
                   {auditLogData.available_actions && auditLogData.available_actions.map((action) => (
                     <option key={action} value={action} className="bg-gray-800 text-white">
-                      {action.replace(/_/g, ' ')}
+                      {(action || '').replace(/_/g, ' ')}
                     </option>
                   ))}
                 </select>
