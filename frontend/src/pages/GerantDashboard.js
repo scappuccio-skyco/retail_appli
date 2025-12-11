@@ -39,6 +39,7 @@ const GerantDashboard = ({ user, onLogout }) => {
 
   // Modal states
   const [showCreateStoreModal, setShowCreateStoreModal] = useState(false);
+  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [showStoreDetailModal, setShowStoreDetailModal] = useState(false);
   const [showManagerTransferModal, setShowManagerTransferModal] = useState(false);
   const [showSellerTransferModal, setShowSellerTransferModal] = useState(false);
