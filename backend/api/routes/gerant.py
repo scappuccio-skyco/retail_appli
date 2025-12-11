@@ -72,6 +72,70 @@ async def get_all_stores(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/stores")
+async def create_store(
+    store_data: Dict,
+    current_user: dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """
+    Create a new store for the current gérant
+    
+    Args:
+        store_data: {
+            "name": "Store Name",
+            "location": "City, Postal Code",
+            "address": "Full address",
+            "phone": "Phone number",
+            "opening_hours": "Opening hours"
+        }
+    """
+    try:
+        result = await gerant_service.create_store(store_data, current_user['id'])
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/stores/{store_id}")
+async def delete_store(
+    store_id: str,
+    current_user: dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """
+    Delete (deactivate) a store
+    
+    Note: This soft-deletes the store by setting active=False
+    """
+    try:
+        result = await gerant_service.delete_store(store_id, current_user['id'])
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/stores/{store_id}")
+async def update_store(
+    store_id: str,
+    store_data: Dict,
+    current_user: dict = Depends(get_current_gerant),
+    gerant_service: GerantService = Depends(get_gerant_service)
+):
+    """Update store information"""
+    try:
+        result = await gerant_service.update_store(store_id, store_data, current_user['id'])
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/managers")
 async def get_all_managers(
     current_user: dict = Depends(get_current_gerant),
