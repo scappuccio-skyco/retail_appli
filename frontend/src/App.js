@@ -327,8 +327,8 @@ function AppContent() {
           }
         />
         
-        {/* IT Admin Dashboard - IT Admin Only */}
-        <Route
+        {/* DEPRECATED: IT Admin Dashboard - Fonctionnalité fusionnée dans GerantDashboard */}
+        {/* <Route
           path="/it-admin"
           element={
             !user ? (
@@ -339,6 +339,12 @@ function AppContent() {
               <ITAdminDashboard user={user} onLogout={handleLogout} />
             )
           }
+        /> */}
+        
+        {/* Redirection temporaire des IT Admin vers le GerantDashboard */}
+        <Route
+          path="/it-admin"
+          element={<Navigate to="/dashboard" replace />}
         />
       </Routes>
     </>
