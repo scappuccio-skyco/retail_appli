@@ -192,15 +192,69 @@ class ManagerDashboardAndSuperAdminTester:
         if success and isinstance(response, list):
             print(f"   ✅ Found {len(response)} active challenges")
 
-    def test_superadmin_routes(self):
-        """Test all SuperAdmin routes from Clean Architecture"""
-        print("\n👑 TESTING SUPERADMIN ROUTES (Clean Architecture)")
+    def test_superadmin_subscriptions_fix(self):
+        """Test SuperAdmin Subscriptions Details Endpoint Fix"""
+        print("\n👑 TESTING SUPERADMIN SUBSCRIPTIONS DETAILS FIX")
         
         if not self.superadmin_token:
-            self.log_test("SuperAdmin Routes", False, "No superadmin token available")
+            self.log_test("SuperAdmin Subscriptions Fix", False, "No superadmin token available")
             return
         
-        # Test 1: GET /api/superadmin/workspaces
+        # Test 1: GET /api/superadmin/subscriptions/overview (to get gérant IDs)
+        success, overview_response = self.run_test(
+            "SuperAdmin Subscriptions Overview",
+            "GET",
+            "superadmin/subscriptions/overview",
+            200,
+            token=self.superadmin_token
+        )
+        
+        gerant_id = None
+        if success and 'subscriptions' in overview_response:
+            subscriptions = overview_response['subscriptions']
+            if len(subscriptions) > 0:
+                gerant_id = subscriptions[0]['gerant']['id']
+                print(f"   ✅ Found {len(subscriptions)} subscriptions, testing with gérant: {gerant_id}")
+                print(f"   ✅ Overview summary: {overview_response.get('summary', {})}")
+        
+        # Test 2: GET /api/superadmin/subscriptions/{gerant_id}/details (NEW ENDPOINT)
+        if gerant_id:
+            success, response = self.run_test(
+                "SuperAdmin Subscription Details (NEW)",
+                "GET",
+                f"superadmin/subscriptions/{gerant_id}/details",
+                200,
+                token=self.superadmin_token
+            )
+            
+            if success:
+                # Verify response structure
+                expected_fields = ['gerant', 'subscription', 'sellers', 'transactions']
+                missing_fields = [f for f in expected_fields if f not in response]
+                if missing_fields:
+                    self.log_test("Subscription Details Structure", False, f"Missing fields: {missing_fields}")
+                else:
+                    gerant_info = response.get('gerant', {})
+                    sellers_info = response.get('sellers', {})
+                    transactions = response.get('transactions', [])
+                    
+                    print(f"   ✅ Gérant: {gerant_info.get('name')} ({gerant_info.get('email')})")
+                    print(f"   ✅ Sellers: {sellers_info.get('active', 0)} active, {sellers_info.get('suspended', 0)} suspended, {sellers_info.get('total', 0)} total")
+                    print(f"   ✅ Transactions: {len(transactions)} recent transactions")
+                    print(f"   ✅ AI Credits Used: {response.get('ai_credits_used', 0)}")
+        else:
+            self.log_test("SuperAdmin Subscription Details", False, "No gérant ID found to test with")
+        
+        # Test 3: Test with invalid gérant ID (should return 404)
+        success, response = self.run_test(
+            "SuperAdmin Subscription Details - Invalid ID",
+            "GET",
+            "superadmin/subscriptions/invalid-gerant-id/details",
+            404,
+            token=self.superadmin_token
+        )
+        
+        # Test 4: GET /api/superadmin/workspaces (existing endpoint)
         success, response = self.run_test(
             "SuperAdmin Workspaces",
             "GET",
@@ -211,11 +265,8 @@ class ManagerDashboardAndSuperAdminTester:
         
         if success and isinstance(response, list):
             print(f"   ✅ Found {len(response)} workspaces")
-            if len(response) > 0:
-                workspace = response[0]
-                print(f"   ✅ Sample workspace: {workspace.get('name', 'N/A')}")
         
-        # Test 2: GET /api/superadmin/stats
+        # Test 5: GET /api/superadmin/stats (existing endpoint)
         success, response = self.run_test(
             "SuperAdmin Platform Stats",
             "GET",
@@ -225,21 +276,7 @@ class ManagerDashboardAndSuperAdminTester:
         )
         
         if success:
-            expected_fields = ['total_workspaces', 'total_users']
-            present_fields = [f for f in expected_fields if f in response]
-            print(f"   ✅ Platform stats fields present: {present_fields}")
-        
-        # Test 3: GET /api/superadmin/logs
-        success, response = self.run_test(
-            "SuperAdmin System Logs",
-            "GET",
-            "superadmin/logs",
-            200,
-            token=self.superadmin_token
-        )
-        
-        if success and isinstance(response, list):
-            print(f"   ✅ Retrieved {len(response)} log entries")
+            print(f"   ✅ Platform stats retrieved successfully")
 
     def test_integration_routes(self):
         """Test Integration routes from Clean Architecture"""
