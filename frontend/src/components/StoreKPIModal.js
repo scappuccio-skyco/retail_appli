@@ -443,18 +443,23 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
         const sellersDataResponses = await Promise.all(sellersDataPromises);
         
-        // Collect all unique dates with data
+        // Collect all unique dates with data and locked dates
         const allDates = new Set();
+        const allLockedDates = new Set();
         sellersDataResponses.forEach(response => {
           const entries = response.data || [];
           entries.forEach(entry => {
             if ((entry.ca_journalier && entry.ca_journalier > 0) || (entry.nb_ventes && entry.nb_ventes > 0)) {
               allDates.add(entry.date);
             }
+            if (entry.locked === true) {
+              allLockedDates.add(entry.date);
+            }
           });
         });
         
         setDatesWithData([...allDates]);
+        setLockedDates([...allLockedDates]);
       }
     } catch (err) {
       console.error('Error fetching dates with data:', err);
