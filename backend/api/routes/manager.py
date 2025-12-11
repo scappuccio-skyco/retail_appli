@@ -210,7 +210,7 @@ async def create_api_key(
     from core.database import database
     from models.api_keys import APIKeyResponse
     
-    db = database.get_db()
+    db = database.db
     
     # Generate secure API key
     def generate_api_key() -> str:
