@@ -984,7 +984,11 @@ const GerantDashboard = ({ user, onLogout }) => {
                     stats={stats}
                     badge={badge}
                     sparklineData={sparklineData}
-                    onClick={() => handleStoreClick(store)}
+                    onClick={() => {
+                      setSelectedStore(store);
+                      setSelectedStoreColorIndex(index);
+                      setShowStoreDetailModal(true);
+                    }}
                     colorIndex={index}
                   />
                 );
