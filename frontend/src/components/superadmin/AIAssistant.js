@@ -109,8 +109,8 @@ export default function AIAssistant() {
       // Add assistant response
       const assistantMsg = {
         role: 'assistant',
-        content: res.data.message,
-        timestamp: res.data.timestamp
+        content: res.data.response || res.data.message,
+        timestamp: res.data.timestamp || new Date().toISOString()
       };
       setMessages(prev => [...prev, assistantMsg]);
       
