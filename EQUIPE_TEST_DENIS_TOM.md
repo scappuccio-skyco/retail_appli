@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://monolith-to-clean.preview.emergentagent.com
+https://pythonclean.preview.emergentagent.com
 
 ### Manager
 ```
