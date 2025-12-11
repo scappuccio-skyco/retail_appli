@@ -48,6 +48,19 @@ async def get_all_workspaces(
             
             workspace['managers_count'] = managers_count
             workspace['sellers_count'] = sellers_count
+            
+            # CRITICAL: Ensure subscription object exists with plan field
+            # Frontend expects workspace.subscription.plan
+            if 'subscription' not in workspace or workspace['subscription'] is None:
+                workspace['subscription'] = {
+                    "plan": workspace.get('subscription_plan', 'free'),
+                    "status": workspace.get('subscription_status', 'trialing'),
+                    "created_at": workspace.get('created_at'),
+                    "trial_ends_at": workspace.get('trial_ends_at')
+                }
+            elif 'plan' not in workspace['subscription']:
+                # If subscription exists but no plan field, add it
+                workspace['subscription']['plan'] = workspace.get('subscription_plan', 'free')
         
         return workspaces
     except Exception as e:
