@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key, UserCog, Info, Lock } from 'lucide-react';
+import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key, UserCog, Info, Lock, Upload } from 'lucide-react';
 import CreateStoreModal from '../components/gerant/CreateStoreModal';
+import BulkStoreImportModal from '../components/gerant/BulkStoreImportModal';
 import TutorialButton from '../components/onboarding/TutorialButton';
 import OnboardingModal from '../components/onboarding/OnboardingModal';
 import { gerantSteps } from '../components/onboarding/gerantSteps';
