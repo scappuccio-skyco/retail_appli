@@ -164,32 +164,13 @@ async def get_store_managers(
 async def get_store_sellers(
     store_id: str,
     current_user: Dict = Depends(get_current_gerant),
-    db: AsyncIOMotorDatabase = Depends(get_db)
+    gerant_service: GerantService = Depends(get_gerant_service)
 ):
-    """
-    Get all sellers for a specific store (exclude deleted)
-    
-    Security: Verify that the store belongs to the current gérant
-    """
-    # Verify store ownership
-    store = await db.stores.find_one(
-        {"id": store_id, "gerant_id": current_user['id'], "active": True},
-        {"_id": 0}
-    )
-    if not store:
-        raise HTTPException(status_code=404, detail="Magasin non trouvé ou accès non autorisé")
-    
-    # Get sellers (exclude deleted ones)
-    sellers = await db.users.find(
-        {
-            "store_id": store_id, 
-            "role": "seller",
-            "status": {"$ne": "deleted"}
-        },
-        {"_id": 0, "password": 0}
-    ).to_list(1000)
-    
-    return sellers
+    """Get all sellers for a specific store"""
+    try:
+        return await gerant_service.get_store_sellers(store_id, current_user['id'])
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/stores/{store_id}/kpi-overview")
