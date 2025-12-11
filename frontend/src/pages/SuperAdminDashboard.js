@@ -229,8 +229,8 @@ export default function SuperAdminDashboard() {
         </div>
       </div>
 
-      {/* System Health Alert */}
-      {health && health.status !== 'healthy' && (
+      {/* System Health Alert - Only shows when there are actual issues */}
+      {health && health.status !== 'ok' && health.status !== 'healthy' && health.errors_10min > 0 && (
         <div className={`mb-6 p-4 rounded-xl border-2 ${
           health.status === 'critical' 
             ? 'bg-red-500/20 border-red-500' 
