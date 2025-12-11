@@ -170,7 +170,11 @@ class KPIService:
             
         Raises:
             Exception: If KPI is locked (from API)
+            HTTPException 403: If trial expired
         """
+        # === GUARD CLAUSE: Check subscription access ===
+        await self.check_user_write_access(seller_id)
+        
         # Check if entry exists
         existing = await self.kpi_repo.find_by_seller_and_date(seller_id, date)
         
