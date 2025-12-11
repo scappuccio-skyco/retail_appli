@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Users, TrendingUp, UserPlus, RefreshCw, Trash2, Pause } from 'lucide-react';
+import { X, Users, TrendingUp, UserPlus, RefreshCw, Trash2, Pause, Lock } from 'lucide-react';
 import StoreKPIModal from '../StoreKPIModal';
+import { toast } from 'sonner';
 
 // Mapping des couleurs selon l'index - couleurs de base pour le gradient
 const STORE_COLOR_CONFIG = [
