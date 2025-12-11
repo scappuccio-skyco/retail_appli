@@ -303,21 +303,4 @@ async def delete_api_key_permanent(
         raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
-    # Verify ownership
-    if current_user['role'] == 'manager':
-        if key.get('user_id') != current_user['id']:
-            raise HTTPException(status_code=403, detail="Not authorized to delete this key")
-    elif current_user['role'] in ['gerant', 'gérant']:
-        if key.get('gerant_id') != current_user['id']:
-            raise HTTPException(status_code=403, detail="Not authorized to delete this key")
-    
-    # Only allow deletion of inactive keys
-    if key.get('active'):
-        raise HTTPException(status_code=400, detail="Cannot permanently delete an active key. Deactivate it first.")
-    
-    # Permanently delete the key
-    await db.api_keys.delete_one({"id": key_id})
-    
-    return {"success": True, "message": "API key permanently deleted"}
 
