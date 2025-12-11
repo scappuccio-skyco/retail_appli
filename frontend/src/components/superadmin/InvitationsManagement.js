@@ -220,7 +220,8 @@ const InvitationsManagement = () => {
                             onChange={(e) => setEditData({...editData, role: e.target.value})}
                             className="px-2 py-1 text-xs border rounded"
                           >
-                            <option value="manager">Gérant</option>
+                            <option value="gerant">Gérant</option>
+                            <option value="manager">Manager</option>
                             <option value="seller">Vendeur</option>
                           </select>
                         </td>
