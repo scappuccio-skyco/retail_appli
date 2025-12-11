@@ -113,7 +113,7 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
     """
     Envoyer un email d'invitation à un Manager (invité par un Gérant)
     """
-    frontend_url = get_frontend_url()
+    frontend_url = get_frontend_url().rstrip('/')  # Remove trailing slash to avoid double //
     invitation_link = f"{frontend_url}/register/manager/{invitation_token}"
     
     store_info = f" pour le magasin <strong>{store_name}</strong>" if store_name else ""
