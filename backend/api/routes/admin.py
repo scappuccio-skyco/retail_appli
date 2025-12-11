@@ -1,12 +1,19 @@
 """SuperAdmin Routes"""
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Dict, List, Optional
-from datetime import datetime, timezone, timedelta
-from core.security import get_super_admin
-from core.database import get_db
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from typing import Dict
 
-router = APIRouter(prefix="/superadmin", tags=["Super Admin"])
+from core.security import get_super_admin
+from services.admin_service import AdminService
+from repositories.admin_repository import AdminRepository
+from api.dependencies import get_db
+
+router = APIRouter(prefix="/superadmin", tags=["SuperAdmin"])
+
+
+def get_admin_service(db = Depends(get_db)) -> AdminService:
+    """Dependency injection for AdminService"""
+    admin_repo = AdminRepository(db)
+    return AdminService(admin_repo)
 
 
 @router.get("/workspaces")
