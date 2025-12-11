@@ -202,7 +202,7 @@ def send_seller_invitation_email(recipient_email: str, recipient_name: str, invi
     """
     Envoyer un email d'invitation à un Vendeur (invité par un Manager)
     """
-    frontend_url = get_frontend_url()
+    frontend_url = get_frontend_url().rstrip('/')  # Remove trailing slash to avoid double //
     invitation_link = f"{frontend_url}/register/seller/{invitation_token}"
     
     store_info = f" du magasin <strong>{store_name}</strong>" if store_name else ""
