@@ -95,6 +95,17 @@ async def get_platform_stats(
         # Calculate MRR (Monthly Recurring Revenue)
         mrr = active_subscriptions * 29  # Average price per subscription
         
+        # Activity stats (recent signups and analyses)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+        recent_signups = await db.users.count_documents({
+            "created_at": {"$gte": seven_days_ago}
+        })
+        
+        # Recent analyses (diagnostics created in last 7 days)
+        recent_analyses = await db.diagnostics.count_documents({
+            "created_at": {"$gte": seven_days_ago.isoformat()}
+        })
+        
         # CRITICAL: Return structure matching frontend expectations
         stats = {
             "workspaces": {
@@ -117,6 +128,10 @@ async def get_platform_stats(
                 "mrr": mrr,
                 "active_subscriptions": active_subscriptions,
                 "trial_subscriptions": trial_subscriptions
+            },
+            "activity": {
+                "recent_signups_7d": recent_signups,
+                "recent_analyses_7d": recent_analyses
             },
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
