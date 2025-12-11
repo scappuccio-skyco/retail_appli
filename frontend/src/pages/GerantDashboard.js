@@ -1011,6 +1011,7 @@ const GerantDashboard = ({ user, onLogout }) => {
       {showStoreDetailModal && selectedStore && (
         <StoreDetailModal
           store={selectedStore}
+          colorIndex={selectedStoreColorIndex}
           onClose={() => {
             setShowStoreDetailModal(false);
             setSelectedStore(null);
