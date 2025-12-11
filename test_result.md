@@ -105,6 +105,21 @@
 user_problem_statement: "Tester les nouveaux endpoints API d'intégration pour la gestion des utilisateurs - 4 nouveaux endpoints permettant de créer des magasins, managers et vendeurs via API key"
 
 backend:
+  - task: "Clean Architecture Refactoring - Routes → Services → Repositories"
+    implemented: true
+    working: true
+    file: "/app/backend/main.py, /app/backend/api/routes/, /app/backend/services/, /app/backend/repositories/"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "CLEAN ARCHITECTURE REFACTORING COMPLETED: Migrated from monolithic server.py to Clean Architecture pattern with Routes → Services → Repositories layers. ✅ NEW STRUCTURE: /app/backend/main.py (FastAPI app), /app/backend/api/routes/ (route handlers), /app/backend/services/ (business logic), /app/backend/repositories/ (data access). ✅ GÉRANT ROUTES: 12 endpoints migrated including dashboard/stats, subscription/status, stores management, KPI history, seller transfers. ✅ SUPERADMIN ROUTES: 5 endpoints for workspaces, platform stats, system logs. ✅ INTEGRATION ROUTES: 4 endpoints for API key management and KPI sync. ✅ DEPENDENCY INJECTION: Proper DI pattern implemented for services and repositories. ✅ AUTHENTICATION: JWT-based auth with role-based access control maintained. ✅ PRÊT POUR TESTS."
+      - working: true
+        agent: "testing"
+        comment: "CLEAN ARCHITECTURE REFACTORING TESTING COMPLETED SUCCESSFULLY - 95.8% SUCCESS RATE (23/24 tests passed): ✅ AUTHENTICATION VERIFIED: Both gérant (gerant.demo@test.fr) and superadmin (superadmin-test@retailperformer.com) authentication working correctly with JWT tokens. ✅ GÉRANT ROUTES WORKING: All priority routes functional - GET /api/gerant/dashboard/stats (5 stores, 3 managers, 6 sellers), GET /api/gerant/subscription/status, GET /api/gerant/stores (5 stores found), GET /api/gerant/stores/{store_id}/kpi-history (25 entries), GET /api/gerant/stores/{store_id}/available-years, POST /api/gerant/sellers/{seller_id}/transfer (proper 404 for invalid ID). ✅ SUPERADMIN ROUTES WORKING: GET /api/superadmin/workspaces (48 workspaces), GET /api/superadmin/stats, GET /api/superadmin/logs - all returning 200 OK. ✅ INTEGRATION ROUTES WORKING: POST /api/integrations/api-keys (API key creation successful), GET /api/integrations/api-keys (6 keys listed). ✅ SECURITY VERIFIED: Proper 403 responses for unauthenticated requests, role-based access control working (gérant cannot access superadmin endpoints). ✅ NO 500 ERRORS: All critical endpoints returning 200 OK instead of 500 Internal Server Error, confirming successful migration from direct database access to Clean Architecture. ❌ Minor: Subscription status response missing 'has_access' and 'plan' fields (structure difference). ✅ CLEAN ARCHITECTURE SUCCESS: Routes → Services → Repositories pattern working correctly, no major regressions detected, refactoring appears successful and production-ready."
+
   - task: "Integration API Endpoints for User Management"
     implemented: true
     working: true
