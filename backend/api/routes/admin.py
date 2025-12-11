@@ -333,6 +333,7 @@ async def chat_with_ai_assistant(
 ):
     """Send a message to the AI assistant"""
     from uuid import uuid4
+    import os
     
     try:
         user_message = message.get("message", "")
@@ -359,8 +360,59 @@ async def chat_with_ai_assistant(
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
-        # Generate AI response (simplified - integrate with actual AI service if needed)
-        ai_response = f"Je suis l'assistant IA du SuperAdmin. Vous avez demandé: '{user_message}'. Cette fonctionnalité est en cours de développement."
+        # Get conversation history for context
+        previous_messages = await db.ai_messages.find(
+            {"conversation_id": conversation_id},
+            {"_id": 0, "role": 1, "content": 1}
+        ).sort("timestamp", 1).to_list(20)
+        
+        # Build messages for OpenAI
+        messages_for_ai = [
+            {
+                "role": "system",
+                "content": """Tu es l'assistant IA de la plateforme Retail Performer, dédié aux Super Administrateurs.
+                
+Tu peux aider avec:
+- L'analyse des données de la plateforme (utilisateurs, abonnements, KPIs)
+- Les questions sur la gestion des gérants, managers et vendeurs
+- Les conseils sur la performance commerciale
+- L'explication des fonctionnalités de l'application
+- Le diagnostic des problèmes techniques
+
+Réponds de manière concise et professionnelle en français.
+Si tu ne connais pas la réponse, dis-le clairement."""
+            }
+        ]
+        
+        # Add conversation history
+        for msg in previous_messages[-10:]:  # Last 10 messages for context
+            messages_for_ai.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
+        
+        # Generate AI response using OpenAI via Emergent
+        ai_response = "Désolé, je n'ai pas pu générer une réponse. Veuillez réessayer."
+        
+        try:
+            from emergentintegrations.llm.openai import OpenAIManager, ChatMessage
+            
+            llm_key = os.environ.get('EMERGENT_LLM_KEY', 'sk-emergent-dB388Be0647671cF21')
+            openai_manager = OpenAIManager(api_key=llm_key)
+            
+            chat_messages = [ChatMessage(role=m["role"], content=m["content"]) for m in messages_for_ai]
+            
+            response = await openai_manager.chat_completion(
+                messages=chat_messages,
+                model="gpt-4o-mini"
+            )
+            
+            ai_response = response.content
+            
+        except Exception as ai_error:
+            print(f"AI Error: {ai_error}")
+            # Fallback response
+            ai_response = f"Je suis l'assistant IA SuperAdmin. Concernant votre question sur '{user_message[:50]}...', je rencontre actuellement des difficultés techniques. Veuillez réessayer dans quelques instants."
         
         # Save AI response
         await db.ai_messages.insert_one({
