@@ -785,6 +785,22 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
   return (
     <div data-testid="seller-dashboard" className="min-h-screen p-4 md:p-8">
+      {/* === BANNIÈRE ABONNEMENT SUSPENDU === */}
+      {isSubscriptionExpired && (
+        <div className="max-w-7xl mx-auto mb-4">
+          <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 flex items-center gap-3">
+            <div className="p-1.5 bg-amber-100 rounded-lg">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <p className="text-amber-800 text-sm flex-1">
+              <strong>Abonnement magasin suspendu</strong> - La saisie des KPIs est temporairement désactivée. Contactez votre gérant.
+            </p>
+          </div>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
