@@ -186,7 +186,7 @@ class AuthService:
             "gerant_id": invitation.get('gerant_id'),
             "store_id": invitation.get('store_id'),
             "manager_id": invitation.get('manager_id'),
-            "created_at": datetime.now(timezone.utc),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             "status": "active"
         }
         
