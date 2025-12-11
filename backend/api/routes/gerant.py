@@ -4,10 +4,12 @@ Dashboard stats, subscription status, and workspace management
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from datetime import datetime, timezone
+from typing import Dict
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from core.security import get_current_gerant
 from services.gerant_service import GerantService
-from api.dependencies import get_gerant_service
+from api.dependencies import get_gerant_service, get_db
 
 router = APIRouter(prefix="/gerant", tags=["Gérant"])
 
