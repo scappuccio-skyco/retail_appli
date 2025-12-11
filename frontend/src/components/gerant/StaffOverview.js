@@ -488,6 +488,143 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
             </div>
           )}
         </div>
+        )}
+
+        {/* Invitations Table */}
+        {activeTab === 'invitations' && (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rôle</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Magasin</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date d'envoi</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredInvitations.map((inv) => (
+                  <tr key={inv.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="font-medium text-gray-900">{inv.name}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center text-gray-600">
+                        <Mail className="w-4 h-4 mr-2" />
+                        {inv.email}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        inv.role === 'manager' 
+                          ? 'bg-purple-100 text-purple-700' 
+                          : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {inv.role === 'manager' ? 'Manager' : 'Vendeur'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center text-gray-600">
+                        <Building2 className="w-4 h-4 mr-2" />
+                        {inv.store_name || getStoreName(inv.store_id)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {inv.status === 'pending' && (
+                        <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs flex items-center gap-1 w-fit">
+                          <Clock className="w-3 h-3" />
+                          En attente
+                        </span>
+                      )}
+                      {inv.status === 'accepted' && (
+                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs flex items-center gap-1 w-fit">
+                          <CheckCircle className="w-3 h-3" />
+                          Acceptée
+                        </span>
+                      )}
+                      {inv.status === 'expired' && (
+                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">
+                          Expirée
+                        </span>
+                      )}
+                      {inv.status === 'cancelled' && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                          Annulée
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {inv.created_at ? new Date(inv.created_at).toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {inv.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => handleResendInvitation(inv.id)}
+                              disabled={resendingInvitation === inv.id}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                            >
+                              {resendingInvitation === inv.id ? (
+                                <RefreshCw className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Send className="w-4 h-4" />
+                              )}
+                              Renvoyer
+                            </button>
+                            <button
+                              onClick={() => handleCancelInvitation(inv.id)}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                              Annuler
+                            </button>
+                          </>
+                        )}
+                        {inv.status === 'expired' && (
+                          <button
+                            onClick={() => handleResendInvitation(inv.id)}
+                            disabled={resendingInvitation === inv.id}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                          >
+                            {resendingInvitation === inv.id ? (
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <RefreshCw className="w-4 h-4" />
+                            )}
+                            Réinviter
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {filteredInvitations.length === 0 && (
+              <div className="text-center py-12 text-gray-500">
+                <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>Aucune invitation trouvée</p>
+                <button
+                  onClick={onOpenInviteModal}
+                  className="mt-4 text-blue-600 hover:underline"
+                >
+                  Inviter du personnel
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Transfer Modal */}
