@@ -255,4 +255,148 @@ async def delete_invitation(
     return {"message": "Invitation supprimée avec succès"}
 
 
+# ===== AI ASSISTANT ENDPOINTS =====
+
+@router.get("/ai-assistant/conversations")
+async def get_ai_conversations(
+    limit: int = Query(20, ge=1, le=100),
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """Get AI assistant conversation history (last 7 days)"""
+    try:
+        since = datetime.now(timezone.utc) - timedelta(days=7)
+        
+        conversations = await db.ai_conversations.find(
+            {
+                "admin_email": current_user['email'],
+                "created_at": {"$gte": since.isoformat()}
+            },
+            {"_id": 0}
+        ).sort("updated_at", -1).limit(limit).to_list(limit)
+        
+        return {
+            "conversations": conversations,
+            "total": len(conversations)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/ai-assistant/chat")
+async def chat_with_ai_assistant(
+    message: Dict,
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """Send a message to the AI assistant"""
+    from uuid import uuid4
+    
+    try:
+        user_message = message.get("message", "")
+        conversation_id = message.get("conversation_id")
+        
+        # Create new conversation if needed
+        if not conversation_id:
+            conversation_id = str(uuid4())
+            await db.ai_conversations.insert_one({
+                "id": conversation_id,
+                "admin_email": current_user['email'],
+                "admin_name": current_user.get('name', 'Admin'),
+                "title": user_message[:50] + "..." if len(user_message) > 50 else user_message,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            })
+        
+        # Save user message
+        await db.ai_messages.insert_one({
+            "id": str(uuid4()),
+            "conversation_id": conversation_id,
+            "role": "user",
+            "content": user_message,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Generate AI response (simplified - integrate with actual AI service if needed)
+        ai_response = f"Je suis l'assistant IA du SuperAdmin. Vous avez demandé: '{user_message}'. Cette fonctionnalité est en cours de développement."
+        
+        # Save AI response
+        await db.ai_messages.insert_one({
+            "id": str(uuid4()),
+            "conversation_id": conversation_id,
+            "role": "assistant",
+            "content": ai_response,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Update conversation
+        await db.ai_conversations.update_one(
+            {"id": conversation_id},
+            {"$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        return {
+            "conversation_id": conversation_id,
+            "response": ai_response
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/ai-assistant/conversation/{conversation_id}")
+async def get_conversation_messages(
+    conversation_id: str,
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """Get messages for a specific conversation"""
+    try:
+        conversation = await db.ai_conversations.find_one(
+            {"id": conversation_id, "admin_email": current_user['email']},
+            {"_id": 0}
+        )
+        
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation non trouvée")
+        
+        messages = await db.ai_messages.find(
+            {"conversation_id": conversation_id},
+            {"_id": 0}
+        ).sort("timestamp", 1).to_list(1000)
+        
+        return {
+            "conversation": conversation,
+            "messages": messages
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/ai-assistant/conversation/{conversation_id}")
+async def delete_conversation(
+    conversation_id: str,
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """Delete a conversation and its messages"""
+    try:
+        conversation = await db.ai_conversations.find_one(
+            {"id": conversation_id, "admin_email": current_user['email']}
+        )
+        
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversation non trouvée")
+        
+        await db.ai_messages.delete_many({"conversation_id": conversation_id})
+        await db.ai_conversations.delete_one({"id": conversation_id})
+        
+        return {"message": "Conversation supprimée avec succès"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
