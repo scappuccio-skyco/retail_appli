@@ -180,6 +180,60 @@ async def forgot_password(
         }
 
 
+@router.get("/reset-password/{token}")
+async def verify_reset_token(
+    token: str,
+    db = Depends(get_db)
+):
+    """
+    Verify reset password token
+    
+    Args:
+        token: Reset token from email
+        
+    Returns:
+        User email if token is valid
+        
+    Raises:
+        HTTPException 400: Invalid or expired token
+    """
+    from datetime import datetime, timezone
+    
+    # Find reset token in database
+    reset_entry = await db.password_resets.find_one(
+        {"token": token},
+        {"_id": 0}
+    )
+    
+    if not reset_entry:
+        raise HTTPException(status_code=400, detail="Lien invalide ou expiré")
+    
+    # Check expiration (10 minutes = 600 seconds)
+    created_at = reset_entry.get('created_at')
+    if created_at:
+        # Handle both datetime object and ISO string
+        if isinstance(created_at, str):
+            from dateutil import parser
+            created_at = parser.parse(created_at)
+        
+        now = datetime.now(timezone.utc)
+        if created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=timezone.utc)
+        
+        age_seconds = (now - created_at).total_seconds()
+        if age_seconds > 600:  # 10 minutes
+            raise HTTPException(status_code=400, detail="Ce lien a expiré. Veuillez demander un nouveau lien.")
+    
+    # Check if already used
+    if reset_entry.get('used'):
+        raise HTTPException(status_code=400, detail="Ce lien a déjà été utilisé")
+    
+    return {
+        "valid": True,
+        "email": reset_entry.get('email', '')
+    }
+
+
 @router.post("/reset-password")
 async def reset_password(
     request: ResetPasswordRequest,
