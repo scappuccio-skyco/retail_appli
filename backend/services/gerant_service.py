@@ -681,14 +681,16 @@ class GerantService:
             "remaining_seats": max(0, quantity - active_sellers_count)
         }
     
-    async def get_store_kpi_history(self, store_id: str, gerant_id: str, days: int = 30) -> list:
+    async def get_store_kpi_history(self, store_id: str, gerant_id: str, days: int = 30, start_date_str: str = None, end_date_str: str = None) -> list:
         """
         Get historical KPI data for a specific store
         
         Args:
             store_id: Store identifier
             gerant_id: Gérant ID for ownership verification
-            days: Number of days to retrieve (default: 30)
+            days: Number of days to retrieve (default: 30) - used if no dates
+            start_date_str: Start date in YYYY-MM-DD format (optional)
+            end_date_str: End date in YYYY-MM-DD format (optional)
         
         Returns:
             List of daily aggregated KPI data sorted by date
@@ -704,19 +706,27 @@ class GerantService:
             raise ValueError("Magasin non trouvé ou accès non autorisé")
         
         # Calculate date range
-        end_date = datetime.now(timezone.utc)
-        start_date = end_date - timedelta(days=days)
+        if start_date_str and end_date_str:
+            # Use provided dates
+            start_date_query = start_date_str
+            end_date_query = end_date_str
+        else:
+            # Use days parameter
+            end_date = datetime.now(timezone.utc)
+            start_date = end_date - timedelta(days=days)
+            start_date_query = start_date.strftime('%Y-%m-%d')
+            end_date_query = end_date.strftime('%Y-%m-%d')
         
         # Get ALL KPI entries for this store directly by store_id
         seller_entries = await self.db.kpi_entries.find({
             "store_id": store_id,
-            "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
+            "date": {"$gte": start_date_query, "$lte": end_date_query}
         }, {"_id": 0}).to_list(10000)
         
         # Get manager KPIs for this store
         manager_kpis = await self.db.manager_kpi.find({
             "store_id": store_id,
-            "date": {"$gte": start_date.strftime('%Y-%m-%d'), "$lte": end_date.strftime('%Y-%m-%d')}
+            "date": {"$gte": start_date_query, "$lte": end_date_query}
         }, {"_id": 0}).to_list(10000)
         
         # Aggregate data by date
