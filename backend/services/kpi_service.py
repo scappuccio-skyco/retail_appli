@@ -1,6 +1,7 @@
 """KPI Service - Business logic for KPI calculations and aggregations"""
 from typing import List, Dict, Optional
 from datetime import datetime, timezone
+from fastapi import HTTPException
 from repositories.kpi_repository import KPIRepository, ManagerKPIRepository
 from repositories.user_repository import UserRepository
 
@@ -13,6 +14,91 @@ class KPIService:
         self.manager_kpi_repo = ManagerKPIRepository(db)
         self.user_repo = UserRepository(db)
         self.db = db
+    
+    async def check_user_write_access(self, user_id: str) -> bool:
+        """
+        Guard clause for Sellers/Managers: Get parent Gérant and check subscription access.
+        
+        Args:
+            user_id: User ID (seller or manager)
+            
+        Returns:
+            True if access is granted
+            
+        Raises:
+            HTTPException 403 if access denied (trial expired)
+        """
+        user = await self.user_repo.find_one(
+            {"id": user_id},
+            {"_id": 0}
+        )
+        
+        if not user:
+            raise HTTPException(status_code=403, detail="Utilisateur non trouvé")
+        
+        # Get parent gérant_id
+        gerant_id = user.get('gerant_id')
+        
+        if not gerant_id:
+            # Safety: If no parent chain, deny by default
+            raise HTTPException(status_code=403, detail="Accès refusé: chaîne de parenté non trouvée")
+        
+        # Get gérant info
+        gerant = await self.user_repo.find_one(
+            {"id": gerant_id},
+            {"_id": 0}
+        )
+        
+        if not gerant:
+            raise HTTPException(status_code=403, detail="Gérant non trouvé")
+        
+        workspace_id = gerant.get('workspace_id')
+        
+        if not workspace_id:
+            raise HTTPException(status_code=403, detail="Aucun espace de travail associé")
+        
+        workspace = await self.db.workspaces.find_one(
+            {"id": workspace_id},
+            {"_id": 0}
+        )
+        
+        if not workspace:
+            raise HTTPException(status_code=403, detail="Espace de travail non trouvé")
+        
+        subscription_status = workspace.get('subscription_status', 'inactive')
+        
+        # Active subscription - full access
+        if subscription_status == 'active':
+            return True
+        
+        # In trial period - check if still valid
+        if subscription_status == 'trialing':
+            trial_end = workspace.get('trial_end')
+            if trial_end:
+                if isinstance(trial_end, str):
+                    trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
+                else:
+                    trial_end_dt = trial_end
+                
+                now = datetime.now(timezone.utc)
+                
+                if now < trial_end_dt:
+                    return True
+                else:
+                    # Trial has expired - update status in DB
+                    await self.db.workspaces.update_one(
+                        {"id": workspace_id},
+                        {"$set": {
+                            "subscription_status": "trial_expired",
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }}
+                    )
+        
+        # Trial expired or other inactive status
+        raise HTTPException(
+            status_code=403, 
+            detail="Période d'essai terminée. Veuillez contacter votre administrateur."
+        )
     
     async def check_kpi_entry_enabled(self, store_id: str) -> dict:
         """Check if KPI entry is enabled for a store"""
