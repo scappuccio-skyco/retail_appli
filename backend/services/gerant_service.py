@@ -1572,6 +1572,9 @@ class GerantService:
             gerant_id: Gérant ID for authorization
             role: 'manager' or 'seller'
         """
+        # === GUARD CLAUSE: Check subscription access ===
+        await self.check_gerant_active_access(gerant_id)
+        
         user = await self.user_repo.find_one({
             "id": user_id,
             "gerant_id": gerant_id,
