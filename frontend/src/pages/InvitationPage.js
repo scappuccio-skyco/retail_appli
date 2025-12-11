@@ -76,7 +76,7 @@ const InvitationPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-cyan-600 via-blue-600 to-indigo-700 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-white animate-spin mx-auto mb-4" />
           <p className="text-white/80">Vérification de l'invitation...</p>
@@ -87,14 +87,14 @@ const InvitationPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-cyan-600 via-blue-600 to-indigo-700 flex items-center justify-center p-4">
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full text-center">
           <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-white mb-2">Invitation invalide</h1>
           <p className="text-white/70 mb-6">{error}</p>
           <button
             onClick={() => navigate('/login')}
-            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            className="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
           >
             Retour à la connexion
           </button>
@@ -104,7 +104,7 @@ const InvitationPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-600 via-blue-600 to-indigo-700 flex items-center justify-center p-4">
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full">
         <div className="text-center mb-8">
           <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
@@ -112,9 +112,9 @@ const InvitationPage = () => {
             Bienvenue sur Retail Performer
           </h1>
           <p className="text-white/70">
-            Vous avez été invité en tant que <strong className="text-purple-300">{invitation?.role === 'manager' ? 'Manager' : invitation?.role === 'gerant' ? 'Gérant' : 'Vendeur'}</strong>
+            Vous avez été invité en tant que <strong className="text-cyan-300">{invitation?.role === 'manager' ? 'Manager' : invitation?.role === 'gerant' ? 'Gérant' : 'Vendeur'}</strong>
             {invitation?.store_name && (
-              <> pour le magasin <strong className="text-purple-300">{invitation.store_name}</strong></>
+              <> pour le magasin <strong className="text-cyan-300">{invitation.store_name}</strong></>
             )}
           </p>
         </div>
@@ -130,7 +130,7 @@ const InvitationPage = () => {
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                 required
                 placeholder="Votre nom"
-                className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
             </div>
           </div>
@@ -145,7 +145,7 @@ const InvitationPage = () => {
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 required
                 readOnly={!!invitation?.email}
-                className={`w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500 ${invitation?.email ? 'opacity-70 cursor-not-allowed' : ''}`}
+                className={`w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-500 ${invitation?.email ? 'opacity-70 cursor-not-allowed' : ''}`}
               />
             </div>
           </div>
@@ -155,14 +155,21 @@ const InvitationPage = () => {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={(e) => setFormData({...formData, password: e.target.value})}
                 required
                 minLength={8}
                 placeholder="Minimum 8 caractères"
-                className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 
@@ -171,20 +178,27 @@ const InvitationPage = () => {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
               <input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                 required
                 placeholder="Confirmer le mot de passe"
-                className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold rounded-lg hover:from-cyan-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {submitting ? (
               <>
@@ -201,7 +215,7 @@ const InvitationPage = () => {
           Vous avez déjà un compte ?{' '}
           <button
             onClick={() => navigate('/login')}
-            className="text-purple-400 hover:text-purple-300 underline"
+            className="text-cyan-400 hover:text-cyan-300 underline"
           >
             Se connecter
           </button>
