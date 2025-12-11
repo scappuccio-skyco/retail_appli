@@ -12,10 +12,60 @@ from models.users import (
     ResetPasswordRequest
 )
 from services.auth_service import AuthService
-from api.dependencies import get_auth_service
+from api.dependencies import get_auth_service, get_db
 from core.security import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
+@router.get("/invitations/verify/{token}")
+async def verify_invitation_token(
+    token: str,
+    db = Depends(get_db)
+):
+    """
+    Verify invitation token and return invitation details
+    
+    Args:
+        token: Invitation token from email link
+        
+    Returns:
+        Invitation details if valid
+        
+    Raises:
+        HTTPException 404: Token not found or expired
+    """
+    # Check in gerant_invitations collection
+    invitation = await db.gerant_invitations.find_one(
+        {"token": token},
+        {"_id": 0}
+    )
+    
+    if not invitation:
+        # Try the old invitations collection
+        invitation = await db.invitations.find_one(
+            {"token": token},
+            {"_id": 0}
+        )
+    
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation non trouvée ou expirée")
+    
+    if invitation.get('status') == 'accepted':
+        raise HTTPException(status_code=400, detail="Cette invitation a déjà été utilisée")
+    
+    if invitation.get('status') == 'expired':
+        raise HTTPException(status_code=400, detail="Cette invitation a expiré")
+    
+    return {
+        "valid": True,
+        "email": invitation.get('email'),
+        "role": invitation.get('role', 'seller'),
+        "store_name": invitation.get('store_name'),
+        "gerant_name": invitation.get('gerant_name'),
+        "manager_name": invitation.get('manager_name'),
+        "name": invitation.get('name', '')
+    }
 
 
 @router.post("/login")
