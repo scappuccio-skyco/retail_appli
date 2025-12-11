@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class CleanArchitectureAPITester:
-    def __init__(self, base_url="https://pythonclean.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://api-resolution.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.gerant_token = None
         self.superadmin_token = None

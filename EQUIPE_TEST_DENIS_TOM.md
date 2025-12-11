@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://pythonclean.preview.emergentagent.com
+https://api-resolution.preview.emergentagent.com
 
 ### Manager
 ```
