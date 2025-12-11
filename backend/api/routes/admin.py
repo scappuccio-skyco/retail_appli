@@ -596,28 +596,5 @@ async def get_subscriptions_overview(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-            "id": str(uuid4()),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "action": "resend_invitation",
-            "admin_email": current_user['email'],
-            "admin_name": current_user.get('name', 'Admin'),
-            "details": {
-                "invitation_id": invitation_id,
-                "email": recipient_email,
-                "role": role,
-                "email_sent": email_sent
-            }
-        })
-        
-        if email_sent:
-            return {"success": True, "message": f"Invitation renvoyée à {recipient_email}"}
-        else:
-            return {"success": True, "message": f"Invitation marquée comme renvoyée (email non configuré)", "warning": "Email service not configured"}
-            
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 
