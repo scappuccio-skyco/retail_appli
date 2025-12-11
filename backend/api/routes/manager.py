@@ -391,7 +391,7 @@ async def delete_api_key_permanent(
     """
     from core.database import database
     
-    db = database.get_db()
+    db = database.db
     
     # Find the key and verify ownership
     key = await db.api_keys.find_one({"id": key_id}, {"_id": 0})
