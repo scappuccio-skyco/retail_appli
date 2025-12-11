@@ -124,7 +124,11 @@ class AuthService:
                 else:
                     trial_end_dt = trial_end
                 
+                # Gérer les dates naive vs aware
                 now = datetime.now(timezone.utc)
+                if trial_end_dt.tzinfo is None:
+                    # trial_end_dt est naive, on le convertit en UTC
+                    trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
                 
                 if now <= trial_end_dt:
                     return {"status": "trialing", "is_read_only": False}
