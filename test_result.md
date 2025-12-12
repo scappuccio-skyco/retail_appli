@@ -226,7 +226,7 @@ test_plan:
 
 agent_communication:
   - agent: "main"
-    message: "MISSION J-7 COMPLETED: 1) SMOKE TEST BILLING: Stripe Price IDs validated - no 'No such price' error. Preview endpoint returns correct proration. 2) IA ILLIMITÉE: Verified no quota checks in active code - AI routes work without credit deduction. 3) WEBHOOKS STRIPE: Enhanced handlers for invoice.payment_failed (adds failure count, amount, retry date) and customer.subscription.deleted (adds access_end_date, clears Stripe refs). All handlers implemented in payment_service.py."
+    message: "FIX FINAL VUE MANAGER (RBAC) COMPLETED: 1) Added 13 missing endpoints to manager.py: GET/POST/PUT/DELETE for objectives and challenges, PUT for progress updates, POST analyze-store-kpis. 2) Modified useSyncMode hook to accept optional storeId param and auto-detect from URL. 3) Updated ManagerDashboard to pass urlStoreId to useSyncMode. All endpoints now work for gerant-as-manager with ?store_id= param."
   - agent: "main"
     message: "Testing Read-Only Mode for Seller and Manager dashboards. Credentials to use: Seller: emma.petit@test.com / TestDemo123! (trial expired), Manager: y.legoff@skyco.fr / TestDemo123! (trial expired). Both should show yellow alert banner and block KPI entry. Test the PerformanceModal 'Saisir mes chiffres' tab - it should be disabled with lock icon."
   - agent: "testing"
