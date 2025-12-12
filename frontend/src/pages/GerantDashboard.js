@@ -812,17 +812,17 @@ const GerantDashboard = ({ user, onLogout }) => {
           </div>
         </div>
 
-        {/* Sélecteur de Type de Période + Navigation - Côte à côte sur desktop */}
+        {/* Sélecteur de Type de Période + Navigation - Mobile First */}
         <div className="mb-8">
-          <div className="glass-morphism rounded-xl p-4 border-2 border-blue-200">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              {/* Type d'analyse (gauche) */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">Type d'analyse :</span>
-                <div className="flex gap-2">
+          <div className="glass-morphism rounded-xl p-3 sm:p-4 border-2 border-blue-200">
+            <div className="flex flex-col gap-4">
+              {/* Type d'analyse - Scrollable sur mobile */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span className="text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">Type d'analyse :</span>
+                <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-1 -mx-1 px-1">
                   <button
                     onClick={() => { setPeriodType('week'); setPeriodOffset(-1); }}
-                    className={`px-4 py-2 font-semibold rounded-lg transition-all ${
+                    className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
                       periodType === 'week'
                         ? 'bg-blue-600 text-white shadow-md'
                         : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50'
@@ -832,7 +832,7 @@ const GerantDashboard = ({ user, onLogout }) => {
                   </button>
                   <button
                     onClick={() => { setPeriodType('month'); setPeriodOffset(-1); }}
-                    className={`px-4 py-2 font-semibold rounded-lg transition-all ${
+                    className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
                       periodType === 'month'
                         ? 'bg-blue-600 text-white shadow-md'
                         : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50'
@@ -849,7 +849,7 @@ const GerantDashboard = ({ user, onLogout }) => {
                         setPeriodOffset(-1);
                       }, 0);
                     }}
-                    className={`px-4 py-2 font-semibold rounded-lg transition-all ${
+                    className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
                       periodType === 'year'
                         ? 'bg-blue-600 text-white shadow-md'
                         : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50'
@@ -860,24 +860,24 @@ const GerantDashboard = ({ user, onLogout }) => {
                 </div>
               </div>
 
-              {/* Séparateur vertical (visible sur tablette+) */}
-              <div className="hidden md:block w-px h-12 bg-gray-300"></div>
+              {/* Séparateur horizontal sur mobile, vertical sur desktop */}
+              <div className="w-full h-px sm:hidden bg-gray-200"></div>
 
-              {/* Navigation de Période (droite) */}
-              <div className="flex items-center gap-3">
+              {/* Navigation de Période - Responsive */}
+              <div className="flex items-center justify-between sm:justify-center gap-2 sm:gap-3 flex-wrap">
                 <button
                   onClick={() => setPeriodOffset(periodOffset - 1)}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all text-sm"
+                  className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all text-xs sm:text-sm"
                 >
                   <span>◀</span>
-                  <span className="hidden sm:inline">
+                  <span className="hidden xs:inline sm:inline">
                     {periodType === 'week' ? 'Sem.' : periodType === 'month' ? 'Mois' : 'An'} préc.
                   </span>
                 </button>
                 
-                <div className="text-center min-w-[140px]">
+                <div className="text-center flex-1 sm:flex-none sm:min-w-[140px]">
                   <p className="text-xs text-gray-500">📅 Période</p>
-                  <p className="text-sm font-bold text-gray-800">
+                  <p className="text-xs sm:text-sm font-bold text-gray-800 truncate max-w-[150px] sm:max-w-none mx-auto">
                     {formatPeriod(periodType, periodOffset)}
                   </p>
                   {periodType === 'week' && (
@@ -890,13 +890,13 @@ const GerantDashboard = ({ user, onLogout }) => {
                 <button
                   onClick={() => setPeriodOffset(periodOffset + 1)}
                   disabled={periodOffset >= 0}
-                  className={`flex items-center gap-1.5 px-3 py-2 font-semibold rounded-lg transition-all text-sm ${
+                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 font-semibold rounded-lg transition-all text-xs sm:text-sm ${
                     periodOffset >= 0 
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
                 >
-                  <span className="hidden sm:inline">
+                  <span className="hidden xs:inline sm:inline">
                     {periodType === 'week' ? 'Sem.' : periodType === 'month' ? 'Mois' : 'An'} suiv.
                   </span>
                   <span>▶</span>
@@ -905,7 +905,7 @@ const GerantDashboard = ({ user, onLogout }) => {
                 {periodOffset !== 0 && (
                   <button
                     onClick={() => setPeriodOffset(0)}
-                    className="text-xs text-blue-600 hover:text-blue-700 font-semibold underline whitespace-nowrap"
+                    className="text-xs text-blue-600 hover:text-blue-700 font-semibold underline whitespace-nowrap w-full sm:w-auto text-center sm:text-left mt-2 sm:mt-0"
                     title={`Revenir à la ${periodType === 'week' ? 'semaine' : periodType === 'month' ? 'mois' : 'année'} actuelle`}
                   >
                     ↻ Actuel
