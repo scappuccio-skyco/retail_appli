@@ -316,6 +316,21 @@ backend:
         agent: "testing"
         comment: "✅ GÉRANT RBAC 'VIEW AS MANAGER' FUNCTIONALITY FULLY WORKING (19/19 tests passed - 100% success rate). All manager endpoints accessible with store_id parameter: GET /api/manager/sync-mode ✅, GET /api/manager/sellers ✅, GET /api/manager/kpi-config ✅, GET /api/manager/objectives ✅, GET /api/manager/objectives/active ✅, GET /api/manager/challenges ✅, GET /api/manager/challenges/active ✅, POST /api/manager/analyze-store-kpis ✅, GET /api/manager/subscription-status ✅. No 400/404/403 errors when store_id provided. Proper error handling (400) when store_id missing. Store ID c2dd1ada-d0a2-4a90-be81-644b7cb78bc7 (Skyco Lyon Part-Dieu) used for testing. Authentication working with gerant@skyco.fr credentials."
 
+backend:
+  - task: "Gérant Seller Detail Endpoints with Store ID"
+    implemented: true
+    working: true
+    file: "/app/backend/api/routes/manager.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ ALL SELLER DETAIL ENDPOINTS WORKING PERFECTLY (15/15 tests passed - 100% success rate). ✅ AUTHENTICATION: Gérant login successful with gerant@skyco.fr / Gerant123! ✅ STORE ACCESS: Retrieved store_id c2dd1ada-d0a2-4a90-be81-644b7cb78bc7 (Skyco Lyon Part-Dieu) ✅ SELLER ACCESS: Found 4 sellers in store ✅ ALL ENDPOINTS WORKING: GET /api/manager/kpi-entries/{seller_id}?store_id={store_id}&days=30 returns 5 KPI entries ✅, GET /api/manager/seller/{seller_id}/stats?store_id={store_id} returns real stats (total_ca=6189.12, total_ventes=41, panier_moyen=150.95) ✅, GET /api/manager/seller/{seller_id}/diagnostic?store_id={store_id} returns diagnostic object (has_diagnostic=false) ✅, GET /api/manager/sellers/archived?store_id={store_id} returns 7 archived sellers ✅, GET /api/manager/seller/{seller_id}/profile?store_id={store_id} returns profile with diagnostic and recent_kpis ✅, GET /api/manager/seller/{seller_id}/kpi-history?store_id={store_id}&days=90 returns 59 KPI history entries ✅ ERROR HANDLING: All endpoints correctly return 400 'Le paramètre store_id est requis' when store_id missing ✅ NO ERRORS: No 400/404/403 errors when store_id provided. All seller detail endpoints fully operational for Gérant role."
+
 agent_communication:
   - agent: "testing"
     message: "🎯 GÉRANT RBAC 'VIEW AS MANAGER' COMPREHENSIVE TEST COMPLETED (19/19 tests passed - 100% success rate). ✅ AUTHENTICATION: Gérant login successful with gerant@skyco.fr / Gerant123! ✅ STORE ACCESS: Retrieved store_id c2dd1ada-d0a2-4a90-be81-644b7cb78bc7 (Skyco Lyon Part-Dieu) ✅ MANAGER ENDPOINTS: All 9 manager endpoints working correctly with ?store_id parameter - sync-mode returns 'manual', sellers returns 4 sellers, kpi-config retrieved, objectives/challenges accessible, analyze-store-kpis returns analysis for store, subscription-status working ✅ ERROR HANDLING: All endpoints correctly return 400 'Le paramètre store_id est requis' when store_id missing ✅ NO ERRORS: No 400/404/403 errors when store_id provided. RBAC functionality fully operational."
+  - agent: "testing"
+    message: "🎯 GÉRANT SELLER DETAIL ENDPOINTS COMPREHENSIVE TEST COMPLETED (15/15 tests passed - 100% success rate). ✅ ALL SELLER DETAIL ENDPOINTS WORKING: KPI entries (5 entries), seller stats (real data: CA=6189.12€, ventes=41, panier=150.95€), diagnostic (has_diagnostic=false), archived sellers (7 sellers), seller profile (diagnostic + recent_kpis), KPI history (59 entries) ✅ PROPER ERROR HANDLING: All endpoints return 400 'Le paramètre store_id est requis' when store_id missing ✅ NO ERRORS: No 400/404/403 errors when store_id provided ✅ REAL DATA: Seller stats contain actual business data, not mock values. All seller detail endpoints fully operational for Gérant role with store_id parameter."
