@@ -31,6 +31,13 @@ async def verify_manager_or_gerant(current_user: dict = Depends(get_current_user
     return current_user
 
 
+async def verify_manager_gerant_or_seller(current_user: dict = Depends(get_current_user)) -> dict:
+    """Verify current user is a manager, gérant, or seller"""
+    if current_user.get('role') not in ['manager', 'gerant', 'gérant', 'seller']:
+        raise HTTPException(status_code=403, detail="Access restricted to managers, gérants, and sellers")
+    return current_user
+
+
 async def get_store_context(
     request: Request,
     current_user: dict = Depends(verify_manager_or_gerant),
