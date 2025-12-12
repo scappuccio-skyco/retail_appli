@@ -96,10 +96,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     try {
       setLoading(true);
       const [configRes, objectivesRes, challengesRes, sellersRes] = await Promise.all([
-        axios.get(`${API}/manager/kpi-config`, { headers }),
-        axios.get(`${API}/manager/objectives`, { headers }),
-        axios.get(`${API}/manager/challenges`, { headers }),
-        axios.get(`${API}/manager/sellers`, { headers })
+        axios.get(`${API}/manager/kpi-config${storeParam}`, { headers }),
+        axios.get(`${API}/manager/objectives${storeParam}`, { headers }),
+        axios.get(`${API}/manager/challenges${storeParam}`, { headers }),
+        axios.get(`${API}/manager/sellers${storeParam}`, { headers })
       ]);
       
       setKpiConfig(configRes.data);
