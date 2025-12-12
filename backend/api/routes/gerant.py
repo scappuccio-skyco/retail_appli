@@ -6,6 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from datetime import datetime, timezone
 from typing import Dict
+import os
+import stripe
 
 from core.security import get_current_gerant
 from services.gerant_service import GerantService
