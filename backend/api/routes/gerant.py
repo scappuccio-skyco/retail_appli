@@ -3,12 +3,16 @@ Gérant-specific Routes
 Dashboard stats, subscription status, and workspace management
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from datetime import datetime, timezone
 from typing import Dict
 
 from core.security import get_current_gerant
 from services.gerant_service import GerantService
-from api.dependencies import get_gerant_service
+from api.dependencies import get_gerant_service, get_db
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/gerant", tags=["Gérant"])
 
