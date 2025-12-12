@@ -2,6 +2,7 @@ import React from 'react';
 
 /**
  * Contenu des étapes d'onboarding pour le MANAGER
+ * Présentation alignée avec le tutoriel Gérant
  * Adaptatif selon le mode de saisie KPI
  */
 
@@ -10,11 +11,17 @@ export const getManagerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
     // Étape 1 : Bienvenue
     {
       icon: '👋',
-      title: 'Bienvenue Manager',
+      title: 'Bienvenue dans votre espace Manager',
       description: (
         <>
-          <p>Vous gérez un magasin et son équipe.</p>
-          <p className="mt-2">Ce tutoriel vous guide dans la gestion de votre équipe.</p>
+          <p className="text-blue-600 font-semibold">Vous gérez un magasin et son équipe de vendeurs.</p>
+          <p className="mt-3 font-semibold">En tant que manager, vous pouvez :</p>
+          <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+            <li>Suivre les performances de votre équipe</li>
+            <li>Définir des objectifs et challenges</li>
+            <li>Obtenir des analyses IA détaillées</li>
+            <li>Coacher vos vendeurs individuellement</li>
+          </ul>
         </>
       ),
       tips: 'Vous êtes le lien entre le gérant et les vendeurs.'
@@ -23,15 +30,16 @@ export const getManagerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
     // Étape 2 : Diagnostic
     {
       icon: '🎯',
-      title: 'Votre diagnostic manager',
+      title: 'Complétez votre diagnostic manager',
       description: (
         <>
-          <p>Complétez votre diagnostic de compétences managériales.</p>
-          <p className="mt-3">Cela permet de :</p>
+          <p className="text-orange-600 font-semibold">Première étape : identifiez votre style de management.</p>
+          <p className="mt-3 font-semibold">Le diagnostic vous permet de :</p>
           <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
             <li>Identifier votre style de management</li>
             <li>Personnaliser vos analyses IA</li>
-            <li>Recevoir des conseils adaptés</li>
+            <li>Recevoir des conseils adaptés à votre profil</li>
+            <li>Mieux comprendre votre équipe</li>
           </ul>
         </>
       ),
@@ -44,11 +52,13 @@ export const getManagerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       title: 'Découvrez votre équipe',
       description: (
         <>
-          <p>Consultez la liste de vos vendeurs :</p>
+          <p className="text-purple-600 font-semibold">Deuxième étape : consultez les profils de vos vendeurs.</p>
+          <p className="mt-3 font-semibold">Pour chaque vendeur, accédez à :</p>
           <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li>Performances individuelles</li>
-            <li>Diagnostic de compétences</li>
+            <li>Performances individuelles (CA, ventes, PM)</li>
+            <li>Diagnostic de compétences vendeur</li>
             <li>Historique et statistiques</li>
+            <li>Conseils IA personnalisés</li>
           </ul>
         </>
       ),
@@ -61,15 +71,16 @@ export const getManagerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
     // Étape 5 : Coaching IA d'équipe
     {
       icon: '🤖',
-      title: 'Bilans IA de votre équipe',
+      title: 'Analysez votre équipe avec l\'IA',
       description: (
         <>
-          <p>Demandez une analyse IA complète de votre équipe :</p>
+          <p className="text-blue-600 font-semibold">Troisième étape : obtenez des analyses IA complètes.</p>
+          <p className="mt-3 font-semibold">Les bilans IA vous donnent :</p>
           <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li>Points forts collectifs</li>
-            <li>Axes d'amélioration</li>
-            <li>Recommandations par vendeur</li>
-            <li>Stratégies d'optimisation</li>
+            <li>Points forts collectifs de l'équipe</li>
+            <li>Axes d'amélioration identifiés</li>
+            <li>Recommandations personnalisées par vendeur</li>
+            <li>Stratégies d'optimisation des ventes</li>
           </ul>
         </>
       ),
@@ -79,18 +90,20 @@ export const getManagerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
     // Étape 6 : Configuration
     {
       icon: '⚙️',
-      title: 'Configurez vos KPI',
+      title: 'Configurez vos objectifs',
       description: (
         <>
-          <p>Personnalisez les KPI suivis pour votre magasin :</p>
+          <p className="text-green-600 font-semibold">Dernière étape : personnalisez les KPI de votre magasin.</p>
+          <p className="mt-3 font-semibold">Vous pouvez définir :</p>
           <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li>Choisir les métriques importantes</li>
-            <li>Définir les objectifs</li>
-            <li>Configurer les alertes</li>
+            <li>Les métriques importantes à suivre</li>
+            <li>Les objectifs CA et ventes</li>
+            <li>Les challenges pour motiver l'équipe</li>
+            <li>Les alertes de performance</li>
           </ul>
         </>
       ),
-      tips: 'Adaptez les KPI à votre type de commerce.'
+      tips: 'Adaptez les objectifs à votre type de commerce et à votre équipe.'
     }
   ];
 
@@ -105,32 +118,34 @@ function getManagerKpiStep(mode) {
     case 'MANAGER_SAISIT':
       return {
         icon: '📝',
-        title: 'Saisissez les KPI',
+        title: 'Saisissez les KPI quotidiens',
         description: (
           <>
-            <p>Vous êtes responsable de la saisie des KPI :</p>
+            <p className="text-green-600 font-semibold">Vous êtes responsable de la saisie des KPI.</p>
+            <p className="mt-3 font-semibold">Chaque jour, saisissez :</p>
             <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-              <li>KPI du magasin (global)</li>
-              <li>KPI de chaque vendeur</li>
+              <li>KPI du magasin (CA global, entrées)</li>
+              <li>KPI de chaque vendeur (CA, ventes)</li>
             </ul>
-            <p className="mt-3">💡 Saisissez chaque jour pour des analyses IA précises !</p>
+            <p className="mt-3">💡 La régularité de saisie garantit des analyses IA précises !</p>
           </>
         ),
-        tips: 'La régularité de saisie impacte la qualité des analyses.'
+        tips: 'Saisissez les données chaque jour pour un suivi optimal.'
       };
 
     case 'VENDEUR_SAISIT':
       return {
         icon: '📊',
-        title: 'Consultez les KPI',
+        title: 'Suivez les KPI de votre équipe',
         description: (
           <>
-            <p>Vos vendeurs saisissent leurs KPI quotidiens.</p>
-            <p className="mt-2">Vous pouvez :</p>
+            <p className="text-blue-600 font-semibold">Vos vendeurs saisissent leurs KPI quotidiens.</p>
+            <p className="mt-3 font-semibold">Votre rôle :</p>
             <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-              <li>Consulter les performances</li>
-              <li>Valider les saisies</li>
-              <li>Identifier les tendances</li>
+              <li>Consulter les performances en temps réel</li>
+              <li>Valider les saisies de l'équipe</li>
+              <li>Identifier les tendances et écarts</li>
+              <li>Coacher les vendeurs en difficulté</li>
             </ul>
           </>
         ),
@@ -140,17 +155,19 @@ function getManagerKpiStep(mode) {
     case 'API_SYNC':
       return {
         icon: '🔄',
-        title: 'KPI Synchronisés',
+        title: 'KPI Synchronisés automatiquement',
         description: (
           <>
-            <p>Les données de votre équipe sont synchronisées automatiquement.</p>
-            <div className="inline-flex items-center gap-2 bg-blue-100 px-3 py-1 rounded-full mt-3">
-              <span>🔄</span>
-              <span className="text-sm font-medium">Sync API</span>
-            </div>
-            <p className="mt-3">Consultez-les en temps réel pour prendre les bonnes décisions.</p>
+            <p className="text-blue-600 font-semibold">Les données sont synchronisées en temps réel.</p>
+            <p className="mt-3 font-semibold">Avantages du mode Sync :</p>
+            <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+              <li>Pas de saisie manuelle nécessaire</li>
+              <li>Données toujours à jour</li>
+              <li>Décisions basées sur des chiffres réels</li>
+            </ul>
           </>
-        )
+        ),
+        tips: 'Consultez les données en temps réel pour prendre les bonnes décisions.'
       };
 
     default:
