@@ -172,6 +172,41 @@ export default function StoreKPIAIAnalysisModal({
                   sections.push(currentSection);
                 }
 
+                // If no sections were found (no ## headers), display the raw analysis
+                if (sections.length === 0) {
+                  return (
+                    <div className="bg-blue-50 rounded-xl border-2 border-blue-200 overflow-hidden shadow-sm">
+                      <div className="bg-blue-500 text-white px-4 py-3">
+                        <h3 className="text-base sm:text-lg font-bold">📊 Analyse des KPIs</h3>
+                      </div>
+                      <div className="p-4 space-y-3">
+                        {aiAnalysis.split('\n').map((line, idx) => {
+                          if (line.startsWith('- ') || line.startsWith('• ')) {
+                            const content = line.replace(/^[-•] /, '');
+                            return (
+                              <div key={`item-${idx}`} className="flex gap-2 text-sm leading-relaxed">
+                                <span className="text-blue-900 mt-1 font-bold">•</span>
+                                <span className="text-gray-700">{content}</span>
+                              </div>
+                            );
+                          }
+                          if (line.trim() === '') {
+                            return <div key={`space-${idx}`} className="h-2"></div>;
+                          }
+                          if (line.trim()) {
+                            // Check for emoji at start (likely a section header)
+                            if (/^[📊💡🎯✅⚠️❌🔍📈📉🏆]/.test(line.trim())) {
+                              return <p key={`header-${idx}`} className="text-base font-semibold text-gray-800 mt-3">{line}</p>;
+                            }
+                            return <p key={`para-${idx}`} className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{line}</p>;
+                          }
+                          return null;
+                        })}
+                      </div>
+                    </div>
+                  );
+                }
+
                 return sections.map((section, sIdx) => (
                   <div key={`section-${sIdx}`} className={`${section.color.bg} rounded-xl border-2 ${section.color.border} overflow-hidden shadow-sm`}>
                     <div className={`${section.color.title} text-white px-4 py-3`}>
