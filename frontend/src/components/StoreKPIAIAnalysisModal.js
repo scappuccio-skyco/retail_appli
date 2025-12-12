@@ -10,6 +10,7 @@ export default function StoreKPIAIAnalysisModal({
   kpiData, 
   analysisType, // 'daily' or 'overview'
   viewContext, // For overview: { viewMode, period, historicalData }
+  storeId, // Store ID for gerant viewing as manager
   onClose 
 }) {
   const [aiAnalysis, setAiAnalysis] = useState(null);
@@ -20,14 +21,18 @@ export default function StoreKPIAIAnalysisModal({
 
     try {
       const token = localStorage.getItem('token');
+      
+      // Build store_id param for gerant
+      const storeParam = storeId ? `?store_id=${storeId}` : '';
+      
       let endpoint = '';
       let payload = {};
 
       if (analysisType === 'daily') {
-        endpoint = `${API}/manager/analyze-store-kpis`;
+        endpoint = `${API}/manager/analyze-store-kpis${storeParam}`;
         payload = { kpi_data: kpiData };
       } else if (analysisType === 'overview') {
-        endpoint = `${API}/manager/analyze-store-kpis`;
+        endpoint = `${API}/manager/analyze-store-kpis${storeParam}`;
         
         // Calculate aggregated metrics
         const { historicalData, viewMode, period } = viewContext;
