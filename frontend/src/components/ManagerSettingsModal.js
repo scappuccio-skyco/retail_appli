@@ -1622,7 +1622,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                       })()}
                     </div>
                   </div>
-                </div>
               )}
 
               {/* Nouveau challenge Tab */}
