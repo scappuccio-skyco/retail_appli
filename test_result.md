@@ -295,7 +295,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Gérant RBAC View as Manager Functionality Testing Complete"
+    - "Gérant Seller Detail Endpoints Testing Complete"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
