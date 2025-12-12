@@ -515,7 +515,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
 
           {/* Synthèse */}
           <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-xl p-4 mb-4">
-            <p className="text-gray-800 font-medium">{bilan.synthese}</p>
+            <p className="text-gray-800 font-medium">{renderMarkdownBold(bilan.synthese)}</p>
           </div>
 
           {/* Points forts */}
@@ -528,7 +528,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
               {bilan.points_forts && bilan.points_forts.map((point, idx) => (
                 <li key={`bilan-${bilan.periode}-forts-${idx}-${point.substring(0, 20)}`} className="flex items-start gap-2 text-green-800">
                   <span className="text-[#10B981] mt-1">✓</span>
-                  <span>{point}</span>
+                  <span>{renderMarkdownBold(point)}</span>
                 </li>
               ))}
             </ul>
@@ -544,7 +544,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
               {bilan.points_attention && bilan.points_attention.map((point, idx) => (
                 <li key={`bilan-${bilan.periode}-attention-${idx}-${point.substring(0, 20)}`} className="flex items-start gap-2 text-orange-800">
                   <span className="text-[#F97316] mt-1">!</span>
-                  <span>{point}</span>
+                  <span>{renderMarkdownBold(point)}</span>
                 </li>
               ))}
             </ul>
@@ -560,7 +560,7 @@ export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onC
               {bilan.recommandations && bilan.recommandations.map((action, idx) => (
                 <li key={`bilan-${bilan.periode}-recommandations-${idx}-${action.substring(0, 20)}`} className="flex items-start gap-2 text-blue-800">
                   <span className="text-blue-600 font-bold mt-1">{idx + 1}.</span>
-                  <span>{action}</span>
+                  <span>{renderMarkdownBold(action)}</span>
                 </li>
               ))}
             </ul>
