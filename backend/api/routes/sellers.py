@@ -603,3 +603,246 @@ async def complete_daily_challenge(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===== DIAGNOSTIC FOR SELLER =====
+
+@router.get("/diagnostic/me")
+async def get_my_diagnostic(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Get seller's own DISC diagnostic profile."""
+    try:
+        diagnostic = await db.diagnostics.find_one(
+            {"seller_id": current_user['id']},
+            {"_id": 0}
+        )
+        
+        if not diagnostic:
+            raise HTTPException(status_code=404, detail="Diagnostic non trouvé")
+        
+        return diagnostic
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===== KPI ENTRY (Create/Update) =====
+
+@router.post("/kpi-entry")
+async def save_kpi_entry(
+    kpi_data: dict,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Create or update a KPI entry for the seller.
+    This is the main endpoint used by sellers to record their daily KPIs.
+    """
+    from uuid import uuid4
+    
+    try:
+        seller_id = current_user['id']
+        date = kpi_data.get('date', datetime.now(timezone.utc).strftime('%Y-%m-%d'))
+        
+        # Get seller info for store_id and manager_id
+        seller = await db.users.find_one({"id": seller_id}, {"_id": 0})
+        if not seller:
+            raise HTTPException(status_code=404, detail="Seller not found")
+        
+        # Check if entry exists for this date
+        existing = await db.kpi_entries.find_one({
+            "seller_id": seller_id,
+            "date": date
+        })
+        
+        entry_data = {
+            "seller_id": seller_id,
+            "seller_name": seller.get('name', current_user.get('name', 'Vendeur')),
+            "manager_id": seller.get('manager_id'),
+            "store_id": seller.get('store_id'),
+            "date": date,
+            "seller_ca": kpi_data.get('seller_ca') or kpi_data.get('ca_journalier') or 0,
+            "ca_journalier": kpi_data.get('ca_journalier') or kpi_data.get('seller_ca') or 0,
+            "nb_ventes": kpi_data.get('nb_ventes') or 0,
+            "nb_clients": kpi_data.get('nb_clients') or 0,
+            "nb_articles": kpi_data.get('nb_articles') or 0,
+            "nb_prospects": kpi_data.get('nb_prospects') or 0,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        if existing:
+            # Update existing entry
+            await db.kpi_entries.update_one(
+                {"_id": existing['_id']},
+                {"$set": entry_data}
+            )
+            entry_data['id'] = existing.get('id', str(existing['_id']))
+        else:
+            # Create new entry
+            entry_data['id'] = str(uuid4())
+            entry_data['created_at'] = datetime.now(timezone.utc).isoformat()
+            await db.kpi_entries.insert_one(entry_data)
+        
+        if '_id' in entry_data:
+            del entry_data['_id']
+        
+        return entry_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error saving KPI entry: {str(e)}")
+
+
+# ===== DAILY CHALLENGE STATS =====
+
+@router.get("/daily-challenge/stats")
+async def get_daily_challenge_stats(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Get statistics for seller's daily challenges."""
+    try:
+        seller_id = current_user['id']
+        
+        # Get all challenges for this seller
+        challenges = await db.daily_challenges.find(
+            {"seller_id": seller_id},
+            {"_id": 0}
+        ).to_list(1000)
+        
+        # Calculate stats
+        total = len(challenges)
+        completed = len([c for c in challenges if c.get('completed')])
+        
+        # Stats by competence
+        by_competence = {}
+        for c in challenges:
+            comp = c.get('competence', 'unknown')
+            if comp not in by_competence:
+                by_competence[comp] = {'total': 0, 'completed': 0}
+            by_competence[comp]['total'] += 1
+            if c.get('completed'):
+                by_competence[comp]['completed'] += 1
+        
+        # Current streak
+        streak = 0
+        sorted_challenges = sorted(
+            [c for c in challenges if c.get('completed')],
+            key=lambda x: x.get('date', ''),
+            reverse=True
+        )
+        
+        if sorted_challenges:
+            today = datetime.now(timezone.utc).date()
+            for i, ch in enumerate(sorted_challenges):
+                ch_date = datetime.strptime(ch.get('date', '2000-01-01'), '%Y-%m-%d').date()
+                expected_date = today - timedelta(days=i)
+                if ch_date == expected_date or ch_date == expected_date - timedelta(days=1):
+                    streak += 1
+                else:
+                    break
+        
+        return {
+            "total_challenges": total,
+            "completed_challenges": completed,
+            "completion_rate": round(completed / total * 100, 1) if total > 0 else 0,
+            "current_streak": streak,
+            "by_competence": by_competence
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===== BILAN INDIVIDUEL =====
+
+@router.get("/bilan-individuel/all")
+async def get_all_bilans_individuels(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Get all individual performance reports (bilans) for seller."""
+    try:
+        bilans = await db.seller_bilans.find(
+            {"seller_id": current_user['id']},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(100)
+        
+        return bilans
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/bilan-individuel")
+async def generate_bilan_individuel(
+    data: dict,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Generate an individual performance report for a period."""
+    from uuid import uuid4
+    from services.ai_service import AIService
+    
+    try:
+        seller_id = current_user['id']
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        
+        # Get KPIs for the period
+        query = {"seller_id": seller_id}
+        if start_date and end_date:
+            query["date"] = {"$gte": start_date, "$lte": end_date}
+        
+        kpis = await db.kpi_entries.find(query, {"_id": 0}).to_list(1000)
+        
+        # Calculate summary
+        total_ca = sum(k.get('ca_journalier') or k.get('seller_ca') or 0 for k in kpis)
+        total_ventes = sum(k.get('nb_ventes') or 0 for k in kpis)
+        total_clients = sum(k.get('nb_clients') or 0 for k in kpis)
+        
+        panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
+        
+        # Try to generate AI bilan
+        ai_service = AIService()
+        seller_data = await db.users.find_one({"id": seller_id}, {"_id": 0, "password": 0})
+        
+        ai_commentary = None
+        if ai_service.available:
+            try:
+                ai_commentary = await ai_service.generate_seller_bilan(
+                    seller_data=seller_data or {"name": "Vendeur"},
+                    kpis=kpis
+                )
+            except Exception:
+                pass
+        
+        bilan = {
+            "id": str(uuid4()),
+            "seller_id": seller_id,
+            "period_start": start_date,
+            "period_end": end_date,
+            "summary": {
+                "total_ca": total_ca,
+                "total_ventes": total_ventes,
+                "total_clients": total_clients,
+                "panier_moyen": round(panier_moyen, 2),
+                "days_count": len(kpis)
+            },
+            "ai_commentary": ai_commentary,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.seller_bilans.insert_one(bilan)
+        if '_id' in bilan:
+            del bilan['_id']
+        
+        return bilan
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
