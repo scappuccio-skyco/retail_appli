@@ -824,13 +824,13 @@ export default function ManagerDashboard({ user, onLogout }) {
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center gap-4">
-            <img src="/logo-retail-performer.png" alt="Retail Performer AI" className="h-14 object-contain" />
+          <div className="flex items-center gap-3 sm:gap-4">
+            <img src="/logo-icon.png" alt="Retail Performer AI" className="h-12 sm:h-14 object-contain" />
             <div>
-              <h1 className="text-2xl md:text-4xl font-bold text-[#1E40AF] mb-1">
-                Retail Performer AI
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#1E40AF]">
+                Retail Performer AI <span className="text-gray-900 font-semibold">by SKY CO</span>
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm sm:text-base">
                 Bienvenue, {user.name}
                 {storeName && (
                   <span className="inline-flex items-center gap-1 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap">
