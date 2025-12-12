@@ -84,7 +84,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
                   ANALYSE D'ÉQUIPE
                 </span>
               </div>
-              <p className="text-gray-800 leading-relaxed">{bilan.synthese}</p>
+              <p className="text-gray-800 leading-relaxed">{renderMarkdownBold(bilan.synthese)}</p>
             </div>
 
             {/* Points forts */}
@@ -101,7 +101,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
                     <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
                       {idx + 1}
                     </span>
-                    <p className="flex-1 text-gray-800">{point}</p>
+                    <p className="flex-1 text-gray-800">{renderMarkdownBold(point)}</p>
                   </div>
                 ))}
               </div>
@@ -121,7 +121,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
                     <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-red-500 to-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
                       !
                     </span>
-                    <p className="flex-1 text-gray-800">{point}</p>
+                    <p className="flex-1 text-gray-800">{renderMarkdownBold(point)}</p>
                   </div>
                 ))}
               </div>
@@ -141,7 +141,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
                     <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
                       {idx + 1}
                     </span>
-                    <p className="flex-1 text-gray-800">{action}</p>
+                    <p className="flex-1 text-gray-800">{renderMarkdownBold(action)}</p>
                   </div>
                 ))}
               </div>
@@ -158,7 +158,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
                     <h4 className="text-lg font-bold text-purple-800 mb-2">
                       {analyse.vendeur}
                     </h4>
-                    <p className="text-gray-700 mb-3 italic">{analyse.performance}</p>
+                    <p className="text-gray-700 mb-3 italic">{renderMarkdownBold(analyse.performance)}</p>
                     
                     <div className="grid md:grid-cols-2 gap-3 mb-3">
                       {analyse.points_forts && analyse.points_forts.length > 0 && (
@@ -166,7 +166,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
                           <p className="text-xs font-semibold text-green-700 mb-2">✓ Points forts</p>
                           <ul className="text-sm text-green-800 space-y-1">
                             {analyse.points_forts.map((point, i) => (
-                              <li key={`analyse-${analyse.vendeur}-forts-${i}-${point.substring(0, 15)}`}>• {point}</li>
+                              <li key={`analyse-${analyse.vendeur}-forts-${i}-${point.substring(0, 15)}`}>• {renderMarkdownBold(point)}</li>
                             ))}
                           </ul>
                         </div>
@@ -177,7 +177,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
                           <p className="text-xs font-semibold text-orange-700 mb-2">📈 Axes de progression</p>
                           <ul className="text-sm text-orange-800 space-y-1">
                             {analyse.axes_progression.map((axe, i) => (
-                              <li key={`analyse-${analyse.vendeur}-axes-${i}-${axe.substring(0, 15)}`}>• {axe}</li>
+                              <li key={`analyse-${analyse.vendeur}-axes-${i}-${axe.substring(0, 15)}`}>• {renderMarkdownBold(axe)}</li>
                             ))}
                           </ul>
                         </div>
@@ -189,7 +189,7 @@ export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
                         <p className="text-xs font-semibold text-blue-700 mb-2">🎯 Recommandations personnalisées</p>
                         <ul className="text-sm text-blue-800 space-y-1">
                           {analyse.recommandations.map((reco, i) => (
-                            <li key={`analyse-${analyse.vendeur}-reco-${i}-${reco.substring(0, 15)}`}>• {reco}</li>
+                            <li key={`analyse-${analyse.vendeur}-reco-${i}-${reco.substring(0, 15)}`}>• {renderMarkdownBold(reco)}</li>
                           ))}
                         </ul>
                       </div>
