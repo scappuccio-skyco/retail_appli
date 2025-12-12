@@ -94,7 +94,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
 
   useEffect(() => {
     if (isOpen) {
-      setActiveTab(modalType);
+      // Set the correct tab value based on modalType
+      setActiveTab(modalType === 'objectives' ? 'create_objective' : 'create_challenge');
       fetchData();
     }
   }, [isOpen, modalType]);
