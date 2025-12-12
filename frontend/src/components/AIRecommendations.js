@@ -1,21 +1,6 @@
 import React from 'react';
 import { CheckCircle, AlertCircle } from 'lucide-react';
-
-// Helper function to render markdown bold text (**text**) as actual bold
-const renderMarkdownBold = (text) => {
-  if (!text) return null;
-  
-  // Split by **text** pattern and render with bold
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  
-  return parts.map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      // Remove ** and render as bold
-      return <strong key={index}>{part.slice(2, -2)}</strong>;
-    }
-    return <span key={index}>{part}</span>;
-  });
-};
+import { renderMarkdownBold } from '../utils/markdownRenderer';
 
 export default function AIRecommendations({ recommendations }) {
   if (!recommendations) return null;
