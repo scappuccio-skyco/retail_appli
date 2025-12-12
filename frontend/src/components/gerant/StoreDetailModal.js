@@ -484,38 +484,38 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
               )}
             </div>
           ) : activeTab === 'manager-access' ? (
-            <div className="max-w-2xl mx-auto">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-8">
-                <div className="text-center mb-6">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                    <TrendingUp className="w-8 h-8 text-blue-600" />
+            <div className="max-w-2xl mx-auto px-2 sm:px-0">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 sm:p-8">
+                <div className="text-center mb-4 sm:mb-6">
+                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full mb-3 sm:mb-4">
+                    <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                    Gérer ce magasin comme un Manager
+                  <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-2">
+                    Gérer ce magasin
                   </h3>
-                  <p className="text-gray-600">
-                    Accédez à l'interface complète de gestion pour ce magasin
+                  <p className="text-sm sm:text-base text-gray-600">
+                    Accédez à l'interface complète de gestion
                   </p>
                 </div>
 
-                <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
-                  <h4 className="font-semibold text-gray-800 mb-4">🎯 Fonctionnalités disponibles :</h4>
-                  <ul className="space-y-3 text-gray-700">
-                    <li className="flex items-start gap-3">
-                      <span className="text-blue-600 font-bold">✓</span>
-                      <span><strong>Saisir les KPI quotidiens</strong> du magasin et suivre les performances en temps réel</span>
+                <div className="bg-white rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 shadow-sm">
+                  <h4 className="font-semibold text-gray-800 mb-3 sm:mb-4 text-sm sm:text-base">🎯 Fonctionnalités disponibles :</h4>
+                  <ul className="space-y-2 sm:space-y-3 text-gray-700 text-sm sm:text-base">
+                    <li className="flex items-start gap-2 sm:gap-3">
+                      <span className="text-blue-600 font-bold flex-shrink-0">✓</span>
+                      <span><strong>Saisir les KPI quotidiens</strong> et suivre les performances</span>
                     </li>
-                    <li className="flex items-start gap-3">
-                      <span className="text-blue-600 font-bold">✓</span>
-                      <span><strong>Fixer des objectifs et challenges</strong> pour motiver votre équipe de vendeurs</span>
+                    <li className="flex items-start gap-2 sm:gap-3">
+                      <span className="text-blue-600 font-bold flex-shrink-0">✓</span>
+                      <span><strong>Fixer des objectifs</strong> pour motiver l'équipe</span>
                     </li>
-                    <li className="flex items-start gap-3">
-                      <span className="text-blue-600 font-bold">✓</span>
-                      <span><strong>Gérer votre équipe de vendeurs</strong> : consulter leurs performances individuelles</span>
+                    <li className="flex items-start gap-2 sm:gap-3">
+                      <span className="text-blue-600 font-bold flex-shrink-0">✓</span>
+                      <span><strong>Gérer les vendeurs</strong> et leurs performances</span>
                     </li>
-                    <li className="flex items-start gap-3">
-                      <span className="text-blue-600 font-bold">✓</span>
-                      <span><strong>Faire des états des lieux</strong> et utiliser l'IA pour analyser les performances</span>
+                    <li className="flex items-start gap-2 sm:gap-3">
+                      <span className="text-blue-600 font-bold flex-shrink-0">✓</span>
+                      <span><strong>États des lieux</strong> avec analyse IA</span>
                     </li>
                   </ul>
                 </div>
@@ -525,14 +525,15 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
                     href={`/manager-view?store_id=${store.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
+                    className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-semibold text-sm sm:text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
-                    <TrendingUp className="w-5 h-5" />
-                    Accéder à l'espace Manager
-                    <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">Nouvel onglet</span>
+                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="hidden sm:inline">Accéder à l'espace Manager</span>
+                    <span className="sm:hidden">Espace Manager</span>
+                    <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full hidden sm:inline">Nouvel onglet</span>
                   </a>
-                  <p className="text-sm text-gray-500 mt-4">
-                    L'espace manager s'ouvrira dans un nouvel onglet
+                  <p className="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-4">
+                    S'ouvre dans un nouvel onglet
                   </p>
                 </div>
               </div>
