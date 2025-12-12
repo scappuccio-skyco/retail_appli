@@ -11,6 +11,7 @@ from api.routes.enterprise import router as enterprise_router
 from api.routes.manager import router as manager_router
 from api.routes.diagnostics import router as diagnostics_router
 from api.routes.sellers import router as seller_router
+from api.routes.sellers import diagnostic_router  # For /diagnostic/me
 from api.routes.stripe_webhooks import router as stripe_webhook_router
 from api.routes.support import router as support_router
 from api.routes.sales_evaluations import router as sales_evaluations_router
@@ -30,6 +31,7 @@ routers = [
     manager_router,
     diagnostics_router,
     seller_router,
+    diagnostic_router,  # Added for /api/diagnostic/me
     stripe_webhook_router,
     support_router,
     sales_evaluations_router,
