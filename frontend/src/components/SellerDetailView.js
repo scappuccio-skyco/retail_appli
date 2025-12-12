@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, TrendingUp, Award, MessageSquare, BarChart3, Calendar } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import ConflictResolutionForm from './ConflictResolutionForm';
+import { renderMarkdownBold } from '../utils/markdownRenderer';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -221,7 +222,7 @@ export default function SellerDetailView({ seller, onBack }) {
                 
                 {diagnostic.ai_profile_summary && (
                   <div className="bg-white bg-opacity-70 rounded-lg p-4">
-                    <p className="text-sm text-gray-800 whitespace-pre-line">{diagnostic.ai_profile_summary}</p>
+                    <p className="text-sm text-gray-800 whitespace-pre-line">{renderMarkdownBold(diagnostic.ai_profile_summary)}</p>
                   </div>
                 )}
               </>
