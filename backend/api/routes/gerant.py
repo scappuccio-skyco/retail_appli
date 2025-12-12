@@ -1086,11 +1086,10 @@ async def create_gerant_checkout_session(
     - >15 vendeurs : sur devis (erreur)
     """
     try:
-        STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
-        if not STRIPE_API_KEY:
+        if not settings.STRIPE_API_KEY:
             raise HTTPException(status_code=500, detail="Configuration Stripe manquante")
         
-        stripe.api_key = STRIPE_API_KEY
+        stripe.api_key = settings.STRIPE_API_KEY
         
         # Compter les vendeurs ACTIFS uniquement
         active_sellers_count = await db.users.count_documents({
