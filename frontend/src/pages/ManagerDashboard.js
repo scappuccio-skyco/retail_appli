@@ -87,7 +87,6 @@ const ProgressIndicator = ({ label, emoji, target, progress, type = 'currency', 
 
 export default function ManagerDashboard({ user, onLogout }) {
   const navigate = useNavigate();
-  const { canEditKPIConfig, isReadOnly, isSubscriptionExpired } = useSyncMode();
   
   // Get store_id from URL query params (for gerant accessing as manager)
   const urlParams = new URLSearchParams(window.location.search);
@@ -95,6 +94,9 @@ export default function ManagerDashboard({ user, onLogout }) {
   const effectiveStoreId = urlStoreId || user?.store_id;
   // For API calls: add store_id param if gerant is accessing
   const apiStoreIdParam = urlStoreId ? `?store_id=${urlStoreId}` : '';
+  
+  // Pass store_id to useSyncMode for gerant-as-manager mode
+  const { canEditKPIConfig, isReadOnly, isSubscriptionExpired } = useSyncMode(urlStoreId);
   
   // Onboarding logic - Detect KPI mode
   const [kpiMode, setKpiMode] = useState('VENDEUR_SAISIT');
