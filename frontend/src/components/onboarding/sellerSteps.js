@@ -50,17 +50,17 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
     // Étape 4 : Performances
     {
       icon: '📊',
-      title: 'Consultez vos performances',
+      title: 'Suivez vos performances terrain',
       description: (
         <>
-          <p className="text-purple-600 font-semibold">Deuxième étape : suivez votre progression.</p>
-          <p className="mt-3 font-semibold">Accédez à vos statistiques :</p>
+          <p className="text-purple-600 font-semibold">Analysez vos indicateurs clés chaque jour.</p>
+          <p className="mt-3 font-semibold">Consultez vos KPIs :</p>
           <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li>Cliquez sur la carte orange <strong>"Mes Performances"</strong></li>
-            <li>Évolution du CA et panier moyen</li>
-            <li>Comparaison avec vos objectifs</li>
-            <li>Votre classement dans l'équipe</li>
+            <li><strong>Panier Moyen</strong> : montant moyen par vente</li>
+            <li><strong>Indice de Vente</strong> : articles par transaction</li>
+            <li><strong>Taux de Transformation</strong> : visiteurs → acheteurs</li>
           </ul>
+          <p className="mt-3">Progressez jour après jour en analysant vos résultats !</p>
         </>
       ),
       tips: 'Utilisez les graphiques pour identifier vos points forts !'
