@@ -115,11 +115,21 @@ class PaymentService:
     async def _handle_payment_failed(self, invoice: Dict) -> Dict:
         """
         Handle failed payment.
-        Updates subscription status to past_due.
+        
+        Actions:
+        - Updates subscription status to 'past_due'
+        - Updates workspace status
+        - Records payment failure details for debugging
+        - (Future: Send notification email to customer)
+        
+        Note: Stripe will automatically retry payments according to your
+        Billing settings. This handler just tracks the state in our DB.
         """
         customer_id = invoice.get('customer')
+        subscription_id = invoice.get('subscription')
         
         if not customer_id:
+            logger.warning("Payment failed event received without customer_id")
             return {"status": "skipped", "reason": "no_customer"}
         
         gerant = await self.db.users.find_one(
@@ -128,26 +138,53 @@ class PaymentService:
         )
         
         if not gerant:
+            logger.warning(f"Payment failed for unknown customer: {customer_id}")
             return {"status": "skipped", "reason": "customer_not_found"}
         
-        # Update subscription status
+        # Extract failure details from invoice
+        attempt_count = invoice.get('attempt_count', 1)
+        amount_due = invoice.get('amount_due', 0) / 100  # Convert cents to euros
+        next_payment_attempt = invoice.get('next_payment_attempt')
+        
+        # Update subscription status to past_due
+        update_data = {
+            "status": "past_due",
+            "last_payment_failed_at": datetime.now(timezone.utc).isoformat(),
+            "payment_failure_count": attempt_count,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        if next_payment_attempt:
+            update_data["next_payment_retry"] = datetime.fromtimestamp(
+                next_payment_attempt, tz=timezone.utc
+            ).isoformat()
+        
         await self.db.subscriptions.update_one(
             {"user_id": gerant['id']},
-            {"$set": {
-                "status": "past_due",
-                "updated_at": datetime.now(timezone.utc).isoformat()
-            }}
+            {"$set": update_data}
         )
         
-        # Update workspace
+        # Update workspace status
         if gerant.get('workspace_id'):
             await self.db.workspaces.update_one(
                 {"id": gerant['workspace_id']},
                 {"$set": {"subscription_status": "past_due"}}
             )
         
-        logger.warning(f"⚠️ Payment failed for {gerant['email']} - marked as past_due")
-        return {"status": "success", "user_id": gerant['id'], "new_status": "past_due"}
+        # Log detailed failure info
+        logger.warning(
+            f"⚠️ Payment FAILED for {gerant['email']} - "
+            f"Amount: {amount_due}€, Attempt #{attempt_count}, "
+            f"Subscription: {subscription_id}, Status: past_due"
+        )
+        
+        return {
+            "status": "success", 
+            "user_id": gerant['id'], 
+            "new_status": "past_due",
+            "amount_due": amount_due,
+            "attempt_count": attempt_count
+        }
     
     async def _handle_subscription_created(self, subscription: Dict) -> Dict:
         """Handle new subscription creation"""
