@@ -735,24 +735,24 @@ export default function CoachingModal({
                                       </div>
                                       <div className="pt-3 border-t border-gray-200">
                                         <p className="text-xs font-semibold text-purple-600 mb-2">🤖 Analyse du Coach IA</p>
-                                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{debrief.ai_analyse || debrief.ai_feedback?.analyse || debrief.analysis || debrief.feedback || 'Analyse en cours...'}</p>
+                                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{renderMarkdownBold(debrief.ai_analyse || debrief.ai_feedback?.analyse || debrief.analysis || debrief.feedback || 'Analyse en cours...')}</p>
                                       </div>
                                       {(debrief.ai_points_travailler || debrief.ai_feedback?.points_travailler) && (
                                         <div className="bg-yellow-50 rounded p-3">
                                           <p className="text-xs font-semibold text-yellow-700 mb-1">💪 Points forts identifiés</p>
-                                          <p className="text-sm text-gray-700 whitespace-pre-wrap">{debrief.ai_points_travailler || debrief.ai_feedback?.points_travailler}</p>
+                                          <p className="text-sm text-gray-700 whitespace-pre-wrap">{renderMarkdownBold(debrief.ai_points_travailler || debrief.ai_feedback?.points_travailler)}</p>
                                         </div>
                                       )}
                                       {(debrief.ai_recommandation || debrief.ai_feedback?.recommandation) && (
                                         <div className="bg-blue-50 rounded p-3">
                                           <p className="text-xs font-semibold text-blue-700 mb-1">💡 Recommandation</p>
-                                          <p className="text-sm text-gray-700">{debrief.ai_recommandation || debrief.ai_feedback?.recommandation}</p>
+                                          <p className="text-sm text-gray-700">{renderMarkdownBold(debrief.ai_recommandation || debrief.ai_feedback?.recommandation)}</p>
                                         </div>
                                       )}
                                       {(debrief.ai_exemple_concret || debrief.ai_feedback?.exemple_concret) && (
                                         <div className="bg-green-50 rounded p-3">
                                           <p className="text-xs font-semibold text-green-700 mb-1">📝 Exemple concret</p>
-                                          <p className="text-sm text-gray-700">{debrief.ai_exemple_concret || debrief.ai_feedback?.exemple_concret}</p>
+                                          <p className="text-sm text-gray-700">{renderMarkdownBold(debrief.ai_exemple_concret || debrief.ai_feedback?.exemple_concret)}</p>
                                         </div>
                                       )}
                                     </div>
