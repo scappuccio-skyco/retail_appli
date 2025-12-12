@@ -67,7 +67,7 @@ async def startup_event():
         
         # Create indexes for performance (TÂCHE 3: Index stripe_customer_id)
         try:
-            db = database.get_db()
+            db = database.db
             
             # Index on stripe_customer_id for fast webhook lookups
             await db.users.create_index("stripe_customer_id", sparse=True)
