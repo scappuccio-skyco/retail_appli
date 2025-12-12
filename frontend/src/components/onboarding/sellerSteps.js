@@ -3,7 +3,6 @@ import React from 'react';
 /**
  * Contenu des étapes d'onboarding pour le VENDEUR
  * Présentation alignée avec le tutoriel Gérant
- * Adaptatif selon le mode de saisie KPI
  */
 
 export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
@@ -26,28 +25,7 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       tips: 'Prenez votre temps, vous pourrez relancer ce tutoriel à tout moment !'
     },
 
-    // Étape 2 : Diagnostic (CRITIQUE)
-    {
-      icon: '🎯',
-      title: 'Complétez votre diagnostic',
-      description: (
-        <>
-          <p className="text-orange-600 font-semibold">Première étape : débloquez toutes les fonctionnalités !</p>
-          <p className="mt-3 font-semibold">Comment faire :</p>
-          <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li>Dans "Mes tâches à faire" → <strong>"Complète ton diagnostic"</strong></li>
-            <li>OU cliquez sur <strong>Profil</strong> (en haut) → <strong>"Diagnostic"</strong></li>
-          </ul>
-          <p className="mt-3">Cela personnalise votre coaching IA et vos conseils.</p>
-        </>
-      ),
-      tips: 'Soyez honnête dans vos réponses, personne ne vous jugera !'
-    },
-
-    // Étape 3 : KPI (ADAPTATIF)
-    getKpiStep(kpiMode),
-
-    // Étape 4 : Performances
+    // Étape 2 : Performances
     {
       icon: '📊',
       title: 'Suivez vos performances terrain',
@@ -66,13 +44,31 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       tips: 'Utilisez les graphiques pour identifier vos points forts !'
     },
 
-    // Étape 5 : Coaching IA
+    // Étape 3 : Diagnostic (CRITIQUE)
+    {
+      icon: '🎯',
+      title: 'Complétez votre diagnostic',
+      description: (
+        <>
+          <p className="text-orange-600 font-semibold">Débloquez toutes les fonctionnalités !</p>
+          <p className="mt-3 font-semibold">Comment faire :</p>
+          <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+            <li>Dans "Mes tâches à faire" → <strong>"Complète ton diagnostic"</strong></li>
+            <li>OU cliquez sur <strong>Profil</strong> (en haut) → <strong>"Diagnostic"</strong></li>
+          </ul>
+          <p className="mt-3">Cela personnalise votre coaching IA et vos conseils.</p>
+        </>
+      ),
+      tips: 'Soyez honnête dans vos réponses, personne ne vous jugera !'
+    },
+
+    // Étape 4 : Coaching IA
     {
       icon: '🤖',
       title: 'Obtenez du coaching IA',
       description: (
         <>
-          <p className="text-blue-600 font-semibold">Troisième étape : recevez des conseils personnalisés.</p>
+          <p className="text-blue-600 font-semibold">Recevez des conseils personnalisés.</p>
           <p className="mt-3 font-semibold">Votre coach IA vous aide à :</p>
           <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
             <li>Cliquez sur la carte violette <strong>"Mon coach IA"</strong></li>
@@ -85,13 +81,13 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       tips: 'Plus vous avez de données saisies, meilleurs sont les conseils !'
     },
 
-    // Étape 6 : Challenges
+    // Étape 5 : Challenges
     {
       icon: '🎖️',
       title: 'Relevez les challenges',
       description: (
         <>
-          <p className="text-green-600 font-semibold">Quatrième étape : rendez votre travail plus fun !</p>
+          <p className="text-green-600 font-semibold">Rendez votre travail plus fun !</p>
           <p className="mt-3 font-semibold">Les challenges vous permettent de :</p>
           <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
             <li>Cliquez sur la carte verte <strong>"Objectifs et Challenges"</strong></li>
@@ -104,7 +100,7 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       tips: 'Les challenges rendent le travail plus motivant !'
     },
 
-    // Étape 7 : Finir
+    // Étape 6 : Finir
     {
       icon: '🎉',
       title: 'C\'est parti !',
@@ -114,8 +110,8 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
           <p className="mt-3 font-semibold">À faire maintenant :</p>
           <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
             <li><strong>1.</strong> Complétez votre diagnostic vendeur</li>
-            <li><strong>2.</strong> Saisissez vos chiffres du jour</li>
-            <li><strong>3.</strong> Consultez vos conseils IA</li>
+            <li><strong>2.</strong> Consultez vos performances</li>
+            <li><strong>3.</strong> Découvrez vos conseils IA</li>
           </ul>
           <p className="mt-3">Relancez ce tutoriel via le bouton <strong>Tutoriel</strong> en haut.</p>
         </>
@@ -126,68 +122,3 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
 
   return steps;
 };
-
-/**
- * Génère l'étape KPI selon le mode
- */
-function getKpiStep(mode) {
-  switch (mode) {
-    case 'VENDEUR_SAISIT':
-      return {
-        icon: '📝',
-        title: 'Saisissez vos chiffres quotidiens',
-        description: (
-          <>
-            <p className="text-green-600 font-semibold">Étape essentielle : enregistrez vos performances.</p>
-            <p className="mt-3 font-semibold">Comment faire :</p>
-            <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-              <li>Dans "Mes tâches à faire" → <strong>"Saisir mes chiffres du jour"</strong></li>
-              <li>Renseignez : CA réalisé, Nombre de ventes</li>
-              <li>Le panier moyen se calcule automatiquement</li>
-            </ul>
-            <p className="mt-3">Indispensable pour recevoir du coaching IA personnalisé !</p>
-          </>
-        ),
-        tips: 'Plus vous êtes régulier, meilleurs seront les conseils IA.'
-      };
-
-    case 'MANAGER_SAISIT':
-      return {
-        icon: '👁️',
-        title: 'Consultez vos KPI',
-        description: (
-          <>
-            <p className="text-blue-600 font-semibold">Votre manager saisit vos résultats quotidiens.</p>
-            <p className="mt-3 font-semibold">Ces données permettent :</p>
-            <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-              <li>Vos analyses de performances</li>
-              <li>Votre coaching IA personnalisé</li>
-              <li>Votre classement dans l'équipe</li>
-            </ul>
-          </>
-        ),
-        tips: 'Consultez vos KPI régulièrement pour suivre votre progression.'
-      };
-
-    case 'API_SYNC':
-      return {
-        icon: '🔄',
-        title: 'KPI Synchronisés',
-        description: (
-          <>
-            <p className="text-blue-600 font-semibold">Vos données sont synchronisées automatiquement.</p>
-            <p className="mt-3 font-semibold">Avantages du mode Sync :</p>
-            <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-              <li>Pas de saisie manuelle nécessaire</li>
-              <li>Données toujours à jour en temps réel</li>
-              <li>Coaching IA basé sur vos vraies performances</li>
-            </ul>
-          </>
-        ),
-        tips: 'Vos données se mettent à jour automatiquement !'
-      };
-
-    default:
-      return getKpiStep('VENDEUR_SAISIT');
-  }
-}
