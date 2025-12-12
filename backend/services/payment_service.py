@@ -253,7 +253,12 @@ class PaymentService:
         return {"status": "success", "new_status": "canceled"}
     
     async def _handle_checkout_completed(self, session: Dict) -> Dict:
-        """Handle successful checkout session completion"""
+        """
+        Handle successful checkout session completion.
+        This is typically the first event received after a successful payment.
+        It ensures the subscription is immediately activated even before
+        the subscription.created event arrives.
+        """
         customer_id = session.get('customer')
         subscription_id = session.get('subscription')
         
@@ -268,10 +273,53 @@ class PaymentService:
         if not gerant:
             return {"status": "skipped", "reason": "customer_not_found"}
         
-        # The subscription created event will handle the details
-        # Just log for now
-        logger.info(f"✅ Checkout completed for {gerant['email']}")
-        return {"status": "success", "checkout_completed": True}
+        # Extract metadata from checkout session
+        metadata = session.get('metadata', {})
+        seller_quantity = int(metadata.get('seller_quantity', 1))
+        
+        # Immediately update subscription status to active
+        update_data = {
+            "status": "active",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        if subscription_id:
+            update_data["stripe_subscription_id"] = subscription_id
+        
+        if seller_quantity:
+            update_data["seats"] = seller_quantity
+            # Determine plan based on seats
+            if seller_quantity <= 5:
+                update_data["plan"] = "starter"
+            elif seller_quantity <= 15:
+                update_data["plan"] = "professional"
+            else:
+                update_data["plan"] = "enterprise"
+        
+        # Update subscription
+        await self.db.subscriptions.update_one(
+            {"user_id": gerant['id']},
+            {"$set": update_data},
+            upsert=True
+        )
+        
+        # Also update workspace status to ensure immediate access
+        if gerant.get('workspace_id'):
+            await self.db.workspaces.update_one(
+                {"id": gerant['workspace_id']},
+                {"$set": {
+                    "subscription_status": "active",
+                    "stripe_subscription_id": subscription_id
+                }}
+            )
+        
+        logger.info(f"✅ Checkout completed for {gerant['email']} - subscription activated with {seller_quantity} seats")
+        return {
+            "status": "success", 
+            "checkout_completed": True,
+            "user_id": gerant['id'],
+            "seats": seller_quantity
+        }
     
     # ==========================================
     # SEATS MANAGEMENT
