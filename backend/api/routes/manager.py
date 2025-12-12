@@ -649,7 +649,7 @@ async def create_objective(
         }
         
         await db.objectives.insert_one(objective)
-        del objective["_id"] if "_id" in objective else None
+        objective.pop("_id", None)
         
         return objective
     except Exception as e:
