@@ -846,3 +846,35 @@ async def generate_bilan_individuel(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===== DIAGNOSTIC/ME ENDPOINT (ROOT LEVEL) =====
+# This is needed because frontend calls /api/diagnostic/me
+# But the diagnostics router has prefix /manager-diagnostic
+
+from fastapi import APIRouter as DiagRouter
+
+# Create a separate router for /diagnostic endpoints
+diagnostic_router = APIRouter(prefix="/diagnostic", tags=["Seller Diagnostic"])
+
+@diagnostic_router.get("/me")
+async def get_diagnostic_me(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Get seller's own DISC diagnostic profile (at /api/diagnostic/me)."""
+    try:
+        diagnostic = await db.diagnostics.find_one(
+            {"seller_id": current_user['id']},
+            {"_id": 0}
+        )
+        
+        if not diagnostic:
+            raise HTTPException(status_code=404, detail="Diagnostic non trouvé")
+        
+        return diagnostic
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
