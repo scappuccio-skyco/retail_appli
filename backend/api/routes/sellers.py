@@ -563,7 +563,8 @@ async def get_daily_challenge(
         }
         
         await db.daily_challenges.insert_one(challenge)
-        del challenge['_id'] if '_id' in challenge else None
+        if '_id' in challenge:
+            del challenge['_id']
         
         return challenge
         
