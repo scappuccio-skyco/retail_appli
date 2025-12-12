@@ -1459,3 +1459,207 @@ async def send_support_message(
     except Exception as e:
         logger.error(f"Error sending support message: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==========================================
+# BILLING INTERVAL SWITCH
+# ==========================================
+
+class SwitchIntervalRequest(BaseModel):
+    """Request body for switching billing interval"""
+    interval: str  # 'month' ou 'year'
+
+
+class SwitchIntervalResponse(BaseModel):
+    """Response for interval switch"""
+    success: bool
+    message: str
+    previous_interval: str
+    new_interval: str
+    new_monthly_cost: float
+    new_yearly_cost: float
+    proration_amount: float
+    next_billing_date: str
+
+
+@router.post("/subscription/switch-interval", response_model=SwitchIntervalResponse)
+async def switch_billing_interval(
+    request: SwitchIntervalRequest,
+    current_user: dict = Depends(get_current_gerant),
+    db = Depends(get_db)
+):
+    """
+    Switch billing interval between monthly and yearly.
+    
+    IMPORTANT RULES:
+    - Monthly → Yearly: ALLOWED (upsell with 20% discount)
+    - Yearly → Monthly: NOT ALLOWED (must cancel and re-subscribe)
+    
+    This endpoint:
+    1. Validates the requested change
+    2. Calls Stripe API to modify the subscription
+    3. Updates local database
+    4. Returns the new billing details
+    """
+    try:
+        gerant_id = current_user['id']
+        new_interval = request.interval
+        
+        # Validate interval
+        if new_interval not in ['month', 'year']:
+            raise HTTPException(status_code=400, detail="Intervalle invalide. Utilisez 'month' ou 'year'.")
+        
+        # Get current subscription
+        subscription = await db.subscriptions.find_one(
+            {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
+            {"_id": 0}
+        )
+        
+        if not subscription:
+            raise HTTPException(status_code=404, detail="Aucun abonnement actif trouvé")
+        
+        current_interval = subscription.get('billing_interval', 'month')
+        current_seats = subscription.get('seats', 1)
+        is_trial = subscription.get('status') == 'trialing'
+        
+        # Check if already on requested interval
+        if current_interval == new_interval:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Vous êtes déjà sur un abonnement {'annuel' if new_interval == 'year' else 'mensuel'}."
+            )
+        
+        # Block downgrade from annual to monthly
+        if current_interval == 'year' and new_interval == 'month':
+            raise HTTPException(
+                status_code=400,
+                detail="Impossible de passer de l'annuel au mensuel. Pour changer, veuillez annuler votre abonnement actuel puis en souscrire un nouveau."
+            )
+        
+        # Get Stripe IDs
+        stripe_subscription_id = subscription.get('stripe_subscription_id')
+        stripe_subscription_item_id = subscription.get('stripe_subscription_item_id')
+        
+        # Calculate costs
+        plan = get_plan_from_seats(current_seats)
+        prices = STRIPE_PRICES[plan]
+        
+        monthly_cost = current_seats * prices['price_monthly']
+        yearly_cost = monthly_cost * 12 * 0.8  # 20% discount
+        
+        proration_amount = 0.0
+        next_billing_date = ""
+        
+        # For trial users, just update the database
+        if is_trial:
+            # Update subscription in DB
+            await db.subscriptions.update_one(
+                {"user_id": gerant_id},
+                {"$set": {
+                    "billing_interval": new_interval,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            next_billing_date = subscription.get('trial_end', '')
+            
+            logger.info(f"✅ Trial user {current_user['email']} switched to {new_interval} (no Stripe call)")
+            
+        elif stripe_subscription_id and stripe_subscription_item_id:
+            # Active subscriber - call Stripe API
+            STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
+            if not STRIPE_API_KEY:
+                raise HTTPException(status_code=500, detail="Configuration Stripe manquante")
+            
+            stripe.api_key = STRIPE_API_KEY
+            
+            try:
+                # Get new price ID based on interval
+                new_price_id = prices['yearly'] if new_interval == 'year' else prices['monthly']
+                
+                # CRITICAL: Modify subscription with new price
+                # This changes the billing interval while keeping the quantity
+                updated_subscription = stripe.Subscription.modify(
+                    stripe_subscription_id,
+                    items=[{
+                        'id': stripe_subscription_item_id,
+                        'price': new_price_id,
+                        'quantity': current_seats
+                    }],
+                    proration_behavior='create_prorations',  # Charge/credit the difference
+                    payment_behavior='allow_incomplete'  # Allow if payment fails
+                )
+                
+                logger.info(f"✅ Stripe subscription {stripe_subscription_id} switched to {new_interval}")
+                
+                # Get proration from upcoming invoice
+                try:
+                    upcoming = stripe.Invoice.upcoming(subscription=stripe_subscription_id)
+                    proration_amount = upcoming.get('amount_due', 0) / 100
+                except Exception as e:
+                    logger.warning(f"Could not get proration: {e}")
+                
+                # Get next billing date
+                if updated_subscription.current_period_end:
+                    next_billing_date = datetime.fromtimestamp(
+                        updated_subscription.current_period_end, 
+                        tz=timezone.utc
+                    ).isoformat()
+                
+            except stripe.StripeError as e:
+                logger.error(f"❌ Stripe error: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"Erreur Stripe: {str(e)}")
+            
+            # Update local database
+            update_data = {
+                "billing_interval": new_interval,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            if next_billing_date:
+                update_data["current_period_end"] = next_billing_date
+            
+            await db.subscriptions.update_one(
+                {"user_id": gerant_id},
+                {"$set": update_data}
+            )
+            
+            # Also update workspace
+            workspace_id = current_user.get('workspace_id')
+            if workspace_id:
+                await db.workspaces.update_one(
+                    {"id": workspace_id},
+                    {"$set": {"billing_interval": new_interval}}
+                )
+        
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Impossible de modifier l'abonnement. Données Stripe manquantes."
+            )
+        
+        interval_label = "annuel" if new_interval == 'year' else "mensuel"
+        savings = round((monthly_cost * 12) - yearly_cost, 2) if new_interval == 'year' else 0
+        
+        message = f"🎉 Passage à l'abonnement {interval_label} réussi !"
+        if savings > 0:
+            message += f" Vous économisez {savings}€/an."
+        
+        logger.info(f"✅ {current_user['email']} switched from {current_interval} to {new_interval}")
+        
+        return SwitchIntervalResponse(
+            success=True,
+            message=message,
+            previous_interval=current_interval,
+            new_interval=new_interval,
+            new_monthly_cost=monthly_cost,
+            new_yearly_cost=yearly_cost,
+            proration_amount=proration_amount,
+            next_billing_date=next_billing_date
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error switching interval: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
