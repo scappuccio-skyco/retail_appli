@@ -1147,7 +1147,7 @@ class GerantService:
         
         return sellers
     
-    async def get_store_kpi_overview(self, store_id: str, gerant_id: str, date: str = None) -> Dict:
+    async def get_store_kpi_overview(self, store_id: str, user_id: str, date: str = None) -> Dict:
         """
         Get consolidated store KPI overview for a specific date
         
@@ -1158,15 +1158,25 @@ class GerantService:
         - Individual seller entries
         - Calculated KPIs (panier moyen, taux transformation, indice vente)
         
-        Security: Verifies store ownership
+        Security: Verifies store ownership (gérant) or assignment (manager)
         """
         from datetime import datetime, timezone
         
-        # Verify store ownership
+        # First check if user is a gérant who owns this store
         store = await self.db.stores.find_one(
-            {"id": store_id, "gerant_id": gerant_id, "active": True},
+            {"id": store_id, "gerant_id": user_id, "active": True},
             {"_id": 0}
         )
+        
+        # If not gérant, check if user is a manager assigned to this store
+        if not store:
+            user = await self.db.users.find_one({"id": user_id}, {"_id": 0})
+            if user and user.get('role') == 'manager' and user.get('store_id') == store_id:
+                store = await self.db.stores.find_one(
+                    {"id": store_id, "active": True},
+                    {"_id": 0}
+                )
+        
         if not store:
             raise Exception("Magasin non trouvé ou accès non autorisé")
         
