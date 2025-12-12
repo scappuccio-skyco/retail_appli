@@ -1131,16 +1131,23 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
               Mensuel
             </span>
             <button
-              onClick={() => setIsAnnual(!isAnnual)}
+              onClick={handleIntervalToggleClick}
+              disabled={loadingIntervalSwitch}
               className={`relative w-16 h-8 rounded-full transition-colors duration-300 ${
                 isAnnual ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A]' : 'bg-slate-300'
-              }`}
+              } ${loadingIntervalSwitch ? 'opacity-50 cursor-wait' : ''}`}
             >
-              <div
-                className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300 ${
-                  isAnnual ? 'transform translate-x-8' : ''
-                }`}
-              />
+              {loadingIntervalSwitch ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader className="w-4 h-4 text-white animate-spin" />
+                </div>
+              ) : (
+                <div
+                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300 ${
+                    isAnnual ? 'transform translate-x-8' : ''
+                  }`}
+                />
+              )}
             </button>
             <span className={`text-lg font-semibold ${isAnnual ? 'text-[#1E40AF]' : 'text-slate-400'}`}>
               Annuel
