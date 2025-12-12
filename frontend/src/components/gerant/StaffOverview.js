@@ -347,7 +347,7 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
             >
               <option value="all">Tous les statuts</option>
               <option value="active">Actif</option>
-              <option value="suspended">Suspendu</option>
+              <option value="suspended">En veille</option>
               <option value="deleted">Supprimé</option>
             </select>
           )}
