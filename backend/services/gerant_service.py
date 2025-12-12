@@ -901,18 +901,30 @@ class GerantService:
         
         return historical_data
 
-    async def get_store_available_years(self, store_id: str, gerant_id: str) -> Dict:
+    async def get_store_available_years(self, store_id: str, user_id: str) -> Dict:
         """
         Get available years with KPI data for this store
         
         Returns dict with 'years' list (integers) in descending order (most recent first)
         Used for date filter dropdowns in the frontend
+        
+        Security: Accessible to gérants (owner) and managers (assigned)
         """
-        # Verify store ownership
+        # First check if user is a gérant who owns this store
         store = await self.store_repo.find_one(
-            {"id": store_id, "gerant_id": gerant_id, "active": True},
+            {"id": store_id, "gerant_id": user_id, "active": True},
             {"_id": 0}
         )
+        
+        # If not gérant, check if user is a manager assigned to this store
+        if not store:
+            user = await self.db.users.find_one({"id": user_id}, {"_id": 0})
+            if user and user.get('role') == 'manager' and user.get('store_id') == store_id:
+                store = await self.store_repo.find_one(
+                    {"id": store_id, "active": True},
+                    {"_id": 0}
+                )
+        
         if not store:
             raise ValueError("Magasin non trouvé ou accès non autorisé")
         
