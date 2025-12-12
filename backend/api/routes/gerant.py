@@ -174,13 +174,53 @@ async def update_subscription_seats(
         raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
 
 
+class PreviewUpdateRequest(BaseModel):
+    """Request body for previewing subscription changes (seats and/or interval)"""
+    new_seats: Optional[int] = None  # Si None, garde le nombre actuel
+    new_interval: Optional[str] = None  # 'month' ou 'year', si None garde l'intervalle actuel
+
+
+class PreviewUpdateResponse(BaseModel):
+    """Response for subscription update preview"""
+    # Seats info
+    current_seats: int
+    new_seats: int
+    current_plan: str
+    new_plan: str
+    
+    # Interval info
+    current_interval: str  # 'month' ou 'year'
+    new_interval: str
+    interval_changing: bool
+    
+    # Cost breakdown
+    current_monthly_cost: float
+    new_monthly_cost: float
+    current_yearly_cost: float
+    new_yearly_cost: float
+    
+    # Price differences
+    price_difference_monthly: float
+    price_difference_yearly: float
+    
+    # Proration (what will be charged/credited NOW)
+    proration_estimate: float
+    proration_description: str
+    
+    # Flags
+    is_upgrade: bool
+    is_trial: bool
+    annual_savings_percent: float  # Économie en passant à l'annuel
+
+
+# Keep old endpoint for backward compatibility
 class PreviewSeatsRequest(BaseModel):
-    """Request body for previewing seat changes"""
+    """Request body for previewing seat changes (legacy)"""
     new_seats: int
 
 
 class PreviewSeatsResponse(BaseModel):
-    """Response for seat preview"""
+    """Response for seat preview (legacy)"""
     current_seats: int
     new_seats: int
     current_plan: str
@@ -191,6 +231,180 @@ class PreviewSeatsResponse(BaseModel):
     proration_estimate: float
     is_upgrade: bool
     is_trial: bool
+
+
+@router.post("/subscription/preview", response_model=PreviewUpdateResponse)
+async def preview_subscription_update(
+    request: PreviewUpdateRequest,
+    current_user: dict = Depends(get_current_gerant),
+    db = Depends(get_db)
+):
+    """
+    Preview ANY subscription change: seats AND/OR billing interval.
+    
+    Use cases:
+    - Change seats only: { "new_seats": 10 }
+    - Change interval only: { "new_interval": "year" }
+    - Change both: { "new_seats": 10, "new_interval": "year" }
+    
+    Returns detailed cost breakdown and proration estimate.
+    """
+    try:
+        gerant_id = current_user['id']
+        
+        # Get current subscription
+        subscription = await db.subscriptions.find_one(
+            {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
+            {"_id": 0}
+        )
+        
+        if not subscription:
+            raise HTTPException(status_code=404, detail="Aucun abonnement trouvé")
+        
+        # Current values
+        current_seats = subscription.get('seats', 1)
+        current_interval = subscription.get('billing_interval', 'month')
+        is_trial = subscription.get('status') == 'trialing'
+        
+        # New values (default to current if not specified)
+        new_seats = request.new_seats if request.new_seats is not None else current_seats
+        new_interval = request.new_interval if request.new_interval else current_interval
+        
+        # Validate
+        if new_seats < 1:
+            raise HTTPException(status_code=400, detail="Minimum 1 siège")
+        if new_seats > 50:
+            raise HTTPException(status_code=400, detail="Maximum 50 sièges")
+        if new_interval not in ['month', 'year']:
+            raise HTTPException(status_code=400, detail="Intervalle invalide (month ou year)")
+        
+        # Block downgrade from annual to monthly
+        if current_interval == 'year' and new_interval == 'month':
+            raise HTTPException(
+                status_code=400, 
+                detail="Impossible de passer de l'annuel au mensuel. Pour changer, annulez votre abonnement actuel."
+            )
+        
+        interval_changing = current_interval != new_interval
+        
+        # Get plan info
+        current_plan = get_plan_from_seats(current_seats)
+        new_plan = get_plan_from_seats(new_seats)
+        
+        current_prices = STRIPE_PRICES[current_plan]
+        new_prices = STRIPE_PRICES[new_plan]
+        
+        # Calculate costs
+        current_price_monthly = current_prices['price_monthly']
+        new_price_monthly = new_prices['price_monthly']
+        
+        # Monthly costs
+        current_monthly_cost = current_seats * current_price_monthly
+        new_monthly_cost = new_seats * new_price_monthly
+        
+        # Yearly costs (with 20% discount)
+        current_yearly_cost = current_monthly_cost * 12 * 0.8
+        new_yearly_cost = new_monthly_cost * 12 * 0.8
+        
+        # Calculate what they'll actually pay based on interval
+        if new_interval == 'year':
+            effective_new_cost = new_yearly_cost
+            effective_current_cost = current_yearly_cost if current_interval == 'year' else current_monthly_cost * 12
+        else:
+            effective_new_cost = new_monthly_cost
+            effective_current_cost = current_monthly_cost
+        
+        # Proration calculation
+        proration_estimate = 0.0
+        proration_description = ""
+        
+        if is_trial:
+            proration_description = "Aucun frais pendant la période d'essai"
+        elif interval_changing and new_interval == 'year':
+            # Upgrading to annual: credit remaining month + charge full year
+            # Simplified: charge (annual - remaining_month_credit)
+            if subscription.get('current_period_end'):
+                try:
+                    period_end_str = subscription['current_period_end']
+                    if isinstance(period_end_str, str):
+                        if '+' not in period_end_str and 'Z' not in period_end_str:
+                            period_end = datetime.fromisoformat(period_end_str).replace(tzinfo=timezone.utc)
+                        else:
+                            period_end = datetime.fromisoformat(period_end_str.replace('Z', '+00:00'))
+                    else:
+                        period_end = period_end_str
+                        if period_end.tzinfo is None:
+                            period_end = period_end.replace(tzinfo=timezone.utc)
+                    
+                    now = datetime.now(timezone.utc)
+                    days_remaining = max(0, (period_end - now).days)
+                    
+                    # Credit for remaining days
+                    daily_rate_current = current_monthly_cost / 30
+                    credit = daily_rate_current * days_remaining
+                    
+                    # Charge for new annual
+                    proration_estimate = round(new_yearly_cost - credit, 2)
+                    proration_description = f"Crédit de {credit:.2f}€ déduit du coût annuel de {new_yearly_cost:.2f}€"
+                except Exception as e:
+                    logger.warning(f"Error calculating proration: {e}")
+                    proration_estimate = new_yearly_cost
+                    proration_description = f"Coût annuel: {new_yearly_cost:.2f}€"
+            else:
+                proration_estimate = new_yearly_cost
+                proration_description = f"Coût annuel: {new_yearly_cost:.2f}€"
+        elif new_seats > current_seats:
+            # Adding seats
+            if subscription.get('current_period_end'):
+                try:
+                    period_end_str = subscription['current_period_end']
+                    if isinstance(period_end_str, str):
+                        if '+' not in period_end_str and 'Z' not in period_end_str:
+                            period_end = datetime.fromisoformat(period_end_str).replace(tzinfo=timezone.utc)
+                        else:
+                            period_end = datetime.fromisoformat(period_end_str.replace('Z', '+00:00'))
+                    else:
+                        period_end = period_end_str
+                        if period_end.tzinfo is None:
+                            period_end = period_end.replace(tzinfo=timezone.utc)
+                    
+                    now = datetime.now(timezone.utc)
+                    days_remaining = max(0, (period_end - now).days)
+                    daily_rate = new_price_monthly / 30
+                    proration_estimate = round((new_seats - current_seats) * daily_rate * days_remaining, 2)
+                    proration_description = f"Prorata pour {new_seats - current_seats} siège(s) sur {days_remaining} jours"
+                except Exception:
+                    pass
+        
+        # Annual savings
+        annual_savings_percent = 20.0  # Fixed 20% discount
+        
+        return PreviewUpdateResponse(
+            current_seats=current_seats,
+            new_seats=new_seats,
+            current_plan=current_plan,
+            new_plan=new_plan,
+            current_interval=current_interval,
+            new_interval=new_interval,
+            interval_changing=interval_changing,
+            current_monthly_cost=current_monthly_cost,
+            new_monthly_cost=new_monthly_cost,
+            current_yearly_cost=current_yearly_cost,
+            new_yearly_cost=new_yearly_cost,
+            price_difference_monthly=new_monthly_cost - current_monthly_cost,
+            price_difference_yearly=new_yearly_cost - current_yearly_cost,
+            proration_estimate=proration_estimate,
+            proration_description=proration_description,
+            is_upgrade=(new_seats > current_seats) or (new_interval == 'year' and current_interval == 'month'),
+            is_trial=is_trial,
+            annual_savings_percent=annual_savings_percent
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in preview: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/seats/preview", response_model=PreviewSeatsResponse)
