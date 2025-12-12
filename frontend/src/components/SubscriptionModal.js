@@ -113,6 +113,12 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
   
   // Billing period state
   const [isAnnual, setIsAnnual] = useState(false);
+  
+  // Interval switch modal state
+  const [showIntervalSwitchModal, setShowIntervalSwitchModal] = useState(false);
+  const [intervalSwitchPreview, setIntervalSwitchPreview] = useState(null);
+  const [loadingIntervalSwitch, setLoadingIntervalSwitch] = useState(false);
+  const [switchingInterval, setSwitchingInterval] = useState(false);
 
   // Fetch preview when seats count changes (debounced)
   useEffect(() => {
