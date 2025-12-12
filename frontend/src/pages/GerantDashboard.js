@@ -602,9 +602,9 @@ const GerantDashboard = ({ user, onLogout }) => {
       <div className="bg-white shadow-md border-b-4 border-orange-500">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
           <div className="flex items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2">
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent truncate">
-                🏢 Dashboard Gérant
+            <div className="min-w-0 flex-1 max-w-[250px] sm:max-w-none">
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
+                🏢 <span className="hidden sm:inline">Dashboard </span>Gérant
               </h1>
               <p className="text-xs sm:text-sm text-gray-600 truncate">Bonjour, {user?.name}</p>
               {/* Badge Données Sécurisées */}
