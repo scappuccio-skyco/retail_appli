@@ -296,24 +296,18 @@ async def get_dates_with_data(
 
 @router.get("/available-years")
 async def get_available_years(
-    current_user: dict = Depends(verify_manager),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
     db = Depends(get_db)
 ):
-    """
-    Get list of years that have KPI data for the manager's store
-    Used for year filter dropdown
-    """
-    store_id = current_user.get('store_id')
-    if not store_id:
-        raise HTTPException(status_code=400, detail="Manager not assigned to a store")
+    """Get list of years that have KPI data for the store"""
+    resolved_store_id = context.get('resolved_store_id')
     
-    # Get distinct dates
-    dates = await db.kpi_entries.distinct("date", {"store_id": store_id})
-    manager_dates = await db.manager_kpi.distinct("date", {"store_id": store_id})
+    dates = await db.kpi_entries.distinct("date", {"store_id": resolved_store_id})
+    manager_dates = await db.manager_kpi.distinct("date", {"store_id": resolved_store_id})
     
     all_dates = set(dates) | set(manager_dates)
     
-    # Extract years
     years = set()
     for date_str in all_dates:
         if date_str and len(date_str) >= 4:
