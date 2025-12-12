@@ -45,8 +45,9 @@ const SupportModal = ({ isOpen, onClose }) => {
 
     try {
       const token = localStorage.getItem('token');
+      // Use generic support endpoint that works for all roles
       await axios.post(
-        `${API}/api/gerant/support/contact`,
+        `${API}/api/support/contact`,
         { subject, message, category },
         { headers: { Authorization: `Bearer ${token}` } }
       );
