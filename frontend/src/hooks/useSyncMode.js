@@ -30,6 +30,8 @@ const decodeJWTPayload = (token) => {
  * Hook pour vérifier si l'utilisateur est en mode synchronisation automatique (Enterprise)
  * ET si l'abonnement du gérant parent est actif.
  * 
+ * @param {string} storeId - Optional store_id for gerant viewing as manager
+ * 
  * Retourne:
  * - syncMode: "manual" | "api_sync" | "scim_sync"
  * - isEnterprise: boolean
@@ -39,7 +41,7 @@ const decodeJWTPayload = (token) => {
  * - isSubscriptionExpired: boolean (true si l'abonnement du gérant parent est expiré)
  * - loading: boolean
  */
-export const useSyncMode = () => {
+export const useSyncMode = (storeId = null) => {
   const [syncMode, setSyncMode] = useState('manual');
   const [isEnterprise, setIsEnterprise] = useState(false);
   const [companyName, setCompanyName] = useState(null);
@@ -61,10 +63,17 @@ export const useSyncMode = () => {
       const payload = decodeJWTPayload(token);
       const userRole = payload?.role || null;
       console.log('🔐 useSyncMode - Decoded role from JWT:', userRole);
+      
+      // Get store_id from URL if not passed as prop (for gerant viewing as manager)
+      const urlParams = new URLSearchParams(window.location.search);
+      const effectiveStoreId = storeId || urlParams.get('store_id');
+      const storeIdParam = effectiveStoreId ? `?store_id=${effectiveStoreId}` : '';
+      
+      console.log('🏪 useSyncMode - Using storeId:', effectiveStoreId);
 
       // Récupérer le mode sync (seulement pour les rôles qui en ont besoin)
       try {
-        const response = await axios.get(`${API}/manager/sync-mode`, {
+        const response = await axios.get(`${API}/manager/sync-mode${storeIdParam}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -82,11 +91,12 @@ export const useSyncMode = () => {
       }
 
       // Vérifier le statut de l'abonnement du gérant parent (pour vendeurs/managers)
+      // Skip for gerant role viewing manager dashboard
       if (userRole === 'seller' || userRole === 'manager') {
         try {
           const endpoint = userRole === 'seller' 
             ? `${API}/seller/subscription-status`
-            : `${API}/manager/subscription-status`;
+            : `${API}/manager/subscription-status${storeIdParam}`;
           
           console.log('📡 useSyncMode - Fetching subscription status from:', endpoint);
           
@@ -102,13 +112,17 @@ export const useSyncMode = () => {
           console.error('Error fetching subscription status:', error);
           // En cas d'erreur, on reste permissif (pas de blocage)
         }
+      } else if (userRole === 'gerant' || userRole === 'gérant') {
+        // Gérant viewing as manager - check their own subscription but don't block
+        setIsSubscriptionExpired(false);
+        setParentSubscriptionStatus('active');
       }
       
       setLoading(false);
     };
 
     fetchSyncMode();
-  }, []);
+  }, [storeId]);
 
   // isReadOnly est true si :
   // 1. Mode sync != manual (Enterprise)
