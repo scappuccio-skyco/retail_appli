@@ -3,25 +3,10 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import AIRecommendations from './AIRecommendations';
+import { renderMarkdownBold } from '../utils/markdownRenderer';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
-
-// Helper function to render markdown bold text (**text**) as actual bold
-const renderMarkdownBold = (text) => {
-  if (!text) return null;
-  
-  // Split by **text** pattern and render with bold
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  
-  return parts.map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      // Remove ** and render as bold
-      return <strong key={index}>{part.slice(2, -2)}</strong>;
-    }
-    return <span key={index}>{part}</span>;
-  });
-};
 
 export default function ConflictResolutionForm({ sellerId, sellerName }) {
   // Pattern Ultra Simple - États séparés avec useState
