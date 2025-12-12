@@ -54,7 +54,7 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
     try {
       const token = localStorage.getItem('token');
       await axios.delete(
-        `${API}/manager/team-analysis/${analysisId}`,
+        `${API}/manager/team-analysis/${analysisId}${storeParam}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success('Analyse supprimée');
@@ -101,7 +101,7 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
       }
 
       const res = await axios.post(
-        `${API}/manager/analyze-team`,
+        `${API}/manager/analyze-team${storeParam}`,
         requestBody,
         { headers: { Authorization: `Bearer ${token}` } }
       );
