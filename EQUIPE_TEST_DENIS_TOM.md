@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://accessfix-1.preview.emergentagent.com
+https://dashboard-revival-6.preview.emergentagent.com
 
 ### Manager
 ```

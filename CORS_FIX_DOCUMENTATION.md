@@ -19,7 +19,7 @@ Le fichier `/app/frontend/.env` contenait une URL incorrecte pointant vers un en
 
 ### Configuration Incorrecte :
 ```env
-REACT_APP_BACKEND_URL=https://accessfix-1.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://dashboard-revival-6.preview.emergentagent.com
 ```
 
 ### Configuration Correcte :
@@ -34,7 +34,7 @@ REACT_APP_BACKEND_URL=https://retailperformerai.com
 
 **Changement** :
 ```diff
-- REACT_APP_BACKEND_URL=https://accessfix-1.preview.emergentagent.com
+- REACT_APP_BACKEND_URL=https://dashboard-revival-6.preview.emergentagent.com
 + REACT_APP_BACKEND_URL=https://retailperformerai.com
 ```
 
