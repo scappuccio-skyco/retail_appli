@@ -302,3 +302,20 @@ test_plan:
 
   - agent: "testing"
     message: "🎯 STRIPE BILLING AND WEBHOOK SYSTEM COMPREHENSIVE TEST COMPLETED (43/43 tests passed - 100% success rate). ✅ SMOKE TEST BILLING: All subscription preview endpoints working without 'No such price' errors, valid proration calculations returned. ✅ WEBHOOK HEALTH: Stripe webhook endpoint properly configured with secrets and API keys. ✅ AI UNLIMITED: No quota blocking detected, AI daily challenge working correctly for sellers. ✅ SUBSCRIPTION STATUS: Complete subscription information returned including plan, status, seats, and billing details. All test cases from review request successfully validated. System ready for production use."
+
+backend:
+  - task: "Gérant RBAC View as Manager Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/api/routes/manager.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ GÉRANT RBAC 'VIEW AS MANAGER' FUNCTIONALITY FULLY WORKING (19/19 tests passed - 100% success rate). All manager endpoints accessible with store_id parameter: GET /api/manager/sync-mode ✅, GET /api/manager/sellers ✅, GET /api/manager/kpi-config ✅, GET /api/manager/objectives ✅, GET /api/manager/objectives/active ✅, GET /api/manager/challenges ✅, GET /api/manager/challenges/active ✅, POST /api/manager/analyze-store-kpis ✅, GET /api/manager/subscription-status ✅. No 400/404/403 errors when store_id provided. Proper error handling (400) when store_id missing. Store ID c2dd1ada-d0a2-4a90-be81-644b7cb78bc7 (Skyco Lyon Part-Dieu) used for testing. Authentication working with gerant@skyco.fr credentials."
+
+agent_communication:
+  - agent: "testing"
+    message: "🎯 GÉRANT RBAC 'VIEW AS MANAGER' COMPREHENSIVE TEST COMPLETED (19/19 tests passed - 100% success rate). ✅ AUTHENTICATION: Gérant login successful with gerant@skyco.fr / Gerant123! ✅ STORE ACCESS: Retrieved store_id c2dd1ada-d0a2-4a90-be81-644b7cb78bc7 (Skyco Lyon Part-Dieu) ✅ MANAGER ENDPOINTS: All 9 manager endpoints working correctly with ?store_id parameter - sync-mode returns 'manual', sellers returns 4 sellers, kpi-config retrieved, objectives/challenges accessible, analyze-store-kpis returns analysis for store, subscription-status working ✅ ERROR HANDLING: All endpoints correctly return 400 'Le paramètre store_id est requis' when store_id missing ✅ NO ERRORS: No 400/404/403 errors when store_id provided. RBAC functionality fully operational."
