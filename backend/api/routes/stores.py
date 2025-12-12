@@ -115,7 +115,7 @@ async def get_store_hierarchy(
 @router.get("/{store_id}/info")
 async def get_store_info(
     store_id: str,
-    current_user: Dict = Depends(get_gerant_or_manager),
+    current_user: Dict = Depends(get_current_user),
     store_service: StoreService = Depends(get_store_service)
 ):
     """
@@ -124,10 +124,11 @@ async def get_store_info(
     Accessible by:
     - Gérant who owns the store
     - Manager assigned to the store
+    - Seller assigned to the store (limited info)
     
     Args:
         store_id: Store ID
-        current_user: Authenticated gérant or manager
+        current_user: Authenticated user
         
     Returns:
         Store info
@@ -150,6 +151,17 @@ async def get_store_info(
         elif user_role == 'manager':
             if current_user.get('store_id') != store_id:
                 raise HTTPException(status_code=403, detail="Access denied: not your store")
+        
+        # Seller: must be assigned to this store (return limited info)
+        elif user_role == 'seller':
+            if current_user.get('store_id') != store_id:
+                raise HTTPException(status_code=403, detail="Access denied: not your store")
+            # Return only basic info for sellers
+            return {
+                "id": store.get('id'),
+                "name": store.get('name'),
+                "location": store.get('location')
+            }
         
         else:
             raise HTTPException(status_code=403, detail="Access denied")
