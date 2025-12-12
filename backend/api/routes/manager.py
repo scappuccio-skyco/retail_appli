@@ -254,25 +254,23 @@ async def get_store_kpi_overview(
 async def get_dates_with_data(
     year: int = Query(None),
     month: int = Query(None),
-    current_user: dict = Depends(verify_manager),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
     db = Depends(get_db)
 ):
     """
-    Get list of dates that have KPI data for the manager's store
-    Used for calendar highlighting
+    Get list of dates that have KPI data for the store.
+    Used for calendar highlighting.
     
     Returns:
         - dates: list of dates with any KPI data
-        - lockedDates: list of dates with locked/validated KPI entries (from API/POS)
+        - lockedDates: list of dates with locked/validated KPI entries
     """
-    store_id = current_user.get('store_id')
-    if not store_id:
-        raise HTTPException(status_code=400, detail="Manager not assigned to a store")
+    resolved_store_id = context.get('resolved_store_id')
     
     # Build date filter
-    query = {"store_id": store_id}
+    query = {"store_id": resolved_store_id}
     if year and month:
-        # Filter by specific month
         start_date = f"{year}-{month:02d}-01"
         if month == 12:
             end_date = f"{year + 1}-01-01"
@@ -286,7 +284,7 @@ async def get_dates_with_data(
     
     all_dates = sorted(set(dates) | set(manager_dates))
     
-    # Get locked dates (from API/POS imports - cannot be edited manually)
+    # Get locked dates
     locked_query = {**query, "locked": True}
     locked_dates = await db.kpi_entries.distinct("date", locked_query)
     
