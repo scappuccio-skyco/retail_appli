@@ -430,10 +430,15 @@ async def get_invitations(
 @router.get("/sync-mode")
 async def get_sync_mode(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
-    context: dict = Depends(get_store_context),
+    context: dict = Depends(get_store_context_with_seller),  # 🔧 Now includes sellers
     manager_service: ManagerService = Depends(get_manager_service)
 ):
-    """Get sync mode configuration for the store"""
+    """
+    Get sync mode configuration for the store.
+    
+    Accessible by: Manager, Gérant, and Seller
+    - Sellers need this to know if their store is in Enterprise mode (read-only)
+    """
     try:
         resolved_store_id = context.get('resolved_store_id')
         config = await manager_service.get_sync_mode(resolved_store_id)
