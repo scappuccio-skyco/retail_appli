@@ -115,20 +115,22 @@ export default function Login({ onLogin }) {
       <div className="w-full max-w-md">
         <div className="glass-morphism rounded-3xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <img 
-              src="/logo-retail-performer.png" 
-              alt="Retail Performer AI" 
-              className="h-24 mx-auto mb-4 object-contain"
-            />
-            <h1 className="text-3xl font-bold text-[#1E40AF] mb-2">
-              Retail Performer AI
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <img 
+                src="/logo-icon.png" 
+                alt="Retail Performer AI" 
+                className="h-16 sm:h-20 object-contain"
+              />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#1E40AF]">
+              Retail Performer AI <span className="text-gray-900 font-semibold">by SKY CO</span>
             </h1>
             {inviteInfo ? (
-              <p className="text-gray-600">
+              <p className="text-gray-600 mt-2">
                 Rejoignez l'équipe de {inviteInfo.manager_name}
               </p>
             ) : (
-              <p className="text-gray-600">
+              <p className="text-gray-600 mt-2">
                 {isRegister ? 'Créez votre compte Gérant' : 'Connectez-vous'}
               </p>
             )}
