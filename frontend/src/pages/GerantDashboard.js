@@ -630,6 +630,14 @@ const GerantDashboard = ({ user, onLogout }) => {
                 <Settings className="w-4 h-4" />
                 <span className="hidden sm:inline">Mon abonnement</span>
               </button>
+              <a
+                href="mailto:hello@retailperformerai.com?subject=Support%20Retail%20Performer"
+                className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
+                title="Contacter le support"
+              >
+                <Headphones className="w-4 h-4" />
+                <span className="hidden sm:inline">Support</span>
+              </a>
               <TutorialButton onClick={onboarding.open} />
               <button
                 onClick={handleLogoutClick}
