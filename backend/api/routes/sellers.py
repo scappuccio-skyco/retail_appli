@@ -759,6 +759,24 @@ async def get_daily_challenge_stats(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/daily-challenge/history")
+async def get_daily_challenge_history(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Get all past daily challenges for the seller."""
+    try:
+        challenges = await db.daily_challenges.find(
+            {"seller_id": current_user['id']},
+            {"_id": 0}
+        ).sort("date", -1).to_list(100)
+        
+        return challenges
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ===== BILAN INDIVIDUEL =====
 
 @router.get("/bilan-individuel/all")
