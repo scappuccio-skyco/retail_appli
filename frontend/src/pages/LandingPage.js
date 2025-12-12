@@ -21,10 +21,10 @@ export default function LandingPage() {
       {/* Header/Navigation */}
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm z-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20 sm:h-24">
+          <div className="flex justify-between items-center h-24 sm:h-28">
             {/* Logo - Plus grand */}
             <div className="flex items-center">
-              <img src="/logo-retail-performer.png" alt="Retail Performer AI by SKY CO" className="h-14 sm:h-20 w-auto" />
+              <img src="/logo-retail-performer.png" alt="Retail Performer AI by SKY CO" className="h-16 sm:h-24 w-auto" />
             </div>
 
             {/* Desktop Menu */}
