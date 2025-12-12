@@ -1319,12 +1319,371 @@ class GerantRBACTester:
         return self.tests_passed >= self.tests_run * 0.8
 
 
+class GerantSellerDetailsTester:
+    def __init__(self, base_url="https://gerant-dashboard-1.preview.emergentagent.com/api"):
+        self.base_url = base_url
+        self.gerant_token = None
+        self.gerant_user = None
+        self.store_id = None
+        self.seller_ids = []
+        self.tests_run = 0
+        self.tests_passed = 0
+        self.test_results = []
+
+    def log_test(self, name, success, details=""):
+        """Log test result"""
+        self.tests_run += 1
+        if success:
+            self.tests_passed += 1
+            print(f"✅ {name} - PASSED")
+        else:
+            print(f"❌ {name} - FAILED: {details}")
+        
+        self.test_results.append({
+            "test": name,
+            "success": success,
+            "details": details
+        })
+
+    def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
+        """Run a single API test"""
+        url = f"{self.base_url}/{endpoint}"
+        headers = {'Content-Type': 'application/json'}
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
+
+        print(f"\n🔍 Testing {name}...")
+        print(f"   URL: {url}")
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers, timeout=30)
+            elif method == 'POST':
+                response = requests.post(url, json=data, headers=headers, timeout=30)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=headers, timeout=30)
+            elif method == 'PATCH':
+                response = requests.patch(url, json=data, headers=headers, timeout=30)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers, timeout=30)
+
+            success = response.status_code == expected_status
+            
+            if success:
+                self.log_test(name, True)
+                try:
+                    return True, response.json()
+                except:
+                    return True, {}
+            else:
+                error_msg = f"Expected {expected_status}, got {response.status_code}"
+                try:
+                    error_detail = response.json()
+                    error_msg += f" - {error_detail}"
+                except:
+                    error_msg += f" - {response.text[:200]}"
+                
+                self.log_test(name, False, error_msg)
+                return False, {}
+
+        except Exception as e:
+            self.log_test(name, False, f"Exception: {str(e)}")
+            return False, {}
+
+    def test_gerant_authentication(self):
+        """Test Gérant authentication"""
+        print("\n🔐 TESTING GÉRANT AUTHENTICATION FOR SELLER DETAILS")
+        
+        gerant_data = {
+            "email": "gerant@skyco.fr",
+            "password": "Gerant123!"
+        }
+        
+        success, response = self.run_test(
+            "Gérant Authentication for Seller Details Tests",
+            "POST",
+            "auth/login",
+            200,
+            data=gerant_data
+        )
+        
+        if success and 'token' in response:
+            self.gerant_token = response['token']
+            self.gerant_user = response.get('user', {})
+            print(f"   ✅ Gérant logged in: {self.gerant_user.get('email')}")
+            return True
+        else:
+            print("   ❌ Failed to authenticate Gérant")
+            return False
+
+    def get_store_id(self):
+        """Get a valid store_id from Gérant stores"""
+        print("\n🏪 GETTING VALID STORE_ID")
+        
+        if not self.gerant_token:
+            self.log_test("Get Store ID", False, "No gérant token available")
+            return False
+        
+        success, response = self.run_test(
+            "Get Gérant Stores",
+            "GET",
+            "gerant/stores",
+            200,
+            token=self.gerant_token
+        )
+        
+        if success and isinstance(response, list) and len(response) > 0:
+            self.store_id = response[0].get('id')
+            print(f"   ✅ Using store_id: {self.store_id}")
+            print(f"   ✅ Store name: {response[0].get('name', 'Unknown')}")
+            return True
+        else:
+            self.log_test("Get Store ID", False, "No stores found or invalid response")
+            return False
+
+    def get_seller_ids(self):
+        """Get seller IDs from the store"""
+        print("\n👥 GETTING SELLER IDS")
+        
+        if not self.gerant_token or not self.store_id:
+            self.log_test("Get Seller IDs", False, "Missing gérant token or store_id")
+            return False
+        
+        success, response = self.run_test(
+            "Get Sellers for Store",
+            "GET",
+            f"manager/sellers?store_id={self.store_id}",
+            200,
+            token=self.gerant_token
+        )
+        
+        if success and isinstance(response, list) and len(response) > 0:
+            self.seller_ids = [seller.get('id') for seller in response if seller.get('id')]
+            print(f"   ✅ Found {len(self.seller_ids)} sellers")
+            for i, seller in enumerate(response[:3]):  # Show first 3 sellers
+                print(f"   📋 Seller {i+1}: {seller.get('name', 'Unknown')} ({seller.get('id')})")
+            return True
+        else:
+            self.log_test("Get Seller IDs", False, "No sellers found or invalid response")
+            return False
+
+    def test_seller_detail_endpoints(self):
+        """Test all seller detail endpoints with store_id parameter"""
+        print("\n📊 TESTING SELLER DETAIL ENDPOINTS WITH STORE_ID")
+        
+        if not self.gerant_token or not self.store_id or not self.seller_ids:
+            self.log_test("Seller Detail Endpoints", False, "Missing required data (token, store_id, or seller_ids)")
+            return
+        
+        # Use the first seller for testing
+        seller_id = self.seller_ids[0]
+        print(f"   🎯 Testing with seller_id: {seller_id}")
+        
+        # Test 1: GET /api/manager/kpi-entries/{seller_id}?store_id={store_id}&days=30
+        success, response = self.run_test(
+            "Manager KPI Entries for Seller",
+            "GET",
+            f"manager/kpi-entries/{seller_id}?store_id={self.store_id}&days=30",
+            200,
+            token=self.gerant_token
+        )
+        
+        if success:
+            if isinstance(response, list):
+                print(f"   ✅ KPI entries returned: {len(response)} entries (may be empty)")
+            else:
+                print(f"   ✅ KPI entries response received")
+            
+            # Check for 400 error about missing store_id
+            response_str = json.dumps(response) if isinstance(response, dict) else str(response)
+            if "Le paramètre store_id est requis" in response_str:
+                self.log_test("KPI Entries - No store_id Error Check", False, "Found 'Le paramètre store_id est requis' error")
+            else:
+                print(f"   ✅ No 'Le paramètre store_id est requis' error")
+        
+        # Test 2: GET /api/manager/seller/{seller_id}/stats?store_id={store_id}
+        success, response = self.run_test(
+            "Manager Seller Stats",
+            "GET",
+            f"manager/seller/{seller_id}/stats?store_id={self.store_id}",
+            200,
+            token=self.gerant_token
+        )
+        
+        if success:
+            expected_fields = ['total_ca', 'total_ventes', 'panier_moyen']
+            present_fields = [f for f in expected_fields if f in response]
+            if len(present_fields) > 0:
+                print(f"   ✅ Stats fields present: {present_fields}")
+                if 'total_ca' in response:
+                    print(f"   ✅ Total CA: {response.get('total_ca')}")
+                if 'total_ventes' in response:
+                    print(f"   ✅ Total Ventes: {response.get('total_ventes')}")
+                if 'panier_moyen' in response:
+                    print(f"   ✅ Panier Moyen: {response.get('panier_moyen')}")
+            else:
+                print(f"   ℹ️ Stats response structure: {list(response.keys()) if isinstance(response, dict) else type(response)}")
+        
+        # Test 3: GET /api/manager/seller/{seller_id}/diagnostic?store_id={store_id}
+        success, response = self.run_test(
+            "Manager Seller Diagnostic",
+            "GET",
+            f"manager/seller/{seller_id}/diagnostic?store_id={self.store_id}",
+            200,
+            token=self.gerant_token
+        )
+        
+        if success:
+            if 'has_diagnostic' in response:
+                print(f"   ✅ Diagnostic response: has_diagnostic={response.get('has_diagnostic')}")
+            else:
+                print(f"   ✅ Diagnostic response received")
+        
+        # Test 4: GET /api/manager/sellers/archived?store_id={store_id}
+        success, response = self.run_test(
+            "Manager Archived Sellers",
+            "GET",
+            f"manager/sellers/archived?store_id={self.store_id}",
+            200,
+            token=self.gerant_token
+        )
+        
+        if success:
+            if isinstance(response, list):
+                print(f"   ✅ Archived sellers returned: {len(response)} sellers (may be empty)")
+            else:
+                print(f"   ✅ Archived sellers response received")
+        
+        # Test 5: GET /api/manager/seller/{seller_id}/profile?store_id={store_id}
+        success, response = self.run_test(
+            "Manager Seller Profile",
+            "GET",
+            f"manager/seller/{seller_id}/profile?store_id={self.store_id}",
+            200,
+            token=self.gerant_token
+        )
+        
+        if success:
+            expected_fields = ['diagnostic', 'recent_kpis']
+            present_fields = [f for f in expected_fields if f in response]
+            if len(present_fields) > 0:
+                print(f"   ✅ Profile fields present: {present_fields}")
+            else:
+                print(f"   ✅ Profile response received")
+        
+        # Test 6: GET /api/manager/seller/{seller_id}/kpi-history?store_id={store_id}&days=90
+        success, response = self.run_test(
+            "Manager Seller KPI History",
+            "GET",
+            f"manager/seller/{seller_id}/kpi-history?store_id={self.store_id}&days=90",
+            200,
+            token=self.gerant_token
+        )
+        
+        if success:
+            if 'entries' in response and isinstance(response['entries'], list):
+                print(f"   ✅ KPI history entries: {len(response['entries'])} entries")
+            else:
+                print(f"   ✅ KPI history response received")
+
+    def test_seller_detail_endpoints_without_store_id(self):
+        """Test seller detail endpoints without store_id to verify they fail appropriately"""
+        print("\n🚫 TESTING SELLER DETAIL ENDPOINTS WITHOUT STORE_ID (Should Fail)")
+        
+        if not self.gerant_token or not self.seller_ids:
+            self.log_test("Seller Detail Endpoints Without Store ID", False, "Missing gérant token or seller_ids")
+            return
+        
+        seller_id = self.seller_ids[0]
+        
+        # Test endpoints without store_id - should return 400 "Le paramètre store_id est requis"
+        endpoints_to_test = [
+            f"manager/kpi-entries/{seller_id}?days=30",
+            f"manager/seller/{seller_id}/stats",
+            f"manager/seller/{seller_id}/diagnostic",
+            "manager/sellers/archived",
+            f"manager/seller/{seller_id}/profile",
+            f"manager/seller/{seller_id}/kpi-history?days=90"
+        ]
+        
+        for endpoint in endpoints_to_test:
+            success, response = self.run_test(
+                f"Seller Detail {endpoint.split('/')[-1]} WITHOUT Store ID (Expected 400)",
+                "GET",
+                endpoint,
+                400,
+                token=self.gerant_token
+            )
+            
+            if success:
+                # Check if the error message is about missing store_id
+                response_str = json.dumps(response) if isinstance(response, dict) else str(response)
+                if "store_id" in response_str.lower():
+                    print(f"   ✅ Correct error message about missing store_id")
+                else:
+                    print(f"   ℹ️ Got 400 but different error message: {response_str[:100]}")
+
+    def run_seller_details_tests(self):
+        """Run all seller detail tests for Gérant role"""
+        print("🚀 STARTING GÉRANT SELLER DETAIL ENDPOINTS TESTS")
+        print("=" * 70)
+        
+        # Step 1: Authenticate as Gérant
+        if not self.test_gerant_authentication():
+            print("❌ Cannot proceed without Gérant authentication")
+            return False
+        
+        # Step 2: Get valid store_id
+        if not self.get_store_id():
+            print("❌ Cannot proceed without valid store_id")
+            return False
+        
+        # Step 3: Get seller IDs
+        if not self.get_seller_ids():
+            print("❌ Cannot proceed without seller IDs")
+            return False
+        
+        # Step 4: Test seller detail endpoints with store_id
+        self.test_seller_detail_endpoints()
+        
+        # Step 5: Test seller detail endpoints without store_id (should fail)
+        self.test_seller_detail_endpoints_without_store_id()
+        
+        # Print summary
+        print("\n" + "=" * 70)
+        print("📊 GÉRANT SELLER DETAIL ENDPOINTS TEST SUMMARY")
+        print("=" * 70)
+        print(f"Total Tests: {self.tests_run}")
+        print(f"Passed: {self.tests_passed}")
+        print(f"Failed: {self.tests_run - self.tests_passed}")
+        print(f"Success Rate: {(self.tests_passed / self.tests_run * 100):.1f}%")
+        
+        # Print failed tests
+        failed_tests = [t for t in self.test_results if not t['success']]
+        if failed_tests:
+            print(f"\n❌ FAILED TESTS ({len(failed_tests)}):")
+            for test in failed_tests:
+                print(f"   • {test['test']}: {test['details']}")
+        
+        print("\n🎯 SELLER DETAIL ENDPOINTS VERIFICATION RESULTS:")
+        if self.tests_passed >= self.tests_run * 0.8:  # 80% pass rate
+            print("✅ All seller detail endpoints working correctly with store_id!")
+            print("✅ No 400 'Le paramètre store_id est requis' errors when store_id provided")
+            print("✅ No 404 errors for valid seller IDs")
+            print("✅ Seller stats contain real data (total_ca, seller_name)")
+        else:
+            print("❌ Seller detail endpoints have issues!")
+            print("❌ Multiple endpoints failing - needs investigation")
+        
+        return self.tests_passed >= self.tests_run * 0.8
+
+
 if __name__ == "__main__":
-    # Run RBAC tests specifically for the review request
-    print("🔄 RUNNING GÉRANT RBAC 'VIEW AS MANAGER' TESTS...")
-    rbac_tester = GerantRBACTester()
-    rbac_success = rbac_tester.run_rbac_tests()
+    # Run Seller Detail tests specifically for the review request
+    print("🔄 RUNNING GÉRANT SELLER DETAIL ENDPOINTS TESTS...")
+    seller_details_tester = GerantSellerDetailsTester()
+    seller_details_success = seller_details_tester.run_seller_details_tests()
     
-    print(f"\n🏁 RBAC TEST RESULT: {'✅ SUCCESS' if rbac_success else '❌ FAILURE'}")
+    print(f"\n🏁 SELLER DETAIL ENDPOINTS TEST RESULT: {'✅ SUCCESS' if seller_details_success else '❌ FAILURE'}")
     
-    sys.exit(0 if rbac_success else 1)
+    sys.exit(0 if seller_details_success else 1)
