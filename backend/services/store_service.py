@@ -60,6 +60,18 @@ class StoreService:
         """
         return await self.store_repo.find_by_gerant(gerant_id)
     
+    async def get_store_by_id(self, store_id: str) -> Dict:
+        """
+        Get a store by its ID
+        
+        Args:
+            store_id: Store ID
+            
+        Returns:
+            Store dict or None
+        """
+        return await self.store_repo.find_by_id(store_id)
+    
     async def get_store_hierarchy(self, store_id: str) -> Dict:
         """
         Get complete store hierarchy with users
