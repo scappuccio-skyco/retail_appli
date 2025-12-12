@@ -1,3 +1,29 @@
+# Test Session Update - Store KPI Analysis Restored
+
+## Additional Fix: Store KPI Analysis (Legacy Restored) ✅
+
+**Root Cause**: The endpoint `analyze-store-kpis` was using:
+- ❌ `gpt-4o-mini` instead of `gpt-4o`
+- ❌ Generic prompt instead of expert retail prompt
+- ❌ Old OpenAI SDK call instead of `LlmChat`
+
+**Fix Applied**:
+- ✅ Using GPT-4o for premium analysis
+- ✅ System message: "Expert en analyse de performance retail avec 15 ans d'expérience"
+- ✅ Boutique physique context (no active prospection)
+- ✅ Structured output: `## ANALYSE` + `## RECOMMANDATIONS`
+- ✅ Focus on: accueil, découverte besoins, argumentation, closing, fidélisation
+
+**Files Modified**: `/app/backend/api/routes/manager.py` (analyze-store-kpis endpoint)
+
+**API Test Result** (curl):
+- Store: Livry gargan 93
+- Period: 2025-11-12 to 2025-12-12
+- Analysis: ✅ Generated with proper sections and actionable recommendations
+
+---
+
+
 # New Test Session - December 12, 2025
 
 ## Bugs Fixed in This Session:
