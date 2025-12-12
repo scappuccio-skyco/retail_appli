@@ -5,7 +5,7 @@ Dashboard stats, subscription status, and workspace management
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from datetime import datetime, timezone
-from typing import Dict
+from typing import Dict, Optional
 import os
 import stripe
 
@@ -15,6 +15,42 @@ from api.dependencies import get_gerant_service, get_db
 import logging
 
 logger = logging.getLogger(__name__)
+
+# ==========================================
+# STRIPE PRICE CONFIGURATION
+# ==========================================
+# Ces Price IDs correspondent aux produits Stripe configurés
+# Ils peuvent être surchargés par les variables d'environnement
+STRIPE_PRICES = {
+    # Prix par siège/mois selon le palier
+    "starter": {
+        "monthly": os.environ.get("STRIPE_PRICE_STARTER_MONTHLY", "price_1SS2XxIVM4C8dIGvpBRcYSNX"),
+        "yearly": os.environ.get("STRIPE_PRICE_STARTER_YEARLY", "price_1SS2XxIVM4C8dIGvpBRcYSNX_yearly"),
+        "price_monthly": 29,
+        "price_yearly": 278,  # 29 * 12 * 0.8 = 278.40 arrondi
+    },
+    "professional": {
+        "monthly": os.environ.get("STRIPE_PRICE_PRO_MONTHLY", "price_1SS2XxIVM4C8dIGvpBRcYSNX"),
+        "yearly": os.environ.get("STRIPE_PRICE_PRO_YEARLY", "price_1SS2XxIVM4C8dIGvpBRcYSNX_yearly"),
+        "price_monthly": 25,
+        "price_yearly": 240,  # 25 * 12 * 0.8 = 240
+    },
+    "enterprise": {
+        "monthly": os.environ.get("STRIPE_PRICE_ENTERPRISE_MONTHLY", "price_1SS2XxIVM4C8dIGvpBRcYSNX"),
+        "yearly": os.environ.get("STRIPE_PRICE_ENTERPRISE_YEARLY", "price_1SS2XxIVM4C8dIGvpBRcYSNX_yearly"),
+        "price_monthly": 22,
+        "price_yearly": 211,  # 22 * 12 * 0.8 = 211.20 arrondi
+    }
+}
+
+def get_plan_from_seats(seats: int) -> str:
+    """Determine plan tier based on seat count"""
+    if seats <= 5:
+        return "starter"
+    elif seats <= 15:
+        return "professional"
+    else:
+        return "enterprise"
 
 router = APIRouter(prefix="/gerant", tags=["Gérant"])
 
