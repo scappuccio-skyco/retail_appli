@@ -1279,3 +1279,130 @@ async def delete_my_diagnostic(
         return {"success": True, "deleted_count": result.deleted_count}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===== DAILY CHALLENGE REFRESH =====
+
+@router.post("/daily-challenge/refresh")
+async def refresh_daily_challenge(
+    data: dict = None,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Refresh/regenerate the daily challenge for the seller.
+    Deletes the current uncompleted challenge and generates a new one.
+    Optionally forces a specific competence.
+    """
+    from uuid import uuid4
+    
+    try:
+        seller_id = current_user['id']
+        today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        
+        # Get force_competence from data if provided
+        force_competence = None
+        if data:
+            force_competence = data.get('force_competence') or data.get('competence')
+        
+        # Delete current uncompleted challenge for today
+        await db.daily_challenges.delete_many({
+            "seller_id": seller_id,
+            "date": today,
+            "completed": False
+        })
+        
+        # Get seller's diagnostic for personalization
+        diagnostic = await db.diagnostics.find_one({
+            "seller_id": seller_id
+        }, {"_id": 0})
+        
+        # Get recent challenges to avoid repetition
+        recent = await db.daily_challenges.find(
+            {"seller_id": seller_id},
+            {"_id": 0}
+        ).sort("date", -1).limit(5).to_list(5)
+        
+        recent_competences = [ch.get('competence') for ch in recent if ch.get('competence')]
+        
+        # Select competence
+        if force_competence and force_competence in ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']:
+            selected_competence = force_competence
+        elif not diagnostic:
+            competences = ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']
+            # Random but avoid last used
+            import random
+            available = [c for c in competences if c not in recent_competences[:2]]
+            selected_competence = random.choice(available) if available else random.choice(competences)
+        else:
+            # Find weakest competence not recently used
+            scores = {
+                'accueil': diagnostic.get('score_accueil', 3),
+                'decouverte': diagnostic.get('score_decouverte', 3),
+                'argumentation': diagnostic.get('score_argumentation', 3),
+                'closing': diagnostic.get('score_closing', 3),
+                'fidelisation': diagnostic.get('score_fidelisation', 3)
+            }
+            sorted_comps = sorted(scores.items(), key=lambda x: x[1])
+            
+            selected_competence = None
+            for comp, score in sorted_comps:
+                if comp not in recent_competences[:2]:
+                    selected_competence = comp
+                    break
+            
+            if not selected_competence:
+                selected_competence = sorted_comps[0][0]
+        
+        # Challenge templates by competence
+        templates = {
+            'accueil': [
+                {'title': 'Accueil Excellence', 'description': 'Accueillez chaque client avec un sourire et une phrase personnalisée dans les 10 premières secondes.'},
+                {'title': 'Premier Contact', 'description': 'Établissez un contact visuel et saluez chaque client qui entre en boutique.'},
+                {'title': 'Ambiance Positive', 'description': 'Créez une ambiance chaleureuse dès l\'entrée du client avec une attitude ouverte.'}
+            ],
+            'decouverte': [
+                {'title': 'Questions Magiques', 'description': 'Posez au moins 3 questions ouvertes à chaque client pour comprendre ses besoins.'},
+                {'title': 'Écoute Active', 'description': 'Reformulez les besoins du client pour montrer que vous avez bien compris.'},
+                {'title': 'Détective Client', 'description': 'Identifiez le besoin caché derrière la demande initiale du client.'}
+            ],
+            'argumentation': [
+                {'title': 'Argumentaire Pro', 'description': 'Utilisez la technique CAB (Caractéristique-Avantage-Bénéfice) pour chaque produit présenté.'},
+                {'title': 'Storytelling', 'description': 'Racontez une histoire ou un cas client pour illustrer les avantages du produit.'},
+                {'title': 'Démonstration', 'description': 'Faites toucher/essayer le produit à chaque client pour créer l\'expérience.'}
+            ],
+            'closing': [
+                {'title': 'Closing Master', 'description': 'Proposez la conclusion de la vente avec une question fermée positive.'},
+                {'title': 'Alternative Gagnante', 'description': 'Proposez deux options au client plutôt qu\'une seule.'},
+                {'title': 'Urgence Douce', 'description': 'Créez un sentiment d\'opportunité avec une offre limitée dans le temps.'}
+            ],
+            'fidelisation': [
+                {'title': 'Client Fidèle', 'description': 'Remerciez chaque client et proposez un contact ou suivi personnalisé.'},
+                {'title': 'Carte VIP', 'description': 'Proposez l\'inscription au programme de fidélité à chaque client.'},
+                {'title': 'Prochain RDV', 'description': 'Suggérez une prochaine visite avec un événement ou nouveauté à venir.'}
+            ]
+        }
+        
+        import random
+        template_list = templates.get(selected_competence, templates['accueil'])
+        template = random.choice(template_list)
+        
+        challenge = {
+            "id": str(uuid4()),
+            "seller_id": seller_id,
+            "date": today,
+            "competence": selected_competence,
+            "title": template['title'],
+            "description": template['description'],
+            "completed": False,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.daily_challenges.insert_one(challenge)
+        if '_id' in challenge:
+            del challenge['_id']
+        
+        return challenge
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error refreshing challenge: {str(e)}")
