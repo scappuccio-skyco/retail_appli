@@ -152,29 +152,31 @@ async def get_subscription_status(
 @router.get("/store-kpi-overview")
 async def get_store_kpi_overview(
     date: str = Query(None),
-    current_user: dict = Depends(verify_manager),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
     db = Depends(get_db)
 ):
     """
-    Get KPI overview for manager's store on a specific date
-    Returns aggregated KPIs for all sellers
+    Get KPI overview for manager's store on a specific date.
+    Returns aggregated KPIs for all sellers.
+    
+    - Manager: Uses their assigned store
+    - Gérant: Must provide store_id query param
     """
-    store_id = current_user.get('store_id')
-    if not store_id:
-        raise HTTPException(status_code=400, detail="Manager not assigned to a store")
+    resolved_store_id = context.get('resolved_store_id')
     
     # Use provided date or today
     target_date = date or datetime.now(timezone.utc).strftime('%Y-%m-%d')
     
     # Get all KPI entries for the store on this date
     kpi_entries = await db.kpi_entries.find({
-        "store_id": store_id,
+        "store_id": resolved_store_id,
         "date": target_date
     }, {"_id": 0}).to_list(1000)
     
     # Also get manager KPIs
     manager_kpis = await db.manager_kpi.find({
-        "store_id": store_id,
+        "store_id": resolved_store_id,
         "date": target_date
     }, {"_id": 0}).to_list(100)
     
