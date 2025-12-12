@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://gerant-dashboard-1.preview.emergentagent.com
+https://accessfix-1.preview.emergentagent.com
 
 ### Manager
 ```
