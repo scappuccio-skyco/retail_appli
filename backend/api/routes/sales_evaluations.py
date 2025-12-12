@@ -145,7 +145,8 @@ async def create_evaluation(
     }
     
     await db.evaluations.insert_one(evaluation)
-    del evaluation['_id'] if '_id' in evaluation else None
+    if '_id' in evaluation:
+        del evaluation['_id']
     
     return evaluation
 
