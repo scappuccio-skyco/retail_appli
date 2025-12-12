@@ -310,6 +310,90 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
     }
   };
 
+  // ==========================================
+  // INTERVAL SWITCH HANDLERS
+  // ==========================================
+  
+  const handleIntervalToggleClick = async () => {
+    // Get current subscription interval
+    const currentInterval = subscriptionInfo?.subscription?.billing_interval || 'month';
+    const isCurrentlyActive = subscriptionInfo?.status === 'active';
+    const isCurrentlyTrial = subscriptionInfo?.status === 'trialing';
+    
+    // If no active subscription, just toggle the UI state (for new subscriptions)
+    if (!isCurrentlyActive && !isCurrentlyTrial) {
+      setIsAnnual(!isAnnual);
+      return;
+    }
+    
+    // If currently on annual and trying to switch to monthly -> blocked
+    if (currentInterval === 'year' && isAnnual) {
+      // User is trying to uncheck annual (go back to monthly)
+      toast.error(
+        '❌ Impossible de passer de l\'annuel au mensuel. Pour changer, annulez votre abonnement actuel.',
+        { duration: 5000 }
+      );
+      return;
+    }
+    
+    // If currently monthly and wanting to go annual -> show confirmation modal
+    if (currentInterval === 'month' && !isAnnual) {
+      // Fetch preview first
+      setLoadingIntervalSwitch(true);
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.post(
+          `${API}/api/gerant/subscription/preview`,
+          { new_interval: 'year' },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        setIntervalSwitchPreview(response.data);
+        setShowIntervalSwitchModal(true);
+      } catch (error) {
+        console.error('Error fetching interval preview:', error);
+        toast.error(error.response?.data?.detail || 'Erreur lors du calcul du changement');
+      } finally {
+        setLoadingIntervalSwitch(false);
+      }
+      return;
+    }
+    
+    // Otherwise just toggle (for display purposes in plan selection)
+    setIsAnnual(!isAnnual);
+  };
+  
+  const handleConfirmIntervalSwitch = async () => {
+    setSwitchingInterval(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${API}/api/gerant/subscription/switch-interval`,
+        { interval: 'year' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Success!
+      toast.success(response.data.message, { duration: 5000 });
+      
+      // Update local state
+      setIsAnnual(true);
+      setShowIntervalSwitchModal(false);
+      setIntervalSwitchPreview(null);
+      
+      // Refresh subscription info
+      if (typeof fetchSubscriptionStatus === 'function') {
+        await fetchSubscriptionStatus();
+      }
+      
+    } catch (error) {
+      console.error('Error switching interval:', error);
+      toast.error(error.response?.data?.detail || 'Erreur lors du changement d\'intervalle');
+    } finally {
+      setSwitchingInterval(false);
+    }
+  };
+
   const handleSelectPlan = (plan) => {
     // Check if trying to downgrade from annual to monthly (NOT ALLOWED)
     const currentBillingPeriod = subscriptionInfo?.subscription?.billing_interval || 'month';
