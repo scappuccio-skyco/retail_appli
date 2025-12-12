@@ -154,7 +154,11 @@ async def create_manager_diagnostic(
         # Remove _id before returning
         diagnostic_doc.pop('_id', None)
         
-        return diagnostic_doc
+        # Return in format expected by frontend
+        return {
+            "status": "completed",
+            "diagnostic": diagnostic_doc
+        }
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating diagnostic: {str(e)}")
@@ -163,7 +167,7 @@ async def create_manager_diagnostic(
 @router.get("/me")
 async def get_my_diagnostic(
     current_user: dict = Depends(verify_manager_or_gerant),
-    diagnostic_service: DiagnosticService = Depends(get_diagnostic_service)
+    db = Depends(get_db)
 ):
     """
     Get current user's DISC diagnostic profile
@@ -171,15 +175,22 @@ async def get_my_diagnostic(
     Returns manager's/gérant's personality profile (DISC method)
     """
     try:
-        diagnostic = await diagnostic_service.get_manager_diagnostic(current_user['id'])
+        diagnostic = await db.manager_diagnostics.find_one(
+            {"manager_id": current_user['id']},
+            {"_id": 0}
+        )
         
         if not diagnostic:
             return {
+                "status": "not_completed",
                 "manager_id": current_user['id'],
                 "completed": False,
                 "message": "Diagnostic not completed yet"
             }
         
-        return diagnostic
+        return {
+            "status": "completed",
+            "diagnostic": diagnostic
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
