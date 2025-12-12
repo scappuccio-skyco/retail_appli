@@ -27,7 +27,7 @@ export default function LandingPage() {
               <img src="/logo-icon.png" alt="Retail Performer AI" className="h-12 sm:h-14 w-auto" />
               <div className="flex flex-col">
                 <span className="text-base sm:text-xl font-bold text-[#1E40AF] leading-tight">Retail Performer AI</span>
-                <span className="text-xs sm:text-sm font-medium text-gray-700">by SKY CO</span>
+                <span className="text-sm sm:text-base font-bold">by <span className="text-gray-900">SKY</span> <span className="text-[#F97316]">CO</span></span>
               </div>
             </div>
 
@@ -933,7 +933,7 @@ export default function LandingPage() {
                 <img src="/logo-icon.png" alt="Retail Performer AI" className="h-10 sm:h-12 w-auto" />
                 <div className="flex flex-col">
                   <span className="text-base font-bold text-white leading-tight">Retail Performer AI</span>
-                  <span className="text-xs font-medium text-gray-400">by SKY CO</span>
+                  <span className="text-sm font-bold">by <span className="text-white">SKY</span> <span className="text-[#F97316]">CO</span></span>
                 </div>
               </div>
               <p className="text-[#94A3B8] text-xs sm:text-sm">

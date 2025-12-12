@@ -123,7 +123,7 @@ export default function Login({ onLogin }) {
               />
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#1E40AF]">Retail Performer AI</h1>
-            <p className="text-sm text-gray-700 font-medium">by SKY CO</p>
+            <p className="text-base font-bold">by <span className="text-gray-900">SKY</span> <span className="text-[#F97316]">CO</span></p>
             {inviteInfo ? (
               <p className="text-gray-600 mt-2">
                 Rejoignez l'équipe de {inviteInfo.manager_name}

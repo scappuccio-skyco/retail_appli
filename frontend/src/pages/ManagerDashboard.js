@@ -829,7 +829,7 @@ export default function ManagerDashboard({ user, onLogout }) {
             <div>
               <div className="flex flex-col">
                 <span className="text-lg sm:text-xl md:text-2xl font-bold text-[#1E40AF] leading-tight">Retail Performer AI</span>
-                <span className="text-xs sm:text-sm font-medium text-gray-700">by SKY CO</span>
+                <span className="text-sm sm:text-base font-bold">by <span className="text-gray-900">SKY</span> <span className="text-[#F97316]">CO</span></span>
               </div>
               <p className="text-gray-600 text-sm sm:text-base mt-1">
                 Bienvenue, {user.name}

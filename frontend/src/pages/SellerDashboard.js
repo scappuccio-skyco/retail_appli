@@ -811,7 +811,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               <img src="/logo-icon.png" alt="Retail Performer AI" className="h-10 sm:h-12 object-contain" />
               <div className="hidden sm:flex flex-col">
                 <span className="text-base font-bold text-[#1E40AF] leading-tight">Retail Performer AI</span>
-                <span className="text-xs font-medium text-gray-700">by SKY CO</span>
+                <span className="text-sm font-bold">by <span className="text-gray-900">SKY</span> <span className="text-[#F97316]">CO</span></span>
               </div>
             </div>
             <div>
