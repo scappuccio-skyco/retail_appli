@@ -961,3 +961,247 @@ async def get_seller_store_info(
         
     except Exception as e:
         return {"name": "Magasin", "id": None}
+
+
+# ===== CREATE DIAGNOSTIC =====
+# 🏺 LEGACY RESTORED - Full diagnostic creation with AI analysis
+
+from pydantic import BaseModel, Field
+from uuid import uuid4
+
+class DiagnosticCreate(BaseModel):
+    responses: dict
+
+
+def calculate_competence_scores_from_questionnaire(responses: dict) -> dict:
+    """
+    Calculate competence scores from questionnaire responses
+    Questions 1-15 are mapped to 5 competences (3 questions each)
+    """
+    competence_mapping = {
+        'accueil': [1, 2, 3],
+        'decouverte': [4, 5, 6],
+        'argumentation': [7, 8, 9],
+        'closing': [10, 11, 12],
+        'fidelisation': [13, 14, 15]
+    }
+    
+    question_scores = {
+        1: [5, 3, 4],
+        2: [5, 4, 3, 2],
+        3: [3, 5, 4],
+        4: [5, 4, 3],
+        5: [5, 4, 4, 3],
+        6: [5, 3, 4],
+        7: [3, 5, 4],
+        8: [3, 5, 4, 3],
+        9: [4, 3, 5],
+        10: [5, 4, 5, 3],
+        11: [4, 3, 5],
+        12: [5, 4, 5, 3],
+        13: [4, 4, 5, 5],
+        14: [4, 5, 3],
+        15: [5, 3, 5, 4]
+    }
+    
+    scores = {
+        'accueil': [],
+        'decouverte': [],
+        'argumentation': [],
+        'closing': [],
+        'fidelisation': []
+    }
+    
+    for competence, question_ids in competence_mapping.items():
+        for q_id in question_ids:
+            q_key = str(q_id)
+            if q_key in responses:
+                response_value = responses[q_key]
+                if isinstance(response_value, int):
+                    option_idx = response_value
+                    if q_id in question_scores and option_idx < len(question_scores[q_id]):
+                        scores[competence].append(question_scores[q_id][option_idx])
+                    else:
+                        scores[competence].append(3.0)
+                else:
+                    scores[competence].append(3.0)
+    
+    final_scores = {}
+    for competence, score_list in scores.items():
+        if score_list:
+            final_scores[f'score_{competence}'] = round(sum(score_list) / len(score_list), 1)
+        else:
+            final_scores[f'score_{competence}'] = 3.0
+    
+    return final_scores
+
+
+def calculate_disc_profile(disc_responses: dict) -> dict:
+    """Calculate DISC profile from questions 16-23"""
+    d_score = 0
+    i_score = 0
+    s_score = 0
+    c_score = 0
+    
+    disc_mapping = {
+        '16': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
+        '17': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
+        '18': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
+        '19': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
+        '20': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
+        '21': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
+        '22': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
+        '23': {'D': [0], 'I': [1], 'S': [2], 'C': [3]},
+    }
+    
+    for q_key, response in disc_responses.items():
+        if q_key in disc_mapping:
+            mapping = disc_mapping[q_key]
+            if isinstance(response, int):
+                if response in mapping.get('D', []):
+                    d_score += 1
+                elif response in mapping.get('I', []):
+                    i_score += 1
+                elif response in mapping.get('S', []):
+                    s_score += 1
+                elif response in mapping.get('C', []):
+                    c_score += 1
+    
+    total = d_score + i_score + s_score + c_score
+    if total == 0:
+        total = 1
+    
+    percentages = {
+        'D': round(d_score / total * 100),
+        'I': round(i_score / total * 100),
+        'S': round(s_score / total * 100),
+        'C': round(c_score / total * 100)
+    }
+    
+    dominant = max(percentages, key=percentages.get)
+    
+    return {
+        'dominant': dominant,
+        'percentages': percentages
+    }
+
+
+@diagnostic_router.post("")
+async def create_diagnostic(
+    diagnostic_data: DiagnosticCreate,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Create or update seller's DISC diagnostic profile.
+    Uses AI to analyze responses and generate profile summary.
+    """
+    from services.ai_service import AIService
+    import json
+    
+    try:
+        seller_id = current_user['id']
+        responses = diagnostic_data.responses
+        
+        # Delete existing diagnostic if any (allow update)
+        await db.diagnostics.delete_many({"seller_id": seller_id})
+        
+        # Calculate competence scores from questionnaire
+        competence_scores = calculate_competence_scores_from_questionnaire(responses)
+        
+        # Calculate DISC profile from questions 16-23
+        disc_responses = {k: v for k, v in responses.items() if k.isdigit() and int(k) >= 16}
+        disc_profile = calculate_disc_profile(disc_responses)
+        
+        # AI Analysis for style, level, motivation
+        ai_service = AIService()
+        ai_analysis = {
+            "style": "Convivial",
+            "level": "Challenger",
+            "motivation": "Relation",
+            "summary": "Profil en cours d'analyse."
+        }
+        
+        if ai_service.available:
+            try:
+                # Format responses for AI
+                responses_text = "\n".join([f"Question {k}: {v}" for k, v in responses.items()])
+                
+                prompt = f"""Voici les réponses d'un vendeur à un test comportemental :
+
+{responses_text}
+
+Analyse ses réponses pour identifier :
+- son style de vente dominant (Convivial, Explorateur, Dynamique, Discret ou Stratège)
+- son niveau global (Explorateur, Challenger, Ambassadeur, Maître du Jeu)
+- ses leviers de motivation (Relation, Reconnaissance, Performance, Découverte)
+
+Rédige un retour structuré avec une phrase d'intro, deux points forts, un axe d'amélioration et une phrase motivante.
+
+Réponds au format JSON:
+{{"style": "...", "level": "...", "motivation": "...", "summary": "..."}}"""
+
+                chat = ai_service._create_chat(
+                    session_id=f"diagnostic_{seller_id}",
+                    system_message="Tu es un expert en analyse comportementale de vendeurs retail.",
+                    model="gpt-4o-mini"
+                )
+                
+                response = await ai_service._send_message(chat, prompt)
+                
+                if response:
+                    # Parse JSON
+                    clean = response.strip()
+                    if "```json" in clean:
+                        clean = clean.split("```json")[1].split("```")[0]
+                    elif "```" in clean:
+                        clean = clean.split("```")[1].split("```")[0]
+                    
+                    try:
+                        ai_analysis = json.loads(clean.strip())
+                    except:
+                        pass
+                        
+            except Exception as e:
+                print(f"AI diagnostic error: {e}")
+        
+        # Create diagnostic document
+        diagnostic = {
+            "id": str(uuid4()),
+            "seller_id": seller_id,
+            "responses": responses,
+            "ai_profile_summary": ai_analysis.get('summary', ''),
+            "style": ai_analysis.get('style', 'Convivial'),
+            "level": ai_analysis.get('level', 'Challenger'),
+            "motivation": ai_analysis.get('motivation', 'Relation'),
+            "score_accueil": competence_scores.get('score_accueil', 3.0),
+            "score_decouverte": competence_scores.get('score_decouverte', 3.0),
+            "score_argumentation": competence_scores.get('score_argumentation', 3.0),
+            "score_closing": competence_scores.get('score_closing', 3.0),
+            "score_fidelisation": competence_scores.get('score_fidelisation', 3.0),
+            "disc_dominant": disc_profile['dominant'],
+            "disc_percentages": disc_profile['percentages'],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.diagnostics.insert_one(diagnostic)
+        if '_id' in diagnostic:
+            del diagnostic['_id']
+        
+        return diagnostic
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating diagnostic: {str(e)}")
+
+
+@diagnostic_router.delete("/me")
+async def delete_my_diagnostic(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Delete seller's diagnostic to allow re-taking the questionnaire."""
+    try:
+        result = await db.diagnostics.delete_many({"seller_id": current_user['id']})
+        return {"success": True, "deleted_count": result.deleted_count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
