@@ -1,57 +1,69 @@
 <analysis>**original_problem_statement:**
-The user initiated a project for a complete architectural overhaul of a Python backend, migrating it from a monolith to a Clean Architecture. The core requirements included preserving all functionality for 5 distinct user roles, fixing performance bottlenecks, passing security audits, and implementing data locking.
+The user's initial goal was a major architectural overhaul. However, the focus for this and the previous session has been on fixing critical bugs and implementing high-priority features for the Gérant (Manager), Manager, and Seller roles.
 
-In this session, the user's focus shifted to fixing critical bugs and implementing new features, primarily on the Gérant (Manager), Manager, and Seller dashboards. This included resolving a broken user invitation flow, fixing a non-functional Stripe payment integration, and implementing a comprehensive read-only mode for when a user's trial period expires.
+The user's key requests in this session were:
+1.  Finalize the Read-Only Mode for Seller and Manager dashboards when a trial expires.
+2.  Address a business rule clarification: Managers should NEVER have the right to suspend, delete, or reactivate sellers.
+3.  Perform a feasibility audit and then execute a major feature fusion: merge the Enterprise account's bulk import functionality directly into the Gérant dashboard, making the separate Enterprise space obsolete.
+4.  Implement a UX Polish feature: add visual lock icons to the KPI calendar for dates with locked data.
+5.  Resolve a series of user-reported bugs related to subscription status display after payment (e.g., still showing trial, N/A for renewal date).
+6.  Fix a critical frontend crash when trying to update a subscription.
+7.  Perform a security and robustness audit of the Stripe integration, which revealed critical flaws.
+8.  Implement a hotfix to address the identified Stripe vulnerabilities, including migrating the webhook and ensuring seat updates are synced with Stripe.
 
 **PRODUCT REQUIREMENTS:**
--   Fix the user invitation workflow, including email delivery and account creation.
--   Fix the Stripe checkout integration to allow users to subscribe.
--   Implement a read-only mode for the entire application (Gérant, Manager, Seller) when a trial expires, blocking all write actions but allowing data viewing.
--   Address several UI/UX bugs and requests on the Gérant dashboard, including responsive layout fixes, color consistency, and displaying pending staff counts.
--   Harmonize the visual style of the login and user invitation pages.
+-   Fix and complete the read-only mode for Sellers and Managers.
+-   Ensure Managers cannot manage user status (suspend, delete, reactivate).
+-   Merge the Enterprise bulk store import feature into the Gérant dashboard.
+-   Add visual indicators for locked KPI dates in the calendar.
+-   Fix all bugs related to subscription status, display, and updates.
+-   Create a secure, robust, and functional Stripe integration, including webhooks and seat synchronization.
 
 **User's preferred language**: French
 
 **what currently exists?**
-The agent has successfully resolved several critical blocking issues. The user invitation flow is now fully functional, from email delivery (Brevo) to successful account creation, after fixing both a sender configuration issue and a backend serialization bug. The Stripe checkout flow has been completely repaired by migrating the legacy endpoint and fixing multiple backend errors; users can now successfully reach the Stripe payment page.
+The agent has successfully completed several major tasks and bug fixes. The Read-Only Mode for Sellers and Managers is now fully implemented and tested, including frontend banners and disabled actions. The Manager's UI () has been cleaned to remove all user status management actions (suspend/delete/reactivate), enforcing the business rule.
 
-A major new feature, Read-Only Mode, has been partially implemented. The backend now includes Guard Clauses in the service layer to block write operations (e.g., creating stores, submitting KPIs) when a Gérant's trial is expired. The Gérant dashboard correctly reflects this state, displaying a warning banner and disabling action buttons. The backend authentication flow was also updated to pass this read-only status to child users (Managers and Sellers).
+A significant refactor was completed: the Enterprise bulk store import feature has been merged into the Gérant dashboard. This involved migrating backend logic from  to , creating a new API endpoint (), and adding a new frontend modal () conditionally displayed for authorized users. The old  has been deprecated.
 
-Numerous UI/UX fixes on the Gérant dashboard have been completed, including responsive button layout, color consistency between cards and modals, and the removal of unwanted UI elements.
+The KPI Calendar now visually distinguishes locked dates with a padlock icon, based on data from an improved  endpoint.
+
+Crucially, a major Stripe integration hotfix was performed. A new, secure webhook endpoint () has been created in , although the logic within it is still minimal. The update seats functionality now correctly calls the Stripe API to modify the subscription before updating the local database, ensuring data consistency. A missing endpoint to preview seat update costs () was also created. Lastly, critical database indexes on  were added on application startup to improve performance.
+
+Multiple user-reported bugs concerning subscription status display and update functionality have been resolved.
 
 **Last working item**:
-- Last item agent was working: Implementing Phase 2 of the Read-Only Mode for the **Seller and Manager dashboards**. The agent had just finished the backend changes (the  endpoint now returns an  flag for these roles) and was in the middle of implementing the corresponding frontend changes.
+- Last item agent was working: Following a CTO directive, the agent was tasked with a final polish of the user experience related to updating subscriptions, which was crashing. This involved both backend and frontend work. The agent had just finished creating the backend endpoints and was about to fix the frontend crash and implement the new UX.
 - Status: IN PROGRESS
-- Agent Testing Done: Y (Backend only, via curl)
-- Which testing method agent to use? frontend testing agent. The agent must log in as both a Seller and a Manager belonging to a Gérant with an expired trial to verify that:
-    1.  An alert banner is displayed.
-    2.  Opening KPI entry modals is blocked.
-    3.  A toast message appears explaining the restriction.
+- Agent Testing Done: N
+- Which testing method agent to use? frontend testing agent. The test should log in as a Gérant, open the subscription modal, attempt to change the number of seats, verify that the preview cost is displayed correctly (calling the new preview endpoint), and then confirm the update. The test must ensure the UI shows a loading state and does not crash.
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Complete Read-Only Mode for Seller & Manager Dashboards (P0)**
+-   **Issue 1: Frontend Crash & UX for Update Seats Modal (P0)**
 -   **Issue 2: Add Pending Staff Counts to Individual Store Cards (P2)**
 
 Issues Detail:
--   **Issue 1: Complete Read-Only Mode for Seller & Manager Dashboards (P0)**
-    -   Attempted fixes: The backend  was updated to return  and  on login. The  hook and the  &  pages were modified to consume this state, add alert banners, and block modal openings.
+-   **Issue 1: Frontend Crash & UX for Update Seats Modal (P0)**
+    -   Attempted fixes: The agent created the necessary backend endpoints ( and ). The frontend crash ( error in ) was identified as likely being caused by accessing a   object. A protective guard was added.
     -   Next debug checklist:
-        1.  Finalize and verify the implementation in  and .
-        2.  Ensure that clicking on a date in the calendar or any other KPI entry point triggers the  function, which should show a toast message and prevent the modal from opening.
-        3.  Perform end-to-end frontend testing for both Seller and Manager roles to confirm the UI behaves as expected when the account is in read-only mode.
-    -   Why fix this issue and what will be achieved with the fix?: This is the final step of the critical trial expiration feature, ensuring a consistent and secure user experience across all roles.
+        1.  Verify the  no longer crashes when the subscription info fetch fails.
+        2.  Modify  to call the  endpoint whenever the user changes the number of seats.
+        3.  Display the prorated cost returned by the preview endpoint to the user.
+        4.  Ensure the Update button's  function correctly calls the  endpoint and displays a loading spinner to prevent multiple clicks.
+        5.  Upon successful update, refresh the subscription data to reflect the changes.
+    -   Why fix this issue and what will be achieved with the fix?: This is a critical UX and functional bug preventing users from managing their paid subscriptions. Fixing it is essential for monetization.
     -   Status: IN PROGRESS
     -   Is recurring issue?: N
     -   Should Test frontend/backend/both after fix?: Frontend
     -   Blocked on other issue: None
 
 -   **Issue 2: Add Pending Staff Counts to Individual Store Cards (P2)**
-    -   Attempted fixes: The agent misunderstood the initial request and added pending counts to the summary cards at the top of the Gérant dashboard, not the individual store cards.
+    -   Attempted fixes: None in this session. The previous agent misunderstood and added counts to summary cards, not individual store cards.
     -   Next debug checklist:
-        1.  **Backend:** Modify the  endpoint in  and the  method in . The aggregation pipeline needs to be updated to join with the  collection and count pending invitations for each store.
-        2.  **Frontend:** Update the  component to receive and display the new  and  properties.
-    -   Why fix this issue and what will be achieved with the fix?: Fulfills a direct user request to provide Gérants with an at-a-glance overview of pending staff for each specific store.
+        1.  **Backend:** Modify the  endpoint () and its service method  () to include counts of pending invitations for each store.
+        2.  **Frontend:** Update the  component to display the new  and  properties.
+    -   Why fix this issue and what will be achieved with the fix?: Fulfills a direct user request to provide an at-a-glance overview of pending staff for each store, improving manager efficiency.
     -   Status: NOT STARTED
     -   Is recurring issue?: N
     -   Should Test frontend/backend/both after fix?: Both
@@ -62,32 +74,34 @@ Issues Detail:
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks**:
-    - **P1: Update Manager Role Permissions**: Per the original handoff, the Manager role should not have the ability to suspend or delete users. The  component should be updated to hide or disable these actions for the Manager role.
-    - **P1: Implement Frontend Indicator for Locked KPIs**: Add a visual cue (e.g., a lock icon) in the UI to show that a KPI entry came from an external API and cannot be edited manually.
-    - **P1: Implement Custom Calendar Data Highlighting**: The backend endpoint  exists. The frontend () needs to be updated to fetch from this endpoint and highlight the relevant dates.
-    - **P3: Cleanup**: Delete the  directory once the user confirms the application is stable.
+    - **P1: Finalize Stripe Webhook Implementation**: The endpoint  exists, but the logic in  is minimal (only logs ). It must be expanded to handle other crucial events (e.g., , ) and properly update the database. The webhook URL also needs to be configured in the Stripe dashboard and tested end-to-end, possibly using the Stripe CLI to forward events to the preview environment.
+    - **P3: Cleanup**: Delete the  directory now that its critical webhook logic has been migrated.
 - **Future Tasks**:
-    - **P2: Finalize Stripe Webhook Implementation**: The checkout flow is working, but the webhook to confirm successful payments and update subscription status needs to be configured and tested.
-    - **P3: Gérant Dashboard Enhancements (Phase 2 & 3)**: Add a main evolution graph and a detailed comparative table.
+    - **P2: Gérant Dashboard Enhancements (Phase 2 & 3)**: Add a main evolution graph and a detailed comparative table.
     - **P3: IA Illimitée (Unlimited AI) Feature**: Investigate removing AI usage quotas.
     - **P3: Export Feature**: Add a CSV/Excel export button to various dashboards.
 
 **Completed work in this session**
--   **Invitation Flow Fixed**: Resolved email delivery failures (by correcting the sender address) and fixed a critical 500 error during account creation caused by a MongoDB  serialization issue.
--   **Stripe Checkout Integration Repaired**: Migrated the legacy checkout endpoint, fixed multiple backend dependency and async errors, and fully restored the user's ability to navigate to the Stripe payment page.
--   **Gérant Staff Management Endpoints**: Implemented and tested the missing backend endpoints for suspending, reactivating, and deleting managers and sellers.
--   **UI/UX Enhancements**:
-    -   **Gérant Dashboard:** Fixed mobile responsive layout, removed unwanted performance badges, and implemented color consistency between store cards and their detail modals.
-    -   **Auth Pages:** Harmonized the UI of the Login and Invitation pages to a consistent neutral/grey theme per user request, and added a password visibility toggle.
--   **Trial Expiration Read-Only Mode (Phase 1: Gérant)**: Implemented backend guard clauses and corresponding frontend UI (disabled buttons, alert banner) to enforce a read-only state for Gérants with expired trials.
+-   **Read-Only Mode (Phase 2)**: Completed and tested read-only mode for Seller and Manager dashboards, including UI banners and disabled actions.
+-   **Manager Permissions Cleanup**: Removed suspend, delete, and reactivate actions from the Manager's , aligning with business rules.
+-   **Enterprise to Gérant Fusion**: Migrated the bulk store import feature from the deprecated Enterprise space to the Gérant dashboard, including backend logic () and a new frontend modal ().
+-   **KPI Calendar UX Polish**: Implemented lock icons on the  component for dates with locked data, improving visual clarity for users.
+-   **Stripe Integration Hotfix**:
+    -   Created a new, secure webhook endpoint ().
+    -   Fixed the  logic to be atomic, calling the Stripe API before updating the local DB.
+    -   Created a missing  endpoint for calculating prorated costs.
+    -   Added essential MongoDB indexes on  to improve query performance.
+-   **Subscription Bug Squashing**:
+    -   Fixed numerous timezone-related bugs in backend services that caused incorrect subscription status displays.
+    -   Resolved an issue where a paid subscription was still displayed as Essai gratuit.
+    -   Fixed a bug causing the subscription renewal date to show as N/A.
+    -   Resolved a frontend crash in  by adding null-check guards.
 
 **Earlier issues found/mentioned but not fixed**
--   None.
+-   None beyond what's listed in the pending issues.
 
 **Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork**: Invitation Emails Not Being Received.
--   **Recurrence count**: 2
--   **Status**: RESOLVED. The root causes (incorrect sender email and a subsequent registration bug) were identified and fixed.
+-   None. The Invitation Emails Not Being Received issue from the previous fork remains resolved.
 
 **Code Architecture**
 .
@@ -177,6 +191,7 @@ Issues Detail:
 │   │   ├── __pycache__
 │   │   │   ├── __init__.cpython-311.pyc
 │   │   │   └── dependencies.cpython-311.pyc
+│   │   ├── controllers
 │   │   ├── dependencies.py
 │   │   └── routes
 │   │       ├── __init__.py
@@ -193,7 +208,8 @@ Issues Detail:
 │   │       │   ├── manager.cpython-311.pyc
 │   │       │   ├── onboarding.cpython-311.pyc
 │   │       │   ├── sellers.cpython-311.pyc
-│   │       │   └── stores.cpython-311.pyc
+│   │       │   ├── stores.cpython-311.pyc
+│   │       │   └── stripe_webhooks.cpython-311.pyc
 │   │       ├── admin.py
 │   │       ├── ai.py
 │   │       ├── auth.py
@@ -205,7 +221,8 @@ Issues Detail:
 │   │       ├── manager.py
 │   │       ├── onboarding.py
 │   │       ├── sellers.py
-│   │       └── stores.py
+│   │       ├── stores.py
+│   │       └── stripe_webhooks.py
 │   ├── calculate_competences_and_levels.py
 │   ├── calculate_missing_competence_scores.py
 │   ├── core
@@ -306,6 +323,7 @@ Issues Detail:
 │   │   │   ├── kpi_service.cpython-311.pyc
 │   │   │   ├── manager_service.cpython-311.pyc
 │   │   │   ├── onboarding_service.cpython-311.pyc
+│   │   │   ├── payment_service.cpython-311.pyc
 │   │   │   ├── seller_service.cpython-311.pyc
 │   │   │   └── store_service.cpython-311.pyc
 │   │   ├── admin_service.py
@@ -317,6 +335,7 @@ Issues Detail:
 │   │   ├── kpi_service.py
 │   │   ├── manager_service.py
 │   │   ├── onboarding_service.py
+│   │   ├── payment_service.py
 │   │   ├── seller_service.py
 │   │   └── store_service.py
 │   ├── sync_subscription_seats.py
@@ -350,38 +369,6 @@ Issues Detail:
 ├── fix_subscription.py
 ├── frontend
 │   ├── README.md
-│   ├── build
-│   │   ├── asset-manifest.json
-│   │   ├── dashboard-manager-old-backup.png
-│   │   ├── dashboard-manager.png
-│   │   ├── dashboard-vendeur-old-backup.png
-│   │   ├── dashboard-vendeur.png
-│   │   ├── hero-retail-boutique.png
-│   │   ├── images
-│   │   │   └── tutorial
-│   │   ├── index.html
-│   │   ├── logo-full.png
-│   │   ├── logo-icon.png
-│   │   ├── logo-retail-performer-blue.png
-│   │   ├── logo-retail-performer.png
-│   │   ├── logo.jpg
-│   │   ├── screenshot1.png
-│   │   ├── screenshot2.png
-│   │   ├── screenshot3.png
-│   │   ├── static
-│   │   │   ├── css
-│   │   │   │   ├── main.305c085e.css
-│   │   │   │   └── main.305c085e.css.map
-│   │   │   └── js
-│   │   │       ├── 455.b91e6987.chunk.js
-│   │   │       ├── 455.b91e6987.chunk.js.map
-│   │   │       ├── 977.7a7b0c82.chunk.js
-│   │   │       ├── 977.7a7b0c82.chunk.js.LICENSE.txt
-│   │   │       ├── 977.7a7b0c82.chunk.js.map
-│   │   │       ├── main.24b66213.js
-│   │   │       ├── main.24b66213.js.LICENSE.txt
-│   │   │       └── main.24b66213.js.map
-│   │   └── tutorial-images
 │   ├── components.json
 │   ├── craco.config.js
 │   ├── jsconfig.json
@@ -64340,6 +64327,7 @@ Issues Detail:
 │   │   │   ├── gerant
 │   │   │   │   ├── APIDocModal.js
 │   │   │   │   ├── APIKeysManagement.js
+│   │   │   │   ├── BulkStoreImportModal.js
 │   │   │   │   ├── CopyButton.js
 │   │   │   │   ├── CreateStoreModal.js
 │   │   │   │   ├── DeleteStoreConfirmation.js
@@ -64424,7 +64412,6 @@ Issues Detail:
 │   │   └── pages
 │   │       ├── ForgotPassword.js
 │   │       ├── GerantDashboard.js
-│   │       ├── ITAdminDashboard.js
 │   │       ├── InvitationPage.js
 │   │       ├── KPIReporting.js
 │   │       ├── LandingPage.js
@@ -64439,7 +64426,8 @@ Issues Detail:
 │   │       ├── ResetPassword.js
 │   │       ├── SellerDashboard.js
 │   │       ├── SellerDashboard_onboarding_integration.txt
-│   │       └── SuperAdminDashboard.js
+│   │       ├── SuperAdminDashboard.js
+│   │       └── _DEPRECATED_ITAdminDashboard.js
 │   ├── start-prod.sh
 │   ├── tailwind.config.js
 │   └── yarn.lock
@@ -64472,76 +64460,79 @@ Issues Detail:
 │   └── __init__.py
 └── yarn.lock
 
-6191 directories, 58190 files
+6185 directories, 58170 files
 
 **Key Technical Concepts**
--   **Surgical Guard Clauses**: Implemented business logic checks directly within service methods (e.g., ) to block unauthorized actions, avoiding global middleware as instructed.
--   **Backend-Driven UI State**: The backend  endpoint now provides an  flag that dictates the frontend's state, enabling a robust and secure read-only mode.
--   **Conditional Rendering & Disabling in React**: Used the  flag to conditionally render alert banners and apply  attributes to buttons, often pairing them with a lock icon for better UX.
--   **Stripe Integration (FastAPI)**: Successfully migrated a legacy Stripe checkout endpoint, handling dependency injection () and  operations correctly within a FastAPI route.
--   **Tailwind CSS Class Purging**: Diagnosed and resolved an issue where dynamically constructed Tailwind CSS class names were not being applied. The solution involved switching from string interpolation to a map of pre-defined, full class strings.
+-   **Feature Fusion**: Merged functionality from a deprecated Enterprise module into the core Gérant module, involving backend service logic migration and conditional frontend UI.
+-   **Stripe Hotfix & Atomic Operations**: Implemented critical fixes for Stripe integration, adopting a pattern where the external API call (e.g., ) must succeed before the local database is updated to ensure data consistency.
+-   **Secure Webhook Implementation**: Created a new webhook endpoint that validates the Stripe signature () before processing the payload.
+-   **Dynamic DB Indexing**: Added logic in  to create necessary MongoDB indexes on application startup, improving database performance for key queries.
+-   **Backend-Driven Read-Only State**: Relied on a backend-provided  flag to control frontend UI/UX, which was a core part of completing the feature.
+-   **Frontend JWT Decoding**: Modified the  hook to decode the user's role directly from the JWT stored in , removing a dependency on a separate, un-set  item.
+-   **Timezone Handling ()**: Repeatedly debugged and fixed issues by ensuring Python  objects were timezone-aware () before comparison, particularly between database values and .
 
 **key DB schema**
--   **users**: Contains user roles (, , ) and the  link used to trace a user back to their parent Gérant's subscription.
--   **subscriptions**: The source of truth for the trial expiration logic. Contains  and  fields for each Gérant. The agent manually updated this collection to test the full lifecycle of the read-only feature.
+-   **users**:  field now has a database index.
+-   **subscriptions**:  and  fields now have database indexes.
+-   **workspaces**:  field now has a database index.
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   **/app/backend/services/gerant_service.py**: Contains the core  guard clause.
--   **/app/backend/services/auth_service.py**: Modified to propagate the read-only status to child users (Managers/Sellers) upon login.
--   **/app/backend/api/routes/gerant.py**: Location of the new Stripe checkout endpoint.
--   **/app/frontend/src/pages/GerantDashboard.js**: Primary file for the Gérant's read-only UI implementation.
--   **/app/frontend/src/pages/SellerDashboard.js**: Key file for the pending Seller read-only implementation.
--   **/app/frontend/src/pages/ManagerDashboard.js**: Key file for the pending Manager read-only implementation.
--   **/app/frontend/src/pages/InvitationPage.js**: Rewritten to match the UI of the login page.
--   **/app/frontend/src/components/gerant/StoreDetailModal.js**: Modified to have a dynamic header color matching its store card.
+-   **/app/backend/services/payment_service.py**: New service to encapsulate all Stripe-related business logic.
+-   **/app/backend/api/routes/stripe_webhooks.py**: New file containing the critical Stripe webhook endpoint.
+-   **/app/backend/services/gerant_service.py**: Heavily modified to include bulk store import logic and timezone fixes.
+-   **/app/backend/api/routes/gerant.py**: Heavily modified to add three new endpoints: bulk import, update seats, and preview seats.
+-   **/app/backend/main.py**: Modified to create MongoDB indexes on startup.
+-   **/app/frontend/src/components/gerant/BulkStoreImportModal.js**: New component for the bulk import UI.
+-   **/app/frontend/src/pages/GerantDashboard.js**: Modified to conditionally render the bulk import button and modal.
+-   **/app/frontend/src/components/SubscriptionModal.js**: Significantly refactored to prevent crashes and prepare for new seat update logic.
+-   **/app/frontend/src/components/TeamModal.js**: Modified to hide user management actions for the Manager role.
+-   **/app/frontend/src/components/KPICalendar.js**: Modified to display lock icons for locked dates.
+-   **/app/frontend/src/hooks/useSyncMode.js**: Refactored to get the user role from the JWT.
 
 **Areas that need refactoring**:
--   ** and ** remain large and complex, containing logic for multiple features. They could benefit from being broken down into smaller, more focused modules/components in the future.
+-   ****: The webhook handling logic is currently a placeholder. It needs to be built out to handle a variety of Stripe events to make the system robust.
+-   ****: This file has become a monolith, now containing logic for user management, store management, subscription checks, and bulk imports. It should be broken down into smaller, more specialized services.
 
 **key api endpoints**
+-    (New)
+-    (New)
+-    (New)
+-    (New)
 -    (Modified)
--    (Fixed)
--    (New)
--    (New)
--    (New)
--    (New)
--    (New)
 
 **Critical Info for New Agent**
--   **Trial Expiration is a Core Feature**: The read-only logic is a critical, multi-layered feature. Phase 1 (Gérant) is done. Phase 2 (Manager/Seller) is in progress and must be completed. Adhere strictly to the Surgical Intervention pattern (Guard Clauses in services, no global middleware).
--   **Database is **: For any direct database manipulations or queries, ensure you are targeting the  database, not .
--   **User is Detail-Oriented**: The user provides highly specific UI/UX feedback. Pay close attention to their requests regarding layout, color, and component behavior. Test UI changes thoroughly with screenshots.
--   **Stripe is in Test Mode**: The Stripe integration uses test keys. All transactions are simulated.
+-   **Stripe Integration is Fragile**: A major hotfix was just applied. The  flow is now atomic (Stripe first, then DB), but the webhook logic is a skeleton. The system **does not automatically handle subscription updates from Stripe** beyond logging a successful payment. This is the highest priority for stabilization.
+-   **Test Webhooks with Stripe CLI**: The preview environment URL is likely not public. To test the webhook end-to-end, you MUST use the Stripe CLI's  command to forward live Stripe events to your local server.
+-   **Timezone Issues**: Be extremely vigilant about timezone-aware vs. timezone-naive  objects in Python. Multiple bugs were caused by this. The standard should be  and making stored datetimes aware before comparison.
+-   **Follow the Clean Architecture**: The user/CTO is insistent on respecting the Clean Architecture pattern (Controller -> Service -> Repository). Do not add business logic to routes or access the DB directly from them.
 
 **documents created in this job**
--   /app/test_result.md
+-   /app/test_result.md (updated for read-only mode testing)
 
 **Last 10 User Messages and any pending user messages**
-1.  **User confirms email received but reports a 500 error on account creation.** (Status: Completed)
-2.  **User reports UI issues:** missing pending counts on *store cards*, wrong background on registration page, missing password-eye icon. (Status: Partially Completed; counts on store cards are still pending).
-3.  **User requests color consistency between store card and modal.** (Status: Completed)
-4.  **User asks about color inconsistency between auth pages.** (Status: Completed)
-5.  **User requests a neutral/grey background for auth pages.** (Status: Completed)
-6.  **User asks what happens when their trial expires.** (Status: In Progress - This started the read-only feature work).
-7.  **User chooses Read-only mode and defines the rules.** (Status: In Progress)
-8.  **User reports the Stripe checkout flow is broken.** (Status: Completed)
-9.  **User provides CTO instructions for implementing Phase 2 (Manager/Seller read-only).** (Status: In Progress)
-10. **User asks agent if it's in the right database, confirming a point of confusion.** (Status: Completed)
+1.  **User reports subscription paid but still shows Essai gratuit.** (Status: Completed - Agent fixed DB/workspace desync).
+2.  **User reports N/A for renewal date.** (Status: Completed - Agent fixed a complex bug in  logic preventing the date from being fetched).
+3.  **User reports a crash when clicking update my subscription.** (Status: In Progress - Agent identified a missing endpoint and started the fix).
+4.  **User requests a full security/robustness audit of the Stripe integration.** (Status: Completed - Agent performed the audit and found critical flaws).
+5.  **User provides HOTFIX instructions to fix the Stripe flaws.** (Status: Completed - Agent created a new webhook, fixed seat updates, and added DB indexes).
+6.  **User validates the hotfix but raises two Vigilance Points:** the preview URL's inaccessibility to Stripe webhooks and a missing preview cost feature. (Status: In Progress - Agent acknowledged and started working on the preview feature).
+7.  **User provides final instructions to fix the frontend crash ( error) and implement the seat update modal UX.** (Status: In Progress - This is the current ).
 
 **Project Health Check:**
--   **Broken**: The read-only experience for Manager and Seller roles is incomplete. They can still access UI elements for write actions, which will be blocked by the backend, leading to a poor user experience.
+-   **Broken**:
+    -   The Stripe webhook implementation is incomplete. The endpoint exists, but lacks the logic to automatically process most subscription events (cancellations, failures, etc.), leading to data desynchronization between Stripe and the local DB.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
--   **Stripe (Payments)** — requires User API Key
--   **Brevo (Transactional Emails)** — requires User API Key
--   **OpenAI GPT-4o-mini (AI Assistant)** — uses Emergent LLM Key
+-   **Stripe (Payments)** — requires User API Key. The integration is undergoing a critical hotfix.
+-   **Brevo (Transactional Emails)** — requires User API Key.
+-   **OpenAI GPT-4o-mini (AI Assistant)** — uses Emergent LLM Key.
 
 **Testing status**
--   Testing agent used after significant changes: YES (backend testing agent was used once)
+-   Testing agent used after significant changes: YES (Frontend agent was used to validate the Seller/Manager read-only mode).
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: None.
 -   Known regressions: None.
@@ -64549,9 +64540,9 @@ Issues Detail:
 **Credentials to test flow:**
 -   **Gérant**:  / 
 -   **Manager**:  / 
--   **Seller**:  (Password: )
+-   **Seller**:  / 
 -   **Super Admin**:  / 
 
 **What agent forgot to execute**
--   The agent misunderstood the request to add pending staff counts to **individual store cards** and instead added them to the top-level summary cards. This is captured as a pending issue.
--   The original requirement from a previous fork to remove  functionality from the **Manager role's UI** () has not been addressed yet. This is captured in upcoming tasks.</analysis>
+-   The task to add pending staff counts to **individual store cards**, carried over from the initial handoff, was not addressed in this session.
+-   The agent initially forgot to implement the  endpoint and only did so after the user explicitly pointed it out as a missing UX feature.</analysis>

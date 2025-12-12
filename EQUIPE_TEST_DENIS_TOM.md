@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://trial-readonlymode.preview.emergentagent.com
+https://trial-expiry.preview.emergentagent.com
 
 ### Manager
 ```

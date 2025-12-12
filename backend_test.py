@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class ManagerDashboardAndSuperAdminTester:
-    def __init__(self, base_url="https://trial-readonlymode.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://trial-expiry.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.manager_token = None
         self.superadmin_token = None
