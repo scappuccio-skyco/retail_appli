@@ -96,26 +96,26 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left: Text Content */}
             <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm mb-6 border-2 border-[#1E40AF]/20">
+              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white rounded-full shadow-sm mb-4 sm:mb-6 border-2 border-[#1E40AF]/20">
                 <Zap className="w-4 h-4 text-[#F97316]" />
-                <span className="text-sm font-semibold text-[#1E40AF]">Propulsé par l'Intelligence Artificielle</span>
+                <span className="text-xs sm:text-sm font-semibold text-[#1E40AF]">Propulsé par l'Intelligence Artificielle</span>
               </div>
               
-              <h1 className="text-5xl lg:text-6xl font-bold leading-tight mb-6">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4 sm:mb-6">
                 <span className="text-[#1E40AF]">Transformez Vos Vendeurs en</span>{' '}
                 <span className="bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent">
                   Experts
                 </span>
               </h1>
               
-              {/* Sous-titre avec preuve */}
-              <p className="text-2xl font-semibold text-[#F97316] mb-4 leading-relaxed">
-                Un coaching IA simple et actionnable pour des performances mesurables en quelques semaines
+              {/* Sous-titre avec preuve - Taille réduite */}
+              <p className="text-base sm:text-lg font-semibold text-[#F97316] mb-3 sm:mb-4 leading-relaxed">
+                Un coaching IA simple et actionnable pour des performances mesurables
               </p>
               
-              <p className="text-xl text-[#334155] mb-8 leading-relaxed">
-                La première plateforme de coaching pour le retail, qui transforme vos vendeurs en experts autonomes pour booster votre CA.<br />
-                Analyse des compétences, coaching personnalisé et progression continue, grâce à l'intelligence artificielle.
+              <p className="text-sm sm:text-base text-[#334155] mb-6 sm:mb-8 leading-relaxed">
+                La première plateforme de coaching pour le retail, qui transforme vos vendeurs en experts autonomes pour booster votre CA.
+                <span className="hidden sm:inline"><br />Analyse des compétences, coaching personnalisé et progression continue, grâce à l'intelligence artificielle.</span>
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mb-8">
