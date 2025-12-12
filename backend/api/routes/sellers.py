@@ -1039,10 +1039,14 @@ async def get_seller_diagnostic_for_manager(
     """
     Get a seller's diagnostic (for manager/gérant viewing seller details)
     Endpoint: GET /api/diagnostic/seller/{seller_id}
+    Accessible to managers (same store) and gérants (owner of seller's store)
     """
     try:
+        user_role = current_user.get('role')
+        user_id = current_user.get('id')
+        
         # Verify user is manager or gérant
-        if current_user.get('role') not in ['manager', 'gerant', 'gérant']:
+        if user_role not in ['manager', 'gerant', 'gérant']:
             raise HTTPException(status_code=403, detail="Accès réservé aux managers et gérants")
         
         # Verify seller exists
@@ -1050,10 +1054,25 @@ async def get_seller_diagnostic_for_manager(
         if not seller:
             return None
         
-        # For managers, verify same store
-        if current_user.get('role') == 'manager':
-            if seller.get('store_id') != current_user.get('store_id'):
-                raise HTTPException(status_code=403, detail="Vendeur non trouvé dans votre magasin")
+        seller_store_id = seller.get('store_id')
+        
+        # Check access rights
+        has_access = False
+        
+        if user_role == 'manager':
+            # Manager can only see sellers from their own store
+            has_access = (seller_store_id == current_user.get('store_id'))
+        elif user_role in ['gerant', 'gérant']:
+            # Gérant can see sellers from any store they own
+            store = await db.stores.find_one({
+                "id": seller_store_id,
+                "gerant_id": user_id,
+                "active": True
+            })
+            has_access = store is not None
+        
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Accès non autorisé à ce vendeur")
         
         # Get the diagnostic
         diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0})
