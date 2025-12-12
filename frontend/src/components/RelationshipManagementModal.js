@@ -5,11 +5,14 @@ import { X, MessageCircle, AlertTriangle, Users, Loader, Filter, Calendar, Chevr
 
 const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
-export default function RelationshipManagementModal({ onClose, onSuccess, sellers = [], autoShowResult = false }) {
+export default function RelationshipManagementModal({ onClose, onSuccess, sellers = [], autoShowResult = false, storeId = null }) {
   // Filter to show only active sellers (exclude suspended and deleted)
   const activeSellers = sellers.filter(seller => 
     !seller.status || seller.status === 'active'
   );
+  
+  // Build store_id param for API calls
+  const storeIdParam = storeId ? `?store_id=${storeId}` : '';
   
   // Debug
   console.log('Total sellers:', sellers.length);
