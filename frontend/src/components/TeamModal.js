@@ -102,29 +102,37 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
         try {
           const daysParam = periodFilter === 'all' ? '365' : (periodFilter === 'custom' ? '0' : periodFilter);
           
+          // Build store_id param for gerant viewing as manager
+          const storeParam = storeIdParam ? `&store_id=${storeIdParam}` : '';
+          const storeParamFirst = storeIdParam ? `?store_id=${storeIdParam}` : '';
+          
           // Build API params
           let apiParams = { _t: Date.now() };
-          let kpiUrl = `${API}/manager/kpi-entries/${seller.id}?days=${daysParam}`;
+          if (storeIdParam) {
+            apiParams.store_id = storeIdParam;
+          }
+          
+          let kpiUrl = `${API}/manager/kpi-entries/${seller.id}?days=${daysParam}${storeParam}`;
           
           if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
-            kpiUrl = `${API}/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}`;
+            kpiUrl = `${API}/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}${storeParam}`;
             console.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with custom dates: ${customDateRange.start} to ${customDateRange.end}`);
           } else {
             console.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with days=${daysParam}`);
           }
           
           const [statsRes, kpiRes, diagRes] = await Promise.all([
-            axios.get(`${API}/manager/seller/${seller.id}/stats`, { 
+            axios.get(`${API}/manager/seller/${seller.id}/stats${storeParamFirst}`, { 
               headers: { Authorization: `Bearer ${token}` },
               params: apiParams
             }),
             axios.get(kpiUrl, { 
               headers: { Authorization: `Bearer ${token}` },
-              params: apiParams
+              params: { _t: Date.now() }
             }),
-            axios.get(`${API}/manager/seller/${seller.id}/diagnostic`, { 
+            axios.get(`${API}/manager/seller/${seller.id}/diagnostic${storeParamFirst}`, { 
               headers: { Authorization: `Bearer ${token}` },
-              params: { _t: Date.now() } // Cache buster
+              params: { _t: Date.now(), ...(storeIdParam ? { store_id: storeIdParam } : {}) }
             }).catch(() => ({ data: null })) // If no diagnostic, return null
           ]);
 
