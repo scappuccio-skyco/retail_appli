@@ -73,7 +73,9 @@ async def update_subscription_seats(
     Update the number of seats in the subscription.
     
     For trial users: Just updates the database, no Stripe charges.
-    For active subscribers: Would normally call Stripe to prorate.
+    For active subscribers: Calls Stripe API with proration.
+    
+    ATOMIC: If Stripe call fails, DB is not updated.
     
     Returns:
         success: bool
@@ -81,9 +83,9 @@ async def update_subscription_seats(
         new_seats: int
         new_monthly_cost: float
         is_trial: bool
-        proration_amount: float (0 for trial)
+        proration_amount: float
     """
-    from datetime import datetime, timezone
+    from services.payment_service import PaymentService
     
     try:
         gerant_id = current_user['id']
@@ -95,7 +97,7 @@ async def update_subscription_seats(
         if new_seats > 50:
             raise HTTPException(status_code=400, detail="Maximum 50 sièges. Contactez-nous pour un plan Enterprise.")
         
-        # Get current subscription
+        # Get current subscription to check if trial
         subscription = await db.subscriptions.find_one(
             {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
             {"_id": 0}
@@ -104,54 +106,31 @@ async def update_subscription_seats(
         if not subscription:
             raise HTTPException(status_code=404, detail="Aucun abonnement trouvé")
         
-        current_seats = subscription.get('seats', 1)
         is_trial = subscription.get('status') == 'trialing'
         
-        # Calculate new price based on tier
-        if new_seats <= 5:
-            price_per_seat = 29
-            plan = 'starter'
-        elif new_seats <= 15:
-            price_per_seat = 25
-            plan = 'professional'
-        else:
-            price_per_seat = 22
-            plan = 'enterprise'
-        
-        new_monthly_cost = new_seats * price_per_seat
-        
-        # For trial: just update the database
-        # For active: would call Stripe API (simplified for now)
-        proration_amount = 0
-        if not is_trial and new_seats > current_seats:
-            # Simplified proration (would use Stripe in production)
-            days_remaining = 15  # Approximate mid-month
-            daily_rate = price_per_seat / 30
-            proration_amount = round((new_seats - current_seats) * daily_rate * days_remaining, 2)
-        
-        # Update subscription in database
-        await db.subscriptions.update_one(
-            {"user_id": gerant_id},
-            {"$set": {
-                "seats": new_seats,
-                "plan": plan,
-                "updated_at": datetime.now(timezone.utc).isoformat()
-            }}
+        # Use PaymentService for atomic Stripe + DB update
+        payment_service = PaymentService(db)
+        result = await payment_service.update_subscription_seats(
+            gerant_id=gerant_id,
+            new_seats=new_seats,
+            is_trial=is_trial
         )
         
-        logger.info(f"✅ Sièges mis à jour: {current_seats} → {new_seats} pour {current_user['email']}")
+        logger.info(f"✅ Sièges mis à jour: {result['previous_seats']} → {new_seats} pour {current_user['email']}")
         
         return {
             "success": True,
             "message": f"Abonnement mis à jour : {new_seats} siège{'s' if new_seats > 1 else ''}",
-            "new_seats": new_seats,
-            "new_monthly_cost": new_monthly_cost,
+            "new_seats": result['new_seats'],
+            "new_monthly_cost": result['new_monthly_cost'],
             "is_trial": is_trial,
-            "proration_amount": proration_amount
+            "proration_amount": result['proration_amount']
         }
         
     except HTTPException:
         raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Erreur mise à jour sièges: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
