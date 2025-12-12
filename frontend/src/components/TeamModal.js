@@ -297,14 +297,17 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
       const token = localStorage.getItem('token');
       const daysParam = periodFilter === 'all' ? 365 : (periodFilter === 'custom' ? 0 : periodFilter);
       
+      // Build store_id param for gerant viewing as manager
+      const storeParam = storeIdParam ? `&store_id=${storeIdParam}` : '';
+      
       // Fetch historical KPI data for each seller
       const chartDataPromises = sellers.map(async (seller) => {
         try {
-          let url = `${API}/manager/kpi-entries/${seller.id}?days=${daysParam}`;
+          let url = `${API}/manager/kpi-entries/${seller.id}?days=${daysParam}${storeParam}`;
           
           // Use custom dates if period is custom
           if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
-            url = `${API}/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}`;
+            url = `${API}/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}${storeParam}`;
           }
           
           const res = await axios.get(url, {
