@@ -6,6 +6,7 @@ import OpportuniteManqueeForm from './OpportuniteManqueeForm';
 import axios from 'axios';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
+import { renderMarkdownBold } from '../utils/markdownRenderer';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
