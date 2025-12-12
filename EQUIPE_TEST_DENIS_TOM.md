@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://trial-expiry.preview.emergentagent.com
+https://gerant-dashboard-1.preview.emergentagent.com
 
 ### Manager
 ```
