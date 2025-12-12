@@ -335,7 +335,7 @@ class PaymentService:
                 except Exception as e:
                     logger.warning(f"Could not fetch proration: {e}")
                     
-            except stripe.error.StripeError as e:
+            except stripe.StripeError as e:
                 logger.error(f"❌ Stripe API error: {str(e)}")
                 raise Exception(f"Erreur Stripe: {str(e)}")
         
