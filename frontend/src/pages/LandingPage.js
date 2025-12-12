@@ -27,7 +27,7 @@ export default function LandingPage() {
               <img src="/logo-retail-performer.png" alt="Retail Performer AI" className="h-12 sm:h-16 w-auto" />
               <div className="hidden sm:block">
                 <span className="text-xl sm:text-2xl font-bold text-[#1E40AF]">Retail Performer AI</span>
-                <p className="text-xs text-gray-500">by SKY CO Formation</p>
+                <span className="text-lg sm:text-xl font-medium text-[#F97316] ml-1">by SKY CO</span>
               </div>
             </div>
 
