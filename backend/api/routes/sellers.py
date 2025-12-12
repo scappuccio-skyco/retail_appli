@@ -914,3 +914,34 @@ async def get_diagnostic_live_scores(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===== STORE INFO FOR SELLER =====
+
+@router.get("/store-info")
+async def get_seller_store_info(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Get basic store info for the seller's store."""
+    try:
+        seller = await db.users.find_one(
+            {"id": current_user['id']},
+            {"_id": 0, "store_id": 1}
+        )
+        
+        if not seller or not seller.get('store_id'):
+            return {"name": "Magasin", "id": None}
+        
+        store = await db.stores.find_one(
+            {"id": seller['store_id']},
+            {"_id": 0, "id": 1, "name": 1, "location": 1}
+        )
+        
+        if not store:
+            return {"name": "Magasin", "id": seller['store_id']}
+        
+        return store
+        
+    except Exception as e:
+        return {"name": "Magasin", "id": None}
