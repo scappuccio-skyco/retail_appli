@@ -702,7 +702,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 min-h-[400px]">
           {loading ? (
             <div className="text-center py-12">Chargement...</div>
           ) : (
