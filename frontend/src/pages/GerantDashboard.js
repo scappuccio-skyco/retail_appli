@@ -815,7 +815,7 @@ const GerantDashboard = ({ user, onLogout }) => {
         {/* Sélecteur de Type de Période + Navigation - Côte à côte sur desktop */}
         <div className="mb-8">
           <div className="glass-morphism rounded-xl p-4 border-2 border-blue-200">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               {/* Type d'analyse (gauche) */}
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">Type d'analyse :</span>
@@ -860,8 +860,8 @@ const GerantDashboard = ({ user, onLogout }) => {
                 </div>
               </div>
 
-              {/* Séparateur vertical (visible sur desktop) */}
-              <div className="hidden lg:block w-px h-12 bg-gray-300"></div>
+              {/* Séparateur vertical (visible sur tablette+) */}
+              <div className="hidden md:block w-px h-12 bg-gray-300"></div>
 
               {/* Navigation de Période (droite) */}
               <div className="flex items-center gap-3">
