@@ -224,33 +224,72 @@ class PaymentService:
         return {"status": "success", "new_status": status, "seats": quantity}
     
     async def _handle_subscription_deleted(self, subscription: Dict) -> Dict:
-        """Handle subscription cancellation"""
+        """
+        Handle subscription cancellation/deletion.
+        
+        This event fires when:
+        - Subscription is canceled immediately
+        - Subscription reaches the end of its billing period after cancel_at_period_end
+        - Subscription is deleted via API
+        
+        Actions:
+        - Set status to 'canceled'
+        - Record cancellation timestamp
+        - Set access_end_date to cut off access
+        - Update workspace status
+        """
         customer_id = subscription.get('customer')
         
         gerant = await self.db.users.find_one(
             {"stripe_customer_id": customer_id},
-            {"_id": 0, "id": 1, "workspace_id": 1}
+            {"_id": 0, "id": 1, "email": 1, "workspace_id": 1}
         )
         
         if not gerant:
             return {"status": "skipped", "reason": "customer_not_found"}
         
+        # Extract period end from Stripe subscription (when access should end)
+        # If canceled_at exists, use it; otherwise use current_period_end or now
+        access_end_date = datetime.now(timezone.utc)
+        
+        if subscription.get('ended_at'):
+            access_end_date = datetime.fromtimestamp(
+                subscription['ended_at'], tz=timezone.utc
+            )
+        elif subscription.get('current_period_end'):
+            access_end_date = datetime.fromtimestamp(
+                subscription['current_period_end'], tz=timezone.utc
+            )
+        
+        # Update subscription in database
         await self.db.subscriptions.update_one(
             {"user_id": gerant['id']},
             {"$set": {
                 "status": "canceled",
-                "canceled_at": datetime.now(timezone.utc).isoformat()
+                "canceled_at": datetime.now(timezone.utc).isoformat(),
+                "access_end_date": access_end_date.isoformat(),
+                "stripe_subscription_id": None,  # Clear Stripe reference
+                "stripe_subscription_item_id": None,
+                "updated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
         
+        # Update workspace status
         if gerant.get('workspace_id'):
             await self.db.workspaces.update_one(
                 {"id": gerant['workspace_id']},
-                {"$set": {"subscription_status": "canceled"}}
+                {"$set": {
+                    "subscription_status": "canceled",
+                    "access_end_date": access_end_date.isoformat()
+                }}
             )
         
-        logger.warning(f"⚠️ Subscription canceled for user {gerant['id']}")
-        return {"status": "success", "new_status": "canceled"}
+        logger.warning(f"⚠️ Subscription DELETED for {gerant.get('email', gerant['id'])} - access ends at {access_end_date.isoformat()}")
+        return {
+            "status": "success", 
+            "new_status": "canceled",
+            "access_end_date": access_end_date.isoformat()
+        }
     
     async def _handle_checkout_completed(self, session: Dict) -> Dict:
         """
