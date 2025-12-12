@@ -22,12 +22,12 @@ export default function LandingPage() {
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm z-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20 sm:h-24">
-            {/* Logo avec texte agrandi */}
+            {/* Logo rond + texte */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <img src="/logo-retail-performer.png" alt="Retail Performer AI" className="h-12 sm:h-16 w-auto" />
-              <div className="hidden sm:block">
-                <span className="text-xl sm:text-2xl font-bold text-[#1E40AF]">Retail Performer AI</span>
-                <span className="text-lg sm:text-xl font-medium text-[#F97316] ml-1">by SKY CO</span>
+              <img src="/logo-icon.png" alt="Retail Performer AI" className="h-12 sm:h-14 w-auto" />
+              <div>
+                <span className="text-lg sm:text-2xl font-bold text-[#1E40AF]">Retail Performer AI</span>
+                <span className="text-base sm:text-xl font-semibold text-gray-900 ml-1">by SKY CO</span>
               </div>
             </div>
 
