@@ -1056,7 +1056,6 @@ async def delete_seller(
 from pydantic import BaseModel
 from typing import Optional
 import stripe
-import os
 import logging
 
 logger = logging.getLogger(__name__)
