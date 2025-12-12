@@ -792,6 +792,7 @@ async def generate_bilan_individuel(
     """Generate an individual performance report for a period."""
     from uuid import uuid4
     from services.ai_service import AIService
+    import json
     
     try:
         seller_id = current_user['id']
@@ -810,33 +811,99 @@ async def generate_bilan_individuel(
         
         panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
         
-        # Try to generate AI bilan
+        # Try to generate AI bilan with structured format
         ai_service = AIService()
         seller_data = await db.users.find_one({"id": seller_id}, {"_id": 0, "password": 0})
+        seller_name = seller_data.get('name', 'Vendeur') if seller_data else 'Vendeur'
         
-        ai_commentary = None
-        if ai_service.available:
+        # Default values
+        synthese = ""
+        points_forts = []
+        points_attention = []
+        recommandations = []
+        
+        if ai_service.available and len(kpis) > 0:
             try:
-                ai_commentary = await ai_service.generate_seller_bilan(
-                    seller_data=seller_data or {"name": "Vendeur"},
-                    kpis=kpis
+                prompt = f"""Tu es un coach retail bienveillant. Génère un bilan de performance pour {seller_name}.
+
+Période: {start_date} à {end_date}
+CA total: {total_ca:.0f}€
+Ventes: {total_ventes}
+Clients: {total_clients}
+Panier moyen: {panier_moyen:.2f}€
+Jours travaillés: {len(kpis)}
+
+Génère un bilan structuré au format JSON:
+{{
+  "synthese": "Une phrase résumant la performance globale de manière encourageante",
+  "points_forts": ["Point fort 1", "Point fort 2"],
+  "points_attention": ["Point à améliorer 1", "Point à améliorer 2"],
+  "recommandations": ["Action concrète 1", "Action concrète 2", "Action concrète 3"]
+}}
+
+Sois positif et motivant. Utilise le tutoiement."""
+
+                chat = ai_service._create_chat(
+                    session_id=f"bilan_{seller_id}_{start_date}",
+                    system_message="Tu es un coach retail bienveillant qui génère des bilans motivants. Réponds uniquement en JSON valide.",
+                    model="gpt-4o-mini"
                 )
-            except Exception:
-                pass
+                
+                response = await ai_service._send_message(chat, prompt)
+                
+                if response:
+                    # Parse JSON
+                    clean = response.strip()
+                    if "```json" in clean:
+                        clean = clean.split("```json")[1].split("```")[0]
+                    elif "```" in clean:
+                        clean = clean.split("```")[1].split("```")[0]
+                    
+                    try:
+                        parsed = json.loads(clean.strip())
+                        synthese = parsed.get('synthese', '')
+                        points_forts = parsed.get('points_forts', [])
+                        points_attention = parsed.get('points_attention', [])
+                        recommandations = parsed.get('recommandations', [])
+                    except:
+                        # Fallback: use raw response as synthese
+                        synthese = response[:500] if response else ""
+                        
+            except Exception as e:
+                print(f"AI bilan error: {e}")
+        
+        # If no AI, generate basic bilan
+        if not synthese:
+            if len(kpis) > 0:
+                synthese = f"Cette semaine, tu as réalisé {total_ventes} ventes pour un CA de {total_ca:.0f}€. Continue comme ça !"
+                points_forts = ["Assiduité dans la saisie des KPIs"]
+                points_attention = ["Continue à développer tes compétences"]
+                recommandations = ["Fixe-toi un objectif quotidien", "Analyse tes meilleures ventes"]
+            else:
+                synthese = "Aucune donnée KPI pour cette période. Commence à saisir tes performances !"
+                points_attention = ["Pense à saisir tes KPIs quotidiennement"]
+                recommandations = ["Saisis tes ventes chaque jour pour obtenir un bilan personnalisé"]
+        
+        # Build periode string for frontend compatibility
+        periode = f"{start_date} - {end_date}" if start_date and end_date else "Période actuelle"
         
         bilan = {
             "id": str(uuid4()),
             "seller_id": seller_id,
+            "periode": periode,
             "period_start": start_date,
             "period_end": end_date,
-            "summary": {
-                "total_ca": total_ca,
-                "total_ventes": total_ventes,
-                "total_clients": total_clients,
+            "kpi_resume": {
+                "ca": total_ca,
+                "ventes": total_ventes,
+                "clients": total_clients,
                 "panier_moyen": round(panier_moyen, 2),
-                "days_count": len(kpis)
+                "jours": len(kpis)
             },
-            "ai_commentary": ai_commentary,
+            "synthese": synthese,
+            "points_forts": points_forts,
+            "points_attention": points_attention,
+            "recommandations": recommandations,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
