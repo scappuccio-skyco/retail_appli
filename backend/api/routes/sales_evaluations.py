@@ -55,7 +55,8 @@ async def create_sale(
     }
     
     await db.sales.insert_one(sale)
-    del sale['_id'] if '_id' in sale else None
+    if '_id' in sale:
+        del sale['_id']
     
     return sale
 
