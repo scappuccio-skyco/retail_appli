@@ -32,6 +32,14 @@ class Settings(BaseSettings):
     STRIPE_WEBHOOK_SECRET: str = Field(..., description="Stripe webhook secret")
     BREVO_API_KEY: str = Field(..., description="Brevo (Sendinblue) API key")
     
+    # Stripe Price IDs (by plan and interval)
+    STRIPE_PRICE_STARTER_MONTHLY: str = Field(default="", description="Stripe Price ID for Starter plan (monthly)")
+    STRIPE_PRICE_STARTER_YEARLY: str = Field(default="", description="Stripe Price ID for Starter plan (yearly)")
+    STRIPE_PRICE_PRO_MONTHLY: str = Field(default="", description="Stripe Price ID for Professional plan (monthly)")
+    STRIPE_PRICE_PRO_YEARLY: str = Field(default="", description="Stripe Price ID for Professional plan (yearly)")
+    STRIPE_PRICE_ENTERPRISE_MONTHLY: str = Field(default="", description="Stripe Price ID for Enterprise plan (monthly)")
+    STRIPE_PRICE_ENTERPRISE_YEARLY: str = Field(default="", description="Stripe Price ID for Enterprise plan (yearly)")
+    
     # Email Configuration
     SENDER_EMAIL: str = Field(default="hello@retailperformerai.com")
     SENDER_NAME: str = Field(default="Retail Performer AI")
