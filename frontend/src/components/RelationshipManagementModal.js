@@ -637,7 +637,7 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
                                                   <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
                                                     {number}
                                                   </span>
-                                                  <p className="flex-1 text-gray-800">{text}</p>
+                                                  <p className="flex-1 text-gray-800">{renderMarkdownBold(text)}</p>
                                                 </div>
                                               );
                                             }
@@ -648,7 +648,7 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
                                               return (
                                                 <div key={lineIdx} className="flex gap-3 items-start">
                                                   <span className="text-purple-600 font-bold text-lg mt-0.5">•</span>
-                                                  <p className="flex-1 text-gray-700">{text}</p>
+                                                  <p className="flex-1 text-gray-700">{renderMarkdownBold(text)}</p>
                                                 </div>
                                               );
                                             }
