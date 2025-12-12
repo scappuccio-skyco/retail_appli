@@ -116,7 +116,7 @@ export default function Login({ onLogin }) {
         <div className="glass-morphism rounded-3xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <img 
-              src="/logo-retail-performer-blue.png" 
+              src="/logo-retail-performer.png" 
               alt="Retail Performer AI" 
               className="h-24 mx-auto mb-4 object-contain"
             />
