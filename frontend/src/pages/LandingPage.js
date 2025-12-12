@@ -118,29 +118,29 @@ export default function LandingPage() {
                 <span className="hidden sm:inline"><br />Analyse des compétences, coaching personnalisé et progression continue, grâce à l'intelligence artificielle.</span>
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
                 <button
                   onClick={() => navigate('/login')}
-                  className="px-8 py-4 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white text-lg font-semibold rounded-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2"
+                  className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white text-base sm:text-lg font-semibold rounded-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2"
                 >
                   Essai Gratuit 14 Jours
-                  <ArrowRight className="w-5 h-5" />
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <button
                   onClick={() => scrollToSection('contact')}
-                  className="px-8 py-4 bg-white text-[#1E40AF] text-lg font-semibold rounded-xl border-2 border-[#1E40AF] hover:bg-blue-50 transition-all"
+                  className="px-6 sm:px-8 py-3 sm:py-4 bg-white text-[#1E40AF] text-base sm:text-lg font-semibold rounded-xl border-2 border-[#1E40AF] hover:bg-blue-50 transition-all"
                 >
                   Demander une Démo
                 </button>
               </div>
 
-              <div className="flex items-center gap-6 text-sm text-[#334155]">
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm text-[#334155]">
                 <div className="flex items-center gap-2">
-                  <Check className="w-5 h-5 text-[#10B981]" />
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[#10B981]" />
                   <span>Sans carte bancaire</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check className="w-5 h-5 text-[#10B981]" />
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[#10B981]" />
                   <span>Résiliation à tout moment</span>
                 </div>
               </div>
