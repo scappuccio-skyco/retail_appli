@@ -398,3 +398,19 @@ agent_communication:
     message: "🎯 GÉRANT RBAC 'VIEW AS MANAGER' COMPREHENSIVE TEST COMPLETED (19/19 tests passed - 100% success rate). ✅ AUTHENTICATION: Gérant login successful with gerant@skyco.fr / Gerant123! ✅ STORE ACCESS: Retrieved store_id c2dd1ada-d0a2-4a90-be81-644b7cb78bc7 (Skyco Lyon Part-Dieu) ✅ MANAGER ENDPOINTS: All 9 manager endpoints working correctly with ?store_id parameter - sync-mode returns 'manual', sellers returns 4 sellers, kpi-config retrieved, objectives/challenges accessible, analyze-store-kpis returns analysis for store, subscription-status working ✅ ERROR HANDLING: All endpoints correctly return 400 'Le paramètre store_id est requis' when store_id missing ✅ NO ERRORS: No 400/404/403 errors when store_id provided. RBAC functionality fully operational."
   - agent: "testing"
     message: "🎯 GÉRANT SELLER DETAIL ENDPOINTS COMPREHENSIVE TEST COMPLETED (15/15 tests passed - 100% success rate). ✅ ALL SELLER DETAIL ENDPOINTS WORKING: KPI entries (5 entries), seller stats (real data: CA=6189.12€, ventes=41, panier=150.95€), diagnostic (has_diagnostic=false), archived sellers (7 sellers), seller profile (diagnostic + recent_kpis), KPI history (59 entries) ✅ PROPER ERROR HANDLING: All endpoints return 400 'Le paramètre store_id est requis' when store_id missing ✅ NO ERRORS: No 400/404/403 errors when store_id provided ✅ REAL DATA: Seller stats contain actual business data, not mock values. All seller detail endpoints fully operational for Gérant role with store_id parameter."
+
+backend:
+  - task: "Daily Challenge Refresh Functionality"
+    implemented: true
+    working: true
+    file: "/app/backend/api/routes/sellers.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ DAILY CHALLENGE REFRESH FUNCTIONALITY FULLY WORKING (9/9 tests passed - 100% success rate). ✅ POST /api/seller/daily-challenge/refresh with empty body: Returns valid challenge with all required fields (id, seller_id, date, competence, title, description, completed=false) ✅ POST /api/seller/daily-challenge/refresh with force_competence='closing': Correctly forces competence to 'closing' and returns appropriate challenge ✅ GET /api/seller/daily-challenge: Returns the same challenge created by refresh, properly dated for today ✅ MULTIPLE REFRESHES: Each refresh call creates new unique challenge, deletes previous uncompleted challenge for today, maintains only 1 uncompleted challenge per day ✅ AUTHENTICATION SECURITY: Endpoints properly return 403 without authentication ✅ NO 404 ERRORS: All endpoints return 200 with valid data. The reported 404 error has been resolved - refresh functionality working perfectly."
+
+  - agent: "testing"
+    message: "🎯 DAILY CHALLENGE REFRESH COMPREHENSIVE TEST COMPLETED (9/9 tests passed - 100% success rate). ✅ AUTHENTICATION: Seller login successful with emma.petit@test.com / TestDemo123! ✅ BASIC REFRESH: POST /api/seller/daily-challenge/refresh with {} returns valid challenge with competence 'argumentation', title 'Argumentaire Pro', completed=false ✅ FORCE COMPETENCE: POST /api/seller/daily-challenge/refresh with force_competence='closing' returns challenge with competence='closing', title='Urgence Douce' ✅ GET AFTER REFRESH: GET /api/seller/daily-challenge returns refreshed challenge for today (2025-12-12) ✅ MULTIPLE REFRESHES: Two consecutive refresh calls create unique challenges (IDs: 89ef6a4e-bd5a-4170-87e1-1faddebd9f44, 6078f621-1baa-4b50-b67a-717c2cf0cfd0), GET returns latest challenge ✅ SECURITY: Both endpoints return 403 without authentication. NO 404 ERRORS DETECTED - The user's reported 404 error has been resolved. All daily challenge refresh functionality working correctly."
