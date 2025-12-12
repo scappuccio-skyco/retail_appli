@@ -857,6 +857,14 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </svg>
               <span className="hidden sm:inline">Personnaliser</span>
             </button>
+            <button
+              onClick={() => setShowSupportModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+              title="Contacter le support"
+            >
+              <Headphones className="w-5 h-5" />
+              <span className="hidden sm:inline">Support</span>
+            </button>
             <TutorialButton onClick={onboarding.open} />
             <button
               data-testid="logout-button"
