@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export default function TeamAIAnalysisModal({ teamData, periodFilter, customDateRange, onClose }) {
+export default function TeamAIAnalysisModal({ teamData, periodFilter, customDateRange, onClose, storeIdParam = null }) {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [analysisMetadata, setAnalysisMetadata] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -14,6 +14,9 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
+  
+  // Build store_id param for gerant viewing as manager
+  const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
 
   // Charger l'historique au montage du composant
   useEffect(() => {
@@ -31,7 +34,7 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
     try {
       const token = localStorage.getItem('token');
       const res = await axios.get(
-        `${API}/manager/team-analyses-history`,
+        `${API}/manager/team-analyses-history${storeParam}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setHistory(res.data.analyses || []);
