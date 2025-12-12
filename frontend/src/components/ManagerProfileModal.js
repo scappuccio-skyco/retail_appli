@@ -57,12 +57,12 @@ export default function ManagerProfileModal({ diagnostic, onClose, onRedo }) {
               
               <div className="bg-blue-50 rounded-xl p-5 mb-4">
                 <p className="text-sm font-semibold text-blue-900 mb-2">🚀 Recommandation :</p>
-                <p className="text-blue-800">{diagnostic.recommandation}</p>
+                <p className="text-blue-800">{renderMarkdownBold(diagnostic.recommandation)}</p>
               </div>
               
               <div className="bg-green-50 rounded-xl p-5 mb-6">
                 <p className="text-sm font-semibold text-green-900 mb-2">💡 Exemple concret :</p>
-                <p className="text-green-800 italic">"{diagnostic.exemple_concret}"</p>
+                <p className="text-green-800 italic">"{renderMarkdownBold(diagnostic.exemple_concret)}"</p>
               </div>
 
               {/* DISC Profile Section */}

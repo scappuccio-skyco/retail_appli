@@ -67,7 +67,7 @@ export default function LastDebriefModal({ debrief, onClose }) {
           {debrief.ai_recommendation && (
             <div className="bg-green-50 rounded-xl p-5 mb-6">
               <p className="text-sm font-semibold text-green-900 mb-3">💡 Recommandation IA :</p>
-              <p className="text-green-800 whitespace-pre-line">{debrief.ai_recommendation}</p>
+              <p className="text-green-800 whitespace-pre-line">{renderMarkdownBold(debrief.ai_recommendation)}</p>
             </div>
           )}
 

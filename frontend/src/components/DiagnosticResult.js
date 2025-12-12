@@ -65,7 +65,7 @@ export default function DiagnosticResult({ diagnostic, onContinue }) {
               Analyse de ton profil
             </h3>
             <div className="text-gray-700 whitespace-pre-line leading-relaxed">
-              {diagnostic.ai_profile_summary}
+              {renderMarkdownBold(diagnostic.ai_profile_summary)}
             </div>
           </div>
 

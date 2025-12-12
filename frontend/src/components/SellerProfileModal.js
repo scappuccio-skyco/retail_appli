@@ -57,7 +57,7 @@ export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnost
             {diagnostic.ai_profile_summary && (
               <div className="bg-blue-50 rounded-xl p-5 mb-4">
                 <p className="text-sm font-semibold text-blue-900 mb-2">💡 Analyse IA de ton profil :</p>
-                <p className="text-blue-800 whitespace-pre-line">{diagnostic.ai_profile_summary}</p>
+                <p className="text-blue-800 whitespace-pre-line">{renderMarkdownBold(diagnostic.ai_profile_summary)}</p>
               </div>
             )}
 
