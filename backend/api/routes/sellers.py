@@ -842,28 +842,32 @@ async def generate_bilan_individuel(
         
         if ai_service.available and len(kpis) > 0:
             try:
-                prompt = f"""Tu es un coach retail bienveillant. Génère un bilan de performance pour {seller_name}.
+                # 🛑 STRICT SELLER PROMPT V3 - No marketing, no traffic, no promotions
+                prompt = f"""Génère un bilan de performance pour {seller_name}.
 
-Période: {start_date} à {end_date}
-CA total: {total_ca:.0f}€
-Ventes: {total_ventes}
-Clients: {total_clients}
-Panier moyen: {panier_moyen:.2f}€
-Jours travaillés: {len(kpis)}
+📊 DONNÉES VENDEUR (ignore tout ce qui n'est pas listé) :
+- CA total: {total_ca:.0f}€
+- Nombre de ventes: {total_ventes}
+- Panier moyen: {panier_moyen:.2f}€
+- Jours travaillés: {len(kpis)}
+
+⚠️ RAPPEL STRICT : Ne parle PAS de trafic, promotions, réseaux sociaux ou marketing.
+Si le CA est bon, félicite simplement. Focus sur accueil, vente additionnelle, closing.
 
 Génère un bilan structuré au format JSON:
 {{
-  "synthese": "Une phrase résumant la performance globale de manière encourageante",
-  "points_forts": ["Point fort 1", "Point fort 2"],
-  "points_attention": ["Point à améliorer 1", "Point à améliorer 2"],
-  "recommandations": ["Action concrète 1", "Action concrète 2", "Action concrète 3"]
-}}
+  "synthese": "Une phrase de félicitation sincère basée sur le CA et le panier moyen",
+  "points_forts": ["Point fort lié à la VENTE", "Point fort lié au SERVICE CLIENT"],
+  "points_attention": ["Axe d'amélioration terrain (accueil, closing, vente additionnelle)"],
+  "recommandations": ["Action concrète en boutique 1", "Action concrète en boutique 2"]
+}}"""
 
-Sois positif et motivant. Utilise le tutoiement."""
-
+                # Import the strict prompt
+                from services.ai_service import SELLER_STRICT_SYSTEM_PROMPT
+                
                 chat = ai_service._create_chat(
                     session_id=f"bilan_{seller_id}_{start_date}",
-                    system_message="Tu es un coach retail bienveillant qui génère des bilans motivants. Réponds uniquement en JSON valide.",
+                    system_message=SELLER_STRICT_SYSTEM_PROMPT + "\nRéponds uniquement en JSON valide.",
                     model="gpt-4o-mini"
                 )
                 
