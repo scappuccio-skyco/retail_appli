@@ -2501,7 +2501,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                 // For challenges with target_value (kpi_standard, product_focus)
                                                 if (challenge.target_value && !challenge.ca_target && !challenge.ventes_target) {
                                                   await axios.post(
-                                                    `${API}/manager/challenges/${challenge.id}/progress`,
+                                                    `${API}/manager/challenges/${challenge.id}/progress${storeParam}`,
                                                     {
                                                       current_value: parseFloat(challengeProgressValue) || challenge.current_value || 0
                                                     },
@@ -2510,7 +2510,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                 } else {
                                                   // For challenges with multiple targets
                                                   await axios.post(
-                                                    `${API}/manager/challenges/${challenge.id}/progress`,
+                                                    `${API}/manager/challenges/${challenge.id}/progress${storeParam}`,
                                                     {
                                                       progress_ca: challenge.progress_ca,
                                                       progress_ventes: challenge.progress_ventes,
