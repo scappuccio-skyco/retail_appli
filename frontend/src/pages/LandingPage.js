@@ -931,9 +931,9 @@ export default function LandingPage() {
             <div className="sm:col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
                 <img src="/logo-icon.png" alt="Retail Performer AI" className="h-10 sm:h-12 w-auto" />
-                <div>
-                  <span className="text-base sm:text-lg font-bold text-white">Retail Performer AI</span>
-                  <span className="text-sm font-medium text-gray-300 ml-1">by SKY CO</span>
+                <div className="flex flex-col">
+                  <span className="text-base font-bold text-white leading-tight">Retail Performer AI</span>
+                  <span className="text-xs font-medium text-gray-400">by SKY CO</span>
                 </div>
               </div>
               <p className="text-[#94A3B8] text-xs sm:text-sm">
