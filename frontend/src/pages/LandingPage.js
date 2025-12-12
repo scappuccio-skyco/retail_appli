@@ -920,16 +920,15 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#334155] text-white py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="bg-[#334155] text-white py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            {/* Company */}
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <img src="/logo-retail-performer.png" alt="Retail Performer AI" className="h-10 w-auto" />
-                <span className="text-xl font-bold">Retail Performer AI</span>
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
+            {/* Company - Logo seul, plus grand */}
+            <div className="sm:col-span-2 md:col-span-1">
+              <div className="mb-4">
+                <img src="/logo-retail-performer.png" alt="Retail Performer AI by SKY CO" className="h-12 sm:h-14 w-auto" />
               </div>
-              <p className="text-[#64748B] text-sm">
+              <p className="text-[#94A3B8] text-xs sm:text-sm">
                 La plateforme de coaching intelligente pour les équipes retail
               </p>
             </div>
