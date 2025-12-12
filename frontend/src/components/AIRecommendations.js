@@ -1,6 +1,22 @@
 import React from 'react';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 
+// Helper function to render markdown bold text (**text**) as actual bold
+const renderMarkdownBold = (text) => {
+  if (!text) return null;
+  
+  // Split by **text** pattern and render with bold
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      // Remove ** and render as bold
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    return <span key={index}>{part}</span>;
+  });
+};
+
 export default function AIRecommendations({ recommendations }) {
   if (!recommendations) return null;
 
@@ -18,7 +34,7 @@ export default function AIRecommendations({ recommendations }) {
             <AlertCircle className="w-5 h-5 text-blue-600" />
             Analyse de la situation
           </h4>
-          <p className="text-gray-700 whitespace-pre-line">{recommendations.ai_analyse_situation}</p>
+          <p className="text-gray-700 whitespace-pre-line">{renderMarkdownBold(recommendations.ai_analyse_situation)}</p>
         </div>
 
         {/* Approche de communication */}
@@ -27,7 +43,7 @@ export default function AIRecommendations({ recommendations }) {
             <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
               💬 Approche de communication
             </h4>
-            <p className="text-gray-700 whitespace-pre-line">{recommendations.ai_approche_communication}</p>
+            <p className="text-gray-700 whitespace-pre-line">{renderMarkdownBold(recommendations.ai_approche_communication)}</p>
           </div>
         )}
 
@@ -43,7 +59,7 @@ export default function AIRecommendations({ recommendations }) {
                   <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-sm font-bold">
                     {index + 1}
                   </span>
-                  <span className="text-gray-700 flex-1">{action}</span>
+                  <span className="text-gray-700 flex-1">{renderMarkdownBold(action)}</span>
                 </li>
               ))}
             </ul>
@@ -62,7 +78,7 @@ export default function AIRecommendations({ recommendations }) {
                   <span className="flex-shrink-0 w-6 h-6 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center text-sm font-bold">
                     !
                   </span>
-                  <span className="text-gray-700 flex-1">{point}</span>
+                  <span className="text-gray-700 flex-1">{renderMarkdownBold(point)}</span>
                 </li>
               ))}
             </ul>
