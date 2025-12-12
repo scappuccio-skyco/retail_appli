@@ -11,22 +11,22 @@ from api.dependencies import get_diagnostic_service
 router = APIRouter(prefix="/manager-diagnostic", tags=["Diagnostics"])
 
 
-async def verify_manager(current_user: dict = Depends(get_current_user)) -> dict:
-    """Verify current user is a manager"""
-    if current_user.get('role') != 'manager':
-        raise HTTPException(status_code=403, detail="Access restricted to managers")
+async def verify_manager_or_gerant(current_user: dict = Depends(get_current_user)) -> dict:
+    """Verify current user is a manager or gérant"""
+    if current_user.get('role') not in ['manager', 'gerant', 'gérant']:
+        raise HTTPException(status_code=403, detail="Access restricted to managers and gérants")
     return current_user
 
 
 @router.get("/me")
 async def get_my_diagnostic(
-    current_user: dict = Depends(verify_manager),
+    current_user: dict = Depends(verify_manager_or_gerant),
     diagnostic_service: DiagnosticService = Depends(get_diagnostic_service)
 ):
     """
-    Get current manager's DISC diagnostic profile
+    Get current user's DISC diagnostic profile
     
-    Returns manager's personality profile (DISC method)
+    Returns manager's/gérant's personality profile (DISC method)
     """
     try:
         diagnostic = await diagnostic_service.get_manager_diagnostic(current_user['id'])
