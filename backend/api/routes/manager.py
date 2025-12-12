@@ -321,22 +321,18 @@ async def get_available_years(
 
 @router.get("/sellers")
 async def get_sellers(
-    current_user: dict = Depends(verify_manager),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service)
 ):
-    """
-    Get all sellers for manager's store
-    
-    Returns list of sellers (active and suspended, excluding deleted)
-    """
+    """Get all sellers for the store"""
     try:
-        store_id = current_user.get('store_id')
-        if not store_id:
-            raise HTTPException(status_code=400, detail="Manager not assigned to a store")
+        resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
         
         sellers = await manager_service.get_sellers(
-            manager_id=current_user['id'],
-            store_id=store_id
+            manager_id=manager_id,
+            store_id=resolved_store_id
         )
         return sellers
     except HTTPException:
