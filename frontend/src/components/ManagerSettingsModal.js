@@ -368,7 +368,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.custom_description = newChallenge.custom_description;
       }
       
-      await axios.put(`${API}/manager/challenges/${editingChallenge.id}`, cleanedData, { headers });
+      await axios.put(`${API}/manager/challenges/${editingChallenge.id}${storeParam}`, cleanedData, { headers });
       toast.success('Challenge modifié avec succès');
       setEditingChallenge(null);
       
@@ -385,7 +385,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const handleDeleteChallenge = async (challengeId, challengeTitle) => {
     if (window.confirm(`Êtes-vous sûr de vouloir supprimer le challenge "${challengeTitle}" ?`)) {
       try {
-        await axios.delete(`${API}/manager/challenges/${challengeId}`, { headers });
+        await axios.delete(`${API}/manager/challenges/${challengeId}${storeParam}`, { headers });
         toast.success('Challenge supprimé avec succès');
         fetchData();
         if (onUpdate) onUpdate();
@@ -404,7 +404,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
 
     try {
       await axios.post(
-        `${API}/manager/challenges/${challengeId}/progress`,
+        `${API}/manager/challenges/${challengeId}/progress${storeParam}`,
         { current_value: parseFloat(challengeProgressValue) },
         { headers }
       );
