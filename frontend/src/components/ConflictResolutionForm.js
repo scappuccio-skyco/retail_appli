@@ -216,12 +216,12 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
                         <div className="space-y-3 mt-4 pt-4 border-t border-gray-200">
                           <div className="bg-blue-50 rounded-lg p-3">
                             <p className="text-xs font-semibold text-blue-900 mb-1">💡 Analyse IA :</p>
-                            <p className="text-sm text-blue-800 whitespace-pre-line">{conflict.ai_analyse_situation}</p>
+                            <p className="text-sm text-blue-800 whitespace-pre-line">{renderMarkdownBold(conflict.ai_analyse_situation)}</p>
                           </div>
 
                           <div className="bg-purple-50 rounded-lg p-3">
                             <p className="text-xs font-semibold text-purple-900 mb-1">💬 Approche de communication :</p>
-                            <p className="text-sm text-purple-800 whitespace-pre-line">{conflict.ai_approche_communication}</p>
+                            <p className="text-sm text-purple-800 whitespace-pre-line">{renderMarkdownBold(conflict.ai_approche_communication)}</p>
                           </div>
 
                           <div className="bg-green-50 rounded-lg p-3">
@@ -230,7 +230,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
                               {conflict.ai_actions_concretes.map((action, idx) => (
                                 <li key={`conflict-${conflict.id}-action-${idx}-${action.substring(0, 20)}`} className="text-sm text-green-800 flex items-start gap-2">
                                   <span className="text-[#10B981]">•</span>
-                                  <span>{action}</span>
+                                  <span>{renderMarkdownBold(action)}</span>
                                 </li>
                               ))}
                             </ul>
@@ -242,7 +242,7 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
                               {conflict.ai_points_vigilance.map((point, idx) => (
                                 <li key={`conflict-${conflict.id}-vigilance-${idx}-${point.substring(0, 20)}`} className="text-sm text-orange-800 flex items-start gap-2">
                                   <span className="text-[#F97316]">•</span>
-                                  <span>{point}</span>
+                                  <span>{renderMarkdownBold(point)}</span>
                                 </li>
                               ))}
                             </ul>
