@@ -946,7 +946,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
                                 </p>
                                 <p className={`text-sm whitespace-pre-line leading-relaxed ${
                                   isConclue ? 'text-green-800' : 'text-blue-800'
-                                }`}>{debrief.ai_analyse}</p>
+                                }`}>{renderMarkdownBold(debrief.ai_analyse)}</p>
                               </div>
 
                               {/* Points à travailler / Points forts */}
@@ -963,7 +963,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
                                 </p>
                                 <p className={`text-sm whitespace-pre-line leading-relaxed ${
                                   isConclue ? 'text-blue-800' : 'text-orange-800'
-                                }`}>{debrief.ai_points_travailler}</p>
+                                }`}>{renderMarkdownBold(debrief.ai_points_travailler)}</p>
                               </div>
 
                               {/* Recommandation */}
@@ -979,7 +979,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
                                 </p>
                                 <p className={`text-sm whitespace-pre-line leading-relaxed ${
                                   isConclue ? 'text-yellow-800' : 'text-green-800'
-                                }`}>{debrief.ai_recommandation}</p>
+                                }`}>{renderMarkdownBold(debrief.ai_recommandation)}</p>
                               </div>
 
                               {/* Exemple concret */}
@@ -988,7 +988,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
                                   <span className="text-lg">{isConclue ? '✨' : '💡'}</span> 
                                   {isConclue ? 'Ce qui a fait la différence' : 'Exemple concret'}
                                 </p>
-                                <p className="text-sm text-purple-800 italic whitespace-pre-line leading-relaxed">{debrief.ai_exemple_concret}</p>
+                                <p className="text-sm text-purple-800 italic whitespace-pre-line leading-relaxed">{renderMarkdownBold(debrief.ai_exemple_concret)}</p>
                               </div>
                             </div>
                           )}
