@@ -212,6 +212,18 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+  - task: "Subscription Modal Update Seats Feature"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/SubscriptionModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ Subscription Modal Update Seats feature working perfectly. Modal opens correctly showing Plan Medium Team, Mensuel, Actif status with current period dates. Seats info displays correctly (8 actifs / 12 achetés). Seat management section expands properly. + Ajouter 1 and - Retirer 1 buttons work correctly, updating the number input. Blue preview box appears with all required cost information: Changement prévu (12 → 13 sièges), Prix par siège (25€/mois), Coût mensuel actuel (300€/mois), Coût mensuel futur (325€/mois), Différence mensuelle (+25€), Coût proratisé estimé (~12.50€). Preview box disappears when seats return to current value. 'Mettre à jour l'abonnement' button correctly disabled when seats equals current value. No console errors detected. All success criteria met."
+
 agent_communication:
   - agent: "main"
     message: "Testing Read-Only Mode for Seller and Manager dashboards. Credentials to use: Seller: emma.petit@test.com / TestDemo123! (trial expired), Manager: y.legoff@skyco.fr / TestDemo123! (trial expired). Both should show yellow alert banner and block KPI entry. Test the PerformanceModal 'Saisir mes chiffres' tab - it should be disabled with lock icon."
@@ -221,3 +233,5 @@ agent_communication:
     message: "✅ READ-ONLY MODE FRONTEND TESTS COMPLETED SUCCESSFULLY. Seller dashboard: Yellow alert banner ✅, Performance modal opens ✅, 'Saisir mes chiffres' tab disabled with lock icon ✅. Manager dashboard: Yellow alert banner ✅, 'Mon Magasin' card shows '🔒 Lecture seule' ✅, cards dimmed (opacity-60) ✅. KPI entry blocking working correctly via useSyncMode hook. All visual indicators and functional blocking implemented properly."
   - agent: "main"
     message: "Testing Subscription Modal Update Seats feature for Gérant. Credentials: gerant@skyco.fr / Gerant123!. Test the following: 1) Open 'Mon abonnement' modal 2) In 'Gérer mes sièges vendeurs' section, click +/- buttons 3) Verify the cost preview shows dynamically (calls /api/gerant/seats/preview API) 4) Verify current cost, future cost, and proration estimate are displayed 5) Optionally test 'Mettre à jour l'abonnement' button (calls /api/gerant/subscription/update-seats). Backend endpoints: POST /api/gerant/seats/preview and POST /api/gerant/subscription/update-seats"
+  - agent: "testing"
+    message: "✅ SUBSCRIPTION MODAL UPDATE SEATS FEATURE TEST COMPLETED SUCCESSFULLY. All functionality working as expected: Modal opens without crash ✅, Shows Plan Medium Team/Mensuel/Actif ✅, Displays current period dates ✅, Shows seats info (8 actifs / 12 achetés) ✅, Seat +/- buttons work correctly ✅, Blue preview box displays with all required cost information including prorated amount ✅, Preview disappears when seats = current ✅, Update button correctly disabled when appropriate ✅, No console errors ✅. Backend API integration working properly. All success criteria met."
