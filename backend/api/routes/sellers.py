@@ -941,12 +941,17 @@ async def get_diagnostic_me(
         if not diagnostic:
             # Return empty response instead of 404 to avoid console errors
             return {
+                "status": "not_started",
                 "has_diagnostic": False,
                 "message": "Diagnostic DISC non encore complété"
             }
         
-        diagnostic['has_diagnostic'] = True
-        return diagnostic
+        # Return with status 'completed' for frontend compatibility
+        return {
+            "status": "completed",
+            "has_diagnostic": True,
+            "diagnostic": diagnostic  # Include the full diagnostic data
+        }
         
     except HTTPException:
         raise
