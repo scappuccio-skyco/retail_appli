@@ -78,6 +78,12 @@ async def create_debrief(
         ai_feedback = None
         new_scores = current_scores.copy()
         
+        # Initialize AI fields at root level (legacy format for frontend compatibility)
+        ai_analyse = ""
+        ai_points_travailler = ""
+        ai_recommandation = ""
+        ai_exemple_concret = ""
+        
         if ai_service.available:
             try:
                 feedback_result = await ai_service.generate_debrief(
@@ -88,12 +94,12 @@ async def create_debrief(
                 )
                 
                 if feedback_result:
-                    ai_feedback = {
-                        'analyse': feedback_result.get('analyse', ''),
-                        'points_travailler': feedback_result.get('points_travailler', ''),
-                        'recommandation': feedback_result.get('recommandation', ''),
-                        'exemple_concret': feedback_result.get('exemple_concret', '')
-                    }
+                    # Store AI fields at root level (legacy format)
+                    ai_analyse = feedback_result.get('analyse', '')
+                    ai_points_travailler = feedback_result.get('points_travailler', '')
+                    ai_recommandation = feedback_result.get('recommandation', '')
+                    ai_exemple_concret = feedback_result.get('exemple_concret', '')
+                    
                     new_scores = {
                         'accueil': feedback_result.get('score_accueil', current_scores['accueil']),
                         'decouverte': feedback_result.get('score_decouverte', current_scores['decouverte']),
@@ -115,9 +121,17 @@ async def create_debrief(
             "moment_perte_client": debrief_data.moment_perte_client,
             "raisons_echec": debrief_data.raisons_echec,
             "amelioration_pensee": debrief_data.amelioration_pensee,
-            "ai_feedback": ai_feedback,
-            "scores_before": current_scores,
-            "scores_after": new_scores,
+            # AI fields at root level (legacy format for frontend)
+            "ai_analyse": ai_analyse,
+            "ai_points_travailler": ai_points_travailler,
+            "ai_recommandation": ai_recommandation,
+            "ai_exemple_concret": ai_exemple_concret,
+            # Score tracking
+            "score_accueil": new_scores.get('accueil', current_scores['accueil']),
+            "score_decouverte": new_scores.get('decouverte', current_scores['decouverte']),
+            "score_argumentation": new_scores.get('argumentation', current_scores['argumentation']),
+            "score_closing": new_scores.get('closing', current_scores['closing']),
+            "score_fidelisation": new_scores.get('fidelisation', current_scores['fidelisation']),
             "shared_with_manager": False,
             "date": today,
             "created_at": datetime.now(timezone.utc).isoformat()
