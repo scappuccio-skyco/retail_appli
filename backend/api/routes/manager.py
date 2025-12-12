@@ -358,16 +358,14 @@ async def get_invitations(
 
 @router.get("/sync-mode")
 async def get_sync_mode(
-    current_user: dict = Depends(verify_manager),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service)
 ):
-    """Get sync mode configuration for manager's store"""
+    """Get sync mode configuration for the store"""
     try:
-        store_id = current_user.get('store_id')
-        if not store_id:
-            raise HTTPException(status_code=400, detail="Manager not assigned to a store")
-        
-        config = await manager_service.get_sync_mode(store_id)
+        resolved_store_id = context.get('resolved_store_id')
+        config = await manager_service.get_sync_mode(resolved_store_id)
         return config
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -375,16 +373,14 @@ async def get_sync_mode(
 
 @router.get("/kpi-config")
 async def get_kpi_config(
-    current_user: dict = Depends(verify_manager),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service)
 ):
-    """Get KPI configuration for manager's store"""
+    """Get KPI configuration for the store"""
     try:
-        store_id = current_user.get('store_id')
-        if not store_id:
-            raise HTTPException(status_code=400, detail="Manager not assigned to a store")
-        
-        config = await manager_service.get_kpi_config(store_id)
+        resolved_store_id = context.get('resolved_store_id')
+        config = await manager_service.get_kpi_config(resolved_store_id)
         return config
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -392,18 +388,18 @@ async def get_kpi_config(
 
 @router.get("/team-bilans/all")
 async def get_team_bilans_all(
-    current_user: dict = Depends(verify_manager),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service)
 ):
-    """Get all team bilans for manager"""
+    """Get all team bilans for the store"""
     try:
-        store_id = current_user.get('store_id')
-        if not store_id:
-            raise HTTPException(status_code=400, detail="Manager not assigned to a store")
+        resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
         
         bilans = await manager_service.get_team_bilans_all(
-            manager_id=current_user['id'],
-            store_id=store_id
+            manager_id=manager_id,
+            store_id=resolved_store_id
         )
         return bilans
     except Exception as e:
@@ -414,23 +410,16 @@ async def get_team_bilans_all(
 async def get_store_kpi_stats(
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
-    current_user: dict = Depends(verify_manager),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service)
 ):
-    """
-    Get aggregated KPI statistics for manager's store
-    
-    Args:
-        start_date: Start date (YYYY-MM-DD), defaults to first day of current month
-        end_date: End date (YYYY-MM-DD), defaults to today
-    """
+    """Get aggregated KPI statistics for the store"""
     try:
-        store_id = current_user.get('store_id')
-        if not store_id:
-            raise HTTPException(status_code=400, detail="Manager not assigned to a store")
+        resolved_store_id = context.get('resolved_store_id')
         
         stats = await manager_service.get_store_kpi_stats(
-            store_id=store_id,
+            store_id=resolved_store_id,
             start_date=start_date,
             end_date=end_date
         )
@@ -441,18 +430,18 @@ async def get_store_kpi_stats(
 
 @router.get("/objectives/active")
 async def get_active_objectives(
-    current_user: dict = Depends(verify_manager),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service)
 ):
-    """Get active objectives for manager's team"""
+    """Get active objectives for the store's team"""
     try:
-        store_id = current_user.get('store_id')
-        if not store_id:
-            raise HTTPException(status_code=400, detail="Manager not assigned to a store")
+        resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
         
         objectives = await manager_service.get_active_objectives(
-            manager_id=current_user['id'],
-            store_id=store_id
+            manager_id=manager_id,
+            store_id=resolved_store_id
         )
         return objectives
     except Exception as e:
@@ -461,18 +450,18 @@ async def get_active_objectives(
 
 @router.get("/challenges/active")
 async def get_active_challenges(
-    current_user: dict = Depends(verify_manager),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service)
 ):
-    """Get active challenges for manager's team"""
+    """Get active challenges for the store's team"""
     try:
-        store_id = current_user.get('store_id')
-        if not store_id:
-            raise HTTPException(status_code=400, detail="Manager not assigned to a store")
+        resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
         
         challenges = await manager_service.get_active_challenges(
-            manager_id=current_user['id'],
-            store_id=store_id
+            manager_id=manager_id,
+            store_id=resolved_store_id
         )
         return challenges
     except Exception as e:
