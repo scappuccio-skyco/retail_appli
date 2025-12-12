@@ -1452,3 +1452,192 @@ async def get_seller_profile(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+# ===== TEAM AI ANALYSIS ENDPOINTS =====
+
+@router.get("/team-analyses-history")
+async def get_team_analyses_history(
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Get history of team AI analyses for this store.
+    """
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        
+        # Fetch analyses history
+        analyses = await db.team_analyses.find(
+            {"store_id": resolved_store_id},
+            {"_id": 0}
+        ).sort("generated_at", -1).to_list(50)
+        
+        return {"analyses": analyses}
+        
+    except Exception as e:
+        logger.error(f"Error loading team analyses history: {e}")
+        return {"analyses": []}
+
+
+@router.post("/analyze-team")
+async def analyze_team(
+    analysis_data: dict,
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Generate AI-powered analysis of team performance.
+    
+    Analyzes seller KPIs, identifies top performers, areas for improvement,
+    and provides actionable recommendations.
+    """
+    from services.ai_service import AIService
+    from uuid import uuid4
+    
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
+        
+        # Get team data from request
+        team_data = analysis_data.get('team_data', {})
+        period_filter = analysis_data.get('period_filter', '30')
+        start_date = analysis_data.get('start_date')
+        end_date = analysis_data.get('end_date')
+        
+        # Calculate period
+        if start_date and end_date:
+            period_start = start_date
+            period_end = end_date
+        else:
+            end_dt = datetime.now(timezone.utc)
+            days = int(period_filter) if period_filter.isdigit() else 30
+            start_dt = end_dt - timedelta(days=days)
+            period_start = start_dt.strftime('%Y-%m-%d')
+            period_end = end_dt.strftime('%Y-%m-%d')
+        
+        # Build team summary for AI
+        sellers_details = team_data.get('sellers_details', [])
+        total_sellers = team_data.get('total_sellers', 0)
+        team_total_ca = team_data.get('team_total_ca', 0)
+        team_total_ventes = team_data.get('team_total_ventes', 0)
+        
+        team_summary = f"""
+Équipe: {total_sellers} vendeurs
+Période: {period_start} à {period_end}
+
+Performance globale:
+- CA total équipe: {team_total_ca:.2f}€
+- Ventes totales: {team_total_ventes}
+- Panier moyen équipe: {(team_total_ca / team_total_ventes):.2f}€ si team_total_ventes > 0 else 0
+
+Détails par vendeur:
+"""
+        for seller in sellers_details:
+            team_summary += f"""
+- {seller.get('name', 'Unknown')}:
+  • CA: {seller.get('ca', 0):.2f}€
+  • Ventes: {seller.get('ventes', 0)}
+  • Panier moyen: {seller.get('panier_moyen', 0):.2f}€
+  • Point fort: {seller.get('best_skill', 'N/A')}
+  • Axe d'amélioration: {seller.get('worst_skill', 'N/A')}
+"""
+        
+        # Initialize AI service
+        ai_service = AIService()
+        
+        if not ai_service.client:
+            # Return mock analysis if AI not available
+            analysis_text = f"""📊 Analyse de l'équipe
+
+{team_summary}
+
+💡 Pour une analyse IA détaillée avec des recommandations personnalisées, veuillez configurer le service IA."""
+        else:
+            # Generate AI analysis
+            try:
+                response = ai_service.client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": """Tu es un coach commercial expert en management d'équipe de vente retail.
+Analyse les performances de l'équipe et fournis:
+1. Un résumé des performances globales
+2. Identification des top performers et leurs forces
+3. Vendeurs nécessitant un accompagnement
+4. 5 recommandations concrètes pour améliorer les performances
+5. Suggestions de challenges d'équipe à mettre en place
+
+Sois concis, pratique et actionnable. Utilise des emojis pour rendre l'analyse lisible."""},
+                        {"role": "user", "content": f"Analyse cette équipe de vente et donne des recommandations personnalisées:\n{team_summary}"}
+                    ],
+                    temperature=0.7,
+                    max_tokens=1500
+                )
+                
+                analysis_text = response.choices[0].message.content
+                
+            except Exception as ai_error:
+                logger.error(f"AI error: {ai_error}")
+                analysis_text = f"""📊 Résumé automatique de l'équipe
+
+{team_summary}
+
+⚠️ Analyse IA temporairement indisponible."""
+        
+        # Save analysis to history
+        analysis_record = {
+            "id": str(uuid4()),
+            "store_id": resolved_store_id,
+            "manager_id": manager_id,
+            "period_start": period_start,
+            "period_end": period_end,
+            "analysis": analysis_text,
+            "team_stats": {
+                "total_sellers": total_sellers,
+                "team_total_ca": team_total_ca,
+                "team_total_ventes": team_total_ventes
+            },
+            "generated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.team_analyses.insert_one(analysis_record)
+        
+        return {
+            "analysis": analysis_text,
+            "period_start": period_start,
+            "period_end": period_end,
+            "generated_at": analysis_record["generated_at"]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error analyzing team: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/team-analysis/{analysis_id}")
+async def delete_team_analysis(
+    analysis_id: str,
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """Delete a team analysis from history."""
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        
+        result = await db.team_analyses.delete_one(
+            {"id": analysis_id, "store_id": resolved_store_id}
+        )
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Analyse non trouvée")
+        
+        return {"success": True, "message": "Analyse supprimée"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
