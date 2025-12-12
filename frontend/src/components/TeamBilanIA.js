@@ -165,7 +165,7 @@ export default function TeamBilanIA() {
 
       {/* Synthèse */}
       <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-xl p-4 mb-4">
-        <p className="text-gray-800 font-medium">{bilan.synthese}</p>
+        <p className="text-gray-800 font-medium">{renderMarkdownBold(bilan.synthese)}</p>
       </div>
 
       {/* Données sources panel */}
@@ -234,7 +234,7 @@ export default function TeamBilanIA() {
                   <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
                     {idx + 1}
                   </span>
-                  <p className="flex-1 text-gray-800">{point}</p>
+                  <p className="flex-1 text-gray-800">{renderMarkdownBold(point)}</p>
                 </div>
               ))}
             </div>
@@ -254,7 +254,7 @@ export default function TeamBilanIA() {
                   <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-red-500 to-orange-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
                     !
                   </span>
-                  <p className="flex-1 text-gray-800">{point}</p>
+                  <p className="flex-1 text-gray-800">{renderMarkdownBold(point)}</p>
                 </div>
               ))}
             </div>
@@ -274,7 +274,7 @@ export default function TeamBilanIA() {
                   <span className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
                     {idx + 1}
                   </span>
-                  <p className="flex-1 text-gray-800">{action}</p>
+                  <p className="flex-1 text-gray-800">{renderMarkdownBold(action)}</p>
                 </div>
               ))}
             </div>
@@ -289,7 +289,7 @@ export default function TeamBilanIA() {
               </span>
             </div>
             <div className="bg-white rounded-lg p-4 shadow-sm">
-              <p className="text-gray-800 italic leading-relaxed">"{bilan.suggestion_brief}"</p>
+              <p className="text-gray-800 italic leading-relaxed">"{renderMarkdownBold(bilan.suggestion_brief)}"</p>
             </div>
           </div>
 
