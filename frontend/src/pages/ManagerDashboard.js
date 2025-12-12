@@ -1190,6 +1190,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           }}
           sellers={sellers}
           autoShowResult={autoShowRelationshipResult}
+          storeId={urlStoreId}
         />
       )}
 
