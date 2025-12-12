@@ -6,10 +6,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from datetime import datetime, timezone
 from typing import Dict, Optional
-import os
 import stripe
 
 from core.security import get_current_gerant
+from core.config import settings
 from services.gerant_service import GerantService
 from api.dependencies import get_gerant_service, get_db
 import logging
@@ -19,29 +19,34 @@ logger = logging.getLogger(__name__)
 # ==========================================
 # STRIPE PRICE CONFIGURATION
 # ==========================================
-# Ces Price IDs correspondent aux produits Stripe configurés
-# Ils peuvent être surchargés par les variables d'environnement
-STRIPE_PRICES = {
-    # Prix par siège/mois selon le palier
-    "starter": {
-        "monthly": os.environ.get("STRIPE_PRICE_STARTER_MONTHLY", "price_1SS2XxIVM4C8dIGvpBRcYSNX"),
-        "yearly": os.environ.get("STRIPE_PRICE_STARTER_YEARLY", "price_1SS2XxIVM4C8dIGvpBRcYSNX_yearly"),
-        "price_monthly": 29,
-        "price_yearly": 278,  # 29 * 12 * 0.8 = 278.40 arrondi
-    },
-    "professional": {
-        "monthly": os.environ.get("STRIPE_PRICE_PRO_MONTHLY", "price_1SS2XxIVM4C8dIGvpBRcYSNX"),
-        "yearly": os.environ.get("STRIPE_PRICE_PRO_YEARLY", "price_1SS2XxIVM4C8dIGvpBRcYSNX_yearly"),
-        "price_monthly": 25,
-        "price_yearly": 240,  # 25 * 12 * 0.8 = 240
-    },
-    "enterprise": {
-        "monthly": os.environ.get("STRIPE_PRICE_ENTERPRISE_MONTHLY", "price_1SS2XxIVM4C8dIGvpBRcYSNX"),
-        "yearly": os.environ.get("STRIPE_PRICE_ENTERPRISE_YEARLY", "price_1SS2XxIVM4C8dIGvpBRcYSNX_yearly"),
-        "price_monthly": 22,
-        "price_yearly": 211,  # 22 * 12 * 0.8 = 211.20 arrondi
+# Loaded from environment variables via settings
+# No hardcoded values - all IDs come from .env
+
+def get_stripe_prices() -> dict:
+    """
+    Build STRIPE_PRICES dict from settings.
+    Called at runtime to ensure settings are loaded.
+    """
+    return {
+        "starter": {
+            "monthly": settings.STRIPE_PRICE_STARTER_MONTHLY,
+            "yearly": settings.STRIPE_PRICE_STARTER_YEARLY,
+            "price_monthly": 29,
+            "price_yearly": 278,  # 29 * 12 * 0.8 = 278.40 arrondi
+        },
+        "professional": {
+            "monthly": settings.STRIPE_PRICE_PRO_MONTHLY,
+            "yearly": settings.STRIPE_PRICE_PRO_YEARLY,
+            "price_monthly": 25,
+            "price_yearly": 240,  # 25 * 12 * 0.8 = 240
+        },
+        "enterprise": {
+            "monthly": settings.STRIPE_PRICE_ENTERPRISE_MONTHLY,
+            "yearly": settings.STRIPE_PRICE_ENTERPRISE_YEARLY,
+            "price_monthly": 22,
+            "price_yearly": 211,  # 22 * 12 * 0.8 = 211.20 arrondi
+        }
     }
-}
 
 def get_plan_from_seats(seats: int) -> str:
     """Determine plan tier based on seat count"""
