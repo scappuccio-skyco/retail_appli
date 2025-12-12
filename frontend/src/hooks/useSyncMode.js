@@ -71,19 +71,27 @@ export const useSyncMode = (storeId = null) => {
       
       console.log('🏪 useSyncMode - Using storeId:', effectiveStoreId);
 
-      // Récupérer le mode sync (seulement pour les rôles qui en ont besoin)
-      try {
-        const response = await axios.get(`${API}/manager/sync-mode${storeIdParam}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+      // Récupérer le mode sync (seulement pour managers et gérants, pas pour vendeurs)
+      if (userRole === 'manager' || userRole === 'gerant' || userRole === 'gérant') {
+        try {
+          const response = await axios.get(`${API}/manager/sync-mode${storeIdParam}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
 
-        setSyncMode(response.data.sync_mode || 'manual');
-        setIsEnterprise(response.data.is_enterprise || false);
-        setCompanyName(response.data.company_name || null);
-        setCanEditKPI(response.data.can_edit_kpi !== false);
-        setCanEditObjectives(response.data.can_edit_objectives !== false);
-      } catch (error) {
-        console.error('Error fetching sync mode:', error);
+          setSyncMode(response.data.sync_mode || 'manual');
+          setIsEnterprise(response.data.is_enterprise || false);
+          setCompanyName(response.data.company_name || null);
+          setCanEditKPI(response.data.can_edit_kpi !== false);
+          setCanEditObjectives(response.data.can_edit_objectives !== false);
+        } catch (error) {
+          console.error('Error fetching sync mode:', error);
+          setSyncMode('manual');
+          setIsEnterprise(false);
+          setCanEditKPI(true);
+          setCanEditObjectives(true);
+        }
+      } else {
+        // Sellers don't have sync mode - default to manual
         setSyncMode('manual');
         setIsEnterprise(false);
         setCanEditKPI(true);
