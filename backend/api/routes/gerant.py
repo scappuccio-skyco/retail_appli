@@ -242,7 +242,7 @@ async def preview_seat_change(
                     
                     logger.info(f"✅ Stripe proration preview: {proration_estimate}€ for {current_seats}→{new_seats} seats")
                     
-                except stripe.error.StripeError as e:
+                except stripe.StripeError as e:
                     # If Stripe call fails, log but don't fail the request
                     logger.warning(f"⚠️ Could not get Stripe proration preview: {str(e)}")
                     # Fall back to rough estimate only if Stripe fails
