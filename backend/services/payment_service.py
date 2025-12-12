@@ -442,7 +442,7 @@ class PaymentService:
                 # CRITICAL: Call Stripe BEFORE updating local DB (atomicity)
                 stripe.api_key = self.stripe_api_key
                 
-                result = stripe.SubscriptionItem.modify(
+                stripe.SubscriptionItem.modify(
                     subscription_item_id,
                     quantity=new_seats,
                     proration_behavior='create_prorations'  # Explicit proration
