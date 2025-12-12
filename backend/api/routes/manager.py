@@ -1681,3 +1681,248 @@ async def delete_team_analysis(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+# ===== RELATIONSHIP ADVICE ENDPOINTS =====
+# 🏺 LEGACY RESTORED - AI-powered relationship and conflict management
+
+from pydantic import BaseModel
+
+class RelationshipAdviceRequest(BaseModel):
+    seller_id: str
+    advice_type: str  # "relationnel" or "conflit"
+    situation_type: str  # "augmentation", "conflit_equipe", "demotivation", etc.
+    description: str
+
+
+@router.post("/relationship-advice")
+async def get_relationship_advice(
+    request: RelationshipAdviceRequest,
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Generate AI-powered relationship/conflict management advice for managers.
+    
+    🏺 LEGACY RESTORED - Uses GPT-4o with manager & seller profiles
+    
+    Uses manager profile, seller profile, KPIs, and recent debriefs
+    to provide personalized advice.
+    """
+    from services.ai_service import AIService
+    from uuid import uuid4
+    import json
+    
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
+        current_user = context
+        
+        # Get seller info
+        seller = await db.users.find_one(
+            {"id": request.seller_id, "store_id": resolved_store_id},
+            {"_id": 0, "password": 0}
+        )
+        if not seller:
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+        
+        # Get manager profile
+        manager_diagnostic = await db.manager_diagnostic_results.find_one(
+            {"manager_id": manager_id},
+            {"_id": 0}
+        )
+        
+        # Get seller profile
+        seller_diagnostic = await db.diagnostics.find_one(
+            {"seller_id": request.seller_id},
+            {"_id": 0}
+        )
+        
+        # Get seller KPIs (last 30 days)
+        thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).strftime('%Y-%m-%d')
+        kpi_entries = await db.kpi_entries.find(
+            {
+                "seller_id": request.seller_id,
+                "date": {"$gte": thirty_days_ago}
+            },
+            {"_id": 0}
+        ).to_list(100)
+        
+        # Get recent shared debriefs (last 5)
+        recent_debriefs = await db.debriefs.find(
+            {
+                "seller_id": request.seller_id,
+                "shared_with_manager": True
+            },
+            {"_id": 0}
+        ).sort("created_at", -1).limit(5).to_list(5)
+        
+        # Prepare data summary for AI
+        kpi_summary = f"KPIs sur les 30 derniers jours : {len(kpi_entries)} entrées"
+        if kpi_entries:
+            total_ca = sum(entry.get('ca_journalier', 0) or entry.get('ca', 0) for entry in kpi_entries)
+            total_ventes = sum(entry.get('nb_ventes', 0) or entry.get('ventes', 0) for entry in kpi_entries)
+            kpi_summary += f"\n- CA total : {total_ca:.2f}€\n- Ventes totales : {total_ventes}"
+        
+        debrief_summary = f"{len(recent_debriefs)} debriefs récents"
+        if recent_debriefs:
+            debrief_summary += ":\n" + "\n".join([
+                f"- {d.get('date', 'Date inconnue')}: {d.get('summary', d.get('analyse', 'Pas de résumé'))[:100]}"
+                for d in recent_debriefs
+            ])
+        
+        # Build AI prompt
+        advice_type_fr = "relationnelle" if request.advice_type == "relationnel" else "de conflit"
+        
+        system_message = f"""Tu es un expert en management d'équipe retail et en gestion {advice_type_fr}.
+Tu dois fournir des conseils personnalisés basés sur les profils de personnalité et les performances."""
+
+        user_prompt = f"""# Situation {advice_type_fr.upper()}
+
+**Type de situation :** {request.situation_type}
+**Description :** {request.description}
+
+## Contexte Manager
+**Prénom :** {current_user.get('first_name', current_user.get('name', 'Manager'))}
+**Profil de personnalité :** {json.dumps(manager_diagnostic.get('profile', {}), ensure_ascii=False) if manager_diagnostic else 'Non disponible'}
+
+## Contexte Vendeur
+**Prénom :** {seller.get('first_name', seller.get('name', 'Vendeur'))}
+**Statut :** {seller.get('status', 'actif')}
+**Profil de personnalité :** {json.dumps(seller_diagnostic.get('profile', {}), ensure_ascii=False) if seller_diagnostic else 'Non disponible'}
+
+## Performances
+{kpi_summary}
+
+## Debriefs récents
+{debrief_summary}
+
+# Ta mission
+Fournis une recommandation CONCISE et ACTIONNABLE (maximum 400 mots) structurée avec :
+
+## Analyse de la situation (2-3 phrases max)
+- Diagnostic rapide en tenant compte des profils de personnalité
+
+## Conseils pratiques (3 actions concrètes max)
+- Actions spécifiques et immédiatement applicables
+- Adaptées aux profils de personnalité
+
+## Phrases clés (2-3 phrases max)
+- Formulations précises adaptées au profil du vendeur
+
+## Points de vigilance (2 points max)
+- Ce qu'il faut éviter compte tenu des profils
+
+IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE. Évite les longues explications théoriques."""
+
+        # Initialize AI service
+        ai_service = AIService()
+        
+        if not ai_service.available:
+            raise HTTPException(status_code=503, detail="Service IA non disponible")
+        
+        # Use GPT-4o for relationship advice
+        chat = ai_service._create_chat(
+            session_id=f"relationship_{manager_id}_{request.seller_id}_{datetime.now(timezone.utc).isoformat()}",
+            system_message=system_message,
+            model="gpt-4o"
+        )
+        
+        ai_response = await ai_service._send_message(chat, user_prompt)
+        
+        if not ai_response:
+            raise HTTPException(status_code=500, detail="Erreur lors de la génération du conseil")
+        
+        # Save to history
+        consultation_id = str(uuid4())
+        seller_name = f"{seller.get('first_name', '')} {seller.get('last_name', '')}".strip() or seller.get('name', 'Vendeur')
+        
+        consultation = {
+            "id": consultation_id,
+            "store_id": resolved_store_id,
+            "manager_id": manager_id,
+            "seller_id": request.seller_id,
+            "seller_name": seller_name,
+            "seller_status": seller.get('status', 'active'),
+            "advice_type": request.advice_type,
+            "situation_type": request.situation_type,
+            "description": request.description,
+            "recommendation": ai_response,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.relationship_consultations.insert_one(consultation)
+        
+        return {
+            "consultation_id": consultation_id,
+            "recommendation": ai_response,
+            "seller_name": seller_name
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating relationship advice: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+
+
+@router.get("/relationship-history")
+async def get_relationship_history(
+    seller_id: Optional[str] = Query(None, description="Filter by seller ID"),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Get manager's relationship consultation history.
+    
+    Optionally filter by seller_id.
+    """
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
+        
+        # Build query
+        query = {"manager_id": manager_id, "store_id": resolved_store_id}
+        if seller_id:
+            query["seller_id"] = seller_id
+        
+        # Get consultations
+        consultations = await db.relationship_consultations.find(
+            query,
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(100)
+        
+        return {"consultations": consultations}
+        
+    except Exception as e:
+        logger.error(f"Error fetching relationship history: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/relationship-consultation/{consultation_id}")
+async def delete_relationship_consultation(
+    consultation_id: str,
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """Delete a relationship consultation from history."""
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
+        
+        result = await db.relationship_consultations.delete_one(
+            {"id": consultation_id, "manager_id": manager_id, "store_id": resolved_store_id}
+        )
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Consultation non trouvée")
+        
+        return {"success": True, "message": "Consultation supprimée"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
