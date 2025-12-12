@@ -93,6 +93,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   }, [isOpen, modalType]);
 
   const fetchData = async () => {
+    console.log('🔍 ManagerSettingsModal - fetchData called, storeParam:', storeParam);
     try {
       setLoading(true);
       const [configRes, objectivesRes, challengesRes, sellersRes] = await Promise.all([
@@ -102,14 +103,22 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         axios.get(`${API}/manager/sellers${storeParam}`, { headers })
       ]);
       
+      console.log('✅ ManagerSettingsModal - fetchData success', {
+        kpiConfig: configRes.data,
+        objectives: objectivesRes.data?.length,
+        challenges: challengesRes.data?.length,
+        sellers: sellersRes.data?.length
+      });
+      
       setKpiConfig(configRes.data);
       setObjectives(objectivesRes.data);
       setChallenges(challengesRes.data);
       setSellers(sellersRes.data);
     } catch (err) {
-      console.error('Error fetching data:', err);
+      console.error('❌ ManagerSettingsModal - fetchData error:', err);
       toast.error('Erreur de chargement des données');
     } finally {
+      console.log('🔄 ManagerSettingsModal - setting loading to false');
       setLoading(false);
     }
   };
