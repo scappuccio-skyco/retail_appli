@@ -2003,7 +2003,7 @@ async def delete_relationship_consultation(
 
 
 
-# ===== SELLER DETAILS ENDPOINTS (for Manager viewing seller profiles) =====
+# ===== SELLER DETAILS ENDPOINTS (for Manager/Gérant viewing seller profiles) =====
 
 @router.get("/debriefs/{seller_id}")
 async def get_seller_debriefs(
@@ -2013,21 +2013,42 @@ async def get_seller_debriefs(
     db = Depends(get_db)
 ):
     """
-    Get all debriefs for a specific seller (visible to manager only)
-    Used when manager clicks on a seller to view their details
+    Get all debriefs for a specific seller
+    Accessible to managers (same store) and gérants (owner of seller's store)
     """
     try:
+        user_role = context.get('role')
+        user_id = context.get('id')
         resolved_store_id = context.get('resolved_store_id')
         
-        # Verify seller belongs to this store
+        # Get seller info
         seller = await db.users.find_one({
             "id": seller_id,
-            "store_id": resolved_store_id,
             "role": "seller"
         }, {"_id": 0})
         
         if not seller:
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé dans ce magasin")
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+        
+        seller_store_id = seller.get('store_id')
+        
+        # Check access rights
+        has_access = False
+        
+        if user_role == 'manager':
+            # Manager can only see sellers from their own store
+            has_access = (seller_store_id == resolved_store_id)
+        elif user_role in ['gerant', 'gérant']:
+            # Gérant can see sellers from any store they own
+            store = await db.stores.find_one({
+                "id": seller_store_id,
+                "gerant_id": user_id,
+                "active": True
+            })
+            has_access = store is not None
+        
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Accès non autorisé à ce vendeur")
         
         # Get all debriefs for this seller
         debriefs = await db.debriefs.find(
