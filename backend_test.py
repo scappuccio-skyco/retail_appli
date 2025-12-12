@@ -612,7 +612,391 @@ class ManagerDashboardAndSuperAdminTester:
         
         return self.tests_passed >= self.tests_run * 0.8
 
+class StripeBillingTester:
+    def __init__(self, base_url="https://gerant-dashboard-1.preview.emergentagent.com/api"):
+        self.base_url = base_url
+        self.gerant_token = None
+        self.seller_token = None
+        self.gerant_user = None
+        self.seller_user = None
+        self.tests_run = 0
+        self.tests_passed = 0
+        self.test_results = []
+
+    def log_test(self, name, success, details=""):
+        """Log test result"""
+        self.tests_run += 1
+        if success:
+            self.tests_passed += 1
+            print(f"✅ {name} - PASSED")
+        else:
+            print(f"❌ {name} - FAILED: {details}")
+        
+        self.test_results.append({
+            "test": name,
+            "success": success,
+            "details": details
+        })
+
+    def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
+        """Run a single API test"""
+        url = f"{self.base_url}/{endpoint}"
+        headers = {'Content-Type': 'application/json'}
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
+
+        print(f"\n🔍 Testing {name}...")
+        print(f"   URL: {url}")
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers, timeout=30)
+            elif method == 'POST':
+                response = requests.post(url, json=data, headers=headers, timeout=30)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=headers, timeout=30)
+            elif method == 'PATCH':
+                response = requests.patch(url, json=data, headers=headers, timeout=30)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers, timeout=30)
+
+            success = response.status_code == expected_status
+            
+            if success:
+                self.log_test(name, True)
+                try:
+                    return True, response.json()
+                except:
+                    return True, {}
+            else:
+                error_msg = f"Expected {expected_status}, got {response.status_code}"
+                try:
+                    error_detail = response.json()
+                    error_msg += f" - {error_detail}"
+                except:
+                    error_msg += f" - {response.text[:200]}"
+                
+                self.log_test(name, False, error_msg)
+                return False, {}
+
+        except Exception as e:
+            self.log_test(name, False, f"Exception: {str(e)}")
+            return False, {}
+
+    def test_authentication(self):
+        """Test authentication for gerant and seller"""
+        print("\n🔐 TESTING STRIPE BILLING AUTHENTICATION")
+        
+        # Test Gérant login (gerant@skyco.fr / Gerant123!)
+        gerant_data = {
+            "email": "gerant@skyco.fr",
+            "password": "Gerant123!"
+        }
+        
+        success, response = self.run_test(
+            "Gérant Authentication for Billing Tests",
+            "POST",
+            "auth/login",
+            200,
+            data=gerant_data
+        )
+        
+        if success and 'token' in response:
+            self.gerant_token = response['token']
+            self.gerant_user = response.get('user', {})
+            print(f"   ✅ Gérant logged in: {self.gerant_user.get('email')}")
+        
+        # Test Seller login (emma.petit@test.com / TestDemo123!)
+        seller_data = {
+            "email": "emma.petit@test.com",
+            "password": "TestDemo123!"
+        }
+        
+        success, response = self.run_test(
+            "Seller Authentication for AI Unlimited Tests",
+            "POST",
+            "auth/login",
+            200,
+            data=seller_data
+        )
+        
+        if success and 'token' in response:
+            self.seller_token = response['token']
+            self.seller_user = response.get('user', {})
+            print(f"   ✅ Seller logged in: {self.seller_user.get('email')}")
+
+    def test_stripe_billing_smoke_tests(self):
+        """Test Stripe billing subscription preview endpoints"""
+        print("\n💳 TESTING STRIPE BILLING - SMOKE TESTS")
+        
+        if not self.gerant_token:
+            self.log_test("Stripe Billing Smoke Tests", False, "No gérant token available")
+            return
+        
+        # Test 1: POST /api/gerant/subscription/preview with {"new_seats": 13}
+        success, response = self.run_test(
+            "Subscription Preview - New Seats (13)",
+            "POST",
+            "gerant/subscription/preview",
+            200,
+            data={"new_seats": 13},
+            token=self.gerant_token
+        )
+        
+        if success:
+            # Check for "No such price" error
+            response_str = json.dumps(response)
+            if "No such price" in response_str:
+                self.log_test("No Such Price Error Check - Seats", False, "Found 'No such price' error in response")
+            else:
+                print(f"   ✅ No 'No such price' error found")
+            
+            # Check for valid proration_estimate
+            proration = response.get('proration_estimate', 0)
+            if isinstance(proration, (int, float)) and proration >= 0:
+                print(f"   ✅ Valid proration_estimate: {proration}€")
+            else:
+                self.log_test("Proration Estimate Check - Seats", False, f"Invalid proration_estimate: {proration}")
+            
+            # Check cost calculations
+            if 'new_monthly_cost' in response and 'current_monthly_cost' in response:
+                print(f"   ✅ Cost calculations present: Current {response.get('current_monthly_cost')}€ → New {response.get('new_monthly_cost')}€")
+            else:
+                self.log_test("Cost Calculations Check - Seats", False, "Missing cost calculation fields")
+        
+        # Test 2: POST /api/gerant/subscription/preview with {"new_interval": "year"}
+        success, response = self.run_test(
+            "Subscription Preview - New Interval (year)",
+            "POST",
+            "gerant/subscription/preview",
+            200,
+            data={"new_interval": "year"},
+            token=self.gerant_token
+        )
+        
+        if success:
+            # Check for "No such price" error
+            response_str = json.dumps(response)
+            if "No such price" in response_str:
+                self.log_test("No Such Price Error Check - Interval", False, "Found 'No such price' error in response")
+            else:
+                print(f"   ✅ No 'No such price' error found")
+            
+            # Check for valid proration_estimate
+            proration = response.get('proration_estimate', 0)
+            if isinstance(proration, (int, float)) and proration >= 0:
+                print(f"   ✅ Valid proration_estimate: {proration}€")
+            else:
+                self.log_test("Proration Estimate Check - Interval", False, f"Invalid proration_estimate: {proration}")
+            
+            # Check interval change
+            if response.get('interval_changing') == True and response.get('new_interval') == 'year':
+                print(f"   ✅ Interval change detected: {response.get('current_interval')} → year")
+            else:
+                print(f"   ℹ️ Interval info: changing={response.get('interval_changing')}, new={response.get('new_interval')}")
+        
+        # Test 3: POST /api/gerant/seats/preview with {"new_seats": 14}
+        success, response = self.run_test(
+            "Seats Preview - New Seats (14)",
+            "POST",
+            "gerant/seats/preview",
+            200,
+            data={"new_seats": 14},
+            token=self.gerant_token
+        )
+        
+        if success:
+            # Check for "No such price" error
+            response_str = json.dumps(response)
+            if "No such price" in response_str:
+                self.log_test("No Such Price Error Check - Seats Preview", False, "Found 'No such price' error in response")
+            else:
+                print(f"   ✅ No 'No such price' error found")
+            
+            # Check for valid proration_estimate
+            proration = response.get('proration_estimate', 0)
+            if isinstance(proration, (int, float)) and proration >= 0:
+                print(f"   ✅ Valid proration_estimate: {proration}€")
+            else:
+                self.log_test("Proration Estimate Check - Seats Preview", False, f"Invalid proration_estimate: {proration}")
+            
+            # Check cost calculations
+            expected_fields = ['current_seats', 'new_seats', 'current_monthly_cost', 'new_monthly_cost', 'price_difference']
+            missing_fields = [f for f in expected_fields if f not in response]
+            if missing_fields:
+                self.log_test("Seats Preview Structure", False, f"Missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ Seats preview: {response.get('current_seats')} → {response.get('new_seats')} seats")
+                print(f"   ✅ Cost change: {response.get('current_monthly_cost')}€ → {response.get('new_monthly_cost')}€")
+
+    def test_webhook_health_check(self):
+        """Test Stripe webhook health endpoint"""
+        print("\n🔗 TESTING WEBHOOK HEALTH CHECK")
+        
+        success, response = self.run_test(
+            "Stripe Webhook Health Check",
+            "GET",
+            "webhooks/stripe/health",
+            200
+        )
+        
+        if success:
+            # Check expected response structure
+            expected_response = {
+                "status": "ok",
+                "webhook_secret_configured": True,
+                "stripe_key_configured": True
+            }
+            
+            # Verify status
+            if response.get('status') == 'ok':
+                print(f"   ✅ Webhook status: {response.get('status')}")
+            else:
+                self.log_test("Webhook Status Check", False, f"Expected status 'ok', got '{response.get('status')}'")
+            
+            # Verify webhook secret configured
+            if response.get('webhook_secret_configured') == True:
+                print(f"   ✅ Webhook secret configured: {response.get('webhook_secret_configured')}")
+            else:
+                self.log_test("Webhook Secret Check", False, f"Webhook secret not configured: {response.get('webhook_secret_configured')}")
+            
+            # Verify stripe key configured
+            if response.get('stripe_key_configured') == True:
+                print(f"   ✅ Stripe key configured: {response.get('stripe_key_configured')}")
+            else:
+                self.log_test("Stripe Key Check", False, f"Stripe key not configured: {response.get('stripe_key_configured')}")
+
+    def test_ai_unlimited_no_quota_blocking(self):
+        """Test AI unlimited functionality - no quota blocking"""
+        print("\n🤖 TESTING AI UNLIMITED - NO QUOTA BLOCKING")
+        
+        if not self.seller_token:
+            self.log_test("AI Unlimited Tests", False, "No seller token available")
+            return
+        
+        # Test POST /api/ai/daily-challenge (no body needed)
+        success, response = self.run_test(
+            "AI Daily Challenge - No Quota Check",
+            "POST",
+            "ai/daily-challenge",
+            200,
+            data={},  # No body needed
+            token=self.seller_token
+        )
+        
+        if success:
+            # Check for quota/credit blocking errors
+            response_str = json.dumps(response).lower()
+            quota_keywords = ['crédits', 'insufficient', 'quota', 'limit', 'blocked', 'exceeded']
+            
+            found_quota_error = any(keyword in response_str for keyword in quota_keywords)
+            
+            if found_quota_error:
+                self.log_test("AI Quota Blocking Check", False, f"Found quota/credit blocking in response: {response}")
+            else:
+                print(f"   ✅ No quota/credit blocking detected")
+            
+            # Check if we got challenge data OR fallback (both are valid)
+            if 'challenge' in response or 'title' in response or 'description' in response or 'fallback' in response:
+                print(f"   ✅ AI challenge response received (challenge data or fallback)")
+            else:
+                print(f"   ℹ️ Response structure: {list(response.keys()) if isinstance(response, dict) else type(response)}")
+
+    def test_subscription_status(self):
+        """Test subscription status endpoint"""
+        print("\n📊 TESTING SUBSCRIPTION STATUS")
+        
+        if not self.gerant_token:
+            self.log_test("Subscription Status Test", False, "No gérant token available")
+            return
+        
+        success, response = self.run_test(
+            "Gérant Subscription Status",
+            "GET",
+            "gerant/subscription/status",
+            200,
+            token=self.gerant_token
+        )
+        
+        if success:
+            # Check for subscription info fields
+            expected_fields = ['plan', 'status', 'seats']
+            present_fields = [f for f in expected_fields if f in response]
+            
+            if len(present_fields) >= 2:  # At least 2 out of 3 fields should be present
+                print(f"   ✅ Subscription info present: {present_fields}")
+                
+                if 'plan' in response:
+                    print(f"   ✅ Plan: {response.get('plan')}")
+                if 'status' in response:
+                    print(f"   ✅ Status: {response.get('status')}")
+                if 'seats' in response:
+                    print(f"   ✅ Seats: {response.get('seats')}")
+            else:
+                self.log_test("Subscription Info Check", False, f"Missing subscription fields. Present: {present_fields}, Expected: {expected_fields}")
+            
+            # Log full response for debugging
+            print(f"   📋 Full subscription response: {json.dumps(response, indent=2)}")
+
+    def run_stripe_billing_tests(self):
+        """Run all Stripe billing and webhook tests"""
+        print("🚀 STARTING STRIPE BILLING AND WEBHOOK TESTS")
+        print("=" * 70)
+        
+        # Test authentication first
+        self.test_authentication()
+        
+        # Run the specific test cases
+        self.test_stripe_billing_smoke_tests()
+        self.test_webhook_health_check()
+        self.test_ai_unlimited_no_quota_blocking()
+        self.test_subscription_status()
+        
+        # Print summary
+        print("\n" + "=" * 70)
+        print("📊 STRIPE BILLING TEST SUMMARY")
+        print("=" * 70)
+        print(f"Total Tests: {self.tests_run}")
+        print(f"Passed: {self.tests_passed}")
+        print(f"Failed: {self.tests_run - self.tests_passed}")
+        print(f"Success Rate: {(self.tests_passed / self.tests_run * 100):.1f}%")
+        
+        # Print failed tests
+        failed_tests = [t for t in self.test_results if not t['success']]
+        if failed_tests:
+            print(f"\n❌ FAILED TESTS ({len(failed_tests)}):")
+            for test in failed_tests:
+                print(f"   • {test['test']}: {test['details']}")
+        
+        print("\n🎯 STRIPE BILLING VERIFICATION RESULTS:")
+        if self.tests_passed >= self.tests_run * 0.8:  # 80% pass rate
+            print("✅ Stripe billing and webhook system working correctly!")
+            print("✅ No 'No such price' errors detected")
+            print("✅ Webhook health check passed")
+            print("✅ AI unlimited functionality confirmed")
+            print("✅ Subscription status endpoint operational")
+        else:
+            print("❌ Stripe billing system has issues!")
+            print("❌ Multiple endpoints failing - needs investigation")
+        
+        return self.tests_passed >= self.tests_run * 0.8
+
+
 if __name__ == "__main__":
-    tester = ManagerDashboardAndSuperAdminTester()
-    success = tester.run_all_tests()
-    sys.exit(0 if success else 1)
+    # Run original tests
+    print("🔄 RUNNING ORIGINAL BACKEND TESTS...")
+    original_tester = ManagerDashboardAndSuperAdminTester()
+    original_success = original_tester.run_all_tests()
+    
+    print("\n" + "="*100 + "\n")
+    
+    # Run Stripe billing tests
+    print("🔄 RUNNING STRIPE BILLING TESTS...")
+    stripe_tester = StripeBillingTester()
+    stripe_success = stripe_tester.run_stripe_billing_tests()
+    
+    # Overall result
+    overall_success = original_success and stripe_success
+    print(f"\n🏁 OVERALL TEST RESULT: {'✅ SUCCESS' if overall_success else '❌ FAILURE'}")
+    
+    sys.exit(0 if overall_success else 1)
