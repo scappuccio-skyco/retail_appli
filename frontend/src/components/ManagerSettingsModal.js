@@ -457,7 +457,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.custom_description = newObjective.custom_description;
       }
       
-      await axios.post(`${API}/manager/objectives`, cleanedData, { headers });
+      await axios.post(`${API}/manager/objectives${storeParam}`, cleanedData, { headers });
       toast.success('Objectif créé avec succès');
       setNewObjective({
         title: '',
@@ -521,7 +521,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.custom_description = newObjective.custom_description;
       }
       
-      await axios.put(`${API}/manager/objectives/${editingObjective.id}`, cleanedData, { headers });
+      await axios.put(`${API}/manager/objectives/${editingObjective.id}${storeParam}`, cleanedData, { headers });
       toast.success('Objectif modifié avec succès');
       setEditingObjective(null);
       
@@ -538,7 +538,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const handleDeleteObjective = async (objectiveId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cet objectif ?')) {
       try {
-        await axios.delete(`${API}/manager/objectives/${objectiveId}`, { headers });
+        await axios.delete(`${API}/manager/objectives/${objectiveId}${storeParam}`, { headers });
         toast.success('Objectif supprimé avec succès');
         fetchData();
         if (onUpdate) onUpdate();
@@ -557,7 +557,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
 
     try {
       await axios.post(
-        `${API}/manager/objectives/${objectiveId}/progress`,
+        `${API}/manager/objectives/${objectiveId}/progress${storeParam}`,
         { current_value: parseFloat(progressValue) },
         { headers }
       );
