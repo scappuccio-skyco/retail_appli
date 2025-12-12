@@ -1494,6 +1494,8 @@ async def analyze_team(
     """
     Generate AI-powered analysis of team performance.
     
+    🏺 LEGACY RESTORED - Uses GPT-4o with expert retail management prompts
+    
     Analyzes seller KPIs, identifies top performers, areas for improvement,
     and provides actionable recommendations.
     """
@@ -1511,83 +1513,44 @@ async def analyze_team(
         end_date = analysis_data.get('end_date')
         
         # Calculate period
-        if start_date and end_date:
+        today = datetime.now(timezone.utc)
+        
+        if period_filter == 'custom' and start_date and end_date:
             period_start = start_date
             period_end = end_date
-        else:
-            end_dt = datetime.now(timezone.utc)
+            period_label = f"du {start_date} au {end_date}"
+        elif period_filter == 'all':
+            period_start = (today - timedelta(days=365)).strftime('%Y-%m-%d')
+            period_end = today.strftime('%Y-%m-%d')
+            period_label = "sur l'année"
+        elif period_filter == '90':
+            period_start = (today - timedelta(days=90)).strftime('%Y-%m-%d')
+            period_end = today.strftime('%Y-%m-%d')
+            period_label = "sur 3 mois"
+        elif period_filter == '7':
+            period_start = (today - timedelta(days=7)).strftime('%Y-%m-%d')
+            period_end = today.strftime('%Y-%m-%d')
+            period_label = "sur 7 jours"
+        else:  # default '30'
             days = int(period_filter) if period_filter.isdigit() else 30
-            start_dt = end_dt - timedelta(days=days)
-            period_start = start_dt.strftime('%Y-%m-%d')
-            period_end = end_dt.strftime('%Y-%m-%d')
+            period_start = (today - timedelta(days=days)).strftime('%Y-%m-%d')
+            period_end = today.strftime('%Y-%m-%d')
+            period_label = f"sur {days} jours"
         
-        # Build team summary for AI
-        sellers_details = team_data.get('sellers_details', [])
+        # Initialize AI service (Legacy Restored with GPT-4o)
+        ai_service = AIService()
+        
+        # 🎯 Use the restored generate_team_analysis method with GPT-4o
+        analysis_text = await ai_service.generate_team_analysis(
+            team_data=team_data,
+            period_label=period_label,
+            manager_id=manager_id
+        )
+        
+        # Extract stats for storage
         total_sellers = team_data.get('total_sellers', 0)
         team_total_ca = team_data.get('team_total_ca', 0)
         team_total_ventes = team_data.get('team_total_ventes', 0)
-        
-        team_summary = f"""
-Équipe: {total_sellers} vendeurs
-Période: {period_start} à {period_end}
-
-Performance globale:
-- CA total équipe: {team_total_ca:.2f}€
-- Ventes totales: {team_total_ventes}
-- Panier moyen équipe: {(team_total_ca / team_total_ventes if team_total_ventes > 0 else 0):.2f}€
-
-Détails par vendeur:
-"""
-        for seller in sellers_details:
-            team_summary += f"""
-- {seller.get('name', 'Unknown')}:
-  • CA: {seller.get('ca', 0):.2f}€
-  • Ventes: {seller.get('ventes', 0)}
-  • Panier moyen: {seller.get('panier_moyen', 0):.2f}€
-  • Point fort: {seller.get('best_skill', 'N/A')}
-  • Axe d'amélioration: {seller.get('worst_skill', 'N/A')}
-"""
-        
-        # Initialize AI service
-        ai_service = AIService()
-        
-        if not ai_service.client:
-            # Return mock analysis if AI not available
-            analysis_text = f"""📊 Analyse de l'équipe
-
-{team_summary}
-
-💡 Pour une analyse IA détaillée avec des recommandations personnalisées, veuillez configurer le service IA."""
-        else:
-            # Generate AI analysis
-            try:
-                response = ai_service.client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": """Tu es un coach commercial expert en management d'équipe de vente retail.
-Analyse les performances de l'équipe et fournis:
-1. Un résumé des performances globales
-2. Identification des top performers et leurs forces
-3. Vendeurs nécessitant un accompagnement
-4. 5 recommandations concrètes pour améliorer les performances
-5. Suggestions de challenges d'équipe à mettre en place
-
-Sois concis, pratique et actionnable. Utilise des emojis pour rendre l'analyse lisible."""},
-                        {"role": "user", "content": f"Analyse cette équipe de vente et donne des recommandations personnalisées:\n{team_summary}"}
-                    ],
-                    temperature=0.7,
-                    max_tokens=1500
-                )
-                
-                analysis_text = response.choices[0].message.content
-                
-            except Exception as ai_error:
-                logger.error(f"AI error: {ai_error}")
-                analysis_text = f"""📊 Résumé automatique de l'équipe
-
-{team_summary}
-
-⚠️ Analyse IA temporairement indisponible."""
         
         # Save analysis to history
         analysis_record = {
