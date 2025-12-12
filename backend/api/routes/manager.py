@@ -2073,20 +2073,39 @@ async def get_seller_competences_history(
 ):
     """
     Get seller's competences evolution history
-    Returns diagnostic (initial scores) + all debriefs scores over time
+    Accessible to managers (same store) and gérants (owner of seller's store)
     """
     try:
+        user_role = context.get('role')
+        user_id = context.get('id')
         resolved_store_id = context.get('resolved_store_id')
         
-        # Verify seller belongs to this store
+        # Get seller info
         seller = await db.users.find_one({
             "id": seller_id,
-            "store_id": resolved_store_id,
             "role": "seller"
         }, {"_id": 0})
         
         if not seller:
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé dans ce magasin")
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+        
+        seller_store_id = seller.get('store_id')
+        
+        # Check access rights
+        has_access = False
+        
+        if user_role == 'manager':
+            has_access = (seller_store_id == resolved_store_id)
+        elif user_role in ['gerant', 'gérant']:
+            store = await db.stores.find_one({
+                "id": seller_store_id,
+                "gerant_id": user_id,
+                "active": True
+            })
+            has_access = store is not None
+        
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Accès non autorisé à ce vendeur")
         
         history = []
         
