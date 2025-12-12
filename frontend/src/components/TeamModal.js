@@ -256,13 +256,15 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
   const refreshSellersData = async () => {
     try {
       const token = localStorage.getItem('token');
+      // Build store param for gerant
+      const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
+      
       // Re-fetch la liste des vendeurs actifs
-      const response = await axios.get(`${API}/manager/sellers`, {
+      const response = await axios.get(`${API}/manager/sellers${storeParam}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       // Re-fetch les vendeurs archivés
-      const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
       const archivedResponse = await axios.get(`${API}/manager/sellers/archived${storeParam}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
