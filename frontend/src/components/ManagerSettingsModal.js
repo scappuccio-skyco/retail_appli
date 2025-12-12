@@ -114,10 +114,12 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     }
   };
 
-  // Charger les données au montage du composant
+  // Charger les données au montage du composant et quand le modal s'ouvre
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (isOpen) {
+      fetchData();
+    }
+  }, [isOpen]);
 
   // Close seller dropdown when clicking outside
   useEffect(() => {
