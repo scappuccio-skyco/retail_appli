@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles, X, TrendingUp, AlertTriangle, Target } from 'lucide-react';
+import { renderMarkdownBold } from '../utils/markdownRenderer';
 
 export default function TeamBilanModal({ bilan, kpiConfig, onClose }) {
   if (!bilan) return null;
