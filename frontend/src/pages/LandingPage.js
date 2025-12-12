@@ -24,7 +24,7 @@ export default function LandingPage() {
           <div className="flex justify-between items-center h-16 sm:h-20">
             {/* Logo - Plus grand, sans texte redondant */}
             <div className="flex items-center">
-              <img src="/logo-retail-performer.png" alt="Retail Performer AI by SKY CO" className="h-10 sm:h-14 w-auto" />
+              <img src="/logo-retail-performer.png" alt="Retail Performer AI by SKY CO" className="h-12 sm:h-16 w-auto" />
             </div>
 
             {/* Desktop Menu */}
