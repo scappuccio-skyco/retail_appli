@@ -5,7 +5,7 @@ from typing import Dict
 from models.stores import StoreCreate, StoreUpdate
 from services.store_service import StoreService
 from api.dependencies import get_store_service
-from core.security import get_current_gerant, get_gerant_or_manager
+from core.security import get_current_gerant, get_gerant_or_manager, get_current_user
 
 router = APIRouter(prefix="/stores", tags=["Stores & Workspaces"])
 
