@@ -24,6 +24,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   // Build store_id param for gerant viewing as manager
   const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
   const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
+
+  // Sync activeTab with modalType when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(modalType === 'objectives' ? 'create_objective' : 'create_challenge');
+    }
+  }, [isOpen, modalType]);
   
   // New challenge form - NEW FLEXIBLE SYSTEM (same as objectives)
   const [newChallenge, setNewChallenge] = useState({
