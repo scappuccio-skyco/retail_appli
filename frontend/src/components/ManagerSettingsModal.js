@@ -304,7 +304,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.custom_description = newChallenge.custom_description;
       }
       
-      await axios.post(`${API}/manager/challenges`, cleanedData, { headers });
+      await axios.post(`${API}/manager/challenges${storeParam}`, cleanedData, { headers });
       toast.success('Challenge créé avec succès');
       setNewChallenge({
         title: '',
