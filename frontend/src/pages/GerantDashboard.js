@@ -1263,6 +1263,12 @@ const GerantDashboard = ({ user, onLogout }) => {
         userRole={user?.role}
       />
 
+      {/* Support Modal */}
+      <SupportModal 
+        isOpen={showSupportModal}
+        onClose={() => setShowSupportModal(false)}
+      />
+
       {/* Onboarding Modal */}
       <OnboardingModal
         isOpen={onboarding.isOpen}
