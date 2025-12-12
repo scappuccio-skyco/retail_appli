@@ -225,22 +225,30 @@ async def preview_seat_change(
                 try:
                     stripe.api_key = STRIPE_API_KEY
                     
-                    # Call Stripe's upcoming invoice API for accurate proration
-                    # This simulates what would happen WITHOUT actually changing anything
-                    upcoming_invoice = stripe.Invoice.upcoming(
-                        subscription=stripe_subscription_id,
-                        subscription_items=[{
-                            'id': stripe_subscription_item_id,
-                            'quantity': new_seats,
-                        }],
-                        subscription_proration_behavior='create_prorations'
-                    )
+                    # Get customer_id from user
+                    gerant = await db.users.find_one({"id": gerant_id}, {"_id": 0, "stripe_customer_id": 1})
+                    stripe_customer_id = gerant.get('stripe_customer_id') if gerant else None
                     
-                    # The amount_due is in cents, convert to euros
-                    # This is the EXACT amount Stripe will charge
-                    proration_estimate = round(upcoming_invoice.amount_due / 100, 2)
-                    
-                    logger.info(f"✅ Stripe proration preview: {proration_estimate}€ for {current_seats}→{new_seats} seats")
+                    if stripe_customer_id:
+                        # Call Stripe's Invoice preview API for accurate proration (SDK v13+)
+                        # This simulates what would happen WITHOUT actually changing anything
+                        preview_invoice = stripe.Invoice.create_preview(
+                            customer=stripe_customer_id,
+                            subscription=stripe_subscription_id,
+                            subscription_details={
+                                'items': [{
+                                    'id': stripe_subscription_item_id,
+                                    'quantity': new_seats,
+                                }],
+                                'proration_behavior': 'create_prorations'
+                            }
+                        )
+                        
+                        # The total is in cents, convert to euros
+                        # This is the EXACT amount Stripe will charge (includes prorations)
+                        proration_estimate = round(preview_invoice.total / 100, 2)
+                        
+                        logger.info(f"✅ Stripe proration preview: {proration_estimate}€ for {current_seats}→{new_seats} seats")
                     
                 except stripe.StripeError as e:
                     # If Stripe call fails, log but don't fail the request
@@ -249,14 +257,19 @@ async def preview_seat_change(
                     # Calculate based on actual days remaining in cycle
                     if subscription.get('current_period_end'):
                         try:
-                            from datetime import datetime, timezone
-                            period_end = datetime.fromisoformat(subscription['current_period_end'].replace('Z', '+00:00'))
+                            period_end_str = subscription['current_period_end']
+                            if isinstance(period_end_str, str):
+                                period_end = datetime.fromisoformat(period_end_str.replace('Z', '+00:00'))
+                            else:
+                                period_end = period_end_str
                             now = datetime.now(timezone.utc)
                             days_remaining = max(0, (period_end - now).days)
                             daily_rate = new_price / 30
                             proration_estimate = round((new_seats - current_seats) * daily_rate * days_remaining, 2)
-                        except Exception:
-                            pass
+                        except Exception as parse_err:
+                            logger.warning(f"Could not parse period_end: {parse_err}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Unexpected error in Stripe preview: {str(e)}")
         
         return PreviewSeatsResponse(
             current_seats=current_seats,
