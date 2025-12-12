@@ -6,7 +6,7 @@ import { X, Settings, Target, Trophy, Edit2, Trash2, Plus } from 'lucide-react';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalType = 'objectives' }) {
+export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalType = 'objectives', storeIdParam = null }) {
   const [activeTab, setActiveTab] = useState(
     modalType === 'objectives' ? 'create_objective' : 'create_challenge'
   ); // 'create_objective', 'active_objectives', 'completed_objectives', 'create_challenge', 'active_challenges', 'completed_challenges'
@@ -20,6 +20,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   
   const token = localStorage.getItem('token');
   const headers = { Authorization: `Bearer ${token}` };
+  
+  // Build store_id param for gerant viewing as manager
+  const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
+  const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
   
   // New challenge form - NEW FLEXIBLE SYSTEM (same as objectives)
   const [newChallenge, setNewChallenge] = useState({
