@@ -218,6 +218,7 @@ async def preview_seat_change(
         
         # Get REAL proration from Stripe (not estimated)
         proration_estimate = 0.0
+        stripe_preview_success = False
         
         if not is_trial and new_seats > current_seats and stripe_subscription_id and stripe_subscription_item_id:
             STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
@@ -247,29 +248,42 @@ async def preview_seat_change(
                         # The total is in cents, convert to euros
                         # This is the EXACT amount Stripe will charge (includes prorations)
                         proration_estimate = round(preview_invoice.total / 100, 2)
+                        stripe_preview_success = True
                         
                         logger.info(f"✅ Stripe proration preview: {proration_estimate}€ for {current_seats}→{new_seats} seats")
+                    else:
+                        logger.info(f"ℹ️ No stripe_customer_id for gerant {gerant_id}, using fallback calculation")
                     
                 except stripe.StripeError as e:
-                    # If Stripe call fails, log but don't fail the request
                     logger.warning(f"⚠️ Could not get Stripe proration preview: {str(e)}")
-                    # Fall back to rough estimate only if Stripe fails
-                    # Calculate based on actual days remaining in cycle
-                    if subscription.get('current_period_end'):
-                        try:
-                            period_end_str = subscription['current_period_end']
-                            if isinstance(period_end_str, str):
-                                period_end = datetime.fromisoformat(period_end_str.replace('Z', '+00:00'))
-                            else:
-                                period_end = period_end_str
-                            now = datetime.now(timezone.utc)
-                            days_remaining = max(0, (period_end - now).days)
-                            daily_rate = new_price / 30
-                            proration_estimate = round((new_seats - current_seats) * daily_rate * days_remaining, 2)
-                        except Exception as parse_err:
-                            logger.warning(f"Could not parse period_end: {parse_err}")
                 except Exception as e:
                     logger.warning(f"⚠️ Unexpected error in Stripe preview: {str(e)}")
+        
+        # Fallback: Calculate based on actual days remaining in cycle
+        # Used when: trial, no Stripe IDs, or Stripe API call failed
+        if not stripe_preview_success and not is_trial and new_seats > current_seats:
+            if subscription.get('current_period_end'):
+                try:
+                    period_end_str = subscription['current_period_end']
+                    if isinstance(period_end_str, str):
+                        # Handle both with and without timezone
+                        if '+' not in period_end_str and 'Z' not in period_end_str:
+                            period_end = datetime.fromisoformat(period_end_str).replace(tzinfo=timezone.utc)
+                        else:
+                            period_end = datetime.fromisoformat(period_end_str.replace('Z', '+00:00'))
+                    else:
+                        period_end = period_end_str
+                        if period_end.tzinfo is None:
+                            period_end = period_end.replace(tzinfo=timezone.utc)
+                    
+                    now = datetime.now(timezone.utc)
+                    days_remaining = max(0, (period_end - now).days)
+                    daily_rate = new_price / 30
+                    proration_estimate = round((new_seats - current_seats) * daily_rate * days_remaining, 2)
+                    
+                    logger.info(f"ℹ️ Fallback proration: {proration_estimate}€ ({days_remaining} days remaining)")
+                except Exception as parse_err:
+                    logger.warning(f"Could not calculate fallback proration: {parse_err}")
         
         return PreviewSeatsResponse(
             current_seats=current_seats,
