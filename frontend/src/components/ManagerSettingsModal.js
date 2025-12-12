@@ -259,7 +259,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const handleKPIConfigUpdate = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${API}/manager/kpi-config`, kpiConfig, { headers });
+      await axios.put(`${API}/manager/kpi-config${storeParam}`, kpiConfig, { headers });
       toast.success('Configuration KPI mise à jour');
       if (onUpdate) onUpdate();
     } catch (err) {
