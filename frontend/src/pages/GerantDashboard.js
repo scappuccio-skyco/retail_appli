@@ -909,71 +909,126 @@ const GerantDashboard = ({ user, onLogout }) => {
           </div>
         </div>
 
-        {/* Classement des Magasins - Version compacte */}
+        {/* Classement des Magasins - Version adaptative */}
         {rankedStores.length > 0 && (
           <div className="mb-6">
             <h2 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-orange-600" />
               🏆 Classement {periodType === 'week' ? 'de la Semaine' : periodType === 'month' ? 'du Mois' : "de l'Année"}
+              <span className="text-sm font-normal text-gray-500">({rankedStores.length} magasin{rankedStores.length > 1 ? 's' : ''})</span>
             </h2>
             <div className="glass-morphism rounded-xl p-4 border-2 border-orange-200">
-              <div className="space-y-2">
-                {rankedStores.slice(0, 10).map((storeData, index) => {
-                  const badge = getPerformanceBadge(storeData);
-                  
-                  // Icônes pour tous les rangs
-                  const getRankIcon = (rank) => {
-                    if (rank === 0) return '🥇';
-                    if (rank === 1) return '🥈';
-                    if (rank === 2) return '🥉';
-                    if (rank === 3) return '🏅';
-                    if (rank === 4) return '⭐';
-                    if (rank === 5) return '✨';
-                    if (rank === 6) return '💫';
-                    if (rank === 7) return '🌟';
-                    if (rank === 8) return '⚡';
-                    if (rank === 9) return '🔹';
-                    return `${rank + 1}.`;
-                  };
-                  
-                  const rankEmoji = getRankIcon(index);
-                  
-                  return (
-                    <div
-                      key={storeData.id}
-                      style={{ 
-                        animationDelay: `${index * 0.1}s`,
-                        animationFillMode: 'both'
-                      }}
-                      className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-200 hover:shadow-md ranking-item animate-slideIn"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl font-bold w-8 text-center">{rankEmoji}</span>
-                        <div>
-                          <p className="font-semibold text-sm text-gray-800">{storeData.name}</p>
-                          <p className="text-xs text-gray-500">{storeData.location}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-right">
-                          <p className="text-sm font-bold text-gray-800">
-                            {(storeData.periodCA || 0).toLocaleString('fr-FR')} €
-                          </p>
-                          <p className="text-xs text-gray-500">{storeData.periodVentes || 0} ventes</p>
-                        </div>
-                        {storeData.periodEvolution !== 0 && isFinite(storeData.periodEvolution) && (
-                          <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${
-                            storeData.periodEvolution > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                          }`}>
-                            {storeData.periodEvolution > 0 ? '↗' : '↘'} {Math.abs(storeData.periodEvolution).toFixed(0)}%
+              {/* Mode Grille pour ≤6 magasins */}
+              {rankedStores.length <= 6 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {rankedStores.map((storeData, index) => {
+                    const getRankIcon = (rank) => {
+                      if (rank === 0) return '🥇';
+                      if (rank === 1) return '🥈';
+                      if (rank === 2) return '🥉';
+                      if (rank === 3) return '🏅';
+                      if (rank === 4) return '⭐';
+                      if (rank === 5) return '✨';
+                      return `${rank + 1}.`;
+                    };
+                    
+                    return (
+                      <div
+                        key={storeData.id}
+                        className={`p-3 rounded-lg border-2 transition-all hover:shadow-md ${
+                          index === 0 ? 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-300' :
+                          index === 1 ? 'bg-gradient-to-br from-gray-50 to-slate-100 border-gray-300' :
+                          index === 2 ? 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-300' :
+                          'bg-white border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-2xl">{getRankIcon(index)}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-sm text-gray-800 truncate">{storeData.name}</p>
+                            <p className="text-xs text-gray-500 truncate">{storeData.location}</p>
                           </div>
-                        )}
-                        {/* Badges de performance supprimés à la demande utilisateur */}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-lg font-bold text-gray-800">
+                              {(storeData.periodCA || 0).toLocaleString('fr-FR')} €
+                            </p>
+                            <p className="text-xs text-gray-500">{storeData.periodVentes || 0} ventes</p>
+                          </div>
+                          {storeData.periodEvolution !== 0 && isFinite(storeData.periodEvolution) && (
+                            <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold ${
+                              storeData.periodEvolution > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                            }`}>
+                              {storeData.periodEvolution > 0 ? '↗' : '↘'} {Math.abs(storeData.periodEvolution).toFixed(0)}%
+                            </div>
+                          )}
+                        </div>
                       </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Mode Tableau compact pour >6 magasins */
+                <div className="overflow-hidden rounded-lg border border-gray-200">
+                  {/* Header du tableau */}
+                  <div className="grid grid-cols-12 gap-2 p-2 bg-gray-100 font-semibold text-xs text-gray-600 border-b border-gray-200">
+                    <div className="col-span-1 text-center">#</div>
+                    <div className="col-span-5">Magasin</div>
+                    <div className="col-span-3 text-right">CA</div>
+                    <div className="col-span-3 text-right">Évol.</div>
+                  </div>
+                  {/* Corps du tableau avec scroll */}
+                  <div className="max-h-[240px] overflow-y-auto">
+                    {rankedStores.slice(0, 20).map((storeData, index) => {
+                      const getRankDisplay = (rank) => {
+                        if (rank === 0) return <span className="text-lg">🥇</span>;
+                        if (rank === 1) return <span className="text-lg">🥈</span>;
+                        if (rank === 2) return <span className="text-lg">🥉</span>;
+                        return <span className="text-gray-500 font-medium">{rank + 1}</span>;
+                      };
+                      
+                      return (
+                        <div
+                          key={storeData.id}
+                          className={`grid grid-cols-12 gap-2 p-2 items-center text-sm border-b border-gray-100 hover:bg-orange-50 transition-colors ${
+                            index < 3 ? 'bg-orange-50/50' : 'bg-white'
+                          }`}
+                        >
+                          <div className="col-span-1 text-center">{getRankDisplay(index)}</div>
+                          <div className="col-span-5">
+                            <p className="font-semibold text-gray-800 truncate text-xs sm:text-sm">{storeData.name}</p>
+                            <p className="text-xs text-gray-400 truncate hidden sm:block">{storeData.location}</p>
+                          </div>
+                          <div className="col-span-3 text-right">
+                            <p className="font-bold text-gray-800 text-xs sm:text-sm">
+                              {(storeData.periodCA || 0).toLocaleString('fr-FR')} €
+                            </p>
+                            <p className="text-xs text-gray-400">{storeData.periodVentes || 0} ventes</p>
+                          </div>
+                          <div className="col-span-3 text-right">
+                            {storeData.periodEvolution !== 0 && isFinite(storeData.periodEvolution) ? (
+                              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-semibold ${
+                                storeData.periodEvolution > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                              }`}>
+                                {storeData.periodEvolution > 0 ? '↗' : '↘'} {Math.abs(storeData.periodEvolution).toFixed(0)}%
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-400">—</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* Footer si plus de 20 magasins */}
+                  {rankedStores.length > 20 && (
+                    <div className="p-2 bg-gray-50 text-center text-xs text-gray-500 border-t border-gray-200">
+                      +{rankedStores.length - 20} autres magasins
                     </div>
-                  );
-                })}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
