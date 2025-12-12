@@ -1239,7 +1239,7 @@ Réponds au format JSON:
 
                 chat = ai_service._create_chat(
                     session_id=f"diagnostic_{seller_id}",
-                    system_message="Tu es un expert en analyse comportementale de vendeurs retail.",
+                    system_message="Tu es un expert en analyse comportementale de vendeurs retail. Focus uniquement sur le style de vente et les traits de personnalité. Ne parle jamais de marketing, réseaux sociaux ou génération de trafic.",
                     model="gpt-4o-mini"
                 )
                 
