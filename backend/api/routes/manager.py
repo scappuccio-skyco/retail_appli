@@ -87,20 +87,50 @@ async def get_store_context(
 
 @router.get("/subscription-status")
 async def get_subscription_status(
-    current_user: dict = Depends(verify_manager),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
     db = Depends(get_db)
 ):
     """
-    Check if the manager's gérant has an active subscription.
+    Check subscription status for access control.
     Returns isReadOnly: true if trial expired.
+    
+    - Manager: Checks their gérant's subscription
+    - Gérant: Checks their own subscription (always has access)
     """
     try:
-        gerant_id = current_user.get('gerant_id')
+        role = context.get('role')
+        
+        # If gérant is viewing, they always have active access (or they check their own status)
+        if role in ['gerant', 'gérant']:
+            workspace_id = context.get('workspace_id')
+            if workspace_id:
+                workspace = await db.workspaces.find_one({"id": workspace_id}, {"_id": 0})
+                if workspace:
+                    subscription_status = workspace.get('subscription_status', 'inactive')
+                    if subscription_status == 'active':
+                        return {"isReadOnly": False, "status": "active", "message": "Abonnement actif", "viewMode": "gerant"}
+                    elif subscription_status == 'trialing':
+                        trial_end = workspace.get('trial_end')
+                        if trial_end:
+                            if isinstance(trial_end, str):
+                                trial_end_dt = datetime.fromisoformat(trial_end.replace('Z', '+00:00'))
+                            else:
+                                trial_end_dt = trial_end
+                            now = datetime.now(timezone.utc)
+                            if trial_end_dt.tzinfo is None:
+                                trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
+                            if now < trial_end_dt:
+                                days_left = (trial_end_dt - now).days
+                                return {"isReadOnly": False, "status": "trialing", "daysLeft": days_left, "viewMode": "gerant"}
+            return {"isReadOnly": False, "status": "gerant_access", "message": "Accès gérant", "viewMode": "gerant"}
+        
+        # Manager: check their gérant's subscription
+        gerant_id = context.get('gerant_id')
         
         if not gerant_id:
             return {"isReadOnly": True, "status": "no_gerant", "message": "Aucun gérant associé"}
         
-        # Get gérant info
         gerant = await db.users.find_one({"id": gerant_id}, {"_id": 0})
         
         if not gerant:
@@ -118,11 +148,9 @@ async def get_subscription_status(
         
         subscription_status = workspace.get('subscription_status', 'inactive')
         
-        # Active subscription
         if subscription_status == 'active':
             return {"isReadOnly": False, "status": "active", "message": "Abonnement actif"}
         
-        # In trial period
         if subscription_status == 'trialing':
             trial_end = workspace.get('trial_end')
             if trial_end:
@@ -131,7 +159,6 @@ async def get_subscription_status(
                 else:
                     trial_end_dt = trial_end
                 
-                # Gérer les dates naive vs aware
                 now = datetime.now(timezone.utc)
                 if trial_end_dt.tzinfo is None:
                     trial_end_dt = trial_end_dt.replace(tzinfo=timezone.utc)
@@ -140,7 +167,6 @@ async def get_subscription_status(
                     days_left = (trial_end_dt - now).days
                     return {"isReadOnly": False, "status": "trialing", "message": f"Essai gratuit - {days_left} jours restants", "daysLeft": days_left}
         
-        # Trial expired or inactive
         return {"isReadOnly": True, "status": "trial_expired", "message": "Période d'essai terminée. Contactez votre administrateur."}
         
     except Exception as e:
