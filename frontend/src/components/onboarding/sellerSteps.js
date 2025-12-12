@@ -25,7 +25,25 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
       tips: 'Prenez votre temps, vous pourrez relancer ce tutoriel à tout moment !'
     },
 
-    // Étape 2 : Performances
+    // Étape 2 : Diagnostic (CRITIQUE)
+    {
+      icon: '🎯',
+      title: 'Complétez votre diagnostic',
+      description: (
+        <>
+          <p className="text-orange-600 font-semibold">Débloquez toutes les fonctionnalités !</p>
+          <p className="mt-3 font-semibold">Comment faire :</p>
+          <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
+            <li>Dans "Mes tâches à faire" → <strong>"Complète ton diagnostic"</strong></li>
+            <li>OU cliquez sur <strong>Profil</strong> (en haut) → <strong>"Diagnostic"</strong></li>
+          </ul>
+          <p className="mt-3">Cela personnalise votre coaching IA et vos conseils.</p>
+        </>
+      ),
+      tips: 'Soyez honnête dans vos réponses, personne ne vous jugera !'
+    },
+
+    // Étape 3 : Performances
     {
       icon: '📊',
       title: 'Suivez vos performances terrain',
@@ -42,24 +60,6 @@ export const getSellerSteps = (kpiMode = 'VENDEUR_SAISIT') => {
         </>
       ),
       tips: 'Utilisez les graphiques pour identifier vos points forts !'
-    },
-
-    // Étape 3 : Diagnostic (CRITIQUE)
-    {
-      icon: '🎯',
-      title: 'Complétez votre diagnostic',
-      description: (
-        <>
-          <p className="text-orange-600 font-semibold">Débloquez toutes les fonctionnalités !</p>
-          <p className="mt-3 font-semibold">Comment faire :</p>
-          <ul className="list-disc list-inside space-y-1 mt-2 text-left mx-auto max-w-md">
-            <li>Dans "Mes tâches à faire" → <strong>"Complète ton diagnostic"</strong></li>
-            <li>OU cliquez sur <strong>Profil</strong> (en haut) → <strong>"Diagnostic"</strong></li>
-          </ul>
-          <p className="mt-3">Cela personnalise votre coaching IA et vos conseils.</p>
-        </>
-      ),
-      tips: 'Soyez honnête dans vos réponses, personne ne vous jugera !'
     },
 
     // Étape 4 : Coaching IA
