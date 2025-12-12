@@ -1422,6 +1422,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
           teamData={teamData}
           periodFilter={periodFilter}
           customDateRange={customDateRange}
+          storeIdParam={storeIdParam}
           onClose={() => setShowAIAnalysisModal(false)}
         />
       )}
