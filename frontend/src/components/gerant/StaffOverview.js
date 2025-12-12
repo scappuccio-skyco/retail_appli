@@ -210,7 +210,7 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
       case 'active':
         return <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">Actif</span>;
       case 'suspended':
-        return <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs">Suspendu</span>;
+        return <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs">En veille</span>;
       case 'deleted':
         return <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">Supprimé</span>;
       default:
