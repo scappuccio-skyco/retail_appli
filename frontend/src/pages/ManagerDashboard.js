@@ -1118,6 +1118,7 @@ export default function ManagerDashboard({ user, onLogout }) {
           isOpen={showSettingsModal}
           onClose={() => setShowSettingsModal(false)}
           modalType={settingsModalType}
+          storeIdParam={urlStoreId}
           onUpdate={() => {
             fetchActiveChallenges();
             fetchActiveObjectives();
