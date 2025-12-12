@@ -1837,6 +1837,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         <StoreKPIAIAnalysisModal
           kpiData={overviewData}
           analysisType="daily"
+          storeId={storeId}
           onClose={() => setShowDailyAIModal(false)}
         />
       )}
@@ -1844,6 +1845,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       {showOverviewAIModal && historicalData.length > 0 && (
         <StoreKPIAIAnalysisModal
           analysisType="overview"
+          storeId={storeId}
           viewContext={{
             viewMode,
             period: viewMode === 'week' ? `Semaine ${selectedWeek}` : 
