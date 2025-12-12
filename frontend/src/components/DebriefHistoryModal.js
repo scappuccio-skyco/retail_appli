@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { X, MessageSquare, Sparkles, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { renderMarkdownBold } from '../utils/markdownRenderer';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 

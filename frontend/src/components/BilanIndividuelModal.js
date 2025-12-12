@@ -4,6 +4,7 @@ import { Sparkles, X, TrendingUp, AlertTriangle, Target, ChevronLeft, ChevronRig
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { renderMarkdownBold } from '../utils/markdownRenderer';
 
 export default function BilanIndividuelModal({ bilan, kpiConfig, kpiEntries, onClose, currentWeekOffset, onWeekChange, onRegenerate, generatingBilan }) {
   if (!bilan) return null;

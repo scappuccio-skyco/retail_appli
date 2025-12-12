@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, X, RefreshCw, BookOpen } from 'lucide-react';
 import GuideProfilsModal from './GuideProfilsModal';
+import { renderMarkdownBold } from '../utils/markdownRenderer';
 
 export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnostic }) {
   const [showGuide, setShowGuide] = useState(false);

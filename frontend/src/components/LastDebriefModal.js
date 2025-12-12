@@ -1,5 +1,6 @@
 import React from 'react';
 import { MessageSquare, X } from 'lucide-react';
+import { renderMarkdownBold } from '../utils/markdownRenderer';
 
 export default function LastDebriefModal({ debrief, onClose }) {
   if (!debrief) return null;

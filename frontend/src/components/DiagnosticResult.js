@@ -1,5 +1,6 @@
 import React from 'react';
 import { Award, TrendingUp, Heart, Sparkles } from 'lucide-react';
+import { renderMarkdownBold } from '../utils/markdownRenderer';
 
 const STYLE_EMOJIS = {
   'Convivial': '🤝',
