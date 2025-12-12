@@ -136,6 +136,108 @@ async def update_subscription_seats(
         raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
 
 
+class PreviewSeatsRequest(BaseModel):
+    """Request body for previewing seat changes"""
+    new_seats: int
+
+
+class PreviewSeatsResponse(BaseModel):
+    """Response for seat preview"""
+    current_seats: int
+    new_seats: int
+    current_plan: str
+    new_plan: str
+    current_monthly_cost: float
+    new_monthly_cost: float
+    price_difference: float
+    proration_estimate: float
+    is_upgrade: bool
+    is_trial: bool
+
+
+@router.post("/seats/preview", response_model=PreviewSeatsResponse)
+async def preview_seat_change(
+    request: PreviewSeatsRequest,
+    current_user: dict = Depends(get_current_gerant),
+    db = Depends(get_db)
+):
+    """
+    Preview the cost of changing seat count.
+    
+    Shows the user what they'll pay BEFORE they commit.
+    Does NOT modify anything - purely informational.
+    
+    Returns:
+        - current vs new costs
+        - proration estimate
+        - plan changes
+    """
+    try:
+        gerant_id = current_user['id']
+        new_seats = request.new_seats
+        
+        # Validate
+        if new_seats < 1:
+            raise HTTPException(status_code=400, detail="Le nombre de sièges doit être au moins 1")
+        if new_seats > 50:
+            raise HTTPException(status_code=400, detail="Maximum 50 sièges")
+        
+        # Get current subscription
+        subscription = await db.subscriptions.find_one(
+            {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
+            {"_id": 0}
+        )
+        
+        if not subscription:
+            raise HTTPException(status_code=404, detail="Aucun abonnement trouvé")
+        
+        current_seats = subscription.get('seats', 1)
+        is_trial = subscription.get('status') == 'trialing'
+        
+        # Calculate current plan/cost
+        def get_plan_info(seats):
+            if seats <= 5:
+                return 'starter', 29
+            elif seats <= 15:
+                return 'professional', 25
+            else:
+                return 'enterprise', 22
+        
+        current_plan, current_price = get_plan_info(current_seats)
+        new_plan, new_price = get_plan_info(new_seats)
+        
+        current_monthly_cost = current_seats * current_price
+        new_monthly_cost = new_seats * new_price
+        price_difference = new_monthly_cost - current_monthly_cost
+        
+        # Estimate proration (simplified - actual comes from Stripe)
+        proration_estimate = 0
+        if not is_trial and new_seats > current_seats:
+            # Assume mid-month (15 days remaining)
+            days_remaining = 15
+            daily_rate = new_price / 30
+            proration_estimate = round((new_seats - current_seats) * daily_rate * days_remaining, 2)
+        
+        return PreviewSeatsResponse(
+            current_seats=current_seats,
+            new_seats=new_seats,
+            current_plan=current_plan,
+            new_plan=new_plan,
+            current_monthly_cost=current_monthly_cost,
+            new_monthly_cost=new_monthly_cost,
+            price_difference=price_difference,
+            proration_estimate=proration_estimate,
+            is_upgrade=new_seats > current_seats,
+            is_trial=is_trial
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur preview sièges: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/stores")
 async def get_all_stores(
     current_user: dict = Depends(get_current_gerant),
