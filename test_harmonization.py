@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 
 class CompetenceHarmonizationTester:
-    def __init__(self, base_url="https://dashboard-revival-6.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://seller-advisor-fix.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0

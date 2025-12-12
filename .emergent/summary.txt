@@ -1,57 +1,78 @@
 <analysis>**original_problem_statement:**
-The user's initial request involved fixing several UI/UX bugs, including an empty objectives modal, blank AI analysis modals, and incorrect RBAC logic. During the session, this escalated into a major archaeology mission where the agent had to fix dozens of  and  errors across the Manager and Seller dashboards. The root cause was a previous refactoring that had discarded critical backend logic and AI prompts. The agent's primary task became restoring this lost functionality by reverse-engineering it from legacy code archives and fixing the resulting cascade of bugs reported by the user.
+The user initially requested to fix a 404 error for refreshing a seller's daily challenge. This led to a series of user-reported bugs throughout the session, including:
+1.  An empty AI analysis section for sales debriefs.
+2.  Incorrect and business-inappropriate AI-generated advice for sellers (e.g., suggesting they manage store traffic). This was a recurring issue that required multiple fixes.
+3.  Multiple 404 and 403 errors for both Manager and Gérant roles across various dashboards and modals, particularly related to KPI analysis and viewing seller details.
+4.  UI/UX inconsistencies in the onboarding tutorials for different user roles.
+5.  Text formatting issues where markdown for bold text () was displayed literally instead of being rendered as bold.
 
 **PRODUCT REQUIREMENTS:**
--   Fix all critical 404/403 errors to make the Manager and Seller dashboards fully functional.
--   Restore the sophisticated, multi-section AI analysis for both Team Analysis and Store KPI Analysis using the correct GPT-4o model and prompts from the legacy codebase.
--   Fix the Objectives/Challenges modal so it is no longer empty.
--   Fix all data contract mismatches between the frontend and backend (e.g., response formats, parameter passing).
--   Ensure the RBAC logic for features like  works correctly for all relevant roles (Gérant, Manager, Seller).
+-   Ensure all endpoints are functional and return the correct data for all relevant user roles (Seller, Manager, Gérant).
+-   The AI assistant must adhere to strict business logic, providing advice only on topics the user can control (e.g., a seller should not be advised on marketing or traffic generation).
+-   The UI for onboarding tutorials must be consistent across all user roles.
+-   All AI-generated text containing markdown must be rendered correctly in the UI.
 
 **User's preferred language**: French
 
 **what currently exists?**
-The application is now largely functional after a massive bug-fixing and feature-restoration effort.
--   **Core Bug Fixes**: The initial critical bug causing the  (Objectives/Challenges) to be empty has been resolved by fixing a state management issue in React.
--   **AI Analysis Restored**: The agent successfully found and restored the original, high-quality AI prompts from a legacy code archive (). The  was rewritten to use the correct  library (), the powerful  model, and the detailed, multi-section system messages. This fixed the blank/poor quality AI analysis for both Team and Store KPIs.
--   **Missing Endpoints Restored**: The agent implemented over a dozen missing backend endpoints for the Seller and Manager dashboards, resolving a cascade of 404 errors. This includes functionality for diagnostics, sales, evaluations, debriefs, KPI entries, and individual performance reports ().
--   **RBAC and Data Mismatches Fixed**: The agent fixed several subtle bugs where endpoints returned the wrong data format or status code for the frontend, and corrected RBAC logic (e.g., allowing sellers to access the  endpoint).
+The application is largely functional. The agent has systematically addressed a long list of bugs reported by the user.
+-   The initial  issue was investigated and found to be working correctly.
+-   The empty AI analysis for sales debriefs was fixed by correcting a data contract mismatch between the backend (which used a nested object) and the frontend (which expected flattened fields).
+-   **AI Prompts:** A major effort was made to audit and unify all AI prompts related to seller feedback. The agent found and fixed a critical issue where a hardcoded prompt in a route file was overriding the stricter, user-specified prompt in the AI service layer. All seller-facing AI prompts now use a single, strict system prompt that prevents inappropriate business advice.
+-   **Missing Endpoints & Permissions:** Numerous 404 and 403 errors were resolved by adding over half a dozen missing endpoints (e.g., , , ) and correcting FastAPI dependencies to allow Managers access to endpoints previously restricted to Gérants.
+-   **UI/UX:** The onboarding tutorials for Seller, Manager, and Gérant roles have been redesigned to have a consistent, professional look and feel. The content and order of the seller tutorial were also refined based on specific user feedback.
 
 **Last working item**:
--   Last item agent was working: The user reported a  error when clicking the button to refresh the Daily Challenge in the seller's Coaching Modal. This is caused by the missing backend endpoint .
--   Status: NOT STARTED
+-   Last item agent was working: The user reported that markdown for bold text () was appearing literally in the UI instead of being rendered as bold text. The agent identified this was happening in multiple components that display AI-generated content. A shared utility function, , was created in  and has been applied to , , and . The agent was in the process of auditing all other relevant components to apply the fix globally.
+-   Status: IN PROGRESS
 -   Agent Testing Done: N
--   Which testing method agent to use? backend testing agent (via curl) to validate the new endpoint, followed by the Frontend testing agent to confirm the UI button works.
+-   Which testing method agent to use? screenshot tool to visually verify that bold text is rendered correctly in all affected modals and components.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: Missing endpoint to refresh the daily challenge (P0).
--   Issue 2: AI analysis modals may not have the final rich UI design (P2).
+-   Issue 1: Markdown for bold text is not rendered correctly in the UI (P0).
+-   Issue 2: Incorrect AI Analysis Design (P2)
+-   Issue 3: Finalize Stripe Webhook Implementation (P1)
 
 **Issues Detail:**
--   **Issue 1: Missing  endpoint**
-    -   **Attempted fixes:** None. The issue was reported at the very end of the session.
+-   **Issue 1: Markdown for bold text is not rendered correctly**
+    -   **Attempted fixes:**
+        -   Created a shared utility file:  with a  function.
+        -   This function was successfully imported and applied to , , and .
     -   **Next debug checklist:**
-        1.  Search for the endpoint implementation in .
-        2.  Add a new  endpoint to .
-        3.  The logic should delete or invalidate the current day's challenge for the seller and trigger the creation of a new one.
-        4.  Test the endpoint with .
-    -   **Why fix this issue and what will be achieved with the fix?** This will restore the refresh functionality in the Coaching Modal, allowing sellers to get a new daily challenge.
-    -   **Status:** NOT STARTED
+        1.  Continue auditing components that display AI-generated text.
+        2.   for components that display fields like , , , , etc.
+        3.  Likely candidates to check and update include: , , , and .
+        4.  Import and use the  utility in all identified components.
+        5.  Take screenshots of each fixed component to verify the  is now bold.
+    -   **Why fix this issue and what will be achieved with the fix?** To improve the readability and professional appearance of AI-generated advice and analysis across the entire application.
+    -   **Status:** IN PROGRESS
     -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Both
+    -   **Should Test frontend/backend/both after fix?** Frontend
     -   **Blocked on other issue:** None
 
 -   **Issue 2: Incorrect AI Analysis Design**
-    -   **Attempted fixes:** The agent restored the backend logic that provides AI analysis formatted with  markdown. The frontend components have parsers for this, and initial screenshots show it's working to some extent (colored badges appear).
+    -   **Attempted fixes:** The backend logic now provides AI analysis with markdown. The frontend has basic parsing but may lack the rich UI elements (icons, specific layouts) the user wants.
     -   **Next debug checklist:**
-        1.  Take a new screenshot of the  and  after an analysis is generated.
+        1.  Once the markdown rendering is fixed, take a new screenshot of the  and .
         2.  Compare the visual output to the user's original request for a rich design.
-        3.  If discrepancies exist, modify the JSX and CSS in  and  to add the required icons, layout, and styling.
-    -   **Why fix this issue and what will be achieved with the fix?** To fully satisfy the user's original UX requirement for a visually appealing and easy-to-read AI analysis presentation.
-    -   **Status:** USER VERIFICATION PENDING
+        3.  If discrepancies exist, modify the JSX and CSS in the relevant components to add the required styling.
+    -   **Why fix this issue and what will be achieved with the fix?** To fully satisfy the user's UX requirement for a visually appealing and easy-to-read AI analysis presentation.
+    -   **Status:** BLOCKED
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** Frontend
+    -   **Blocked on other issue:** Issue 1: Markdown for bold text is not rendered correctly
+
+-   **Issue 3: Finalize Stripe Webhook Implementation**
+    -   **Attempted fixes:** None in this session.
+    -   **Next debug checklist:**
+        1.  Review the  endpoint.
+        2.  Use the Stripe CLI to simulate webhook events (e.g., ).
+        3.  Verify that the endpoint correctly processes events and updates the database.
+    -   **Why fix this issue and what will be achieved with the fix?** To ensure that subscription and payment events from Stripe are correctly handled by the application.
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** Backend
     -   **Blocked on other issue:** None
 
 **In progress Task List**:
@@ -59,19 +80,28 @@ The application is now largely functional after a massive bug-fixing and feature
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks**:
-    - **P1: Finalize Stripe Webhook Implementation**: The endpoint  and its handlers need to be fully tested using the Stripe CLI to ensure events are processed correctly.
+    - None
 - **Future Tasks**:
     - **P3: Export Feature**: Add a CSV/Excel export button to various dashboards.
 
 **Completed work in this session**
--   **Critical Bug Fix: Empty Modals**: Fixed the empty content issue in  by correcting a faulty  hook.
--   **Critical Bug Fix: AI Analysis Restoration**: Performed an Archaeology Mission to find and restore lost AI prompts and configurations from . This fixed the AI quality and formatting for both Team and Store KPI analysis.
--   **Massive Endpoint Restoration (404/403/400 Fixes)**: Added over a dozen missing backend endpoints for Manager and Seller roles, making the dashboards functional again. This includes routes for diagnostics, relationship advice, sales, evaluations, KPI entries, and performance reports.
--   **Cross-Role RBAC Fix**: Fixed  to be accessible by Sellers, resolving a console error.
--   **Data Contract Fixes**: Corrected multiple mismatches between frontend expectations and backend responses for  and  endpoints.
+-   **AI Prompt Integrity (CRITICAL FIX)**: Audited and unified all seller-facing AI prompts into a single, strict system prompt () to prevent the AI from giving business-inappropriate advice. Fixed a recurring bug caused by a hardcoded prompt in  overriding the service-layer logic.
+-   **Endpoint Restoration & RBAC Fixes**:
+    -   Added missing  endpoint.
+    -   Added missing  endpoint.
+    -   Added missing Manager endpoints:  and .
+    -   Added missing cross-role endpoint: .
+    -   Fixed multiple  errors by updating dependencies on Gérant routes (, ) to also allow Manager access ().
+    -   Corrected service-layer logic in  to properly authorize managers accessing their own store's data.
+-   **Data Contract Fixes**:
+    -   Corrected the response format of  to flatten the  object, fixing the empty AI analysis modal.
+    -   Corrected the response format of  endpoints to match frontend expectations (), fixing the display of the manager's profile.
+-   **UI/UX Enhancements**:
+    -   Redesigned the onboarding tutorials for Seller, Manager, and Gérant roles to have a consistent visual style.
+    -   Reordered and refined the content of the Seller tutorial based on multiple rounds of user feedback.
 
 **Earlier issues found/mentioned but not fixed**
--   None. All reported issues were addressed except the last one, which is now the top priority.
+-   None.
 
 **Known issue recurrence from previous fork**
 -   None.
@@ -341,6 +371,7 @@ The application is now largely functional after a massive bug-fixing and feature
 ├── create_test_sellers.py
 ├── create_test_team.py
 ├── create_test_user.py
+├── daily_challenge_test.py
 ├── final_downgrade_test.py
 ├── find_annual_subscription.py
 ├── fix_objectives_status.py
@@ -64421,25 +64452,27 @@ The application is now largely functional after a massive bug-fixing and feature
 │   │   ├── index.js
 │   │   ├── lib
 │   │   │   └── utils.js
-│   │   └── pages
-│   │       ├── ForgotPassword.js
-│   │       ├── GerantDashboard.js
-│   │       ├── InvitationPage.js
-│   │       ├── KPIReporting.js
-│   │       ├── LandingPage.js
-│   │       ├── LandingPage.js.backup
-│   │       ├── Login.js
-│   │       ├── ManagerDashboard.js
-│   │       ├── ManagerDashboard_OLD_BACKUP.js
-│   │       ├── ManagerSettings.js
-│   │       ├── RegisterGerant.js
-│   │       ├── RegisterManager.js
-│   │       ├── RegisterSeller.js
-│   │       ├── ResetPassword.js
-│   │       ├── SellerDashboard.js
-│   │       ├── SellerDashboard_onboarding_integration.txt
-│   │       ├── SuperAdminDashboard.js
-│   │       └── _DEPRECATED_ITAdminDashboard.js
+│   │   ├── pages
+│   │   │   ├── ForgotPassword.js
+│   │   │   ├── GerantDashboard.js
+│   │   │   ├── InvitationPage.js
+│   │   │   ├── KPIReporting.js
+│   │   │   ├── LandingPage.js
+│   │   │   ├── LandingPage.js.backup
+│   │   │   ├── Login.js
+│   │   │   ├── ManagerDashboard.js
+│   │   │   ├── ManagerDashboard_OLD_BACKUP.js
+│   │   │   ├── ManagerSettings.js
+│   │   │   ├── RegisterGerant.js
+│   │   │   ├── RegisterManager.js
+│   │   │   ├── RegisterSeller.js
+│   │   │   ├── ResetPassword.js
+│   │   │   ├── SellerDashboard.js
+│   │   │   ├── SellerDashboard_onboarding_integration.txt
+│   │   │   ├── SuperAdminDashboard.js
+│   │   │   └── _DEPRECATED_ITAdminDashboard.js
+│   │   └── utils
+│   │       └── markdownRenderer.js
 │   ├── start-prod.sh
 │   ├── tailwind.config.js
 │   └── yarn.lock
@@ -64472,13 +64505,13 @@ The application is now largely functional after a massive bug-fixing and feature
 │   └── __init__.py
 └── yarn.lock
 
-6192 directories, 58202 files
+6193 directories, 58204 files
 
 **Key Technical Concepts**
--   **Legacy Code Archaeology**: The agent's primary strategy was to search for lost logic within  using . This was essential for restoring the complex AI prompts and missing endpoints.
--   **FastAPI Dependencies & RBAC**: The agent created a new, more permissive dependency () to fix a  error where sellers needed read-only access to a manager-level endpoint ().
--   **Frontend/Backend Contract Debugging**: The agent resolved numerous bugs caused by mismatches between the frontend's expectations and the backend's responses (e.g., query params vs. JSON body, different field names in responses, 404 vs. 200 status codes for missing data).
--   **Evolving SDKs**: The agent identified that the  library had been updated, requiring a change in how the AI client was imported and instantiated ( instead of the old method).
+-   **AI Prompt Auditing & Unification**: The agent had to perform a deep audit to find and replace all seller-facing AI prompts with a single, strict version provided by the user. This fixed a critical recurring bug where a hardcoded prompt in a route file was overriding the intended logic in the service layer.
+-   **Data Contract Debugging**: Multiple bugs were caused by mismatches between frontend expectations and backend responses. The agent had to fix issues with nested vs. flat objects and missing wrapper objects (e.g., ).
+-   **Role-Based Access Control (RBAC)**: Corrected multiple  errors by replacing restrictive FastAPI dependencies (e.g., ) with more permissive ones () and updating service-layer logic to check for multiple valid roles.
+-   **React Shared Utility**: Created a shared  utility function to parse and render simple markdown (bolding) across multiple React components, avoiding code duplication.
 
 **key DB schema**
 -   No schema changes were made.
@@ -64487,53 +64520,58 @@ The application is now largely functional after a massive bug-fixing and feature
 -   None.
 
 **All files of reference**
--   **/app/backend/_archived_legacy/server.py**: The most critical file in this session. It served as the source of truth for all restored AI prompts and endpoint logic.
--   **/app/backend/services/ai_service.py**: Completely rewritten to incorporate the restored legacy logic and use the updated  library correctly.
--   **/app/backend/api/routes/sellers.py**: The most heavily modified file, with numerous new endpoints added to fix 404 errors on the seller dashboard.
--   **/app/backend/api/routes/manager.py**: Modified to add missing  endpoints and to fix the  endpoint's accessibility.
--   **/app/frontend/src/components/ManagerSettingsModal.js**: The source of the initial critical bug (empty content), which was fixed.
--   **/app/frontend/src/hooks/useSyncMode.js**: Modified to correctly handle API calls based on user role, fixing a recurring console error.
+-   **/app/backend/services/ai_service.py**: Critical file that was repeatedly modified to refine and enforce strict AI prompts for sellers.
+-   **/app/backend/api/routes/sellers.py**: Critical file where a hardcoded prompt was causing a recurring AI bug. Also modified to add new endpoints.
+-   **/app/backend/api/routes/manager.py**: Modified to add several missing endpoints.
+-   **/app/backend/api/routes/gerant.py**: Modified to fix 403 errors for managers.
+-   **/app/backend/api/routes/diagnostics.py**: Modified to add a missing endpoint and fix a data contract bug.
+-   **/app/frontend/src/components/onboarding/sellerSteps.js**: Heavily modified to align with user's UI and content requirements.
+-   **/app/frontend/src/utils/markdownRenderer.js**: New utility created to solve the markdown rendering issue.
+-   **/app/frontend/src/components/RelationshipManagementModal.js**: One of the components where the markdown rendering was fixed.
 
 **Areas that need refactoring**:
--    and  have grown very large. The logic within them could be further modularized into services or smaller route files to improve maintainability.
+-   The various components displaying AI-generated text could benefit from a standardized component or HOC that automatically handles markdown rendering to ensure consistency and avoid missing a component in the future.
 
 **key api endpoints**
--    **(MISSING)**
--    (Restored)
--    (Restored)
--    (Fixed for Sellers)
--    (Added)
--    (Fixed)
--    (Fixed)
+-    (Verified)
+-    (Added & Verified)
+-    (Fixed data contract)
+-    (Added & Verified)
+-    (Fixed data contract)
+-    (Fixed permissions)
+-    (Fixed permissions)
+-    (Added & Fixed permissions)
+-    (Added & Verified for Manager/Gérant)
+-    (Added & Verified for Manager/Gérant)
+-    (Added & Verified for Manager/Gérant)
 
 **Critical Info for New Agent**
--   **Check the Archives First**: The main theme of this session was restoring functionality lost in a refactor. If a feature is missing or seems overly simplistic, the correct implementation likely exists in .
--   **Trust User Console Logs**: The user is very effective at finding and reporting bugs directly from the browser's developer console. These reports are highly reliable and should be treated as the top priority.
--   **Verify Data Contracts**: Be vigilant about mismatches between the frontend and backend. Bugs frequently arise from differences in expected request formats (query vs. body), response formats (field names), and status codes (404 vs. 200).
+-   **AI Prompts Are Sacred**: The user has very specific business rules for the AI. A critical bug was caused by a hardcoded prompt in a route file () overriding the logic in the service layer (). If the AI gives bad advice, check all layers for rogue prompts.
+-   **Check Data Contracts**: Many bugs in this session were simple mismatches between the data structure the frontend expected and what the backend returned. Always verify the response format with  before assuming the frontend is broken.
+-   **Test All Roles**: When adding or modifying an endpoint, ensure it works for all intended roles (Seller, Manager, Gérant). This often requires using permissive dependencies like  and adding role-checking logic in the endpoint implementation.
 
 **documents created in this job**
 -   
--   
 
 **Last 10 User Messages and any pending user messages**
-1.  **User**: Submitting my sales profile doesn't seem to be detected. (Status: **Completed** - Fixed backend response format for ).
-2.  **User**: I'm still seeing a 403 error for . (Status: **Completed** - Explained the purpose and then fixed it per user request).
-3.  **User**: What does the  call do? (Status: **Completed** - Agent provided a detailed explanation).
-4.  **User (Instruction)**: No, fix the  for sellers; they need to know if the store is read-only. (Status: **Completed** - Agent refactored the endpoint).
-5.  **User**: Now I'm getting a 404 when trying to refresh the daily challenge. (Status: **Pending** - This is the current ).
+1.  **User**: I need the manager-side functionality to be accessible to the gérant role as well. (Status: **Completed**).
+2.  **User**: I'm seeing  for bold instead of actual bold text in the bilan. (Status: **In Progress** - This is the current ).
+3.  **User**: The issue is in the Gestion relationnelle du manager. (Status: **In Progress** - Agent used this to find the correct component).
+4.  **User**: Have you made the changes? (Status: **In Progress** - Agent is still working on the global fix).
+5.  **User**: In the bilan, I'm seeing  instead of bold text. (Status: **Duplicate**, this is the same as #2).
 
 **Project Health Check:**
 -   **Broken**:
-    -   The Refresh Daily Challenge button is broken due to the missing  endpoint.
+    -   Multiple UI components are not rendering markdown () correctly from AI-generated text.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
 -   **Stripe (Payments)** — requires User API Key.
 -   **Brevo (Transactional Emails)** — requires User API Key.
--   **OpenAI GPT-4o / GPT-4o-mini (AI Assistant)** — uses Emergent LLM Key. (Agent restored logic to use the more powerful  for critical analyses).
+-   **OpenAI GPT-4o / GPT-4o-mini (AI Assistant)** — uses Emergent LLM Key.
 
 **Testing status**
--   Testing agent used after significant changes: NO (Agent performed extensive manual testing with  and screenshots due to the rapid, iterative nature of the bug fixing).
+-   Testing agent used after significant changes: NO (Agent performed extensive manual testing with  and screenshots).
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: None.
 -   Known regressions: None.
@@ -64541,7 +64579,7 @@ The application is now largely functional after a massive bug-fixing and feature
 **Credentials to test flow:**
 -   **Gérant**:  / 
 -   **Manager**:  / 
--   **Seller**:  /  (or any of the other test sellers).
+-   **Seller**:  / 
 
 **What agent forgot to execute**
--   The agent has been methodically fixing a long chain of user-reported bugs. The only un-executed task is the very last bug report concerning the  endpoint, which is now the next priority.</analysis>
+-   The agent is in the middle of a task. It needs to complete the audit of all components displaying AI text to apply the markdown rendering fix globally. So far, it has only been applied to a few components.</analysis>

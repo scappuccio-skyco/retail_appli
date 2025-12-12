@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://dashboard-revival-6.preview.emergentagent.com
+https://seller-advisor-fix.preview.emergentagent.com
 
 ### Manager
 ```
