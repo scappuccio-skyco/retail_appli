@@ -622,14 +622,14 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
                             onClick={() => handleResendInvitation(inv.id)}
                             disabled={resendingInvitation === inv.id}
                             className="group flex items-center gap-1 p-2 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
-                            title="Renvoyer l'invitation"
+                            title="Réinviter"
                           >
                             {resendingInvitation === inv.id ? (
                               <RefreshCw className="w-4 h-4 animate-spin" />
                             ) : (
                               <RefreshCw className="w-4 h-4" />
                             )}
-                            Réinviter
+                            <span className="hidden group-hover:inline max-w-0 group-hover:max-w-[100px] overflow-hidden transition-all duration-200">Réinviter</span>
                           </button>
                         )}
                       </div>
