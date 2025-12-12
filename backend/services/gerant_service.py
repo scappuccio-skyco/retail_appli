@@ -807,27 +807,39 @@ class GerantService:
             "remaining_seats": max(0, quantity - active_sellers_count)
         }
     
-    async def get_store_kpi_history(self, store_id: str, gerant_id: str, days: int = 30, start_date_str: str = None, end_date_str: str = None) -> list:
+    async def get_store_kpi_history(self, store_id: str, user_id: str, days: int = 30, start_date_str: str = None, end_date_str: str = None) -> list:
         """
         Get historical KPI data for a specific store
         
         Args:
             store_id: Store identifier
-            gerant_id: Gérant ID for ownership verification
+            user_id: User ID (gérant owner or assigned manager)
             days: Number of days to retrieve (default: 30) - used if no dates
             start_date_str: Start date in YYYY-MM-DD format (optional)
             end_date_str: End date in YYYY-MM-DD format (optional)
         
         Returns:
             List of daily aggregated KPI data sorted by date
+        
+        Security: Accessible to gérants (owner) and managers (assigned)
         """
         from datetime import timedelta
         
-        # Verify store ownership
+        # First check if user is a gérant who owns this store
         store = await self.store_repo.find_one(
-            {"id": store_id, "gerant_id": gerant_id, "active": True},
+            {"id": store_id, "gerant_id": user_id, "active": True},
             {"_id": 0}
         )
+        
+        # If not gérant, check if user is a manager assigned to this store
+        if not store:
+            user = await self.db.users.find_one({"id": user_id}, {"_id": 0})
+            if user and user.get('role') == 'manager' and user.get('store_id') == store_id:
+                store = await self.store_repo.find_one(
+                    {"id": store_id, "active": True},
+                    {"_id": 0}
+                )
+        
         if not store:
             raise ValueError("Magasin non trouvé ou accès non autorisé")
         
