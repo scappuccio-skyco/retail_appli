@@ -878,3 +878,39 @@ async def get_diagnostic_me(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===== DIAGNOSTIC LIVE SCORES =====
+
+@diagnostic_router.get("/me/live-scores")
+async def get_diagnostic_live_scores(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Get seller's live competence scores (updated after debriefs)."""
+    try:
+        diagnostic = await db.diagnostics.find_one(
+            {"seller_id": current_user['id']},
+            {"_id": 0}
+        )
+        
+        if not diagnostic:
+            raise HTTPException(status_code=404, detail="Diagnostic non trouvé")
+        
+        # Return live scores
+        return {
+            "seller_id": current_user['id'],
+            "scores": {
+                "accueil": diagnostic.get('score_accueil', 3.0),
+                "decouverte": diagnostic.get('score_decouverte', 3.0),
+                "argumentation": diagnostic.get('score_argumentation', 3.0),
+                "closing": diagnostic.get('score_closing', 3.0),
+                "fidelisation": diagnostic.get('score_fidelisation', 3.0)
+            },
+            "updated_at": diagnostic.get('updated_at', diagnostic.get('created_at'))
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
