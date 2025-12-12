@@ -140,6 +140,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showDailyChallengeModal, setShowDailyChallengeModal] = useState(false);
   const [showObjectivesModal, setShowObjectivesModal] = useState(false);
   const [showCoachingModal, setShowCoachingModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
   const [storeName, setStoreName] = useState('');
   
   // Onboarding logic
