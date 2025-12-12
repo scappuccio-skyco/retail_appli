@@ -721,6 +721,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 min-h-[400px]">
+          {/* Debug */}
+          <div className="hidden">ActiveTab: {activeTab}, Loading: {loading.toString()}</div>
           {loading ? (
             <div className="text-center py-12">Chargement...</div>
           ) : (
