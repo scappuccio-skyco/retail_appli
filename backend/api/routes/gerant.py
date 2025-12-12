@@ -1547,7 +1547,7 @@ async def switch_billing_interval(
         
         # Calculate costs
         plan = get_plan_from_seats(current_seats)
-        prices = STRIPE_PRICES[plan]
+        prices = get_stripe_prices()[plan]
         
         monthly_cost = current_seats * prices['price_monthly']
         yearly_cost = monthly_cost * 12 * 0.8  # 20% discount
