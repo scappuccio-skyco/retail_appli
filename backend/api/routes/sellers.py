@@ -356,3 +356,249 @@ async def get_seller_dates_with_data(
         "lockedDates": sorted(locked_dates)
     }
 
+
+
+# ===== KPI CONFIG FOR SELLER =====
+# 🏺 LEGACY RESTORED
+
+@router.get("/kpi-config")
+async def get_seller_kpi_config(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Get KPI configuration that applies to this seller.
+    Returns which KPIs the seller should track (based on manager's config).
+    """
+    try:
+        # Get seller's store_id
+        user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+        
+        if not user or not user.get('store_id'):
+            # No store, return default config (all enabled)
+            return {
+                "track_ca": True,
+                "track_ventes": True,
+                "track_clients": True,
+                "track_articles": True,
+                "track_prospects": True
+            }
+        
+        # Find the manager of this store
+        manager = await db.users.find_one({
+            "store_id": user['store_id'],
+            "role": "manager"
+        }, {"_id": 0, "id": 1})
+        
+        if not manager:
+            # No manager found, return default
+            return {
+                "track_ca": True,
+                "track_ventes": True,
+                "track_clients": True,
+                "track_articles": True,
+                "track_prospects": True
+            }
+        
+        # Get manager's KPI config
+        config = await db.kpi_configs.find_one({"manager_id": manager['id']}, {"_id": 0})
+        
+        if not config:
+            # No config found, return default
+            return {
+                "track_ca": True,
+                "track_ventes": True,
+                "track_clients": True,
+                "track_articles": True,
+                "track_prospects": True
+            }
+        
+        return {
+            "track_ca": config.get('seller_track_ca', config.get('track_ca', True)),
+            "track_ventes": config.get('seller_track_ventes', config.get('track_ventes', True)),
+            "track_clients": config.get('seller_track_clients', config.get('track_clients', True)),
+            "track_articles": config.get('seller_track_articles', config.get('track_articles', True)),
+            "track_prospects": config.get('seller_track_prospects', config.get('track_prospects', True))
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching KPI config: {str(e)}")
+
+
+# ===== KPI ENTRIES FOR SELLER =====
+
+@router.get("/kpi-entries")
+async def get_my_kpi_entries(
+    days: int = Query(None, description="Number of days to fetch"),
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Get seller's KPI entries.
+    Returns KPI data for the seller.
+    """
+    try:
+        seller_id = current_user['id']
+        
+        if days:
+            entries = await db.kpi_entries.find(
+                {"seller_id": seller_id},
+                {"_id": 0}
+            ).sort("date", -1).limit(days).to_list(days)
+        else:
+            entries = await db.kpi_entries.find(
+                {"seller_id": seller_id},
+                {"_id": 0}
+            ).sort("date", -1).limit(365).to_list(365)
+        
+        return entries
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching KPI entries: {str(e)}")
+
+
+# ===== DAILY CHALLENGE FOR SELLER =====
+
+@router.get("/daily-challenge")
+async def get_daily_challenge(
+    force_competence: str = Query(None, description="Force a specific competence"),
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Get or generate daily challenge for seller.
+    Returns an uncompleted challenge for today, or generates a new one.
+    """
+    from uuid import uuid4
+    
+    try:
+        seller_id = current_user['id']
+        today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        
+        # Check if there's an uncompleted challenge for today
+        existing = await db.daily_challenges.find_one({
+            "seller_id": seller_id,
+            "date": today,
+            "completed": False
+        }, {"_id": 0})
+        
+        if existing:
+            return existing
+        
+        # Generate new challenge
+        # Get seller's diagnostic for personalization
+        diagnostic = await db.diagnostics.find_one({
+            "seller_id": seller_id
+        }, {"_id": 0})
+        
+        # Get recent challenges to avoid repetition
+        recent = await db.daily_challenges.find(
+            {"seller_id": seller_id},
+            {"_id": 0}
+        ).sort("date", -1).limit(5).to_list(5)
+        
+        recent_competences = [ch.get('competence') for ch in recent if ch.get('competence')]
+        
+        # Select competence
+        if force_competence and force_competence in ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']:
+            selected_competence = force_competence
+        elif not diagnostic:
+            competences = ['accueil', 'decouverte', 'argumentation', 'closing', 'fidelisation']
+            selected_competence = competences[datetime.now().day % len(competences)]
+        else:
+            # Find weakest competence not recently used
+            scores = {
+                'accueil': diagnostic.get('score_accueil', 3),
+                'decouverte': diagnostic.get('score_decouverte', 3),
+                'argumentation': diagnostic.get('score_argumentation', 3),
+                'closing': diagnostic.get('score_closing', 3),
+                'fidelisation': diagnostic.get('score_fidelisation', 3)
+            }
+            sorted_comps = sorted(scores.items(), key=lambda x: x[1])
+            
+            selected_competence = None
+            for comp, score in sorted_comps:
+                if comp not in recent_competences[:2]:
+                    selected_competence = comp
+                    break
+            
+            if not selected_competence:
+                selected_competence = sorted_comps[0][0]
+        
+        # Challenge templates by competence
+        templates = {
+            'accueil': {
+                'title': 'Accueil Excellence',
+                'description': 'Accueillez chaque client avec un sourire et une phrase personnalisée dans les 10 premières secondes.'
+            },
+            'decouverte': {
+                'title': 'Questions Magiques',
+                'description': 'Posez au moins 3 questions ouvertes à chaque client pour comprendre ses besoins.'
+            },
+            'argumentation': {
+                'title': 'Argumentaire Pro',
+                'description': 'Utilisez la technique CAB (Caractéristique-Avantage-Bénéfice) pour chaque produit présenté.'
+            },
+            'closing': {
+                'title': 'Closing Master',
+                'description': 'Proposez la conclusion de la vente avec une question fermée positive.'
+            },
+            'fidelisation': {
+                'title': 'Client Fidèle',
+                'description': 'Remerciez chaque client et proposez un contact ou suivi personnalisé.'
+            }
+        }
+        
+        template = templates.get(selected_competence, templates['accueil'])
+        
+        challenge = {
+            "id": str(uuid4()),
+            "seller_id": seller_id,
+            "date": today,
+            "competence": selected_competence,
+            "title": template['title'],
+            "description": template['description'],
+            "completed": False,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.daily_challenges.insert_one(challenge)
+        del challenge['_id'] if '_id' in challenge else None
+        
+        return challenge
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching daily challenge: {str(e)}")
+
+
+@router.post("/daily-challenge/complete")
+async def complete_daily_challenge(
+    data: dict,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Mark a daily challenge as completed."""
+    try:
+        challenge_id = data.get('challenge_id')
+        result = data.get('result', 'success')  # success, partial, failed
+        feedback = data.get('feedback', '')
+        
+        update_result = await db.daily_challenges.update_one(
+            {"id": challenge_id, "seller_id": current_user['id']},
+            {"$set": {
+                "completed": True,
+                "challenge_result": result,
+                "feedback_comment": feedback,
+                "completed_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        if update_result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Challenge not found")
+        
+        return {"success": True, "message": "Challenge complété !"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
