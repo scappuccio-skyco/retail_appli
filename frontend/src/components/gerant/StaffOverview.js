@@ -558,25 +558,27 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {inv.status === 'pending' && (
-                        <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs flex items-center gap-1 w-fit">
+                        <span className="group px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs flex items-center gap-1 w-fit cursor-default" title="En attente">
                           <Clock className="w-3 h-3" />
-                          En attente
+                          <span className="hidden group-hover:inline transition-all">En attente</span>
                         </span>
                       )}
                       {inv.status === 'accepted' && (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs flex items-center gap-1 w-fit">
+                        <span className="group px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs flex items-center gap-1 w-fit cursor-default" title="Acceptée">
                           <CheckCircle className="w-3 h-3" />
-                          Acceptée
+                          <span className="hidden group-hover:inline transition-all">Acceptée</span>
                         </span>
                       )}
                       {inv.status === 'expired' && (
-                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">
-                          Expirée
+                        <span className="group px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs flex items-center gap-1 w-fit cursor-default" title="Expirée">
+                          <Clock className="w-3 h-3" />
+                          <span className="hidden group-hover:inline transition-all">Expirée</span>
                         </span>
                       )}
                       {inv.status === 'cancelled' && (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
-                          Annulée
+                        <span className="group px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs flex items-center gap-1 w-fit cursor-default" title="Annulée">
+                          <X className="w-3 h-3" />
+                          <span className="hidden group-hover:inline transition-all">Annulée</span>
                         </span>
                       )}
                     </td>
@@ -595,21 +597,23 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
                             <button
                               onClick={() => handleResendInvitation(inv.id)}
                               disabled={resendingInvitation === inv.id}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                              className="group flex items-center gap-1 p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+                              title="Renvoyer l'invitation"
                             >
                               {resendingInvitation === inv.id ? (
                                 <RefreshCw className="w-4 h-4 animate-spin" />
                               ) : (
                                 <Send className="w-4 h-4" />
                               )}
-                              Renvoyer
+                              <span className="hidden group-hover:inline max-w-0 group-hover:max-w-[100px] overflow-hidden transition-all duration-200">Renvoyer</span>
                             </button>
                             <button
                               onClick={() => handleCancelInvitation(inv.id)}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium transition-colors"
+                              className="group flex items-center gap-1 p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium transition-all"
+                              title="Annuler l'invitation"
                             >
                               <X className="w-4 h-4" />
-                              Annuler
+                              <span className="hidden group-hover:inline max-w-0 group-hover:max-w-[100px] overflow-hidden transition-all duration-200">Annuler</span>
                             </button>
                           </>
                         )}
@@ -617,7 +621,8 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
                           <button
                             onClick={() => handleResendInvitation(inv.id)}
                             disabled={resendingInvitation === inv.id}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                            className="group flex items-center gap-1 p-2 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+                            title="Renvoyer l'invitation"
                           >
                             {resendingInvitation === inv.id ? (
                               <RefreshCw className="w-4 h-4 animate-spin" />
