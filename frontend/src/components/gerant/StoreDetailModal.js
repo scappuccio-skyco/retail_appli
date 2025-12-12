@@ -196,33 +196,33 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
   }, [store?.id]); // Dépendance sur store.id uniquement
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] shadow-2xl flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] shadow-2xl flex flex-col">
         {/* Header - couleur dynamique via style inline */}
         <div 
-          className="p-6 relative flex-shrink-0 rounded-t-2xl"
+          className="p-4 sm:p-6 relative flex-shrink-0 rounded-t-2xl"
           style={{ 
             background: `linear-gradient(135deg, ${colorConfig.from} 0%, ${colorConfig.via} 50%, ${colorConfig.to} 100%)` 
           }}
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 text-white hover:text-gray-200 transition-colors p-1"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
           
-          <h2 className="text-2xl font-bold text-white mb-2">{store.name}</h2>
-          <p className="text-white opacity-90">📍 {store.location}</p>
-          {store.address && <p className="text-white opacity-80 text-sm mt-1">{store.address}</p>}
+          <h2 className="text-lg sm:text-2xl font-bold text-white mb-1 sm:mb-2 pr-8">{store.name}</h2>
+          <p className="text-white opacity-90 text-sm sm:text-base">📍 {store.location}</p>
+          {store.address && <p className="text-white opacity-80 text-xs sm:text-sm mt-1 truncate">{store.address}</p>}
         </div>
 
-        {/* Tabs */}
-        <div className="border-b border-gray-200 px-6 flex-shrink-0">
-          <div className="flex gap-4">
+        {/* Tabs - Scrollable horizontally on mobile */}
+        <div className="border-b border-gray-200 flex-shrink-0 overflow-x-auto">
+          <div className="flex min-w-max px-3 sm:px-6">
             <button
               onClick={() => setActiveTab('performance')}
-              className={`py-3 px-4 font-semibold border-b-2 transition-colors ${
+              className={`py-2 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'performance'
                   ? colorConfig.accent
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -232,40 +232,40 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
             </button>
             <button
               onClick={() => setActiveTab('managers')}
-              className={`py-3 px-4 font-semibold border-b-2 transition-colors ${
+              className={`py-2 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'managers'
                   ? colorConfig.accent
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              👔 Managers actifs ({managers.filter(m => m.status === 'active').length})
+              👔 Managers ({managers.filter(m => m.status === 'active').length})
             </button>
             <button
               onClick={() => setActiveTab('sellers')}
-              className={`py-3 px-4 font-semibold border-b-2 transition-colors ${
+              className={`py-2 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'sellers'
                   ? colorConfig.accent
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              👥 Vendeurs actifs ({sellers.filter(s => s.status === 'active').length})
+              👥 Vendeurs ({sellers.filter(s => s.status === 'active').length})
             </button>
             <button
               onClick={() => setActiveTab('manager-access')}
-              className={`py-3 px-4 font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+              className={`py-2 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-semibold border-b-2 transition-colors flex items-center gap-1 sm:gap-2 whitespace-nowrap ${
                 activeTab === 'manager-access'
                   ? colorConfig.accent
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              <TrendingUp className="w-4 h-4" />
-              Accès Espace Manager
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Accès</span> Manager
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto flex-1 min-h-0">
+        <div className="p-3 sm:p-6 overflow-y-auto flex-1 min-h-0">
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: colorConfig.from }}></div>
