@@ -359,7 +359,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Gérant Seller Detail Endpoints Testing Complete"
+    - "Daily Challenge Refresh Functionality Testing Complete"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
