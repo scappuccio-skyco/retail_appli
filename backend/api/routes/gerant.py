@@ -296,8 +296,8 @@ async def preview_subscription_update(
         current_plan = get_plan_from_seats(current_seats)
         new_plan = get_plan_from_seats(new_seats)
         
-        current_prices = STRIPE_PRICES[current_plan]
-        new_prices = STRIPE_PRICES[new_plan]
+        current_prices = get_stripe_prices()[current_plan]
+        new_prices = get_stripe_prices()[new_plan]
         
         # Calculate costs
         current_price_monthly = current_prices['price_monthly']
