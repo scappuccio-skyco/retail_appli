@@ -870,8 +870,13 @@ async def get_diagnostic_me(
         )
         
         if not diagnostic:
-            raise HTTPException(status_code=404, detail="Diagnostic non trouvé")
+            # Return empty response instead of 404 to avoid console errors
+            return {
+                "has_diagnostic": False,
+                "message": "Diagnostic DISC non encore complété"
+            }
         
+        diagnostic['has_diagnostic'] = True
         return diagnostic
         
     except HTTPException:
@@ -879,8 +884,6 @@ async def get_diagnostic_me(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-# ===== DIAGNOSTIC LIVE SCORES =====
 
 @diagnostic_router.get("/me/live-scores")
 async def get_diagnostic_live_scores(
@@ -895,10 +898,23 @@ async def get_diagnostic_live_scores(
         )
         
         if not diagnostic:
-            raise HTTPException(status_code=404, detail="Diagnostic non trouvé")
+            # Return default scores instead of 404
+            return {
+                "has_diagnostic": False,
+                "seller_id": current_user['id'],
+                "scores": {
+                    "accueil": 3.0,
+                    "decouverte": 3.0,
+                    "argumentation": 3.0,
+                    "closing": 3.0,
+                    "fidelisation": 3.0
+                },
+                "message": "Scores par défaut (diagnostic non complété)"
+            }
         
         # Return live scores
         return {
+            "has_diagnostic": True,
             "seller_id": current_user['id'],
             "scores": {
                 "accueil": diagnostic.get('score_accueil', 3.0),
