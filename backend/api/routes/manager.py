@@ -1534,7 +1534,7 @@ Période: {period_start} à {period_end}
 Performance globale:
 - CA total équipe: {team_total_ca:.2f}€
 - Ventes totales: {team_total_ventes}
-- Panier moyen équipe: {(team_total_ca / team_total_ventes):.2f}€ si team_total_ventes > 0 else 0
+- Panier moyen équipe: {(team_total_ca / team_total_ventes if team_total_ventes > 0 else 0):.2f}€
 
 Détails par vendeur:
 """
