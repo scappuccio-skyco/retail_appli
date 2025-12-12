@@ -138,7 +138,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
                 <span className="text-2xl">💬</span>
                 <div>
                   <h3 className="font-bold text-blue-900 mb-2">Analyse</h3>
-                  <p className="text-blue-800 whitespace-pre-line">{aiAnalysis.ai_analyse}</p>
+                  <p className="text-blue-800 whitespace-pre-line">{renderMarkdownBold(aiAnalysis.ai_analyse)}</p>
                 </div>
               </div>
             </div>
@@ -149,7 +149,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
                 <span className="text-2xl">🎯</span>
                 <div className="flex-1">
                   <h3 className="font-bold text-orange-900 mb-2">Points à travailler</h3>
-                  <p className="text-orange-800 whitespace-pre-line">{aiAnalysis.ai_points_travailler}</p>
+                  <p className="text-orange-800 whitespace-pre-line">{renderMarkdownBold(aiAnalysis.ai_points_travailler)}</p>
                 </div>
               </div>
             </div>
@@ -160,7 +160,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
                 <span className="text-2xl">🚀</span>
                 <div>
                   <h3 className="font-bold text-green-900 mb-2">Recommandation</h3>
-                  <p className="text-green-800 font-medium whitespace-pre-line">{aiAnalysis.ai_recommandation}</p>
+                  <p className="text-green-800 font-medium whitespace-pre-line">{renderMarkdownBold(aiAnalysis.ai_recommandation)}</p>
                 </div>
               </div>
             </div>
@@ -171,7 +171,7 @@ export default function DebriefModal({ onClose, onSuccess }) {
                 <span className="text-2xl">💡</span>
                 <div>
                   <h3 className="font-bold text-purple-900 mb-2">Exemple concret</h3>
-                  <p className="text-purple-800 italic whitespace-pre-line">{aiAnalysis.ai_exemple_concret}</p>
+                  <p className="text-purple-800 italic whitespace-pre-line">{renderMarkdownBold(aiAnalysis.ai_exemple_concret)}</p>
                 </div>
               </div>
             </div>
