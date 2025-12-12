@@ -1267,6 +1267,12 @@ export default function ManagerDashboard({ user, onLogout }) {
         onSkip={onboarding.skip}
         completedSteps={onboarding.completedSteps}
       />
+
+      {/* Support Modal */}
+      <SupportModal 
+        isOpen={showSupportModal} 
+        onClose={() => setShowSupportModal(false)} 
+      />
     </div>
   );
 }
