@@ -167,9 +167,11 @@ async def preview_seat_change(
     Shows the user what they'll pay BEFORE they commit.
     Does NOT modify anything - purely informational.
     
+    IMPORTANT: Uses Stripe's upcoming invoice API for accurate proration.
+    
     Returns:
         - current vs new costs
-        - proration estimate
+        - proration estimate (from Stripe)
         - plan changes
     """
     try:
@@ -193,6 +195,8 @@ async def preview_seat_change(
         
         current_seats = subscription.get('seats', 1)
         is_trial = subscription.get('status') == 'trialing'
+        stripe_subscription_id = subscription.get('stripe_subscription_id')
+        stripe_subscription_item_id = subscription.get('stripe_subscription_item_id')
         
         # Calculate current plan/cost
         def get_plan_info(seats):
@@ -210,13 +214,47 @@ async def preview_seat_change(
         new_monthly_cost = new_seats * new_price
         price_difference = new_monthly_cost - current_monthly_cost
         
-        # Estimate proration (simplified - actual comes from Stripe)
-        proration_estimate = 0
-        if not is_trial and new_seats > current_seats:
-            # Assume mid-month (15 days remaining)
-            days_remaining = 15
-            daily_rate = new_price / 30
-            proration_estimate = round((new_seats - current_seats) * daily_rate * days_remaining, 2)
+        # Get REAL proration from Stripe (not estimated)
+        proration_estimate = 0.0
+        
+        if not is_trial and new_seats > current_seats and stripe_subscription_id and stripe_subscription_item_id:
+            STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
+            if STRIPE_API_KEY:
+                try:
+                    stripe.api_key = STRIPE_API_KEY
+                    
+                    # Call Stripe's upcoming invoice API for accurate proration
+                    # This simulates what would happen WITHOUT actually changing anything
+                    upcoming_invoice = stripe.Invoice.upcoming(
+                        subscription=stripe_subscription_id,
+                        subscription_items=[{
+                            'id': stripe_subscription_item_id,
+                            'quantity': new_seats,
+                        }],
+                        subscription_proration_behavior='create_prorations'
+                    )
+                    
+                    # The amount_due is in cents, convert to euros
+                    # This is the EXACT amount Stripe will charge
+                    proration_estimate = round(upcoming_invoice.amount_due / 100, 2)
+                    
+                    logger.info(f"✅ Stripe proration preview: {proration_estimate}€ for {current_seats}→{new_seats} seats")
+                    
+                except stripe.error.StripeError as e:
+                    # If Stripe call fails, log but don't fail the request
+                    logger.warning(f"⚠️ Could not get Stripe proration preview: {str(e)}")
+                    # Fall back to rough estimate only if Stripe fails
+                    # Calculate based on actual days remaining in cycle
+                    if subscription.get('current_period_end'):
+                        try:
+                            from datetime import datetime, timezone
+                            period_end = datetime.fromisoformat(subscription['current_period_end'].replace('Z', '+00:00'))
+                            now = datetime.now(timezone.utc)
+                            days_remaining = max(0, (period_end - now).days)
+                            daily_rate = new_price / 30
+                            proration_estimate = round((new_seats - current_seats) * daily_rate * days_remaining, 2)
+                        except Exception:
+                            pass
         
         return PreviewSeatsResponse(
             current_seats=current_seats,
