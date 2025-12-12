@@ -226,6 +226,8 @@ test_plan:
 
 agent_communication:
   - agent: "main"
+    message: "MISSION J-7 COMPLETED: 1) SMOKE TEST BILLING: Stripe Price IDs validated - no 'No such price' error. Preview endpoint returns correct proration. 2) IA ILLIMITÉE: Verified no quota checks in active code - AI routes work without credit deduction. 3) WEBHOOKS STRIPE: Enhanced handlers for invoice.payment_failed (adds failure count, amount, retry date) and customer.subscription.deleted (adds access_end_date, clears Stripe refs). All handlers implemented in payment_service.py."
+  - agent: "main"
     message: "Testing Read-Only Mode for Seller and Manager dashboards. Credentials to use: Seller: emma.petit@test.com / TestDemo123! (trial expired), Manager: y.legoff@skyco.fr / TestDemo123! (trial expired). Both should show yellow alert banner and block KPI entry. Test the PerformanceModal 'Saisir mes chiffres' tab - it should be disabled with lock icon."
   - agent: "testing"
     message: "✅ ALL GÉRANT DASHBOARD BACKEND TESTS PASSED (35/35 - 100% success rate). All suspend/reactivate endpoints for sellers and managers working correctly. Invitation system operational with cappuccioseb+h@gmail.com invitation found. Authentication security properly implemented. No backend issues detected."
