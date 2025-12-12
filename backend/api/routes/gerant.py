@@ -764,7 +764,7 @@ async def get_store_kpi_history(
     days: int = 30,
     start_date: str = None,
     end_date: str = None,
-    current_user: Dict = Depends(get_current_gerant),
+    current_user: Dict = Depends(get_gerant_or_manager),
     gerant_service: GerantService = Depends(get_gerant_service)
 ):
     """
@@ -779,11 +779,12 @@ async def get_store_kpi_history(
     Returns:
         List of daily aggregated KPI data sorted by date
     
-    Security: Verify that the store belongs to the current gérant
+    Security: Accessible to gérants and managers
     """
     try:
+        user_id = current_user['id']
         return await gerant_service.get_store_kpi_history(
-            store_id, current_user['id'], days, start_date, end_date
+            store_id, user_id, days, start_date, end_date
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
