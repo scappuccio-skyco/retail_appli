@@ -1165,7 +1165,7 @@ export default function ManagerDashboard({ user, onLogout }) {
               // Faire l'appel API APRÈS fermeture du modal
               const token = localStorage.getItem('token');
               const response = await axios.post(
-                `${API}/manager/relationship-advice`,
+                `${API}/manager/relationship-advice${apiStoreIdParam}`,
                 formData,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
