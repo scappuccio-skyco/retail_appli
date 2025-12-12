@@ -343,12 +343,14 @@ async def get_sellers(
 
 @router.get("/invitations")
 async def get_invitations(
-    current_user: dict = Depends(verify_manager),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
     manager_service: ManagerService = Depends(get_manager_service)
 ):
-    """Get pending invitations created by manager"""
+    """Get pending invitations for the store"""
     try:
-        invitations = await manager_service.get_invitations(current_user['id'])
+        manager_id = context.get('id')
+        invitations = await manager_service.get_invitations(manager_id)
         return invitations
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
