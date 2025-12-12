@@ -92,6 +92,68 @@ async def get_store_context(
         raise HTTPException(status_code=403, detail="Rôle non autorisé")
 
 
+async def get_store_context_with_seller(
+    request: Request,
+    current_user: dict = Depends(verify_manager_gerant_or_seller),
+    db = Depends(get_db)
+) -> dict:
+    """
+    Resolve store_id based on user role (includes sellers):
+    - Seller: Use their assigned store_id directly
+    - Manager: Use their assigned store_id
+    - Gérant: Use store_id from query params (with ownership verification)
+    
+    Returns dict with user info + resolved store_id
+    """
+    role = current_user.get('role')
+    
+    if role == 'seller':
+        # Seller: use their store_id directly
+        store_id = current_user.get('store_id')
+        if not store_id:
+            raise HTTPException(status_code=400, detail="Vendeur n'a pas de magasin assigné")
+        return {**current_user, 'resolved_store_id': store_id, 'view_mode': 'seller'}
+    
+    elif role == 'manager':
+        # Manager: use their store_id
+        store_id = current_user.get('store_id')
+        if not store_id:
+            raise HTTPException(status_code=400, detail="Manager n'a pas de magasin assigné")
+        return {**current_user, 'resolved_store_id': store_id, 'view_mode': 'manager'}
+    
+    elif role in ['gerant', 'gérant']:
+        # Gérant: get store_id from query params
+        store_id = request.query_params.get('store_id')
+        
+        if not store_id:
+            raise HTTPException(
+                status_code=400, 
+                detail="Le paramètre store_id est requis pour un gérant. Ex: ?store_id=xxx"
+            )
+        
+        # Security: Verify the gérant owns this store
+        store = await db.stores.find_one(
+            {"id": store_id, "gerant_id": current_user['id'], "active": True},
+            {"_id": 0, "id": 1, "name": 1}
+        )
+        
+        if not store:
+            raise HTTPException(
+                status_code=403, 
+                detail="Ce magasin n'existe pas ou ne vous appartient pas"
+            )
+        
+        return {
+            **current_user, 
+            'resolved_store_id': store_id, 
+            'view_mode': 'gerant_as_manager',
+            'store_name': store.get('name')
+        }
+    
+    else:
+        raise HTTPException(status_code=403, detail="Rôle non autorisé")
+
+
 # ===== SUBSCRIPTION ACCESS CHECK =====
 
 @router.get("/subscription-status")
