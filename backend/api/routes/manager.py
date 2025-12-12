@@ -1083,3 +1083,372 @@ Sois concis, pratique et actionnable. Utilise des emojis pour rendre l'analyse l
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===== SELLER DETAILS ENDPOINTS =====
+# Individual seller data access for Manager AND Gérant roles
+# These endpoints require store context verification
+
+@router.get("/kpi-entries/{seller_id}")
+async def get_seller_kpi_entries(
+    seller_id: str,
+    days: int = Query(30, description="Number of days to fetch"),
+    start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Get KPI entries for a specific seller.
+    
+    Accessible by both Manager and Gérant roles.
+    Gérant must provide store_id and seller must belong to that store.
+    
+    Returns list of KPI entries sorted by date descending.
+    """
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        
+        # Verify seller belongs to the store (security check)
+        seller = await db.users.find_one(
+            {"id": seller_id, "store_id": resolved_store_id, "role": "seller"},
+            {"_id": 0, "id": 1, "name": 1}
+        )
+        
+        if not seller:
+            raise HTTPException(
+                status_code=404, 
+                detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
+            )
+        
+        # Build date filter
+        query = {"seller_id": seller_id}
+        
+        if start_date and end_date:
+            query["date"] = {"$gte": start_date, "$lte": end_date}
+        else:
+            # Use days parameter
+            end_dt = datetime.now(timezone.utc)
+            start_dt = end_dt - timedelta(days=days)
+            query["date"] = {
+                "$gte": start_dt.strftime('%Y-%m-%d'),
+                "$lte": end_dt.strftime('%Y-%m-%d')
+            }
+        
+        # Fetch KPI entries
+        entries = await db.kpi_entries.find(
+            query,
+            {"_id": 0}
+        ).sort("date", -1).to_list(1000)
+        
+        return entries
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/seller/{seller_id}/stats")
+async def get_seller_stats(
+    seller_id: str,
+    days: int = Query(30, description="Number of days for stats calculation"),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Get aggregated statistics for a specific seller.
+    
+    Returns: total CA, total sales, average basket, conversion rate, etc.
+    """
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        
+        # Verify seller belongs to the store
+        seller = await db.users.find_one(
+            {"id": seller_id, "store_id": resolved_store_id, "role": "seller"},
+            {"_id": 0, "id": 1, "name": 1, "status": 1, "created_at": 1}
+        )
+        
+        if not seller:
+            raise HTTPException(
+                status_code=404, 
+                detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
+            )
+        
+        # Calculate date range
+        end_dt = datetime.now(timezone.utc)
+        start_dt = end_dt - timedelta(days=days)
+        start_date = start_dt.strftime('%Y-%m-%d')
+        end_date = end_dt.strftime('%Y-%m-%d')
+        
+        # Aggregate KPIs
+        pipeline = [
+            {"$match": {
+                "seller_id": seller_id,
+                "date": {"$gte": start_date, "$lte": end_date}
+            }},
+            {"$group": {
+                "_id": None,
+                "total_ca": {"$sum": {"$ifNull": ["$seller_ca", {"$ifNull": ["$ca_journalier", 0]}]}},
+                "total_ventes": {"$sum": {"$ifNull": ["$nb_ventes", 0]}},
+                "total_clients": {"$sum": {"$ifNull": ["$nb_clients", 0]}},
+                "total_articles": {"$sum": {"$ifNull": ["$nb_articles", 0]}},
+                "total_prospects": {"$sum": {"$ifNull": ["$nb_prospects", 0]}},
+                "entries_count": {"$sum": 1}
+            }}
+        ]
+        
+        result = await db.kpi_entries.aggregate(pipeline).to_list(1)
+        
+        if result:
+            stats = result[0]
+            total_ca = stats.get("total_ca", 0)
+            total_ventes = stats.get("total_ventes", 0)
+            total_clients = stats.get("total_clients", 0)
+            total_articles = stats.get("total_articles", 0)
+            
+            return {
+                "seller_id": seller_id,
+                "seller_name": seller.get("name", "Unknown"),
+                "period": {"start": start_date, "end": end_date, "days": days},
+                "total_ca": total_ca,
+                "total_ventes": total_ventes,
+                "total_clients": total_clients,
+                "total_articles": total_articles,
+                "total_prospects": stats.get("total_prospects", 0),
+                "entries_count": stats.get("entries_count", 0),
+                "panier_moyen": round(total_ca / total_ventes, 2) if total_ventes > 0 else 0,
+                "taux_transformation": round((total_ventes / total_clients * 100), 1) if total_clients > 0 else 0,
+                "uvc": round(total_articles / total_ventes, 2) if total_ventes > 0 else 0
+            }
+        else:
+            return {
+                "seller_id": seller_id,
+                "seller_name": seller.get("name", "Unknown"),
+                "period": {"start": start_date, "end": end_date, "days": days},
+                "total_ca": 0,
+                "total_ventes": 0,
+                "total_clients": 0,
+                "total_articles": 0,
+                "total_prospects": 0,
+                "entries_count": 0,
+                "panier_moyen": 0,
+                "taux_transformation": 0,
+                "uvc": 0
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/seller/{seller_id}/diagnostic")
+async def get_seller_diagnostic(
+    seller_id: str,
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Get DISC diagnostic profile for a specific seller.
+    
+    Returns the seller's behavioral profile and recommendations.
+    """
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        
+        # Verify seller belongs to the store
+        seller = await db.users.find_one(
+            {"id": seller_id, "store_id": resolved_store_id, "role": "seller"},
+            {"_id": 0, "id": 1, "name": 1}
+        )
+        
+        if not seller:
+            raise HTTPException(
+                status_code=404, 
+                detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
+            )
+        
+        # Fetch diagnostic
+        diagnostic = await db.diagnostics.find_one(
+            {"seller_id": seller_id},
+            {"_id": 0}
+        )
+        
+        if not diagnostic:
+            # Return default profile if no diagnostic exists
+            return {
+                "seller_id": seller_id,
+                "seller_name": seller.get("name", "Unknown"),
+                "has_diagnostic": False,
+                "style": "Non défini",
+                "level": 0,
+                "strengths": [],
+                "weaknesses": [],
+                "recommendations": []
+            }
+        
+        return {
+            "seller_id": seller_id,
+            "seller_name": seller.get("name", "Unknown"),
+            "has_diagnostic": True,
+            **diagnostic
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/sellers/archived")
+async def get_archived_sellers(
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Get list of archived (deleted/suspended) sellers for the store.
+    
+    Returns sellers with status 'deleted' or 'suspended'.
+    """
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        
+        # Fetch archived sellers
+        archived_sellers = await db.users.find(
+            {
+                "store_id": resolved_store_id,
+                "role": "seller",
+                "status": {"$in": ["deleted", "suspended", "archived"]}
+            },
+            {"_id": 0, "password": 0}
+        ).sort("updated_at", -1).to_list(100)
+        
+        return archived_sellers
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ===== ADDITIONAL SELLER MANAGEMENT ROUTES =====
+
+@router.get("/seller/{seller_id}/kpi-history")
+async def get_seller_kpi_history(
+    seller_id: str,
+    days: int = Query(90, description="Number of days"),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Get detailed KPI history for a seller with daily breakdown.
+    Used for charts and trend analysis.
+    """
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        
+        # Verify seller belongs to the store
+        seller = await db.users.find_one(
+            {"id": seller_id, "store_id": resolved_store_id, "role": "seller"},
+            {"_id": 0, "id": 1, "name": 1}
+        )
+        
+        if not seller:
+            raise HTTPException(
+                status_code=404, 
+                detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
+            )
+        
+        # Calculate date range
+        end_dt = datetime.now(timezone.utc)
+        start_dt = end_dt - timedelta(days=days)
+        
+        # Fetch daily KPIs
+        entries = await db.kpi_entries.find(
+            {
+                "seller_id": seller_id,
+                "date": {
+                    "$gte": start_dt.strftime('%Y-%m-%d'),
+                    "$lte": end_dt.strftime('%Y-%m-%d')
+                }
+            },
+            {"_id": 0}
+        ).sort("date", 1).to_list(1000)
+        
+        return {
+            "seller_id": seller_id,
+            "seller_name": seller.get("name", "Unknown"),
+            "period": {
+                "start": start_dt.strftime('%Y-%m-%d'),
+                "end": end_dt.strftime('%Y-%m-%d'),
+                "days": days
+            },
+            "entries": entries,
+            "entries_count": len(entries)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/seller/{seller_id}/profile")
+async def get_seller_profile(
+    seller_id: str,
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Get complete seller profile including diagnostic and recent performance.
+    """
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        
+        # Fetch seller
+        seller = await db.users.find_one(
+            {"id": seller_id, "store_id": resolved_store_id, "role": "seller"},
+            {"_id": 0, "password": 0}
+        )
+        
+        if not seller:
+            raise HTTPException(
+                status_code=404, 
+                detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
+            )
+        
+        # Fetch diagnostic
+        diagnostic = await db.diagnostics.find_one(
+            {"seller_id": seller_id},
+            {"_id": 0}
+        )
+        
+        # Get recent KPIs summary (last 7 days)
+        end_dt = datetime.now(timezone.utc)
+        start_dt = end_dt - timedelta(days=7)
+        
+        recent_kpis = await db.kpi_entries.find(
+            {
+                "seller_id": seller_id,
+                "date": {"$gte": start_dt.strftime('%Y-%m-%d')}
+            },
+            {"_id": 0}
+        ).sort("date", -1).to_list(7)
+        
+        return {
+            **seller,
+            "diagnostic": diagnostic,
+            "recent_kpis": recent_kpis
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
