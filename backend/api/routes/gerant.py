@@ -476,7 +476,7 @@ async def preview_seat_change(
         stripe_preview_success = False
         
         if not is_trial and new_seats > current_seats and stripe_subscription_id and stripe_subscription_item_id:
-            STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
+            STRIPE_API_KEY = settings.STRIPE_API_KEY
             if STRIPE_API_KEY:
                 try:
                     stripe.api_key = STRIPE_API_KEY
@@ -1572,7 +1572,7 @@ async def switch_billing_interval(
             
         elif stripe_subscription_id and stripe_subscription_item_id:
             # Active subscriber - call Stripe API
-            STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY')
+            STRIPE_API_KEY = settings.STRIPE_API_KEY
             if not STRIPE_API_KEY:
                 raise HTTPException(status_code=500, detail="Configuration Stripe manquante")
             
