@@ -504,11 +504,8 @@ class GerantService:
         Returns:
             Dict with store counts, user counts, and monthly KPI aggregations
         """
-        # Get all active stores
-        stores = await self.store_repo.find_many(
-            {"gerant_id": gerant_id, "active": True},
-            {"_id": 0}
-        )
+        # Get all active stores with pending invitation counts
+        stores = await self.get_all_stores(gerant_id)
         
         store_ids = [store['id'] for store in stores]
         
