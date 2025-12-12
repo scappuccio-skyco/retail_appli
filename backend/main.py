@@ -55,6 +55,7 @@ async def startup_event():
     """
     Initialize application on startup
     - Connect to MongoDB
+    - Create indexes
     - Initialize default admin user
     """
     try:
@@ -63,6 +64,26 @@ async def startup_event():
         # Connect to MongoDB
         await database.connect()
         logger.info("✅ MongoDB connection established")
+        
+        # Create indexes for performance (TÂCHE 3: Index stripe_customer_id)
+        try:
+            db = database.get_db()
+            
+            # Index on stripe_customer_id for fast webhook lookups
+            await db.users.create_index("stripe_customer_id", sparse=True)
+            logger.info("✅ Index created: users.stripe_customer_id")
+            
+            # Index on subscriptions for fast lookups
+            await db.subscriptions.create_index("stripe_customer_id", sparse=True)
+            await db.subscriptions.create_index("stripe_subscription_id", sparse=True)
+            logger.info("✅ Index created: subscriptions.stripe_customer_id, stripe_subscription_id")
+            
+            # Index on workspaces
+            await db.workspaces.create_index("stripe_customer_id", sparse=True)
+            logger.info("✅ Index created: workspaces.stripe_customer_id")
+            
+        except Exception as e:
+            logger.warning(f"Index creation warning (may already exist): {e}")
         
         # Initialize database (create default admin if needed)
         try:
