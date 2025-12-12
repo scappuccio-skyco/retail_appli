@@ -1314,24 +1314,25 @@ async def get_archived_sellers(
     db = Depends(get_db)
 ):
     """
-    Get list of archived (deleted/suspended) sellers for the store.
+    Get list of suspended (en veille) sellers for the store.
     
-    Returns sellers with status 'deleted' or 'suspended'.
+    Only returns sellers with status 'suspended' - NOT deleted sellers.
+    Deleted sellers are permanently hidden.
     """
     try:
         resolved_store_id = context.get('resolved_store_id')
         
-        # Fetch archived sellers
-        archived_sellers = await db.users.find(
+        # Fetch only suspended sellers (en veille), NOT deleted ones
+        suspended_sellers = await db.users.find(
             {
                 "store_id": resolved_store_id,
                 "role": "seller",
-                "status": {"$in": ["deleted", "suspended", "archived"]}
+                "status": "suspended"  # Only suspended, not deleted or archived
             },
             {"_id": 0, "password": 0}
         ).sort("updated_at", -1).to_list(100)
         
-        return archived_sellers
+        return suspended_sellers
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
