@@ -781,7 +781,8 @@ async def get_all_bilans_individuels(
 
 @router.post("/bilan-individuel")
 async def generate_bilan_individuel(
-    data: dict,
+    start_date: Optional[str] = Query(None, description="Start date YYYY-MM-DD"),
+    end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD"),
     current_user: Dict = Depends(get_current_seller),
     db = Depends(get_db)
 ):
@@ -791,8 +792,6 @@ async def generate_bilan_individuel(
     
     try:
         seller_id = current_user['id']
-        start_date = data.get('start_date')
-        end_date = data.get('end_date')
         
         # Get KPIs for the period
         query = {"seller_id": seller_id}
