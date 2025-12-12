@@ -1,3 +1,41 @@
+# New Test Session - December 12, 2025
+
+## Bugs Fixed in This Session:
+
+### Issue 1: Modal Objectifs/Challenges Vide (P0) - FIXED ✅
+- **Root Cause**: Two conflicting `useEffect` hooks in `ManagerSettingsModal.js`. The second useEffect was setting `setActiveTab(modalType)` instead of the correct tab value like `'create_objective'` or `'create_challenge'`.
+- **Fix**: Corrected line 97 to `setActiveTab(modalType === 'objectives' ? 'create_objective' : 'create_challenge')` and removed the redundant first useEffect.
+- **File Modified**: `/app/frontend/src/components/ManagerSettingsModal.js`
+- **Verification**: Screenshot shows modal content now displays correctly.
+
+### Issue 2: JSX Syntax Error (Adjacent JSX elements) - FIXED ✅
+- **Root Cause**: Extra `</div>` closing tag in the `completed_objectives` section.
+- **Fix**: Removed the extraneous `</div>` at line 1625.
+- **File Modified**: `/app/frontend/src/components/ManagerSettingsModal.js`
+- **Verification**: `yarn build` compiles successfully.
+
+### Issue 3: AI Analysis Template Bug (Python f-string) - FIXED ✅
+- **Root Cause**: Malformed f-string in `manager.py` - `{(team_total_ca / team_total_ventes):.2f}€ si team_total_ventes > 0 else 0` had the conditional logic outside the braces.
+- **Fix**: Corrected to `{(team_total_ca / team_total_ventes if team_total_ventes > 0 else 0):.2f}€`
+- **File Modified**: `/app/backend/api/routes/manager.py`
+- **Verification**: AI analysis no longer shows raw Python template code.
+
+## Tests to Perform:
+1. ✅ Manager Dashboard loads (tested)
+2. ✅ Objectifs Modal opens with content (tested - FIXED)
+3. ✅ Challenges Modal opens with content (tested - FIXED)
+4. ✅ Terminés tab shows content without `)}` bug (tested - FIXED)
+5. ⏳ AI Analysis displays formatted content (needs further testing for rich design)
+6. ⏳ "En veille" filter label and logic (needs verification)
+
+## Test Credentials:
+- **Gérant**: gerant@skyco.fr / Gerant123!
+- **Manager**: y.legoff@skyco.fr / TestDemo123!
+- **Seller**: emma.petit@test.com / TestDemo123!
+
+---
+
+
 backend:
   - task: "Gérant Authentication"
     implemented: true
