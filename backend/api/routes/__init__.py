@@ -13,6 +13,7 @@ from api.routes.diagnostics import router as diagnostics_router
 from api.routes.sellers import router as seller_router
 from api.routes.stripe_webhooks import router as stripe_webhook_router
 from api.routes.support import router as support_router
+from api.routes.sales_evaluations import router as sales_evaluations_router
 
 # List of all routers to include in main app
 routers = [
@@ -30,6 +31,7 @@ routers = [
     seller_router,
     stripe_webhook_router,
     support_router,
+    sales_evaluations_router,
 ]
 
 __all__ = ['routers']
