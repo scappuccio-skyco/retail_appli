@@ -1517,6 +1517,12 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         onSkip={onboarding.skip}
         completedSteps={onboarding.completedSteps}
       />
+
+      {/* Support Modal */}
+      <SupportModal 
+        isOpen={showSupportModal} 
+        onClose={() => setShowSupportModal(false)} 
+      />
     </div>
   );
 }
