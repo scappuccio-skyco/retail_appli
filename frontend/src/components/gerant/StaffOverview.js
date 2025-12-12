@@ -535,10 +535,10 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">{inv.name}</div>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4">
                       <div className="flex items-center text-gray-600 text-sm">
                         <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span className="truncate max-w-[180px]">{inv.email}</span>
+                        <span className="break-all">{inv.email}</span>
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
@@ -558,27 +558,23 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {inv.status === 'pending' && (
-                        <span className="group px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs flex items-center gap-1 w-fit cursor-default" title="En attente">
+                        <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs flex items-center gap-1 w-fit cursor-default" title="En attente">
                           <Clock className="w-3 h-3" />
-                          <span className="hidden group-hover:inline transition-all">En attente</span>
                         </span>
                       )}
                       {inv.status === 'accepted' && (
-                        <span className="group px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs flex items-center gap-1 w-fit cursor-default" title="Acceptée">
+                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs flex items-center gap-1 w-fit cursor-default" title="Acceptée">
                           <CheckCircle className="w-3 h-3" />
-                          <span className="hidden group-hover:inline transition-all">Acceptée</span>
                         </span>
                       )}
                       {inv.status === 'expired' && (
-                        <span className="group px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs flex items-center gap-1 w-fit cursor-default" title="Expirée">
+                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs flex items-center gap-1 w-fit cursor-default" title="Expirée">
                           <Clock className="w-3 h-3" />
-                          <span className="hidden group-hover:inline transition-all">Expirée</span>
                         </span>
                       )}
                       {inv.status === 'cancelled' && (
-                        <span className="group px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs flex items-center gap-1 w-fit cursor-default" title="Annulée">
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs flex items-center gap-1 w-fit cursor-default" title="Annulée">
                           <X className="w-3 h-3" />
-                          <span className="hidden group-hover:inline transition-all">Annulée</span>
                         </span>
                       )}
                     </td>
