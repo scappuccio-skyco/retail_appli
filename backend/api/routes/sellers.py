@@ -773,7 +773,10 @@ async def get_all_bilans_individuels(
             {"_id": 0}
         ).sort("created_at", -1).to_list(100)
         
-        return bilans
+        return {
+            "status": "success",
+            "bilans": bilans
+        }
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
