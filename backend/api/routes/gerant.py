@@ -1417,7 +1417,7 @@ async def send_support_message(
         """
         
         # Get Brevo API key
-        brevo_api_key = os.environ.get('BREVO_API_KEY')
+        brevo_api_key = settings.BREVO_API_KEY
         if not brevo_api_key:
             logger.error("BREVO_API_KEY not configured")
             raise HTTPException(status_code=500, detail="Service email non configuré")
