@@ -207,7 +207,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Read-Only Mode Testing Complete"
+    - "Subscription Modal Update Seats Feature Testing Complete"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
