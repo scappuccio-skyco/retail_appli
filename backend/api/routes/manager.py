@@ -824,7 +824,7 @@ async def create_challenge(
         }
         
         await db.challenges.insert_one(challenge)
-        del challenge["_id"] if "_id" in challenge else None
+        challenge.pop("_id", None)
         
         return challenge
     except Exception as e:
