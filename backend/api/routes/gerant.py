@@ -746,12 +746,14 @@ async def get_store_sellers(
 async def get_store_kpi_overview(
     store_id: str,
     date: str = None,
-    current_user: Dict = Depends(get_current_gerant),
+    current_user: Dict = Depends(get_gerant_or_manager),
     gerant_service: GerantService = Depends(get_gerant_service)
 ):
     """Get consolidated store KPI overview for a specific date"""
     try:
-        return await gerant_service.get_store_kpi_overview(store_id, current_user['id'], date)
+        # For managers, use their own ID context
+        user_id = current_user['id']
+        return await gerant_service.get_store_kpi_overview(store_id, user_id, date)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
