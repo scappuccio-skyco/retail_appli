@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, Users, MapPin, ArrowRight } from 'lucide-react';
+import { Building2, Users, MapPin, ArrowRight, Clock } from 'lucide-react';
 
 // Palette de couleurs pour différencier les magasins
 const STORE_COLORS = [
@@ -16,6 +16,11 @@ const STORE_COLORS = [
 const StoreCard = ({ store, stats, onClick, colorIndex = 0 }) => {
   const colors = STORE_COLORS[colorIndex % STORE_COLORS.length];
   
+  // Pending counts from store object (populated by backend)
+  const pendingManagers = store.pending_manager_count || 0;
+  const pendingSellers = store.pending_seller_count || 0;
+  const totalPending = pendingManagers + pendingSellers;
+  
   return (
     <div
       onClick={onClick}
@@ -27,6 +32,13 @@ const StoreCard = ({ store, stats, onClick, colorIndex = 0 }) => {
         <div className="absolute inset-0 flex items-center justify-center">
           <Building2 className="w-10 h-10 text-white opacity-80" />
         </div>
+        {/* Badge invitations en attente */}
+        {totalPending > 0 && (
+          <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-md animate-pulse">
+            <Clock className="w-3 h-3" />
+            {totalPending} en attente
+          </div>
+        )}
       </div>
 
       {/* Contenu - flex-grow pour remplir l'espace */}
@@ -53,7 +65,7 @@ const StoreCard = ({ store, stats, onClick, colorIndex = 0 }) => {
 
         {/* Stats équipe */}
         <div className="grid grid-cols-2 gap-3 flex-grow">
-          <div className={`${colors.bg} rounded-lg p-3 text-center flex flex-col justify-center`}>
+          <div className={`${colors.bg} rounded-lg p-3 text-center flex flex-col justify-center relative`}>
             <div className="flex items-center justify-center gap-1 mb-1">
               <Users className={`w-4 h-4 ${colors.text}`} />
             </div>
@@ -61,9 +73,15 @@ const StoreCard = ({ store, stats, onClick, colorIndex = 0 }) => {
               {stats?.managers_count || 0}
             </p>
             <span className="text-xs text-gray-600">Managers</span>
+            {/* Pending badge */}
+            {pendingManagers > 0 && (
+              <div className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow">
+                +{pendingManagers}
+              </div>
+            )}
           </div>
 
-          <div className="bg-purple-50 rounded-lg p-3 text-center flex flex-col justify-center">
+          <div className="bg-purple-50 rounded-lg p-3 text-center flex flex-col justify-center relative">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Users className="w-4 h-4 text-purple-600" />
             </div>
@@ -71,6 +89,12 @@ const StoreCard = ({ store, stats, onClick, colorIndex = 0 }) => {
               {stats?.sellers_count || 0}
             </p>
             <span className="text-xs text-gray-600">Vendeurs</span>
+            {/* Pending badge */}
+            {pendingSellers > 0 && (
+              <div className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow">
+                +{pendingSellers}
+              </div>
+            )}
           </div>
         </div>
       </div>
