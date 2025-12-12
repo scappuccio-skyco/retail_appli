@@ -63,7 +63,7 @@ class Workspace(BaseModel):
     stripe_customer_id: Optional[str] = None  # ID du customer Stripe
     stripe_subscription_id: Optional[str] = None  # ID de l'abonnement Stripe actif
     stripe_subscription_item_id: Optional[str] = None  # ID de l'item pour modifier quantity
-    stripe_price_id: str = "price_1SS2XxIVM4C8dIGvpBRcYSNX"  # Price ID du plan (monthly par défaut)
+    stripe_price_id: Optional[str] = None  # Price ID du plan Stripe (défini lors de la souscription)
     stripe_quantity: int = 0  # Nombre de sièges dans Stripe
     subscription_status: str = "inactive"  # inactive, trialing, active, past_due, canceled
     trial_start: Optional[datetime] = None
