@@ -95,6 +95,10 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
   const [newSeatsCount, setNewSeatsCount] = useState(1);
   const [subscriptionHistory, setSubscriptionHistory] = useState([]);
   
+  // Seat preview state (from API call)
+  const [seatsPreview, setSeatsPreview] = useState(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  
   // Confirmation modal state (for seats change)
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmData, setConfirmData] = useState(null);
@@ -110,7 +114,48 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
   // Billing period state
   const [isAnnual, setIsAnnual] = useState(false);
 
-  // Calculate estimated amount for seat change
+  // Fetch preview when seats count changes (debounced)
+  useEffect(() => {
+    const currentSeats = subscriptionInfo?.subscription?.seats || 1;
+    
+    // Skip if no change or not role gerant
+    if (newSeatsCount === currentSeats || userRole !== 'gerant') {
+      setSeatsPreview(null);
+      return;
+    }
+    
+    // Debounce API call
+    const timeoutId = setTimeout(async () => {
+      if (!isMounted) return;
+      
+      setLoadingPreview(true);
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.post(
+          `${API}/api/gerant/seats/preview`,
+          { new_seats: newSeatsCount },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        if (isMounted) {
+          setSeatsPreview(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching seats preview:', error);
+        if (isMounted) {
+          setSeatsPreview(null);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingPreview(false);
+        }
+      }
+    }, 300); // 300ms debounce
+    
+    return () => clearTimeout(timeoutId);
+  }, [newSeatsCount, subscriptionInfo?.subscription?.seats, userRole, isMounted]);
+
+  // Calculate estimated amount for seat change (fallback if API fails)
   const calculateEstimatedAmount = (currentSeats, newSeats) => {
     const diff = newSeats - currentSeats;
     if (diff === 0) return 0;
