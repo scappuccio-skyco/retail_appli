@@ -54,6 +54,105 @@ async def get_subscription_status(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class UpdateSeatsRequest(BaseModel):
+    """Request body for updating subscription seats"""
+    seats: int
+
+
+@router.post("/subscription/update-seats")
+async def update_subscription_seats(
+    request: UpdateSeatsRequest,
+    current_user: dict = Depends(get_current_gerant),
+    db = Depends(get_db)
+):
+    """
+    Update the number of seats in the subscription.
+    
+    For trial users: Just updates the database, no Stripe charges.
+    For active subscribers: Would normally call Stripe to prorate.
+    
+    Returns:
+        success: bool
+        message: str
+        new_seats: int
+        new_monthly_cost: float
+        is_trial: bool
+        proration_amount: float (0 for trial)
+    """
+    from datetime import datetime, timezone
+    
+    try:
+        gerant_id = current_user['id']
+        new_seats = request.seats
+        
+        # Validate seats count
+        if new_seats < 1:
+            raise HTTPException(status_code=400, detail="Le nombre de sièges doit être au moins 1")
+        if new_seats > 50:
+            raise HTTPException(status_code=400, detail="Maximum 50 sièges. Contactez-nous pour un plan Enterprise.")
+        
+        # Get current subscription
+        subscription = await db.subscriptions.find_one(
+            {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
+            {"_id": 0}
+        )
+        
+        if not subscription:
+            raise HTTPException(status_code=404, detail="Aucun abonnement trouvé")
+        
+        current_seats = subscription.get('seats', 1)
+        is_trial = subscription.get('status') == 'trialing'
+        
+        # Calculate new price based on tier
+        if new_seats <= 5:
+            price_per_seat = 29
+            plan = 'starter'
+        elif new_seats <= 15:
+            price_per_seat = 25
+            plan = 'professional'
+        else:
+            price_per_seat = 22
+            plan = 'enterprise'
+        
+        new_monthly_cost = new_seats * price_per_seat
+        
+        # For trial: just update the database
+        # For active: would call Stripe API (simplified for now)
+        proration_amount = 0
+        if not is_trial and new_seats > current_seats:
+            # Simplified proration (would use Stripe in production)
+            days_remaining = 15  # Approximate mid-month
+            daily_rate = price_per_seat / 30
+            proration_amount = round((new_seats - current_seats) * daily_rate * days_remaining, 2)
+        
+        # Update subscription in database
+        await db.subscriptions.update_one(
+            {"user_id": gerant_id},
+            {"$set": {
+                "seats": new_seats,
+                "plan": plan,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        logger.info(f"✅ Sièges mis à jour: {current_seats} → {new_seats} pour {current_user['email']}")
+        
+        return {
+            "success": True,
+            "message": f"Abonnement mis à jour : {new_seats} siège{'s' if new_seats > 1 else ''}",
+            "new_seats": new_seats,
+            "new_monthly_cost": new_monthly_cost,
+            "is_trial": is_trial,
+            "proration_amount": proration_amount
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur mise à jour sièges: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
+
+
 @router.get("/stores")
 async def get_all_stores(
     current_user: dict = Depends(get_current_gerant),
