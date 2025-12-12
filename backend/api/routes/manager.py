@@ -952,13 +952,18 @@ async def analyze_store_kpis(
     """
     Generate AI-powered analysis of store KPIs
     
-    Uses OpenAI via Emergent LLM key to analyze store performance
-    and provide recommendations.
+    🏺 LEGACY RESTORED - Uses GPT-4o with expert retail prompts
+    
+    Analyzes store performance with focus on:
+    - Boutique physique context (not active prospection)
+    - Transformation des visiteurs en acheteurs
+    - Actionnable insights for retail
     """
     from services.ai_service import AIService
     
     try:
         resolved_store_id = context.get('resolved_store_id')
+        user_id = context.get('id')
         
         # Get store info
         store = await db.stores.find_one(
@@ -978,6 +983,17 @@ async def analyze_store_kpis(
         if not start_date:
             start_dt = datetime.now(timezone.utc) - timedelta(days=30)
             start_date = start_dt.strftime('%Y-%m-%d')
+        
+        # Calculate period label for display
+        days_diff = (datetime.strptime(end_date, '%Y-%m-%d') - datetime.strptime(start_date, '%Y-%m-%d')).days
+        if days_diff <= 1:
+            period_text = f"le {end_date}"
+        elif days_diff <= 7:
+            period_text = f"la semaine du {start_date} au {end_date}"
+        elif days_diff <= 31:
+            period_text = f"le mois du {start_date} au {end_date}"
+        else:
+            period_text = f"la période du {start_date} au {end_date}"
         
         # Fetch KPI data for the period
         kpi_entries = await db.kpi_entries.find({
@@ -1000,71 +1016,128 @@ async def analyze_store_kpis(
         
         total_clients = sum(e.get('nb_clients') or 0 for e in kpi_entries)
         total_articles = sum(e.get('nb_articles') or 0 for e in kpi_entries)
+        total_prospects = sum(e.get('nb_prospects') or 0 for e in kpi_entries)
         
         panier_moyen = (total_ca / total_ventes) if total_ventes > 0 else 0
-        taux_conversion = (total_ventes / total_clients * 100) if total_clients > 0 else 0
-        uvc = (total_articles / total_ventes) if total_ventes > 0 else 0
+        taux_transformation = (total_ventes / total_prospects * 100) if total_prospects > 0 else 0
+        indice_vente = (total_articles / total_ventes) if total_ventes > 0 else 0
         
         # Get seller count
         sellers_count = len(set(e.get('seller_id') for e in kpi_entries if e.get('seller_id')))
         days_count = len(set(e.get('date') for e in kpi_entries))
         
-        # Prepare context for AI
-        kpi_summary = f"""
-Magasin: {store_name}
-Période: {start_date} à {end_date} ({days_count} jours)
-Vendeurs actifs: {sellers_count}
-
-KPIs agrégés:
-- Chiffre d'affaires total: {total_ca:.2f}€
-- Nombre de ventes: {total_ventes}
-- Nombre de clients: {total_clients}
-- Articles vendus: {total_articles}
-- Panier moyen: {panier_moyen:.2f}€
-- Taux de transformation: {taux_conversion:.1f}%
-- UVC (articles/vente): {uvc:.2f}
-"""
+        # 🏺 LEGACY PROMPT RESTORED - Build context with only available data
+        available_kpis = []
+        if panier_moyen > 0:
+            available_kpis.append(f"Panier Moyen : {panier_moyen:.2f} €")
+        if taux_transformation > 0:
+            available_kpis.append(f"Taux de Transformation : {taux_transformation:.1f} %")
+        if indice_vente > 0:
+            available_kpis.append(f"Indice de Vente (UPT) : {indice_vente:.2f}")
         
-        # Initialize AI service
+        available_totals = []
+        if total_ca > 0:
+            available_totals.append(f"CA Total : {total_ca:.2f} €")
+        if total_ventes > 0:
+            available_totals.append(f"Ventes : {total_ventes}")
+        if total_clients > 0:
+            available_totals.append(f"Clients : {total_clients}")
+        if total_articles > 0:
+            available_totals.append(f"Articles : {total_articles}")
+        if total_prospects > 0:
+            available_totals.append(f"Prospects : {total_prospects}")
+        
+        # 🎯 LEGACY PROMPT - Expert retail analysis for physical stores
+        prompt = f"""Tu es un expert en analyse de performance retail pour BOUTIQUES PHYSIQUES. Analyse UNIQUEMENT les données disponibles ci-dessous pour {period_text}. Ne mentionne PAS les données manquantes.
+
+CONTEXTE IMPORTANT : Il s'agit d'une boutique avec flux naturel de clients. Les "prospects" représentent les visiteurs entrés en boutique, PAS de prospection active à faire. Le travail consiste à transformer les visiteurs en acheteurs.
+
+Magasin : {store_name}
+Période analysée : {period_text}
+Points de données : {days_count} jours, {sellers_count} vendeurs
+
+KPIs Disponibles :
+{chr(10).join(['- ' + kpi for kpi in available_kpis]) if available_kpis else '(Aucun KPI calculé)'}
+
+Totaux :
+{chr(10).join(['- ' + total for total in available_totals]) if available_totals else '(Aucune donnée)'}
+
+CONSIGNES STRICTES :
+- Analyse UNIQUEMENT les données présentes
+- Ne mentionne JAMAIS les données manquantes ou absentes
+- Sois concis et direct (2-3 points max par section)
+- Fournis des insights actionnables pour BOUTIQUE PHYSIQUE
+- Si c'est une période longue, identifie les tendances
+- NE RECOMMANDE PAS de prospection active (c'est une boutique, pas de la vente externe)
+- Focus sur : accueil, découverte besoins, argumentation, closing, fidélisation
+
+Fournis une analyse en 2 parties courtes :
+
+## ANALYSE
+- Observation clé sur les performances globales
+- Point d'attention ou tendance notable
+- Comparaison ou contexte si pertinent
+
+## RECOMMANDATIONS
+- Actions concrètes et prioritaires pour améliorer la vente en boutique (2-3 max)
+- Focus sur l'amélioration des KPIs faibles (taux de transformation, panier moyen, indice de vente)
+
+Format : Markdown simple et concis."""
+
+        # Initialize AI service and use the generate_store_kpi_analysis method
         ai_service = AIService()
         
-        if not ai_service.client:
-            # Return mock analysis if AI not available
+        if not ai_service.available:
+            # Return fallback analysis if AI not available
             return {
-                "analysis": f"📊 Analyse des KPIs du magasin {store_name}\n\n{kpi_summary}\n\n💡 Pour une analyse IA détaillée, veuillez configurer le service IA.",
+                "analysis": f"""## Analyse des KPIs du magasin {store_name}
+
+📊 **Période** : {period_text}
+
+**KPIs Disponibles :**
+{chr(10).join(['- ' + kpi for kpi in available_kpis]) if available_kpis else '- Aucun KPI calculé'}
+
+**Totaux :**
+{chr(10).join(['- ' + total for total in available_totals]) if available_totals else '- Aucune donnée'}
+
+💡 Pour une analyse IA détaillée, veuillez configurer le service IA.""",
                 "store_name": store_name,
                 "period": {"start": start_date, "end": end_date},
                 "kpis": {
                     "total_ca": total_ca,
                     "total_ventes": total_ventes,
                     "panier_moyen": round(panier_moyen, 2),
-                    "taux_conversion": round(taux_conversion, 1)
+                    "taux_transformation": round(taux_transformation, 1)
                 }
             }
         
-        # Generate AI analysis
+        # 🎯 Use GPT-4o for store analysis (Legacy Restored)
         try:
-            response = ai_service.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": """Tu es un expert en performance commerciale retail.
-Analyse les KPIs du magasin et fournis:
-1. Un résumé des performances
-2. Points forts identifiés
-3. Axes d'amélioration
-4. 3 recommandations concrètes
-
-Sois concis, pratique et actionnable. Utilise des emojis pour rendre l'analyse lisible."""},
-                    {"role": "user", "content": f"Analyse ces KPIs et donne des recommandations:\n{kpi_summary}"}
-                ],
-                temperature=0.7,
-                max_tokens=1000
+            chat = ai_service._create_chat(
+                session_id=f"kpi-analysis-{user_id}-{end_date}",
+                system_message="Tu es un expert en analyse de performance retail avec 15 ans d'expérience.",
+                model="gpt-4o"  # 🏺 Premium model restored
             )
             
-            analysis_text = response.choices[0].message.content
+            analysis_text = await ai_service._send_message(chat, prompt)
             
+            if not analysis_text:
+                raise Exception("No response from AI")
+                
         except Exception as ai_error:
-            analysis_text = f"📊 Résumé automatique des KPIs\n\n{kpi_summary}\n\n⚠️ Analyse IA temporairement indisponible: {str(ai_error)}"
+            logger.error(f"Store KPI AI error: {ai_error}")
+            analysis_text = f"""## Résumé automatique des KPIs
+
+📊 **Magasin** : {store_name}
+**Période** : {period_text}
+
+**KPIs :**
+{chr(10).join(['- ' + kpi for kpi in available_kpis]) if available_kpis else '- Aucun KPI'}
+
+**Totaux :**
+{chr(10).join(['- ' + total for total in available_totals]) if available_totals else '- Aucune donnée'}
+
+⚠️ Analyse IA temporairement indisponible."""
         
         return {
             "analysis": analysis_text,
@@ -1076,14 +1149,15 @@ Sois concis, pratique et actionnable. Utilise des emojis pour rendre l'analyse l
                 "total_clients": total_clients,
                 "total_articles": total_articles,
                 "panier_moyen": round(panier_moyen, 2),
-                "taux_conversion": round(taux_conversion, 1),
-                "uvc": round(uvc, 2),
+                "taux_transformation": round(taux_transformation, 1),
+                "indice_vente": round(indice_vente, 2),
                 "sellers_count": sellers_count,
                 "days_count": days_count
             }
         }
         
     except Exception as e:
+        logger.error(f"Error in analyze_store_kpis: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
