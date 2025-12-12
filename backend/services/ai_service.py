@@ -740,36 +740,57 @@ Génère un défi quotidien personnalisé en JSON:
         seller_data: Dict,
         kpis: List[Dict]
     ) -> str:
-        """Generate performance report for seller"""
+        """
+        Generate performance report for seller using V2 TERRAIN FOCUS prompt
+        
+        BUSINESS RULES (CTO Validated):
+        - Never mention traffic/visitor counting issues (Manager's responsibility)
+        - Focus only on what seller controls: CA, PM, IV, sales count
+        - If traffic data is 0 or inconsistent, ignore it completely
+        """
         if not self.available:
             return f"Bilan pour {seller_data.get('name', 'Vendeur')}: Performance en cours d'analyse."
         
-        kpi_summary = {
-            "total_ca": sum(k.get('ca_journalier', 0) for k in kpis),
-            "total_ventes": sum(k.get('nb_ventes', 0) for k in kpis),
-            "days_count": len(kpis)
-        }
+        # Calculate seller-controlled metrics ONLY
+        total_ca = sum(k.get('ca_journalier', 0) for k in kpis)
+        total_ventes = sum(k.get('nb_ventes', 0) for k in kpis)
+        days_count = len(kpis)
         
-        prompt = f"""Génère un bilan de performance pour {seller_data.get('name', 'ce vendeur')}:
+        # Calculate Panier Moyen (PM) - seller-controlled metric
+        panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
+        
+        # Calculate average Indice de Vente (IV) if available - seller-controlled
+        total_articles = sum(k.get('nb_articles', k.get('nb_ventes', 0)) for k in kpis)
+        indice_vente = total_articles / total_ventes if total_ventes > 0 else 1.0
+        
+        # Intentionally NOT including traffic/entrées data per business rules
+        # If traffic is 0 or inconsistent, we simply ignore it
+        
+        seller_name = anonymize_name_for_ai(seller_data.get('name', 'Vendeur'))
+        
+        prompt = f"""Analyse les performances de {seller_name} sur les {days_count} derniers jours :
 
-CA total: {kpi_summary['total_ca']:.0f}€
-Ventes: {kpi_summary['total_ventes']}
-Jours travaillés: {kpi_summary['days_count']}
+📊 DONNÉES (ce que {seller_name} maîtrise) :
+- Chiffre d'Affaires (CA) : {total_ca:.0f}€
+- Nombre de ventes : {total_ventes}
+- Panier Moyen (PM) : {panier_moyen:.2f}€
+- Indice de Vente (IV) : {indice_vente:.1f} articles/vente
 
-Fournis un bilan encourageant avec:
-1. Résumé de la performance
-2. Points forts identifiés
-3. Axes d'amélioration
-4. Objectif pour la prochaine période"""
+⚠️ RAPPEL : Ne mentionne PAS le trafic ou les entrées magasin. Focus uniquement sur les métriques ci-dessus.
+
+Génère un bilan terrain motivant avec :
+1. Une phrase de félicitation sincère basée sur les chiffres
+2. 3 conseils courts et actionnables pour améliorer PM ou IV
+3. Un objectif simple pour demain"""
 
         chat = self._create_chat(
             session_id=f"bilan_{uuid.uuid4()}",
-            system_message="Tu es un coach retail bienveillant qui génère des bilans motivants.",
+            system_message=SELLER_BILAN_SYSTEM_PROMPT,
             model="gpt-4o-mini"
         )
         
         response = await self._send_message(chat, prompt)
-        return response or f"Bilan pour {seller_data.get('name', 'Vendeur')}: Performance en cours d'analyse."
+        return response or f"Bilan pour {seller_name}: Performance en cours d'analyse."
 
 
 # ==============================================================================
