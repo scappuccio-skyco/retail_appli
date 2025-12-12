@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { LogOut, Plus, TrendingUp, Award, MessageSquare, Sparkles, BarChart3, RefreshCw, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { LogOut, Plus, TrendingUp, Award, MessageSquare, Sparkles, BarChart3, RefreshCw, ChevronLeft, ChevronRight, User, Headphones } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import EvaluationModal from '../components/EvaluationModal';
 import DebriefModal from '../components/DebriefModal';
@@ -19,6 +19,7 @@ import CompetencesExplicationModal from '../components/CompetencesExplicationMod
 import ChallengeHistoryModal from '../components/ChallengeHistoryModal';
 import DailyChallengeModal from '../components/DailyChallengeModal';
 import CoachingModal from '../components/CoachingModal';
+import SupportModal from '../components/SupportModal';
 import TutorialButton from '../components/onboarding/TutorialButton';
 import OnboardingModal from '../components/onboarding/OnboardingModal';
 import { getSellerSteps } from '../components/onboarding/sellerSteps';
