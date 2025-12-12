@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Dict, Optional
 import stripe
 
-from core.security import get_current_gerant
+from core.security import get_current_gerant, get_gerant_or_manager
 from core.config import settings
 from services.gerant_service import GerantService
 from api.dependencies import get_gerant_service, get_db
