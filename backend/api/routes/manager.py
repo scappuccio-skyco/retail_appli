@@ -2,7 +2,7 @@
 Manager Routes
 Team management, KPIs, objectives, challenges for managers
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from typing import Optional
 from datetime import datetime, timezone, timedelta
 
@@ -12,6 +12,8 @@ from api.dependencies import get_manager_service, get_api_key_service, get_db
 
 router = APIRouter(prefix="/manager", tags=["Manager"])
 
+
+# ===== RBAC: ROLE-BASED ACCESS CONTROL =====
 
 async def verify_manager(current_user: dict = Depends(get_current_user)) -> dict:
     """Verify current user is a manager"""
@@ -25,6 +27,60 @@ async def verify_manager_or_gerant(current_user: dict = Depends(get_current_user
     if current_user.get('role') not in ['manager', 'gerant', 'gérant']:
         raise HTTPException(status_code=403, detail="Access restricted to managers and gérants")
     return current_user
+
+
+async def get_store_context(
+    request: Request,
+    current_user: dict = Depends(verify_manager_or_gerant),
+    db = Depends(get_db)
+) -> dict:
+    """
+    Resolve store_id based on user role:
+    - Manager: Use their assigned store_id
+    - Gérant: Use store_id from query params (with ownership verification)
+    
+    Returns dict with user info + resolved store_id
+    """
+    role = current_user.get('role')
+    
+    if role == 'manager':
+        # Manager: use their store_id
+        store_id = current_user.get('store_id')
+        if not store_id:
+            raise HTTPException(status_code=400, detail="Manager n'a pas de magasin assigné")
+        return {**current_user, 'resolved_store_id': store_id, 'view_mode': 'manager'}
+    
+    elif role in ['gerant', 'gérant']:
+        # Gérant: get store_id from query params
+        store_id = request.query_params.get('store_id')
+        
+        if not store_id:
+            raise HTTPException(
+                status_code=400, 
+                detail="Le paramètre store_id est requis pour un gérant. Ex: ?store_id=xxx"
+            )
+        
+        # Security: Verify the gérant owns this store
+        store = await db.stores.find_one(
+            {"id": store_id, "gerant_id": current_user['id'], "active": True},
+            {"_id": 0, "id": 1, "name": 1}
+        )
+        
+        if not store:
+            raise HTTPException(
+                status_code=403, 
+                detail="Ce magasin n'existe pas ou ne vous appartient pas"
+            )
+        
+        return {
+            **current_user, 
+            'resolved_store_id': store_id, 
+            'view_mode': 'gerant_as_manager',
+            'store_name': store.get('name')
+        }
+    
+    else:
+        raise HTTPException(status_code=403, detail="Rôle non autorisé")
 
 
 # ===== SUBSCRIPTION ACCESS CHECK =====
