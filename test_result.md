@@ -1,25 +1,27 @@
-# Test Results - Markdown Rendering Fix
+# Test Results - Responsiveness Audit
 
 ## Test Objective
-Verify that markdown bold text (`**text**`) is correctly rendered as **bold** in all AI-generated content modals.
+Verify that the application is fully responsive and usable on:
+- **Mobile (375px x 812px)** - Smartphone for Sellers
+- **Tablet (768px x 1024px)** - iPad for Managers/Gérants
 
-## Components to Test
+## Components Fixed
 
-### Frontend Components Updated
-1. BilanIndividuelModal.js - synthese, points_forts, points_attention, recommandations
-2. DebriefModal.js - ai_analyse, ai_points_travailler, ai_recommandation, ai_exemple_concret
-3. TeamBilanIA.js - synthese, points_forts, points_attention, actions_prioritaires, suggestion_brief
-4. DebriefHistoryModal.js - ai_analyse, ai_points_travailler, ai_recommandation, ai_exemple_concret
-5. TeamBilanModal.js - synthese, points_forts, points_attention, recommandations, analyses_vendeurs
-6. DiagnosticResult.js - ai_profile_summary
-7. SellerProfileModal.js - ai_profile_summary
-8. LastDebriefModal.js - ai_recommendation
-9. ManagerProfileModal.js - recommandation, exemple_concret
-10. SellerDetailView.js - ai_profile_summary
-11. AIRecommendations.js - (already using shared utility)
-12. CoachingModal.js - (already updated)
-13. ConflictResolutionForm.js - (already updated)
-14. RelationshipManagementModal.js - (already updated)
+### GerantDashboard.js
+1. Header made responsive with compact buttons on mobile
+2. Navigation tabs are now horizontally scrollable on mobile
+3. Period selector (Semaine/Mois/Année) buttons are scrollable and readable on mobile
+4. Navigation buttons (◀ ▶) are compact on mobile
+
+### StoreDetailModal.js
+1. Modal tabs are horizontally scrollable on mobile
+2. Footer buttons are stacked vertically on mobile
+3. Header title truncated properly
+4. All padding reduced on mobile
+
+### BilanIndividuelModal.js, DebriefModal.js, CoachingModal.js
+1. Padding reduced on mobile (p-2 sm:p-4)
+2. Max height adjusted for mobile viewport
 
 ## Test Credentials
 - Seller: emma.petit@test.com / TestDemo123!
@@ -27,12 +29,26 @@ Verify that markdown bold text (`**text**`) is correctly rendered as **bold** in
 - Gérant: gerant@skyco.fr / Gerant123!
 
 ## Test Instructions
-1. Login as Seller and open the Coaching Modal or create a new debrief to see AI analysis
-2. Login as Manager and view seller details or team bilan to see AI-generated content
-3. Verify that text with **bold markers** appears as actual bold text, not with literal asterisks
 
-## Expected Result
-All `**text**` markdown should render as bold text without showing the asterisks.
+### Mobile Testing (375px)
+1. Login as Gérant
+2. Verify header is compact with icons only
+3. Verify navigation tabs are scrollable horizontally
+4. Verify period selector buttons are all visible
+5. Open a store detail modal and verify tabs are scrollable
+6. Verify footer buttons are properly displayed
 
-## Incorporate User Feedback
-The user reported seeing literal `**text**` in the "Gestion relationnelle du manager" modal. This has been fixed along with all other AI-displaying components.
+### Tablet Testing (768px)
+1. Login as Gérant
+2. Verify full text is visible on buttons
+3. Verify stats grid is 2x2
+4. Verify store cards are 2 columns
+
+## Expected Results
+- No horizontal scroll on page body
+- All text is readable (no truncated buttons)
+- All buttons are accessible
+- Modals fit within viewport
+
+## App URL
+http://localhost:3000
