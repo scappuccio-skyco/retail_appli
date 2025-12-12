@@ -63,9 +63,10 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   const loadHistory = async (sellerId = null) => {
     try {
       const token = localStorage.getItem('token');
-      const url = sellerId 
-        ? `${API}/api/manager/relationship-history?seller_id=${sellerId}`
-        : `${API}/api/manager/relationship-history`;
+      let url = `${API}/api/manager/relationship-history${storeIdParam}`;
+      if (sellerId) {
+        url += storeIdParam ? `&seller_id=${sellerId}` : `?seller_id=${sellerId}`;
+      }
       
       const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
