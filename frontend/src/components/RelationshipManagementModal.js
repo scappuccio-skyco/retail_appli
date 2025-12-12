@@ -94,7 +94,7 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
     try {
       const token = localStorage.getItem('token');
       await axios.delete(
-        `${API}/api/manager/relationship-consultation/${consultationId}`,
+        `${API}/api/manager/relationship-consultation/${consultationId}${storeIdParam}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
