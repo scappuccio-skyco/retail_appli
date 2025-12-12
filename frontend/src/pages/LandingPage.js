@@ -25,9 +25,9 @@ export default function LandingPage() {
             {/* Logo rond + texte */}
             <div className="flex items-center gap-2 sm:gap-3">
               <img src="/logo-icon.png" alt="Retail Performer AI" className="h-12 sm:h-14 w-auto" />
-              <div>
-                <span className="text-lg sm:text-2xl font-bold text-[#1E40AF]">Retail Performer AI</span>
-                <span className="text-base sm:text-xl font-semibold text-gray-900 ml-1">by SKY CO</span>
+              <div className="flex flex-col">
+                <span className="text-base sm:text-xl font-bold text-[#1E40AF] leading-tight">Retail Performer AI</span>
+                <span className="text-xs sm:text-sm font-medium text-gray-700">by SKY CO</span>
               </div>
             </div>
 

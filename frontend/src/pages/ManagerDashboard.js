@@ -827,10 +827,11 @@ export default function ManagerDashboard({ user, onLogout }) {
           <div className="flex items-center gap-3 sm:gap-4">
             <img src="/logo-icon.png" alt="Retail Performer AI" className="h-12 sm:h-14 object-contain" />
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#1E40AF]">
-                Retail Performer AI <span className="text-gray-900 font-semibold">by SKY CO</span>
-              </h1>
-              <p className="text-gray-600 text-sm sm:text-base">
+              <div className="flex flex-col">
+                <span className="text-lg sm:text-xl md:text-2xl font-bold text-[#1E40AF] leading-tight">Retail Performer AI</span>
+                <span className="text-xs sm:text-sm font-medium text-gray-700">by SKY CO</span>
+              </div>
+              <p className="text-gray-600 text-sm sm:text-base mt-1">
                 Bienvenue, {user.name}
                 {storeName && (
                   <span className="inline-flex items-center gap-1 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap">

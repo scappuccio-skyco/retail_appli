@@ -122,9 +122,8 @@ export default function Login({ onLogin }) {
                 className="h-16 sm:h-20 object-contain"
               />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#1E40AF]">
-              Retail Performer AI <span className="text-gray-900 font-semibold">by SKY CO</span>
-            </h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-[#1E40AF]">Retail Performer AI</h1>
+            <p className="text-sm text-gray-700 font-medium">by SKY CO</p>
             {inviteInfo ? (
               <p className="text-gray-600 mt-2">
                 Rejoignez l'équipe de {inviteInfo.manager_name}
