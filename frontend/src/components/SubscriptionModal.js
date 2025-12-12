@@ -834,30 +834,88 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                       </div>
                     </div>
                     
-                    {/* Cost preview */}
+                    {/* Cost preview from API or fallback */}
                     <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3 space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span>Prix par siège :</span>
-                        <span className="font-bold">{newSeatsCount <= 5 ? '29' : '25'}€/mois</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Coût mensuel futur :</span>
-                        <span className="font-bold">{newSeatsCount * (newSeatsCount <= 5 ? 29 : 25)}€/mois</span>
-                      </div>
-                      {subscriptionInfo.status === 'trialing' && subscriptionInfo.days_left !== null && (
-                        <div className="mt-2 pt-2 border-t border-white/30">
-                          <p className="text-xs opacity-90">
-                            💡 Pendant l'essai ({subscriptionInfo.days_left} jours restants), aucun frais ne sera appliqué. 
-                            Le paiement débutera à la fin de la période d'essai.
-                          </p>
+                      {loadingPreview ? (
+                        <div className="flex items-center justify-center py-2">
+                          <Loader className="w-5 h-5 animate-spin mr-2" />
+                          <span className="text-sm">Calcul du coût...</span>
                         </div>
-                      )}
-                      {subscriptionInfo.status === 'active' && newSeatsCount > (subscriptionInfo.subscription.seats || 1) && (
-                        <div className="mt-2 pt-2 border-t border-white/30">
-                          <p className="text-xs opacity-90">
-                            ℹ️ Un coût proratisé sera appliqué pour les sièges ajoutés en cours de cycle.
-                          </p>
-                        </div>
+                      ) : seatsPreview ? (
+                        <>
+                          <div className="flex justify-between text-sm">
+                            <span>Prix par siège :</span>
+                            <span className="font-bold">
+                              {Math.round(seatsPreview.new_monthly_cost / seatsPreview.new_seats)}€/mois
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Coût mensuel actuel :</span>
+                            <span className="font-bold">{seatsPreview.current_monthly_cost}€/mois</span>
+                          </div>
+                          <div className="flex justify-between text-sm font-bold">
+                            <span>Coût mensuel futur :</span>
+                            <span className={seatsPreview.is_upgrade ? 'text-green-200' : 'text-orange-200'}>
+                              {seatsPreview.new_monthly_cost}€/mois
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm pt-1 border-t border-white/30">
+                            <span>Différence mensuelle :</span>
+                            <span className={`font-bold ${seatsPreview.price_difference >= 0 ? 'text-green-200' : 'text-orange-200'}`}>
+                              {seatsPreview.price_difference >= 0 ? '+' : ''}{seatsPreview.price_difference}€
+                            </span>
+                          </div>
+                          {seatsPreview.is_trial ? (
+                            <div className="mt-2 pt-2 border-t border-white/30">
+                              <p className="text-xs opacity-90">
+                                💡 Pendant l'essai, aucun frais ne sera appliqué. 
+                                Le paiement débutera à la fin de la période d'essai.
+                              </p>
+                            </div>
+                          ) : seatsPreview.is_upgrade && seatsPreview.proration_estimate > 0 && (
+                            <div className="mt-2 pt-2 border-t border-white/30 bg-white/10 rounded p-2">
+                              <p className="text-sm font-semibold">
+                                💳 Coût proratisé estimé : ~{seatsPreview.proration_estimate.toFixed(2)}€
+                              </p>
+                              <p className="text-xs opacity-90 mt-1">
+                                Ce montant sera facturé immédiatement pour la période en cours.
+                              </p>
+                            </div>
+                          )}
+                          {!seatsPreview.is_upgrade && !seatsPreview.is_trial && (
+                            <div className="mt-2 pt-2 border-t border-white/30">
+                              <p className="text-xs opacity-90">
+                                ⚠️ La réduction sera effective au prochain renouvellement.
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        // Fallback if API fails
+                        <>
+                          <div className="flex justify-between text-sm">
+                            <span>Prix par siège :</span>
+                            <span className="font-bold">{newSeatsCount <= 5 ? '29' : '25'}€/mois</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Coût mensuel futur :</span>
+                            <span className="font-bold">{newSeatsCount * (newSeatsCount <= 5 ? 29 : 25)}€/mois</span>
+                          </div>
+                          {subscriptionInfo.status === 'trialing' && subscriptionInfo.days_left !== null && (
+                            <div className="mt-2 pt-2 border-t border-white/30">
+                              <p className="text-xs opacity-90">
+                                💡 Pendant l'essai ({subscriptionInfo.days_left} jours restants), aucun frais ne sera appliqué.
+                              </p>
+                            </div>
+                          )}
+                          {subscriptionInfo.status === 'active' && newSeatsCount > (subscriptionInfo.subscription.seats || 1) && (
+                            <div className="mt-2 pt-2 border-t border-white/30">
+                              <p className="text-xs opacity-90">
+                                ℹ️ Un coût proratisé sera appliqué pour les sièges ajoutés en cours de cycle.
+                              </p>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
