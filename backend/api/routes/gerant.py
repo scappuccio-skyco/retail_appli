@@ -795,7 +795,7 @@ async def get_store_kpi_history(
 @router.get("/stores/{store_id}/available-years")
 async def get_store_available_years(
     store_id: str,
-    current_user: Dict = Depends(get_current_gerant),
+    current_user: Dict = Depends(get_gerant_or_manager),
     gerant_service: GerantService = Depends(get_gerant_service)
 ):
     """
@@ -804,12 +804,42 @@ async def get_store_available_years(
     Returns list of years (integers) in descending order (most recent first)
     Used for date filter dropdowns in the frontend
     
-    Security: Verify that the store belongs to the current gérant
+    Security: Accessible to gérants and managers
     """
     try:
-        return await gerant_service.get_store_available_years(store_id, current_user['id'])
+        user_id = current_user['id']
+        return await gerant_service.get_store_available_years(store_id, user_id)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/stores/{store_id}/kpi-dates")
+async def get_store_kpi_dates(
+    store_id: str,
+    current_user: Dict = Depends(get_gerant_or_manager),
+    db = Depends(get_db)
+):
+    """
+    Get dates with KPI data for this store
+    
+    Returns list of dates (YYYY-MM-DD strings) where KPI data exists
+    Used for calendar highlighting in the frontend
+    """
+    try:
+        # Get all distinct dates with KPI data for this store
+        pipeline = [
+            {"$match": {"store_id": store_id}},
+            {"$group": {"_id": "$date"}},
+            {"$sort": {"_id": -1}},
+            {"$limit": 365}  # Last year of dates
+        ]
+        
+        results = await db.kpi_entries.aggregate(pipeline).to_list(365)
+        dates = [r['_id'] for r in results if r['_id']]
+        
+        return {"dates": dates}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
