@@ -3,8 +3,8 @@ Seller Routes
 API endpoints for seller-specific features (tasks, objectives, challenges)
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Dict, List
-from datetime import datetime, timezone
+from typing import Dict, List, Optional
+from datetime import datetime, timezone, timedelta
 
 from services.seller_service import SellerService
 from api.dependencies import get_seller_service, get_db
