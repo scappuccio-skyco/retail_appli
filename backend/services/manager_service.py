@@ -21,11 +21,16 @@ class ManagerService:
         self.store_repo = StoreRepository(db)
     
     async def get_sellers(self, manager_id: str, store_id: str) -> List[Dict]:
-        """Get all sellers for manager's store"""
+        """
+        Get all sellers for a store
+        
+        Note: Uses store_id as primary filter. 
+        manager_id is used for logging/audit but not required for filtering
+        since a gérant can also query sellers.
+        """
         sellers = await self.user_repo.find_many(
             {
                 "store_id": store_id,
-                "manager_id": manager_id,
                 "role": "seller",
                 "status": {"$ne": "deleted"}
             },
