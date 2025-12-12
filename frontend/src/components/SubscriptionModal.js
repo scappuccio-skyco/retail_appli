@@ -851,7 +851,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                         );
                         
                         // Refresh subscription info
-                        await fetchSubscriptionInfo();
+                        await fetchSubscriptionStatus();
                         
                         // Reset the seats count to match new value
                         setNewSeatsCount(response.data.new_seats);
