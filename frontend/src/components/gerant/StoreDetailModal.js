@@ -540,30 +540,31 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
           ) : null}
         </div>
 
-        {/* Footer Actions */}
-        <div className="border-t border-gray-200 p-6 bg-gray-50 flex items-center justify-between">
+        {/* Footer Actions - Responsive */}
+        <div className="border-t border-gray-200 p-3 sm:p-6 bg-gray-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 flex-shrink-0">
           <button
             onClick={() => onDeleteStore(store)}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all font-semibold"
+            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-sm sm:text-base font-semibold order-2 sm:order-1"
           >
             <Trash2 className="w-4 h-4" />
-            Supprimer le magasin
+            <span className="hidden xs:inline">Supprimer</span>
+            <span className="xs:hidden">Suppr.</span>
           </button>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 order-1 sm:order-2">
             <button
               onClick={() => {
                 fetchStoreTeam();
                 onRefresh();
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-semibold"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm sm:text-base font-semibold"
             >
               <RefreshCw className="w-4 h-4" />
-              Actualiser
+              <span className="hidden sm:inline">Actualiser</span>
             </button>
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all font-semibold"
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all text-sm sm:text-base font-semibold"
             >
               Fermer
             </button>
