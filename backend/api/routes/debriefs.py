@@ -74,8 +74,6 @@ async def create_debrief(
         
         # Generate AI feedback
         ai_service = AIService()
-        
-        ai_feedback = None
         new_scores = current_scores.copy()
         
         # Initialize AI fields at root level (legacy format for frontend compatibility)
