@@ -16,6 +16,7 @@ import SellerTransferModal from '../components/gerant/SellerTransferModal';
 import DeleteStoreConfirmation from '../components/gerant/DeleteStoreConfirmation';
 import InviteStaffModal from '../components/gerant/InviteStaffModal';
 import SubscriptionModal from '../components/SubscriptionModal';
+import SupportModal from '../components/SupportModal';
 import APIKeysManagement from '../components/gerant/APIKeysManagement';
 import StaffOverview from '../components/gerant/StaffOverview';
 
