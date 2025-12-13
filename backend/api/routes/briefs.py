@@ -119,7 +119,15 @@ async def preview_morning_brief_data(
     )
     
     store_id = store.get("id") if store else None
-    stats = await _fetch_yesterday_stats(db, store_id, user_id)
+    try:
+        stats = await _fetch_yesterday_stats(db, store_id, user_id)
+        import logging
+        logging.info(f"Preview stats keys: {list(stats.keys())}")
+        logging.info(f"Preview data_date: {stats.get('data_date')}")
+    except Exception as e:
+        import logging
+        logging.error(f"Error in _fetch_yesterday_stats: {e}")
+        stats = {"error": str(e)}
     
     return {
         "store_name": store.get("name") if store else None,
