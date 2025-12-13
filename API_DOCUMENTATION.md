@@ -307,7 +307,7 @@ print(f"Invitation envoyée à {invitation['email']}")
 
 ## 🔗 LIENS UTILES
 
-- **Base URL Production :** `https://review-helper-8.preview.emergentagent.com/api`
+- **Base URL Production :** `https://disc-coaching.preview.emergentagent.com/api`
 - **Documentation Postman :** À venir
 - **Webhook Stripe :** `/api/stripe/webhook`
 

@@ -126,5 +126,5 @@ agent_communication:
 - Gérant: gerant@skyco.fr / Gerant123!
 
 ## Test URLs
-- Frontend: https://review-helper-8.preview.emergentagent.com
-- Backend API: https://review-helper-8.preview.emergentagent.com/api
+- Frontend: https://disc-coaching.preview.emergentagent.com
+- Backend API: https://disc-coaching.preview.emergentagent.com/api
