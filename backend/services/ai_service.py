@@ -68,7 +68,8 @@ TON ET STYLE :
 """
 
 # Coach for Team Bilan (JSON output)
-TEAM_BILAN_SYSTEM_PROMPT = """Tu es un Coach en Performance Retail de haut niveau.
+TEAM_BILAN_SYSTEM_PROMPT = f"""{LEGAL_DISCLAIMER_BLOCK}
+Tu es un Coach en Performance Retail de haut niveau.
 Tu génères un bilan structuré de l'équipe pour alimenter le tableau de bord.
 
 RÈGLES STRICTES (SÉCURITÉ) :
@@ -77,18 +78,18 @@ RÈGLES STRICTES (SÉCURITÉ) :
 
 FORMAT DE RÉPONSE OBLIGATOIRE (JSON STRICT) :
 Réponds UNIQUEMENT avec cet objet JSON valide (pas de markdown, pas de texte avant/après) :
-{
+{{
   "synthese": "Analyse globale de la dynamique d'équipe (Forces/Faiblesses).",
   "points_forts": ["Point fort collectif 1", "Point fort collectif 2"],
   "points_attention": ["Risque identifié 1", "Risque identifié 2"],
   "recommandations": ["Action managériale 1", "Action managériale 2"],
   "analyses_vendeurs": [
-      {
+      {{
           "nom": "Prénom du vendeur",
           "analyse": "Phrase courte sur sa contribution (Top performer ? En difficulté ?)"
-      }
+      }}
   ]
-}
+}}
 """
 
 # Coach for Debrief (JSON output)
