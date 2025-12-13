@@ -796,11 +796,11 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-900 to-blue-800">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6">
             Prêt à Transformer Votre Équipe ?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Rejoignez les managers qui font déjà confiance à Retail Performer AI
+          <p className="text-lg sm:text-xl text-blue-100 mb-8">
+            Rejoignez notre programme Pilote et co-construisez l'outil avec nous
           </p>
           <button
             onClick={() => navigate('/login')}
