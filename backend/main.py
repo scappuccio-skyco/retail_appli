@@ -1,20 +1,34 @@
 """Main FastAPI Application Entry Point"""
+print("[STARTUP] 1/10 - main.py loading started", flush=True)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+import os
+import sys
+
+print("[STARTUP] 2/10 - FastAPI imports done", flush=True)
 
 from core.config import settings
+print("[STARTUP] 3/10 - Settings loaded", flush=True)
+
 from core.database import database
+print("[STARTUP] 4/10 - Database module imported", flush=True)
+
 from api.routes import routers
+print("[STARTUP] 5/10 - Routers imported", flush=True)
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout  # Force logs to stdout
 )
 logger = logging.getLogger(__name__)
+print("[STARTUP] 6/10 - Logging configured", flush=True)
 
 # Create FastAPI app
+print("[STARTUP] 7/10 - Creating FastAPI app...", flush=True)
 app = FastAPI(
     title="Retail Performer AI",
     description="API for retail performance management and AI-powered insights",
@@ -23,6 +37,7 @@ app = FastAPI(
     docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
     redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None
 )
+print("[STARTUP] 8/10 - FastAPI app created", flush=True)
 
 # Configure CORS - CRITICAL for production
 # Parse CORS origins from environment
@@ -35,6 +50,7 @@ else:
     allowed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
 
 logger.info(f"CORS allowed origins: {allowed_origins}")
+print(f"[STARTUP] CORS origins: {allowed_origins}", flush=True)
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,11 +59,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+print("[STARTUP] 9/10 - CORS middleware added", flush=True)
 
 # Include all routers
+print(f"[STARTUP] Registering {len(routers)} routers...", flush=True)
 for router in routers:
     app.include_router(router, prefix="/api")
     logger.info(f"Registered router: {router.prefix} ({len(router.routes)} routes)")
+print("[STARTUP] 10/10 - All routers registered - APP READY FOR REQUESTS", flush=True)
 
 # Startup event
 @app.on_event("startup")
