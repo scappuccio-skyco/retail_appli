@@ -475,9 +475,11 @@ async def update_kpi_config(
     Fields:
     - enabled: bool - Whether sellers can input KPIs
     - saisie_enabled: bool - Alias for enabled
+    - seller_track_*: bool - Whether sellers track this KPI
+    - manager_track_*: bool - Whether manager tracks this KPI
     """
     try:
-        resolved_store_id = context.get('resolved_store_id')
+        resolved_store_id = context.get('resolved_store_id') or store_id
         manager_id = context.get('id')
         
         if not resolved_store_id and not manager_id:
@@ -496,6 +498,19 @@ async def update_kpi_config(
         if 'saisie_enabled' in config_update:
             update_data['saisie_enabled'] = config_update['saisie_enabled']
             update_data['enabled'] = config_update['saisie_enabled']
+        
+        # Handle seller_track_* and manager_track_* fields
+        track_fields = [
+            'seller_track_ca', 'manager_track_ca',
+            'seller_track_ventes', 'manager_track_ventes',
+            'seller_track_clients', 'manager_track_clients',
+            'seller_track_articles', 'manager_track_articles',
+            'seller_track_prospects', 'manager_track_prospects'
+        ]
+        
+        for field in track_fields:
+            if field in config_update:
+                update_data[field] = config_update[field]
         
         # Build query - prefer store_id, fallback to manager_id
         query = {}
