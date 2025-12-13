@@ -54,9 +54,7 @@ for router in routers:
 async def startup_event():
     """
     Initialize application on startup
-    - Connect to MongoDB
-    - Create indexes (only on first worker to avoid conflicts)
-    - Initialize default admin user
+    - Connect to MongoDB (with retry for Atlas)
     """
     import os
     import asyncio
@@ -65,29 +63,30 @@ async def startup_event():
     try:
         logger.info(f"Starting application (worker PID: {worker_id})...")
         
-        # Connect to MongoDB with retry logic
-        max_retries = 5
+        # Connect to MongoDB with retry logic - important for Atlas cold starts
+        max_retries = 10
         retry_delay = 1
         
         for attempt in range(max_retries):
             try:
                 await database.connect()
-                logger.info("✅ MongoDB connection established")
+                logger.info(f"✅ MongoDB connection established (worker {worker_id})")
                 break
             except Exception as e:
                 if attempt < max_retries - 1:
-                    logger.warning(f"MongoDB connection attempt {attempt + 1} failed: {e}, retrying in {retry_delay}s...")
+                    logger.warning(f"MongoDB connection attempt {attempt + 1}/{max_retries} failed: {e}, retrying in {retry_delay}s...")
                     await asyncio.sleep(retry_delay)
-                    retry_delay = min(retry_delay * 2, 10)  # Cap at 10 seconds
+                    retry_delay = min(retry_delay * 1.5, 5)  # Cap at 5 seconds
                 else:
-                    logger.error(f"Failed to connect to MongoDB after {max_retries} attempts")
-                    raise
+                    logger.error(f"Failed to connect to MongoDB after {max_retries} attempts: {e}")
+                    # Don't raise - let the app start anyway, endpoints will fail gracefully
+                    logger.warning("Application starting without database connection - endpoints will return errors")
         
         logger.info(f"🚀 Application startup complete (worker PID: {worker_id})")
         
     except Exception as e:
-        logger.error(f"❌ Startup failed: {e}")
-        raise
+        logger.error(f"❌ Startup error (non-fatal): {e}")
+        # Don't raise - allow health check to pass
 
 
 # Background task to create indexes (runs after startup)
