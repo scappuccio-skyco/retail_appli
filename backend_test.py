@@ -1797,8 +1797,26 @@ class ImprovedEvaluationGeneratorTester:
             self.manager_token = response['token']
             self.manager_user = response.get('user', {})
             print(f"   ✅ Manager logged in: {self.manager_user.get('email')}")
+            
+            # Get a seller from the manager's store
+            try:
+                import requests
+                headers = {'Authorization': f'Bearer {self.manager_token}'}
+                sellers_response = requests.get(f"{self.base_url}/manager/sellers", headers=headers)
+                if sellers_response.status_code == 200:
+                    sellers = sellers_response.json()
+                    if sellers:
+                        # Use the first seller in the manager's store
+                        self.seller_id = sellers[0].get('id')
+                        print(f"   ✅ Using seller from manager's store: {sellers[0].get('name')} (ID: {self.seller_id})")
+                    else:
+                        print("   ⚠️ No sellers found in manager's store")
+                else:
+                    print(f"   ⚠️ Failed to get sellers: {sellers_response.status_code}")
+            except Exception as e:
+                print(f"   ⚠️ Error getting sellers: {e}")
         
-        # Test Seller login (emma.petit@test.com / TestDemo123!)
+        # Test Seller login (emma.petit@test.com / TestDemo123!) - for seller perspective tests
         seller_data = {
             "email": "emma.petit@test.com",
             "password": "TestDemo123!"
@@ -1815,9 +1833,8 @@ class ImprovedEvaluationGeneratorTester:
         if success and 'token' in response:
             self.seller_token = response['token']
             self.seller_user = response.get('user', {})
-            self.seller_id = self.seller_user.get('id')
             print(f"   ✅ Seller logged in: {self.seller_user.get('email')}")
-            print(f"   ✅ Seller ID: {self.seller_id}")
+            print(f"   ✅ Seller ID for seller tests: {self.seller_user.get('id')}")
 
     def test_json_output_structure(self):
         """Test that the API returns JSON structured data (not markdown)"""
