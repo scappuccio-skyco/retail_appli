@@ -1679,11 +1679,26 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               {(kpiConfig.manager_track_ca || kpiConfig.manager_track_ventes || kpiConfig.manager_track_articles || kpiConfig.manager_track_prospects) ? (
                 // Formulaire Saisie Manager
                 <>
-                  <div className="bg-orange-500 rounded-xl p-4 border-2 border-orange-600 mb-6">
-                    <p className="text-sm text-white font-bold">
-                      💡 <strong>Saisie des données Manager :</strong> Remplissez les données que vous avez configurées pour le manager.
-                    </p>
-                  </div>
+                  {/* Message de verrouillage si données API */}
+                  {isManagerDateLocked && (
+                    <div className="bg-red-100 rounded-xl p-4 border-2 border-red-300 mb-6">
+                      <p className="text-sm text-red-800 font-bold flex items-center gap-2">
+                        🔒 <strong>Données certifiées par le Siège/ERP</strong>
+                      </p>
+                      <p className="text-xs text-red-600 mt-1">
+                        Les données de cette journée proviennent de l'API et ne peuvent pas être modifiées manuellement.
+                        Sélectionnez une autre date pour saisir des données.
+                      </p>
+                    </div>
+                  )}
+
+                  {!isManagerDateLocked && (
+                    <div className="bg-orange-500 rounded-xl p-4 border-2 border-orange-600 mb-6">
+                      <p className="text-sm text-white font-bold">
+                        💡 <strong>Saisie des données Manager :</strong> Remplissez les données que vous avez configurées pour le manager.
+                      </p>
+                    </div>
+                  )}
 
                   <form onSubmit={handleManagerKPISubmit} className="space-y-4">
                     <div>
@@ -1702,22 +1717,34 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                             console.log('showPicker not supported');
                           }
                         }}
-                        className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer"
+                        className={`w-full p-3 border-2 rounded-lg focus:outline-none cursor-pointer ${
+                          isManagerDateLocked 
+                            ? 'border-red-300 bg-red-50' 
+                            : 'border-gray-300 focus:border-purple-400'
+                        }`}
                       />
+                      {isManagerDateLocked && (
+                        <p className="text-xs text-red-500 mt-1">⚠️ Cette date est verrouillée (données API)</p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {kpiConfig.manager_track_ca && (
-                        <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
+                        <div className={`rounded-lg p-4 border-2 ${isManagerDateLocked ? 'bg-gray-100 border-gray-300' : 'bg-orange-50 border-orange-200'}`}>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">💰 Chiffre d'Affaires</label>
                           <input
                             type="number"
                             step="0.01"
                             min="0"
-                            required
+                            required={!isManagerDateLocked}
+                            disabled={isManagerDateLocked}
                             value={managerKPIData.ca_journalier}
                             onChange={(e) => setManagerKPIData({ ...managerKPIData, ca_journalier: e.target.value })}
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none"
+                            className={`w-full p-3 border-2 rounded-lg focus:outline-none ${
+                              isManagerDateLocked 
+                                ? 'border-gray-300 bg-gray-200 cursor-not-allowed text-gray-500' 
+                                : 'border-gray-300 focus:border-purple-400'
+                            }`}
                             placeholder="Ex: 2500.50"
                           />
                         </div>
