@@ -81,16 +81,47 @@ def get_settings() -> Settings:
     global _settings
     if _settings is None:
         try:
+            print("[CONFIG] Creating Settings from environment...", flush=True)
             _settings = Settings()
+            print("[CONFIG] Settings created successfully", flush=True)
         except Exception as e:
             # Fallback: read directly from environment if Pydantic validation fails
-            print(f"⚠️  Warning: Settings validation failed ({e}), using os.environ directly")
+            print(f"[CONFIG] ⚠️  Warning: Settings validation failed ({e}), using os.environ directly", flush=True)
             class FallbackSettings:
+                ENVIRONMENT = os.environ.get("ENVIRONMENT", "production")
+                DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
+                CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "*")
+                MONGO_URL = os.environ.get("MONGO_URL", "")
+                DB_NAME = os.environ.get("DB_NAME", "retail_coach")
+                JWT_SECRET = os.environ.get("JWT_SECRET", "fallback-secret")
+                API_RATE_LIMIT = int(os.environ.get("API_RATE_LIMIT", "60"))
+                EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
+                STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "")
+                STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+                BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "")
+                STRIPE_PRICE_STARTER_MONTHLY = os.environ.get("STRIPE_PRICE_STARTER_MONTHLY", "")
+                STRIPE_PRICE_STARTER_YEARLY = os.environ.get("STRIPE_PRICE_STARTER_YEARLY", "")
+                STRIPE_PRICE_PRO_MONTHLY = os.environ.get("STRIPE_PRICE_PRO_MONTHLY", "")
+                STRIPE_PRICE_PRO_YEARLY = os.environ.get("STRIPE_PRICE_PRO_YEARLY", "")
+                STRIPE_PRICE_ENTERPRISE_MONTHLY = os.environ.get("STRIPE_PRICE_ENTERPRISE_MONTHLY", "")
+                STRIPE_PRICE_ENTERPRISE_YEARLY = os.environ.get("STRIPE_PRICE_ENTERPRISE_YEARLY", "")
+                SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "hello@retailperformerai.com")
+                SENDER_NAME = os.environ.get("SENDER_NAME", "Retail Performer AI")
+                FRONTEND_URL = os.environ.get("FRONTEND_URL", "")
+                BACKEND_URL = os.environ.get("BACKEND_URL", None)
+                ADMIN_CREATION_SECRET = os.environ.get("ADMIN_CREATION_SECRET", "")
+                DEFAULT_ADMIN_EMAIL = os.environ.get("DEFAULT_ADMIN_EMAIL", "admin@example.com")
+                DEFAULT_ADMIN_PASSWORD = os.environ.get("DEFAULT_ADMIN_PASSWORD", "admin123")
+                DEFAULT_ADMIN_NAME = os.environ.get("DEFAULT_ADMIN_NAME", "Super Admin")
+                
                 def __getattr__(self, name):
                     return os.environ.get(name, "")
             _settings = FallbackSettings()
+            print("[CONFIG] Using FallbackSettings", flush=True)
     return _settings
 
 
 # Export for convenience
+print("[CONFIG] Initializing settings singleton...", flush=True)
 settings = get_settings()
+print("[CONFIG] Settings singleton ready", flush=True)
