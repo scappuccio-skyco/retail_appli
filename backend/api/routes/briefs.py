@@ -111,14 +111,23 @@ async def preview_morning_brief_data(
         raise HTTPException(status_code=403, detail="Accès refusé")
     
     user_id = current_user.get("id")
+    user_store_id = current_user.get("store_id")
     
-    # Récupérer le magasin
-    store = await db.stores.find_one(
-        {"$or": [{"manager_id": user_id}, {"gerant_id": user_id}]},
-        {"_id": 0}
-    )
+    # Récupérer le magasin - essayer plusieurs méthodes
+    store = None
     
-    store_id = store.get("id") if store else None
+    # 1. D'abord par le store_id de l'utilisateur (cas manager)
+    if user_store_id:
+        store = await db.stores.find_one({"id": user_store_id}, {"_id": 0})
+    
+    # 2. Si pas trouvé, chercher par manager_id ou gerant_id
+    if not store:
+        store = await db.stores.find_one(
+            {"$or": [{"manager_id": user_id}, {"gerant_id": user_id}]},
+            {"_id": 0}
+        )
+    
+    store_id = store.get("id") if store else user_store_id
     stats = await _fetch_yesterday_stats(db, store_id, user_id)
     
     return {
