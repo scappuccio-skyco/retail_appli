@@ -724,6 +724,12 @@ const GerantDashboard = ({ user, onLogout }) => {
 
         {activeView === 'api' ? (
           <APIKeysManagement isReadOnly={isReadOnly} />
+        ) : activeView === 'stores' ? (
+          <StoresManagement 
+            onRefresh={fetchDashboardData}
+            onOpenCreateStoreModal={() => !isReadOnly && setShowCreateStoreModal(true)}
+            isReadOnly={isReadOnly}
+          />
         ) : activeView === 'staff' ? (
           <StaffOverview 
             onRefresh={fetchDashboardData}
