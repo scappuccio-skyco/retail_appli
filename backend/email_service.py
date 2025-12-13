@@ -380,3 +380,104 @@ def send_password_reset_email(recipient_email: str, recipient_name: str, reset_t
         logger.error(f"Erreur lors de l'envoi de l'email de réinitialisation: {e}")
         return False
 
+
+def send_gerant_welcome_email(recipient_email: str, recipient_name: str):
+    """
+    Envoyer un email de bienvenue à un Gérant après son inscription
+    """
+    frontend_url = get_frontend_url().rstrip('/')
+    login_link = f"{frontend_url}/login"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">🎉 Bienvenue sur Retail Performer AI !</h1>
+            <p style="color: rgba(255,255,255,0.9); margin-top: 10px; font-size: 16px;">Votre compte Gérant est maintenant actif</p>
+        </div>
+        
+        <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 16px;">Bonjour <strong>{recipient_name}</strong>,</p>
+            
+            <p style="font-size: 16px;">
+                Félicitations ! Vous avez créé votre espace <strong>Gérant</strong> sur Retail Performer AI. 
+                Vous bénéficiez de <strong>14 jours d'essai gratuit</strong> pour explorer toutes nos fonctionnalités.
+            </p>
+            
+            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F97316;">
+                <h3 style="margin-top: 0; color: #F97316;">🏢 En tant que Gérant, vous pouvez :</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="padding: 8px 0;">📊 <strong>Créer et gérer plusieurs magasins</strong> depuis une seule interface</li>
+                    <li style="padding: 8px 0;">👥 <strong>Inviter vos Managers et Vendeurs</strong> pour constituer vos équipes</li>
+                    <li style="padding: 8px 0;">📈 <strong>Suivre les KPIs</strong> de tous vos points de vente en temps réel</li>
+                    <li style="padding: 8px 0;">🤖 <strong>Profiter du coaching IA</strong> pour booster les performances de vos équipes</li>
+                    <li style="padding: 8px 0;">📋 <strong>Générer des bilans</strong> et entretiens annuels en 1 clic</li>
+                    <li style="padding: 8px 0;">🔗 <strong>Connecter vos outils</strong> via nos intégrations API</li>
+                </ul>
+            </div>
+            
+            <div style="background-color: #FFF7ED; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #F97316;">
+                <h3 style="margin-top: 0; color: #EA580C;">🚀 Pour bien démarrer :</h3>
+                <ol style="padding-left: 20px; margin: 0;">
+                    <li style="padding: 5px 0;">Créez votre premier <strong>magasin</strong></li>
+                    <li style="padding: 5px 0;">Invitez vos <strong>Managers</strong> par email</li>
+                    <li style="padding: 5px 0;">Vos managers inviteront ensuite leurs <strong>Vendeurs</strong></li>
+                    <li style="padding: 5px 0;">Configurez les objectifs et laissez l'IA faire le coaching !</li>
+                </ol>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{login_link}" 
+                   style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); 
+                          color: white; 
+                          padding: 15px 40px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-size: 16px; 
+                          font-weight: bold; 
+                          display: inline-block;
+                          box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);">
+                    🔑 Accéder à mon Espace Gérant
+                </a>
+            </div>
+            
+            <div style="background-color: #EFF6FF; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #1E40AF;">
+                <p style="margin: 0; font-size: 14px; color: #1E40AF;">
+                    💡 <strong>Besoin d'aide ?</strong> Répondez directement à cet email ou consultez notre FAQ. 
+                    Notre équipe est là pour vous accompagner !
+                </p>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                Retail Performer AI - La solution de coaching commercial nouvelle génération<br>
+                25 allée Rose Dieng-Kuntz, 75019 Paris, France<br>
+                © 2025 Tous droits réservés
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": recipient_email, "name": recipient_name}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject="🎉 Bienvenue sur Retail Performer AI - Votre espace Gérant est prêt !",
+            html_content=html_content
+        )
+        
+        api_instance = get_brevo_api_instance()
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Welcome email sent to Gérant {recipient_email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending welcome email to Gérant {recipient_email}: {e}")
+        return False
+
