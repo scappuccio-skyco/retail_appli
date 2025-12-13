@@ -162,6 +162,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   const [showStoreKPIModal, setShowStoreKPIModal] = useState(false);
   const [showRelationshipModal, setShowRelationshipModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showMorningBriefModal, setShowMorningBriefModal] = useState(false);
   const [storeKPIStats, setStoreKPIStats] = useState(null);
   const [autoShowRelationshipResult, setAutoShowRelationshipResult] = useState(false);
   const [generatingAIAdvice, setGeneratingAIAdvice] = useState(false);
