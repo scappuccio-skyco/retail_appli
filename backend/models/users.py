@@ -50,7 +50,9 @@ class UserCreate(BaseModel):
     password: str
     role: Optional[str] = None  # Optionnel, forcé à "gérant" côté backend pour inscription publique
     manager_id: Optional[str] = None
-    workspace_name: Optional[str] = None  # Nom de l'entreprise (pour managers)
+    workspace_name: Optional[str] = None  # Alias pour company_name (pour compatibilité frontend)
+    company_name: Optional[str] = None  # Nom de l'entreprise
+    phone: Optional[str] = None  # Téléphone optionnel
 
 
 
