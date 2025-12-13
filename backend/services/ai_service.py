@@ -927,16 +927,18 @@ Génère un bilan terrain motivant avec :
         stats: Dict,
         manager_name: str,
         store_name: str,
-        context: Optional[str] = None
+        context: Optional[str] = None,
+        data_date: Optional[str] = None  # Date des données (dernier jour avec data)
     ) -> Dict:
         """
         Génère le script du brief matinal pour le manager.
         
         Args:
-            stats: Statistiques du magasin (hier, objectifs, équipe)
+            stats: Statistiques du magasin (dernier jour avec données)
             manager_name: Nom du manager
             store_name: Nom du magasin
             context: Consigne spécifique du manager (optionnel)
+            data_date: Date du dernier jour avec des données (format YYYY-MM-DD)
             
         Returns:
             Dict avec le brief formaté en markdown et les métadonnées
@@ -956,8 +958,18 @@ Génère un bilan terrain motivant avec :
             else:
                 context_instruction = "(Aucune consigne spécifique - Brief standard basé sur les chiffres)"
             
-            # Date du jour
-            today = datetime.now().strftime("%A %d %B %Y").capitalize()
+            # Date du jour en français
+            today = self._format_date_french(datetime.now())
+            
+            # Date des données (dernier jour ouvert)
+            if data_date:
+                try:
+                    data_dt = datetime.strptime(data_date, "%Y-%m-%d")
+                    data_date_french = self._format_date_french(data_dt)
+                except:
+                    data_date_french = "récemment"
+            else:
+                data_date_french = "hier"
             
             # Prompt système pour le brief
             system_prompt = f"""Tu es le bras droit d'un Manager Retail.
