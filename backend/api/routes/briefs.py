@@ -59,23 +59,25 @@ async def generate_morning_brief(
         )
     
     user_id = current_user.get("id")
+    user_store_id = current_user.get("store_id")
     manager_name = current_user.get("name", "Manager")
     
-    # Récupérer le magasin du manager
-    store = await db.stores.find_one(
-        {"manager_id": user_id},
-        {"_id": 0}
-    )
+    # Récupérer le magasin - essayer plusieurs méthodes
+    store = None
     
+    # 1. D'abord par le store_id de l'utilisateur (cas manager)
+    if user_store_id:
+        store = await db.stores.find_one({"id": user_store_id}, {"_id": 0})
+    
+    # 2. Si pas trouvé, chercher par manager_id ou gerant_id
     if not store:
-        # Essayer avec gerant_id pour les gérants
         store = await db.stores.find_one(
-            {"gerant_id": user_id},
+            {"$or": [{"manager_id": user_id}, {"gerant_id": user_id}]},
             {"_id": 0}
         )
     
     store_name = store.get("name", "Mon Magasin") if store else "Mon Magasin"
-    store_id = store.get("id") if store else None
+    store_id = store.get("id") if store else user_store_id
     
     # Récupérer les statistiques d'hier si non fournies
     if request.stats:
