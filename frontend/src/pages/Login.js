@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { Mail, Lock, User, Eye, EyeOff, Building2, CheckCircle, XCircle } from 'lucide-react';
 import { useSearchParams, Link } from 'react-router-dom';
+import Logo from '../components/shared/Logo';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { LogOut, Users, TrendingUp, Award, Clock, CheckCircle, XCircle, Sparkles, Settings, RefreshCw, Edit2, Trash2, Target, BarChart3, Bell, ChevronLeft, ChevronRight, Headphones } from 'lucide-react';
+import Logo from '../components/shared/Logo';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
 // REMOVED: InviteModal - only gerant can invite
 import KPIConfigModal from '../components/KPIConfigModal';

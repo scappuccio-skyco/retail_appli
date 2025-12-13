@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { LogOut, Plus, TrendingUp, Award, MessageSquare, Sparkles, BarChart3, RefreshCw, ChevronLeft, ChevronRight, User, Headphones, FileText } from 'lucide-react';
+import Logo from '../components/shared/Logo';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import EvaluationModal from '../components/EvaluationModal';
 import DebriefModal from '../components/DebriefModal';
