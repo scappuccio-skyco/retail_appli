@@ -64,10 +64,13 @@ async def get_store_context(
         store_id = request.query_params.get('store_id')
         
         if not store_id:
-            raise HTTPException(
-                status_code=400, 
-                detail="Le paramètre store_id est requis pour un gérant. Ex: ?store_id=xxx"
-            )
+            # Pas de store_id - retourner le context sans resolved_store_id
+            # Les endpoints doivent gérer ce cas
+            return {
+                **current_user, 
+                'resolved_store_id': None, 
+                'view_mode': 'gerant_overview'
+            }
         
         # Security: Verify the gérant owns this store
         store = await db.stores.find_one(
