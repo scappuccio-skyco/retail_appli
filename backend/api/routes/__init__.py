@@ -1,47 +1,45 @@
 """API route modules"""
-from api.routes.auth import router as auth_router
-from api.routes.kpis import router as kpi_router
-from api.routes.stores import router as store_router
-from api.routes.ai import router as ai_router
-from api.routes.admin import router as admin_router
-from api.routes.integrations import router as integrations_router
-from api.routes.gerant import router as gerant_router
-from api.routes.onboarding import router as onboarding_router
-from api.routes.enterprise import router as enterprise_router
-from api.routes.manager import router as manager_router
-from api.routes.diagnostics import router as diagnostics_router
-from api.routes.sellers import router as seller_router
-from api.routes.sellers import diagnostic_router  # For /diagnostic/me
-from api.routes.stripe_webhooks import router as stripe_webhook_router
-from api.routes.support import router as support_router
-from api.routes.sales_evaluations import router as sales_evaluations_router
-from api.routes.debriefs import router as debriefs_router
-from api.routes.evaluations import router as evaluations_router  # Entretien Annuel
-from api.routes.workspaces import router as workspaces_router  # Workspace availability check
-from api.routes.briefs import router as briefs_router  # Morning briefs
+import sys
+print("[ROUTES] Loading API routes...", flush=True)
 
 # List of all routers to include in main app
-routers = [
-    auth_router,
-    kpi_router,
-    store_router,
-    ai_router,
-    admin_router,
-    integrations_router,
-    gerant_router,
-    onboarding_router,
-    enterprise_router,
-    manager_router,
-    diagnostics_router,
-    seller_router,
-    diagnostic_router,  # Added for /api/diagnostic/me
-    stripe_webhook_router,
-    support_router,
-    sales_evaluations_router,
-    debriefs_router,
-    evaluations_router,  # Guide d'entretien annuel IA
-    workspaces_router,  # Workspace availability
-    briefs_router,  # Morning briefs
-]
+routers = []
+
+def safe_import(module_path, router_name, fallback_prefix=None):
+    """Safely import a router with error handling"""
+    try:
+        parts = module_path.rsplit('.', 1)
+        module = __import__(module_path, fromlist=[router_name])
+        router = getattr(module, router_name)
+        routers.append(router)
+        print(f"[ROUTES] ✅ Loaded {module_path}.{router_name}", flush=True)
+        return router
+    except Exception as e:
+        print(f"[ROUTES] ❌ Failed to load {module_path}.{router_name}: {e}", flush=True)
+        return None
+
+# Import all routers with error handling
+safe_import('api.routes.auth', 'router')
+safe_import('api.routes.kpis', 'router')
+safe_import('api.routes.stores', 'router')
+safe_import('api.routes.ai', 'router')
+safe_import('api.routes.admin', 'router')
+safe_import('api.routes.integrations', 'router')
+safe_import('api.routes.gerant', 'router')
+safe_import('api.routes.onboarding', 'router')
+safe_import('api.routes.enterprise', 'router')
+safe_import('api.routes.manager', 'router')
+safe_import('api.routes.diagnostics', 'router')
+safe_import('api.routes.sellers', 'router')
+safe_import('api.routes.sellers', 'diagnostic_router')
+safe_import('api.routes.stripe_webhooks', 'router')
+safe_import('api.routes.support', 'router')
+safe_import('api.routes.sales_evaluations', 'router')
+safe_import('api.routes.debriefs', 'router')
+safe_import('api.routes.evaluations', 'router')
+safe_import('api.routes.workspaces', 'router')
+safe_import('api.routes.briefs', 'router')
+
+print(f"[ROUTES] Loaded {len(routers)} routers total", flush=True)
 
 __all__ = ['routers']
