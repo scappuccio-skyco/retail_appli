@@ -1153,6 +1153,7 @@ Le premier à atteindre 500€ de CA gagne un café offert par le manager !
             "success": True,
             "brief": fallback_brief,
             "date": today,
+            "data_date": stats.get('data_date', 'hier'),
             "store_name": store_name,
             "manager_name": manager_name,
             "has_context": False,
