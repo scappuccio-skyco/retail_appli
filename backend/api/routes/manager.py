@@ -549,6 +549,127 @@ async def update_kpi_config(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ===== MANAGER KPI ENDPOINTS =====
+
+@router.get("/manager-kpi")
+async def get_manager_kpis(
+    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Get manager KPI entries for a date range.
+    Used to fetch KPIs entered by the manager (not sellers).
+    """
+    try:
+        resolved_store_id = context.get('resolved_store_id') or store_id
+        
+        if not resolved_store_id:
+            return []
+        
+        query = {
+            "store_id": resolved_store_id,
+            "date": {"$gte": start_date, "$lte": end_date}
+        }
+        
+        kpis = await db.manager_kpi.find(query, {"_id": 0}).sort("date", -1).to_list(500)
+        
+        return kpis
+        
+    except Exception as e:
+        logger.error(f"Error fetching manager KPIs: {e}")
+        return []
+
+
+@router.post("/manager-kpi")
+async def save_manager_kpi(
+    kpi_data: dict,
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Save manager KPI entry for a specific date.
+    This is for KPIs that the manager tracks (not sellers).
+    """
+    from uuid import uuid4
+    
+    try:
+        resolved_store_id = context.get('resolved_store_id') or store_id
+        manager_id = context.get('id')
+        
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="Store ID requis")
+        
+        date = kpi_data.get('date', datetime.now(timezone.utc).strftime('%Y-%m-%d'))
+        
+        # 🔒 Vérifier si cette date est verrouillée (données API)
+        locked_entry = await db.kpis.find_one({
+            "store_id": resolved_store_id,
+            "date": date,
+            "$or": [
+                {"locked": True},
+                {"source": "api"}
+            ]
+        }, {"_id": 0, "locked": 1})
+        
+        if locked_entry:
+            raise HTTPException(
+                status_code=403,
+                detail="🔒 Cette date est verrouillée. Les données proviennent de l'API/ERP."
+            )
+        
+        # Check if entry exists for this date
+        existing = await db.manager_kpi.find_one({
+            "store_id": resolved_store_id,
+            "date": date
+        })
+        
+        # Vérifier si l'entrée existante est verrouillée
+        if existing and existing.get('locked'):
+            raise HTTPException(
+                status_code=403,
+                detail="🔒 Cette entrée est verrouillée (données API)."
+            )
+        
+        entry_data = {
+            "store_id": resolved_store_id,
+            "manager_id": manager_id,
+            "date": date,
+            "ca_journalier": kpi_data.get('ca_journalier') or 0,
+            "nb_ventes": kpi_data.get('nb_ventes') or 0,
+            "nb_clients": kpi_data.get('nb_clients') or 0,
+            "nb_articles": kpi_data.get('nb_articles') or 0,
+            "nb_prospects": kpi_data.get('nb_prospects') or 0,
+            "source": "manual",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        if existing:
+            await db.manager_kpi.update_one(
+                {"_id": existing['_id']},
+                {"$set": entry_data}
+            )
+            entry_data['id'] = existing.get('id', str(existing['_id']))
+        else:
+            entry_data['id'] = str(uuid4())
+            entry_data['created_at'] = datetime.now(timezone.utc).isoformat()
+            await db.manager_kpi.insert_one(entry_data)
+        
+        if '_id' in entry_data:
+            del entry_data['_id']
+        
+        return entry_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving manager KPI: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/team-bilans/all")
 async def get_team_bilans_all(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
