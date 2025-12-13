@@ -525,27 +525,37 @@ async def get_daily_challenge(
             if not selected_competence:
                 selected_competence = sorted_comps[0][0]
         
-        # Challenge templates by competence
+        # Challenge templates by competence - with pedagogical tips and reasons
         templates = {
             'accueil': {
                 'title': 'Accueil Excellence',
-                'description': 'Accueillez chaque client avec un sourire et une phrase personnalisée dans les 10 premières secondes.'
+                'description': 'Accueillez chaque client avec un sourire et une phrase personnalisée dans les 10 premières secondes.',
+                'pedagogical_tip': 'Un sourire authentique crée instantanément une connexion positive. Pensez à sourire avec les yeux aussi !',
+                'reason': "L'accueil est la première impression que tu donnes. Un excellent accueil augmente significativement tes chances de vente."
             },
             'decouverte': {
                 'title': 'Questions Magiques',
-                'description': 'Posez au moins 3 questions ouvertes à chaque client pour comprendre ses besoins.'
+                'description': 'Posez au moins 3 questions ouvertes à chaque client pour comprendre ses besoins.',
+                'pedagogical_tip': 'Utilisez des questions commençant par "Comment", "Pourquoi", "Qu\'est-ce que" pour obtenir des réponses détaillées.',
+                'reason': 'Les questions ouvertes révèlent les vrais besoins du client et te permettent de mieux personnaliser ton argumentaire.'
             },
             'argumentation': {
                 'title': 'Argumentaire Pro',
-                'description': 'Utilisez la technique CAB (Caractéristique-Avantage-Bénéfice) pour chaque produit présenté.'
+                'description': 'Utilisez la technique CAB (Caractéristique-Avantage-Bénéfice) pour chaque produit présenté.',
+                'pedagogical_tip': 'CAB = Caractéristique (ce que c\'est) → Avantage (ce que ça fait) → Bénéfice (ce que ça apporte au client).',
+                'reason': 'Un argumentaire structuré est plus convaincant et aide le client à comprendre la valeur du produit pour lui.'
             },
             'closing': {
                 'title': 'Closing Master',
-                'description': 'Proposez la conclusion de la vente avec une question fermée positive.'
+                'description': 'Proposez la conclusion de la vente avec une question fermée positive.',
+                'pedagogical_tip': 'Exemple : "On passe en caisse ensemble ?" ou "Je vous l\'emballe ?" - Des questions qui supposent un OUI.',
+                'reason': 'Le closing est souvent négligé. Une question fermée positive aide le client à passer à l\'action.'
             },
             'fidelisation': {
                 'title': 'Client Fidèle',
-                'description': 'Remerciez chaque client et proposez un contact ou suivi personnalisé.'
+                'description': 'Remerciez chaque client et proposez un contact ou suivi personnalisé.',
+                'pedagogical_tip': 'Proposez de les ajouter à la newsletter ou de les rappeler quand un nouveau produit arrive.',
+                'reason': 'Un client fidélisé revient et recommande. C\'est la clé d\'une carrière commerciale réussie.'
             }
         }
         
@@ -558,6 +568,8 @@ async def get_daily_challenge(
             "competence": selected_competence,
             "title": template['title'],
             "description": template['description'],
+            "pedagogical_tip": template['pedagogical_tip'],
+            "reason": template['reason'],
             "completed": False,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
