@@ -980,11 +980,11 @@ Réponds avec ce JSON EXACT (pas de texte avant/après) :
 
 Réponds avec ce JSON EXACT (pas de texte avant/après) :
 {{
-  "synthese": "2-3 phrases positives résumant ta performance avec tes meilleurs chiffres",
-  "victoires": ["Ta réussite 1 (avec chiffre)", "Ta réussite 2", "Ta réussite 3"],
-  "axes_progres": ["Ce que tu veux améliorer 1", "Ce que tu veux améliorer 2"],
-  "objectifs": ["Ton objectif personnel 1", "Ton objectif 2"],
-  "questions_manager": ["Question à poser à ton manager 1", "Question 2", "Question 3"]
+  "synthese": "Bilan honnête de ta période (Positif + Axes de travail).",
+  "victoires": ["Ma réussite 1 (avec chiffre)", "Ma réussite 2"],
+  "axes_progres": ["Je dois progresser sur...", "J'ai identifié que..."],
+  "souhaits": ["Je souhaite une formation sur...", "J'aimerais avoir plus de responsabilités sur..."],
+  "questions_manager": ["Question à poser à mon manager 1", "Question 2"]
 }}"""
         
         # Appel à l'IA avec la bonne syntaxe
