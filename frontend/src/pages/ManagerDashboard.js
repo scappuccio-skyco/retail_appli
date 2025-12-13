@@ -702,41 +702,17 @@ export default function ManagerDashboard({ user, onLogout }) {
             />
             <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-cyan-900/80 to-blue-900/80 group-hover:from-blue-900/70 group-hover:via-cyan-900/70 group-hover:to-blue-900/70 transition-all"></div>
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full mb-3 flex items-center justify-center backdrop-blur-sm">
-                <Users className="w-8 h-8 text-white" />
+              <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4 flex items-center justify-center backdrop-blur-sm">
+                <Users className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-white text-center mb-1 flex items-center justify-center gap-2">
-                <Users className="w-5 h-5 text-yellow-400" />
+              <h3 className="text-2xl font-bold text-white text-center mb-2 flex items-center justify-center gap-2">
+                <Users className="w-7 h-7 text-yellow-400" />
                 Mon Équipe
               </h3>
-              <p className="text-xs text-white opacity-90 text-center mb-3">
+              <p className="text-sm text-white opacity-90 text-center">
                 {sellers.filter(s => s.status === 'active').length} vendeur{sellers.filter(s => s.status === 'active').length > 1 ? 's' : ''} actif{sellers.filter(s => s.status === 'active').length > 1 ? 's' : ''}
               </p>
-              {/* Action buttons */}
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowMorningBriefModal(true);
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition-all"
-                  title="Brief du Matin"
-                >
-                  <Coffee className="w-4 h-4" />
-                  Brief du Matin
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowTeamBilanModal(true);
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/30 transition-all"
-                  title="Analyse IA de l'équipe"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Analyse IA
-                </button>
-              </div>
+              <p className="text-xs text-white opacity-80 mt-3">Vue d'ensemble de l'équipe →</p>
             </div>
           </div>
         </div>
