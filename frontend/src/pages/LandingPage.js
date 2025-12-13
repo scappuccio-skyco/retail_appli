@@ -873,7 +873,7 @@ export default function LandingPage() {
             Rejoignez notre programme Pilote et co-construisez l'outil avec nous
           </p>
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/register')}
             className="px-8 py-4 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white text-lg font-semibold rounded-xl hover:shadow-2xl transition-all inline-flex items-center gap-2"
           >
             Commencer l'Essai Gratuit
