@@ -361,21 +361,43 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
                 </div>
               )}
 
-              {/* 🟣 Carte Violette - Objectifs */}
-              {guideData.objectifs?.length > 0 && (
+              {/* 🟣 Carte Violette - Objectifs (Manager only) */}
+              {role !== 'seller' && guideData.objectifs?.length > 0 && (
                 <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-4 border-2 border-purple-200">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
                       <Target className="w-4 h-4 text-white" />
                     </div>
                     <h4 className="text-base font-bold text-purple-800">
-                      {role === 'seller' ? 'Tes Objectifs 🎯' : 'Objectifs & Recommandations'}
+                      Objectifs & Recommandations 🎯
                     </h4>
                   </div>
                   <ul className="space-y-2">
                     {guideData.objectifs.map((item, index) => (
                       <li key={index} className="flex items-start gap-2">
                         <Target className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* ⭐ Carte Jaune/Dorée - Souhaits (Seller only) */}
+              {role === 'seller' && guideData.souhaits?.length > 0 && (
+                <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-4 border-2 border-yellow-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
+                      <Star className="w-4 h-4 text-white" />
+                    </div>
+                    <h4 className="text-base font-bold text-yellow-800">
+                      Mes Souhaits & Demandes ⭐
+                    </h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {guideData.souhaits.map((item, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <Star className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
                         <span className="text-gray-700">{item}</span>
                       </li>
                     ))}
