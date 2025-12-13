@@ -98,9 +98,16 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
       text += '\n';
     }
     
+    // Pour Manager: Objectifs / Pour Seller: Souhaits
     if (data.objectifs?.length) {
       text += `🎯 OBJECTIFS\n`;
       data.objectifs.forEach((o, i) => text += `  ${i+1}. ${o}\n`);
+      text += '\n';
+    }
+    
+    if (data.souhaits?.length) {
+      text += `⭐ MES SOUHAITS\n`;
+      data.souhaits.forEach((s, i) => text += `  ${i+1}. ${s}\n`);
       text += '\n';
     }
     
