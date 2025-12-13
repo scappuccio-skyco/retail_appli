@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import ErrorBoundary from './ErrorBoundary';
+import Logo from './shared/Logo';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
