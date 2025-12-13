@@ -1891,13 +1891,20 @@ class ImprovedEvaluationGeneratorTester:
                 else:
                     self.log_test("Manager JSON Guide Content Type", False, f"guide_content is {type(guide_content)}, expected dict")
         
-        # Test 2: Seller perspective - JSON structure
+        # Test 2: Seller perspective - JSON structure (using seller's own ID)
+        seller_evaluation_data = {
+            "employee_id": self.seller_user.get('id'),  # Seller evaluating themselves
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "comments": "Test comment for JSON structure validation"
+        }
+        
         success, response = self.run_test(
             "Seller Generate Own Evaluation - JSON Structure",
             "POST",
             "evaluations/generate",
             200,
-            data=evaluation_data,
+            data=seller_evaluation_data,
             token=self.seller_token
         )
         
