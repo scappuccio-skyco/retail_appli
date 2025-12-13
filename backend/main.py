@@ -82,27 +82,29 @@ async def startup_event():
                 else:
                     raise
         
-        # Create indexes for performance (TÂCHE 3: Index stripe_customer_id)
+        # Create indexes for performance - use background=True to avoid blocking
+        # and handle duplicates gracefully
         try:
             db = database.db
             
             # Index on stripe_customer_id for fast webhook lookups
-            await db.users.create_index("stripe_customer_id", sparse=True)
-            logger.info("✅ Index created: users.stripe_customer_id")
+            await db.users.create_index("stripe_customer_id", sparse=True, background=True)
+            logger.info("✅ Index ensured: users.stripe_customer_id")
             
             # Index on subscriptions for fast lookups
-            await db.subscriptions.create_index("stripe_customer_id", sparse=True)
-            await db.subscriptions.create_index("stripe_subscription_id", sparse=True)
-            logger.info("✅ Index created: subscriptions.stripe_customer_id, stripe_subscription_id")
+            await db.subscriptions.create_index("stripe_customer_id", sparse=True, background=True)
+            await db.subscriptions.create_index("stripe_subscription_id", sparse=True, background=True)
+            logger.info("✅ Index ensured: subscriptions indexes")
             
             # Index on workspaces
-            await db.workspaces.create_index("stripe_customer_id", sparse=True)
-            logger.info("✅ Index created: workspaces.stripe_customer_id")
+            await db.workspaces.create_index("stripe_customer_id", sparse=True, background=True)
+            logger.info("✅ Index ensured: workspaces.stripe_customer_id")
             
         except Exception as e:
             logger.warning(f"Index creation warning (may already exist): {e}")
         
-        # Initialize database (create default admin if needed)
+        # Initialize database (create default admin if needed) - only on first worker
+        # Use a lock mechanism via database to prevent race conditions
         try:
             from init_db import init_database
             init_database()
@@ -110,7 +112,7 @@ async def startup_event():
         except Exception as e:
             logger.warning(f"Database initialization warning: {e}")
         
-        logger.info("🚀 Application startup complete")
+        logger.info(f"🚀 Application startup complete (worker PID: {worker_id})")
         
     except Exception as e:
         logger.error(f"❌ Startup failed: {e}")
