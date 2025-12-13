@@ -16,6 +16,7 @@ from api.routes.stripe_webhooks import router as stripe_webhook_router
 from api.routes.support import router as support_router
 from api.routes.sales_evaluations import router as sales_evaluations_router
 from api.routes.debriefs import router as debriefs_router
+from api.routes.evaluations import router as evaluations_router  # Entretien Annuel
 
 # List of all routers to include in main app
 routers = [
@@ -36,6 +37,7 @@ routers = [
     support_router,
     sales_evaluations_router,
     debriefs_router,
+    evaluations_router,  # Guide d'entretien annuel IA
 ]
 
 __all__ = ['routers']
