@@ -119,6 +119,30 @@ async def generate_morning_brief(
         data_date=data_date  # Passer la date du dernier jour avec des données
     )
     
+    # Sauvegarder le brief dans l'historique
+    if result.get("success"):
+        brief_id = str(uuid4())
+        brief_record = {
+            "brief_id": brief_id,
+            "store_id": final_store_id,
+            "manager_id": user_id,
+            "brief": result.get("brief"),
+            "date": result.get("date"),
+            "data_date": result.get("data_date"),
+            "store_name": store_name,
+            "manager_name": manager_name,
+            "has_context": result.get("has_context", False),
+            "context": request.comments,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "fallback": result.get("fallback", False)
+        }
+        
+        try:
+            await db.morning_briefs.insert_one(brief_record)
+            result["brief_id"] = brief_id
+        except Exception as e:
+            logger.error(f"Error saving brief to history: {e}")
+    
     return result
 
 
