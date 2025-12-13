@@ -972,8 +972,12 @@ class EvaluationGuideService:
         
         # Appel à l'IA avec la bonne syntaxe
         try:
+            import uuid
+            session_id = str(uuid.uuid4())
+            
             chat = LlmChat(
                 api_key=self.emergent_key,
+                session_id=session_id,
                 system_message=system_prompt
             ).with_model("openai", "gpt-4o-mini")
             
