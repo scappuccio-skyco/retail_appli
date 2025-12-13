@@ -1551,6 +1551,15 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         completedSteps={onboarding.completedSteps}
       />
 
+      {/* Evaluation Generator Modal (Entretien Annuel) */}
+      <EvaluationGenerator
+        isOpen={showEvaluationModal}
+        onClose={() => setShowEvaluationModal(false)}
+        employeeId={user?.id}
+        employeeName={user?.name}
+        role="seller"
+      />
+
       {/* Support Modal */}
       <SupportModal 
         isOpen={showSupportModal} 
