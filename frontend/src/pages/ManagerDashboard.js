@@ -1282,6 +1282,14 @@ export default function ManagerDashboard({ user, onLogout }) {
         isOpen={showSupportModal} 
         onClose={() => setShowSupportModal(false)} 
       />
+
+      {/* Morning Brief Modal */}
+      <MorningBriefModal
+        isOpen={showMorningBriefModal}
+        onClose={() => setShowMorningBriefModal(false)}
+        storeName={storeName}
+        managerName={user?.name}
+      />
     </div>
   );
 }
