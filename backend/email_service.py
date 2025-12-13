@@ -412,12 +412,12 @@ def send_gerant_welcome_email(recipient_email: str, recipient_name: str):
             <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F97316;">
                 <h3 style="margin-top: 0; color: #F97316;">🏢 En tant que Gérant, vous pouvez :</h3>
                 <ul style="list-style: none; padding: 0;">
-                    <li style="padding: 8px 0;">📊 <strong>Créer et gérer plusieurs magasins</strong> depuis une seule interface</li>
-                    <li style="padding: 8px 0;">👥 <strong>Inviter vos Managers et Vendeurs</strong> pour constituer vos équipes</li>
-                    <li style="padding: 8px 0;">📈 <strong>Suivre les KPIs</strong> de tous vos points de vente en temps réel</li>
-                    <li style="padding: 8px 0;">🤖 <strong>Profiter du coaching IA</strong> pour booster les performances de vos équipes</li>
-                    <li style="padding: 8px 0;">📋 <strong>Générer des bilans</strong> et entretiens annuels en 1 clic</li>
-                    <li style="padding: 8px 0;">🔗 <strong>Connecter vos outils</strong> via nos intégrations API</li>
+                    <li style="padding: 8px 0;">🏪 <strong>Créer et gérer plusieurs magasins</strong> depuis une seule interface</li>
+                    <li style="padding: 8px 0;">👥 <strong>Inviter vos Managers</strong> et constituer vos équipes</li>
+                    <li style="padding: 8px 0;">📊 <strong>Vue d'ensemble consolidée</strong> des performances de tous vos points de vente</li>
+                    <li style="padding: 8px 0;">📈 <strong>Classement des magasins</strong> par CA, nombre de ventes, panier moyen</li>
+                    <li style="padding: 8px 0;">👔 <strong>Gérer votre personnel</strong> (managers et vendeurs) de manière centralisée</li>
+                    <li style="padding: 8px 0;">🔗 <strong>API disponible</strong> pour connecter vos outils existants (ERP, caisse...)</li>
                 </ul>
             </div>
             
@@ -427,7 +427,7 @@ def send_gerant_welcome_email(recipient_email: str, recipient_name: str):
                     <li style="padding: 5px 0;">Créez votre premier <strong>magasin</strong></li>
                     <li style="padding: 5px 0;">Invitez vos <strong>Managers</strong> par email</li>
                     <li style="padding: 5px 0;">Vos managers inviteront ensuite leurs <strong>Vendeurs</strong></li>
-                    <li style="padding: 5px 0;">Configurez les objectifs et laissez l'IA faire le coaching !</li>
+                    <li style="padding: 5px 0;">Suivez les performances globales depuis votre tableau de bord !</li>
                 </ol>
             </div>
             
