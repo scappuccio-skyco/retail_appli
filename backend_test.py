@@ -2505,20 +2505,20 @@ class GerantSellerDetailsTester:
 
 
 if __name__ == "__main__":
-    print("🎯 STARTING EVALUATION GENERATOR TESTING")
+    print("🎯 STARTING IMPROVED EVALUATION GENERATOR TESTING")
     print("=" * 80)
     
-    # Run Evaluation Generator tests (focused on the review request)
-    evaluation_tester = EvaluationGeneratorTester()
-    evaluation_success = evaluation_tester.run_evaluation_tests()
+    # Run Improved Evaluation Generator tests (focused on the review request)
+    evaluation_tester = ImprovedEvaluationGeneratorTester()
+    evaluation_success = evaluation_tester.run_improved_evaluation_tests()
     
     print("\n" + "=" * 80)
-    print("🏁 EVALUATION GENERATOR TEST RESULTS")
+    print("🏁 IMPROVED EVALUATION GENERATOR TEST RESULTS")
     print("=" * 80)
     
     if evaluation_success:
-        print("🎉 EVALUATION GENERATOR TESTS PASSED! Feature is working correctly.")
+        print("🎉 IMPROVED EVALUATION GENERATOR TESTS PASSED! Feature is working correctly.")
         sys.exit(0)
     else:
-        print("⚠️ Evaluation Generator tests failed. Please review the detailed logs above.")
+        print("⚠️ Improved Evaluation Generator tests failed. Please review the detailed logs above.")
         sys.exit(1)
