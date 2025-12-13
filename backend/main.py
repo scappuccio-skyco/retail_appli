@@ -169,7 +169,7 @@ async def shutdown_event():
     except Exception as e:
         logger.error(f"Error during shutdown: {e}")
 
-# Health check endpoint
+# Health check endpoint - at /health for local testing
 @app.get("/health")
 async def health_check():
     """Simple health check endpoint"""
@@ -178,6 +178,18 @@ async def health_check():
         "status": "healthy",
         "version": "2.0.0",
         "environment": settings.ENVIRONMENT
+    }
+
+# Health check endpoint - at /api/health for production (Kubernetes routing)
+@app.get("/api/health")
+async def api_health_check():
+    """API Health check endpoint for production routing"""
+    print("[HEALTH] API Health check called - responding healthy", flush=True)
+    return {
+        "status": "healthy",
+        "version": "2.0.0",
+        "environment": settings.ENVIRONMENT,
+        "db_status": "connected" if database.db is not None else "disconnected"
     }
 
 # Root endpoint
