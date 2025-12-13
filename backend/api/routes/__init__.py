@@ -18,6 +18,7 @@ from api.routes.sales_evaluations import router as sales_evaluations_router
 from api.routes.debriefs import router as debriefs_router
 from api.routes.evaluations import router as evaluations_router  # Entretien Annuel
 from api.routes.workspaces import router as workspaces_router  # Workspace availability check
+from api.routes.briefs import router as briefs_router  # Morning briefs
 
 # List of all routers to include in main app
 routers = [
@@ -40,6 +41,7 @@ routers = [
     debriefs_router,
     evaluations_router,  # Guide d'entretien annuel IA
     workspaces_router,  # Workspace availability
+    briefs_router,  # Morning briefs
 ]
 
 __all__ = ['routers']
