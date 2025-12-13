@@ -1471,32 +1471,32 @@ async def refresh_daily_challenge(
             if not selected_competence:
                 selected_competence = sorted_comps[0][0]
         
-        # Challenge templates by competence
+        # Challenge templates by competence - with pedagogical tips and reasons
         templates = {
             'accueil': [
-                {'title': 'Accueil Excellence', 'description': 'Accueillez chaque client avec un sourire et une phrase personnalisée dans les 10 premières secondes.'},
-                {'title': 'Premier Contact', 'description': 'Établissez un contact visuel et saluez chaque client qui entre en boutique.'},
-                {'title': 'Ambiance Positive', 'description': 'Créez une ambiance chaleureuse dès l\'entrée du client avec une attitude ouverte.'}
+                {'title': 'Accueil Excellence', 'description': 'Accueillez chaque client avec un sourire et une phrase personnalisée dans les 10 premières secondes.', 'pedagogical_tip': 'Un sourire authentique crée instantanément une connexion positive. Pensez à sourire avec les yeux aussi !', 'reason': "L'accueil est la première impression que tu donnes. Un excellent accueil augmente significativement tes chances de vente."},
+                {'title': 'Premier Contact', 'description': 'Établissez un contact visuel et saluez chaque client qui entre en boutique.', 'pedagogical_tip': 'Le contact visuel montre que vous êtes attentif et disponible. 3 secondes suffisent !', 'reason': 'Un client qui se sent vu et accueilli est plus enclin à interagir et à rester dans le magasin.'},
+                {'title': 'Ambiance Positive', 'description': "Créez une ambiance chaleureuse dès l'entrée du client avec une attitude ouverte.", 'pedagogical_tip': 'Adoptez une posture ouverte : bras décroisés, sourire, et orientation vers le client.', 'reason': "L'énergie positive est contagieuse. Une bonne ambiance met le client en confiance pour acheter."}
             ],
             'decouverte': [
-                {'title': 'Questions Magiques', 'description': 'Posez au moins 3 questions ouvertes à chaque client pour comprendre ses besoins.'},
-                {'title': 'Écoute Active', 'description': 'Reformulez les besoins du client pour montrer que vous avez bien compris.'},
-                {'title': 'Détective Client', 'description': 'Identifiez le besoin caché derrière la demande initiale du client.'}
+                {'title': 'Questions Magiques', 'description': 'Posez au moins 3 questions ouvertes à chaque client pour comprendre ses besoins.', 'pedagogical_tip': 'Utilisez des questions commençant par "Comment", "Pourquoi", "Qu\'est-ce que" pour obtenir des réponses détaillées.', 'reason': 'Les questions ouvertes révèlent les vrais besoins du client et te permettent de mieux personnaliser ton argumentaire.'},
+                {'title': 'Écoute Active', 'description': 'Reformulez les besoins du client pour montrer que vous avez bien compris.', 'pedagogical_tip': 'Exemple : "Si je comprends bien, vous cherchez..." - Cela crée de la confiance.', 'reason': 'La reformulation montre que tu écoutes vraiment et permet de clarifier les besoins.'},
+                {'title': 'Détective Client', 'description': 'Identifiez le besoin caché derrière la demande initiale du client.', 'pedagogical_tip': 'Creusez avec "Et pourquoi est-ce important pour vous ?" pour découvrir la vraie motivation.', 'reason': 'Le besoin exprimé n\'est souvent que la surface. Trouver le besoin réel permet de vendre mieux.'}
             ],
             'argumentation': [
-                {'title': 'Argumentaire Pro', 'description': 'Utilisez la technique CAB (Caractéristique-Avantage-Bénéfice) pour chaque produit présenté.'},
-                {'title': 'Storytelling', 'description': 'Racontez une histoire ou un cas client pour illustrer les avantages du produit.'},
-                {'title': 'Démonstration', 'description': 'Faites toucher/essayer le produit à chaque client pour créer l\'expérience.'}
+                {'title': 'Argumentaire Pro', 'description': 'Utilisez la technique CAB (Caractéristique-Avantage-Bénéfice) pour chaque produit présenté.', 'pedagogical_tip': 'CAB = Caractéristique (ce que c\'est) → Avantage (ce que ça fait) → Bénéfice (ce que ça apporte au client).', 'reason': 'Un argumentaire structuré est plus convaincant et aide le client à comprendre la valeur du produit pour lui.'},
+                {'title': 'Storytelling', 'description': 'Racontez une histoire ou un cas client pour illustrer les avantages du produit.', 'pedagogical_tip': 'Exemple : "Un client comme vous a choisi ce produit et il m\'a dit que..."', 'reason': 'Les histoires créent une connexion émotionnelle et rendent les avantages plus concrets.'},
+                {'title': 'Démonstration', 'description': "Faites toucher/essayer le produit à chaque client pour créer l'expérience.", 'pedagogical_tip': 'Mettez le produit dans les mains du client. Ce qui est touché est plus facilement acheté !', 'reason': 'L\'expérience sensorielle crée un attachement au produit et facilite la décision d\'achat.'}
             ],
             'closing': [
-                {'title': 'Closing Master', 'description': 'Proposez la conclusion de la vente avec une question fermée positive.'},
-                {'title': 'Alternative Gagnante', 'description': 'Proposez deux options au client plutôt qu\'une seule.'},
-                {'title': 'Urgence Douce', 'description': 'Créez un sentiment d\'opportunité avec une offre limitée dans le temps.'}
+                {'title': 'Closing Master', 'description': 'Proposez la conclusion de la vente avec une question fermée positive.', 'pedagogical_tip': 'Exemple : "On passe en caisse ensemble ?" ou "Je vous l\'emballe ?" - Des questions qui supposent un OUI.', 'reason': 'Le closing est souvent négligé. Une question fermée positive aide le client à passer à l\'action.'},
+                {'title': 'Alternative Gagnante', 'description': 'Proposez deux options au client plutôt qu\'une seule.', 'pedagogical_tip': 'Exemple : "Vous préférez le modèle A ou B ?" - Le client choisit, pas "si" mais "lequel".', 'reason': 'L\'alternative réduit le risque de "non" et guide le client vers une décision positive.'},
+                {'title': 'Urgence Douce', 'description': "Créez un sentiment d'opportunité avec une offre limitée dans le temps.", 'pedagogical_tip': 'Exemple : "Cette promotion se termine ce week-end" - Factuel, pas agressif.', 'reason': 'Un sentiment d\'urgence légitime aide le client à ne pas procrastiner sa décision.'}
             ],
             'fidelisation': [
-                {'title': 'Client Fidèle', 'description': 'Remerciez chaque client et proposez un contact ou suivi personnalisé.'},
-                {'title': 'Carte VIP', 'description': 'Proposez l\'inscription au programme de fidélité à chaque client.'},
-                {'title': 'Prochain RDV', 'description': 'Suggérez une prochaine visite avec un événement ou nouveauté à venir.'}
+                {'title': 'Client Fidèle', 'description': 'Remerciez chaque client et proposez un contact ou suivi personnalisé.', 'pedagogical_tip': 'Proposez de les ajouter à la newsletter ou de les rappeler quand un nouveau produit arrive.', 'reason': 'Un client fidélisé revient et recommande. C\'est la clé d\'une carrière commerciale réussie.'},
+                {'title': 'Carte VIP', 'description': "Proposez l'inscription au programme de fidélité à chaque client.", 'pedagogical_tip': 'Présentez les avantages concrets : réductions, avant-premières, cadeaux...', 'reason': 'Les programmes de fidélité augmentent le panier moyen et la fréquence de visite.'},
+                {'title': 'Prochain RDV', 'description': 'Suggérez une prochaine visite avec un événement ou nouveauté à venir.', 'pedagogical_tip': 'Exemple : "On reçoit la nouvelle collection la semaine prochaine, je vous préviens ?"', 'reason': 'Créer une raison de revenir transforme un achat unique en relation durable.'}
             ]
         }
         
@@ -1511,6 +1511,8 @@ async def refresh_daily_challenge(
             "competence": selected_competence,
             "title": template['title'],
             "description": template['description'],
+            "pedagogical_tip": template['pedagogical_tip'],
+            "reason": template['reason'],
             "completed": False,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
