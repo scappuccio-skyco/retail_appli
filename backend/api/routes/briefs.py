@@ -360,6 +360,14 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
         
         if sellers:
             names = [s.get("name", "").split()[0] for s in sellers[:5]]  # Prénoms des 5 premiers
+            stats["team_present"] = ", ".join(names)
+            if len(sellers) > 5:
+                stats["team_present"] += f" et {len(sellers) - 5} autres"
+        
+    except Exception as e:
+        logger.error(f"Erreur récupération stats brief: {e}")
+    
+    return stats
 
 
 # ===== HISTORIQUE DES BRIEFS =====
