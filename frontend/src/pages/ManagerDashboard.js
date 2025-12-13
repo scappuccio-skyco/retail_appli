@@ -826,9 +826,9 @@ export default function ManagerDashboard({ user, onLogout }) {
       <div className="max-w-7xl mx-auto mb-8">
         <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-3 sm:gap-4">
-            <Logo variant="header" size="md" />
+            <Logo variant="header" size="md" showByline={true} />
             <div>
-              <p className="text-gray-600 text-sm sm:text-base mt-1">
+              <p className="text-gray-600 text-sm sm:text-base">
                 Bienvenue, {user.name}
                 {storeName && (
                   <span className="inline-flex items-center gap-1 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap">
