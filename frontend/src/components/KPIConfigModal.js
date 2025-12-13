@@ -17,8 +17,11 @@ export default function KPIConfigModal({ onClose, onSuccess }) {
 
   const fetchData = async () => {
     try {
-      const configRes = await axios.get(`${API}/manager/kpi-config`);
-      setEnabled(configRes.data.enabled || false);
+      const token = localStorage.getItem('token');
+      const configRes = await axios.get(`${API}/manager/kpi-config`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEnabled(configRes.data.enabled || configRes.data.saisie_enabled || false);
     } catch (err) {
       toast.error('Erreur de chargement de la configuration');
     } finally {
@@ -29,8 +32,11 @@ export default function KPIConfigModal({ onClose, onSuccess }) {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const token = localStorage.getItem('token');
       await axios.put(`${API}/manager/kpi-config`, {
         enabled: enabled
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Configuration sauvegardée!');
       onSuccess();
