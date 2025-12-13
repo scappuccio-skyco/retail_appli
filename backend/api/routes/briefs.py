@@ -41,6 +41,7 @@ class MorningBriefResponse(BaseModel):
 @router.post("/morning", response_model=MorningBriefResponse)
 async def generate_morning_brief(
     request: MorningBriefRequest,
+    store_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user),
     db = Depends(get_db)
 ):
@@ -48,6 +49,7 @@ async def generate_morning_brief(
     Génère le brief matinal pour le manager.
     
     - **comments**: Consigne spécifique du manager (optionnel)
+    - **store_id**: ID du magasin (optionnel, pour gérant visualisant un magasin spécifique)
     - Récupère automatiquement les stats du magasin d'hier
     - Retourne un brief formaté en Markdown
     """
@@ -61,6 +63,9 @@ async def generate_morning_brief(
     user_id = current_user.get("id")
     user_store_id = current_user.get("store_id")
     manager_name = current_user.get("name", "Manager")
+    
+    # Si store_id passé en paramètre (gérant visualisant un magasin), l'utiliser en priorité
+    effective_store_id = store_id if store_id else user_store_id
     
     # Récupérer le magasin - essayer plusieurs méthodes
     store = None
