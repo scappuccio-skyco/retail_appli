@@ -30,6 +30,7 @@ class MorningBriefResponse(BaseModel):
     success: bool
     brief: str
     date: str
+    data_date: Optional[str] = None  # Date du dernier jour avec données
     store_name: str
     manager_name: str
     has_context: bool
