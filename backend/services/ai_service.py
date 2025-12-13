@@ -997,7 +997,7 @@ Réponds avec ce JSON EXACT (pas de texte avant/après) :
                 api_key=self.emergent_key,
                 session_id=session_id,
                 system_message=system_prompt
-            ).with_model("openai", "gpt-4o-mini")
+            ).with_model("openai", "gpt-4o")
             
             user_message = UserMessage(text=user_prompt)
             response = await chat.send_message(user_message)
