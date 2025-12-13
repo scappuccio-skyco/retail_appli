@@ -1413,20 +1413,34 @@ class GerantService:
     async def _send_invitation_email(self, invitation: Dict):
         """Send invitation email using Brevo"""
         import httpx
-        from dotenv import dotenv_values
         
-        # Load from .env file directly
-        env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
-        env_vars = dotenv_values(env_path)
+        # Use environment variables directly (injected by Kubernetes in production)
+        # Fallback to .env file for local development
+        brevo_api_key = os.environ.get('BREVO_API_KEY')
+        frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
         
-        brevo_api_key = env_vars.get('BREVO_API_KEY') or os.environ.get('BREVO_API_KEY')
-        frontend_url = env_vars.get('FRONTEND_URL') or os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+        # Debug logging
+        logger.info(f"[INVITATION EMAIL] FRONTEND_URL from env: {frontend_url}")
+        
+        if not brevo_api_key:
+            # Try loading from .env file as fallback for local dev
+            try:
+                from dotenv import dotenv_values
+                env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+                env_vars = dotenv_values(env_path)
+                brevo_api_key = env_vars.get('BREVO_API_KEY')
+                if not frontend_url or frontend_url == 'http://localhost:3000':
+                    frontend_url = env_vars.get('FRONTEND_URL', frontend_url)
+                logger.info(f"[INVITATION EMAIL] Loaded from .env - FRONTEND_URL: {frontend_url}")
+            except Exception as e:
+                logger.warning(f"Could not load .env file: {e}")
         
         if not brevo_api_key:
             logger.warning("BREVO_API_KEY not set, skipping email")
             return
         
         logger.info(f"Sending invitation email to {invitation['email']}")
+        logger.info(f"[INVITATION EMAIL] Final FRONTEND_URL: {frontend_url}")
         
         role_text = "Manager" if invitation['role'] == 'manager' else "Vendeur"
         invitation_link = f"{frontend_url}/invitation/{invitation['token']}"
