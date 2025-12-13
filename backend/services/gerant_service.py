@@ -734,7 +734,9 @@ class GerantService:
                         active_subscription = trial_subs.data[0]
                 
                 if active_subscription:
-                    return await self._format_stripe_subscription(active_subscription, gerant_id)
+                    result = await self._format_stripe_subscription(active_subscription, gerant_id)
+                    result["workspace_name"] = workspace_name
+                    return result
                 
             except Exception as e:
                 logger.warning(f"Stripe API error: {e}")
