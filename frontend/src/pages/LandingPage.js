@@ -118,7 +118,7 @@ export default function LandingPage() {
               </p>
               
               <p className="text-sm sm:text-base text-[#334155] mb-6 sm:mb-8 leading-relaxed">
-                La première plateforme de coaching pour le retail, qui transforme vos vendeurs en experts autonomes pour booster votre CA.
+                L'Assistant Intelligent qui coache vos vendeurs et rédige vos bilans RH, tout en sécurisant votre management.
                 <span className="hidden sm:inline"><br />Analyse des compétences, coaching personnalisé et progression continue, grâce à l'intelligence artificielle.</span>
               </p>
 
