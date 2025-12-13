@@ -77,7 +77,9 @@ export const useSyncMode = (storeId = null) => {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        setSyncMode(response.data.sync_mode || 'manual');
+        // Ensure sync_mode is never null - default to "manual"
+        const fetchedSyncMode = response.data.sync_mode || 'manual';
+        setSyncMode(fetchedSyncMode);
         setIsEnterprise(response.data.is_enterprise || false);
         setCompanyName(response.data.company_name || null);
         setCanEditKPI(response.data.can_edit_kpi !== false);
