@@ -810,13 +810,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       <div className="max-w-7xl mx-auto mb-8">
         <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <img src="/logo-icon.png" alt="Retail Performer AI" className="h-10 sm:h-12 object-contain" />
-              <div className="hidden sm:flex flex-col">
-                <span className="text-base font-bold text-[#1E40AF] leading-tight">Retail Performer AI</span>
-                <span className="text-sm font-bold">by <span className="text-gray-900">SKY</span> <span className="text-[#F97316]">CO</span></span>
-              </div>
-            </div>
+            <Logo variant="dashboard" size="sm" />
             <div>
               <h1 className="text-2xl md:text-4xl font-bold text-[#1E40AF] mb-2">
                 Bonjour,<br />{user.name}!
