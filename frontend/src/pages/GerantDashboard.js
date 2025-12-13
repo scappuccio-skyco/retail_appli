@@ -607,7 +607,14 @@ const GerantDashboard = ({ user, onLogout }) => {
               <h1 className="text-lg sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
                 🏢 <span className="hidden sm:inline">Dashboard </span>Gérant
               </h1>
-              <p className="text-xs sm:text-sm text-gray-600 truncate">Bonjour, {user?.name}</p>
+              <p className="text-xs sm:text-sm text-gray-600 truncate">
+                Bonjour, {user?.name}
+                {subscriptionInfo?.workspace_name && (
+                  <span className="inline-flex items-center gap-1 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap">
+                    • 🏪 {subscriptionInfo.workspace_name}
+                  </span>
+                )}
+              </p>
               {/* Badge Données Sécurisées */}
               <div className="flex items-center gap-1 mt-1">
                 <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
