@@ -1475,7 +1475,6 @@ class GerantService:
         # Remove trailing slash to avoid double slashes in URL
         frontend_url = frontend_url.rstrip('/')
         
-        role_text = "Manager" if invitation['role'] == 'manager' else "Vendeur"
         invitation_link = f"{frontend_url}/invitation/{invitation['token']}"
         
         # Use role-specific templates with features list
