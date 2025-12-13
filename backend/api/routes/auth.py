@@ -120,6 +120,19 @@ async def register_gerant(
             company_name=user_data.company_name,
             phone=user_data.phone
         )
+        
+        # Envoyer l'email de bienvenue au nouveau gérant
+        try:
+            from email_service import send_gerant_welcome_email
+            send_gerant_welcome_email(
+                recipient_email=user_data.email,
+                recipient_name=user_data.name
+            )
+        except Exception as email_error:
+            # Log l'erreur mais ne bloque pas l'inscription
+            import logging
+            logging.error(f"Failed to send welcome email to gérant {user_data.email}: {email_error}")
+        
         return result
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
