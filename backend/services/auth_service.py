@@ -166,6 +166,7 @@ class AuthService:
         
         # Create gérant user
         gerant_id = str(uuid4())
+        workspace_id = str(uuid4())  # Generate workspace ID first
         now = datetime.now(timezone.utc)
         trial_end = now + timedelta(days=14)  # 14 jours d'essai gratuit
         
@@ -176,6 +177,7 @@ class AuthService:
             "password": get_password_hash(password),
             "role": "gerant",  # Important: no accent!
             "phone": phone,
+            "workspace_id": workspace_id,  # Link workspace to user
             "created_at": now,
             "status": "active"
         }
@@ -184,7 +186,7 @@ class AuthService:
         
         # Create workspace for gérant with 14-day trial
         workspace = {
-            "id": str(uuid4()),
+            "id": workspace_id,
             "name": company_name,
             "gerant_id": gerant_id,
             "created_at": now,
