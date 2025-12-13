@@ -276,9 +276,10 @@ export default function LandingPage() {
                 {[
                   'Dashboard automatisé en temps réel',
                   'IA qui identifie points forts et faiblesses',
-                  'Coaching personnalisé pour chaque vendeur',
+                  'Coaching personnalisé adapté au profil DISC',
                   'Vue 360° de la performance d\'équipe',
-                  'Gamification et motivation renforcée'
+                  'Sécurité Juridique : Une IA formée pour respecter les bonnes pratiques RH',
+                  'Gain de temps Admin : Vos reportings et bilans rédigés en 10 secondes'
                 ].map((item, idx) => (
                   <li key={`solution-${idx}-${item.substring(0, 20)}`} className="flex items-start gap-3">
                     <Check className="w-6 h-6 text-[#10B981] flex-shrink-0 mt-0.5" />
