@@ -1467,6 +1467,14 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
         />
       )}
 
+      {/* Morning Brief Modal */}
+      <MorningBriefModal
+        isOpen={showMorningBriefModal}
+        onClose={() => setShowMorningBriefModal(false)}
+        storeName={storeName}
+        managerName={managerName}
+      />
+
       {/* Modal de confirmation - RETIRÉ - Actions de gestion des vendeurs réservées exclusivement au Gérant */}
     </div>
   );
