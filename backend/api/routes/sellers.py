@@ -653,17 +653,42 @@ async def save_kpi_entry(
         if not seller:
             raise HTTPException(status_code=404, detail="Seller not found")
         
+        store_id = seller.get('store_id')
+        
+        # 🔒 VERROUILLAGE API: Vérifier si cette date a des données API verrouillées
+        locked_entry = await db.kpis.find_one({
+            "store_id": store_id,
+            "date": date,
+            "$or": [
+                {"locked": True},
+                {"source": "api"}
+            ]
+        }, {"_id": 0, "locked": 1, "source": 1})
+        
+        if locked_entry:
+            raise HTTPException(
+                status_code=403, 
+                detail="🔒 Cette date est verrouillée. Les données proviennent de l'API/ERP et ne peuvent pas être modifiées manuellement."
+            )
+        
         # Check if entry exists for this date
         existing = await db.kpi_entries.find_one({
             "seller_id": seller_id,
             "date": date
         })
         
+        # 🔒 Vérifier si l'entrée existante est verrouillée
+        if existing and existing.get('locked'):
+            raise HTTPException(
+                status_code=403,
+                detail="🔒 Cette entrée est verrouillée (données API). Impossible de modifier."
+            )
+        
         entry_data = {
             "seller_id": seller_id,
             "seller_name": seller.get('name', current_user.get('name', 'Vendeur')),
             "manager_id": seller.get('manager_id'),
-            "store_id": seller.get('store_id'),
+            "store_id": store_id,
             "date": date,
             "seller_ca": kpi_data.get('seller_ca') or kpi_data.get('ca_journalier') or 0,
             "ca_journalier": kpi_data.get('ca_journalier') or kpi_data.get('seller_ca') or 0,
@@ -671,6 +696,7 @@ async def save_kpi_entry(
             "nb_clients": kpi_data.get('nb_clients') or 0,
             "nb_articles": kpi_data.get('nb_articles') or 0,
             "nb_prospects": kpi_data.get('nb_prospects') or 0,
+            "source": "manual",  # Marquer comme saisie manuelle
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
         
