@@ -1208,6 +1208,8 @@ export default function ManagerDashboard({ user, onLogout }) {
             // Recharger les vendeurs après une modification
             await fetchData();
           }}
+          storeName={storeName}
+          managerName={user?.name}
         />
       )}
 
