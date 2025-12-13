@@ -830,7 +830,10 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12">
             {/* Contact Form */}
             <div className="bg-blue-50 rounded-2xl p-8 border-2 border-[#1E40AF]/20">
-              <h3 className="text-2xl font-bold text-[#1E40AF] mb-6">Demander une Démo</h3>
+              <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Demander une Démo</h3>
+              <p className="text-sm text-[#F97316] font-medium mb-6">
+                🚀 Rejoignez notre programme Pilote et co-construisez l'outil avec nous
+              </p>
               <form className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-[#334155] mb-2">Nom complet</label>
@@ -870,6 +873,9 @@ export default function LandingPage() {
                 >
                   Recevoir ma Démo Personnalisée
                 </button>
+                <p className="text-xs text-center text-[#64748B] mt-2">
+                  En rejoignant le programme Pilote, vous bénéficiez d'un accès privilégié et d'un accompagnement personnalisé.
+                </p>
               </form>
             </div>
 
