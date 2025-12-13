@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { X, Sparkles, Copy, Check, FileText, Calendar, Loader2 } from 'lucide-react';
+import { X, Sparkles, Copy, Check, FileText, Calendar, Loader2, CheckCircle, AlertTriangle, Target, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
 /**
  * EvaluationGenerator - Modal pour générer un guide d'entretien annuel IA
+ * Version 2.0 - Affichage JSON en Cartes Colorées
  * 
  * @param {boolean} isOpen - Contrôle l'affichage de la modale
  * @param {function} onClose - Callback pour fermer la modale
@@ -20,8 +21,9 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
 
   const [startDate, setStartDate] = useState(defaultStartDate);
   const [endDate, setEndDate] = useState(today);
+  const [comments, setComments] = useState('');
   const [loading, setLoading] = useState(false);
-  const [guideContent, setGuideContent] = useState('');
+  const [guideData, setGuideData] = useState(null); // JSON structuré
   const [stats, setStats] = useState(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
@@ -31,7 +33,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
   const handleGenerate = async () => {
     setLoading(true);
     setError('');
-    setGuideContent('');
+    setGuideData(null);
     setStats(null);
 
     try {
@@ -41,14 +43,15 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
         {
           employee_id: employeeId,
           start_date: startDate,
-          end_date: endDate
+          end_date: endDate,
+          comments: comments.trim() || null
         },
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
 
-      setGuideContent(response.data.guide_content);
+      setGuideData(response.data.guide_content);
       setStats(response.data.stats_summary);
       toast.success('Guide généré avec succès !');
     } catch (err) {
@@ -62,7 +65,9 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(guideContent);
+      // Formater le JSON en texte lisible pour la copie
+      const textContent = formatGuideForCopy(guideData);
+      await navigator.clipboard.writeText(textContent);
       setCopied(true);
       toast.success('Guide copié dans le presse-papier !');
       setTimeout(() => setCopied(false), 2000);
@@ -71,10 +76,48 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
     }
   };
 
+  const formatGuideForCopy = (data) => {
+    if (!data) return '';
+    
+    let text = `📋 GUIDE D'ENTRETIEN - ${employeeName}\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    
+    if (data.synthese) {
+      text += `📊 SYNTHÈSE\n${data.synthese}\n\n`;
+    }
+    
+    if (data.victoires?.length) {
+      text += `🏆 POINTS FORTS / VICTOIRES\n`;
+      data.victoires.forEach((v, i) => text += `  ${i+1}. ${v}\n`);
+      text += '\n';
+    }
+    
+    if (data.axes_progres?.length) {
+      text += `📈 AXES DE PROGRÈS\n`;
+      data.axes_progres.forEach((a, i) => text += `  ${i+1}. ${a}\n`);
+      text += '\n';
+    }
+    
+    if (data.objectifs?.length) {
+      text += `🎯 OBJECTIFS\n`;
+      data.objectifs.forEach((o, i) => text += `  ${i+1}. ${o}\n`);
+      text += '\n';
+    }
+    
+    const questions = data.questions_coaching || data.questions_manager;
+    if (questions?.length) {
+      text += `💬 ${role === 'seller' ? 'QUESTIONS À POSER' : 'QUESTIONS DE COACHING'}\n`;
+      questions.forEach((q, i) => text += `  ${i+1}. ${q}\n`);
+    }
+    
+    return text;
+  };
+
   const handleClose = () => {
-    setGuideContent('');
+    setGuideData(null);
     setStats(null);
     setError('');
+    setComments('');
     onClose();
   };
 
@@ -87,12 +130,23 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
     ? "✨ Générer Ma Fiche de Préparation"
     : "✨ Générer le Guide d'Évaluation";
 
+  const commentsPlaceholder = role === 'seller'
+    ? "Ajoute tes notes personnelles (ex: 'J'ai géré seul(e) le magasin en août', 'J'ai formé 2 nouveaux vendeurs')..."
+    : "Ajoutez vos observations spécifiques (ex: 'Très bon sur l'accueil, mais retards fréquents', 'A progressé sur le closing')...";
+
+  // Force l'ouverture du date picker au clic
+  const handleDateClick = (e) => {
+    if (e.target.showPicker) {
+      e.target.showPicker();
+    }
+  };
+
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[95vh] flex flex-col">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-4 sm:p-6 rounded-t-2xl relative">
           <button
@@ -119,7 +173,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
 
         {/* Content */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1">
-          {/* Date Selection */}
+          {/* Date Selection - Improved UX */}
           <div className="bg-gray-50 rounded-xl p-4 mb-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <Calendar className="w-4 h-4" />
@@ -132,7 +186,8 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#1E40AF] focus:ring-1 focus:ring-[#1E40AF] text-sm"
+                  onClick={handleDateClick}
+                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#1E40AF] focus:ring-1 focus:ring-[#1E40AF] text-sm cursor-pointer hover:border-gray-300 transition-colors"
                 />
               </div>
               <div>
@@ -141,14 +196,35 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#1E40AF] focus:ring-1 focus:ring-[#1E40AF] text-sm"
+                  onClick={handleDateClick}
+                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#1E40AF] focus:ring-1 focus:ring-[#1E40AF] text-sm cursor-pointer hover:border-gray-300 transition-colors"
                 />
               </div>
             </div>
           </div>
 
+          {/* Comments / Context Field - NEW */}
+          {!guideData && !loading && (
+            <div className="bg-purple-50 rounded-xl p-4 mb-4 border-2 border-purple-100">
+              <h3 className="text-sm font-semibold text-purple-800 mb-2 flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                {role === 'seller' ? 'Tes notes personnelles (optionnel)' : 'Vos observations (optionnel)'}
+              </h3>
+              <textarea
+                value={comments}
+                onChange={(e) => setComments(e.target.value)}
+                placeholder={commentsPlaceholder}
+                rows={3}
+                className="w-full px-3 py-2 border-2 border-purple-200 rounded-lg focus:border-purple-400 focus:ring-1 focus:ring-purple-400 text-sm resize-none placeholder:text-purple-300"
+              />
+              <p className="text-xs text-purple-600 mt-1">
+                💡 L'IA prendra en compte ces informations pour personnaliser le guide
+              </p>
+            </div>
+          )}
+
           {/* Generate Button */}
-          {!guideContent && !loading && (
+          {!guideData && !loading && (
             <button
               onClick={handleGenerate}
               disabled={loading}
@@ -200,44 +276,140 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
             </div>
           )}
 
-          {/* Generated Content */}
-          {guideContent && (
-            <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
-              <div className="bg-gray-100 px-4 py-2 flex items-center justify-between border-b border-gray-200">
-                <span className="text-sm font-medium text-gray-700">
+          {/* Generated Content - CARTES COLORÉES */}
+          {guideData && (
+            <div className="space-y-4">
+              {/* Header avec bouton copier */}
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-gray-800">
                   {role === 'seller' ? '📝 Ta Fiche de Préparation' : '📋 Guide d\'Évaluation'}
-                </span>
+                </h3>
                 <button
                   onClick={handleCopy}
-                  className={`flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     copied 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                      ? 'bg-green-100 text-green-700 border-2 border-green-200' 
+                      : 'bg-white text-gray-600 hover:bg-gray-100 border-2 border-gray-200'
                   }`}
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  {copied ? 'Copié !' : 'Copier'}
+                  {copied ? 'Copié !' : 'Copier tout'}
                 </button>
               </div>
-              <div 
-                className="p-4 max-h-[400px] overflow-y-auto bg-white prose prose-sm max-w-none"
-                style={{ whiteSpace: 'pre-wrap' }}
-              >
-                {guideContent}
-              </div>
-            </div>
-          )}
 
-          {/* Regenerate Button (after generation) */}
-          {guideContent && (
-            <button
-              onClick={handleGenerate}
-              disabled={loading}
-              className="w-full mt-4 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              Régénérer avec d'autres dates
-            </button>
+              {/* 🔵 Carte Bleue - Synthèse */}
+              {guideData.synthese && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-white" />
+                    </div>
+                    <h4 className="text-base font-bold text-blue-800">Synthèse & Contexte</h4>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">{guideData.synthese}</p>
+                </div>
+              )}
+
+              {/* 🟢 Carte Verte - Victoires */}
+              {guideData.victoires?.length > 0 && (
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-white" />
+                    </div>
+                    <h4 className="text-base font-bold text-green-800">
+                      {role === 'seller' ? 'Tes Victoires 🏆' : 'Points Forts / Victoires'}
+                    </h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {guideData.victoires.map((item, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* 🟠 Carte Orange - Axes de Progrès */}
+              {guideData.axes_progres?.length > 0 && (
+                <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-4 border-2 border-orange-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                      <AlertTriangle className="w-4 h-4 text-white" />
+                    </div>
+                    <h4 className="text-base font-bold text-orange-800">
+                      {role === 'seller' ? 'Tes Axes de Progrès 📈' : 'Axes de Progrès'}
+                    </h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {guideData.axes_progres.map((item, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <AlertTriangle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* 🟣 Carte Violette - Objectifs */}
+              {guideData.objectifs?.length > 0 && (
+                <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-4 border-2 border-purple-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                      <Target className="w-4 h-4 text-white" />
+                    </div>
+                    <h4 className="text-base font-bold text-purple-800">
+                      {role === 'seller' ? 'Tes Objectifs 🎯' : 'Objectifs & Recommandations'}
+                    </h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {guideData.objectifs.map((item, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <Target className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-700">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* 🩷 Carte Rose - Questions (Manager: coaching / Seller: à poser) */}
+              {(guideData.questions_coaching?.length > 0 || guideData.questions_manager?.length > 0) && (
+                <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4 border-2 border-pink-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center">
+                      <MessageSquare className="w-4 h-4 text-white" />
+                    </div>
+                    <h4 className="text-base font-bold text-pink-800">
+                      {role === 'seller' ? 'Questions à Poser 💬' : 'Questions de Coaching'}
+                    </h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {(guideData.questions_coaching || guideData.questions_manager || []).map((item, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <span className="w-6 h-6 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                          {index + 1}
+                        </span>
+                        <span className="text-gray-700">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Regenerate Button */}
+              <button
+                onClick={handleGenerate}
+                disabled={loading}
+                className="w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                Régénérer avec d'autres paramètres
+              </button>
+            </div>
           )}
         </div>
 
