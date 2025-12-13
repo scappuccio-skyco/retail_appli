@@ -55,15 +55,32 @@ async def startup_event():
     """
     Initialize application on startup
     - Connect to MongoDB
-    - Create indexes
+    - Create indexes (only if needed)
     - Initialize default admin user
     """
+    import os
+    worker_id = os.getpid()
+    
     try:
-        logger.info("Starting application...")
+        logger.info(f"Starting application (worker PID: {worker_id})...")
         
-        # Connect to MongoDB
-        await database.connect()
-        logger.info("✅ MongoDB connection established")
+        # Connect to MongoDB with retry logic
+        max_retries = 3
+        retry_delay = 2
+        
+        for attempt in range(max_retries):
+            try:
+                await database.connect()
+                logger.info("✅ MongoDB connection established")
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    logger.warning(f"MongoDB connection attempt {attempt + 1} failed: {e}, retrying in {retry_delay}s...")
+                    import asyncio
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 2
+                else:
+                    raise
         
         # Create indexes for performance (TÂCHE 3: Index stripe_customer_id)
         try:
