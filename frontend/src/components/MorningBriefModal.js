@@ -72,11 +72,8 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
 
   // Parse et affiche le brief avec le style des sections colorées
   const renderBriefContent = (briefText) => {
-    // Nettoyer le texte - enlever le premier # si présent
-    const cleanedText = briefText.replace(/^#\s+[^\n]+\n/, '');
-    
-    // Séparer par les sections (### ou ##)
-    const sections = cleanedText.split(/(?=###?\s)/).filter(s => s.trim());
+    // Séparer par les sections ### uniquement (pas ## ou #)
+    const sections = briefText.split(/(?=###\s)/).filter(s => s.trim() && s.trim().startsWith('###'));
     
     // Palette de couleurs pour le brief matinal (tons chauds)
     const colorPalette = [
