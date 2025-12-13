@@ -269,7 +269,7 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
             stats["objectif_yesterday"] = store_obj.get("objective_daily", 0) or 0
             stats["objectif_week"] = store_obj.get("objective_weekly", 0) or 0
         
-        # CA de la semaine
+        # CA de la semaine (chercher dans les 2 collections)
         week_start_str = start_of_week.strftime("%Y-%m-%d")
         kpis_week = await db.kpis.find({
             "store_id": store_id,
@@ -278,6 +278,15 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
         
         if kpis_week:
             stats["ca_week"] = sum(k.get("ca", 0) or 0 for k in kpis_week)
+        else:
+            # Chercher dans kpi_entries si pas dans kpis
+            kpi_entries_week = await db.kpi_entries.find({
+                "store_id": store_id,
+                "date": {"$gte": week_start_str, "$lte": last_data_date}
+            }, {"_id": 0, "ca_journalier": 1}).to_list(500)
+            
+            if kpi_entries_week:
+                stats["ca_week"] = sum(k.get("ca_journalier", 0) or 0 for k in kpi_entries_week)
         
         # Équipe du magasin
         sellers = await db.users.find({
