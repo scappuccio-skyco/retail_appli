@@ -994,7 +994,7 @@ STRUCTURE ATTENDUE (Markdown) :
 ### 1. 🌤️ L'Humeur du Jour
 (Une phrase d'accroche chaleureuse pour lancer la journée. Si le manager a donné une consigne, intègre-la naturellement ici.)
 
-### 2. 📊 Flash-Back d'Hier
+### 2. 📊 Flash-Back ({data_date_french})
 - **CA réalisé** : X€ (vs Objectif Y€ → +/-Z%)
 - **Top Performance** : (Mets en avant LE chiffre positif le plus marquant)
 - **Point de vigilance** : (Si un KPI est faible, mentionne-le brièvement)
@@ -1017,7 +1017,7 @@ STRUCTURE ATTENDUE (Markdown) :
             
             user_prompt = f"""Génère le brief matinal pour {manager_name}, manager du magasin "{store_name}".
 
-DONNÉES D'HIER :
+DONNÉES DU {data_date_french.upper()} (dernier jour travaillé) :
 {stats_text}
 
 ÉQUIPE PRÉSENTE AUJOURD'HUI :
