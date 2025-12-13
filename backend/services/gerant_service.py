@@ -133,15 +133,32 @@ class GerantService:
         return await self.check_gerant_active_access(gerant_id)
     
     async def get_all_stores(self, gerant_id: str) -> list:
-        """Get all active stores for a gérant with pending staff counts"""
+        """Get all active stores for a gérant with staff counts"""
         stores = await self.store_repo.find_many(
             {"gerant_id": gerant_id, "active": True},
             {"_id": 0}
         )
         
-        # Enrich stores with pending invitation counts
+        # Enrich stores with staff counts
         for store in stores:
             store_id = store.get('id')
+            
+            # Count active managers in this store
+            manager_count = await self.db.users.count_documents({
+                "store_id": store_id,
+                "role": "manager",
+                "status": {"$in": ["active", "Active"]}
+            })
+            
+            # Count active sellers in this store
+            seller_count = await self.db.users.count_documents({
+                "store_id": store_id,
+                "role": "seller",
+                "status": {"$in": ["active", "Active"]}
+            })
+            
+            store['manager_count'] = manager_count
+            store['seller_count'] = seller_count
             
             # Count pending manager invitations for this store
             pending_managers = await self.db.gerant_invitations.count_documents({
