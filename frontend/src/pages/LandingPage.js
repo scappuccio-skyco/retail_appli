@@ -898,55 +898,55 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-12">
-            {/* Contact Form */}
-            <div className="bg-blue-50 rounded-2xl p-8 border-2 border-[#1E40AF]/20">
-              <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Demander une Démo</h3>
-              <p className="text-sm text-[#F97316] font-medium mb-6">
-                🚀 Rejoignez notre programme Pilote et co-construisez l'outil avec nous
+            {/* Demo Request Card */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border-2 border-[#1E40AF]/20">
+              <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Réservez Votre Démonstration</h3>
+              <p className="text-sm text-[#334155] mb-6">
+                Découvrez comment Retail Performer AI peut transformer votre équipe en 30 minutes
               </p>
-              <form className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#334155] mb-2">Nom complet</label>
-                  <input 
-                    type="text" 
-                    className="w-full px-4 py-3 border-2 border-[#1E40AF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-[#F97316] bg-white"
-                    placeholder="Jean Dupont"
-                  />
+              
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-[#1E40AF]" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[#1E40AF]">Démonstration personnalisée</p>
+                    <p className="text-sm text-[#334155]">30 minutes avec un expert</p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#334155] mb-2">Email professionnel</label>
-                  <input 
-                    type="email" 
-                    className="w-full px-4 py-3 border-2 border-[#1E40AF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-[#F97316] bg-white"
-                    placeholder="jean@entreprise.com"
-                  />
+                
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <Check className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[#1E40AF]">Sans engagement</p>
+                    <p className="text-sm text-[#334155]">Découvrez toutes les fonctionnalités</p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#334155] mb-2">Nombre de vendeurs</label>
-                  <select className="w-full px-4 py-3 border-2 border-[#1E40AF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-[#F97316] bg-white">
-                    <option>1-5 vendeurs</option>
-                    <option>6-15 vendeurs</option>
-                    <option>16+ vendeurs</option>
-                  </select>
+                
+                <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-100">
+                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-[#F97316]" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[#1E40AF]">Adapté à vos besoins</p>
+                    <p className="text-sm text-[#334155]">Conseils personnalisés pour votre équipe</p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#334155] mb-2">Message</label>
-                  <textarea 
-                    rows="4" 
-                    className="w-full px-4 py-3 border-2 border-[#1E40AF]/30 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-[#F97316] bg-white"
-                    placeholder="Parlez-nous de votre besoin..."
-                  ></textarea>
-                </div>
-                <button
-                  type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white font-semibold rounded-xl hover:shadow-lg transition-all"
-                >
-                  Recevoir ma Démo Personnalisée
-                </button>
-                <p className="text-xs text-center text-[#64748B] mt-2">
-                  En rejoignant le programme Pilote, vous bénéficiez d'un accès privilégié et d'un accompagnement personnalisé.
-                </p>
-              </form>
+              </div>
+
+              <button
+                onClick={() => setShowDemoModal(true)}
+                className="w-full py-4 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white font-semibold rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2 text-lg"
+              >
+                <Calendar className="w-5 h-5" />
+                Je veux une démonstration
+              </button>
+              <p className="text-xs text-center text-[#64748B] mt-3">
+                Réponse garantie sous 24h ouvrées
+              </p>
             </div>
 
             {/* Contact Info */}
