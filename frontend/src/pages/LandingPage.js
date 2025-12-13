@@ -37,13 +37,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20 sm:h-24">
             {/* Logo rond + texte */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <img src="/logo-icon.png" alt="Retail Performer AI" className="h-12 sm:h-14 w-auto" />
-              <div className="flex flex-col">
-                <span className="text-base sm:text-xl font-bold text-[#1E40AF] leading-tight">Retail Performer AI</span>
-                <span className="text-sm sm:text-base font-bold">by <span className="text-gray-900">SKY</span> <span className="text-[#F97316]">CO</span></span>
-              </div>
-            </div>
+            <Logo variant="header" size="md" />
 
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-8">
@@ -1000,12 +994,8 @@ export default function LandingPage() {
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
             {/* Company - Logo rond + texte */}
             <div className="sm:col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2 mb-4">
-                <img src="/logo-icon.png" alt="Retail Performer AI" className="h-10 sm:h-12 w-auto" />
-                <div className="flex flex-col">
-                  <span className="text-base font-bold text-white leading-tight">Retail Performer AI</span>
-                  <span className="text-sm font-bold">by <span className="text-white">SKY</span> <span className="text-[#F97316]">CO</span></span>
-                </div>
+              <div className="mb-4">
+                <Logo variant="footer" size="sm" />
               </div>
               <p className="text-[#94A3B8] text-xs sm:text-sm">
                 La plateforme de coaching intelligente pour les équipes retail
