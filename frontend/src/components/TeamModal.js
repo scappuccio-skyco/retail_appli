@@ -909,6 +909,18 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                               >
                                 Voir détail
                               </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedSellerForEval(seller);
+                                  setShowEvaluationModal(true);
+                                }}
+                                className="px-3 py-1.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-medium rounded hover:from-pink-600 hover:to-rose-600 transition-colors flex items-center gap-1"
+                                title="Préparer l'entretien annuel"
+                              >
+                                <FileText className="w-3 h-3" />
+                                Bilan
+                              </button>
                               
                               {/* Actions de suspension/suppression/réactivation - RÉSERVÉES EXCLUSIVEMENT AU GÉRANT */}
                               {/* Un Manager ne peut ni suspendre, ni supprimer, ni réactiver un vendeur */}
