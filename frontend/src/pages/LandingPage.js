@@ -308,9 +308,9 @@ export default function LandingPage() {
               {
                 icon: <Users className="w-8 h-8" />,
                 color: 'from-[#1E40AF] to-[#1E3A8A]',
-                title: 'Diagnostic DISC',
-                description: 'Profil de personnalité complet pour chaque vendeur avec analyse détaillée.',
-                impact: 'Pour adapter votre management à chaque profil.'
+                title: 'Coaching Psychologique (DISC)',
+                description: "L'IA ne se contente pas d'analyser les chiffres. Elle adapte son ton au profil de chaque vendeur (Direct, Influent, Stable, Consciencieux) pour un impact maximal.",
+                impact: 'Pour un coaching vraiment personnalisé.'
               },
               {
                 icon: <TrendingUp className="w-8 h-8" />,
@@ -320,18 +320,18 @@ export default function LandingPage() {
                 impact: 'Pour visualiser en 10 secondes l\'état réel de votre équipe.'
               },
               {
-                icon: <Zap className="w-8 h-8" />,
-                color: 'from-[#1E40AF] to-[#1E3A8A]',
-                title: 'Coaching IA',
-                description: 'Recommandations personnalisées et plans d\'action sur-mesure.',
-                impact: 'Pour progresser chaque jour sans effort manuel.'
+                icon: <FileText className="w-8 h-8" />,
+                color: 'from-[#8B5CF6] to-[#7C3AED]',
+                title: 'Entretiens Annuels en 1 Clic',
+                description: "Fini la page blanche. Générez instantanément des trames d'évaluation factuelles, basées sur l'historique réel et protégées par nos garde-fous éthiques.",
+                impact: 'Pour préparer vos bilans en 10 secondes.'
               },
               {
-                icon: <Target className="w-8 h-8" />,
+                icon: <Shield className="w-8 h-8" />,
                 color: 'from-[#10B981] to-[#00B886]',
-                title: 'Challenges & Gamification',
-                description: 'Objectifs motivants et système de niveaux pour engager vos équipes.',
-                impact: 'Pour motiver naturellement et réduire le turnover.'
+                title: 'Sécurité Juridique RH',
+                description: "Une IA formée pour respecter les bonnes pratiques RH : pas de sanctions, pas de jugements, uniquement du coaching constructif.",
+                impact: 'Pour manager sereinement.'
               }
             ].map((feature, idx) => (
               <div key={`feature-${idx}-${feature.title}`} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[#1E40AF]/20 hover:border-[#F97316]">
