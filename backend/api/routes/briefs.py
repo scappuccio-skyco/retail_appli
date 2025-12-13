@@ -360,6 +360,96 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
         
         if sellers:
             names = [s.get("name", "").split()[0] for s in sellers[:5]]  # Prénoms des 5 premiers
+
+
+# ===== HISTORIQUE DES BRIEFS =====
+
+@router.get("/morning/history")
+async def get_morning_briefs_history(
+    store_id: Optional[str] = Query(None, description="Store ID (pour gérant visualisant un magasin)"),
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_db)
+):
+    """
+    Récupère l'historique des briefs matinaux pour le magasin.
+    Limité aux 30 derniers briefs.
+    """
+    if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Accès refusé")
+    
+    user_id = current_user.get("id")
+    user_store_id = current_user.get("store_id")
+    
+    # Déterminer le store_id effectif
+    effective_store_id = store_id if store_id else user_store_id
+    
+    # Si pas de store_id direct, chercher par manager/gerant
+    if not effective_store_id:
+        store = await db.stores.find_one(
+            {"$or": [{"manager_id": user_id}, {"gerant_id": user_id}]},
+            {"_id": 0, "id": 1}
+        )
+        effective_store_id = store.get("id") if store else None
+    
+    if not effective_store_id:
+        return {"briefs": [], "total": 0}
+    
+    try:
+        briefs = await db.morning_briefs.find(
+            {"store_id": effective_store_id},
+            {"_id": 0}
+        ).sort("generated_at", -1).to_list(30)
+        
+        return {"briefs": briefs, "total": len(briefs)}
+        
+    except Exception as e:
+        logger.error(f"Error loading briefs history: {e}")
+        return {"briefs": [], "total": 0}
+
+
+@router.delete("/morning/{brief_id}")
+async def delete_morning_brief(
+    brief_id: str,
+    store_id: Optional[str] = Query(None, description="Store ID (pour gérant)"),
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_db)
+):
+    """
+    Supprime un brief de l'historique.
+    """
+    if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Accès refusé")
+    
+    user_id = current_user.get("id")
+    user_store_id = current_user.get("store_id")
+    
+    # Déterminer le store_id effectif
+    effective_store_id = store_id if store_id else user_store_id
+    
+    if not effective_store_id:
+        store = await db.stores.find_one(
+            {"$or": [{"manager_id": user_id}, {"gerant_id": user_id}]},
+            {"_id": 0, "id": 1}
+        )
+        effective_store_id = store.get("id") if store else None
+    
+    try:
+        result = await db.morning_briefs.delete_one({
+            "brief_id": brief_id,
+            "store_id": effective_store_id
+        })
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Brief non trouvé")
+        
+        return {"success": True, "message": "Brief supprimé"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting brief: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
             stats["team_present"] = ", ".join(names)
             if len(sellers) > 5:
                 stats["team_present"] += f" et {len(sellers) - 5} autres"
