@@ -196,10 +196,13 @@ class AuthService:
         # Generate token
         token = create_token(gerant_id, email, "gerant")
         
+        # Remove _id from workspace if present (MongoDB adds it)
+        workspace_clean = {k: v for k, v in workspace.items() if k != '_id'}
+        
         return {
             "token": token,
-            "user": {k: v for k, v in user.items() if k != 'password'},
-            "workspace": workspace
+            "user": {k: v for k, v in user.items() if k not in ['password', '_id']},
+            "workspace": workspace_clean
         }
     
     async def register_with_invitation(
