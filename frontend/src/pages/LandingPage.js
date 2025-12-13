@@ -8,6 +8,18 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAnnual, setIsAnnual] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [demoForm, setDemoForm] = useState({
+    name: '',
+    email: '',
+    company: '',
+    phone: '',
+    teamSize: '1-5 vendeurs',
+    preferredDate: '',
+    preferredTime: '',
+    message: ''
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
