@@ -486,11 +486,11 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   };
 
   useEffect(() => {
-    // Only fetch KPI config for Manager view, not for Gérant view
-    if (!storeId) {
-      fetchKPIConfig();
-    } else {
-      // Fetch available years for year selector (Gérant only)
+    // Fetch KPI config pour Manager ET Gérant
+    fetchKPIConfig();
+    
+    // Fetch available years for year selector
+    if (storeId) {
       fetchAvailableYears();
     }
     // Fetch dates with data for calendar
@@ -508,7 +508,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   const fetchKPIConfig = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/api/manager/kpi-config`, {
+      // Ajouter store_id pour les gérants
+      const storeParam = storeId ? `?store_id=${storeId}` : '';
+      const res = await axios.get(`${API}/api/manager/kpi-config${storeParam}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data) {
