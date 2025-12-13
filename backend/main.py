@@ -28,7 +28,7 @@ except Exception as e:
         MONGO_URL = os.environ.get("MONGO_URL", "")
         DB_NAME = os.environ.get("DB_NAME", "retail_coach")
     settings = MinimalSettings()
-    print(f"[STARTUP] Using minimal fallback settings", flush=True)
+    print("[STARTUP] Using minimal fallback settings", flush=True)
 
 try:
     from core.database import database
@@ -120,7 +120,7 @@ async def startup_event():
                 print(f"[STARTUP-EVENT] MongoDB connection attempt {attempt + 1}/{max_retries}...", flush=True)
                 await database.connect()
                 logger.info(f"✅ MongoDB connection established (worker {worker_id})")
-                print(f"[STARTUP-EVENT] ✅ MongoDB connected successfully!", flush=True)
+                print("[STARTUP-EVENT] ✅ MongoDB connected successfully!", flush=True)
                 break
             except Exception as e:
                 print(f"[STARTUP-EVENT] ❌ MongoDB attempt {attempt + 1} failed: {e}", flush=True)
@@ -130,7 +130,7 @@ async def startup_event():
                     retry_delay = min(retry_delay * 1.5, 3)  # Cap at 3 seconds
                 else:
                     logger.error(f"Failed to connect to MongoDB after {max_retries} attempts: {e}")
-                    print(f"[STARTUP-EVENT] ⚠️ Starting without DB - endpoints will fail gracefully", flush=True)
+                    print("[STARTUP-EVENT] ⚠️ Starting without DB - endpoints will fail gracefully", flush=True)
                     # Don't raise - let the app start anyway, endpoints will fail gracefully
                     logger.warning("Application starting without database connection - endpoints will return errors")
         
