@@ -1319,6 +1319,315 @@ class GerantRBACTester:
         return self.tests_passed >= self.tests_run * 0.8
 
 
+class MorningBriefAndWebhookTester:
+    def __init__(self, base_url="https://evalboost.preview.emergentagent.com/api"):
+        self.base_url = base_url
+        self.manager_token = None
+        self.manager_user = None
+        self.tests_run = 0
+        self.tests_passed = 0
+        self.test_results = []
+
+    def log_test(self, name, success, details=""):
+        """Log test result"""
+        self.tests_run += 1
+        if success:
+            self.tests_passed += 1
+            print(f"✅ {name} - PASSED")
+        else:
+            print(f"❌ {name} - FAILED: {details}")
+        
+        self.test_results.append({
+            "test": name,
+            "success": success,
+            "details": details
+        })
+
+    def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
+        """Run a single API test"""
+        url = f"{self.base_url}/{endpoint}"
+        headers = {'Content-Type': 'application/json'}
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
+
+        print(f"\n🔍 Testing {name}...")
+        print(f"   URL: {url}")
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers, timeout=30)
+            elif method == 'POST':
+                response = requests.post(url, json=data, headers=headers, timeout=30)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=headers, timeout=30)
+            elif method == 'PATCH':
+                response = requests.patch(url, json=data, headers=headers, timeout=30)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers, timeout=30)
+
+            success = response.status_code == expected_status
+            
+            if success:
+                self.log_test(name, True)
+                try:
+                    return True, response.json()
+                except:
+                    return True, {}
+            else:
+                error_msg = f"Expected {expected_status}, got {response.status_code}"
+                try:
+                    error_detail = response.json()
+                    error_msg += f" - {error_detail}"
+                except:
+                    error_msg += f" - {response.text[:200]}"
+                
+                self.log_test(name, False, error_msg)
+                return False, {}
+
+        except Exception as e:
+            self.log_test(name, False, f"Exception: {str(e)}")
+            return False, {}
+
+    def test_manager_authentication(self):
+        """Test Manager authentication for Morning Brief tests"""
+        print("\n🔐 TESTING MANAGER AUTHENTICATION FOR MORNING BRIEF")
+        
+        # Test Manager login (y.legoff@skyco.fr / TestDemo123!)
+        manager_data = {
+            "email": "y.legoff@skyco.fr",
+            "password": "TestDemo123!"
+        }
+        
+        success, response = self.run_test(
+            "Manager Authentication for Morning Brief Tests",
+            "POST",
+            "auth/login",
+            200,
+            data=manager_data
+        )
+        
+        if success and 'token' in response:
+            self.manager_token = response['token']
+            self.manager_user = response.get('user', {})
+            print(f"   ✅ Manager logged in: {self.manager_user.get('email')}")
+            return True
+        else:
+            print("   ❌ Failed to authenticate Manager")
+            return False
+
+    def test_morning_brief_api(self):
+        """Test Morning Brief API - POST /api/briefs/morning"""
+        print("\n☕ TESTING MORNING BRIEF API")
+        
+        if not self.manager_token:
+            self.log_test("Morning Brief API", False, "No manager token available")
+            return
+        
+        # Test 1: Generate Morning Brief with comments
+        brief_data = {
+            "comments": "Aujourd'hui on se concentre sur les ventes additionnelles"
+        }
+        
+        success, response = self.run_test(
+            "Morning Brief Generation with Comments",
+            "POST",
+            "briefs/morning",
+            200,
+            data=brief_data,
+            token=self.manager_token
+        )
+        
+        if success:
+            # Verify response structure
+            expected_fields = ['success', 'brief', 'date', 'store_name', 'manager_name', 'has_context', 'generated_at']
+            missing_fields = [f for f in expected_fields if f not in response]
+            if missing_fields:
+                self.log_test("Morning Brief Response Structure", False, f"Missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ Success: {response.get('success')}")
+                print(f"   ✅ Brief length: {len(response.get('brief', ''))}")
+                print(f"   ✅ Date: {response.get('date')}")
+                print(f"   ✅ Store: {response.get('store_name')}")
+                print(f"   ✅ Manager: {response.get('manager_name')}")
+                print(f"   ✅ Has context: {response.get('has_context')}")
+                
+                # Verify success is true
+                if response.get('success') != True:
+                    self.log_test("Morning Brief Success Field", False, f"Expected success=true, got {response.get('success')}")
+                
+                # Verify has_context is true (because comments provided)
+                if response.get('has_context') != True:
+                    self.log_test("Morning Brief Context Field", False, f"Expected has_context=true, got {response.get('has_context')}")
+                
+                # Verify brief contains markdown content
+                brief_content = response.get('brief', '')
+                if len(brief_content) < 100:
+                    self.log_test("Morning Brief Content Length", False, f"Brief too short: {len(brief_content)} chars")
+                else:
+                    print(f"   ✅ Brief content generated successfully ({len(brief_content)} chars)")
+                
+                # Check for data_date field
+                if 'data_date' in response:
+                    print(f"   ✅ Data date: {response.get('data_date')}")
+                else:
+                    print(f"   ⚠️ No data_date field in response")
+        
+        # Test 2: Generate Morning Brief without comments
+        success, response = self.run_test(
+            "Morning Brief Generation without Comments",
+            "POST",
+            "briefs/morning",
+            200,
+            data={},
+            token=self.manager_token
+        )
+        
+        if success:
+            # Verify has_context is false (no comments provided)
+            if response.get('has_context') != False:
+                self.log_test("Morning Brief No Context Field", False, f"Expected has_context=false, got {response.get('has_context')}")
+            else:
+                print(f"   ✅ Has context correctly set to false")
+
+    def test_morning_brief_preview(self):
+        """Test Morning Brief Preview API - GET /api/briefs/morning/preview"""
+        print("\n👀 TESTING MORNING BRIEF PREVIEW API")
+        
+        if not self.manager_token:
+            self.log_test("Morning Brief Preview API", False, "No manager token available")
+            return
+        
+        success, response = self.run_test(
+            "Morning Brief Preview",
+            "GET",
+            "briefs/morning/preview",
+            200,
+            token=self.manager_token
+        )
+        
+        if success:
+            # Verify response structure
+            expected_fields = ['store_name', 'manager_name', 'stats', 'date']
+            missing_fields = [f for f in expected_fields if f not in response]
+            if missing_fields:
+                self.log_test("Morning Brief Preview Structure", False, f"Missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ Store name: {response.get('store_name')}")
+                print(f"   ✅ Manager name: {response.get('manager_name')}")
+                print(f"   ✅ Date: {response.get('date')}")
+                
+                # Check stats structure
+                stats = response.get('stats', {})
+                if isinstance(stats, dict):
+                    print(f"   ✅ Stats structure: {len(stats)} fields")
+                    
+                    # Check for data_date field in stats
+                    if 'data_date' in stats:
+                        print(f"   ✅ Stats data_date: {stats.get('data_date')}")
+                    else:
+                        self.log_test("Morning Brief Preview Data Date", False, "Missing data_date field in stats")
+                else:
+                    self.log_test("Morning Brief Preview Stats", False, f"Stats should be dict, got {type(stats)}")
+
+    def test_stripe_webhook_health(self):
+        """Test Stripe Webhook Health API - GET /api/webhooks/stripe/health"""
+        print("\n🔗 TESTING STRIPE WEBHOOK HEALTH API")
+        
+        success, response = self.run_test(
+            "Stripe Webhook Health Check",
+            "GET",
+            "webhooks/stripe/health",
+            200
+        )
+        
+        if success:
+            # Verify response structure
+            expected_fields = ['status', 'webhook_secret_configured', 'stripe_key_configured']
+            missing_fields = [f for f in expected_fields if f not in response]
+            if missing_fields:
+                self.log_test("Webhook Health Response Structure", False, f"Missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ Status: {response.get('status')}")
+                print(f"   ✅ Webhook secret configured: {response.get('webhook_secret_configured')}")
+                print(f"   ✅ Stripe key configured: {response.get('stripe_key_configured')}")
+                
+                # Verify status is "ok"
+                if response.get('status') != 'ok':
+                    self.log_test("Webhook Health Status", False, f"Expected status='ok', got '{response.get('status')}'")
+                
+                # Verify both webhook_secret_configured and stripe_key_configured are true
+                if response.get('webhook_secret_configured') != True:
+                    self.log_test("Webhook Secret Configuration", False, f"Expected webhook_secret_configured=true, got {response.get('webhook_secret_configured')}")
+                
+                if response.get('stripe_key_configured') != True:
+                    self.log_test("Stripe Key Configuration", False, f"Expected stripe_key_configured=true, got {response.get('stripe_key_configured')}")
+
+    def test_morning_brief_security(self):
+        """Test Morning Brief API security and access control"""
+        print("\n🔒 TESTING MORNING BRIEF API SECURITY")
+        
+        # Test 1: Access without authentication
+        success, response = self.run_test(
+            "Morning Brief - No Auth (Expected 403)",
+            "POST",
+            "briefs/morning",
+            403,
+            data={"comments": "test"}
+        )
+        
+        # Test 2: Preview without authentication
+        success, response = self.run_test(
+            "Morning Brief Preview - No Auth (Expected 403)",
+            "GET",
+            "briefs/morning/preview",
+            403
+        )
+
+    def run_morning_brief_and_webhook_tests(self):
+        """Run all Morning Brief and Stripe Webhook tests"""
+        print("🚀 STARTING MORNING BRIEF AND STRIPE WEBHOOK TESTS")
+        print("=" * 70)
+        
+        # Test authentication first
+        if not self.test_manager_authentication():
+            print("❌ Cannot proceed without Manager authentication")
+            return False
+        
+        # Run the specific test cases
+        self.test_morning_brief_api()
+        self.test_morning_brief_preview()
+        self.test_stripe_webhook_health()
+        self.test_morning_brief_security()
+        
+        # Print summary
+        print("\n" + "=" * 70)
+        print("📊 MORNING BRIEF AND WEBHOOK TEST SUMMARY")
+        print("=" * 70)
+        print(f"Total Tests: {self.tests_run}")
+        print(f"Passed: {self.tests_passed}")
+        print(f"Failed: {self.tests_run - self.tests_passed}")
+        print(f"Success Rate: {(self.tests_passed / self.tests_run * 100):.1f}%")
+        
+        # Print failed tests
+        failed_tests = [t for t in self.test_results if not t['success']]
+        if failed_tests:
+            print(f"\n❌ FAILED TESTS ({len(failed_tests)}):")
+            for test in failed_tests:
+                print(f"   • {test['test']}: {test['details']}")
+        
+        print("\n🎯 MORNING BRIEF AND WEBHOOK VERIFICATION RESULTS:")
+        if self.tests_passed >= self.tests_run * 0.8:  # 80% pass rate
+            print("✅ Morning Brief API working correctly!")
+            print("✅ Stripe webhook health check passed!")
+            print("✅ All required response fields present!")
+            print("✅ Security controls working properly!")
+        else:
+            print("❌ Morning Brief or Webhook system has issues!")
+            print("❌ Multiple endpoints failing - needs investigation")
+        
+        return self.tests_passed >= self.tests_run * 0.8
+
+
 class EvaluationGeneratorTester:
     def __init__(self, base_url="https://evalboost.preview.emergentagent.com/api"):
         self.base_url = base_url
