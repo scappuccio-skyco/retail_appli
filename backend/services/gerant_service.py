@@ -1511,7 +1511,7 @@ class GerantService:
                             <li style="padding: 8px 0;">🎯 <strong>Créer et suivre des objectifs</strong> individuels et collectifs</li>
                             <li style="padding: 8px 0;">🏆 <strong>Lancer des challenges</strong> pour motiver votre équipe</li>
                             <li style="padding: 8px 0;">🤖 <strong>Coaching IA personnalisé</strong> pour booster les performances</li>
-                            <li style="padding: 8px 0;">📋 <strong>Générer des bilans et entretiens annuels</strong> en 1 clic avec l'IA</li>
+                            <li style="padding: 8px 0;">📋 <strong>Générer bilans, briefing et entretiens annuels</strong> en 1 clic avec l'IA</li>
                             <li style="padding: 8px 0;">🤝 <strong>Conseils IA relationnels</strong> adaptés à chaque profil DISC de vos vendeurs</li>
                         </ul>
                     </div>
@@ -1579,6 +1579,7 @@ class GerantService:
                             <li style="padding: 8px 0;">🤖 Créer vos défis personnels avec votre coach IA</li>
                             <li style="padding: 8px 0;">✅ Analyser vos ventes conclues avec l'IA</li>
                             <li style="padding: 8px 0;">❌ Analyser vos opportunités manquées avec l'IA</li>
+                            <li style="padding: 8px 0;">📋 Préparer votre évaluation annuelle</li>
                         </ul>
                     </div>
                     
