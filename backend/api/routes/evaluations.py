@@ -157,6 +157,47 @@ async def verify_access(db, current_user: Dict, employee_id: str) -> Dict:
     raise HTTPException(status_code=403, detail="Rôle non autorisé")
 
 
+async def get_disc_profile(db, user_id: str) -> Optional[Dict]:
+    """
+    🎨 Récupère le profil DISC d'un utilisateur depuis la base de données.
+    
+    Args:
+        db: Database connection
+        user_id: ID de l'utilisateur
+        
+    Returns:
+        Dict avec style, level, strengths, axes_de_developpement ou None
+    """
+    try:
+        # Chercher dans la collection 'diagnostics' ou dans le profil utilisateur
+        diagnostic = await db.diagnostics.find_one(
+            {"seller_id": user_id},
+            {"_id": 0, "style": 1, "level": 1, "strengths": 1, "weaknesses": 1, "axes_de_developpement": 1}
+        )
+        
+        if diagnostic:
+            # Migration: convertir weaknesses en axes_de_developpement si nécessaire
+            if 'weaknesses' in diagnostic and 'axes_de_developpement' not in diagnostic:
+                diagnostic['axes_de_developpement'] = diagnostic.pop('weaknesses')
+            return diagnostic
+        
+        # Fallback: chercher dans le profil utilisateur
+        user = await db.users.find_one(
+            {"id": user_id},
+            {"_id": 0, "disc_profile": 1}
+        )
+        
+        if user and user.get('disc_profile'):
+            return user['disc_profile']
+        
+        return None
+        
+    except Exception as e:
+        # Log l'erreur mais ne bloque pas la génération
+        print(f"⚠️ Erreur récupération profil DISC pour {user_id}: {e}")
+        return None
+
+
 # ===== ROUTES =====
 
 @router.post("/generate", response_model=EvaluationGuideResponse)
