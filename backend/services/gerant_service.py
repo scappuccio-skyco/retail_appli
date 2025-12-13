@@ -624,6 +624,7 @@ class GerantService:
             raise Exception("Gérant non trouvé")
         
         workspace_id = gerant.get('workspace_id')
+        workspace_name = None  # Will be set if workspace exists
         
         # PRIORITY 1: Check workspace (for free trials without Stripe)
         if workspace_id:
@@ -633,6 +634,7 @@ class GerantService:
             )
             
             if workspace:
+                workspace_name = workspace.get('name')
                 subscription_status = workspace.get('subscription_status')
                 
                 # If in trial period
