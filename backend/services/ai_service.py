@@ -326,7 +326,8 @@ class AIService:
         self,
         team_data: Dict,
         period_label: str = "sur 30 jours",
-        manager_id: str = None
+        manager_id: str = None,
+        manager_disc_profile: Optional[Dict] = None
     ) -> str:
         """
         Generate comprehensive team analysis using GPT-4o
@@ -338,6 +339,7 @@ class AIService:
             team_data: Team performance data with sellers_details
             period_label: Human-readable period description
             manager_id: Manager ID for session tracking
+            manager_disc_profile: DISC profile of the manager (for tone adaptation)
             
         Returns:
             Formatted markdown analysis
@@ -345,17 +347,26 @@ class AIService:
         if not self.available:
             return self._fallback_team_analysis(team_data, period_label)
         
-        # Build sellers summary with anonymized names
+        # Build sellers summary with anonymized names + DISC profile if available
         sellers_summary = []
         for seller in team_data.get('sellers_details', []):
             anonymous_name = anonymize_name_for_ai(seller.get('name', 'Vendeur'))
+            disc_info = f", Profil: {seller.get('disc_style', 'N/A')}" if seller.get('disc_style') else ""
             sellers_summary.append(
                 f"- {anonymous_name}: CA {seller.get('ca', 0):.0f}€, {seller.get('ventes', 0)} ventes, "
                 f"PM {seller.get('panier_moyen', 0):.2f}€, Compétences {seller.get('avg_competence', 5):.1f}/10 "
-                f"(Fort: {seller.get('best_skill', 'N/A')}, Faible: {seller.get('worst_skill', 'N/A')})"
+                f"(Fort: {seller.get('best_skill', 'N/A')}, Faible: {seller.get('worst_skill', 'N/A')}{disc_info})"
             )
         
-        # 🎯 LEGACY PROMPT RESTORED
+        # Build DISC adaptation section for the Manager
+        manager_disc_style = manager_disc_profile.get('style', 'Non défini') if manager_disc_profile else 'Non défini'
+        disc_section = f"""
+👤 TON INTERLOCUTEUR (LE GÉRANT/MANAGER) EST DE PROFIL DISC : {manager_disc_style}
+Adapte ton résumé exécutif et ton ton à ce style de communication.
+{DISC_ADAPTATION_INSTRUCTIONS}
+""" if manager_disc_profile else ""
+        
+        # 🎯 LEGACY PROMPT RESTORED + DISC INTEGRATION
         prompt = f"""Tu es un expert en management retail et coaching d'équipe. Analyse cette équipe de boutique physique et fournis des recommandations managériales pour MOTIVER et DÉVELOPPER l'équipe.
 
 CONTEXTE : Boutique physique avec flux naturel de clients. Focus sur performance commerciale ET dynamique d'équipe.
@@ -369,7 +380,7 @@ PÉRIODE D'ANALYSE : {period_label}
 
 VENDEURS :
 {chr(10).join(sellers_summary)}
-
+{disc_section}
 CONSIGNES :
 - NE MENTIONNE PAS la complétion KPI (saisie des données) - c'est un sujet administratif, pas commercial
 - Concentre-toi sur les PERFORMANCES COMMERCIALES et la DYNAMIQUE D'ÉQUIPE
@@ -391,10 +402,11 @@ Fournis l'analyse en 3 parties :
 - Format : "**[Nom]** (CA: XXX€, XX ventes, PM: XXX€) : [analyse et recommandations]"
 - Focus sur développement des compétences et motivation
 - Actions concrètes et bienveillantes
+- Si le profil DISC du vendeur est connu, adapte tes recommandations à son style
 
 ## RECOMMANDATIONS MANAGÉRIALES
 - Actions pour renforcer la cohésion d'équipe
-- Techniques de motivation adaptées à chaque profil
+- Techniques de motivation adaptées à chaque profil DISC si disponible
 - Rituels ou animations pour dynamiser les ventes
 
 Format : Markdown simple et structuré."""
