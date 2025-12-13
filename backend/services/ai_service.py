@@ -1042,6 +1042,7 @@ Génère un brief motivant et concret basé sur ces données."""
                     "success": True,
                     "brief": response,
                     "date": today,
+                    "data_date": data_date_french,
                     "store_name": store_name,
                     "manager_name": manager_name,
                     "has_context": bool(context and context.strip()),
@@ -1054,6 +1055,19 @@ Génère un brief motivant et concret basé sur ces données."""
             import traceback
             logger.error(f"Erreur génération brief matinal: {str(e)}\n{traceback.format_exc()}")
             return self._fallback_morning_brief(stats, manager_name, store_name)
+    
+    def _format_date_french(self, dt: datetime) -> str:
+        """Formate une date en français"""
+        days_fr = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
+        months_fr = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 
+                     'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+        
+        day_name = days_fr[dt.weekday()]
+        day_num = dt.day
+        month_name = months_fr[dt.month - 1]
+        year = dt.year
+        
+        return f"{day_name} {day_num} {month_name} {year}"
     
     def _format_brief_stats(self, stats: Dict) -> str:
         """Formate les statistiques pour le brief matinal"""
