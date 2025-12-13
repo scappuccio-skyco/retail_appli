@@ -1623,14 +1623,14 @@ class GerantService:
                 payload = {
                     "sender": {"name": sender_name, "email": sender_email},
                     "to": [{"email": invitation['email'], "name": invitation['name']}],
-                    "subject": f"🎉 Invitation à rejoindre {invitation['store_name']}",
+                    "subject": email_subject,
                     "htmlContent": email_content
                 }
                 
                 logger.info("📧 Sending email via Brevo:")
                 logger.info(f"   - From: {sender_name} <{sender_email}>")
                 logger.info(f"   - To: {invitation['name']} <{invitation['email']}>")
-                logger.info(f"   - Subject: Invitation à rejoindre {invitation['store_name']}")
+                logger.info(f"   - Subject: {email_subject}")
                 
                 response = await client.post(
                     "https://api.brevo.com/v3/smtp/email",
