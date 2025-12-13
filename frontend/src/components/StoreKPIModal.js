@@ -1753,7 +1753,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                       )}
 
                       {kpiConfig.manager_track_ventes && (
-                        <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
+                        <div className={`rounded-lg p-4 border-2 ${isManagerDateLocked ? 'bg-gray-100 border-gray-300' : 'bg-orange-50 border-orange-200'}`}>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">🛍️ Nombre de Ventes</label>
                           <input
                             type="number"
