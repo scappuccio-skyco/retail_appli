@@ -918,6 +918,222 @@ Génère un bilan terrain motivant avec :
         response = await self._send_message(chat, prompt)
         return response or f"Bilan pour {seller_name}: Performance en cours d'analyse."
 
+    # ==============================================================================
+    # ☕ BRIEF DU MATIN - Générateur de script pour le brief matinal
+    # ==============================================================================
+    
+    async def generate_morning_brief(
+        self,
+        stats: Dict,
+        manager_name: str,
+        store_name: str,
+        context: Optional[str] = None
+    ) -> Dict:
+        """
+        Génère le script du brief matinal pour le manager.
+        
+        Args:
+            stats: Statistiques du magasin (hier, objectifs, équipe)
+            manager_name: Nom du manager
+            store_name: Nom du magasin
+            context: Consigne spécifique du manager (optionnel)
+            
+        Returns:
+            Dict avec le brief formaté en markdown et les métadonnées
+        """
+        if not EMERGENT_AVAILABLE:
+            return self._fallback_morning_brief(stats, manager_name, store_name)
+        
+        try:
+            # Construire l'instruction de contexte
+            context_instruction = ""
+            if context and context.strip():
+                context_instruction = f"""
+🎯 CONSIGNE SPÉCIALE DU MANAGER :
+"{context.strip()}"
+→ Intègre cette consigne dans ton brief de manière naturelle (dans l'intro ou la mission du jour).
+"""
+            else:
+                context_instruction = "(Aucune consigne spécifique - Brief standard basé sur les chiffres)"
+            
+            # Date du jour
+            today = datetime.now().strftime("%A %d %B %Y").capitalize()
+            
+            # Prompt système pour le brief
+            system_prompt = f"""Tu es le bras droit d'un Manager Retail.
+Tu rédiges le script du BRIEF MATINAL (3 minutes max à lire) pour l'équipe.
+
+TON & STYLE :
+- Énergique, Positif, Mobilisateur
+- Utilise des émojis pour rendre le brief vivant
+- Structure claire : Intro → Chiffres → Focus → Motivation
+- Phrases courtes, percutantes, faciles à dire à voix haute
+
+{LEGAL_DISCLAIMER_BLOCK}
+
+CONSIGNE SPÉCIALE DU MANAGER :
+{context_instruction}
+
+STRUCTURE ATTENDUE (Markdown) :
+
+# ☕ Brief du Matin - {today}
+## {store_name}
+
+### 1. 🌤️ L'Humeur du Jour
+(Une phrase d'accroche chaleureuse pour lancer la journée. Si le manager a donné une consigne, intègre-la naturellement ici.)
+
+### 2. 📊 Flash-Back d'Hier
+- **CA réalisé** : X€ (vs Objectif Y€ → +/-Z%)
+- **Top Performance** : (Mets en avant LE chiffre positif le plus marquant)
+- **Point de vigilance** : (Si un KPI est faible, mentionne-le brièvement)
+
+### 3. 🎯 La Mission du Jour
+(UN objectif clair et mesurable pour l'équipe. Basé sur les chiffres OU sur la consigne du manager.)
+
+### 4. 🎲 Le Challenge "Café" ☕
+(Une idée de mini-défi fun et rapide - premier à X gagne un café, qui fait le plus de Y, etc.)
+
+### 5. 🚀 Le Mot de la Fin
+(Une citation motivante OU une phrase boost personnalisée pour l'équipe.)
+
+---
+*Brief généré par Retail Performer AI*
+"""
+            
+            # Formater les stats pour le prompt utilisateur
+            stats_text = self._format_brief_stats(stats)
+            
+            user_prompt = f"""Génère le brief matinal pour {manager_name}, manager du magasin "{store_name}".
+
+DONNÉES D'HIER :
+{stats_text}
+
+ÉQUIPE PRÉSENTE AUJOURD'HUI :
+{stats.get('team_present', 'Non renseigné')}
+
+Génère un brief motivant et concret basé sur ces données."""
+
+            # Appel à l'IA
+            session_id = f"morning_brief_{uuid.uuid4().hex[:8]}"
+            
+            chat = LlmChat(
+                api_key=EMERGENT_KEY,
+                session_id=session_id,
+                system_message=system_prompt
+            ).with_model("openai", "gpt-4o")
+            
+            user_message = UserMessage(text=user_prompt)
+            response = await chat.send_message(user_message)
+            
+            if response:
+                return {
+                    "success": True,
+                    "brief": response,
+                    "date": today,
+                    "store_name": store_name,
+                    "manager_name": manager_name,
+                    "has_context": bool(context and context.strip()),
+                    "generated_at": datetime.now(timezone.utc).isoformat()
+                }
+            else:
+                return self._fallback_morning_brief(stats, manager_name, store_name)
+                
+        except Exception as e:
+            import traceback
+            logger.error(f"Erreur génération brief matinal: {str(e)}\n{traceback.format_exc()}")
+            return self._fallback_morning_brief(stats, manager_name, store_name)
+    
+    def _format_brief_stats(self, stats: Dict) -> str:
+        """Formate les statistiques pour le brief matinal"""
+        lines = []
+        
+        # CA d'hier
+        ca_hier = stats.get('ca_yesterday', stats.get('ca_hier', 0))
+        obj_hier = stats.get('objectif_yesterday', stats.get('objectif_hier', 0))
+        
+        if ca_hier:
+            lines.append(f"- CA d'hier : {ca_hier:,.0f}€")
+            if obj_hier and obj_hier > 0:
+                perf = ((ca_hier / obj_hier) - 1) * 100
+                emoji = "✅" if perf >= 0 else "⚠️"
+                lines.append(f"  → Objectif : {obj_hier:,.0f}€ ({emoji} {perf:+.1f}%)")
+        
+        # Nombre de ventes
+        ventes = stats.get('ventes_yesterday', stats.get('nb_ventes_hier', 0))
+        if ventes:
+            lines.append(f"- Nombre de ventes hier : {ventes}")
+        
+        # Panier moyen
+        panier = stats.get('panier_moyen_yesterday', stats.get('panier_moyen_hier', 0))
+        if panier:
+            lines.append(f"- Panier moyen hier : {panier:,.0f}€")
+        
+        # Taux de transformation
+        taux_transfo = stats.get('taux_transfo_yesterday', stats.get('taux_transfo_hier', 0))
+        if taux_transfo:
+            lines.append(f"- Taux de transformation : {taux_transfo:.1f}%")
+        
+        # Indice de vente
+        iv = stats.get('indice_vente_yesterday', stats.get('iv_hier', 0))
+        if iv:
+            lines.append(f"- Indice de vente : {iv:.2f}")
+        
+        # Top vendeur hier
+        top_seller = stats.get('top_seller_yesterday', stats.get('top_vendeur_hier'))
+        if top_seller:
+            lines.append(f"- 🏆 Top vendeur hier : {top_seller}")
+        
+        # CA semaine en cours
+        ca_week = stats.get('ca_week', stats.get('ca_semaine', 0))
+        obj_week = stats.get('objectif_week', stats.get('objectif_semaine', 0))
+        if ca_week:
+            lines.append(f"\n📅 SEMAINE EN COURS :")
+            lines.append(f"- CA cumulé : {ca_week:,.0f}€")
+            if obj_week:
+                progress = (ca_week / obj_week) * 100
+                lines.append(f"- Progression vs objectif : {progress:.0f}%")
+        
+        return "\n".join(lines) if lines else "Pas de données disponibles pour hier"
+    
+    def _fallback_morning_brief(self, stats: Dict, manager_name: str, store_name: str) -> Dict:
+        """Brief de fallback si l'IA échoue"""
+        today = datetime.now().strftime("%A %d %B %Y").capitalize()
+        ca_hier = stats.get('ca_yesterday', stats.get('ca_hier', 0))
+        
+        fallback_brief = f"""# ☕ Brief du Matin - {today}
+## {store_name}
+
+### 1. 🌤️ L'Humeur du Jour
+Bonjour l'équipe ! Une nouvelle journée commence, pleine d'opportunités !
+
+### 2. 📊 Flash-Back d'Hier
+- **CA réalisé** : {ca_hier:,.0f}€
+- Continuons sur cette lancée !
+
+### 3. 🎯 La Mission du Jour
+Objectif : Dépasser notre CA d'hier et offrir une expérience client exceptionnelle !
+
+### 4. 🎲 Le Challenge "Café" ☕
+Le premier à atteindre 500€ de CA gagne un café offert par le manager !
+
+### 5. 🚀 Le Mot de la Fin
+"Le succès est la somme de petits efforts répétés jour après jour." - Robert Collier
+
+---
+*Brief généré par Retail Performer AI*
+"""
+        
+        return {
+            "success": True,
+            "brief": fallback_brief,
+            "date": today,
+            "store_name": store_name,
+            "manager_name": manager_name,
+            "has_context": False,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "fallback": True
+        }
+
 
 # ==============================================================================
 # 🔌 DATA SERVICE (Database Integration)
