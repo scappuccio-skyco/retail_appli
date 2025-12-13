@@ -173,9 +173,9 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
         return stats
     
     try:
-        # Chercher le dernier jour avec des données de vente (dans les 7 derniers jours)
+        # Chercher le dernier jour avec des données de vente (dans les 30 derniers jours)
         last_data_date = None
-        for days_back in range(1, 8):  # De hier jusqu'à 7 jours en arrière
+        for days_back in range(1, 31):  # De hier jusqu'à 30 jours en arrière
             check_date = today - timedelta(days=days_back)
             check_date_str = check_date.strftime("%Y-%m-%d")
             
