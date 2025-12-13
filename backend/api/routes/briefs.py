@@ -67,14 +67,14 @@ async def generate_morning_brief(
     # Si store_id passé en paramètre (gérant visualisant un magasin), l'utiliser en priorité
     effective_store_id = store_id if store_id else user_store_id
     
-    # Récupérer le magasin - essayer plusieurs méthodes
+    # Récupérer le magasin
     store = None
     
-    # 1. D'abord par le store_id de l'utilisateur (cas manager)
-    if user_store_id:
-        store = await db.stores.find_one({"id": user_store_id}, {"_id": 0})
+    # 1. D'abord par effective_store_id (store_id passé en param ou store_id de l'utilisateur)
+    if effective_store_id:
+        store = await db.stores.find_one({"id": effective_store_id}, {"_id": 0})
     
-    # 2. Si pas trouvé, chercher par manager_id ou gerant_id
+    # 2. Si pas trouvé, chercher par manager_id ou gerant_id (premier store trouvé)
     if not store:
         store = await db.stores.find_one(
             {"$or": [{"manager_id": user_id}, {"gerant_id": user_id}]},
@@ -82,13 +82,13 @@ async def generate_morning_brief(
         )
     
     store_name = store.get("name", "Mon Magasin") if store else "Mon Magasin"
-    store_id = store.get("id") if store else user_store_id
+    final_store_id = store.get("id") if store else effective_store_id
     
-    # Récupérer les statistiques d'hier si non fournies
+    # Récupérer les statistiques du dernier jour avec données
     if request.stats:
         stats = request.stats
     else:
-        stats = await _fetch_yesterday_stats(db, store_id, user_id)
+        stats = await _fetch_yesterday_stats(db, final_store_id, user_id)
     
     # Extraire la date des données (dernier jour actif)
     data_date = stats.get("data_date")
