@@ -1038,7 +1038,7 @@ Génère un brief motivant et concret basé sur ces données."""
             response = await chat.send_message(user_message)
             
             if response:
-                result = {
+                return {
                     "success": True,
                     "brief": response,
                     "date": today,
@@ -1048,8 +1048,6 @@ Génère un brief motivant et concret basé sur ces données."""
                     "has_context": bool(context and context.strip()),
                     "generated_at": datetime.now(timezone.utc).isoformat()
                 }
-                logger.info(f"AI service returning result with data_date: {data_date_french}")
-                return result
             else:
                 return self._fallback_morning_brief(stats, manager_name, store_name)
                 
