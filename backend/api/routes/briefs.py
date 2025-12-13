@@ -126,13 +126,12 @@ async def preview_morning_brief_data(
 
 async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -> Dict:
     """
-    Récupère les statistiques d'hier pour le brief matinal.
+    Récupère les statistiques du dernier jour avec des données de vente pour le brief matinal.
+    Cherche dans les 7 derniers jours pour trouver le dernier jour travaillé.
     """
-    yesterday = datetime.now() - timedelta(days=1)
-    yesterday_str = yesterday.strftime("%Y-%m-%d")
+    today = datetime.now()
     
     # Début et fin de la semaine en cours
-    today = datetime.now()
     start_of_week = today - timedelta(days=today.weekday())
     
     stats = {
@@ -145,17 +144,49 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
         "top_seller_yesterday": None,
         "ca_week": 0,
         "objectif_week": 0,
-        "team_present": "Non renseigné"
+        "team_present": "Non renseigné",
+        "data_date": None  # Date du dernier jour avec données
     }
     
     if not store_id:
         return stats
     
     try:
-        # Récupérer les KPIs d'hier pour le magasin
+        # Chercher le dernier jour avec des données de vente (dans les 7 derniers jours)
+        last_data_date = None
+        for days_back in range(1, 8):  # De hier jusqu'à 7 jours en arrière
+            check_date = today - timedelta(days=days_back)
+            check_date_str = check_date.strftime("%Y-%m-%d")
+            
+            # Vérifier si des KPIs existent pour ce jour avec du CA > 0
+            kpi_check = await db.kpis.find_one({
+                "store_id": store_id,
+                "date": check_date_str,
+                "ca": {"$gt": 0}
+            }, {"_id": 0, "date": 1})
+            
+            # Si pas dans kpis, vérifier kpi_entries (vendeurs)
+            if not kpi_check:
+                kpi_check = await db.kpi_entries.find_one({
+                    "store_id": store_id,
+                    "date": check_date_str,
+                    "ca_journalier": {"$gt": 0}
+                }, {"_id": 0, "date": 1})
+            
+            if kpi_check:
+                last_data_date = check_date_str
+                break
+        
+        # Si aucune donnée trouvée, utiliser hier par défaut
+        if not last_data_date:
+            last_data_date = (today - timedelta(days=1)).strftime("%Y-%m-%d")
+        
+        stats["data_date"] = last_data_date
+        
+        # Récupérer les KPIs du dernier jour avec données
         kpis_yesterday = await db.kpis.find({
             "store_id": store_id,
-            "date": yesterday_str
+            "date": last_data_date
         }, {"_id": 0}).to_list(100)
         
         if kpis_yesterday:
