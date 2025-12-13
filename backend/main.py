@@ -173,6 +173,7 @@ async def shutdown_event():
 @app.get("/health")
 async def health_check():
     """Simple health check endpoint"""
+    print("[HEALTH] Health check called - responding healthy", flush=True)
     return {
         "status": "healthy",
         "version": "2.0.0",
