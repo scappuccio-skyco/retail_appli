@@ -141,12 +141,13 @@ def send_manager_invitation_email(recipient_email: str, recipient_name: str, inv
             <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9333ea;">
                 <h3 style="margin-top: 0; color: #9333ea;">🎯 En tant que Manager, vous pourrez :</h3>
                 <ul style="list-style: none; padding: 0;">
-                    <li style="padding: 8px 0;">👥 Consulter les performances de votre équipe</li>
-                    <li style="padding: 8px 0;">📊 Suivre les KPI de votre magasin en temps réel</li>
-                    <li style="padding: 8px 0;">🎯 Créer et suivre des objectifs pour votre équipe</li>
-                    <li style="padding: 8px 0;">🏆 Créer et suivre des challenges</li>
-                    <li style="padding: 8px 0;">📈 Générer des bilans d'équipe assistés par IA</li>
-                    <li style="padding: 8px 0;">🤝 Obtenir des conseils IA pour la gestion relationnelle avec chaque membre de votre équipe</li>
+                    <li style="padding: 8px 0;">👥 <strong>Consulter les performances</strong> de chaque membre de votre équipe</li>
+                    <li style="padding: 8px 0;">📊 <strong>Suivre les KPI</strong> de votre magasin en temps réel</li>
+                    <li style="padding: 8px 0;">🎯 <strong>Créer et suivre des objectifs</strong> individuels et collectifs</li>
+                    <li style="padding: 8px 0;">🏆 <strong>Lancer des challenges</strong> pour motiver votre équipe</li>
+                    <li style="padding: 8px 0;">🤖 <strong>Coaching IA personnalisé</strong> pour booster les performances</li>
+                    <li style="padding: 8px 0;">📋 <strong>Générer des bilans et entretiens annuels</strong> en 1 clic avec l'IA</li>
+                    <li style="padding: 8px 0;">🤝 <strong>Conseils IA relationnels</strong> adaptés à chaque profil DISC de vos vendeurs</li>
                 </ul>
             </div>
             
