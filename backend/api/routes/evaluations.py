@@ -69,12 +69,12 @@ async def get_employee_stats(db, employee_id: str, start_date: str, end_date: st
             "no_data": True
         }
     
-    # Calcul des agrégations
-    total_ca = sum(k.get('ca', 0) or 0 for k in kpis)
-    total_ventes = sum(k.get('ventes', 0) or 0 for k in kpis)
-    total_clients = sum(k.get('clients', 0) or 0 for k in kpis)
-    total_articles = sum(k.get('articles', 0) or 0 for k in kpis)
-    days_worked = len(kpis)
+    # Calcul des agrégations - Support pour les deux formats de champs
+    total_ca = sum(k.get('ca_journalier', 0) or k.get('ca', 0) or 0 for k in kpis)
+    total_ventes = sum(k.get('nb_ventes', 0) or k.get('ventes', 0) or 0 for k in kpis)
+    total_clients = sum(k.get('nb_visiteurs', 0) or k.get('clients', 0) or 0 for k in kpis)
+    total_articles = sum(k.get('nb_articles_vendus', 0) or k.get('articles', 0) or 0 for k in kpis)
+    days_worked = len([k for k in kpis if (k.get('ca_journalier') or k.get('ca') or 0) > 0])
     
     # Calcul des moyennes
     avg_ca = total_ca / days_worked if days_worked > 0 else 0
@@ -83,9 +83,10 @@ async def get_employee_stats(db, employee_id: str, start_date: str, end_date: st
     avg_taux_transfo = (total_ventes / total_clients * 100) if total_clients > 0 else 0
     
     # Meilleur et pire jour
-    cas = [k.get('ca', 0) or 0 for k in kpis]
-    best_day_ca = max(cas) if cas else 0
-    worst_day_ca = min(cas) if cas else 0
+    cas = [k.get('ca_journalier', 0) or k.get('ca', 0) or 0 for k in kpis]
+    cas_non_zero = [c for c in cas if c > 0]
+    best_day_ca = max(cas_non_zero) if cas_non_zero else 0
+    worst_day_ca = min(cas_non_zero) if cas_non_zero else 0
     
     return {
         "total_ca": round(total_ca, 2),
