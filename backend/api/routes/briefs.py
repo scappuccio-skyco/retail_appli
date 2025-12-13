@@ -236,7 +236,7 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
         week_start_str = start_of_week.strftime("%Y-%m-%d")
         kpis_week = await db.kpis.find({
             "store_id": store_id,
-            "date": {"$gte": week_start_str, "$lte": yesterday_str}
+            "date": {"$gte": week_start_str, "$lte": last_data_date}
         }, {"_id": 0, "ca": 1}).to_list(500)
         
         if kpis_week:
