@@ -21,6 +21,7 @@ class EvaluationGenerateRequest(BaseModel):
     employee_id: str
     start_date: str  # Format: YYYY-MM-DD
     end_date: str    # Format: YYYY-MM-DD
+    comments: Optional[str] = None  # Commentaires/contexte du manager ou vendeur
 
 
 class EvaluationGuideResponse(BaseModel):
@@ -208,7 +209,8 @@ async def generate_evaluation_guide(
         role=role_perspective,
         stats=stats,
         employee_name=employee_name,
-        period=period
+        period=period,
+        comments=request.comments
     )
     
     return EvaluationGuideResponse(
