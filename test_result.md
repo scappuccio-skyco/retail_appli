@@ -148,9 +148,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Evaluation API Authentication"
-    - "Evaluation Guide Generation"
-    - "Employee Stats Aggregation"
+    - "Morning Brief API"
+    - "Morning Brief Preview API"
+    - "Stripe Webhook Health Check"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
