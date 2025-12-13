@@ -1067,7 +1067,7 @@ Réponds avec ce JSON EXACT (pas de texte avant/après) :
                 "synthese": f"Tes résultats sur la période : CA total de {stats.get('total_ca', 0):,.0f}€ avec {stats.get('total_ventes', 0)} ventes.",
                 "victoires": ["Tes ventes réalisées"],
                 "axes_progres": ["Points à discuter avec ton manager"],
-                "objectifs": ["Tes objectifs personnels"],
+                "souhaits": ["Formations souhaitées", "Évolution envisagée"],
                 "questions_manager": ["Quelles formations sont disponibles ?", "Comment puis-je progresser ?"]
             }
     
