@@ -94,31 +94,39 @@ async def startup_event():
 async def create_indexes_background():
     """Create indexes in background after startup to not block health check"""
     import asyncio
+    import os
     
-    # Small delay to let health check pass first
-    await asyncio.sleep(2)
+    worker_id = os.getpid()
+    
+    # Delay to let health check pass first and DB connection stabilize
+    await asyncio.sleep(5)
     
     try:
         db = database.db
+        if db is None:
+            logger.warning(f"Database not connected, skipping index creation (worker {worker_id})")
+            return
         
         # Create indexes for performance - use background=True
-        await db.users.create_index("stripe_customer_id", sparse=True, background=True)
-        await db.subscriptions.create_index("stripe_customer_id", sparse=True, background=True)
-        await db.subscriptions.create_index("stripe_subscription_id", sparse=True, background=True)
-        await db.workspaces.create_index("stripe_customer_id", sparse=True, background=True)
+        try:
+            await db.users.create_index("stripe_customer_id", sparse=True, background=True)
+            await db.subscriptions.create_index("stripe_customer_id", sparse=True, background=True)
+            await db.subscriptions.create_index("stripe_subscription_id", sparse=True, background=True)
+            await db.workspaces.create_index("stripe_customer_id", sparse=True, background=True)
+            logger.info(f"✅ Database indexes created/verified (worker {worker_id})")
+        except Exception as e:
+            logger.warning(f"Index creation warning: {e}")
         
-        logger.info("✅ Database indexes created/verified")
-        
-        # Initialize database (create default admin if needed)
+        # Initialize database (create default admin if needed) - only try once
         try:
             from init_db import init_database
             init_database()
             logger.info("✅ Database initialization complete")
         except Exception as e:
-            logger.warning(f"Database initialization warning: {e}")
+            logger.debug(f"Database initialization skipped: {e}")
             
     except Exception as e:
-        logger.warning(f"Index creation warning (may already exist): {e}")
+        logger.warning(f"Background init warning (worker {worker_id}): {e}")
 
 # Shutdown event
 @app.on_event("shutdown")
