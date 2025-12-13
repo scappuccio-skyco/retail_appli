@@ -177,54 +177,48 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Social Proof Section */}
+      {/* Social Proof Section - Preuve d'Expertise */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-50 to-slate-50 border-y border-[#1E40AF]/20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <p className="text-lg font-semibold text-[#334155] mb-6">
-              Déjà utilisé par des équipes retail ambitieuses en phase pilote
+            <p className="text-lg sm:text-xl font-semibold text-[#334155] mb-8">
+              Une solution conçue par des Managers Retail, pour des Managers Retail
             </p>
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              {/* Testimonial 1 */}
-              <div className="bg-white rounded-xl p-6 shadow-md border-2 border-[#1E40AF]/20">
-                <div className="flex items-center gap-1 mb-3">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 fill-[#F97316] text-[#F97316]" />
-                  ))}
+            <div className="grid md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
+              {/* Carte 1 - L'Expertise */}
+              <div className="bg-white rounded-xl p-6 shadow-md border-2 border-[#1E40AF]/20 hover:border-[#F97316] transition-colors">
+                <div className="flex items-center justify-center w-12 h-12 bg-[#1E40AF]/10 rounded-full mb-4 mx-auto">
+                  <Briefcase className="w-6 h-6 text-[#1E40AF]" />
                 </div>
-                <p className="text-[#334155] mb-4 italic">
-                  "L'IA nous fait gagner un temps fou sur le coaching. Mes vendeurs progressent plus vite qu'avant."
+                <h3 className="text-lg font-bold text-[#1E40AF] mb-3">ADN 100% Retail</h3>
+                <p className="text-[#334155] text-sm leading-relaxed">
+                  Pas de théorie, que du terrain. Outil conçu par des directeurs de réseau cumulant 15 ans d'expérience opérationnelle.
                 </p>
-                <p className="text-sm font-semibold text-[#1E40AF]">Sophie M.</p>
-                <p className="text-xs text-[#64748B]">Responsable boutique, Paris</p>
+                <p className="text-xs text-[#64748B] mt-4 font-medium">L'Équipe Fondatrice</p>
               </div>
 
-              {/* Testimonial 2 */}
-              <div className="bg-white rounded-xl p-6 shadow-md border-2 border-[#1E40AF]/20">
-                <div className="flex items-center gap-1 mb-3">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 fill-[#F97316] text-[#F97316]" />
-                  ))}
+              {/* Carte 2 - La Méthode */}
+              <div className="bg-white rounded-xl p-6 shadow-md border-2 border-[#1E40AF]/20 hover:border-[#F97316] transition-colors">
+                <div className="flex items-center justify-center w-12 h-12 bg-[#F97316]/10 rounded-full mb-4 mx-auto">
+                  <TrendingUp className="w-6 h-6 text-[#F97316]" />
                 </div>
-                <p className="text-[#334155] mb-4 italic">
-                  "Enfin un outil qui comprend les enjeux du retail. Le tableau de bord est ultra clair."
+                <h3 className="text-lg font-bold text-[#1E40AF] mb-3">Méthodologie Éprouvée</h3>
+                <p className="text-[#334155] text-sm leading-relaxed">
+                  Basé sur les fondamentaux de la vente qui fonctionnent : SBAM, Vente Complémentaire et Coaching situationnel.
                 </p>
-                <p className="text-sm font-semibold text-[#1E40AF]">Marc L.</p>
-                <p className="text-xs text-[#64748B]">Manager régional</p>
+                <p className="text-xs text-[#64748B] mt-4 font-medium">Best Practices Retail</p>
               </div>
 
-              {/* Testimonial 3 */}
-              <div className="bg-white rounded-xl p-6 shadow-md border-2 border-[#1E40AF]/20">
-                <div className="flex items-center gap-1 mb-3">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 fill-[#F97316] text-[#F97316]" />
-                  ))}
+              {/* Carte 3 - L'Innovation */}
+              <div className="bg-white rounded-xl p-6 shadow-md border-2 border-[#1E40AF]/20 hover:border-[#F97316] transition-colors">
+                <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4 mx-auto">
+                  <Zap className="w-6 h-6 text-green-600" />
                 </div>
-                <p className="text-[#334155] mb-4 italic">
-                  "Mes vendeurs adorent les défis quotidiens. Ça booste vraiment la motivation de l'équipe."
+                <h3 className="text-lg font-bold text-[#1E40AF] mb-3">Technologie Utile</h3>
+                <p className="text-[#334155] text-sm leading-relaxed">
+                  Nous ne remplaçons pas l'humain. Nous utilisons l'IA pour automatiser la paperasse et libérer du temps de vente.
                 </p>
-                <p className="text-sm font-semibold text-[#1E40AF]">Julie R.</p>
-                <p className="text-xs text-[#64748B]">Directrice magasin</p>
+                <p className="text-xs text-[#64748B] mt-4 font-medium">IA au Service du Terrain</p>
               </div>
             </div>
           </div>
