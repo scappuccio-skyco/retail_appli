@@ -113,11 +113,16 @@ async def register_gerant(
         HTTPException 400: Email already exists or validation error
     """
     try:
+        # Use company_name or workspace_name (for backward compatibility)
+        company_name = user_data.company_name or user_data.workspace_name
+        if not company_name:
+            raise Exception("Le nom de l'entreprise est requis")
+        
         result = await auth_service.register_gerant(
             name=user_data.name,
             email=user_data.email,
             password=user_data.password,
-            company_name=user_data.company_name,
+            company_name=company_name,
             phone=user_data.phone
         )
         
