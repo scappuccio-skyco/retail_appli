@@ -10,8 +10,9 @@ const API = `${BACKEND_URL}/api`;
 export default function Login({ onLogin }) {
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get('invite');
+  const registerMode = searchParams.get('register') === 'true';
   
-  const [isRegister, setIsRegister] = useState(!!inviteToken);
+  const [isRegister, setIsRegister] = useState(!!inviteToken || registerMode);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
