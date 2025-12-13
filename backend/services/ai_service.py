@@ -1032,7 +1032,8 @@ class EvaluationGuideService:
         stats: Dict,
         employee_name: str,
         period: str,
-        comments: Optional[str] = None
+        comments: Optional[str] = None,
+        disc_profile: Optional[Dict] = None
     ) -> Dict:
         """
         Génère un guide d'entretien adapté au rôle de l'appelant.
@@ -1043,6 +1044,7 @@ class EvaluationGuideService:
             employee_name: Nom du vendeur évalué
             period: Description de la période (ex: "01/01/2024 - 31/12/2024")
             comments: Commentaires/contexte optionnel de l'utilisateur
+            disc_profile: Profil DISC de l'employé (pour personnalisation du ton)
         
         Returns:
             Dict structuré avec synthese, victoires, axes_progres, objectifs
@@ -1055,6 +1057,20 @@ class EvaluationGuideService:
         if comments and comments.strip():
             context_section = f"\n\n📝 CONTEXTE SPÉCIFIQUE DE L'UTILISATEUR :\n\"{comments}\"\n→ Prends en compte ces observations dans ton analyse."
         
+        # Ajout du profil DISC si disponible
+        disc_section = ""
+        if disc_profile:
+            disc_style = disc_profile.get('style', 'Non défini')
+            disc_strengths = ', '.join(disc_profile.get('strengths', [])) if disc_profile.get('strengths') else 'N/A'
+            disc_axes = ', '.join(disc_profile.get('axes_de_developpement', disc_profile.get('weaknesses', []))) if disc_profile.get('axes_de_developpement') or disc_profile.get('weaknesses') else 'N/A'
+            disc_section = f"""
+
+👤 PROFIL PSYCHOLOGIQUE (DISC) DE L'EMPLOYÉ : {disc_style}
+- Forces identifiées : {disc_strengths}
+- Axes de développement : {disc_axes}
+{DISC_ADAPTATION_INSTRUCTIONS}
+"""
+        
         # Choix du prompt selon le rôle
         if role in ['manager', 'gerant']:
             system_prompt = EVALUATION_MANAGER_SYSTEM_PROMPT
@@ -1064,7 +1080,7 @@ class EvaluationGuideService:
 📊 Données de performance :
 {stats_text}
 {context_section}
-
+{disc_section}
 Réponds avec ce JSON EXACT (pas de texte avant/après) :
 {{
   "synthese": "2-3 phrases résumant la performance globale avec les chiffres clés",
@@ -1081,7 +1097,7 @@ Réponds avec ce JSON EXACT (pas de texte avant/après) :
 📊 Tes chiffres :
 {stats_text}
 {context_section}
-
+{disc_section}
 Réponds avec ce JSON EXACT (pas de texte avant/après) :
 {{
   "synthese": "Bilan honnête de ta période (Positif + Axes de travail).",
