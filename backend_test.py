@@ -2845,20 +2845,19 @@ class GerantSellerDetailsTester:
 
 
 if __name__ == "__main__":
-    print("🎯 STARTING IMPROVED EVALUATION GENERATOR TESTING")
+    print("🎯 RUNNING MORNING BRIEF AND STRIPE WEBHOOK TESTS")
     print("=" * 80)
     
-    # Run Improved Evaluation Generator tests (focused on the review request)
-    evaluation_tester = ImprovedEvaluationGeneratorTester()
-    evaluation_success = evaluation_tester.run_improved_evaluation_tests()
+    # Run Morning Brief and Webhook tests
+    morning_brief_tester = MorningBriefAndWebhookTester()
+    morning_brief_success = morning_brief_tester.run_morning_brief_and_webhook_tests()
     
     print("\n" + "=" * 80)
-    print("🏁 IMPROVED EVALUATION GENERATOR TEST RESULTS")
+    print("🏁 FINAL RESULTS")
     print("=" * 80)
+    print(f"Morning Brief & Stripe Webhook: {'✅ PASS' if morning_brief_success else '❌ FAIL'}")
     
-    if evaluation_success:
-        print("🎉 IMPROVED EVALUATION GENERATOR TESTS PASSED! Feature is working correctly.")
-        sys.exit(0)
-    else:
-        print("⚠️ Improved Evaluation Generator tests failed. Please review the detailed logs above.")
-        sys.exit(1)
+    print(f"\n🎯 OVERALL: {'✅ ALL SYSTEMS OPERATIONAL' if morning_brief_success else '❌ ISSUES DETECTED'}")
+    
+    # Exit with appropriate code
+    sys.exit(0 if morning_brief_success else 1)
