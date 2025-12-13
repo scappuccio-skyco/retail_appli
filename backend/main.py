@@ -1,22 +1,48 @@
 """Main FastAPI Application Entry Point"""
+import sys
+import os
+
+# Force unbuffered output for deployment debugging
+sys.stdout.reconfigure(line_buffering=True) if hasattr(sys.stdout, 'reconfigure') else None
 print("[STARTUP] 1/10 - main.py loading started", flush=True)
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import logging
-import os
-import sys
+try:
+    from fastapi import FastAPI
+    from fastapi.middleware.cors import CORSMiddleware
+    import logging
+    print("[STARTUP] 2/10 - FastAPI imports done", flush=True)
+except Exception as e:
+    print(f"[STARTUP] FATAL: FastAPI import failed: {e}", flush=True)
+    raise
 
-print("[STARTUP] 2/10 - FastAPI imports done", flush=True)
+try:
+    from core.config import settings
+    print("[STARTUP] 3/10 - Settings loaded", flush=True)
+except Exception as e:
+    print(f"[STARTUP] FATAL: Settings import failed: {e}", flush=True)
+    # Create minimal fallback settings for health check to work
+    class MinimalSettings:
+        ENVIRONMENT = os.environ.get("ENVIRONMENT", "production")
+        DEBUG = False
+        CORS_ORIGINS = "*"
+        MONGO_URL = os.environ.get("MONGO_URL", "")
+        DB_NAME = os.environ.get("DB_NAME", "retail_coach")
+    settings = MinimalSettings()
+    print(f"[STARTUP] Using minimal fallback settings", flush=True)
 
-from core.config import settings
-print("[STARTUP] 3/10 - Settings loaded", flush=True)
+try:
+    from core.database import database
+    print("[STARTUP] 4/10 - Database module imported", flush=True)
+except Exception as e:
+    print(f"[STARTUP] FATAL: Database import failed: {e}", flush=True)
+    database = None
 
-from core.database import database
-print("[STARTUP] 4/10 - Database module imported", flush=True)
-
-from api.routes import routers
-print("[STARTUP] 5/10 - Routers imported", flush=True)
+try:
+    from api.routes import routers
+    print("[STARTUP] 5/10 - Routers imported", flush=True)
+except Exception as e:
+    print(f"[STARTUP] FATAL: Routers import failed: {e}", flush=True)
+    routers = []
 
 # Configure logging
 logging.basicConfig(
