@@ -2035,13 +2035,20 @@ class ImprovedEvaluationGeneratorTester:
             else:
                 self.log_test("Manager Role Perspective", False, f"Expected 'manager', got '{role_perspective}'")
         
-        # Test 2: Seller role - should get questions_manager
+        # Test 2: Seller role - should get questions_manager (using seller's own ID)
+        seller_evaluation_data = {
+            "employee_id": self.seller_user.get('id'),  # Seller evaluating themselves
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "comments": "Focus on coaching questions for manager and career questions for seller"
+        }
+        
         success, seller_response = self.run_test(
             "Seller Role - Manager Questions",
             "POST",
             "evaluations/generate",
             200,
-            data=evaluation_data,
+            data=seller_evaluation_data,
             token=self.seller_token
         )
         
