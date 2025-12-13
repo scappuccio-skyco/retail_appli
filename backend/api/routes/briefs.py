@@ -189,10 +189,47 @@ async def _fetch_yesterday_stats(db, store_id: Optional[str], manager_id: str) -
         stats["data_date"] = last_data_date
         
         # Récupérer les KPIs du dernier jour avec données
+        # D'abord essayer la collection kpis (données magasin)
         kpis_yesterday = await db.kpis.find({
             "store_id": store_id,
             "date": last_data_date
         }, {"_id": 0}).to_list(100)
+        
+        # Si pas de données dans kpis, chercher dans kpi_entries (données vendeurs)
+        if not kpis_yesterday:
+            kpi_entries = await db.kpi_entries.find({
+                "store_id": store_id,
+                "date": last_data_date
+            }, {"_id": 0}).to_list(100)
+            
+            if kpi_entries:
+                # Adapter les champs de kpi_entries vers le format attendu
+                total_ca = sum(k.get("ca_journalier", 0) or 0 for k in kpi_entries)
+                total_ventes = sum(k.get("nb_ventes", 0) or 0 for k in kpi_entries)
+                total_articles = sum(k.get("nb_articles", k.get("nb_ventes", 0)) or 0 for k in kpi_entries)
+                total_visiteurs = sum(k.get("nb_visiteurs", k.get("nb_prospects", 0)) or 0 for k in kpi_entries)
+                
+                stats["ca_yesterday"] = total_ca
+                stats["ventes_yesterday"] = total_ventes
+                
+                if total_ventes > 0:
+                    stats["panier_moyen_yesterday"] = total_ca / total_ventes
+                    stats["indice_vente_yesterday"] = total_articles / total_ventes
+                
+                if total_visiteurs > 0:
+                    stats["taux_transfo_yesterday"] = (total_ventes / total_visiteurs) * 100
+                
+                # Top vendeur depuis kpi_entries
+                if kpi_entries:
+                    sorted_sellers = sorted(kpi_entries, key=lambda x: x.get("ca_journalier", 0) or 0, reverse=True)
+                    if sorted_sellers:
+                        top_kpi = sorted_sellers[0]
+                        top_seller = await db.users.find_one(
+                            {"id": top_kpi.get("seller_id")},
+                            {"_id": 0, "name": 1}
+                        )
+                        if top_seller:
+                            stats["top_seller_yesterday"] = f"{top_seller.get('name')} ({top_kpi.get('ca_journalier', 0):,.0f}€)"
         
         if kpis_yesterday:
             total_ca = sum(k.get("ca", 0) or 0 for k in kpis_yesterday)
