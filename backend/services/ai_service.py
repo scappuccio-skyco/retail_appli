@@ -1087,7 +1087,7 @@ Génère un brief motivant et concret basé sur ces données."""
         ca_week = stats.get('ca_week', stats.get('ca_semaine', 0))
         obj_week = stats.get('objectif_week', stats.get('objectif_semaine', 0))
         if ca_week:
-            lines.append(f"\n📅 SEMAINE EN COURS :")
+            lines.append("\n📅 SEMAINE EN COURS :")
             lines.append(f"- CA cumulé : {ca_week:,.0f}€")
             if obj_week:
                 progress = (ca_week / obj_week) * 100
