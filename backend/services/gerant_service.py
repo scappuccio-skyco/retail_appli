@@ -1472,6 +1472,9 @@ class GerantService:
         logger.info(f"[INVITATION EMAIL] CORS_ORIGINS: {cors_origins}")
         logger.info(f"[INVITATION EMAIL] Final FRONTEND_URL: {frontend_url}")
         
+        # Remove trailing slash to avoid double slashes in URL
+        frontend_url = frontend_url.rstrip('/')
+        
         role_text = "Manager" if invitation['role'] == 'manager' else "Vendeur"
         invitation_link = f"{frontend_url}/invitation/{invitation['token']}"
         
