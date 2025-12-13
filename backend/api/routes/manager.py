@@ -574,8 +574,8 @@ async def update_kpi_config(
 
 @router.get("/manager-kpi")
 async def get_manager_kpis(
-    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
-    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
     context: dict = Depends(get_store_context),
     db = Depends(get_db)
@@ -590,12 +590,20 @@ async def get_manager_kpis(
         if not resolved_store_id:
             return []
         
+        # Default to last 30 days if no dates provided
+        if not start_date or not end_date:
+            today = datetime.now(timezone.utc)
+            end_date = end_date or today.strftime('%Y-%m-%d')
+            start_date = start_date or (today - timedelta(days=30)).strftime('%Y-%m-%d')
+        
         query = {
             "store_id": resolved_store_id,
             "date": {"$gte": start_date, "$lte": end_date}
         }
         
         kpis = await db.manager_kpi.find(query, {"_id": 0}).sort("date", -1).to_list(500)
+        
+        return kpis
         
         return kpis
         
