@@ -885,6 +885,14 @@ export default function ManagerDashboard({ user, onLogout }) {
               Config
             </button>
             <button
+              onClick={() => setShowMorningBriefModal(true)}
+              className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition-all text-sm"
+              title="Générer le brief du matin"
+            >
+              <Coffee className="w-4 h-4" />
+              <span className="hidden sm:inline">Brief</span>
+            </button>
+            <button
               onClick={() => setShowSupportModal(true)}
               className="px-3 py-2 flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-lg hover:shadow-lg transition-all text-sm"
               title="Contacter le support"
