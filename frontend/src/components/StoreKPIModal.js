@@ -632,8 +632,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         payload.nb_prospects = parseInt(managerKPIData.nb_prospects);
       }
 
+      // Add store_id for gerant viewing specific store
+      const storeParam = storeId ? `?store_id=${storeId}` : '';
       await axios.post(
-        `${API}/api/manager/manager-kpi`,
+        `${API}/api/manager/manager-kpi${storeParam}`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
