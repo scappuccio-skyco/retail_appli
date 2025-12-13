@@ -970,13 +970,12 @@ class EvaluationGuideService:
                 stats=stats_text
             )
         
-        # Appel à l'IA
+        # Appel à l'IA avec la bonne syntaxe
         try:
             chat = LlmChat(
                 api_key=self.emergent_key,
-                model="gpt-4o-mini",
                 system_message=system_prompt
-            )
+            ).with_model("openai", "gpt-4o-mini")
             
             user_message = f"Génère le guide d'entretien pour {employee_name}."
             response = chat.send_user_message(user_message)
