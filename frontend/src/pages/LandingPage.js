@@ -1048,6 +1048,227 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Demo Request Modal */}
+      {showDemoModal && (
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowDemoModal(false); }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] p-6 rounded-t-2xl relative">
+              <button
+                onClick={() => setShowDemoModal(false)}
+                className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Réserver une Démonstration</h2>
+                  <p className="text-white/80">30 minutes avec un expert Retail Performer AI</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <form 
+              className="p-6 space-y-5"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setSubmitting(true);
+                
+                // Simulate API call / In production, send to your backend or email service
+                try {
+                  // Prepare email content
+                  const emailSubject = encodeURIComponent(`Demande de démonstration - ${demoForm.company || demoForm.name}`);
+                  const emailBody = encodeURIComponent(
+                    `Nouvelle demande de démonstration:\n\n` +
+                    `Nom: ${demoForm.name}\n` +
+                    `Email: ${demoForm.email}\n` +
+                    `Entreprise: ${demoForm.company}\n` +
+                    `Téléphone: ${demoForm.phone}\n` +
+                    `Taille d'équipe: ${demoForm.teamSize}\n` +
+                    `Date souhaitée: ${demoForm.preferredDate}\n` +
+                    `Heure souhaitée: ${demoForm.preferredTime}\n` +
+                    `Message: ${demoForm.message}`
+                  );
+                  
+                  // Open email client with pre-filled content
+                  window.location.href = `mailto:hello@retailperformerai.com?subject=${emailSubject}&body=${emailBody}`;
+                  
+                  toast.success('Votre demande a été préparée ! Envoyez l\'email pour confirmer votre rendez-vous.');
+                  setShowDemoModal(false);
+                  setDemoForm({
+                    name: '', email: '', company: '', phone: '',
+                    teamSize: '1-5 vendeurs', preferredDate: '', preferredTime: '', message: ''
+                  });
+                } catch (error) {
+                  toast.error('Erreur lors de l\'envoi. Contactez-nous directement par email.');
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+            >
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet *</label>
+                  <input
+                    type="text"
+                    required
+                    value={demoForm.name}
+                    onChange={(e) => setDemoForm(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-[#F97316]"
+                    placeholder="Jean Dupont"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email professionnel *</label>
+                  <input
+                    type="email"
+                    required
+                    value={demoForm.email}
+                    onChange={(e) => setDemoForm(prev => ({ ...prev, email: e.target.value }))}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-[#F97316]"
+                    placeholder="jean@entreprise.com"
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Entreprise</label>
+                  <input
+                    type="text"
+                    value={demoForm.company}
+                    onChange={(e) => setDemoForm(prev => ({ ...prev, company: e.target.value }))}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-[#F97316]"
+                    placeholder="Nom de votre entreprise"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                  <input
+                    type="tel"
+                    value={demoForm.phone}
+                    onChange={(e) => setDemoForm(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-[#F97316]"
+                    placeholder="06 12 34 56 78"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Taille de votre équipe *</label>
+                <select
+                  required
+                  value={demoForm.teamSize}
+                  onChange={(e) => setDemoForm(prev => ({ ...prev, teamSize: e.target.value }))}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-[#F97316]"
+                >
+                  <option value="1-5 vendeurs">1-5 vendeurs (Starter Team)</option>
+                  <option value="6-15 vendeurs">6-15 vendeurs (Medium Team)</option>
+                  <option value="16+ vendeurs">16+ vendeurs (Enterprise)</option>
+                  <option value="Multi-magasins">Multi-magasins / Réseau</option>
+                </select>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <Clock className="w-4 h-4 inline mr-1" />
+                    Date souhaitée *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={demoForm.preferredDate}
+                    onChange={(e) => setDemoForm(prev => ({ ...prev, preferredDate: e.target.value }))}
+                    onClick={(e) => e.target.showPicker && e.target.showPicker()}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-[#F97316] cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <Clock className="w-4 h-4 inline mr-1" />
+                    Heure souhaitée *
+                  </label>
+                  <select
+                    required
+                    value={demoForm.preferredTime}
+                    onChange={(e) => setDemoForm(prev => ({ ...prev, preferredTime: e.target.value }))}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-[#F97316]"
+                  >
+                    <option value="">Choisir un créneau</option>
+                    <option value="09:00">09:00 - 09:30</option>
+                    <option value="09:30">09:30 - 10:00</option>
+                    <option value="10:00">10:00 - 10:30</option>
+                    <option value="10:30">10:30 - 11:00</option>
+                    <option value="11:00">11:00 - 11:30</option>
+                    <option value="11:30">11:30 - 12:00</option>
+                    <option value="14:00">14:00 - 14:30</option>
+                    <option value="14:30">14:30 - 15:00</option>
+                    <option value="15:00">15:00 - 15:30</option>
+                    <option value="15:30">15:30 - 16:00</option>
+                    <option value="16:00">16:00 - 16:30</option>
+                    <option value="16:30">16:30 - 17:00</option>
+                    <option value="17:00">17:00 - 17:30</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Message (optionnel)</label>
+                <textarea
+                  rows="3"
+                  value={demoForm.message}
+                  onChange={(e) => setDemoForm(prev => ({ ...prev, message: e.target.value }))}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-[#F97316] resize-none"
+                  placeholder="Parlez-nous de vos besoins spécifiques..."
+                />
+              </div>
+
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                <p className="text-sm text-[#1E40AF]">
+                  📅 <strong>Ce qui vous attend :</strong> Une démonstration personnalisée de 30 minutes où nous vous montrerons comment Retail Performer AI peut s'adapter à vos besoins spécifiques.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowDemoModal(false)}
+                  className="flex-1 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 py-3 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white font-semibold rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Envoi en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      Confirmer ma demande
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
