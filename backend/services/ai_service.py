@@ -1444,3 +1444,6 @@ Réponds avec ce JSON EXACT (pas de texte avant/après) :
         
         return "\n".join(lines) if lines else "Aucune donnée disponible"
 
+
+# Singleton instance for the AI service
+ai_service = AIService()
