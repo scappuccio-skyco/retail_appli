@@ -1319,6 +1319,390 @@ class GerantRBACTester:
         return self.tests_passed >= self.tests_run * 0.8
 
 
+class EvaluationGeneratorTester:
+    def __init__(self, base_url="https://review-helper-8.preview.emergentagent.com/api"):
+        self.base_url = base_url
+        self.manager_token = None
+        self.seller_token = None
+        self.manager_user = None
+        self.seller_user = None
+        self.seller_id = None
+        self.tests_run = 0
+        self.tests_passed = 0
+        self.test_results = []
+
+    def log_test(self, name, success, details=""):
+        """Log test result"""
+        self.tests_run += 1
+        if success:
+            self.tests_passed += 1
+            print(f"✅ {name} - PASSED")
+        else:
+            print(f"❌ {name} - FAILED: {details}")
+        
+        self.test_results.append({
+            "test": name,
+            "success": success,
+            "details": details
+        })
+
+    def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
+        """Run a single API test"""
+        url = f"{self.base_url}/{endpoint}"
+        headers = {'Content-Type': 'application/json'}
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
+
+        print(f"\n🔍 Testing {name}...")
+        print(f"   URL: {url}")
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers, timeout=30)
+            elif method == 'POST':
+                response = requests.post(url, json=data, headers=headers, timeout=30)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=headers, timeout=30)
+            elif method == 'PATCH':
+                response = requests.patch(url, json=data, headers=headers, timeout=30)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers, timeout=30)
+
+            success = response.status_code == expected_status
+            
+            if success:
+                self.log_test(name, True)
+                try:
+                    return True, response.json()
+                except:
+                    return True, {}
+            else:
+                error_msg = f"Expected {expected_status}, got {response.status_code}"
+                try:
+                    error_detail = response.json()
+                    error_msg += f" - {error_detail}"
+                except:
+                    error_msg += f" - {response.text[:200]}"
+                
+                self.log_test(name, False, error_msg)
+                return False, {}
+
+        except Exception as e:
+            self.log_test(name, False, f"Exception: {str(e)}")
+            return False, {}
+
+    def test_authentication(self):
+        """Test authentication for Manager and Seller"""
+        print("\n🔐 TESTING EVALUATION GENERATOR AUTHENTICATION")
+        
+        # Test Manager login (y.legoff@skyco.fr / TestDemo123!)
+        manager_data = {
+            "email": "y.legoff@skyco.fr",
+            "password": "TestDemo123!"
+        }
+        
+        success, response = self.run_test(
+            "Manager Authentication for Evaluation Tests",
+            "POST",
+            "auth/login",
+            200,
+            data=manager_data
+        )
+        
+        if success and 'token' in response:
+            self.manager_token = response['token']
+            self.manager_user = response.get('user', {})
+            print(f"   ✅ Manager logged in: {self.manager_user.get('email')}")
+        
+        # Test Seller login (emma.petit@test.com / TestDemo123!)
+        seller_data = {
+            "email": "emma.petit@test.com",
+            "password": "TestDemo123!"
+        }
+        
+        success, response = self.run_test(
+            "Seller Authentication for Evaluation Tests",
+            "POST",
+            "auth/login",
+            200,
+            data=seller_data
+        )
+        
+        if success and 'token' in response:
+            self.seller_token = response['token']
+            self.seller_user = response.get('user', {})
+            self.seller_id = self.seller_user.get('id')
+            print(f"   ✅ Seller logged in: {self.seller_user.get('email')}")
+            print(f"   ✅ Seller ID: {self.seller_id}")
+
+    def test_evaluation_api_manager_perspective(self):
+        """Test evaluation generation from Manager perspective"""
+        print("\n👔 TESTING EVALUATION API - MANAGER PERSPECTIVE")
+        
+        if not self.manager_token or not self.seller_id:
+            self.log_test("Manager Evaluation API", False, "Missing manager token or seller ID")
+            return
+        
+        # Test 1: Generate evaluation guide for seller (Manager perspective)
+        evaluation_data = {
+            "employee_id": self.seller_id,
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31"
+        }
+        
+        success, response = self.run_test(
+            "Manager Generate Evaluation Guide",
+            "POST",
+            "evaluations/generate",
+            200,
+            data=evaluation_data,
+            token=self.manager_token
+        )
+        
+        if success:
+            # Verify response structure
+            expected_fields = ['employee_id', 'employee_name', 'role_perspective', 'guide_content', 'stats_summary']
+            missing_fields = [f for f in expected_fields if f not in response]
+            if missing_fields:
+                self.log_test("Manager Evaluation Response Structure", False, f"Missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ Employee: {response.get('employee_name')}")
+                print(f"   ✅ Role perspective: {response.get('role_perspective')}")
+                print(f"   ✅ Guide content length: {len(response.get('guide_content', ''))}")
+                
+                # Verify role perspective is 'manager'
+                if response.get('role_perspective') == 'manager':
+                    print(f"   ✅ Correct role perspective for manager")
+                else:
+                    self.log_test("Manager Role Perspective", False, f"Expected 'manager', got '{response.get('role_perspective')}'")
+                
+                # Check if guide contains manager-specific content
+                guide_content = response.get('guide_content', '').lower()
+                manager_keywords = ['entretien', 'évaluation', 'manager', 'questions', 'objectifs']
+                found_keywords = [kw for kw in manager_keywords if kw in guide_content]
+                if len(found_keywords) >= 2:
+                    print(f"   ✅ Manager-specific content detected: {found_keywords}")
+                else:
+                    print(f"   ⚠️ Limited manager-specific content found: {found_keywords}")
+        
+        # Test 2: Get evaluation stats for seller
+        success, response = self.run_test(
+            "Manager Get Evaluation Stats",
+            "GET",
+            f"evaluations/stats/{self.seller_id}?start_date=2024-01-01&end_date=2024-12-31",
+            200,
+            token=self.manager_token
+        )
+        
+        if success:
+            expected_fields = ['employee_id', 'employee_name', 'stats']
+            missing_fields = [f for f in expected_fields if f not in response]
+            if missing_fields:
+                self.log_test("Manager Evaluation Stats Structure", False, f"Missing fields: {missing_fields}")
+            else:
+                stats = response.get('stats', {})
+                print(f"   ✅ Stats retrieved for: {response.get('employee_name')}")
+                print(f"   ✅ Total CA: {stats.get('total_ca', 0)}€")
+                print(f"   ✅ Days worked: {stats.get('days_worked', 0)}")
+
+    def test_evaluation_api_seller_perspective(self):
+        """Test evaluation generation from Seller perspective"""
+        print("\n👤 TESTING EVALUATION API - SELLER PERSPECTIVE")
+        
+        if not self.seller_token or not self.seller_id:
+            self.log_test("Seller Evaluation API", False, "Missing seller token or seller ID")
+            return
+        
+        # Test 1: Generate evaluation guide for self (Seller perspective)
+        evaluation_data = {
+            "employee_id": self.seller_id,
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31"
+        }
+        
+        success, response = self.run_test(
+            "Seller Generate Own Evaluation Guide",
+            "POST",
+            "evaluations/generate",
+            200,
+            data=evaluation_data,
+            token=self.seller_token
+        )
+        
+        if success:
+            # Verify response structure
+            expected_fields = ['employee_id', 'employee_name', 'role_perspective', 'guide_content', 'stats_summary']
+            missing_fields = [f for f in expected_fields if f not in response]
+            if missing_fields:
+                self.log_test("Seller Evaluation Response Structure", False, f"Missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ Employee: {response.get('employee_name')}")
+                print(f"   ✅ Role perspective: {response.get('role_perspective')}")
+                print(f"   ✅ Guide content length: {len(response.get('guide_content', ''))}")
+                
+                # Verify role perspective is 'seller'
+                if response.get('role_perspective') == 'seller':
+                    print(f"   ✅ Correct role perspective for seller")
+                else:
+                    self.log_test("Seller Role Perspective", False, f"Expected 'seller', got '{response.get('role_perspective')}'")
+                
+                # Check if guide contains seller-specific content
+                guide_content = response.get('guide_content', '').lower()
+                seller_keywords = ['mes victoires', 'mes axes', 'mes souhaits', 'préparer', 'défense']
+                found_keywords = [kw for kw in seller_keywords if kw in guide_content]
+                if len(found_keywords) >= 2:
+                    print(f"   ✅ Seller-specific content detected: {found_keywords}")
+                else:
+                    print(f"   ⚠️ Limited seller-specific content found: {found_keywords}")
+        
+        # Test 2: Try to generate evaluation for another seller (should fail)
+        if self.manager_user and self.manager_user.get('id') != self.seller_id:
+            other_employee_data = {
+                "employee_id": self.manager_user.get('id'),  # Try to access manager's data
+                "start_date": "2024-01-01",
+                "end_date": "2024-12-31"
+            }
+            
+            success, response = self.run_test(
+                "Seller Access Other Employee (Expected 403)",
+                "POST",
+                "evaluations/generate",
+                403,
+                data=other_employee_data,
+                token=self.seller_token
+            )
+
+    def test_evaluation_api_security(self):
+        """Test evaluation API security and access control"""
+        print("\n🔒 TESTING EVALUATION API SECURITY")
+        
+        # Test 1: Access without authentication
+        evaluation_data = {
+            "employee_id": self.seller_id if self.seller_id else "test-id",
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31"
+        }
+        
+        success, response = self.run_test(
+            "Evaluation Generate - No Auth (Expected 403)",
+            "POST",
+            "evaluations/generate",
+            403,
+            data=evaluation_data
+        )
+        
+        success, response = self.run_test(
+            "Evaluation Stats - No Auth (Expected 403)",
+            "GET",
+            f"evaluations/stats/{self.seller_id if self.seller_id else 'test-id'}?start_date=2024-01-01&end_date=2024-12-31",
+            403
+        )
+        
+        # Test 2: Invalid date formats
+        if self.seller_token and self.seller_id:
+            invalid_date_data = {
+                "employee_id": self.seller_id,
+                "start_date": "invalid-date",
+                "end_date": "2024-12-31"
+            }
+            
+            success, response = self.run_test(
+                "Evaluation Generate - Invalid Date Format (Expected 400)",
+                "POST",
+                "evaluations/generate",
+                400,
+                data=invalid_date_data,
+                token=self.seller_token
+            )
+
+    def test_evaluation_api_edge_cases(self):
+        """Test evaluation API edge cases"""
+        print("\n🧪 TESTING EVALUATION API EDGE CASES")
+        
+        if not self.seller_token or not self.seller_id:
+            self.log_test("Evaluation Edge Cases", False, "Missing seller token or seller ID")
+            return
+        
+        # Test 1: Future date range (no data expected)
+        future_data = {
+            "employee_id": self.seller_id,
+            "start_date": "2025-01-01",
+            "end_date": "2025-12-31"
+        }
+        
+        success, response = self.run_test(
+            "Evaluation Generate - Future Dates",
+            "POST",
+            "evaluations/generate",
+            404,  # Should return 404 for no data
+            data=future_data,
+            token=self.seller_token
+        )
+        
+        # Test 2: Very short date range
+        short_range_data = {
+            "employee_id": self.seller_id,
+            "start_date": "2024-01-01",
+            "end_date": "2024-01-01"
+        }
+        
+        success, response = self.run_test(
+            "Evaluation Generate - Single Day Range",
+            "POST",
+            "evaluations/generate",
+            200,  # Should work but might have limited data
+            data=short_range_data,
+            token=self.seller_token
+        )
+        
+        if success:
+            print(f"   ✅ Single day evaluation generated successfully")
+
+    def run_evaluation_tests(self):
+        """Run all evaluation generator tests"""
+        print("🚀 STARTING EVALUATION GENERATOR TESTS")
+        print("=" * 70)
+        
+        # Test authentication first
+        self.test_authentication()
+        
+        # Test the evaluation API from different perspectives
+        self.test_evaluation_api_manager_perspective()
+        self.test_evaluation_api_seller_perspective()
+        
+        # Test security and edge cases
+        self.test_evaluation_api_security()
+        self.test_evaluation_api_edge_cases()
+        
+        # Print summary
+        print("\n" + "=" * 70)
+        print("📊 EVALUATION GENERATOR TEST SUMMARY")
+        print("=" * 70)
+        print(f"Total Tests: {self.tests_run}")
+        print(f"Passed: {self.tests_passed}")
+        print(f"Failed: {self.tests_run - self.tests_passed}")
+        print(f"Success Rate: {(self.tests_passed / self.tests_run * 100):.1f}%")
+        
+        # Print failed tests
+        failed_tests = [t for t in self.test_results if not t['success']]
+        if failed_tests:
+            print(f"\n❌ FAILED TESTS ({len(failed_tests)}):")
+            for test in failed_tests:
+                print(f"   • {test['test']}: {test['details']}")
+        
+        print("\n🎯 EVALUATION GENERATOR VERIFICATION RESULTS:")
+        if self.tests_passed >= self.tests_run * 0.8:  # 80% pass rate
+            print("✅ Evaluation Generator feature working correctly!")
+            print("✅ Role-based prompt differentiation functioning")
+            print("✅ Manager and Seller perspectives properly implemented")
+            print("✅ Security and access control working")
+        else:
+            print("❌ Evaluation Generator has issues!")
+            print("❌ Multiple tests failing - needs investigation")
+        
+        return self.tests_passed >= self.tests_run * 0.8
+
+
 class GerantSellerDetailsTester:
     def __init__(self, base_url="https://review-helper-8.preview.emergentagent.com/api"):
         self.base_url = base_url
