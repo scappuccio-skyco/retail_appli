@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://seller-advisor-fix.preview.emergentagent.com
+https://review-helper-8.preview.emergentagent.com
 
 ### Manager
 ```
