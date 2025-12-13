@@ -745,7 +745,7 @@ export default function LandingPage() {
               },
               {
                 question: "Quel impact réel sur mes KPI (transformation, panier moyen, etc.) ?",
-                answer: "Nos utilisateurs constatent des améliorations mesurables sur leurs indicateurs clés en 4 à 6 semaines. L'IA identifie précisément les axes d'amélioration pour chaque vendeur et génère des plans d'action concrets, ce qui se traduit par une progression rapide sur le CA, le taux de transformation et le panier moyen."
+                answer: "Notre approche est mathématique : en identifiant quotidiennement les écarts de Panier Moyen ou de Taux de Transformation, l'IA permet de corriger le tir immédiatement. L'objectif est de ne plus attendre la fin du mois pour constater les pertes, mais d'agir jour après jour pour sécuriser votre Chiffre d'Affaires."
               },
               {
                 question: "Puis-je changer de formule à tout moment ?",
@@ -757,11 +757,11 @@ export default function LandingPage() {
               },
               {
                 question: "Mes données sont-elles sécurisées ?",
-                answer: "Oui, toutes vos données sont hébergées en France, chiffrées et conformes au RGPD. Nous ne partageons jamais vos données avec des tiers. Pour l'IA de coaching, seuls les prénoms sont transmis (les noms de famille sont automatiquement anonymisés). De plus, OpenAI ne conserve aucune donnée après traitement (politique Zero-Retention)."
+                answer: "Oui, toutes vos données sont hébergées en France, chiffrées et conformes au RGPD. Nous ne partageons jamais vos données avec des tiers. Pour l'IA de coaching, seuls les prénoms sont transmis (les noms de famille sont automatiquement anonymisés)."
               },
               {
                 question: "L'IA conserve-t-elle mes données commerciales ?",
-                answer: "Non. Les analyses IA utilisent uniquement les prénoms (pas les noms complets) et OpenAI ne stocke aucune donnée. Toutes les informations transmises sont automatiquement supprimées après traitement. Vos chiffres d'affaires et performances restent 100% confidentiels et ne sont jamais utilisés pour entraîner l'IA."
+                answer: "Non. Nous utilisons des technologies LLM (Large Language Models) via des protocoles sécurisés 'Entreprise'. Vos données sont anonymisées avant traitement et ne sont jamais utilisées pour entraîner les modèles publics. Une fois l'analyse générée, les données brutes ne sont pas conservées par le fournisseur d'IA."
               },
               {
                 question: "Faut-il installer un logiciel ?",
@@ -769,7 +769,7 @@ export default function LandingPage() {
               },
               {
                 question: "Proposez-vous une formation ?",
-                answer: "Oui, nous offrons un onboarding personnalisé pour tous les plans Medium Team et Large Team. Des tutoriels vidéo sont également disponibles."
+                answer: "L'outil est conçu pour être 'Plug & Play'. Pas besoin de formation lourde : des guides interactifs sont intégrés directement dans chaque écran pour vous accompagner pas à pas. Pour les réseaux (Plans Large Team), nous proposons un onboarding personnalisé."
               }
             ].map((faq, idx) => (
               <div key={`faq-${idx}-${faq.question.substring(0, 20)}`} className="bg-blue-50 rounded-xl border-2 border-[#1E40AF]/20 overflow-hidden hover:border-[#F97316] transition-colors">
@@ -886,8 +886,8 @@ export default function LandingPage() {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm font-medium text-[#334155] mb-1">Email</p>
-                    <a href="mailto:contact@retailperformerai.com" className="text-[#EA580C] font-semibold hover:underline">
-                      contact@retailperformerai.com
+                    <a href="mailto:hello@retailperformerai.com" className="text-[#EA580C] font-semibold hover:underline">
+                      hello@retailperformerai.com
                     </a>
                   </div>
                   <div>
@@ -957,7 +957,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm text-[#64748B]">
                 <li><button onClick={() => scrollToSection('faq')} className="hover:text-[#EA580C] transition-colors">FAQ</button></li>
                 <li><button onClick={() => scrollToSection('contact')} className="hover:text-[#EA580C] transition-colors">Contact</button></li>
-                <li><a href="mailto:contact@retailperformerai.com" className="hover:text-[#EA580C] transition-colors">Email</a></li>
+                <li><a href="mailto:hello@retailperformerai.com" className="hover:text-[#EA580C] transition-colors">Email</a></li>
               </ul>
             </div>
 
