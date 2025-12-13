@@ -715,13 +715,13 @@ Résume les points forts et les points à améliorer de manière positive et coa
         responses: List[Dict],
         seller_name: str
     ) -> Dict:
-        """Generate DISC diagnostic from seller responses"""
+        """Generate DISC diagnostic from seller responses - SÉCURISÉ"""
         if not self.available:
             return {
                 "style": "Adaptateur",
-                "level": 3,
+                "level": 50,
                 "strengths": ["Polyvalence", "Adaptabilité"],
-                "weaknesses": ["À définir"]
+                "axes_de_developpement": ["À explorer avec ton manager"]
             }
         
         responses_text = "\n".join([
@@ -729,34 +729,38 @@ Résume les points forts et les points à améliorer de manière positive et coa
             for r in responses
         ])
         
-        prompt = f"""Analyse les réponses de {seller_name}:
+        prompt = f"""Analyse les réponses de {seller_name} pour identifier son profil DISC et ses axes de développement.
 
 {responses_text}
 
-Détermine son profil DISC et réponds en JSON:
-{{"style": "D/I/S/C", "level": 1-5, "strengths": ["..."], "weaknesses": ["..."]}}"""
+Rappel : Tu dois aider ce vendeur à GRANDIR, pas le juger.
+Réponds en JSON avec le format attendu (style, level, strengths, axes_de_developpement)."""
 
         chat = self._create_chat(
             session_id=f"diagnostic_{uuid.uuid4()}",
             system_message=DIAGNOSTIC_SYSTEM_PROMPT,
-            model="gpt-4o-mini"
+            model="gpt-4o"  # 🎯 Premium model for psychological analysis
         )
         
         response = await self._send_message(chat, prompt)
         
         if response:
-            return parse_json_safely(response, {
+            result = parse_json_safely(response, {
                 "style": "Adaptateur",
-                "level": 3,
+                "level": 50,
                 "strengths": ["Polyvalence"],
-                "weaknesses": ["À définir"]
+                "axes_de_developpement": ["À explorer"]
             })
+            # Migration: convertir 'weaknesses' en 'axes_de_developpement' si présent
+            if 'weaknesses' in result and 'axes_de_developpement' not in result:
+                result['axes_de_developpement'] = result.pop('weaknesses')
+            return result
         
         return {
             "style": "Adaptateur",
-            "level": 3,
+            "level": 50,
             "strengths": ["Polyvalence", "Adaptabilité"],
-            "weaknesses": ["À définir"]
+            "axes_de_developpement": ["À explorer avec ton manager"]
         }
     
     async def generate_daily_challenge(
