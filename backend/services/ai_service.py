@@ -863,3 +863,151 @@ class AIDataService:
         ).sort("date", -1).limit(days).to_list(days)
         
         return await self.ai_service.generate_seller_bilan(seller_data, kpis)
+
+
+# ==============================================================================
+# 📋 EVALUATION GUIDE PROMPTS (Entretien Annuel)
+# ==============================================================================
+
+EVALUATION_MANAGER_PROMPT = """Tu es un DRH Expert en Retail. Tu assistes un Manager pour l'entretien d'évaluation de {employee_name}.
+
+📅 Période analysée : {period}
+📊 Données réelles du vendeur :
+{stats}
+
+🎯 TA MISSION : Rédige un guide d'entretien structuré :
+
+## 1. Analyse Factuelle
+Commente les chiffres objectivement :
+- **Succès** : Points forts mesurables
+- **Points de vigilance** : Axes d'amélioration basés sur les données
+
+## 2. Soft Skills (Points à Observer)
+Suggère des points à vérifier lors de l'entretien sous forme de questions :
+- Ponctualité et engagement
+- Esprit d'équipe et collaboration
+- Attitude face aux clients
+
+## 3. Questions de Coaching
+Propose 3 questions puissantes pour faire parler le vendeur de ses ambitions :
+1. Question sur son ressenti général
+2. Question sur ses réussites personnelles
+3. Question sur ses projets d'évolution
+
+## 4. Proposition d'Objectifs
+Suggère 2 objectifs chiffrés réalistes pour la prochaine période basés sur l'historique.
+
+**Ton** : Professionnel, Constructif, Bienveillant. Tutoiement."""
+
+EVALUATION_SELLER_PROMPT = """Tu es un Coach Carrière. Tu aides {employee_name}, vendeur(se), à préparer son entretien annuel.
+
+📊 Tes chiffres sur la période ({period}) :
+{stats}
+
+🎯 TA MISSION : Prépare une fiche de défense motivante :
+
+## 1. Mes Victoires 🏆
+Mets en avant tes meilleurs chiffres avec des formulations valorisantes :
+- "J'ai maintenu un Panier Moyen de X€"
+- "J'ai réalisé un CA de X€ sur la période"
+
+## 2. Mes Axes de Progrès 📈
+Comment expliquer les chiffres moins bons sans te chercher d'excuses :
+- Identifie ce que tu dois travailler (closing, découverte, etc.)
+- Montre que tu en es conscient et que tu as un plan
+
+## 3. Mes Souhaits et Demandes 🌟
+Formulations types pour :
+- Demander une formation spécifique
+- Exprimer tes ambitions d'évolution
+- Proposer des idées d'amélioration
+
+## 4. Mes Questions à Poser
+3 questions pertinentes à poser à ton manager pour montrer ta motivation.
+
+**Ton** : Motivant, Confiant, Orienté Solutions. Tutoiement."""
+
+
+class EvaluationGuideService:
+    """Service pour générer les guides d'entretien annuel"""
+    
+    def __init__(self):
+        self.emergent_key = os.environ.get('EMERGENT_LLM_KEY')
+    
+    async def generate_evaluation_guide(
+        self,
+        role: str,
+        stats: Dict,
+        employee_name: str,
+        period: str
+    ) -> str:
+        """
+        Génère un guide d'entretien adapté au rôle de l'appelant.
+        
+        Args:
+            role: 'manager' ou 'seller'
+            stats: Statistiques agrégées sur la période
+            employee_name: Nom du vendeur évalué
+            period: Description de la période (ex: "01/01/2024 - 31/12/2024")
+        
+        Returns:
+            Guide d'entretien en Markdown
+        """
+        # Formatage des stats pour le prompt
+        stats_text = self._format_stats(stats)
+        
+        # Choix du prompt selon le rôle
+        if role in ['manager', 'gerant']:
+            system_prompt = EVALUATION_MANAGER_PROMPT.format(
+                employee_name=employee_name,
+                period=period,
+                stats=stats_text
+            )
+        else:  # seller
+            system_prompt = EVALUATION_SELLER_PROMPT.format(
+                employee_name=employee_name,
+                period=period,
+                stats=stats_text
+            )
+        
+        # Appel à l'IA
+        try:
+            chat = LlmChat(
+                api_key=self.emergent_key,
+                model="gpt-4o-mini",
+                system_message=system_prompt
+            )
+            
+            user_message = f"Génère le guide d'entretien pour {employee_name}."
+            response = chat.send_user_message(user_message)
+            
+            return response or "Erreur lors de la génération du guide."
+            
+        except Exception as e:
+            return f"Erreur lors de la génération : {str(e)}"
+    
+    def _format_stats(self, stats: Dict) -> str:
+        """Formate les statistiques pour le prompt IA"""
+        lines = []
+        
+        if stats.get('total_ca'):
+            lines.append(f"- **Chiffre d'Affaires Total** : {stats['total_ca']:,.0f} €")
+        if stats.get('avg_ca'):
+            lines.append(f"- **CA Moyen/Jour** : {stats['avg_ca']:,.0f} €")
+        if stats.get('total_ventes'):
+            lines.append(f"- **Nombre de Ventes** : {stats['total_ventes']}")
+        if stats.get('avg_panier'):
+            lines.append(f"- **Panier Moyen** : {stats['avg_panier']:,.0f} €")
+        if stats.get('avg_articles'):
+            lines.append(f"- **Articles/Vente (Indice de Vente)** : {stats['avg_articles']:.1f}")
+        if stats.get('avg_taux_transfo'):
+            lines.append(f"- **Taux de Transformation** : {stats['avg_taux_transfo']:.1f}%")
+        if stats.get('days_worked'):
+            lines.append(f"- **Jours travaillés** : {stats['days_worked']}")
+        if stats.get('best_day_ca'):
+            lines.append(f"- **Meilleur jour (CA)** : {stats['best_day_ca']:,.0f} €")
+        if stats.get('worst_day_ca'):
+            lines.append(f"- **Jour le plus faible (CA)** : {stats['worst_day_ca']:,.0f} €")
+        
+        return "\n".join(lines) if lines else "Aucune donnée disponible"
+
