@@ -2,16 +2,22 @@
 Configuration management using Pydantic Settings
 Validates environment variables at startup
 """
+import sys
+import os
+from pathlib import Path
+
+# Early debug output
+print("[CONFIG] Loading configuration...", flush=True)
+
 from pydantic_settings import BaseSettings
 from pydantic import Field
 from typing import Optional
-import os
-from pathlib import Path
 
 # Load .env file - IMPORTANT: override=False ensures Kubernetes-injected env vars take precedence
 ROOT_DIR = Path(__file__).parent.parent
 from dotenv import load_dotenv
 load_dotenv(ROOT_DIR / '.env', override=False)
+print(f"[CONFIG] .env loaded from {ROOT_DIR / '.env'}", flush=True)
 
 
 class Settings(BaseSettings):
