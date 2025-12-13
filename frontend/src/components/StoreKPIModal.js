@@ -616,20 +616,21 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       };
       
       // Ajouter seulement les KPIs activés côté manager
-      if (kpiConfig.manager_track_ca && managerKPIData.ca_journalier) {
-        payload.ca_journalier = parseFloat(managerKPIData.ca_journalier);
+      // Note: On vérifie !== '' pour inclure les valeurs 0
+      if (kpiConfig.manager_track_ca && managerKPIData.ca_journalier !== '') {
+        payload.ca_journalier = parseFloat(managerKPIData.ca_journalier) || 0;
       }
-      if (kpiConfig.manager_track_ventes && managerKPIData.nb_ventes) {
-        payload.nb_ventes = parseInt(managerKPIData.nb_ventes);
+      if (kpiConfig.manager_track_ventes && managerKPIData.nb_ventes !== '') {
+        payload.nb_ventes = parseInt(managerKPIData.nb_ventes) || 0;
       }
-      if (kpiConfig.manager_track_clients && managerKPIData.nb_clients) {
-        payload.nb_clients = parseInt(managerKPIData.nb_clients);
+      if (kpiConfig.manager_track_clients && managerKPIData.nb_clients !== '') {
+        payload.nb_clients = parseInt(managerKPIData.nb_clients) || 0;
       }
-      if (kpiConfig.manager_track_articles && managerKPIData.nb_articles) {
-        payload.nb_articles = parseInt(managerKPIData.nb_articles);
+      if (kpiConfig.manager_track_articles && managerKPIData.nb_articles !== '') {
+        payload.nb_articles = parseInt(managerKPIData.nb_articles) || 0;
       }
-      if (kpiConfig.manager_track_prospects && managerKPIData.nb_prospects) {
-        payload.nb_prospects = parseInt(managerKPIData.nb_prospects);
+      if (kpiConfig.manager_track_prospects && managerKPIData.nb_prospects !== '') {
+        payload.nb_prospects = parseInt(managerKPIData.nb_prospects) || 0;
       }
 
       // Add store_id for gerant viewing specific store
