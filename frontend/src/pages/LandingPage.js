@@ -435,6 +435,66 @@ export default function LandingPage() {
                 />
               </div>
             </div>
+
+            {/* Screenshot 3 - Dashboard Gérant */}
+            <div className="grid md:grid-cols-2 gap-8 items-center pt-8 border-t border-gray-200">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-1 rounded-full text-sm font-semibold mb-4">
+                  <Building2 className="w-4 h-4" />
+                  Nouveau : Espace Gérant / Directeur
+                </div>
+                <h3 className="text-3xl font-bold text-[#1E40AF] mb-4">Dashboard Gérant Multi-Magasins</h3>
+                <p className="text-lg text-[#334155] mb-6">
+                  Pilotez l'ensemble de votre réseau depuis une interface centralisée. 
+                  Vision 360° de tous vos magasins, managers et vendeurs.
+                </p>
+                <ul className="space-y-3 mb-6">
+                  {[
+                    'Vue consolidée du CA et des KPI de tous vos points de vente',
+                    'Gestion centralisée des magasins (création, modification, équipes)',
+                    'Suivi de tous vos managers et vendeurs en temps réel',
+                    'Comparaison de performance entre magasins',
+                    'Intégrations API pour synchroniser vos données existantes'
+                  ].map((item, idx) => (
+                    <li key={`gerant-feature-${idx}-${item.substring(0, 15)}`} className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-[#10B981] flex-shrink-0 mt-1" />
+                      <span className="text-[#334155]">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200">
+                    <Building2 className="w-6 h-6 text-orange-600 mx-auto mb-1" />
+                    <p className="text-2xl font-bold text-orange-600">∞</p>
+                    <p className="text-xs text-gray-600">Magasins</p>
+                  </div>
+                  <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                    <Users className="w-6 h-6 text-blue-600 mx-auto mb-1" />
+                    <p className="text-2xl font-bold text-blue-600">∞</p>
+                    <p className="text-xs text-gray-600">Managers</p>
+                  </div>
+                  <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+                    <BarChart3 className="w-6 h-6 text-purple-600 mx-auto mb-1" />
+                    <p className="text-2xl font-bold text-purple-600">100%</p>
+                    <p className="text-xs text-gray-600">Visibilité</p>
+                  </div>
+                </div>
+                <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/5 border-l-4 border-purple-500 p-4 rounded-r-lg">
+                  <p className="text-sm font-semibold text-purple-700 mb-2">🏢 Fonctionnalités Gérant Exclusives</p>
+                  <p className="text-sm text-[#334155]">
+                    Invitez vos managers par email, gérez les permissions, configurez vos intégrations API et accédez à des rapports consolidés pour votre direction.
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-purple-200">
+                <img 
+                  src="https://customer-assets.emergentagent.com/job_review-helper-8/artifacts/7vi2qv0s_image.png" 
+                  alt="Dashboard Gérant - Vue Multi-Magasins"
+                  className="w-full h-auto"
+                  loading="lazy"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
