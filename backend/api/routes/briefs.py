@@ -2,16 +2,19 @@
 Morning Brief Routes
 API endpoints for generating morning briefs for managers
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from typing import Optional, Dict
-from datetime import datetime, timedelta
+from typing import Optional, Dict, List
+from datetime import datetime, timedelta, timezone
+from uuid import uuid4
+import logging
 
 from api.dependencies import get_db
 from core.security import get_current_user
 from services.ai_service import ai_service
 
 router = APIRouter(prefix="/briefs", tags=["Morning Briefs"])
+logger = logging.getLogger(__name__)
 
 
 class MorningBriefRequest(BaseModel):
@@ -29,6 +32,7 @@ class MorningBriefResponse(BaseModel):
     """Response model for morning brief"""
     success: bool
     brief: str
+    brief_id: Optional[str] = None  # ID pour l'historique
     date: str
     data_date: Optional[str] = None  # Date du dernier jour avec données
     store_name: str
@@ -36,6 +40,19 @@ class MorningBriefResponse(BaseModel):
     has_context: bool
     generated_at: str
     fallback: Optional[bool] = False
+
+
+class BriefHistoryItem(BaseModel):
+    """Model for brief history items"""
+    brief_id: str
+    brief: str
+    date: str
+    data_date: Optional[str] = None
+    store_name: str
+    manager_name: str
+    has_context: bool
+    context: Optional[str] = None
+    generated_at: str
 
 
 @router.post("/morning", response_model=MorningBriefResponse)
