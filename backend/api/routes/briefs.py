@@ -457,13 +457,3 @@ async def delete_morning_brief(
     except Exception as e:
         logger.error(f"Error deleting brief: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-            stats["team_present"] = ", ".join(names)
-            if len(sellers) > 5:
-                stats["team_present"] += f" et {len(sellers) - 5} autres"
-        
-    except Exception as e:
-        import logging
-        logging.error(f"Erreur récupération stats brief: {e}")
-    
-    return stats
