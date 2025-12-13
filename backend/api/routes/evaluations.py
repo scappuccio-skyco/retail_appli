@@ -244,14 +244,18 @@ async def generate_evaluation_guide(
     except ValueError:
         period = f"{request.start_date} - {request.end_date}"
     
-    # 5. Générer le guide IA
+    # 5. 🎨 Récupérer le profil DISC de l'employé pour personnalisation
+    disc_profile = await get_disc_profile(db, request.employee_id)
+    
+    # 6. Générer le guide IA avec le profil DISC
     evaluation_service = EvaluationGuideService()
     guide_content = await evaluation_service.generate_evaluation_guide(
         role=role_perspective,
         stats=stats,
         employee_name=employee_name,
         period=period,
-        comments=request.comments
+        comments=request.comments,
+        disc_profile=disc_profile
     )
     
     return EvaluationGuideResponse(
