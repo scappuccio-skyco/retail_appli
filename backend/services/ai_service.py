@@ -973,6 +973,7 @@ class EvaluationGuideService:
         # Appel à l'IA avec la bonne syntaxe
         try:
             import uuid
+            from emergentintegrations.llm.chat import UserMessage
             session_id = str(uuid.uuid4())
             
             chat = LlmChat(
@@ -981,12 +982,13 @@ class EvaluationGuideService:
                 system_message=system_prompt
             ).with_model("openai", "gpt-4o-mini")
             
-            user_message = f"Génère le guide d'entretien pour {employee_name}."
-            response = chat.send_user_message(user_message)
+            user_message = UserMessage(text=f"Génère le guide d'entretien pour {employee_name}.")
+            response = await chat.send_message(user_message)
             
             return response or "Erreur lors de la génération du guide."
             
         except Exception as e:
+            import traceback
             return f"Erreur lors de la génération : {str(e)}"
     
     def _format_stats(self, stats: Dict) -> str:
