@@ -1478,32 +1478,141 @@ class GerantService:
         role_text = "Manager" if invitation['role'] == 'manager' else "Vendeur"
         invitation_link = f"{frontend_url}/invitation/{invitation['token']}"
         
-        email_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head><meta charset="UTF-8"></head>
-        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0;">
-                <h1 style="color: white; margin: 0; text-align: center;">Retail Coach</h1>
-            </div>
-            <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-                <h2 style="color: #1f2937;">Invitation à rejoindre l'équipe</h2>
-                <p style="color: #4b5563;">Bonjour <strong>{invitation['name']}</strong>,</p>
-                <p style="color: #4b5563;">Vous avez été invité(e) à rejoindre l'équipe de <strong>{invitation['store_name']}</strong> en tant que <strong>{role_text}</strong>.</p>
-                <p style="color: #4b5563;">Cliquez sur le bouton ci-dessous pour créer votre compte et accéder à la plateforme :</p>
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="{invitation_link}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Accepter l'invitation</a>
+        # Use role-specific templates with features list
+        if invitation['role'] == 'manager':
+            # Manager invitation template
+            store_info = f" pour le magasin <strong>{invitation['store_name']}</strong>" if invitation.get('store_name') else ""
+            gerant_name = invitation.get('gerant_name') or "Votre gérant"
+            
+            email_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                    <h1 style="color: white; margin: 0;">👋 Vous êtes invité !</h1>
                 </div>
-                <p style="color: #9ca3af; font-size: 14px;">Ce lien expire dans 7 jours.</p>
-                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-                <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-                    Cet email a été envoyé par Retail Coach.<br>
-                    Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet email.
-                </p>
-            </div>
-        </body>
-        </html>
-        """
+                
+                <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+                    <p style="font-size: 16px;">Bonjour {invitation['name']},</p>
+                    
+                    <p style="font-size: 16px;">
+                        <strong>{gerant_name}</strong> vous invite à rejoindre son équipe{store_info} 
+                        sur <strong>Retail Performer AI</strong>.
+                    </p>
+                    
+                    <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9333ea;">
+                        <h3 style="margin-top: 0; color: #9333ea;">🎯 En tant que Manager, vous pourrez :</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0;">👥 <strong>Consulter les performances</strong> de chaque membre de votre équipe</li>
+                            <li style="padding: 8px 0;">📊 <strong>Suivre les KPI</strong> de votre magasin en temps réel</li>
+                            <li style="padding: 8px 0;">🎯 <strong>Créer et suivre des objectifs</strong> individuels et collectifs</li>
+                            <li style="padding: 8px 0;">🏆 <strong>Lancer des challenges</strong> pour motiver votre équipe</li>
+                            <li style="padding: 8px 0;">🤖 <strong>Coaching IA personnalisé</strong> pour booster les performances</li>
+                            <li style="padding: 8px 0;">📋 <strong>Générer des bilans et entretiens annuels</strong> en 1 clic avec l'IA</li>
+                            <li style="padding: 8px 0;">🤝 <strong>Conseils IA relationnels</strong> adaptés à chaque profil DISC de vos vendeurs</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{invitation_link}" 
+                           style="background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%); 
+                                  color: white; 
+                                  padding: 15px 40px; 
+                                  text-decoration: none; 
+                                  border-radius: 25px; 
+                                  font-size: 16px; 
+                                  font-weight: bold; 
+                                  display: inline-block;
+                                  box-shadow: 0 4px 15px rgba(147, 51, 234, 0.4);">
+                            ✅ Accepter l'invitation
+                        </a>
+                    </div>
+                    
+                    <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                        <strong>Note :</strong> Ce lien d'invitation est valable pendant 7 jours.
+                    </p>
+                    
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                    
+                    <p style="font-size: 12px; color: #999; text-align: center;">
+                        Retail Performer AI<br>
+                        © 2024 Tous droits réservés
+                    </p>
+                </div>
+            </body>
+            </html>
+            """
+            email_subject = f"👋 {gerant_name} vous invite à rejoindre Retail Performer AI"
+        else:
+            # Seller invitation template
+            store_info = f" du magasin <strong>{invitation['store_name']}</strong>" if invitation.get('store_name') else ""
+            manager_name = invitation.get('manager_name') or invitation.get('gerant_name') or "Votre manager"
+            
+            email_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                    <h1 style="color: white; margin: 0;">🌟 Bienvenue dans l'équipe !</h1>
+                </div>
+                
+                <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+                    <p style="font-size: 16px;">Bonjour {invitation['name']},</p>
+                    
+                    <p style="font-size: 16px;">
+                        <strong>{manager_name}</strong>, votre manager{store_info}, 
+                        vous invite à rejoindre <strong>Retail Performer AI</strong> !
+                    </p>
+                    
+                    <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9333ea;">
+                        <h3 style="margin-top: 0; color: #9333ea;">🚀 Votre espace personnel :</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0;">📊 Suivre vos KPI et performances en temps réel</li>
+                            <li style="padding: 8px 0;">🎯 Consulter vos objectifs et challenges</li>
+                            <li style="padding: 8px 0;">🤖 Créer vos défis personnels avec votre coach IA</li>
+                            <li style="padding: 8px 0;">✅ Analyser vos ventes conclues avec l'IA</li>
+                            <li style="padding: 8px 0;">❌ Analyser vos opportunités manquées avec l'IA</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{invitation_link}" 
+                           style="background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%); 
+                                  color: white; 
+                                  padding: 15px 40px; 
+                                  text-decoration: none; 
+                                  border-radius: 25px; 
+                                  font-size: 16px; 
+                                  font-weight: bold; 
+                                  display: inline-block;
+                                  box-shadow: 0 4px 15px rgba(147, 51, 234, 0.4);">
+                            🎉 Commencer maintenant
+                        </a>
+                    </div>
+                    
+                    <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                        <strong>Note :</strong> Ce lien d'invitation est valable pendant 7 jours.
+                    </p>
+                    
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                    
+                    <p style="font-size: 12px; color: #999; text-align: center;">
+                        Retail Performer AI - Votre coach personnel<br>
+                        © 2024 Tous droits réservés
+                    </p>
+                </div>
+            </body>
+            </html>
+            """
+            email_subject = f"🌟 {manager_name} vous invite à rejoindre l'équipe !"
         
         # Get sender email from environment
         sender_email = os.environ.get('SENDER_EMAIL', 'hello@retailperformerai.com')
