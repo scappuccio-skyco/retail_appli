@@ -556,7 +556,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         if (field === 'manager_track_prospects') updatedConfig.seller_track_prospects = false;
       }
       
-      await axios.put(`${API}/api/manager/kpi-config`, updatedConfig, {
+      // Ajouter store_id pour les gérants
+      const storeParam = storeId ? `?store_id=${storeId}` : '';
+      await axios.put(`${API}/api/manager/kpi-config${storeParam}`, updatedConfig, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
