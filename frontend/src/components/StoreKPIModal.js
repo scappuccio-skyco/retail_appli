@@ -8,7 +8,7 @@ import KPICalendar from './KPICalendar';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
-export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, hideCloseButton = false, storeId = null, storeName = null }) {
+export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, hideCloseButton = false, storeId = null, storeName = null, isManager = false }) {
   const [activeTab, setActiveTab] = useState('daily');
   const [overviewData, setOverviewData] = useState(null);
   const [overviewDate, setOverviewDate] = useState(initialDate || new Date().toISOString().split('T')[0]);
