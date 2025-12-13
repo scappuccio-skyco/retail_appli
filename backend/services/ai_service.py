@@ -943,7 +943,6 @@ Génère un bilan terrain motivant avec :
         Returns:
             Dict avec le brief formaté en markdown et les métadonnées
         """
-        logger.info(f"Morning brief called with data_date: {data_date}")
         if not EMERGENT_AVAILABLE:
             return self._fallback_morning_brief(stats, manager_name, store_name)
         
