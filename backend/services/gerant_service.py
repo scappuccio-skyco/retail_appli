@@ -755,10 +755,13 @@ class GerantService:
                 "has_subscription": False,
                 "status": "inactive",
                 "message": "Aucun abonnement actif",
-                "active_sellers_count": active_sellers_count
+                "active_sellers_count": active_sellers_count,
+                "workspace_name": workspace_name
             }
         
-        return await self._format_db_subscription(db_subscription, gerant_id)
+        result = await self._format_db_subscription(db_subscription, gerant_id)
+        result["workspace_name"] = workspace_name
+        return result
     
     async def _format_stripe_subscription(self, subscription, gerant_id: str) -> Dict:
         """Format Stripe subscription data"""
