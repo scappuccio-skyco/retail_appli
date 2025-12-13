@@ -1473,8 +1473,8 @@ class GerantService:
         """
         
         # Get sender email from environment
-        sender_email = env_vars.get('SENDER_EMAIL') or os.environ.get('SENDER_EMAIL', 'hello@retailperformerai.com')
-        sender_name = env_vars.get('SENDER_NAME') or os.environ.get('SENDER_NAME', 'Retail Performer AI')
+        sender_email = os.environ.get('SENDER_EMAIL', 'hello@retailperformerai.com')
+        sender_name = os.environ.get('SENDER_NAME', 'Retail Performer AI')
         
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
