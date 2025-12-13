@@ -1020,30 +1020,37 @@ Réponds avec ce JSON EXACT (pas de texte avant/après) :
             cleaned = clean_json_response(response)
             parsed = json.loads(cleaned)
             
-            # Valider les champs requis
-            required_fields = ['synthese', 'victoires', 'axes_progres', 'objectifs']
+            # Valider les champs requis selon le rôle
+            if role in ['manager', 'gerant']:
+                required_fields = ['synthese', 'victoires', 'axes_progres', 'objectifs', 'questions_coaching']
+            else:  # seller
+                required_fields = ['synthese', 'victoires', 'axes_progres', 'souhaits', 'questions_manager']
+            
             for field in required_fields:
                 if field not in parsed:
                     parsed[field] = []
-            
-            # Ajouter le champ role-specific s'il manque
-            if role in ['manager', 'gerant'] and 'questions_coaching' not in parsed:
-                parsed['questions_coaching'] = []
-            elif role == 'seller' and 'questions_manager' not in parsed:
-                parsed['questions_manager'] = []
             
             return parsed
             
         except (json.JSONDecodeError, Exception) as e:
             logger.warning(f"Parsing JSON échoué: {e}, réponse: {response[:200]}")
             # Retourner la réponse brute dans synthese si parsing échoue
-            return {
-                "synthese": response[:500] if response else "Erreur de génération",
-                "victoires": [],
-                "axes_progres": [],
-                "objectifs": [],
-                "questions_coaching" if role in ['manager', 'gerant'] else "questions_manager": []
-            }
+            if role in ['manager', 'gerant']:
+                return {
+                    "synthese": response[:500] if response else "Erreur de génération",
+                    "victoires": [],
+                    "axes_progres": [],
+                    "objectifs": [],
+                    "questions_coaching": []
+                }
+            else:
+                return {
+                    "synthese": response[:500] if response else "Erreur de génération",
+                    "victoires": [],
+                    "axes_progres": [],
+                    "souhaits": [],
+                    "questions_manager": []
+                }
     
     def _fallback_guide(self, role: str, employee_name: str, stats: Dict) -> Dict:
         """Guide de fallback si l'IA échoue"""
