@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, Zap, Users, TrendingUp, Target, ChevronDown, Menu, X, Briefcase, Star, FileText, Shield, Building2, BarChart3, Settings } from 'lucide-react';
+import { ArrowRight, Check, Zap, Users, TrendingUp, Target, ChevronDown, Menu, X, Briefcase, Star, FileText, Shield, Building2, BarChart3, Settings, Calendar, Clock, Send, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function LandingPage() {
   const navigate = useNavigate();
