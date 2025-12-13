@@ -1515,7 +1515,7 @@ class GerantService:
                     "htmlContent": email_content
                 }
                 
-                logger.info(f"📧 Sending email via Brevo:")
+                logger.info("📧 Sending email via Brevo:")
                 logger.info(f"   - From: {sender_name} <{sender_email}>")
                 logger.info(f"   - To: {invitation['name']} <{invitation['email']}>")
                 logger.info(f"   - Subject: Invitation à rejoindre {invitation['store_name']}")
