@@ -439,10 +439,6 @@ export default function LandingPage() {
             {/* Screenshot 3 - Dashboard Gérant */}
             <div className="grid md:grid-cols-2 gap-8 items-center pt-8 border-t border-gray-200">
               <div>
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-1 rounded-full text-sm font-semibold mb-4">
-                  <Building2 className="w-4 h-4" />
-                  Nouveau : Espace Gérant / Directeur
-                </div>
                 <h3 className="text-3xl font-bold text-[#1E40AF] mb-4">Dashboard Gérant Multi-Magasins</h3>
                 <p className="text-lg text-[#334155] mb-6">
                   Pilotez l'ensemble de votre réseau depuis une interface centralisée. 
