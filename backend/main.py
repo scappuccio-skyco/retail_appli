@@ -75,35 +75,44 @@ async def startup_event():
     Initialize application on startup
     - Connect to MongoDB (with retry for Atlas)
     """
-    import os
     import asyncio
     worker_id = os.getpid()
+    
+    print(f"[STARTUP-EVENT] Starting startup_event (worker PID: {worker_id})", flush=True)
     
     try:
         logger.info(f"Starting application (worker PID: {worker_id})...")
         
         # Connect to MongoDB with retry logic - important for Atlas cold starts
-        max_retries = 10
+        max_retries = 3  # Reduced from 10 to fail faster
         retry_delay = 1
+        
+        print(f"[STARTUP-EVENT] Attempting MongoDB connection (max {max_retries} retries)...", flush=True)
         
         for attempt in range(max_retries):
             try:
+                print(f"[STARTUP-EVENT] MongoDB connection attempt {attempt + 1}/{max_retries}...", flush=True)
                 await database.connect()
                 logger.info(f"✅ MongoDB connection established (worker {worker_id})")
+                print(f"[STARTUP-EVENT] ✅ MongoDB connected successfully!", flush=True)
                 break
             except Exception as e:
+                print(f"[STARTUP-EVENT] ❌ MongoDB attempt {attempt + 1} failed: {e}", flush=True)
                 if attempt < max_retries - 1:
                     logger.warning(f"MongoDB connection attempt {attempt + 1}/{max_retries} failed: {e}, retrying in {retry_delay}s...")
                     await asyncio.sleep(retry_delay)
-                    retry_delay = min(retry_delay * 1.5, 5)  # Cap at 5 seconds
+                    retry_delay = min(retry_delay * 1.5, 3)  # Cap at 3 seconds
                 else:
                     logger.error(f"Failed to connect to MongoDB after {max_retries} attempts: {e}")
+                    print(f"[STARTUP-EVENT] ⚠️ Starting without DB - endpoints will fail gracefully", flush=True)
                     # Don't raise - let the app start anyway, endpoints will fail gracefully
                     logger.warning("Application starting without database connection - endpoints will return errors")
         
+        print(f"[STARTUP-EVENT] 🚀 Startup complete (worker PID: {worker_id})", flush=True)
         logger.info(f"🚀 Application startup complete (worker PID: {worker_id})")
         
     except Exception as e:
+        print(f"[STARTUP-EVENT] ❌ Non-fatal startup error: {e}", flush=True)
         logger.error(f"❌ Startup error (non-fatal): {e}")
         # Don't raise - allow health check to pass
 
