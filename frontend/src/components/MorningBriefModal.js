@@ -139,16 +139,19 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
         <div key={sectionIdx} className={`rounded-xl p-5 shadow-sm border-2 ${colorScheme.card}`}>
           {/* Badge titre */}
           <div className="mb-4">
-            <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full font-bold text-sm ${colorScheme.badge}`}>
+            <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${colorScheme.badge}`}>
               {title}
             </span>
           </div>
           
           {/* Contenu */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             {content.split('\n').map((line, lineIdx) => {
               const cleaned = line.trim();
               if (!cleaned) return null;
+              
+              // Ignorer les lignes de séparation (--- ou ***)
+              if (cleaned === '---' || cleaned === '***' || cleaned.startsWith('*Brief généré')) return null;
               
               // Titre en gras seul sur une ligne (**Titre**)
               if (cleaned.startsWith('**') && cleaned.endsWith('**') && !cleaned.includes(':') && cleaned.split('**').length === 3) {
@@ -161,36 +164,18 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                 );
               }
               
-              // Ligne avec **Label** : Valeur (comme CA réalisé, Top Performance, etc.)
-              if (cleaned.includes('**') && cleaned.includes(':')) {
-                const parts = cleaned.split(/(\*\*.*?\*\*)/g);
-                
-                return (
-                  <div key={lineIdx} className="flex gap-2 items-start">
-                    <p className="flex-1 text-gray-700 leading-relaxed">
-                      {parts.map((part, i) => {
-                        if (part.startsWith('**') && part.endsWith('**')) {
-                          return <strong key={i} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
-                        }
-                        return <span key={i}>{part}</span>;
-                      })}
-                    </p>
-                  </div>
-                );
-              }
-              
-              // Liste à puces
+              // Liste à puces avec **Label** : Valeur
               if (cleaned.startsWith('-') || cleaned.startsWith('•')) {
                 const text = cleaned.replace(/^[-•]\s*/, '');
                 const parts = text.split(/(\*\*.*?\*\*)/g);
                 
                 return (
-                  <div key={lineIdx} className="flex gap-3 items-start">
-                    <span className="text-gray-400 font-bold text-lg mt-0.5">•</span>
+                  <div key={lineIdx} className="flex gap-3 items-start pl-2">
+                    <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 bg-gradient-to-br ${colorScheme.gradient}`}></span>
                     <p className="flex-1 text-gray-700 leading-relaxed">
                       {parts.map((part, i) => {
                         if (part.startsWith('**') && part.endsWith('**')) {
-                          return <strong key={i} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
+                          return <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>;
                         }
                         return <span key={i}>{part}</span>;
                       })}
@@ -205,7 +190,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                 <p key={lineIdx} className="text-gray-700 leading-relaxed">
                   {parts.map((part, i) => {
                     if (part.startsWith('**') && part.endsWith('**')) {
-                      return <strong key={i} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
+                      return <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>;
                     }
                     return <span key={i}>{part}</span>;
                   })}
