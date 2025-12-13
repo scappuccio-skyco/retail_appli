@@ -680,7 +680,8 @@ class GerantService:
                                 "billing_interval": "month"
                             },
                             "remaining_seats": (max_sellers - active_sellers_count) if max_sellers else 999,
-                            "message": f"Essai gratuit - {days_left} jour{'s' if days_left > 1 else ''} restant{'s' if days_left > 1 else ''}"
+                            "message": f"Essai gratuit - {days_left} jour{'s' if days_left > 1 else ''} restant{'s' if days_left > 1 else ''}",
+                            "workspace_name": workspace.get('name')
                         }
                 
                 # If trial expired
