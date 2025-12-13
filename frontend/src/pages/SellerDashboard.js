@@ -1201,6 +1201,31 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           </div>
         )}
 
+        {/* Préparer mon Entretien Annuel Card */}
+        <div 
+          onClick={() => setShowEvaluationModal(true)}
+          className="glass-morphism rounded-2xl overflow-hidden cursor-pointer group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-pink-400"
+        >
+          <div className="relative h-48 overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&h=400&fit=crop" 
+              alt="Préparer mon Entretien Annuel"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-700/70 via-rose-600/70 to-red-600/70 group-hover:from-pink-700/60 group-hover:via-rose-600/60 group-hover:to-red-600/60 transition-all"></div>
+            
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center text-white px-4">
+                <div className="w-16 h-16 bg-white bg-opacity-30 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                  <FileText className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-bold">🎯 Préparer mon Entretien</h2>
+                <p className="text-sm mt-2 opacity-90">Fiche de préparation IA pour ton bilan annuel →</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         </div>
         {/* End of Grid 2x2 */}
 
