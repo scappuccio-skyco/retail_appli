@@ -228,6 +228,86 @@ async def root():
         "docs": "/docs" if settings.ENVIRONMENT != "production" else "Contact admin for documentation"
     }
 
+
+# ==========================================
+# Legacy/Compatibility endpoints for old invitation links
+# ==========================================
+
+@app.get("/api/invitations/gerant/verify/{token}")
+async def verify_gerant_invitation_legacy(token: str):
+    """
+    Legacy endpoint for verifying gerant invitations.
+    Redirects to the unified invitation verification endpoint.
+    Used by old RegisterManager.js and RegisterSeller.js pages.
+    """
+    from core.database import get_db
+    db = database.get_database()
+    
+    # Check in gerant_invitations collection
+    invitation = await db.gerant_invitations.find_one(
+        {"token": token},
+        {"_id": 0}
+    )
+    
+    if not invitation:
+        # Try the old invitations collection
+        invitation = await db.invitations.find_one(
+            {"token": token},
+            {"_id": 0}
+        )
+    
+    if not invitation:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Invitation non trouvée ou expirée")
+    
+    if invitation.get('status') == 'accepted':
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Cette invitation a déjà été utilisée")
+    
+    if invitation.get('status') == 'expired':
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Cette invitation a expiré")
+    
+    return {
+        "valid": True,
+        "email": invitation.get('email'),
+        "role": invitation.get('role', 'seller'),
+        "store_name": invitation.get('store_name'),
+        "gerant_name": invitation.get('gerant_name'),
+        "manager_name": invitation.get('manager_name'),
+        "name": invitation.get('name', ''),
+        "gerant_id": invitation.get('gerant_id'),
+        "store_id": invitation.get('store_id'),
+        "manager_id": invitation.get('manager_id')
+    }
+
+
+@app.post("/api/auth/register-with-gerant-invite")
+async def register_with_gerant_invite_legacy(request_data: dict):
+    """
+    Legacy endpoint for registering with gerant invitation.
+    Used by old RegisterManager.js and RegisterSeller.js pages.
+    """
+    from services.auth_service import AuthService
+    from repositories.user_repository import UserRepository
+    
+    db = database.get_database()
+    user_repo = UserRepository(db)
+    auth_service = AuthService(db, user_repo)
+    
+    try:
+        result = await auth_service.register_with_invitation(
+            email=request_data.get('email', ''),
+            password=request_data.get('password'),
+            name=request_data.get('name'),
+            invitation_token=request_data.get('invitation_token')
+        )
+        return result
+    except Exception as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
