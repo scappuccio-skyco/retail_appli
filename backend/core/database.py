@@ -33,15 +33,28 @@ class Database:
         
         try:
             logger.info("Establishing MongoDB connection...")
-            self.client = AsyncIOMotorClient(settings.MONGO_URL)
+            print("[DATABASE] Connecting to MongoDB...", flush=True)
+            
+            # Add connection timeout settings for faster failure detection
+            self.client = AsyncIOMotorClient(
+                settings.MONGO_URL,
+                serverSelectionTimeoutMS=5000,  # 5 second timeout for server selection
+                connectTimeoutMS=5000,          # 5 second connection timeout
+                socketTimeoutMS=10000,          # 10 second socket timeout
+                maxPoolSize=10,                 # Limit pool size
+                retryWrites=True
+            )
             self.db = self.client[settings.DB_NAME]
             
+            print("[DATABASE] Pinging database...", flush=True)
             # Force connection with ping
             await self.db.command('ping')
             
             self._initialized = True
+            print(f"[DATABASE] ✅ Connected to {settings.DB_NAME}", flush=True)
             logger.info(f"✅ MongoDB connection established successfully (DB: {settings.DB_NAME})")
         except Exception as e:
+            print(f"[DATABASE] ❌ Connection failed: {e}", flush=True)
             logger.error(f"❌ MongoDB connection failed: {e}")
             raise
     
