@@ -455,10 +455,28 @@ async def get_kpi_config(
 ):
     """Get KPI configuration for the store"""
     try:
-        resolved_store_id = context.get('resolved_store_id')
+        # Utiliser store_id du query param en priorité, sinon celui du context
+        resolved_store_id = context.get('resolved_store_id') or store_id
+        
+        if not resolved_store_id:
+            # Retourner une config par défaut si pas de store
+            return {
+                "enabled": True,
+                "saisie_enabled": True,
+                "seller_track_ca": True,
+                "seller_track_ventes": True,
+                "seller_track_articles": True,
+                "seller_track_prospects": True,
+                "manager_track_ca": False,
+                "manager_track_ventes": False,
+                "manager_track_articles": False,
+                "manager_track_prospects": False
+            }
+        
         config = await manager_service.get_kpi_config(resolved_store_id)
         return config
     except Exception as e:
+        logger.error(f"Error getting KPI config: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
