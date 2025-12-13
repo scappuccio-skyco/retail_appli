@@ -12,7 +12,7 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
  * Permet au manager de générer un script de brief matinal personnalisé
  * avec possibilité d'ajouter une consigne spécifique.
  */
-const MorningBriefModal = ({ isOpen, onClose, storeName, managerName }) => {
+const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId }) => {
   const [comments, setComments] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [brief, setBrief] = useState(null);
@@ -24,8 +24,10 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName }) => {
 
     try {
       const token = localStorage.getItem('token');
+      // Build URL with store_id if provided (for gerant viewing specific store)
+      const storeParam = storeId ? `?store_id=${storeId}` : '';
       const response = await axios.post(
-        `${API_URL}/api/briefs/morning`,
+        `${API_URL}/api/briefs/morning${storeParam}`,
         { comments: comments.trim() || null },
         { headers: { Authorization: `Bearer ${token}` } }
       );
