@@ -166,6 +166,7 @@ class AuthService:
         
         # Create gérant user
         gerant_id = str(uuid4())
+        now = datetime.now(timezone.utc)
         user = {
             "id": gerant_id,
             "name": name,
@@ -173,7 +174,7 @@ class AuthService:
             "password": get_password_hash(password),
             "role": "gerant",  # Important: no accent!
             "phone": phone,
-            "created_at": datetime.now(timezone.utc),
+            "created_at": now,
             "status": "active"
         }
         
@@ -184,7 +185,7 @@ class AuthService:
             "id": str(uuid4()),
             "name": company_name,
             "gerant_id": gerant_id,
-            "created_at": datetime.now(timezone.utc),
+            "created_at": now,
             "settings": {
                 "max_users": 10,
                 "features": ["basic"]
@@ -196,12 +197,15 @@ class AuthService:
         # Generate token
         token = create_token(gerant_id, email, "gerant")
         
-        # Remove _id from workspace if present (MongoDB adds it)
-        workspace_clean = {k: v for k, v in workspace.items() if k != '_id'}
+        # Clean response - remove _id and password, convert datetime
+        user_clean = {k: (v.isoformat() if isinstance(v, datetime) else v) 
+                      for k, v in user.items() if k not in ['password', '_id']}
+        workspace_clean = {k: (v.isoformat() if isinstance(v, datetime) else v) 
+                          for k, v in workspace.items() if k != '_id'}
         
         return {
             "token": token,
-            "user": {k: v for k, v in user.items() if k not in ['password', '_id']},
+            "user": user_clean,
             "workspace": workspace_clean
         }
     
