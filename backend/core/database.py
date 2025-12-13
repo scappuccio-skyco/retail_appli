@@ -2,13 +2,18 @@
 Database connection management using Motor (async MongoDB driver)
 Implements singleton pattern with dependency injection support
 """
+import sys
+print("[DATABASE_MODULE] Loading database module...", flush=True)
+
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from typing import Optional
 import logging
 
+print("[DATABASE_MODULE] Importing settings...", flush=True)
 from core.config import settings
 
 logger = logging.getLogger(__name__)
+print("[DATABASE_MODULE] Database module loaded", flush=True)
 
 
 class Database:
