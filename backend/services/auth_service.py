@@ -167,6 +167,8 @@ class AuthService:
         # Create gérant user
         gerant_id = str(uuid4())
         now = datetime.now(timezone.utc)
+        trial_end = now + timedelta(days=14)  # 14 jours d'essai gratuit
+        
         user = {
             "id": gerant_id,
             "name": name,
@@ -180,15 +182,19 @@ class AuthService:
         
         await self.user_repo.insert_one(user)
         
-        # Create workspace for gérant
+        # Create workspace for gérant with 14-day trial
         workspace = {
             "id": str(uuid4()),
             "name": company_name,
             "gerant_id": gerant_id,
             "created_at": now,
+            "subscription_status": "trialing",  # Période d'essai
+            "trial_start": now,
+            "trial_end": trial_end,
+            "ai_credits_remaining": 100,  # Crédits IA pour l'essai
             "settings": {
-                "max_users": 10,
-                "features": ["basic"]
+                "max_users": 15,  # Limite pendant l'essai
+                "features": ["basic", "ai_coaching", "diagnostics"]
             }
         }
         
