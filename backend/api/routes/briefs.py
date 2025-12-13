@@ -107,12 +107,15 @@ async def generate_morning_brief(
 
 @router.get("/morning/preview")
 async def preview_morning_brief_data(
+    store_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user),
     db = Depends(get_db)
 ):
     """
     Prévisualise les données qui seront utilisées pour le brief.
     Utile pour debug ou pour afficher un aperçu avant génération.
+    
+    - **store_id**: ID du magasin (optionnel, pour gérant visualisant un magasin spécifique)
     """
     if current_user.get("role") not in ["manager", "gerant", "super_admin"]:
         raise HTTPException(status_code=403, detail="Accès refusé")
@@ -120,12 +123,15 @@ async def preview_morning_brief_data(
     user_id = current_user.get("id")
     user_store_id = current_user.get("store_id")
     
-    # Récupérer le magasin - essayer plusieurs méthodes
+    # Si store_id passé en paramètre (gérant visualisant un magasin), l'utiliser en priorité
+    effective_store_id = store_id if store_id else user_store_id
+    
+    # Récupérer le magasin
     store = None
     
-    # 1. D'abord par le store_id de l'utilisateur (cas manager)
-    if user_store_id:
-        store = await db.stores.find_one({"id": user_store_id}, {"_id": 0})
+    # 1. D'abord par effective_store_id
+    if effective_store_id:
+        store = await db.stores.find_one({"id": effective_store_id}, {"_id": 0})
     
     # 2. Si pas trouvé, chercher par manager_id ou gerant_id
     if not store:
@@ -134,8 +140,8 @@ async def preview_morning_brief_data(
             {"_id": 0}
         )
     
-    store_id = store.get("id") if store else user_store_id
-    stats = await _fetch_yesterday_stats(db, store_id, user_id)
+    final_store_id = store.get("id") if store else effective_store_id
+    stats = await _fetch_yesterday_stats(db, final_store_id, user_id)
     
     return {
         "store_name": store.get("name") if store else None,
