@@ -458,7 +458,7 @@ Consignes :
         chat = self._create_chat(
             session_id=f"team_bilan_{manager_id}_{periode}",
             system_message=TEAM_BILAN_SYSTEM_PROMPT,
-            model="gpt-4o-mini"
+            model="gpt-4o"  # 🎯 Premium model for team bilan analysis
         )
         
         response = await self._send_message(chat, prompt)
