@@ -25,12 +25,12 @@ class EvaluationGenerateRequest(BaseModel):
 
 
 class EvaluationGuideResponse(BaseModel):
-    """Réponse avec le guide généré"""
+    """Réponse avec le guide généré en JSON structuré"""
     employee_id: str
     employee_name: str
     period: str
     role_perspective: str  # "manager" ou "seller"
-    guide_content: str     # Markdown
+    guide_content: Dict    # JSON structuré avec synthese, victoires, axes_progres, objectifs
     stats_summary: Dict
     generated_at: str
 
