@@ -3,7 +3,7 @@ import { unstable_batchedUpdates } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { LogOut, Users, TrendingUp, Award, Clock, CheckCircle, XCircle, Sparkles, Settings, RefreshCw, Edit2, Trash2, Target, BarChart3, Bell, ChevronLeft, ChevronRight, Headphones } from 'lucide-react';
+import { LogOut, Users, TrendingUp, Award, Clock, CheckCircle, XCircle, Sparkles, Settings, RefreshCw, Edit2, Trash2, Target, BarChart3, Bell, ChevronLeft, ChevronRight, Headphones, Coffee } from 'lucide-react';
 import Logo from '../components/shared/Logo';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
 // REMOVED: InviteModal - only gerant can invite
@@ -19,6 +19,7 @@ import StoreKPIModal from '../components/StoreKPIModal';
 import RelationshipManagementModal from '../components/RelationshipManagementModal';
 import SyncModeBadge from '../components/SyncModeBadge';
 import SupportModal from '../components/SupportModal';
+import MorningBriefModal from '../components/MorningBriefModal';
 import { useSyncMode } from '../hooks/useSyncMode';
 import TutorialButton from '../components/onboarding/TutorialButton';
 import OnboardingModal from '../components/onboarding/OnboardingModal';
