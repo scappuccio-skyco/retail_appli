@@ -1442,6 +1442,20 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
         />
       )}
 
+      {/* Evaluation Generator Modal (Entretien Annuel Manager) */}
+      {showEvaluationModal && selectedSellerForEval && (
+        <EvaluationGenerator
+          isOpen={showEvaluationModal}
+          onClose={() => {
+            setShowEvaluationModal(false);
+            setSelectedSellerForEval(null);
+          }}
+          employeeId={selectedSellerForEval.id}
+          employeeName={selectedSellerForEval.name}
+          role="manager"
+        />
+      )}
+
       {/* Modal de confirmation - RETIRÉ - Actions de gestion des vendeurs réservées exclusivement au Gérant */}
     </div>
   );
