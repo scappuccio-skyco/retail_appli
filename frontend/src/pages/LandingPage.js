@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, Zap, Users, TrendingUp, Target, Star, ChevronDown, Menu, X } from 'lucide-react';
+import { ArrowRight, Check, Zap, Users, TrendingUp, Target, ChevronDown, Menu, X, Briefcase } from 'lucide-react';
 
 export default function LandingPage() {
   const navigate = useNavigate();
