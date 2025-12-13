@@ -38,6 +38,7 @@ google-generativeai==0.8.5
 googleapis-common-protos==1.71.0
 grpcio==1.76.0
 grpcio-status==1.71.2
+gunicorn==23.0.0
 h11==0.16.0
 hf-xet==1.2.0
 httpcore==1.0.9
@@ -82,6 +83,7 @@ pyasn1_modules==0.4.2
 pycodestyle==2.14.0
 pycparser==2.23
 pydantic==2.12.3
+pydantic-settings==2.12.0
 pydantic_core==2.41.4
 pyflakes==3.4.0
 Pygments==2.19.2
