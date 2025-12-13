@@ -295,12 +295,29 @@ async def register_with_gerant_invite_legacy(request_data: dict):
     user_repo = UserRepository(db)
     auth_service = AuthService(db, user_repo)
     
+    invitation_token = request_data.get('invitation_token')
+    
+    # Get email from invitation if not provided
+    email = request_data.get('email', '')
+    if not email:
+        invitation = await db.gerant_invitations.find_one(
+            {"token": invitation_token},
+            {"_id": 0}
+        )
+        if not invitation:
+            invitation = await db.invitations.find_one(
+                {"token": invitation_token},
+                {"_id": 0}
+            )
+        if invitation:
+            email = invitation.get('email', '')
+    
     try:
         result = await auth_service.register_with_invitation(
-            email=request_data.get('email', ''),
+            email=email,
             password=request_data.get('password'),
             name=request_data.get('name'),
-            invitation_token=request_data.get('invitation_token')
+            invitation_token=invitation_token
         )
         return result
     except Exception as e:
