@@ -462,6 +462,78 @@ async def get_kpi_config(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.put("/kpi-config")
+async def update_kpi_config(
+    config_update: dict,
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Update KPI configuration for the store.
+    
+    Fields:
+    - enabled: bool - Whether sellers can input KPIs
+    - saisie_enabled: bool - Alias for enabled
+    """
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
+        
+        if not resolved_store_id and not manager_id:
+            raise HTTPException(status_code=400, detail="Store ID ou Manager ID requis")
+        
+        # Prepare update data
+        update_data = {
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Handle 'enabled' field (controls if sellers can input KPIs)
+        if 'enabled' in config_update:
+            update_data['enabled'] = config_update['enabled']
+            update_data['saisie_enabled'] = config_update['enabled']
+        
+        if 'saisie_enabled' in config_update:
+            update_data['saisie_enabled'] = config_update['saisie_enabled']
+            update_data['enabled'] = config_update['saisie_enabled']
+        
+        # Build query - prefer store_id, fallback to manager_id
+        query = {}
+        if resolved_store_id:
+            query["store_id"] = resolved_store_id
+        else:
+            query["manager_id"] = manager_id
+        
+        # Upsert config
+        result = await db.kpi_configs.update_one(
+            query,
+            {
+                "$set": update_data,
+                "$setOnInsert": {
+                    "store_id": resolved_store_id,
+                    "manager_id": manager_id,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+            },
+            upsert=True
+        )
+        
+        # Fetch and return updated config
+        config = await db.kpi_configs.find_one(query, {"_id": 0})
+        
+        return config or {
+            "store_id": resolved_store_id,
+            "enabled": update_data.get('enabled', True),
+            "saisie_enabled": update_data.get('saisie_enabled', True)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating KPI config: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/team-bilans/all")
 async def get_team_bilans_all(
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
