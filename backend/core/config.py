@@ -8,10 +8,10 @@ from typing import Optional
 import os
 from pathlib import Path
 
-# Load .env file
+# Load .env file - IMPORTANT: override=False ensures Kubernetes-injected env vars take precedence
 ROOT_DIR = Path(__file__).parent.parent
 from dotenv import load_dotenv
-load_dotenv(ROOT_DIR / '.env')
+load_dotenv(ROOT_DIR / '.env', override=False)
 
 
 class Settings(BaseSettings):
