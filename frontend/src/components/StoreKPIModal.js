@@ -681,30 +681,27 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
             >
               📊 Historique
             </button>
-            {!storeId && (
-              <>
-                <button
-                  onClick={() => setActiveTab('config')}
-                  className={`px-1.5 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap flex-shrink-0 ${
-                    activeTab === 'config'
-                      ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
-                      : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
-                  }`}
-                >
-                  ⚙️ Config des données
-                </button>
-                <button
-                  onClick={() => setActiveTab('prospects')}
-                  className={`px-1.5 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap flex-shrink-0 ${
-                    activeTab === 'prospects'
+            {/* Onglets Config et Saisie - Toujours visibles pour Manager ET Gérant */}
+            <button
+              onClick={() => setActiveTab('config')}
+              className={`px-1.5 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap flex-shrink-0 ${
+                activeTab === 'config'
                   ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
                   : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
-                  }`}
-                >
-                  👨‍💼 Saisie des données
-                </button>
-              </>
-            )}
+              }`}
+            >
+              ⚙️ Config des données
+            </button>
+            <button
+              onClick={() => setActiveTab('prospects')}
+              className={`px-1.5 md:px-4 py-2 text-xs md:text-sm font-semibold transition-all rounded-t-lg whitespace-nowrap flex-shrink-0 ${
+                activeTab === 'prospects'
+              ? 'bg-orange-300 text-gray-800 shadow-md border-b-4 border-orange-500'
+              : 'text-gray-600 hover:text-orange-600 hover:bg-gray-100'
+              }`}
+            >
+              👨‍💼 Saisie des données
+            </button>
           </div>
         </div>
 
