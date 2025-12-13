@@ -7,7 +7,8 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict
 from datetime import datetime, timedelta
 
-from api.dependencies import get_db, get_current_user
+from api.dependencies import get_db
+from core.security import get_current_user
 from services.ai_service import ai_service
 
 router = APIRouter(prefix="/briefs", tags=["Morning Briefs"])
