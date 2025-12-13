@@ -1839,13 +1839,19 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                       >
                         Annuler
                       </button>
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
-                      >
-                        {loading ? 'Enregistrement...' : '💾 Enregistrer les données'}
-                      </button>
+                      {isManagerDateLocked ? (
+                        <div className="flex-1 px-6 py-3 bg-red-100 text-red-600 font-semibold rounded-lg text-center border-2 border-red-300">
+                          🔒 Données verrouillées (API)
+                        </div>
+                      ) : (
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
+                        >
+                          {loading ? 'Enregistrement...' : '💾 Enregistrer les données'}
+                        </button>
+                      )}
                     </div>
                   </form>
                 </>
