@@ -67,6 +67,15 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     nb_prospects: ''
   });
   const [loading, setLoading] = useState(false);
+  
+  // Vérifier si la date sélectionnée est verrouillée (données API)
+  const isDateLocked = (date) => {
+    return lockedDates.includes(date);
+  };
+  
+  // Date sélectionnée verrouillée pour la saisie Manager
+  const isManagerDateLocked = isDateLocked(managerKPIData.date);
+  
   const [kpiConfig, setKpiConfig] = useState({
     seller_track_ca: true,
     manager_track_ca: false,
