@@ -808,7 +808,7 @@ Réponds en JSON avec le format attendu (style, level, strengths, axes_de_develo
         seller_profile: Dict,
         recent_kpis: List[Dict]
     ) -> Dict:
-        """Generate personalized daily challenge"""
+        """Generate personalized daily challenge with DISC adaptation"""
         if not self.available:
             return {
                 "title": "Augmente ton panier moyen",
@@ -817,12 +817,24 @@ Réponds en JSON avec le format attendu (style, level, strengths, axes_de_develo
             }
         
         avg_ca = sum(k.get('ca_journalier', 0) for k in recent_kpis) / len(recent_kpis) if recent_kpis else 0
+        disc_style = seller_profile.get('style', 'Non défini')
+        disc_level = seller_profile.get('level', 50)
+        disc_strengths = ', '.join(seller_profile.get('strengths', [])) if seller_profile.get('strengths') else 'N/A'
         
-        prompt = f"""Profil: {seller_profile.get('style', 'Unknown')} niveau {seller_profile.get('level', 1)}
-Performance récente: CA moyen {avg_ca:.0f}€
+        prompt = f"""🎯 VENDEUR À CHALLENGER :
+- Profil DISC : {disc_style} (niveau {disc_level}/100)
+- Forces connues : {disc_strengths}
+- Performance récente : CA moyen {avg_ca:.0f}€/jour
 
-Génère un défi quotidien personnalisé en JSON:
-{{"title": "...", "description": "...", "competence": "..."}}"""
+{DISC_ADAPTATION_INSTRUCTIONS}
+
+📋 MISSION : Génère UN défi quotidien personnalisé qui :
+1. CORRESPOND au style DISC du vendeur (ton, formulation)
+2. S'appuie sur ses forces pour progresser
+3. Est réalisable en une journée
+
+Réponds UNIQUEMENT avec ce JSON :
+{{"title": "Titre accrocheur adapté au profil", "description": "Description motivante en 1-2 phrases", "competence": "accueil|decouverte|argumentation|closing|vente_additionnelle|fidelisation"}}"""
 
         chat = self._create_chat(
             session_id=f"challenge_{uuid.uuid4()}",
