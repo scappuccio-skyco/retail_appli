@@ -33,10 +33,11 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function TeamModal({ sellers, storeIdParam, onClose, onViewSellerDetail, onDataUpdate }) {
+export default function TeamModal({ sellers, storeIdParam, onClose, onViewSellerDetail, onDataUpdate, storeName, managerName }) {
   const [teamData, setTeamData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAIAnalysisModal, setShowAIAnalysisModal] = useState(false);
+  const [showMorningBriefModal, setShowMorningBriefModal] = useState(false);
   const [periodFilter, setPeriodFilter] = useState('30'); // '7', '30', '90', 'all', 'custom'
   const [showNiveauTooltip, setShowNiveauTooltip] = useState(false);
   const [customDateRange, setCustomDateRange] = useState({ start: '', end: '' });
