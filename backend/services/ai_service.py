@@ -866,70 +866,30 @@ class AIDataService:
 
 
 # ==============================================================================
-# 📋 EVALUATION GUIDE PROMPTS (Entretien Annuel)
+# 📋 EVALUATION GUIDE PROMPTS (Entretien Annuel) - JSON OUTPUT
 # ==============================================================================
 
-EVALUATION_MANAGER_PROMPT = """Tu es un DRH Expert en Retail. Tu assistes un Manager pour l'entretien d'évaluation de {employee_name}.
+EVALUATION_MANAGER_SYSTEM_PROMPT = """Tu es un DRH Expert en Retail avec 15 ans d'expérience.
+Tu assistes un Manager pour préparer l'entretien d'évaluation d'un vendeur.
 
-📅 Période analysée : {period}
-📊 Données réelles du vendeur :
-{stats}
+RÈGLE ABSOLUE : Tu réponds UNIQUEMENT avec un objet JSON valide.
+- PAS de texte avant ou après le JSON
+- PAS de markdown (pas de ```)
+- PAS de commentaires
+- Juste le JSON brut"""
 
-🎯 TA MISSION : Rédige un guide d'entretien structuré :
+EVALUATION_SELLER_SYSTEM_PROMPT = """Tu es un Coach Carrière spécialisé en Retail.
+Tu aides un vendeur à préparer son entretien annuel avec des arguments solides.
 
-## 1. Analyse Factuelle
-Commente les chiffres objectivement :
-- **Succès** : Points forts mesurables
-- **Points de vigilance** : Axes d'amélioration basés sur les données
-
-## 2. Soft Skills (Points à Observer)
-Suggère des points à vérifier lors de l'entretien sous forme de questions :
-- Ponctualité et engagement
-- Esprit d'équipe et collaboration
-- Attitude face aux clients
-
-## 3. Questions de Coaching
-Propose 3 questions puissantes pour faire parler le vendeur de ses ambitions :
-1. Question sur son ressenti général
-2. Question sur ses réussites personnelles
-3. Question sur ses projets d'évolution
-
-## 4. Proposition d'Objectifs
-Suggère 2 objectifs chiffrés réalistes pour la prochaine période basés sur l'historique.
-
-**Ton** : Professionnel, Constructif, Bienveillant. Tutoiement."""
-
-EVALUATION_SELLER_PROMPT = """Tu es un Coach Carrière. Tu aides {employee_name}, vendeur(se), à préparer son entretien annuel.
-
-📊 Tes chiffres sur la période ({period}) :
-{stats}
-
-🎯 TA MISSION : Prépare une fiche de défense motivante :
-
-## 1. Mes Victoires 🏆
-Mets en avant tes meilleurs chiffres avec des formulations valorisantes :
-- "J'ai maintenu un Panier Moyen de X€"
-- "J'ai réalisé un CA de X€ sur la période"
-
-## 2. Mes Axes de Progrès 📈
-Comment expliquer les chiffres moins bons sans te chercher d'excuses :
-- Identifie ce que tu dois travailler (closing, découverte, etc.)
-- Montre que tu en es conscient et que tu as un plan
-
-## 3. Mes Souhaits et Demandes 🌟
-Formulations types pour :
-- Demander une formation spécifique
-- Exprimer tes ambitions d'évolution
-- Proposer des idées d'amélioration
-
-## 4. Mes Questions à Poser
-3 questions pertinentes à poser à ton manager pour montrer ta motivation.
-
-**Ton** : Motivant, Confiant, Orienté Solutions. Tutoiement."""
+RÈGLE ABSOLUE : Tu réponds UNIQUEMENT avec un objet JSON valide.
+- PAS de texte avant ou après le JSON
+- PAS de markdown (pas de ```)
+- PAS de commentaires
+- Juste le JSON brut"""
 
 
 class EvaluationGuideService:
-    """Service pour générer les guides d'entretien annuel"""
+    """Service pour générer les guides d'entretien annuel en JSON structuré"""
     
     def __init__(self):
         self.emergent_key = os.environ.get('EMERGENT_LLM_KEY')
@@ -939,8 +899,9 @@ class EvaluationGuideService:
         role: str,
         stats: Dict,
         employee_name: str,
-        period: str
-    ) -> str:
+        period: str,
+        comments: Optional[str] = None
+    ) -> Dict:
         """
         Génère un guide d'entretien adapté au rôle de l'appelant.
         
@@ -949,26 +910,54 @@ class EvaluationGuideService:
             stats: Statistiques agrégées sur la période
             employee_name: Nom du vendeur évalué
             period: Description de la période (ex: "01/01/2024 - 31/12/2024")
+            comments: Commentaires/contexte optionnel de l'utilisateur
         
         Returns:
-            Guide d'entretien en Markdown
+            Dict structuré avec synthese, victoires, axes_progres, objectifs
         """
         # Formatage des stats pour le prompt
         stats_text = self._format_stats(stats)
         
+        # Ajout du contexte utilisateur si fourni
+        context_section = ""
+        if comments and comments.strip():
+            context_section = f"\n\n📝 CONTEXTE SPÉCIFIQUE DE L'UTILISATEUR :\n\"{comments}\"\n→ Prends en compte ces observations dans ton analyse."
+        
         # Choix du prompt selon le rôle
         if role in ['manager', 'gerant']:
-            system_prompt = EVALUATION_MANAGER_PROMPT.format(
-                employee_name=employee_name,
-                period=period,
-                stats=stats_text
-            )
+            system_prompt = EVALUATION_MANAGER_SYSTEM_PROMPT
+            user_prompt = f"""Génère un guide d'entretien pour évaluer {employee_name}.
+
+📅 Période analysée : {period}
+📊 Données de performance :
+{stats_text}
+{context_section}
+
+Réponds avec ce JSON EXACT (pas de texte avant/après) :
+{{
+  "synthese": "2-3 phrases résumant la performance globale avec les chiffres clés",
+  "victoires": ["Réussite 1 basée sur les données", "Réussite 2", "Réussite 3"],
+  "axes_progres": ["Point d'amélioration 1", "Point d'amélioration 2"],
+  "objectifs": ["Objectif SMART 1 pour la prochaine période", "Objectif SMART 2"],
+  "questions_coaching": ["Question ouverte 1 pour l'entretien", "Question 2", "Question 3"]
+}}"""
         else:  # seller
-            system_prompt = EVALUATION_SELLER_PROMPT.format(
-                employee_name=employee_name,
-                period=period,
-                stats=stats_text
-            )
+            system_prompt = EVALUATION_SELLER_SYSTEM_PROMPT
+            user_prompt = f"""Prépare une fiche d'auto-bilan pour {employee_name}.
+
+📅 Période analysée : {period}
+📊 Tes chiffres :
+{stats_text}
+{context_section}
+
+Réponds avec ce JSON EXACT (pas de texte avant/après) :
+{{
+  "synthese": "2-3 phrases positives résumant ta performance avec tes meilleurs chiffres",
+  "victoires": ["Ta réussite 1 (avec chiffre)", "Ta réussite 2", "Ta réussite 3"],
+  "axes_progres": ["Ce que tu veux améliorer 1", "Ce que tu veux améliorer 2"],
+  "objectifs": ["Ton objectif personnel 1", "Ton objectif 2"],
+  "questions_manager": ["Question à poser à ton manager 1", "Question 2", "Question 3"]
+}}"""
         
         # Appel à l'IA avec la bonne syntaxe
         try:
@@ -982,14 +971,70 @@ class EvaluationGuideService:
                 system_message=system_prompt
             ).with_model("openai", "gpt-4o-mini")
             
-            user_message = UserMessage(text=f"Génère le guide d'entretien pour {employee_name}.")
+            user_message = UserMessage(text=user_prompt)
             response = await chat.send_message(user_message)
             
-            return response or "Erreur lors de la génération du guide."
+            # Parser le JSON de la réponse
+            if response:
+                return self._parse_guide_response(response, role)
+            else:
+                return self._fallback_guide(role, employee_name, stats)
             
         except Exception as e:
             import traceback
-            return f"Erreur lors de la génération : {str(e)}"
+            logger.error(f"Erreur génération évaluation: {str(e)}\n{traceback.format_exc()}")
+            return self._fallback_guide(role, employee_name, stats)
+    
+    def _parse_guide_response(self, response: str, role: str) -> Dict:
+        """Parse la réponse JSON de l'IA"""
+        try:
+            # Nettoyer la réponse
+            cleaned = clean_json_response(response)
+            parsed = json.loads(cleaned)
+            
+            # Valider les champs requis
+            required_fields = ['synthese', 'victoires', 'axes_progres', 'objectifs']
+            for field in required_fields:
+                if field not in parsed:
+                    parsed[field] = []
+            
+            # Ajouter le champ role-specific s'il manque
+            if role in ['manager', 'gerant'] and 'questions_coaching' not in parsed:
+                parsed['questions_coaching'] = []
+            elif role == 'seller' and 'questions_manager' not in parsed:
+                parsed['questions_manager'] = []
+            
+            return parsed
+            
+        except (json.JSONDecodeError, Exception) as e:
+            logger.warning(f"Parsing JSON échoué: {e}, réponse: {response[:200]}")
+            # Retourner la réponse brute dans synthese si parsing échoue
+            return {
+                "synthese": response[:500] if response else "Erreur de génération",
+                "victoires": [],
+                "axes_progres": [],
+                "objectifs": [],
+                "questions_coaching" if role in ['manager', 'gerant'] else "questions_manager": []
+            }
+    
+    def _fallback_guide(self, role: str, employee_name: str, stats: Dict) -> Dict:
+        """Guide de fallback si l'IA échoue"""
+        if role in ['manager', 'gerant']:
+            return {
+                "synthese": f"Performance de {employee_name} sur la période : CA total de {stats.get('total_ca', 0):,.0f}€ avec {stats.get('total_ventes', 0)} ventes.",
+                "victoires": ["Données disponibles pour analyse"],
+                "axes_progres": ["À discuter lors de l'entretien"],
+                "objectifs": ["Définir ensemble les objectifs"],
+                "questions_coaching": ["Comment te sens-tu dans ton poste ?", "Quels sont tes projets d'évolution ?"]
+            }
+        else:
+            return {
+                "synthese": f"Tes résultats sur la période : CA total de {stats.get('total_ca', 0):,.0f}€ avec {stats.get('total_ventes', 0)} ventes.",
+                "victoires": ["Tes ventes réalisées"],
+                "axes_progres": ["Points à discuter avec ton manager"],
+                "objectifs": ["Tes objectifs personnels"],
+                "questions_manager": ["Quelles formations sont disponibles ?", "Comment puis-je progresser ?"]
+            }
     
     def _format_stats(self, stats: Dict) -> str:
         """Formate les statistiques pour le prompt IA"""
