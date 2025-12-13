@@ -114,7 +114,7 @@ export default function LandingPage() {
               
               {/* Sous-titre avec preuve - Taille réduite */}
               <p className="text-base sm:text-lg font-semibold text-[#F97316] mb-3 sm:mb-4 leading-relaxed">
-                Un coaching IA simple et actionnable pour des performances mesurables
+                Objectif : Boostez vos ventes jusqu'à +30%
               </p>
               
               <p className="text-sm sm:text-base text-[#334155] mb-6 sm:mb-8 leading-relaxed">
