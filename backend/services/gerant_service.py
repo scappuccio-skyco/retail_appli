@@ -263,8 +263,11 @@ class GerantService:
         if not store:
             raise ValueError("Magasin non trouvé ou inactif")
         
+        # Liste des champs modifiables
+        allowed_fields = ['name', 'location', 'address', 'phone', 'email', 'description', 'opening_hours']
+        
         update_fields = {}
-        for field in ['name', 'location', 'address', 'phone', 'opening_hours']:
+        for field in allowed_fields:
             if field in store_data:
                 update_fields[field] = store_data[field]
         
