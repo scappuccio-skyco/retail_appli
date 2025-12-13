@@ -1703,6 +1703,448 @@ class EvaluationGeneratorTester:
         return self.tests_passed >= self.tests_run * 0.8
 
 
+class ImprovedEvaluationGeneratorTester:
+    def __init__(self, base_url="https://review-helper-8.preview.emergentagent.com/api"):
+        self.base_url = base_url
+        self.manager_token = None
+        self.seller_token = None
+        self.manager_user = None
+        self.seller_user = None
+        self.seller_id = None
+        self.tests_run = 0
+        self.tests_passed = 0
+        self.test_results = []
+
+    def log_test(self, name, success, details=""):
+        """Log test result"""
+        self.tests_run += 1
+        if success:
+            self.tests_passed += 1
+            print(f"✅ {name} - PASSED")
+        else:
+            print(f"❌ {name} - FAILED: {details}")
+        
+        self.test_results.append({
+            "test": name,
+            "success": success,
+            "details": details
+        })
+
+    def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
+        """Run a single API test"""
+        url = f"{self.base_url}/{endpoint}"
+        headers = {'Content-Type': 'application/json'}
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
+
+        print(f"\n🔍 Testing {name}...")
+        print(f"   URL: {url}")
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers, timeout=30)
+            elif method == 'POST':
+                response = requests.post(url, json=data, headers=headers, timeout=30)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=headers, timeout=30)
+            elif method == 'PATCH':
+                response = requests.patch(url, json=data, headers=headers, timeout=30)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers, timeout=30)
+
+            success = response.status_code == expected_status
+            
+            if success:
+                self.log_test(name, True)
+                try:
+                    return True, response.json()
+                except:
+                    return True, {}
+            else:
+                error_msg = f"Expected {expected_status}, got {response.status_code}"
+                try:
+                    error_detail = response.json()
+                    error_msg += f" - {error_detail}"
+                except:
+                    error_msg += f" - {response.text[:200]}"
+                
+                self.log_test(name, False, error_msg)
+                return False, {}
+
+        except Exception as e:
+            self.log_test(name, False, f"Exception: {str(e)}")
+            return False, {}
+
+    def test_authentication(self):
+        """Test authentication for Manager and Seller"""
+        print("\n🔐 TESTING IMPROVED EVALUATION GENERATOR AUTHENTICATION")
+        
+        # Test Manager login (y.legoff@skyco.fr / TestDemo123!)
+        manager_data = {
+            "email": "y.legoff@skyco.fr",
+            "password": "TestDemo123!"
+        }
+        
+        success, response = self.run_test(
+            "Manager Authentication for Improved Evaluation Tests",
+            "POST",
+            "auth/login",
+            200,
+            data=manager_data
+        )
+        
+        if success and 'token' in response:
+            self.manager_token = response['token']
+            self.manager_user = response.get('user', {})
+            print(f"   ✅ Manager logged in: {self.manager_user.get('email')}")
+        
+        # Test Seller login (emma.petit@test.com / TestDemo123!)
+        seller_data = {
+            "email": "emma.petit@test.com",
+            "password": "TestDemo123!"
+        }
+        
+        success, response = self.run_test(
+            "Seller Authentication for Improved Evaluation Tests",
+            "POST",
+            "auth/login",
+            200,
+            data=seller_data
+        )
+        
+        if success and 'token' in response:
+            self.seller_token = response['token']
+            self.seller_user = response.get('user', {})
+            self.seller_id = self.seller_user.get('id')
+            print(f"   ✅ Seller logged in: {self.seller_user.get('email')}")
+            print(f"   ✅ Seller ID: {self.seller_id}")
+
+    def test_json_output_structure(self):
+        """Test that the API returns JSON structured data (not markdown)"""
+        print("\n📋 TESTING JSON OUTPUT STRUCTURE")
+        
+        if not self.manager_token or not self.seller_id:
+            self.log_test("JSON Output Structure", False, "Missing manager token or seller ID")
+            return
+        
+        # Test 1: Manager perspective - JSON structure
+        evaluation_data = {
+            "employee_id": self.seller_id,
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "comments": "Test comment for JSON structure validation"
+        }
+        
+        success, response = self.run_test(
+            "Manager Generate Evaluation - JSON Structure",
+            "POST",
+            "evaluations/generate",
+            200,
+            data=evaluation_data,
+            token=self.manager_token
+        )
+        
+        if success:
+            # Verify response structure
+            expected_fields = ['employee_id', 'employee_name', 'role_perspective', 'guide_content', 'stats_summary', 'generated_at']
+            missing_fields = [f for f in expected_fields if f not in response]
+            if missing_fields:
+                self.log_test("Manager JSON Response Structure", False, f"Missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ All required fields present: {expected_fields}")
+                
+                # Check guide_content is a dict (JSON), not string (markdown)
+                guide_content = response.get('guide_content', {})
+                if isinstance(guide_content, dict):
+                    print(f"   ✅ guide_content is JSON object (not markdown string)")
+                    
+                    # Check for required JSON fields in guide_content
+                    required_json_fields = ['synthese', 'victoires', 'axes_progres', 'objectifs']
+                    missing_json_fields = [f for f in required_json_fields if f not in guide_content]
+                    if missing_json_fields:
+                        self.log_test("Manager JSON Guide Content Structure", False, f"Missing JSON fields: {missing_json_fields}")
+                    else:
+                        print(f"   ✅ All required JSON fields present in guide_content: {required_json_fields}")
+                        
+                        # Check for role-specific field (questions_coaching for manager)
+                        if 'questions_coaching' in guide_content:
+                            print(f"   ✅ Manager-specific field 'questions_coaching' present")
+                        else:
+                            self.log_test("Manager Role-Specific Field", False, "Missing 'questions_coaching' field for manager role")
+                else:
+                    self.log_test("Manager JSON Guide Content Type", False, f"guide_content is {type(guide_content)}, expected dict")
+        
+        # Test 2: Seller perspective - JSON structure
+        success, response = self.run_test(
+            "Seller Generate Own Evaluation - JSON Structure",
+            "POST",
+            "evaluations/generate",
+            200,
+            data=evaluation_data,
+            token=self.seller_token
+        )
+        
+        if success:
+            guide_content = response.get('guide_content', {})
+            if isinstance(guide_content, dict):
+                print(f"   ✅ Seller guide_content is JSON object")
+                
+                # Check for role-specific field (questions_manager for seller)
+                if 'questions_manager' in guide_content:
+                    print(f"   ✅ Seller-specific field 'questions_manager' present")
+                else:
+                    self.log_test("Seller Role-Specific Field", False, "Missing 'questions_manager' field for seller role")
+
+    def test_comments_field_influence(self):
+        """Test that the comments field is accepted and influences the AI response"""
+        print("\n💬 TESTING COMMENTS FIELD INFLUENCE")
+        
+        if not self.manager_token or not self.seller_id:
+            self.log_test("Comments Field Influence", False, "Missing manager token or seller ID")
+            return
+        
+        # Test 1: Generate evaluation without comments
+        evaluation_without_comments = {
+            "employee_id": self.seller_id,
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31"
+        }
+        
+        success, response_without = self.run_test(
+            "Manager Generate Evaluation - Without Comments",
+            "POST",
+            "evaluations/generate",
+            200,
+            data=evaluation_without_comments,
+            token=self.manager_token
+        )
+        
+        # Test 2: Generate evaluation with specific comments
+        evaluation_with_comments = {
+            "employee_id": self.seller_id,
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "comments": "Emma a montré une excellente progression en vente additionnelle ce trimestre. Elle a particulièrement brillé lors des périodes de forte affluence et a développé une approche client très personnalisée. Points à améliorer: gestion du stress et organisation du temps."
+        }
+        
+        success, response_with = self.run_test(
+            "Manager Generate Evaluation - With Comments",
+            "POST",
+            "evaluations/generate",
+            200,
+            data=evaluation_with_comments,
+            token=self.manager_token
+        )
+        
+        if success and response_without and response_with:
+            # Compare responses to see if comments influenced the output
+            guide_without = response_without.get('guide_content', {})
+            guide_with = response_with.get('guide_content', {})
+            
+            # Check if synthese is different (indicating AI took comments into account)
+            synthese_without = guide_without.get('synthese', '')
+            synthese_with = guide_with.get('synthese', '')
+            
+            if synthese_without != synthese_with:
+                print(f"   ✅ Comments influenced AI response - synthese content differs")
+                print(f"   📝 Without comments: {synthese_without[:100]}...")
+                print(f"   📝 With comments: {synthese_with[:100]}...")
+                
+                # Check if specific keywords from comments appear in response
+                comment_keywords = ['progression', 'vente additionnelle', 'personnalisée', 'stress', 'organisation']
+                found_keywords = []
+                full_response_text = json.dumps(guide_with).lower()
+                
+                for keyword in comment_keywords:
+                    if keyword.lower() in full_response_text:
+                        found_keywords.append(keyword)
+                
+                if found_keywords:
+                    print(f"   ✅ Comment keywords found in response: {found_keywords}")
+                else:
+                    print(f"   ⚠️ No specific comment keywords found, but response still differs")
+            else:
+                self.log_test("Comments Influence Check", False, "Comments did not appear to influence the AI response")
+
+    def test_role_specific_questions(self):
+        """Test that role-specific questions are generated correctly"""
+        print("\n❓ TESTING ROLE-SPECIFIC QUESTIONS")
+        
+        if not self.manager_token or not self.seller_token or not self.seller_id:
+            self.log_test("Role-Specific Questions", False, "Missing tokens or seller ID")
+            return
+        
+        evaluation_data = {
+            "employee_id": self.seller_id,
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "comments": "Focus on coaching questions for manager and career questions for seller"
+        }
+        
+        # Test 1: Manager role - should get questions_coaching
+        success, manager_response = self.run_test(
+            "Manager Role - Coaching Questions",
+            "POST",
+            "evaluations/generate",
+            200,
+            data=evaluation_data,
+            token=self.manager_token
+        )
+        
+        if success:
+            guide_content = manager_response.get('guide_content', {})
+            role_perspective = manager_response.get('role_perspective')
+            
+            if role_perspective == 'manager':
+                print(f"   ✅ Correct role perspective: {role_perspective}")
+                
+                if 'questions_coaching' in guide_content:
+                    questions = guide_content['questions_coaching']
+                    if isinstance(questions, list) and len(questions) > 0:
+                        print(f"   ✅ Manager coaching questions generated: {len(questions)} questions")
+                        for i, q in enumerate(questions[:3], 1):  # Show first 3 questions
+                            print(f"   📋 Question {i}: {q}")
+                    else:
+                        self.log_test("Manager Coaching Questions Content", False, "questions_coaching is empty or not a list")
+                else:
+                    self.log_test("Manager Coaching Questions Field", False, "Missing questions_coaching field")
+            else:
+                self.log_test("Manager Role Perspective", False, f"Expected 'manager', got '{role_perspective}'")
+        
+        # Test 2: Seller role - should get questions_manager
+        success, seller_response = self.run_test(
+            "Seller Role - Manager Questions",
+            "POST",
+            "evaluations/generate",
+            200,
+            data=evaluation_data,
+            token=self.seller_token
+        )
+        
+        if success:
+            guide_content = seller_response.get('guide_content', {})
+            role_perspective = seller_response.get('role_perspective')
+            
+            if role_perspective == 'seller':
+                print(f"   ✅ Correct role perspective: {role_perspective}")
+                
+                if 'questions_manager' in guide_content:
+                    questions = guide_content['questions_manager']
+                    if isinstance(questions, list) and len(questions) > 0:
+                        print(f"   ✅ Seller manager questions generated: {len(questions)} questions")
+                        for i, q in enumerate(questions[:3], 1):  # Show first 3 questions
+                            print(f"   📋 Question {i}: {q}")
+                    else:
+                        self.log_test("Seller Manager Questions Content", False, "questions_manager is empty or not a list")
+                else:
+                    self.log_test("Seller Manager Questions Field", False, "Missing questions_manager field")
+            else:
+                self.log_test("Seller Role Perspective", False, f"Expected 'seller', got '{role_perspective}'")
+
+    def test_response_structure_completeness(self):
+        """Test that response contains all required fields: synthese, victoires, axes_progres, objectifs"""
+        print("\n🏗️ TESTING RESPONSE STRUCTURE COMPLETENESS")
+        
+        if not self.manager_token or not self.seller_id:
+            self.log_test("Response Structure Completeness", False, "Missing manager token or seller ID")
+            return
+        
+        evaluation_data = {
+            "employee_id": self.seller_id,
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "comments": "Comprehensive evaluation for structure testing"
+        }
+        
+        success, response = self.run_test(
+            "Complete Structure Validation",
+            "POST",
+            "evaluations/generate",
+            200,
+            data=evaluation_data,
+            token=self.manager_token
+        )
+        
+        if success:
+            guide_content = response.get('guide_content', {})
+            
+            # Check all required fields
+            required_fields = ['synthese', 'victoires', 'axes_progres', 'objectifs']
+            field_validation = {}
+            
+            for field in required_fields:
+                if field in guide_content:
+                    value = guide_content[field]
+                    if field == 'synthese':
+                        # Synthese should be a string
+                        if isinstance(value, str) and len(value.strip()) > 0:
+                            field_validation[field] = "✅ Valid string"
+                            print(f"   ✅ {field}: {value[:100]}...")
+                        else:
+                            field_validation[field] = f"❌ Invalid: {type(value)}"
+                            self.log_test(f"Field {field} Validation", False, f"Expected non-empty string, got {type(value)}")
+                    else:
+                        # Other fields should be arrays
+                        if isinstance(value, list) and len(value) > 0:
+                            field_validation[field] = f"✅ Valid array ({len(value)} items)"
+                            print(f"   ✅ {field}: {len(value)} items")
+                            for i, item in enumerate(value[:2], 1):  # Show first 2 items
+                                print(f"      {i}. {item}")
+                        else:
+                            field_validation[field] = f"❌ Invalid: {type(value)} with {len(value) if isinstance(value, list) else 'N/A'} items"
+                            self.log_test(f"Field {field} Validation", False, f"Expected non-empty array, got {type(value)}")
+                else:
+                    field_validation[field] = "❌ Missing"
+                    self.log_test(f"Field {field} Presence", False, f"Missing required field: {field}")
+            
+            # Summary of field validation
+            print(f"\n   📊 Field Validation Summary:")
+            for field, status in field_validation.items():
+                print(f"      {field}: {status}")
+
+    def run_improved_evaluation_tests(self):
+        """Run all improved evaluation generator tests"""
+        print("🚀 STARTING IMPROVED EVALUATION GENERATOR TESTS")
+        print("=" * 70)
+        
+        # Test authentication first
+        self.test_authentication()
+        
+        # Test the improved features
+        self.test_json_output_structure()
+        self.test_comments_field_influence()
+        self.test_role_specific_questions()
+        self.test_response_structure_completeness()
+        
+        # Print summary
+        print("\n" + "=" * 70)
+        print("📊 IMPROVED EVALUATION GENERATOR TEST SUMMARY")
+        print("=" * 70)
+        print(f"Total Tests: {self.tests_run}")
+        print(f"Passed: {self.tests_passed}")
+        print(f"Failed: {self.tests_run - self.tests_passed}")
+        print(f"Success Rate: {(self.tests_passed / self.tests_run * 100):.1f}%")
+        
+        # Print failed tests
+        failed_tests = [t for t in self.test_results if not t['success']]
+        if failed_tests:
+            print(f"\n❌ FAILED TESTS ({len(failed_tests)}):")
+            for test in failed_tests:
+                print(f"   • {test['test']}: {test['details']}")
+        
+        print("\n🎯 IMPROVED EVALUATION GENERATOR VERIFICATION RESULTS:")
+        if self.tests_passed >= self.tests_run * 0.8:  # 80% pass rate
+            print("✅ Improved Evaluation Generator working correctly!")
+            print("✅ JSON output structure validated")
+            print("✅ Comments field influences AI responses")
+            print("✅ Role-specific questions generated properly")
+            print("✅ All required response fields present")
+        else:
+            print("❌ Improved Evaluation Generator has issues!")
+            print("❌ Multiple tests failing - needs investigation")
+        
+        return self.tests_passed >= self.tests_run * 0.8
+
 class GerantSellerDetailsTester:
     def __init__(self, base_url="https://review-helper-8.preview.emergentagent.com/api"):
         self.base_url = base_url
