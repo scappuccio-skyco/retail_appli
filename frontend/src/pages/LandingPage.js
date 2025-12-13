@@ -167,8 +167,8 @@ export default function LandingPage() {
                     <TrendingUp className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-[#1E40AF]">+47%</p>
-                    <p className="text-sm text-[#334155]">Performance moyenne</p>
+                    <p className="text-2xl font-bold text-[#1E40AF]">+30%</p>
+                    <p className="text-sm text-[#334155]">Objectif ventes</p>
                   </div>
                 </div>
               </div>
