@@ -51,11 +51,23 @@ class ManagerService:
         store = await self.store_repo.find_one({"id": store_id}, {"_id": 0})
         
         if not store:
-            return {"sync_mode": "manual"}
+            return {
+                "sync_mode": "manual",
+                "external_sync_enabled": False,
+                "is_enterprise": False,
+                "can_edit_kpi": True,
+                "can_edit_objectives": True
+            }
+        
+        # Ensure sync_mode is never null - default to "manual"
+        sync_mode = store.get("sync_mode") or "manual"
         
         return {
-            "sync_mode": store.get("sync_mode", "manual"),
-            "external_sync_enabled": store.get("sync_mode") == "api_sync"
+            "sync_mode": sync_mode,
+            "external_sync_enabled": sync_mode == "api_sync",
+            "is_enterprise": sync_mode in ["api_sync", "scim_sync"],
+            "can_edit_kpi": sync_mode == "manual",
+            "can_edit_objectives": True  # Objectives can always be edited
         }
     
     async def get_kpi_config(self, store_id: str) -> Dict:
