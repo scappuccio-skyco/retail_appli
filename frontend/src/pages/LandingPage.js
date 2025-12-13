@@ -65,7 +65,7 @@ export default function LandingPage() {
                 Connexion
               </button>
               <button
-                onClick={() => navigate('/register')}
+                onClick={() => navigate('/login?register=true')}
                 className="px-6 py-2 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white rounded-lg hover:shadow-lg transition-all font-medium"
               >
                 Essai Gratuit
