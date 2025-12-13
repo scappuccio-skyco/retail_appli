@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://evalboost.preview.emergentagent.com
+https://fix-deploy-access.preview.emergentagent.com
 
 ### Manager
 ```

@@ -173,5 +173,5 @@ agent_communication:
 - Gérant: gerant@skyco.fr / Gerant123!
 
 ## Test URLs
-- Frontend: https://evalboost.preview.emergentagent.com
-- Backend API: https://evalboost.preview.emergentagent.com/api
+- Frontend: https://fix-deploy-access.preview.emergentagent.com
+- Backend API: https://fix-deploy-access.preview.emergentagent.com/api
