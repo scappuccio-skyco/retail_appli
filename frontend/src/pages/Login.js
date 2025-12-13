@@ -117,15 +117,7 @@ export default function Login({ onLogin }) {
       <div className="w-full max-w-md">
         <div className="glass-morphism rounded-3xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <img 
-                src="/logo-icon.png" 
-                alt="Retail Performer AI" 
-                className="h-16 sm:h-20 object-contain"
-              />
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-[#1E40AF]">Retail Performer AI</h1>
-            <p className="text-base font-bold">by <span className="text-gray-900">SKY</span> <span className="text-[#F97316]">CO</span></p>
+            <Logo variant="login" size="lg" />
             {inviteInfo ? (
               <p className="text-gray-600 mt-2">
                 Rejoignez l'équipe de {inviteInfo.manager_name}
