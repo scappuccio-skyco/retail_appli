@@ -120,10 +120,6 @@ async def create_indexes_background():
             
     except Exception as e:
         logger.warning(f"Index creation warning (may already exist): {e}")
-        
-    except Exception as e:
-        logger.error(f"❌ Startup failed: {e}")
-        raise
 
 # Shutdown event
 @app.on_event("shutdown")
