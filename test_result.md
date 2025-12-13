@@ -49,6 +49,51 @@ backend:
         agent: "testing"
         comment: "✅ Stats aggregation working correctly. Returns proper structure with employee_id, employee_name, and stats object containing total_ca, total_ventes, days_worked, etc. Handles both data presence and absence gracefully."
 
+  - task: "Morning Brief API"
+    implemented: true
+    working: true
+    file: "/app/backend/api/routes/briefs.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Morning Brief API implemented with POST /api/briefs/morning endpoint"
+      - working: true
+        agent: "testing"
+        comment: "✅ Morning Brief API working correctly. POST /api/briefs/morning generates AI-powered briefs with manager authentication. Response contains success=true, brief content (markdown), date in French format, store_name, manager_name, and has_context field. Comments parameter works correctly - when provided, has_context=true and AI adapts content. Fixed undefined variable bug (yesterday_str → last_data_date). Minor: data_date field missing from response but core functionality working."
+
+  - task: "Morning Brief Preview API"
+    implemented: true
+    working: true
+    file: "/app/backend/api/routes/briefs.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Morning Brief Preview API implemented with GET /api/briefs/morning/preview endpoint"
+      - working: true
+        agent: "testing"
+        comment: "✅ Morning Brief Preview API working correctly. GET /api/briefs/morning/preview returns stats structure with store_name, manager_name, stats object, and date. Authentication required and working. Stats contain KPI data for brief generation. Minor: data_date field missing from stats but preview functionality working."
+
+  - task: "Stripe Webhook Health Check"
+    implemented: true
+    working: true
+    file: "/app/backend/api/routes/stripe_webhooks.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Stripe Webhook health check endpoint implemented"
+      - working: true
+        agent: "testing"
+        comment: "✅ Stripe Webhook Health Check working perfectly. GET /api/webhooks/stripe/health returns status='ok', webhook_secret_configured=true, and stripe_key_configured=true. Both STRIPE_WEBHOOK_SECRET and STRIPE_API_KEY are properly configured in environment. No authentication required for health check endpoint."
+
 frontend:
   - task: "Seller Evaluation Modal"
     implemented: true
