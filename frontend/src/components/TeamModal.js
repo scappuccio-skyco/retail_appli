@@ -752,13 +752,22 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-200 flex flex-col items-center justify-center">
-                  <button
-                    onClick={() => setShowAIAnalysisModal(true)}
-                    className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
-                  >
-                    🤖 Analyse IA de l'équipe
-                  </button>
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-200 flex flex-col items-center justify-center gap-3">
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    <button
+                      onClick={() => setShowMorningBriefModal(true)}
+                      className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition-all flex items-center gap-2"
+                    >
+                      <Coffee className="w-4 h-4" />
+                      ☕ Brief du Matin
+                    </button>
+                    <button
+                      onClick={() => setShowAIAnalysisModal(true)}
+                      className="px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
+                    >
+                      🤖 Analyse IA de l'équipe
+                    </button>
+                  </div>
                 </div>
 
               </div>
