@@ -1417,35 +1417,39 @@ class GerantService:
         # Get environment variables
         brevo_api_key = os.environ.get('BREVO_API_KEY')
         environment = os.environ.get('ENVIRONMENT', 'development')
+        cors_origins = os.environ.get('CORS_ORIGINS', '')
         
         # Determine frontend URL based on environment
-        # In production, use the production URL
-        # The FRONTEND_URL env var should be set by Kubernetes
         frontend_url = os.environ.get('FRONTEND_URL', '')
         
-        # If FRONTEND_URL looks like a preview URL but we're in production, use production URL
-        if environment == 'production' or 'emergent.host' in os.environ.get('BACKEND_URL', ''):
-            # Check if we have a proper production URL configured
-            if not frontend_url or 'preview.emergentagent.com' in frontend_url:
-                # Use BACKEND_URL as base (same domain for frontend)
-                backend_url = os.environ.get('BACKEND_URL', os.environ.get('REACT_APP_BACKEND_URL', ''))
-                if backend_url and 'emergent.host' in backend_url:
-                    # Extract the base URL (remove /api if present)
-                    frontend_url = backend_url.replace('/api', '').rstrip('/')
-                    logger.info(f"[INVITATION EMAIL] Using BACKEND_URL as frontend: {frontend_url}")
-                elif not frontend_url:
-                    frontend_url = 'https://retailperformerai.com'
-                    logger.info(f"[INVITATION EMAIL] Using default production URL: {frontend_url}")
+        # In production, extract URL from CORS_ORIGINS if FRONTEND_URL is not properly set
+        if not frontend_url or 'preview.emergentagent.com' in frontend_url or 'localhost' in frontend_url:
+            # Try to get production URL from CORS_ORIGINS
+            if cors_origins and cors_origins != '*':
+                origins = [o.strip() for o in cors_origins.split(',')]
+                # Prefer retailperformerai.com, then emergent.host
+                for origin in origins:
+                    if 'retailperformerai.com' in origin:
+                        frontend_url = origin
+                        break
+                    elif 'emergent.host' in origin and 'preview' not in origin:
+                        frontend_url = origin
+                if not frontend_url and origins:
+                    frontend_url = origins[0]  # Use first origin as fallback
+                logger.info(f"[INVITATION EMAIL] Using URL from CORS_ORIGINS: {frontend_url}")
         
         # Fallback for local development
-        if not frontend_url:
+        if not frontend_url or frontend_url == '*':
             frontend_url = 'http://localhost:3000'
             # Try loading from .env file
             try:
                 from dotenv import dotenv_values
                 env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
                 env_vars = dotenv_values(env_path)
-                frontend_url = env_vars.get('FRONTEND_URL', frontend_url)
+                env_frontend = env_vars.get('FRONTEND_URL', '')
+                # Only use .env URL if it's not a preview URL
+                if env_frontend and 'preview.emergentagent.com' not in env_frontend:
+                    frontend_url = env_frontend
             except Exception:
                 pass
         
@@ -1465,6 +1469,7 @@ class GerantService:
         
         logger.info(f"Sending invitation email to {invitation['email']}")
         logger.info(f"[INVITATION EMAIL] Environment: {environment}")
+        logger.info(f"[INVITATION EMAIL] CORS_ORIGINS: {cors_origins}")
         logger.info(f"[INVITATION EMAIL] Final FRONTEND_URL: {frontend_url}")
         
         role_text = "Manager" if invitation['role'] == 'manager' else "Vendeur"
