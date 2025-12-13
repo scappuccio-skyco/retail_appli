@@ -8,7 +8,6 @@ routers = []
 def safe_import(module_path, router_name, fallback_prefix=None):
     """Safely import a router with error handling"""
     try:
-        parts = module_path.rsplit('.', 1)
         module = __import__(module_path, fromlist=[router_name])
         router = getattr(module, router_name)
         routers.append(router)
