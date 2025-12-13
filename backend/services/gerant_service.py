@@ -695,7 +695,8 @@ class GerantService:
                         "has_subscription": False,
                         "status": "trial_expired",
                         "message": "Essai gratuit terminé",
-                        "active_sellers_count": active_sellers_count
+                        "active_sellers_count": active_sellers_count,
+                        "workspace_name": workspace.get('name')
                     }
         
         # PRIORITY 2: Check Stripe subscription (if customer ID exists)
