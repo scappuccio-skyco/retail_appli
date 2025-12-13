@@ -82,12 +82,16 @@ async def generate_morning_brief(
     else:
         stats = await _fetch_yesterday_stats(db, store_id, user_id)
     
+    # Extraire la date des données (dernier jour actif)
+    data_date = stats.get("data_date")
+    
     # Générer le brief via le service IA
     result = await ai_service.generate_morning_brief(
         stats=stats,
         manager_name=manager_name,
         store_name=store_name,
-        context=request.comments
+        context=request.comments,
+        data_date=data_date  # Passer la date du dernier jour avec des données
     )
     
     return result
