@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://disc-coaching.preview.emergentagent.com
+https://evalboost.preview.emergentagent.com
 
 ### Manager
 ```
