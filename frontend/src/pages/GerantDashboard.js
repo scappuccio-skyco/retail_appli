@@ -662,6 +662,17 @@ const GerantDashboard = ({ user, onLogout }) => {
                 <span>Vue d'ensemble</span>
               </button>
               <button
+                onClick={() => setActiveView('stores')}
+                className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-base font-semibold transition-all whitespace-nowrap ${
+                  activeView === 'stores'
+                    ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <Store className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>Magasins</span>
+              </button>
+              <button
                 onClick={() => setActiveView('staff')}
                 className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-base font-semibold transition-all whitespace-nowrap ${
                   activeView === 'staff'
