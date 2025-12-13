@@ -54,6 +54,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
   const [showArchivedSellers, setShowArchivedSellers] = useState(false); // Afficher vendeurs archivés
   const [archivedSellers, setArchivedSellers] = useState([]); // Liste des vendeurs archivés
   const [hiddenSellerIds, setHiddenSellerIds] = useState([]); // IDs des vendeurs à masquer temporairement
+  const [showEvaluationModal, setShowEvaluationModal] = useState(false);
+  const [selectedSellerForEval, setSelectedSellerForEval] = useState(null);
 
   // Initialize visible sellers only once when sellers change
   useEffect(() => {
