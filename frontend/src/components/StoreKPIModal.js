@@ -407,6 +407,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
   // Fetch all dates with data (last 2 years) for calendar highlighting
   const fetchDatesWithData = async () => {
+    console.log('[DEBUG] fetchDatesWithData called, storeId:', storeId);
     try {
       const token = localStorage.getItem('token');
       const days = 730; // 2 years
