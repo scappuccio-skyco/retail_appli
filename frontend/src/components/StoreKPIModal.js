@@ -462,10 +462,14 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               allDates.add(entry.date);
             }
             if (entry.locked === true) {
+              console.log('[DEBUG] Found locked date:', entry.date, entry);
               allLockedDates.add(entry.date);
             }
           });
         });
+        
+        console.log('[DEBUG] All dates with data:', [...allDates]);
+        console.log('[DEBUG] All locked dates:', [...allLockedDates]);
         
         setDatesWithData([...allDates]);
         setLockedDates([...allLockedDates]);
