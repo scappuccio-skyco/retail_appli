@@ -898,6 +898,7 @@ class GerantService:
         
         # Aggregate data by date
         date_map = {}
+        locked_dates = set()  # Track which dates have locked entries
         
         # Add manager KPIs
         for kpi in manager_kpis:
@@ -909,13 +910,17 @@ class GerantService:
                     "nb_ventes": 0,
                     "nb_clients": 0,
                     "nb_articles": 0,
-                    "nb_prospects": 0
+                    "nb_prospects": 0,
+                    "locked": False
                 }
             date_map[date]["ca_journalier"] += kpi.get("ca_journalier") or 0
             date_map[date]["nb_ventes"] += kpi.get("nb_ventes") or 0
             date_map[date]["nb_clients"] += kpi.get("nb_clients") or 0
             date_map[date]["nb_articles"] += kpi.get("nb_articles") or 0
             date_map[date]["nb_prospects"] += kpi.get("nb_prospects") or 0
+            # Check if locked
+            if kpi.get("locked"):
+                locked_dates.add(date)
         
         # Add seller entries
         for entry in seller_entries:
@@ -927,7 +932,8 @@ class GerantService:
                     "nb_ventes": 0,
                     "nb_clients": 0,
                     "nb_articles": 0,
-                    "nb_prospects": 0
+                    "nb_prospects": 0,
+                    "locked": False
                 }
             # Handle both field names for CA
             ca_value = entry.get("seller_ca") or entry.get("ca_journalier") or 0
@@ -936,6 +942,14 @@ class GerantService:
             date_map[date]["nb_clients"] += entry.get("nb_clients") or 0
             date_map[date]["nb_articles"] += entry.get("nb_articles") or 0
             date_map[date]["nb_prospects"] += entry.get("nb_prospects") or 0
+            # Check if locked
+            if entry.get("locked"):
+                locked_dates.add(date)
+        
+        # Apply locked status to date_map
+        for date in locked_dates:
+            if date in date_map:
+                date_map[date]["locked"] = True
         
         # Convert to sorted list
         historical_data = sorted(date_map.values(), key=lambda x: x['date'])
