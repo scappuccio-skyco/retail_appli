@@ -41,13 +41,16 @@ class Database:
             print("[DATABASE] Connecting to MongoDB...", flush=True)
             
             # Add connection timeout settings for faster failure detection
+            # Optimized for production stability
             self.client = AsyncIOMotorClient(
                 settings.MONGO_URL,
-                serverSelectionTimeoutMS=5000,  # 5 second timeout for server selection
-                connectTimeoutMS=5000,          # 5 second connection timeout
-                socketTimeoutMS=10000,          # 10 second socket timeout
-                maxPoolSize=10,                 # Limit pool size
-                retryWrites=True
+                serverSelectionTimeoutMS=5000,   # 5 second timeout for server selection
+                connectTimeoutMS=10000,          # 10 second connection timeout (increased for cold starts)
+                socketTimeoutMS=10000,           # 10 second socket timeout
+                maxPoolSize=10,                  # Limit pool size to avoid saturation
+                minPoolSize=1,                   # Keep at least 1 connection alive
+                retryWrites=True,
+                retryReads=True                  # Also retry read operations
             )
             self.db = self.client[settings.DB_NAME]
             
