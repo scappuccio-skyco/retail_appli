@@ -1302,7 +1302,10 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                         <button
                           onClick={() => handleSelectPlan(planKey)}
                           disabled={isProcessing}
-                          className="w-full py-3 bg-[#1E40AF] text-white rounded-lg hover:bg-[#1E3A8A] transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+                          className="w-full py-3 text-white rounded-lg transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+                          style={{ backgroundColor: plan.color }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = plan.colorHover}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = plan.color}
                         >
                           {isProcessing ? (
                             <>
