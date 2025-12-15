@@ -188,7 +188,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-lg font-bold text-[#1E40AF] mb-3">ADN 100% Retail</h3>
                 <p className="text-[#334155] text-sm leading-relaxed">
-                  Pas de théorie, que du terrain. Outil conçu par des directeurs de réseau cumulant 15 ans d'expérience opérationnelle.
+                  Pas de théorie, que du terrain. Outil conçu par des Experts de la Vente et du Management cumulant plus de 20 ans d'expérience opérationnelle.
                 </p>
                 <p className="text-xs text-[#64748B] mt-4 font-medium">L'Équipe Fondatrice</p>
               </div>
