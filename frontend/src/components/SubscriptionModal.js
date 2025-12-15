@@ -216,7 +216,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       // Use different endpoint based on user role
       const endpoint = userRole === 'gerant' 
         ? `${API}/api/gerant/subscription/status`
-        : `${API}/api/subscription/status`;
+        : `${API}/api/manager/subscription-status`;
       
       const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
