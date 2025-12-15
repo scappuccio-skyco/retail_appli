@@ -430,7 +430,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                     <Coffee className="w-10 h-10 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-800 mb-2">Préparation du brief...</h3>
-                  <p className="text-gray-600">L'IA prépare votre brief matinal</p>
+                  <p className="text-gray-600">L&apos;IA prépare votre brief matinal</p>
                 </div>
                 <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 animate-progress-slide"></div>
@@ -494,14 +494,14 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
               {loadingHistory && (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-amber-500 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Chargement de l'historique...</p>
+                  <p className="text-gray-600">Chargement de l&apos;historique...</p>
                 </div>
               )}
 
               {!loadingHistory && history.length === 0 && (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">📋</div>
-                  <p className="text-gray-600">Aucun brief dans l'historique</p>
+                  <p className="text-gray-600">Aucun brief dans l&apos;historique</p>
                   <button
                     onClick={() => setActiveTab('new')}
                     className="mt-4 px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
