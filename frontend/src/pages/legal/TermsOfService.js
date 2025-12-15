@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Scale, CreditCard, Shield, AlertTriangle, Clock, FileCheck } from 'lucide-react';
 import Logo from '../../components/shared/Logo';
@@ -8,6 +8,11 @@ import Logo from '../../components/shared/Logo';
  * SKY CO / Retail Performer AI
  */
 export default function TermsOfService() {
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}

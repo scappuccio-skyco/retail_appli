@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Building2, Mail, Globe, FileText } from 'lucide-react';
 import Logo from '../../components/shared/Logo';
@@ -8,6 +8,11 @@ import Logo from '../../components/shared/Logo';
  * Conforme à la loi française (LCEN)
  */
 export default function LegalNotice() {
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
