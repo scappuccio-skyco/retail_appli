@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { X, Coffee, Sparkles, Copy, Check, RefreshCw, Calendar, Clock, Trash2, ChevronDown } from 'lucide-react';
+import { X, Coffee, Sparkles, Copy, Check, RefreshCw, Calendar, Clock, Trash2, ChevronDown, Download, FileText } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
