@@ -449,7 +449,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       
       // Try to load diagnostic info
       try {
-        const diagnosticRes = await axios.get(`${API}/diagnostic/me`, { headers: { Authorization: `Bearer ${token}` } });
+        const diagnosticRes = await axios.get(`${API}/seller/diagnostic/me`, { headers: { Authorization: `Bearer ${token}` } });
         if (diagnosticRes.data) {
           setDiagnostic(diagnosticRes.data);
         }
