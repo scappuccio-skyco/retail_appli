@@ -22,6 +22,11 @@ import DiagnosticResult from './components/DiagnosticResult';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Toaster } from 'sonner';
 
+// Legal pages
+import LegalNotice from './pages/legal/LegalNotice';
+import TermsOfService from './pages/legal/TermsOfService';
+import PrivacyPolicy from './pages/legal/PrivacyPolicy';
+
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
