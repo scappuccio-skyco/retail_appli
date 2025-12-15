@@ -1664,24 +1664,31 @@ class GerantFeaturesTester:
             else:
                 self.log_test("Webhook Health Complete Check", False, "Not all webhook health requirements met")
 
-    def test_morning_brief_security(self):
-        """Test Morning Brief API security and access control"""
-        print("\n🔒 TESTING MORNING BRIEF API SECURITY")
+    def test_gerant_api_security(self):
+        """Test Gérant API security and access control"""
+        print("\n🔒 TESTING GÉRANT API SECURITY")
         
-        # Test 1: Access without authentication
+        # Test 1: Access stores without authentication
         success, response = self.run_test(
-            "Morning Brief - No Auth (Expected 403)",
-            "POST",
-            "briefs/morning",
-            403,
-            data={"comments": "test"}
+            "Gérant Stores - No Auth (Expected 403)",
+            "GET",
+            "gerant/stores",
+            403
         )
         
-        # Test 2: Preview without authentication
+        # Test 2: Access store managers without authentication
         success, response = self.run_test(
-            "Morning Brief Preview - No Auth (Expected 403)",
+            "Gérant Store Managers - No Auth (Expected 403)",
             "GET",
-            "briefs/morning/preview",
+            "gerant/stores/test-store-id/managers",
+            403
+        )
+        
+        # Test 3: Access invitations without authentication
+        success, response = self.run_test(
+            "Gérant Invitations - No Auth (Expected 403)",
+            "GET",
+            "gerant/invitations",
             403
         )
 
