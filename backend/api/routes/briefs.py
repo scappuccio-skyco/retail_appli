@@ -28,10 +28,49 @@ class MorningBriefRequest(BaseModel):
     stats: Optional[Dict] = Field(None, description="Statistiques optionnelles (sinon auto-fetch)")
 
 
+class StructuredBriefContent(BaseModel):
+    """
+    Structure détaillée du contenu du brief matinal.
+    Utilisé pour afficher le brief de manière formatée dans le frontend.
+    """
+    flashback: str = Field(
+        ..., 
+        description="Bilan des performances du dernier jour travaillé (CA, ventes, points forts/vigilance)"
+    )
+    focus: str = Field(
+        ..., 
+        description="Mission/objectif principal du jour pour l'équipe"
+    )
+    examples: List[str] = Field(
+        default_factory=list,
+        description="Liste de méthodes ou actions concrètes pour atteindre l'objectif"
+    )
+    team_question: str = Field(
+        ..., 
+        description="Question à poser à l'équipe pour engager la discussion"
+    )
+    booster: str = Field(
+        ..., 
+        description="Citation motivante ou phrase boost pour clôturer le brief"
+    )
+
+
 class MorningBriefResponse(BaseModel):
-    """Response model for morning brief"""
+    """
+    Response model for morning brief.
+    
+    Le brief peut être retourné sous deux formes:
+    - Format legacy: champ 'brief' contient du Markdown brut
+    - Format structuré: champ 'structured' contient un objet StructuredBriefContent
+    
+    Le frontend doit gérer les deux cas pour la rétro-compatibilité.
+    """
     success: bool
-    brief: str
+    brief: str = Field(..., description="Brief au format Markdown (rétro-compatibilité)")
+    structured: Optional[StructuredBriefContent] = Field(
+        None, 
+        description="Brief structuré avec champs séparés (nouveau format)"
+    )
     brief_id: Optional[str] = None  # ID pour l'historique
     date: str
     data_date: Optional[str] = None  # Date du dernier jour avec données
