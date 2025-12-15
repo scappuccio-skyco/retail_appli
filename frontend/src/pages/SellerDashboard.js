@@ -428,7 +428,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       
       // Try to load live scores (non-blocking)
       try {
-        const liveScoresRes = await axios.get(`${API}/diagnostic/me/live-scores`, { headers: { Authorization: `Bearer ${token}` } });
+        const liveScoresRes = await axios.get(`${API}/seller/diagnostic/me/live-scores`, { headers: { Authorization: `Bearer ${token}` } });
         if (liveScoresRes.data && liveScoresRes.data.live_scores) {
           const { live_scores, diagnostic_age_days } = liveScoresRes.data;
           const scoreEntry = {
