@@ -40,8 +40,19 @@ class AdminRepository:
     
     async def get_stores_by_gerant(self, gerant_id: str) -> List[Dict]:
         """Get all stores for a gérant"""
+        if not gerant_id:
+            return []
         return await self.db.stores.find(
             {"gerant_id": gerant_id},
+            {"_id": 0}
+        ).to_list(100)
+    
+    async def get_stores_by_workspace(self, workspace_id: str) -> List[Dict]:
+        """Get all stores for a workspace (by workspace_id field)"""
+        if not workspace_id:
+            return []
+        return await self.db.stores.find(
+            {"workspace_id": workspace_id},
             {"_id": 0}
         ).to_list(100)
     
