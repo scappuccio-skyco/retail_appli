@@ -199,10 +199,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Espace Manager Tab Rename"
-    - "Seller Invitation Store Dropdown"
-    - "Gérant KPI Modal from Dashboard"
-    - "Stripe Webhook Integration"
+    - "Espace Manager Tab Rename" 
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
