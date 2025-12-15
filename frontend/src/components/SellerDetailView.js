@@ -43,7 +43,7 @@ export default function SellerDetailView({ seller, onBack }) {
       const token = localStorage.getItem('token');
       const [statsRes, diagRes, debriefsRes, competencesRes, kpiRes, kpiConfigRes] = await Promise.all([
         axios.get(`${API}/manager/seller/${seller.id}/stats`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/diagnostic/seller/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/manager-diagnostic/seller/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/manager/debriefs/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/manager/competences-history/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/manager/kpi-entries/${seller.id}?days=30`, { headers: { Authorization: `Bearer ${token}` } }),
