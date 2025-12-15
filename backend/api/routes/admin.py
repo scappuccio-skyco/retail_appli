@@ -43,61 +43,7 @@ async def get_workspaces(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.patch("/workspaces/{workspace_id}/status")
-async def update_workspace_status(
-    workspace_id: str,
-    status: str = Query(..., description="New status: 'active', 'suspended', or 'deleted'"),
-    current_user: Dict = Depends(get_super_admin),
-    db = Depends(get_db)
-):
-    """
-    Update workspace status (activate, suspend, or delete)
-    
-    Args:
-        workspace_id: The workspace ID
-        status: New status - 'active', 'suspended', or 'deleted'
-    """
-    from uuid import uuid4
-    
-    valid_statuses = ['active', 'suspended', 'deleted']
-    if status not in valid_statuses:
-        raise HTTPException(status_code=400, detail=f"Status invalide. Valeurs acceptées: {valid_statuses}")
-    
-    # Find the workspace
-    workspace = await db.workspaces.find_one({"id": workspace_id})
-    if not workspace:
-        raise HTTPException(status_code=404, detail="Workspace non trouvé")
-    
-    old_status = workspace.get('status', 'active')
-    
-    # Update the status
-    await db.workspaces.update_one(
-        {"id": workspace_id},
-        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
-    )
-    
-    # Log the action
-    await db.audit_logs.insert_one({
-        "id": str(uuid4()),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "action": f"workspace_status_change",
-        "admin_email": current_user['email'],
-        "admin_name": current_user.get('name', 'Admin'),
-        "details": {
-            "workspace_id": workspace_id,
-            "workspace_name": workspace.get('name', 'N/A'),
-            "old_status": old_status,
-            "new_status": status
-        }
-    })
-    
-    return {
-        "message": f"Statut du workspace mis à jour: {old_status} → {status}",
-        "workspace_id": workspace_id,
-        "new_status": status
-    }
-
-
+# IMPORTANT: Bulk route must be defined BEFORE the dynamic {workspace_id} route
 @router.patch("/workspaces/bulk/status")
 async def bulk_update_workspace_status(
     request_body: BulkStatusUpdate,
@@ -173,6 +119,74 @@ async def bulk_update_workspace_status(
             "new_status": status,
             "total_requested": len(workspace_ids),
             "success_count": success_count,
+            "error_count": error_count,
+            "updated_workspaces": updated_workspaces
+        }
+    })
+    
+    status_label = 'réactivé(s)' if status == 'active' else 'suspendu(s)' if status == 'suspended' else 'supprimé(s)'
+    
+    return {
+        "message": f"{success_count} workspace(s) {status_label} avec succès",
+        "success_count": success_count,
+        "error_count": error_count,
+        "new_status": status
+    }
+
+
+@router.patch("/workspaces/{workspace_id}/status")
+async def update_workspace_status(
+    workspace_id: str,
+    status: str = Query(..., description="New status: 'active', 'suspended', or 'deleted'"),
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """
+    Update workspace status (activate, suspend, or delete)
+    
+    Args:
+        workspace_id: The workspace ID
+        status: New status - 'active', 'suspended', or 'deleted'
+    """
+    from uuid import uuid4
+    
+    valid_statuses = ['active', 'suspended', 'deleted']
+    if status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Status invalide. Valeurs acceptées: {valid_statuses}")
+    
+    # Find the workspace
+    workspace = await db.workspaces.find_one({"id": workspace_id})
+    if not workspace:
+        raise HTTPException(status_code=404, detail="Workspace non trouvé")
+    
+    old_status = workspace.get('status', 'active')
+    
+    # Update the status
+    await db.workspaces.update_one(
+        {"id": workspace_id},
+        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Log the action
+    await db.audit_logs.insert_one({
+        "id": str(uuid4()),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "action": f"workspace_status_change",
+        "admin_email": current_user['email'],
+        "admin_name": current_user.get('name', 'Admin'),
+        "details": {
+            "workspace_id": workspace_id,
+            "workspace_name": workspace.get('name', 'N/A'),
+            "old_status": old_status,
+            "new_status": status
+        }
+    })
+    
+    return {
+        "message": f"Statut du workspace mis à jour: {old_status} → {status}",
+        "workspace_id": workspace_id,
+        "new_status": status
+    }
             "error_count": error_count,
             "updated_workspaces": updated_workspaces
         }
