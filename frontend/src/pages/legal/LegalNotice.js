@@ -103,10 +103,20 @@ export default function LegalNotice() {
                 4. Hébergement
               </h2>
               <div className="bg-gray-50 rounded-xl p-6 space-y-3">
-                <p><strong>Hébergeur :</strong> Emergent / Cloudflare</p>
-                <p><strong>Infrastructure :</strong> Hébergé sur les infrastructures Cloud via Emergent.sh / Cloudflare</p>
-                <p><strong>Localisation des données :</strong> Union Européenne et États-Unis (avec garanties RGPD)</p>
+                <p><strong>Plateforme d&apos;hébergement :</strong> Emergent (emergent.sh)</p>
+                <p><strong>CDN et sécurité :</strong> Cloudflare</p>
+                <p><strong>Infrastructure Cloud :</strong> Services Cloud distribués (AWS, GCP)</p>
+                <p><strong>Base de données :</strong> MongoDB Atlas</p>
+                <p><strong>Localisation des données :</strong> Union Européenne et États-Unis</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Les transferts de données hors UE sont encadrés par des Clauses Contractuelles Types (CCT) 
+                  conformes au RGPD et aux décisions d&apos;adéquation de la Commission Européenne.
+                </p>
               </div>
+              <p className="text-xs text-gray-400 mt-3">
+                Pour toute question relative à l&apos;hébergement, contactez{' '}
+                <a href="mailto:support@emergent.sh" className="text-[#F97316] hover:underline">support@emergent.sh</a>
+              </p>
             </section>
 
             {/* Section 5 - Propriété intellectuelle */}
