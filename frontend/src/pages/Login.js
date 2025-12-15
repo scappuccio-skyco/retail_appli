@@ -79,7 +79,7 @@ export default function Login({ onLogin }) {
       
       if (inviteToken && isRegister) {
         // Registration with invitation
-        endpoint = '/auth/register-with-invite';
+        endpoint = '/auth/register/invitation';
         payload = {
           name: formData.name,
           email: formData.email,
