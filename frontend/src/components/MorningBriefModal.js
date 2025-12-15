@@ -131,8 +131,93 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
     { badge: 'bg-pink-100 text-pink-800', card: 'bg-pink-50 border-pink-200', gradient: 'from-pink-500 to-rose-600' }
   ];
 
-  // Parse et affiche le brief avec le style des sections colorées
-  const renderBriefContent = (briefText) => {
+  // Render structured brief (nouveau format V2)
+  const renderStructuredBrief = (structured) => {
+    if (!structured) return null;
+
+    return (
+      <div className="space-y-4">
+        {/* 📊 Flashback */}
+        {structured.flashback && (
+          <div className={`rounded-xl p-5 shadow-sm border-2 ${colorPalette[1].card}`}>
+            <div className="mb-3">
+              <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${colorPalette[1].badge}`}>
+                📊 Flash-Back
+              </span>
+            </div>
+            <p className="text-gray-700 leading-relaxed">{structured.flashback}</p>
+          </div>
+        )}
+
+        {/* 🎯 Focus/Mission */}
+        {structured.focus && (
+          <div className={`rounded-xl p-5 shadow-sm border-2 ${colorPalette[2].card}`}>
+            <div className="mb-3">
+              <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${colorPalette[2].badge}`}>
+                🎯 Mission du Jour
+              </span>
+            </div>
+            <p className="text-gray-800 font-medium leading-relaxed">{structured.focus}</p>
+          </div>
+        )}
+
+        {/* 💡 Méthodes/Exemples */}
+        {structured.examples && structured.examples.length > 0 && (
+          <div className={`rounded-xl p-5 shadow-sm border-2 ${colorPalette[0].card}`}>
+            <div className="mb-3">
+              <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${colorPalette[0].badge}`}>
+                💡 Méthode
+              </span>
+            </div>
+            <ul className="space-y-2">
+              {structured.examples.map((example, idx) => (
+                <li key={idx} className="flex gap-3 items-start">
+                  <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 bg-gradient-to-br ${colorPalette[0].gradient}`}></span>
+                  <span className="text-gray-700">{example}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* 🗣️ Question Équipe */}
+        {structured.team_question && (
+          <div className={`rounded-xl p-5 shadow-sm border-2 ${colorPalette[3].card}`}>
+            <div className="mb-3">
+              <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${colorPalette[3].badge}`}>
+                🗣️ Question Équipe
+              </span>
+            </div>
+            <p className="text-gray-800 italic leading-relaxed">"{structured.team_question}"</p>
+          </div>
+        )}
+
+        {/* 🚀 Booster */}
+        {structured.booster && (
+          <div className={`rounded-xl p-5 shadow-sm border-2 ${colorPalette[4].card}`}>
+            <div className="mb-3">
+              <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${colorPalette[4].badge}`}>
+                🚀 Le Mot de la Fin
+              </span>
+            </div>
+            <p className="text-gray-800 font-medium leading-relaxed">"{structured.booster}"</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Parse et affiche le brief avec le style des sections colorées (legacy format)
+  const renderBriefContent = (briefData) => {
+    // Si on a le format structuré, l'utiliser en priorité
+    if (briefData.structured) {
+      return renderStructuredBrief(briefData.structured);
+    }
+    
+    // Sinon, fallback sur le parsing du Markdown (rétro-compatibilité)
+    const briefText = typeof briefData === 'string' ? briefData : briefData.brief;
+    if (!briefText) return null;
+    
     const sections = briefText.split(/(?=###\s)/).filter(s => s.trim() && s.trim().startsWith('###'));
 
     return sections.map((section, sectionIdx) => {
