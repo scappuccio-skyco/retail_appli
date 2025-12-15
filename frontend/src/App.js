@@ -367,6 +367,7 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <AppContent />
+        <CookieConsent />
       </BrowserRouter>
     </ErrorBoundary>
   );
