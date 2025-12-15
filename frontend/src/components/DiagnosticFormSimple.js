@@ -171,7 +171,7 @@ function DiagnosticFormSimple() {
     setLoading(true);
     
     try {
-      await axios.post(`${API}/diagnostic`, { responses });
+      await axios.post(`${API}/ai/diagnostic`, { responses });
       toast.success('Diagnostic complété avec succès!');
       setTimeout(() => {
         navigate('/', { replace: true });
