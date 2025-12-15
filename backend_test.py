@@ -2959,19 +2959,19 @@ class GerantSellerDetailsTester:
 
 
 if __name__ == "__main__":
-    print("🎯 RUNNING MORNING BRIEF AND STRIPE WEBHOOK TESTS")
+    print("🎯 RUNNING GÉRANT FEATURES TESTS FOR REVIEW REQUEST")
     print("=" * 80)
     
-    # Run Morning Brief and Webhook tests
-    morning_brief_tester = MorningBriefAndWebhookTester()
-    morning_brief_success = morning_brief_tester.run_morning_brief_and_webhook_tests()
+    # Run Gérant Features tests
+    gerant_tester = GerantFeaturesTester()
+    gerant_success = gerant_tester.run_gerant_features_tests()
     
     print("\n" + "=" * 80)
     print("🏁 FINAL RESULTS")
     print("=" * 80)
-    print(f"Morning Brief & Stripe Webhook: {'✅ PASS' if morning_brief_success else '❌ FAIL'}")
+    print(f"Gérant Features: {'✅ PASS' if gerant_success else '❌ FAIL'}")
     
-    print(f"\n🎯 OVERALL: {'✅ ALL SYSTEMS OPERATIONAL' if morning_brief_success else '❌ ISSUES DETECTED'}")
+    print(f"\n🎯 OVERALL: {'✅ ALL BACKEND APIS OPERATIONAL' if gerant_success else '❌ BACKEND ISSUES DETECTED'}")
     
     # Exit with appropriate code
-    sys.exit(0 if morning_brief_success else 1)
+    sys.exit(0 if gerant_success else 1)
