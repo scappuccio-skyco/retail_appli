@@ -491,7 +491,7 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${API}/diagnostic`, { responses }, {
+      const response = await axios.post(`${API}/ai/diagnostic`, { responses }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
