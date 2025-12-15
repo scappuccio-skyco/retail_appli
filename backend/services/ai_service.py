@@ -1213,9 +1213,23 @@ Le premier à atteindre 500€ de CA gagne un café offert par le manager !
 *Brief généré par Retail Performer AI*
 """
         
+        # Structured fallback
+        structured = {
+            "flashback": f"CA réalisé hier : {ca_hier:,.0f}€. Continuons sur cette lancée !",
+            "focus": "Dépasser notre CA d'hier et offrir une expérience client exceptionnelle !",
+            "examples": [
+                "Accueil chaleureux de chaque client",
+                "Proposer des articles complémentaires",
+                "Fidéliser avec le programme avantages"
+            ],
+            "team_question": "Quel est votre objectif personnel pour aujourd'hui ?",
+            "booster": "Le succès est la somme de petits efforts répétés jour après jour. - Robert Collier"
+        }
+        
         return {
             "success": True,
             "brief": fallback_brief,
+            "structured": structured,
             "date": today,
             "data_date": stats.get('data_date', 'hier'),
             "store_name": store_name,
