@@ -288,7 +288,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       console.log('📡 Making API call to change seats...');
       
       const response = await axios.post(
-        `${API}/api/subscription/change-seats?new_seats=${newSeats}`,
+        `${API}/api/gerant/subscription/update-seats?new_seats=${newSeats}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
