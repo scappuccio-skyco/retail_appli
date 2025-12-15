@@ -3,9 +3,9 @@
 ## Testing Protocol
 test_plan:
   current_focus:
-    - "Admin Workspaces with include_deleted parameter"
-    - "Morning Brief structured JSON format"
-    - "Swagger API documentation"
+    - "Super Admin Dashboard - Exclusive Filtering (Tous, Actifs, Suspendus, Supprimés)"
+    - "Super Admin Dashboard - Status badges and action buttons"
+    - "Workspace data migration - all workspaces now have status field"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -14,6 +14,13 @@ test_plan:
 - Super Admin credentials: admin@retail-coach.fr / Admin123!
 - Gérant credentials: gerant@skyco.fr / Gerant123!
 - Manager credentials: y.legoff@skyco.fr / TestDemo123!
+
+## Recent Changes
+- **Data Migration Completed**: 46 workspaces were updated to have status='active' (they had null status before)
+- **Status Distribution**: 51 active, 0 suspended, 3 deleted workspaces
+- **Frontend Updates**: 
+  - Status badges now show French labels (Actif, Suspendu, Supprimé)
+  - Action buttons fixed: Active shows Suspendre/Supprimer, Suspended shows Réactiver/Supprimer, Deleted shows Restaurer
 
 ## Backend API: https://french-site-refresh.preview.emergentagent.com/api
 
