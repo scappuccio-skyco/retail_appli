@@ -936,6 +936,7 @@ export default function SuperAdminDashboard() {
                     {/* Afficher les stores sous le workspace (accordéon) */}
                     {expandedWorkspaces[workspace.id] && workspace.stores && workspace.stores.length > 0 && workspace.stores.map((store, storeIdx) => (
                       <tr key={`${workspace.id}-store-${storeIdx}`} className="border-b border-white/5 bg-white/5">
+                        <td className="p-3"></td> {/* Empty cell for checkbox column */}
                         <td className="p-3 pl-8">
                           <div className="text-sm text-purple-200">
                             🏪 {store.name}
@@ -945,7 +946,7 @@ export default function SuperAdminDashboard() {
                         <td className="p-3">
                           {store.manager ? (
                             <div className="text-sm text-purple-200">
-                              {store.manager.name}
+                              👤 {store.manager.name}
                               <div className="text-xs text-purple-300">{store.manager.email}</div>
                             </div>
                           ) : (
@@ -954,11 +955,11 @@ export default function SuperAdminDashboard() {
                         </td>
                         <td className="p-3">
                           <div className="text-sm text-white">
-                            {store.sellers_count} actif{store.sellers_count > 1 ? 's' : ''}
+                            {store.sellers_count || 0} actif{(store.sellers_count || 0) > 1 ? 's' : ''}
                           </div>
                           {store.sellers && store.sellers.length > 0 && (
                             <div className="mt-1 text-xs text-purple-300 space-y-1">
-                              {store.sellers.map((seller, sellerIdx) => (
+                              {store.sellers.slice(0, 5).map((seller, sellerIdx) => (
                                 <div key={sellerIdx} className={seller.status !== 'active' ? 'opacity-50' : ''}>
                                   • {seller.name}
                                   {seller.status !== 'active' && (
@@ -966,15 +967,18 @@ export default function SuperAdminDashboard() {
                                   )}
                                 </div>
                               ))}
+                              {store.sellers.length > 5 && (
+                                <div className="text-gray-400">+ {store.sellers.length - 5} autres...</div>
+                              )}
                             </div>
                           )}
                         </td>
                         <td className="p-3 text-xs text-gray-400">-</td>
                         <td className="p-3">
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            store.status ? 'bg-green-500/20 text-green-200' : 'bg-red-500/20 text-red-200'
+                            store.status === 'active' ? 'bg-green-500/20 text-green-200' : 'bg-red-500/20 text-red-200'
                           }`}>
-                            {store.status ? 'actif' : 'inactif'}
+                            {store.status === 'active' ? 'actif' : 'inactif'}
                           </span>
                         </td>
                         <td className="p-3 text-xs text-gray-400">-</td>
