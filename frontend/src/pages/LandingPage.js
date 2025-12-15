@@ -200,7 +200,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-lg font-bold text-[#1E40AF] mb-3">Méthodologie Éprouvée</h3>
                 <p className="text-[#334155] text-sm leading-relaxed">
-                  Basé sur les fondamentaux de la vente qui fonctionnent : SBAM, Vente Complémentaire et Coaching situationnel.
+                  Basé sur les piliers de l'excellence Retail : Cérémonial de Vente, Vente Complémentaire et Coaching Situationnel.
                 </p>
                 <p className="text-xs text-[#64748B] mt-4 font-medium">Best Practices Retail</p>
               </div>
