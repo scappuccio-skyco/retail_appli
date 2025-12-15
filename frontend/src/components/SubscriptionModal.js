@@ -15,6 +15,8 @@ const PLANS = {
     minSellers: 1,
     maxSellers: 5,
     subtitle: 'Petites boutiques',
+    color: '#10B981', // Green
+    colorHover: '#059669',
     mainFeatures: [
       'Dashboard Gérant, Manager & Vendeur',
       'Diagnostic Profil Manager',
@@ -36,6 +38,8 @@ const PLANS = {
     minSellers: 6,
     maxSellers: 15,
     subtitle: 'Magasins moyens',
+    color: '#F97316', // Orange
+    colorHover: '#EA580C',
     mainFeatures: [
       'Dashboard Gérant, Manager & Vendeur',
       'Diagnostic Profil Manager',
@@ -58,6 +62,8 @@ const PLANS = {
     maxSellers: null,
     subtitle: 'Pour réseaux & enseignes',
     isEnterprise: true,
+    color: '#7C3AED', // Purple
+    colorHover: '#6D28D9',
     mainFeatures: [
       'Dashboard Gérant, Manager & Vendeur',
       'Diagnostic Profil Manager',
