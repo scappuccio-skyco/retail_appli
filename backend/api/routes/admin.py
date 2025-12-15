@@ -1,7 +1,8 @@
 """SuperAdmin Routes - Clean Architecture"""
-from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Dict
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from typing import Dict, List
 from datetime import datetime, timezone, timedelta
+from pydantic import BaseModel
 
 from core.security import get_super_admin
 from services.admin_service import AdminService
@@ -9,6 +10,12 @@ from repositories.admin_repository import AdminRepository
 from api.dependencies import get_db
 
 router = APIRouter(prefix="/superadmin", tags=["SuperAdmin"])
+
+
+# Pydantic model for bulk status update
+class BulkStatusUpdate(BaseModel):
+    workspace_ids: List[str]
+    status: str
 
 
 def get_admin_service(db = Depends(get_db)) -> AdminService:
