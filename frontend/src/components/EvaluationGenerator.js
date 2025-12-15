@@ -412,7 +412,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
                 className="w-full px-3 py-2 border-2 border-purple-200 rounded-lg focus:border-purple-400 focus:ring-1 focus:ring-purple-400 text-sm resize-none placeholder:text-purple-300"
               />
               <p className="text-xs text-purple-600 mt-1">
-                💡 L'IA prendra en compte ces informations pour personnaliser le guide
+                💡 L&apos;IA prendra en compte ces informations pour personnaliser le guide
               </p>
             </div>
           )}
