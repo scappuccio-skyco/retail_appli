@@ -12,9 +12,21 @@ class AdminRepository:
     def __init__(self, db):
         self.db = db
     
-    async def get_all_workspaces(self) -> List[Dict]:
-        """Get all workspaces"""
-        return await self.db.workspaces.find({}, {"_id": 0}).to_list(1000)
+    async def get_all_workspaces(self, include_deleted: bool = False) -> List[Dict]:
+        """Get all workspaces
+        
+        Args:
+            include_deleted: If True, includes deleted/inactive workspaces (for admin recovery)
+        """
+        if include_deleted:
+            # Return ALL workspaces including deleted ones
+            return await self.db.workspaces.find({}, {"_id": 0}).to_list(1000)
+        else:
+            # Default: only active workspaces
+            return await self.db.workspaces.find(
+                {"$or": [{"is_active": True}, {"is_active": {"$exists": False}}]},
+                {"_id": 0}
+            ).to_list(1000)
     
     async def get_gerant_by_id(self, gerant_id: str) -> Optional[Dict]:
         """Get gérant user by ID"""
