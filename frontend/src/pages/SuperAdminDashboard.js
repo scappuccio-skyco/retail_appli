@@ -9,7 +9,8 @@ import StripeSubscriptionsView from '../components/superadmin/StripeSubscription
 import Select from 'react-select';
 import { 
   Users, Building2, TrendingUp, Database, Activity, 
-  ShieldCheck, AlertCircle, CheckCircle, XCircle, Clock, Sparkles
+  ShieldCheck, AlertCircle, CheckCircle, XCircle, Clock, Sparkles,
+  CheckSquare, Square, Trash2, PauseCircle, PlayCircle
 } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -29,6 +30,8 @@ export default function SuperAdminDashboard() {
   const [auditFilters, setAuditFilters] = useState({ action: '', admin_emails: [], days: 7 });
   const [workspaceFilter, setWorkspaceFilter] = useState('active'); // 'all', 'active', 'suspended', 'deleted'
   const [expandedWorkspaces, setExpandedWorkspaces] = useState({});
+  const [selectedWorkspaces, setSelectedWorkspaces] = useState(new Set());
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
   const toggleWorkspace = (workspaceId) => {
     setExpandedWorkspaces(prev => ({
