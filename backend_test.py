@@ -1633,26 +1633,36 @@ class GerantFeaturesTester:
         )
         
         if success:
-            # Verify response structure
-            expected_fields = ['status', 'webhook_secret_configured', 'stripe_key_configured']
-            missing_fields = [f for f in expected_fields if f not in response]
-            if missing_fields:
-                self.log_test("Webhook Health Response Structure", False, f"Missing fields: {missing_fields}")
-            else:
+            # Verify response structure matches review request requirements
+            expected_response = {
+                "status": "ok",
+                "webhook_secret_configured": True,
+                "stripe_key_configured": True
+            }
+            
+            # Check each field individually
+            if response.get('status') == 'ok':
                 print(f"   ✅ Status: {response.get('status')}")
+            else:
+                self.log_test("Webhook Health Status", False, f"Expected status='ok', got '{response.get('status')}'")
+            
+            if response.get('webhook_secret_configured') == True:
                 print(f"   ✅ Webhook secret configured: {response.get('webhook_secret_configured')}")
+            else:
+                self.log_test("Webhook Secret Configuration", False, f"Expected webhook_secret_configured=true, got {response.get('webhook_secret_configured')}")
+            
+            if response.get('stripe_key_configured') == True:
                 print(f"   ✅ Stripe key configured: {response.get('stripe_key_configured')}")
-                
-                # Verify status is "ok"
-                if response.get('status') != 'ok':
-                    self.log_test("Webhook Health Status", False, f"Expected status='ok', got '{response.get('status')}'")
-                
-                # Verify both webhook_secret_configured and stripe_key_configured are true
-                if response.get('webhook_secret_configured') != True:
-                    self.log_test("Webhook Secret Configuration", False, f"Expected webhook_secret_configured=true, got {response.get('webhook_secret_configured')}")
-                
-                if response.get('stripe_key_configured') != True:
-                    self.log_test("Stripe Key Configuration", False, f"Expected stripe_key_configured=true, got {response.get('stripe_key_configured')}")
+            else:
+                self.log_test("Stripe Key Configuration", False, f"Expected stripe_key_configured=true, got {response.get('stripe_key_configured')}")
+            
+            # Verify exact match with review request requirements
+            if (response.get('status') == 'ok' and 
+                response.get('webhook_secret_configured') == True and 
+                response.get('stripe_key_configured') == True):
+                print(f"   ✅ All webhook health requirements met as per review request")
+            else:
+                self.log_test("Webhook Health Complete Check", False, "Not all webhook health requirements met")
 
     def test_morning_brief_security(self):
         """Test Morning Brief API security and access control"""
