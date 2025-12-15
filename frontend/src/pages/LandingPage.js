@@ -573,12 +573,12 @@ export default function LandingPage() {
               <ul className="space-y-3 mb-4">
                 {[
                   'Dashboard Manager & Vendeur',
-                  'Diagnostic DISC complet',
-                  'Coaching IA personnalisé',
-                  'Suivi KPI en temps réel',
-                  'Objectifs & Challenges',
-                  'Analyses des ventes intelligentes',
-                  'Historique illimité'
+                  'Diagnostic Profil Manager',
+                  'Diagnostic Profil Vendeur',
+                  'Coaching IA & Briefs Matinaux',
+                  'Préparation des Évaluations',
+                  'Suivi KPI, Objectifs & Challenges',
+                  'Connexion API (Tous logiciels)'
                 ].map((item, idx) => (
                   <li key={`starter-main-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
@@ -610,26 +610,19 @@ export default function LandingPage() {
               </button>
             </div>
 
-            {/* Medium Team - RECOMMENDED */}
-            <div className="bg-white rounded-2xl p-8 shadow-2xl border-4 border-[#F97316] relative transform md:scale-105">
-              <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-                <div className="bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2">
-                  <Star className="w-4 h-4" />
-                  RECOMMANDÉ
-                </div>
-              </div>
-
-              <div className="text-center mb-6 pt-4">
+            {/* Medium Team - NEUTRALISÉ */}
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-slate-200">
+              <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Medium Team</h3>
                 <p className="text-[#334155] mb-4">Magasins moyens</p>
                 {!isAnnual ? (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent">25€</span>
+                      <span className="text-5xl font-bold text-[#334155]">25€</span>
                       <span className="text-[#334155]">/vendeur/mois</span>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
-                    <p className="text-sm text-[#EA580C] font-semibold mt-2">
+                    <p className="text-sm text-green-600 font-semibold mt-2">
                       6 à 15 espaces vendeur
                     </p>
                     <p className="text-xs text-gray-600 mt-1">+ Espace Manager inclus</p>
@@ -637,7 +630,7 @@ export default function LandingPage() {
                 ) : (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent">240€</span>
+                      <span className="text-5xl font-bold text-[#334155]">240€</span>
                       <span className="text-[#334155]">/vendeur/an</span>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
@@ -652,12 +645,12 @@ export default function LandingPage() {
               <ul className="space-y-3 mb-4">
                 {[
                   'Dashboard Manager & Vendeur',
-                  'Diagnostic DISC complet',
-                  'Coaching IA personnalisé',
-                  'Suivi KPI en temps réel',
-                  'Objectifs & Challenges',
-                  'Analyses des ventes intelligentes',
-                  'Historique illimité'
+                  'Diagnostic Profil Manager',
+                  'Diagnostic Profil Vendeur',
+                  'Coaching IA & Briefs Matinaux',
+                  'Préparation des Évaluations',
+                  'Suivi KPI, Objectifs & Challenges',
+                  'Connexion API (Tous logiciels)'
                 ].map((item, idx) => (
                   <li key={`pro-main-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
@@ -665,8 +658,8 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <div className="border-t border-[#F97316] my-4 pt-4">
-                <p className="text-sm font-semibold text-[#F97316] mb-3">Spécificités :</p>
+              <div className="border-t border-gray-200 my-4 pt-4">
+                <p className="text-sm font-semibold text-[#1E40AF] mb-3">Spécificités :</p>
                 <ul className="space-y-3 mb-4">
                   {[
                     '6 à 15 vendeurs',
@@ -683,14 +676,14 @@ export default function LandingPage() {
 
               <button
                 onClick={() => navigate('/login?register=true')}
-                className="w-full py-3 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                className="w-full py-3 bg-slate-100 text-[#334155] font-semibold rounded-xl hover:bg-slate-200 transition-colors"
               >
                 Essai Gratuit 14 Jours
               </button>
             </div>
 
             {/* Large Team */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[#1E40AF]/30">
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-slate-200">
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Large Team</h3>
                 <p className="text-[#334155] mb-4">Pour réseaux & enseignes</p>
@@ -704,12 +697,12 @@ export default function LandingPage() {
               <ul className="space-y-3 mb-4">
                 {[
                   'Dashboard Manager & Vendeur',
-                  'Diagnostic DISC complet',
-                  'Coaching IA personnalisé',
-                  'Suivi KPI en temps réel',
-                  'Objectifs & Challenges',
-                  'Analyses des ventes intelligentes',
-                  'Historique illimité'
+                  'Diagnostic Profil Manager',
+                  'Diagnostic Profil Vendeur',
+                  'Coaching IA & Briefs Matinaux',
+                  'Préparation des Évaluations',
+                  'Suivi KPI, Objectifs & Challenges',
+                  'Connexion API (Tous logiciels)'
                 ].map((item, idx) => (
                   <li key={`enterprise-main-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
@@ -723,7 +716,6 @@ export default function LandingPage() {
                   {[
                     '16+ vendeurs',
                     'Analyses IA illimitées',
-                    'Connexion API à vos logiciels métier',
                     'Support prioritaire dédié'
                   ].map((item, idx) => (
                     <li key={`enterprise-spec-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
@@ -736,7 +728,7 @@ export default function LandingPage() {
 
               <button
                 onClick={() => scrollToSection('contact')}
-                className="w-full py-3 bg-[#1E40AF]/10 text-[#334155] font-semibold rounded-xl hover:bg-blue-200 transition-colors"
+                className="w-full py-3 bg-slate-100 text-[#334155] font-semibold rounded-xl hover:bg-slate-200 transition-colors"
               >
                 Nous Contacter
               </button>
