@@ -20,6 +20,7 @@ import InvitationPage from './pages/InvitationPage';
 import DiagnosticForm from './components/DiagnosticFormScrollable';
 import DiagnosticResult from './components/DiagnosticResult';
 import ErrorBoundary from './components/ErrorBoundary';
+import CookieConsent from './components/CookieConsent';
 import { Toaster } from 'sonner';
 
 // Legal pages
