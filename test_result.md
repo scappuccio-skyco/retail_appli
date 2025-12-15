@@ -148,9 +148,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Morning Brief API"
-    - "Morning Brief Preview API"
-    - "Stripe Webhook Health Check"
+    - "Espace Manager Tab Rename"
+    - "Seller Invitation Store Dropdown"
+    - "Gérant KPI Modal from Dashboard"
+    - "Stripe Webhook Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
