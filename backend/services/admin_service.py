@@ -13,15 +13,18 @@ class AdminService:
     def __init__(self, admin_repo: AdminRepository):
         self.admin_repo = admin_repo
     
-    async def get_workspaces_with_details(self) -> List[Dict]:
+    async def get_workspaces_with_details(self, include_deleted: bool = False) -> List[Dict]:
         """
         Get all workspaces with enriched details
         - Gérant info
         - Stores count
         - Managers and sellers count
         - Subscription with guaranteed plan field
+        
+        Args:
+            include_deleted: If True, includes deleted/inactive workspaces
         """
-        workspaces = await self.admin_repo.get_all_workspaces()
+        workspaces = await self.admin_repo.get_all_workspaces(include_deleted=include_deleted)
         
         for workspace in workspaces:
             # Get gérant info
