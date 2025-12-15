@@ -565,7 +565,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `${API}/api/subscription/reactivate`,
+        `${API}/api/gerant/subscription/reactivate`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` }
