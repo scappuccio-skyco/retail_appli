@@ -1319,11 +1319,11 @@ class GerantRBACTester:
         return self.tests_passed >= self.tests_run * 0.8
 
 
-class MorningBriefAndWebhookTester:
+class GerantFeaturesTester:
     def __init__(self, base_url="https://invite-fix-1.preview.emergentagent.com/api"):
         self.base_url = base_url
-        self.manager_token = None
-        self.manager_user = None
+        self.gerant_token = None
+        self.gerant_user = None
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
