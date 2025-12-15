@@ -16,7 +16,7 @@ const PLANS = {
     maxSellers: 5,
     subtitle: 'Petites boutiques',
     mainFeatures: [
-      'Dashboard Manager & Vendeur',
+      'Dashboard Gérant, Manager & Vendeur',
       'Diagnostic Profil Manager',
       'Diagnostic Profil Vendeur',
       'Coaching IA & Briefs Matinaux',
@@ -37,7 +37,7 @@ const PLANS = {
     maxSellers: 15,
     subtitle: 'Magasins moyens',
     mainFeatures: [
-      'Dashboard Manager & Vendeur',
+      'Dashboard Gérant, Manager & Vendeur',
       'Diagnostic Profil Manager',
       'Diagnostic Profil Vendeur',
       'Coaching IA & Briefs Matinaux',
@@ -59,7 +59,7 @@ const PLANS = {
     subtitle: 'Pour réseaux & enseignes',
     isEnterprise: true,
     mainFeatures: [
-      'Dashboard Manager & Vendeur',
+      'Dashboard Gérant, Manager & Vendeur',
       'Diagnostic Profil Manager',
       'Diagnostic Profil Vendeur',
       'Coaching IA & Briefs Matinaux',
