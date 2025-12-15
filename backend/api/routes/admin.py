@@ -19,12 +19,19 @@ def get_admin_service(db = Depends(get_db)) -> AdminService:
 
 @router.get("/workspaces")
 async def get_workspaces(
+    include_deleted: bool = Query(False, description="Inclure les workspaces supprimés"),
     current_user: Dict = Depends(get_super_admin),
     admin_service: AdminService = Depends(get_admin_service)
 ):
-    """Get all workspaces with details"""
+    """
+    Get all workspaces with details
+    
+    Args:
+        include_deleted: If True, returns ALL workspaces including deleted/inactive ones.
+                        Useful for recovering emails blocked by ghost workspaces.
+    """
     try:
-        return await admin_service.get_workspaces_with_details()
+        return await admin_service.get_workspaces_with_details(include_deleted=include_deleted)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
