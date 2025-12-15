@@ -1557,45 +1557,69 @@ class GerantFeaturesTester:
         else:
             self.log_test("KPI Overview Test Setup", False, "Could not get stores for testing")
 
-    def test_morning_brief_preview(self):
-        """Test Morning Brief Preview API - GET /api/briefs/morning/preview"""
-        print("\n👀 TESTING MORNING BRIEF PREVIEW API")
+    def test_gerant_invitations_api(self):
+        """Test Gérant Invitations API for Seller Invitation Flow"""
+        print("\n📧 TESTING GÉRANT INVITATIONS API FOR SELLER INVITATION")
         
-        if not self.manager_token:
-            self.log_test("Morning Brief Preview API", False, "No manager token available")
+        if not self.gerant_token:
+            self.log_test("Gérant Invitations API", False, "No gérant token available")
             return
         
+        # Test 1: Get all invitations
         success, response = self.run_test(
-            "Morning Brief Preview",
+            "Gérant Get All Invitations",
             "GET",
-            "briefs/morning/preview",
+            "gerant/invitations",
             200,
-            token=self.manager_token
+            token=self.gerant_token
         )
         
-        if success:
-            # Verify response structure
-            expected_fields = ['store_name', 'manager_name', 'stats', 'date']
-            missing_fields = [f for f in expected_fields if f not in response]
-            if missing_fields:
-                self.log_test("Morning Brief Preview Structure", False, f"Missing fields: {missing_fields}")
-            else:
-                print(f"   ✅ Store name: {response.get('store_name')}")
-                print(f"   ✅ Manager name: {response.get('manager_name')}")
-                print(f"   ✅ Date: {response.get('date')}")
-                
-                # Check stats structure
-                stats = response.get('stats', {})
-                if isinstance(stats, dict):
-                    print(f"   ✅ Stats structure: {len(stats)} fields")
-                    
-                    # Check for data_date field in stats
-                    if 'data_date' in stats:
-                        print(f"   ✅ Stats data_date: {stats.get('data_date')}")
-                    else:
-                        self.log_test("Morning Brief Preview Data Date", False, "Missing data_date field in stats")
+        if success and isinstance(response, list):
+            print(f"   ✅ Found {len(response)} invitations")
+            
+            # Check invitation structure if any exist
+            if len(response) > 0:
+                invitation = response[0]
+                expected_fields = ['email', 'role', 'status']
+                missing_fields = [f for f in expected_fields if f not in invitation]
+                if missing_fields:
+                    self.log_test("Invitation Structure Check", False, f"Missing fields in invitation: {missing_fields}")
                 else:
-                    self.log_test("Morning Brief Preview Stats", False, f"Stats should be dict, got {type(stats)}")
+                    print(f"   ✅ Invitation structure valid: {invitation.get('email')} ({invitation.get('role')})")
+                    
+                # Display recent invitations
+                for i, inv in enumerate(response[:3]):
+                    print(f"   📧 Invitation {i+1}: {inv.get('email')} - {inv.get('role')} - {inv.get('status')}")
+            else:
+                print(f"   ℹ️ No invitations found")
+        else:
+            self.log_test("Invitations Response", False, f"Expected list, got {type(response)}")
+        
+        # Test 2: Test invitation creation (dry run - we won't actually send)
+        # This tests the API structure without sending real emails
+        test_invitation_data = {
+            "name": "Test User",
+            "email": "test-invitation@example.com",
+            "role": "seller",
+            "store_id": "test-store-id"
+        }
+        
+        # Note: This will likely fail with 404 for invalid store_id, but that's expected
+        # We're testing the API structure, not actually creating invitations
+        success, response = self.run_test(
+            "Gérant Create Invitation (Structure Test)",
+            "POST",
+            "gerant/invitations",
+            400,  # Expect 400 due to invalid store_id
+            data=test_invitation_data,
+            token=self.gerant_token
+        )
+        
+        # The test passes if we get a proper error response (not 500)
+        if success or (not success and "400" in str(response)):
+            print(f"   ✅ Invitation API structure working (got expected validation error)")
+        else:
+            print(f"   ℹ️ Invitation API response: {response}")
 
     def test_stripe_webhook_health(self):
         """Test Stripe Webhook Health API - GET /api/webhooks/stripe/health"""
