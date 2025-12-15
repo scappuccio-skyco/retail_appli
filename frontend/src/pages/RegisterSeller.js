@@ -66,7 +66,7 @@ export default function RegisterSeller() {
       // Determine which endpoint to use based on invitation type
       const endpoint = invitation.gerant_id 
         ? `${API}/auth/register-with-gerant-invite`
-        : `${API}/auth/register-with-invite`;
+        : `${API}/auth/register/invitation`;
 
       await axios.post(endpoint, {
         invitation_token: token,
