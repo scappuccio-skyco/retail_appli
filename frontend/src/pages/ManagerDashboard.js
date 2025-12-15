@@ -578,7 +578,7 @@ export default function ManagerDashboard({ user, onLogout }) {
     try {
       const [statsRes, diagRes, kpiRes] = await Promise.all([
         axios.get(`${API}/manager/seller/${sellerId}/stats`),
-        axios.get(`${API}/diagnostic/seller/${sellerId}`),
+        axios.get(`${API}/manager-diagnostic/seller/${sellerId}`),
         axios.get(`${API}/manager/kpi-entries/${sellerId}?days=7`)
       ]);
       setSellerStats(statsRes.data);
