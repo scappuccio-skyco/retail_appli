@@ -22,9 +22,12 @@ class AdminRepository:
             # Return ALL workspaces including deleted ones
             return await self.db.workspaces.find({}, {"_id": 0}).to_list(1000)
         else:
-            # Default: only active workspaces
+            # Default: only active workspaces (exclude status='deleted')
             return await self.db.workspaces.find(
-                {"$or": [{"is_active": True}, {"is_active": {"$exists": False}}]},
+                {"$or": [
+                    {"status": {"$ne": "deleted"}},
+                    {"status": {"$exists": False}}
+                ]},
                 {"_id": 0}
             ).to_list(1000)
     
