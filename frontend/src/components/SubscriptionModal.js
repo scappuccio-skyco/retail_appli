@@ -269,7 +269,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
     
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/api/subscription/history`, {
+      const response = await axios.get(`${API}/api/manager/subscription-history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (isMounted) {
