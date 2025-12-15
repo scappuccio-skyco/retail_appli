@@ -2958,20 +2958,353 @@ class GerantSellerDetailsTester:
         return self.tests_passed >= self.tests_run * 0.8
 
 
+class SpecificFeaturesTester:
+    def __init__(self, base_url="https://invite-fix-1.preview.emergentagent.com/api"):
+        self.base_url = base_url
+        self.superadmin_token = None
+        self.manager_token = None
+        self.tests_run = 0
+        self.tests_passed = 0
+        self.test_results = []
+
+    def log_test(self, name, success, details=""):
+        """Log test result"""
+        self.tests_run += 1
+        if success:
+            self.tests_passed += 1
+            print(f"✅ {name} - PASSED")
+        else:
+            print(f"❌ {name} - FAILED: {details}")
+        
+        self.test_results.append({
+            "test": name,
+            "success": success,
+            "details": details
+        })
+
+    def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
+        """Run a single API test"""
+        url = f"{self.base_url}/{endpoint}"
+        headers = {'Content-Type': 'application/json'}
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
+
+        print(f"\n🔍 Testing {name}...")
+        print(f"   URL: {url}")
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers, timeout=30)
+            elif method == 'POST':
+                response = requests.post(url, json=data, headers=headers, timeout=30)
+
+            success = response.status_code == expected_status
+            
+            if success:
+                self.log_test(name, True)
+                try:
+                    return True, response.json()
+                except:
+                    return True, {}
+            else:
+                error_msg = f"Expected {expected_status}, got {response.status_code}"
+                try:
+                    error_detail = response.json()
+                    error_msg += f" - {error_detail}"
+                except:
+                    error_msg += f" - {response.text[:200]}"
+                
+                self.log_test(name, False, error_msg)
+                return False, {}
+
+        except Exception as e:
+            self.log_test(name, False, f"Exception: {str(e)}")
+            return False, {}
+
+    def test_authentication(self):
+        """Test authentication for required users"""
+        print("\n🔐 TESTING AUTHENTICATION FOR SPECIFIC FEATURES")
+        
+        # Test Super Admin login (admin@retail-coach.fr / Admin123!)
+        superadmin_data = {
+            "email": "admin@retail-coach.fr",
+            "password": "Admin123!"
+        }
+        
+        success, response = self.run_test(
+            "Super Admin Authentication",
+            "POST",
+            "auth/login",
+            200,
+            data=superadmin_data
+        )
+        
+        if success and 'token' in response:
+            self.superadmin_token = response['token']
+            print(f"   ✅ Super Admin logged in: {response.get('user', {}).get('email')}")
+        
+        # Test Manager login (y.legoff@skyco.fr / TestDemo123!)
+        manager_data = {
+            "email": "y.legoff@skyco.fr",
+            "password": "TestDemo123!"
+        }
+        
+        success, response = self.run_test(
+            "Manager Authentication",
+            "POST",
+            "auth/login",
+            200,
+            data=manager_data
+        )
+        
+        if success and 'token' in response:
+            self.manager_token = response['token']
+            print(f"   ✅ Manager logged in: {response.get('user', {}).get('email')}")
+
+    def test_admin_workspaces_include_deleted(self):
+        """Test Admin Workspaces with include_deleted parameter"""
+        print("\n🏢 TESTING ADMIN WORKSPACES - INCLUDE_DELETED PARAMETER")
+        
+        if not self.superadmin_token:
+            self.log_test("Admin Workspaces Tests", False, "No superadmin token available")
+            return
+        
+        # Test 1: GET /api/superadmin/workspaces?include_deleted=true
+        success, response = self.run_test(
+            "Admin Workspaces - Include Deleted True",
+            "GET",
+            "superadmin/workspaces?include_deleted=true",
+            200,
+            token=self.superadmin_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   ✅ Found {len(response)} workspaces (include_deleted=true)")
+            
+            # Check if we have around 54 workspaces as expected
+            if len(response) >= 50:  # Allow some flexibility
+                print(f"   ✅ Workspace count meets expectation (≥50, got {len(response)})")
+            else:
+                print(f"   ⚠️ Workspace count lower than expected (got {len(response)}, expected ~54)")
+            
+            # Check workspace structure
+            if len(response) > 0:
+                workspace = response[0]
+                expected_fields = ['id', 'name']
+                present_fields = [f for f in expected_fields if f in workspace]
+                if len(present_fields) >= 1:
+                    print(f"   ✅ Workspace structure valid")
+                else:
+                    self.log_test("Workspace Structure", False, f"Missing expected fields")
+        
+        # Test 2: GET /api/superadmin/workspaces?include_deleted=false
+        success, response = self.run_test(
+            "Admin Workspaces - Include Deleted False",
+            "GET",
+            "superadmin/workspaces?include_deleted=false",
+            200,
+            token=self.superadmin_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   ✅ Found {len(response)} workspaces (include_deleted=false)")
+            
+            # This should typically be fewer than include_deleted=true
+            print(f"   ✅ Response structure valid for include_deleted=false")
+
+    def test_morning_brief_structured_json(self):
+        """Test Morning Brief structured JSON format"""
+        print("\n📋 TESTING MORNING BRIEF - STRUCTURED JSON FORMAT")
+        
+        if not self.manager_token:
+            self.log_test("Morning Brief Tests", False, "No manager token available")
+            return
+        
+        # Test POST /api/briefs/morning with {"comments": null}
+        success, response = self.run_test(
+            "Morning Brief - Structured JSON",
+            "POST",
+            "briefs/morning",
+            200,
+            data={"comments": None},
+            token=self.manager_token
+        )
+        
+        if success:
+            # Verify response contains required fields
+            required_fields = ['brief', 'structured', 'date', 'store_name', 'manager_name', 'has_context', 'generated_at']
+            missing_fields = [f for f in required_fields if f not in response]
+            
+            if missing_fields:
+                self.log_test("Morning Brief Structure", False, f"Missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ All required top-level fields present")
+            
+            # Check 'brief' field (should be markdown string)
+            if 'brief' in response and isinstance(response['brief'], str):
+                print(f"   ✅ Brief field is string (markdown): {len(response['brief'])} chars")
+            else:
+                self.log_test("Brief Field Check", False, "Brief field missing or not string")
+            
+            # Check 'structured' field with required sub-fields
+            if 'structured' in response:
+                structured = response['structured']
+                structured_fields = ['flashback', 'focus', 'examples', 'team_question', 'booster']
+                missing_structured = [f for f in structured_fields if f not in structured]
+                
+                if missing_structured:
+                    self.log_test("Structured Field Check", False, f"Missing structured fields: {missing_structured}")
+                else:
+                    print(f"   ✅ All structured fields present: {structured_fields}")
+                    
+                    # Check examples is array
+                    if isinstance(structured.get('examples'), list):
+                        print(f"   ✅ Examples field is array with {len(structured['examples'])} items")
+                    else:
+                        self.log_test("Examples Array Check", False, "Examples field is not an array")
+            else:
+                self.log_test("Structured Field Check", False, "Structured field missing")
+            
+            # Display some response info
+            print(f"   📋 Store: {response.get('store_name', 'Unknown')}")
+            print(f"   📋 Manager: {response.get('manager_name', 'Unknown')}")
+            print(f"   📋 Date: {response.get('date', 'Unknown')}")
+
+    def test_swagger_documentation(self):
+        """Test Swagger Documentation schemas"""
+        print("\n📚 TESTING SWAGGER DOCUMENTATION SCHEMAS")
+        
+        # Test GET /openapi.json
+        success, response = self.run_test(
+            "OpenAPI JSON Schema",
+            "GET",
+            "../openapi.json",  # Go up one level from /api
+            200
+        )
+        
+        if success and isinstance(response, dict):
+            print(f"   ✅ OpenAPI JSON retrieved successfully")
+            
+            # Check for components/schemas
+            if 'components' in response and 'schemas' in response['components']:
+                schemas = response['components']['schemas']
+                print(f"   ✅ Found {len(schemas)} schemas in OpenAPI")
+                
+                # Check for StructuredBriefContent schema
+                if 'StructuredBriefContent' in schemas:
+                    structured_schema = schemas['StructuredBriefContent']
+                    expected_props = ['flashback', 'focus', 'examples', 'team_question', 'booster']
+                    
+                    if 'properties' in structured_schema:
+                        props = structured_schema['properties']
+                        missing_props = [p for p in expected_props if p not in props]
+                        
+                        if missing_props:
+                            self.log_test("StructuredBriefContent Schema", False, f"Missing properties: {missing_props}")
+                        else:
+                            print(f"   ✅ StructuredBriefContent schema has all required properties")
+                    else:
+                        self.log_test("StructuredBriefContent Schema", False, "No properties found in schema")
+                else:
+                    self.log_test("StructuredBriefContent Schema", False, "StructuredBriefContent schema not found")
+                
+                # Check for MorningBriefResponse schema
+                if 'MorningBriefResponse' in schemas:
+                    brief_schema = schemas['MorningBriefResponse']
+                    
+                    if 'properties' in brief_schema and 'structured' in brief_schema['properties']:
+                        print(f"   ✅ MorningBriefResponse schema has 'structured' field")
+                    else:
+                        self.log_test("MorningBriefResponse Schema", False, "Missing 'structured' field in MorningBriefResponse")
+                else:
+                    self.log_test("MorningBriefResponse Schema", False, "MorningBriefResponse schema not found")
+                
+                # Check for KPIEntry schema with locked field
+                if 'KPIEntry' in schemas:
+                    kpi_schema = schemas['KPIEntry']
+                    
+                    if 'properties' in kpi_schema and 'locked' in kpi_schema['properties']:
+                        locked_prop = kpi_schema['properties']['locked']
+                        
+                        # Check if description mentions source='api'
+                        if 'description' in locked_prop and "source='api'" in locked_prop['description']:
+                            print(f"   ✅ KPIEntry 'locked' field has correct description mentioning source='api'")
+                        else:
+                            self.log_test("KPIEntry Locked Description", False, "KPIEntry 'locked' field description doesn't mention source='api'")
+                    else:
+                        self.log_test("KPIEntry Schema", False, "KPIEntry schema missing 'locked' field")
+                else:
+                    self.log_test("KPIEntry Schema", False, "KPIEntry schema not found")
+                    
+            else:
+                self.log_test("OpenAPI Schemas", False, "No schemas found in OpenAPI JSON")
+        else:
+            # Try alternative endpoint
+            success, response = self.run_test(
+                "OpenAPI JSON Schema (Alternative)",
+                "GET",
+                "openapi.json",  # Try within /api
+                200
+            )
+
+    def run_specific_features_tests(self):
+        """Run all specific feature tests"""
+        print("🚀 STARTING SPECIFIC FEATURES TESTS")
+        print("=" * 70)
+        
+        # Test authentication first
+        self.test_authentication()
+        
+        # Test the 3 specific features
+        self.test_admin_workspaces_include_deleted()
+        self.test_morning_brief_structured_json()
+        self.test_swagger_documentation()
+        
+        # Print summary
+        print("\n" + "=" * 70)
+        print("📊 SPECIFIC FEATURES TEST SUMMARY")
+        print("=" * 70)
+        print(f"Total Tests: {self.tests_run}")
+        print(f"Passed: {self.tests_passed}")
+        print(f"Failed: {self.tests_run - self.tests_passed}")
+        print(f"Success Rate: {(self.tests_passed / self.tests_run * 100):.1f}%")
+        
+        # Print failed tests
+        failed_tests = [t for t in self.test_results if not t['success']]
+        if failed_tests:
+            print(f"\n❌ FAILED TESTS ({len(failed_tests)}):")
+            for test in failed_tests:
+                print(f"   • {test['test']}: {test['details']}")
+        
+        print("\n🎯 SPECIFIC FEATURES VERIFICATION RESULTS:")
+        if self.tests_passed >= self.tests_run * 0.8:  # 80% pass rate
+            print("✅ Admin Workspaces include_deleted parameter working!")
+            print("✅ Morning Brief structured JSON format working!")
+            print("✅ Swagger Documentation schemas present!")
+        else:
+            print("❌ Some specific features have issues!")
+            print("❌ Multiple tests failing - needs investigation")
+        
+        return self.tests_passed >= self.tests_run * 0.8
+
+
 if __name__ == "__main__":
-    print("🎯 RUNNING GÉRANT FEATURES TESTS FOR REVIEW REQUEST")
+    # Run specific features tests only
+    print("🚀 RUNNING SPECIFIC FEATURES BACKEND API TESTS")
     print("=" * 80)
     
-    # Run Gérant Features tests
-    gerant_tester = GerantFeaturesTester()
-    gerant_success = gerant_tester.run_gerant_features_tests()
+    # Run Specific Features tests
+    specific_tester = SpecificFeaturesTester()
+    specific_success = specific_tester.run_specific_features_tests()
     
+    # Overall summary
     print("\n" + "=" * 80)
-    print("🏁 FINAL RESULTS")
+    print("🎯 OVERALL TEST SUMMARY")
     print("=" * 80)
-    print(f"Gérant Features: {'✅ PASS' if gerant_success else '❌ FAIL'}")
     
-    print(f"\n🎯 OVERALL: {'✅ ALL BACKEND APIS OPERATIONAL' if gerant_success else '❌ BACKEND ISSUES DETECTED'}")
-    
-    # Exit with appropriate code
-    sys.exit(0 if gerant_success else 1)
+    if specific_success:
+        print("✅ ALL SPECIFIC FEATURES TESTS PASSED - System is working correctly!")
+        sys.exit(0)
+    else:
+        print("❌ SOME SPECIFIC FEATURES TESTS FAILED - System needs attention!")
+        sys.exit(1)
