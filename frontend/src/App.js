@@ -236,6 +236,11 @@ function AppContent() {
         {/* Invitation Page - Public */}
         <Route path="/invitation/:token" element={<InvitationPage />} />
         
+        {/* Legal Pages - Public */}
+        <Route path="/legal" element={<LegalNotice />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        
         {/* Dashboard - Protected */}
         <Route
           path="/dashboard"
