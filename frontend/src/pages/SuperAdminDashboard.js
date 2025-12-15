@@ -673,7 +673,7 @@ export default function SuperAdminDashboard() {
                             ? 'bg-orange-500/20 text-orange-200'
                             : 'bg-red-500/20 text-red-200'
                         }`}>
-                          {workspace.status}
+                          {workspace.status === 'active' ? 'Actif' : workspace.status === 'suspended' ? 'Suspendu' : 'Supprimé'}
                         </span>
                       </td>
                       <td className="p-3">
