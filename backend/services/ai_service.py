@@ -1038,9 +1038,13 @@ Génère un brief motivant et concret basé sur ces données."""
             response = await chat.send_message(user_message)
             
             if response:
+                # Parse structured content from the Markdown response
+                structured = self._parse_brief_to_structured(response)
+                
                 return {
                     "success": True,
                     "brief": response,
+                    "structured": structured,
                     "date": today,
                     "data_date": data_date_french,
                     "store_name": store_name,
@@ -1055,6 +1059,66 @@ Génère un brief motivant et concret basé sur ces données."""
             import traceback
             logger.error(f"Erreur génération brief matinal: {str(e)}\n{traceback.format_exc()}")
             return self._fallback_morning_brief(stats, manager_name, store_name)
+    
+    def _parse_brief_to_structured(self, markdown_brief: str) -> Optional[Dict]:
+        """
+        Parse le brief Markdown et extrait les sections structurées.
+        
+        Returns:
+            Dict avec flashback, focus, examples, team_question, booster
+            ou None si le parsing échoue
+        """
+        try:
+            structured = {
+                "flashback": "",
+                "focus": "",
+                "examples": [],
+                "team_question": "",
+                "booster": ""
+            }
+            
+            # Découper par sections (### ou ##)
+            sections = re.split(r'###?\s+', markdown_brief)
+            
+            for section in sections:
+                section_lower = section.lower()
+                lines = section.strip().split('\n')
+                title = lines[0] if lines else ""
+                content = '\n'.join(lines[1:]).strip() if len(lines) > 1 else ""
+                
+                # Identifier la section par son titre
+                if any(kw in section_lower for kw in ['flash', 'bilan', 'hier', 'performance', '📊']):
+                    # Extraire les points clés du flashback
+                    structured["flashback"] = content
+                    
+                elif any(kw in section_lower for kw in ['mission', 'objectif', 'focus', '🎯']):
+                    structured["focus"] = content
+                    # Extraire les exemples/méthodes (lignes avec - ou •)
+                    examples = re.findall(r'^[-•]\s*(.+)$', content, re.MULTILINE)
+                    if examples:
+                        structured["examples"] = examples
+                    
+                elif any(kw in section_lower for kw in ['challenge', 'défi', 'café', '🎲', '☕']):
+                    # Le challenge peut servir de team_question
+                    structured["team_question"] = content
+                    
+                elif any(kw in section_lower for kw in ['mot', 'fin', 'conclusion', 'boost', '🚀']):
+                    structured["booster"] = content
+                    
+                elif any(kw in section_lower for kw in ['humeur', 'bonjour', 'matin', '🌤️']):
+                    # L'intro peut contenir une question d'équipe
+                    if not structured["team_question"] and '?' in content:
+                        structured["team_question"] = content
+            
+            # Vérifier qu'on a au moins le focus et le booster
+            if structured["focus"] or structured["booster"]:
+                return structured
+            
+            return None
+            
+        except Exception as e:
+            logger.warning(f"Erreur parsing brief structuré: {e}")
+            return None
     
     def _format_date_french(self, dt: datetime) -> str:
         """Formate une date en français"""
