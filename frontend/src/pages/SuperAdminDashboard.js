@@ -44,6 +44,24 @@ export default function SuperAdminDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  // Refetch workspaces when showDeletedWorkspaces changes
+  useEffect(() => {
+    const fetchWorkspaces = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = { Authorization: `Bearer ${token}` };
+        const res = await axios.get(`${API}/superadmin/workspaces`, { 
+          headers, 
+          params: { include_deleted: showDeletedWorkspaces } 
+        });
+        setWorkspaces(res.data);
+      } catch (error) {
+        console.error('Error fetching workspaces:', error);
+      }
+    };
+    fetchWorkspaces();
+  }, [showDeletedWorkspaces]);
+
   useEffect(() => {
     if (activeTab === 'system-logs') {
       fetchSystemLogs();
