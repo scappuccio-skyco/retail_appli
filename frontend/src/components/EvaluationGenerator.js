@@ -478,17 +478,27 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
                 <h3 className="text-lg font-bold text-gray-800">
                   {role === 'seller' ? '📝 Ta Fiche de Préparation' : '📋 Guide d\'Évaluation'}
                 </h3>
-                <button
-                  onClick={handleCopy}
-                  className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    copied 
-                      ? 'bg-green-100 text-green-700 border-2 border-green-200' 
-                      : 'bg-white text-gray-600 hover:bg-gray-100 border-2 border-gray-200'
-                  }`}
-                >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  {copied ? 'Copié !' : 'Copier tout'}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCopy}
+                    className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      copied 
+                        ? 'bg-green-100 text-green-700 border-2 border-green-200' 
+                        : 'bg-white text-gray-600 hover:bg-gray-100 border-2 border-gray-200'
+                    }`}
+                  >
+                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copied ? 'Copié !' : 'Copier'}
+                  </button>
+                  <button
+                    onClick={exportToPDF}
+                    disabled={exportingPDF}
+                    className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium bg-[#1E40AF] text-white hover:bg-[#1E3A8A] transition-all disabled:opacity-50"
+                  >
+                    {exportingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    {exportingPDF ? 'Export...' : 'PDF'}
+                  </button>
+                </div>
               </div>
 
               {/* 🔵 Carte Bleue - Synthèse */}
