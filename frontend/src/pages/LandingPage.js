@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Check, Zap, Users, TrendingUp, Target, ChevronDown, Menu, X, Briefcase, Star, FileText, Shield, Building2, BarChart3, Settings, Calendar } from 'lucide-react';
 import Logo from '../components/shared/Logo';
 
