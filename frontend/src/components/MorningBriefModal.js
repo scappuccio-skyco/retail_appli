@@ -466,7 +466,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
               </div>
 
               <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 space-y-4">
-                {renderBriefContent(brief.brief)}
+                {renderBriefContent(brief)}
               </div>
 
               <div className="flex justify-center gap-3">
