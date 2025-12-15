@@ -17,12 +17,12 @@ const PLANS = {
     subtitle: 'Petites boutiques',
     mainFeatures: [
       'Dashboard Manager & Vendeur',
-      'Diagnostic DISC complet',
-      'Coaching IA personnalisé',
-      'Suivi KPI en temps réel',
-      'Objectifs & Challenges',
-      'Analyses des ventes intelligentes',
-      'Historique illimité'
+      'Diagnostic Profil Manager',
+      'Diagnostic Profil Vendeur',
+      'Coaching IA & Briefs Matinaux',
+      'Préparation des Évaluations',
+      'Suivi KPI, Objectifs & Challenges',
+      'Connexion API (Tous logiciels)'
     ],
     specs: [
       '1 à 5 vendeurs',
@@ -38,12 +38,12 @@ const PLANS = {
     subtitle: 'Magasins moyens',
     mainFeatures: [
       'Dashboard Manager & Vendeur',
-      'Diagnostic DISC complet',
-      'Coaching IA personnalisé',
-      'Suivi KPI en temps réel',
-      'Objectifs & Challenges',
-      'Analyses des ventes intelligentes',
-      'Historique illimité'
+      'Diagnostic Profil Manager',
+      'Diagnostic Profil Vendeur',
+      'Coaching IA & Briefs Matinaux',
+      'Préparation des Évaluations',
+      'Suivi KPI, Objectifs & Challenges',
+      'Connexion API (Tous logiciels)'
     ],
     specs: [
       '6 à 15 vendeurs',
@@ -60,17 +60,16 @@ const PLANS = {
     isEnterprise: true,
     mainFeatures: [
       'Dashboard Manager & Vendeur',
-      'Diagnostic DISC complet',
-      'Coaching IA personnalisé',
-      'Suivi KPI en temps réel',
-      'Objectifs & Challenges',
-      'Analyses des ventes intelligentes',
-      'Historique illimité'
+      'Diagnostic Profil Manager',
+      'Diagnostic Profil Vendeur',
+      'Coaching IA & Briefs Matinaux',
+      'Préparation des Évaluations',
+      'Suivi KPI, Objectifs & Challenges',
+      'Connexion API (Tous logiciels)'
     ],
     specs: [
       '16+ vendeurs',
       'Analyses IA illimitées',
-      'Connexion API à vos logiciels métier',
       'Support prioritaire dédié'
     ]
   }
