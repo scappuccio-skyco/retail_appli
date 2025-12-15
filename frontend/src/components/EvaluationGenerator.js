@@ -371,7 +371,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
           <div className="bg-gray-50 rounded-xl p-4 mb-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              Période d'analyse
+              Période d&apos;analyse
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
