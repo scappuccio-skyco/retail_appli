@@ -100,7 +100,7 @@ async def update_workspace_status(
 
 @router.patch("/workspaces/bulk/status")
 async def bulk_update_workspace_status(
-    request_body: Dict,
+    request_body: BulkStatusUpdate,
     current_user: Dict = Depends(get_super_admin),
     db = Depends(get_db)
 ):
@@ -108,15 +108,15 @@ async def bulk_update_workspace_status(
     Bulk update workspace statuses
     
     Args:
-        request_body: Dict with 'workspace_ids' (list) and 'status' (string)
+        request_body: BulkStatusUpdate with 'workspace_ids' (list) and 'status' (string)
     
     Returns:
         Summary of successful and failed updates
     """
     from uuid import uuid4
     
-    workspace_ids = request_body.get('workspace_ids', [])
-    status = request_body.get('status')
+    workspace_ids = request_body.workspace_ids
+    status = request_body.status
     
     if not workspace_ids:
         raise HTTPException(status_code=400, detail="Aucun workspace sélectionné")
