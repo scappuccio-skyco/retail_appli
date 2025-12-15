@@ -91,6 +91,96 @@ async def update_workspace_status(
     }
 
 
+@router.patch("/workspaces/bulk/status")
+async def bulk_update_workspace_status(
+    request_body: Dict,
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """
+    Bulk update workspace statuses
+    
+    Args:
+        request_body: Dict with 'workspace_ids' (list) and 'status' (string)
+    
+    Returns:
+        Summary of successful and failed updates
+    """
+    from uuid import uuid4
+    
+    workspace_ids = request_body.get('workspace_ids', [])
+    status = request_body.get('status')
+    
+    if not workspace_ids:
+        raise HTTPException(status_code=400, detail="Aucun workspace sélectionné")
+    
+    valid_statuses = ['active', 'suspended', 'deleted']
+    if status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Status invalide. Valeurs acceptées: {valid_statuses}")
+    
+    success_count = 0
+    error_count = 0
+    updated_workspaces = []
+    
+    for workspace_id in workspace_ids:
+        try:
+            # Find the workspace
+            workspace = await db.workspaces.find_one({"id": workspace_id})
+            if not workspace:
+                error_count += 1
+                continue
+            
+            old_status = workspace.get('status', 'active')
+            
+            # Skip if already in target status
+            if old_status == status:
+                success_count += 1
+                continue
+            
+            # Update the status
+            await db.workspaces.update_one(
+                {"id": workspace_id},
+                {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+            )
+            
+            updated_workspaces.append({
+                "workspace_id": workspace_id,
+                "workspace_name": workspace.get('name', 'N/A'),
+                "old_status": old_status,
+                "new_status": status
+            })
+            success_count += 1
+            
+        except Exception as e:
+            error_count += 1
+            print(f"Error updating workspace {workspace_id}: {e}")
+    
+    # Log the bulk action
+    await db.audit_logs.insert_one({
+        "id": str(uuid4()),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "action": "bulk_workspace_status_change",
+        "admin_email": current_user['email'],
+        "admin_name": current_user.get('name', 'Admin'),
+        "details": {
+            "new_status": status,
+            "total_requested": len(workspace_ids),
+            "success_count": success_count,
+            "error_count": error_count,
+            "updated_workspaces": updated_workspaces
+        }
+    })
+    
+    status_label = 'réactivé(s)' if status == 'active' else 'suspendu(s)' if status == 'suspended' else 'supprimé(s)'
+    
+    return {
+        "message": f"{success_count} workspace(s) {status_label} avec succès",
+        "success_count": success_count,
+        "error_count": error_count,
+        "new_status": status
+    }
+
+
 @router.get("/stats")
 async def get_platform_stats(
     current_user: Dict = Depends(get_super_admin),
