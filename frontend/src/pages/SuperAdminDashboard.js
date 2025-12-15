@@ -52,7 +52,7 @@ export default function SuperAdminDashboard() {
         const headers = { Authorization: `Bearer ${token}` };
         const res = await axios.get(`${API}/superadmin/workspaces`, { 
           headers, 
-          params: { include_deleted: showDeletedWorkspaces } 
+          params: { include_deleted: true } // Always fetch all, filter client-side
         });
         setWorkspaces(res.data);
       } catch (error) {
@@ -60,7 +60,7 @@ export default function SuperAdminDashboard() {
       }
     };
     fetchWorkspaces();
-  }, [showDeletedWorkspaces]);
+  }, [workspaceFilter]);
 
   useEffect(() => {
     if (activeTab === 'system-logs') {
@@ -78,7 +78,7 @@ export default function SuperAdminDashboard() {
 
       const [statsRes, workspacesRes, logsRes, healthRes] = await Promise.all([
         axios.get(`${API}/superadmin/stats`, { headers }),
-        axios.get(`${API}/superadmin/workspaces`, { headers, params: { include_deleted: showDeletedWorkspaces } }),
+        axios.get(`${API}/superadmin/workspaces`, { headers, params: { include_deleted: true } }),
         axios.get(`${API}/superadmin/logs?limit=50&days=7`, { headers }),
         axios.get(`${API}/superadmin/health`, { headers })
       ]);
