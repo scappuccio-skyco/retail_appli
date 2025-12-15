@@ -683,7 +683,7 @@ export default function LandingPage() {
             </div>
 
             {/* Large Team */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-slate-200">
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[#1E40AF]">
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">Large Team</h3>
                 <p className="text-[#334155] mb-4">Pour réseaux & enseignes</p>
