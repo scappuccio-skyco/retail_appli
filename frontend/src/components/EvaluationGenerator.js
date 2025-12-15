@@ -149,7 +149,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
       // Title
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'normal');
-      const titleText = role === 'seller' ? 'Fiche de Préparation - Entretien Annuel' : "Guide d'Entretien Annuel";
+      const titleText = role === 'seller' ? 'Fiche de Préparation - Entretien Annuel' : "Guide d&apos;Entretien Annuel";
       pdf.text(titleText, margin, 28);
       
       // Employee name
@@ -322,7 +322,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
 
   const generateButtonText = role === 'seller'
     ? "✨ Générer Ma Fiche de Préparation"
-    : "✨ Générer le Guide d'Évaluation";
+    : "✨ Générer le Guide d&apos;Évaluation";
 
   const commentsPlaceholder = role === 'seller'
     ? "Ajoute tes notes personnelles (ex: 'J'ai géré seul(e) le magasin en août', 'J'ai formé 2 nouveaux vendeurs')..."
