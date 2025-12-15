@@ -36,6 +36,61 @@ async def get_workspaces(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.put("/workspaces/{workspace_id}/status")
+async def update_workspace_status(
+    workspace_id: str,
+    status: str = Query(..., description="New status: 'active', 'suspended', or 'deleted'"),
+    current_user: Dict = Depends(get_super_admin),
+    db = Depends(get_db)
+):
+    """
+    Update workspace status (activate, suspend, or delete)
+    
+    Args:
+        workspace_id: The workspace ID
+        status: New status - 'active', 'suspended', or 'deleted'
+    """
+    from uuid import uuid4
+    
+    valid_statuses = ['active', 'suspended', 'deleted']
+    if status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Status invalide. Valeurs acceptées: {valid_statuses}")
+    
+    # Find the workspace
+    workspace = await db.workspaces.find_one({"id": workspace_id})
+    if not workspace:
+        raise HTTPException(status_code=404, detail="Workspace non trouvé")
+    
+    old_status = workspace.get('status', 'active')
+    
+    # Update the status
+    await db.workspaces.update_one(
+        {"id": workspace_id},
+        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Log the action
+    await db.audit_logs.insert_one({
+        "id": str(uuid4()),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "action": f"workspace_status_change",
+        "admin_email": current_user['email'],
+        "admin_name": current_user.get('name', 'Admin'),
+        "details": {
+            "workspace_id": workspace_id,
+            "workspace_name": workspace.get('name', 'N/A'),
+            "old_status": old_status,
+            "new_status": status
+        }
+    })
+    
+    return {
+        "message": f"Statut du workspace mis à jour: {old_status} → {status}",
+        "workspace_id": workspace_id,
+        "new_status": status
+    }
+
+
 @router.get("/stats")
 async def get_platform_stats(
     current_user: Dict = Depends(get_super_admin),
