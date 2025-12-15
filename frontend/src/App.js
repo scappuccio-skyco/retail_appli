@@ -57,7 +57,7 @@ function AppContent() {
         // Check diagnostic status for sellers - MUST complete before setting loading to false
         if (res.data.role === 'seller') {
           try {
-            const diagRes = await axios.get(`${API}/diagnostic/me`);
+            const diagRes = await axios.get(`${API}/seller/diagnostic/me`);
             if (diagRes.data.status === 'completed') {
               setDiagnostic(diagRes.data.diagnostic);
               console.log('Diagnostic loaded:', diagRes.data.diagnostic);
