@@ -604,13 +604,11 @@ export default function LandingPage() {
 
               <button
                 onClick={() => navigate('/login?register=true')}
-                className="w-full py-3 bg-slate-100 text-[#334155] font-semibold rounded-xl hover:bg-slate-200 transition-colors"
+                className="w-full py-3 bg-[#10B981] text-white font-semibold rounded-xl hover:bg-[#059669] transition-colors"
               >
                 Essai Gratuit 14 Jours
               </button>
             </div>
-
-            {/* Medium Team */}
             <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[#F97316]">
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold text-[#F97316] mb-2">Medium Team</h3>
