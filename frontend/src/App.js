@@ -157,7 +157,7 @@ function AppContent() {
     
     // Fetch fresh diagnostic data from backend to ensure consistency
     try {
-      const diagRes = await axios.get(`${API}/diagnostic/me`);
+      const diagRes = await axios.get(`${API}/seller/diagnostic/me`);
       if (diagRes.data.status === 'completed') {
         setDiagnostic(diagRes.data.diagnostic);
         console.log('🎯 Diagnostic reloaded from API:', diagRes.data.diagnostic);
