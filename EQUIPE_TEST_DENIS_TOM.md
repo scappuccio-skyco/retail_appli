@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://invite-fix-1.preview.emergentagent.com
+https://french-site-refresh.preview.emergentagent.com
 
 ### Manager
 ```

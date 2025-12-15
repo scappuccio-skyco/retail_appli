@@ -9,7 +9,7 @@ import sys
 
 class EvaluationFocusedTester:
     def __init__(self):
-        self.base_url = "https://invite-fix-1.preview.emergentagent.com/api"
+        self.base_url = "https://french-site-refresh.preview.emergentagent.com/api"
         self.manager_token = None
         self.seller_token = None
         self.manager_user = None

@@ -15,7 +15,7 @@ test_plan:
 - Gérant credentials: gerant@skyco.fr / Gerant123!
 - Manager credentials: y.legoff@skyco.fr / TestDemo123!
 
-## Backend API: https://invite-fix-1.preview.emergentagent.com/api
+## Backend API: https://french-site-refresh.preview.emergentagent.com/api
 
 backend:
   - task: "Admin Workspaces with include_deleted parameter"

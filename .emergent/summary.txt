@@ -1,110 +1,102 @@
 <analysis>**original_problem_statement:**
-The user's initial, broad goal was to overhaul the Annual Evaluation Generator, which evolved into a full-stack upgrade. The core requests included upgrading all AI models to , implementing HR Safeguard security prompts, personalizing AI coaching with DISC profiles, updating the landing page, and adding a Magasins (Stores) management feature.
-
-During this session, this expanded to include:
-1.  Implementing a new Morning Brief Generator feature for Managers.
-2.  Iterating on the new brief generator based on user feedback (UI placement, date localization, data fetching logic, and a complete UI redesign).
-3.  Adding a full history feature (view, delete) to the Morning Brief Generator.
-4.  **URGENT**: Fixing a critical permissions bug that blocked Managers from accessing KPI data entry and configuration tabs.
-5.  Fixing a bug where KPI data with a value of  was not being saved.
-6.  Restoring missing backend endpoints () and fixing backend dependencies () that caused 400/404 errors for Gérants.
-7.  Implementing a Strict Lock feature to make API-sourced data read-only in the UI and backend.
-8.  Diagnosing a recurring deployment failure.
+The user's initial goal was to fix a recurring deployment failure. After resolving that, the user reported a series of bugs and feature requests. In this session, the user requested multiple new features and bug fixes in parallel, including:
+1.  **Super Admin Dashboard:** Fix filtering for deleted workspaces, then add exclusive filters for different statuses (, , ).
+2.  **UI/Content:** Update the Morning Brief UI to be structured, update the marketing banner and 4 pillars content on the landing page, and fix the brand color in the logo.
+3.  **Legal & Compliance:** Create legal pages (Legal Notice, ToS, Privacy Policy), add a cookie consent banner, and fix navigation scrolling issues.
+4.  **New Feature:** Add the ability to download Morning Briefs and annual evaluations as PDF files.
+5.  **API:** Update API documentation (Swagger) and fix a bug with the Super Admin authentication flow due to incorrect password field names and missing passwords. Add a missing API endpoint to update workspace status.
 
 **PRODUCT REQUIREMENTS:**
--   Managers must be able to generate a daily Morning Brief, view its history, and have it styled consistently with other AI modals.
--   The brief's data must come from the last active sales day, not just yesterday.
--   Gérants must be able to generate briefs for any store they are viewing.
--   Managers and Gérants must **always** have access to the Config des données and Saisie des données tabs within the Mon Magasin modal to manage KPI sources.
--   KPI data sourced from an API must be strictly locked and uneditable by any user.
--   The application must be deployable.
+-   The Super Admin dashboard must provide exclusive filters to view workspaces by status: Tous (All), Actifs (Active), Suspendus (Suspended), and Supprimés (Deleted).
+-   All workspaces listed in the Super Admin dashboard must display a status badge and the correct action buttons (Suspend/Delete).
+-   The Morning Brief UI must display a structured layout with distinct sections for Mission, Méthode, and Question Équipe.
+-   Users must be able to download the Morning Brief and their annual evaluation summary as a PDF.
+-   The application must have a cookie consent banner and dedicated pages for Legal Notice, Terms of Service, and Privacy Policy, accessible from the footer.
+-   All branding elements, like the SKY CO logo, must use the correct brand color ().
+-   The landing page content (marketing banner, feature pillars) must be updated with the new text provided by the user.
 
 **User's preferred language**: French
 
 **what currently exists?**
-The application is a full-stack React/FastAPI app. The Morning Brief Generator is now a complete feature with a redesigned UI, history, and corrected data logic. A critical, urgent bug blocking Manager permissions for KPI entry/configuration has been resolved by restoring legacy code and fixing incorrect conditional logic in both frontend and backend. The system now correctly saves KPI values of  and prevents editing of API-sourced data. Missing backend endpoints have been created, and faulty dependencies were fixed to resolve console errors for the Gérant role.
+The application is stable and deployable. The agent has completed a large number of feature requests and fixes in this session. The Manager tab has been renamed, bugs with the seller invitation and KPI modal were confirmed as resolved, and unused deployment files were cleaned up. The SKY CO logo color is now correct across the app. A major set of features was implemented, including structured Morning Briefs, PDF downloads for briefs and evaluations, and the creation of legal pages with a cookie consent banner. Multiple content updates on the landing page were also completed. The Super Admin dashboard has been a primary focus, with fixes to the authentication flow, the creation of a missing API endpoint to update workspace status, and initial work on a new filtering system.
 
 **Last working item**:
--   Last item agent was working: The agent was about to start debugging a recurring deployment failure where the backend service becomes unresponsive. The user provided a specific, three-step debugging plan.
--   Status: NOT STARTED
+-   Last item agent was working: The user requested a more advanced filtering system for the Super Admin dashboard and a fix for workspaces that were missing a status and action buttons. The desired filters are exclusive (e.g., clicking Supprimés shows *only* deleted workspaces).
+-   Status: IN PROGRESS
 -   Agent Testing Done: N
--   Which testing method agent to use? This is a deployment issue. The agent must follow the user's instructions: modify the backend startup command to use 1 worker, add extensive logging to , and set a DB connection timeout. The test is to then attempt a deployment and analyze the new logs.
+-   Which testing method agent to use? Frontend testing agent. The agent should log in as the Super Admin, test each new filter button (Tous, Actifs, Suspendus, Supprimés), and verify that the table of workspaces updates correctly and that all rows now display a status and action buttons.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: Deployment Health Check Failures (P0, Recurring)
+-   Issue 1: Super Admin Dashboard Filtering and Data Integrity (P0)
 -   Issue 2: Finalize Stripe Webhook Implementation (P1)
--   Issue 3: Gérant cannot open KPI modal from dashboard (P2)
 
 **Issues Detail:**
--   **Issue 1: Deployment Health Check Failures**
-    -   **Attempted fixes:** In a previous session, DB connection logic was made more robust. The agent has not yet attempted the user's new debugging plan.
+-   **Issue 1: Super Admin Dashboard Filtering and Data Integrity**
+    -   **Attempted fixes:** The agent replaced the Show deleted checkbox with a button group for exclusive filtering (, , , ) in . A  state was added to control the active filter, and the API call was updated to pass the selected status.
     -   **Next debug checklist:**
-        1.  **Backend Startup Command**: Investigate how to change the gunicorn worker count from 4 to 1 for the deployment environment.
-        2.  **Add Logging ()**: Add  statements at critical startup points (e.g., top of the file, after DB connection, after AI service initialization) to pinpoint where the process hangs.
-        3.  **DB Timeout ()**: Add a  parameter to the  to ensure the application fails fast if the database is unreachable, rather than freezing.
-    -   **Why fix this issue and what will be achieved with the fix?** The application cannot be deployed to production. This is the highest priority blocker.
-    -   **Status:** NOT STARTED
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** The deployment process itself is the test.
+        1.  **Data Integrity:** Investigate why some workspaces lack a  field. Connect to the database and run a query to find all documents in the  collection where  is null or does not exist.
+        2.  **Data Migration:** Create a backend script to iterate through all workspaces without a  field and set it to a default value of . This will fix the missing buttons and status badges.
+        3.  **Frontend Logic:** Verify that the  logic in  correctly displays data based *only* on what the backend returns for the given . The client-side filter might be redundant or incorrect.
+        4.  **Testing:** Use the screenshot tool or frontend testing agent to log in as the Super Admin and test each filter button, confirming the table shows the correct, filtered list of workspaces.
+    -   **Why fix this issue and what will be achieved with the fix?** This will provide the Super Admin with the requested user experience for managing workspaces and ensure data consistency across the application.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** Both
     -   **Blocked on other issue:** None
 
 -   **Issue 2: Finalize Stripe Webhook Implementation**
-    -   **Attempted fixes:** The agent ran a health check () which confirmed the secret is configured. However, no real event simulation has been performed.
+    -   **Attempted fixes:** The agent confirmed the  endpoint is active. No end-to-end testing with actual webhook events has been performed.
     -   **Next debug checklist:**
-        1.  Use  to send test webhook events (, ) to the local webhook endpoint.
-        2.  Verify in the database that subscription statuses and trial dates are updated correctly.
-    -   **Why fix this issue and what will be achieved with the fix?** This is critical for the app's monetization. Payments and subscriptions will not be handled automatically without it.
+        1.  Use  to send a test  event payload to the  endpoint.
+        2.  Connect to the database and verify that the user's subscription status is updated correctly in the  or  collection based on the logic in .
+    -   **Why fix this issue and what will be achieved with the fix?** This is critical for activating and managing user subscriptions after payment, a core business function.
     -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
+    -   **Is recurring issue?** Y (Carried over from previous forks)
     -   **Should Test frontend/backend/both after fix?** Backend
     -   **Blocked on other issue:** None
 
--   **Issue 3: Gérant cannot open KPI modal from dashboard**
-    -   **Attempted fixes:** The agent tried to click on a store card in the Gérant dashboard using the screenshot tool, but it timed out. The agent then abandoned this and moved on.
-    -   **Next debug checklist:**
-        1.  Examine  to find the component for store cards.
-        2.  Identify the  handler responsible for opening the .
-        3.  Debug why the click is not working or why the modal is not appearing. It might be a missing event handler or incorrect state logic.
-    -   **Why fix this issue and what will be achieved with the fix?** The permission fixes for Gérants are incomplete if they cannot access the primary KPI interface from their main dashboard.
-    -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Frontend
-    -   **Blocked on other issue:** None
-
 **In progress Task List**:
--   None.
+-   **Task 1: Implement Exclusive Filtering on Super Admin Dashboard**
+    -   **Where to resume:** Refine the implementation in . The immediate next step is to address the data integrity issue by creating a script to patch older workspace documents that are missing the  field.
+    -   **What will be achieved with this?** The Super Admin dashboard will feature working, exclusive filters and display all workspaces with their correct status and action buttons.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** Both
+    -   **Blocked on something:** None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
     -   Finalize Stripe Webhook Implementation (P1)
-    -   Fix Gérant KPI modal access from dashboard (P2)
 -   **Future Tasks**:
     -   Enrich AI Stats with Comparative Data (P2)
     -   Refactor  (P3)
     -   Refactor  into smaller components (P3)
 
 **Completed work in this session**
--   **Morning Brief Feature Overhaul**:
-    -   Implemented correct data fetching logic (last active day within 30 days).
-    -   Enabled Gérants to generate briefs for specific stores by passing .
-    -   Redesigned the UI to match other analysis modals.
-    -   Added a complete history feature with ,  (save), and  functionality.
--   **Critical Permissions & UI Fixes**:
-    -   Restored the Config des données and Saisie des données tabs in  for Managers and Gérants by fixing faulty conditional rendering.
-    -   Fixed a bug in  that prevented saving KPI values of .
-    -   Created missing backend endpoints () to allow manager KPI data to be saved and displayed.
-    -   Fixed a 400 error for Gérants by making the  dependency in the backend more flexible.
--   **Implemented Strict Lock for API Data**:
-    -   Backend () now prevents manual updates to locked KPI entries.
-    -   Frontend () now disables input fields and the save button for dates that have locked (API-sourced) data.
+-   **Super Admin Fixes**:
+    -   Fixed authentication by correcting password field from  to .
+    -   Created a missing  endpoint.
+    -   Fixed backend filtering to use the  field instead of .
+-   **New Feature: PDF Downloads**: Added functionality to export Morning Briefs () and Seller Evaluations () as PDF files using .
+-   **New Feature: Legal Pages & Cookie Consent**:
+    -   Created legal pages (, , ) with dynamic routing in  and footer links.
+    -   Implemented a full-featured cookie consent banner () with customization options.
+    -   Fixed a bug where legal pages would not scroll to the top on navigation.
+-   **New Feature: Structured Morning Brief**:
+    -   Updated the backend () to generate structured JSON.
+    -   Overhauled the frontend () to display the new structured format with a fallback for old text-based briefs.
+-   **UI/Content Updates**:
+    -   Renamed Manager tab to Espace Manager.
+    -   Updated the marketing banner and 4 pillars section content on the .
+    -   Fixed the SKY CO logo color to use the correct brand color ().
+    -   Fixed a CSS rendering bug on the 4 pillars section.
+-   **Testing & Cleanup**: Ran backend testing agent (100% pass rate) and deleted obsolete deployment files.
 
 **Earlier issues found/mentioned but not fixed**
--   **Finalize Stripe Webhook Implementation**: A full end-to-end test is still pending.
--   **Gérant cannot open KPI modal from dashboard**: The agent encountered this bug during testing but did not resolve it.
+-   **Finalize Stripe Webhook Implementation**: This task from the initial handoff remains incomplete. The agent only verified the health endpoint and did not simulate real events to test the business logic.
 
 **Known issue recurrence from previous fork**
--   **Deployment Health Check Failures**: This is a known, recurring issue from the previous session, and it is the current highest-priority task.
+-   None. The deployment instability from the previous fork remains resolved.
 
 **Code Architecture**
 .
@@ -178,6 +170,7 @@ The application is a full-stack React/FastAPI app. The Morning Brief Generator i
 │   │   ├── email_service.cpython-311.pyc
 │   │   ├── enterprise_models.cpython-311.pyc
 │   │   ├── enterprise_routes.cpython-311.pyc
+│   │   ├── gunicorn.conf.cpython-311.pyc
 │   │   ├── init_db.cpython-311.pyc
 │   │   ├── main.cpython-311.pyc
 │   │   └── server.cpython-311.pyc
@@ -385,38 +378,6 @@ The application is a full-stack React/FastAPI app. The Morning Brief Generator i
 ├── fix_subscription.py
 ├── frontend
 │   ├── README.md
-│   ├── build
-│   │   ├── asset-manifest.json
-│   │   ├── dashboard-manager-old-backup.png
-│   │   ├── dashboard-manager.png
-│   │   ├── dashboard-vendeur-old-backup.png
-│   │   ├── dashboard-vendeur.png
-│   │   ├── hero-retail-boutique.png
-│   │   ├── images
-│   │   │   └── tutorial
-│   │   ├── index.html
-│   │   ├── logo-full.png
-│   │   ├── logo-icon.png
-│   │   ├── logo-retail-performer-blue.png
-│   │   ├── logo-retail-performer.png
-│   │   ├── logo.jpg
-│   │   ├── screenshot1.png
-│   │   ├── screenshot2.png
-│   │   ├── screenshot3.png
-│   │   ├── static
-│   │   │   ├── css
-│   │   │   │   ├── main.a3a212aa.css
-│   │   │   │   └── main.a3a212aa.css.map
-│   │   │   └── js
-│   │   │       ├── 455.b91e6987.chunk.js
-│   │   │       ├── 455.b91e6987.chunk.js.map
-│   │   │       ├── 977.7a7b0c82.chunk.js
-│   │   │       ├── 977.7a7b0c82.chunk.js.LICENSE.txt
-│   │   │       ├── 977.7a7b0c82.chunk.js.map
-│   │   │       ├── main.5e688381.js
-│   │   │       ├── main.5e688381.js.LICENSE.txt
-│   │   │       └── main.5e688381.js.map
-│   │   └── tutorial-images
 │   ├── components.json
 │   ├── craco.config.js
 │   ├── jsconfig.json
@@ -64325,6 +64286,7 @@ The application is a full-stack React/FastAPI app. The Morning Brief Generator i
 │   │   │   ├── CompetencesExplicationModal.js
 │   │   │   ├── ConfirmActionModal.js
 │   │   │   ├── ConflictResolutionForm.js
+│   │   │   ├── CookieConsent.js
 │   │   │   ├── DailyChallengeModal.js
 │   │   │   ├── DebriefHistoryModal.backup.js
 │   │   │   ├── DebriefHistoryModal.js
@@ -64478,7 +64440,11 @@ The application is a full-stack React/FastAPI app. The Morning Brief Generator i
 │   │   │   ├── SellerDashboard.js
 │   │   │   ├── SellerDashboard_onboarding_integration.txt
 │   │   │   ├── SuperAdminDashboard.js
-│   │   │   └── _DEPRECATED_ITAdminDashboard.js
+│   │   │   ├── _DEPRECATED_ITAdminDashboard.js
+│   │   │   └── legal
+│   │   │       ├── LegalNotice.js
+│   │   │       ├── PrivacyPolicy.js
+│   │   │       └── TermsOfService.js
 │   │   └── utils
 │   │       └── markdownRenderer.js
 │   ├── start-prod.sh
@@ -64513,86 +64479,87 @@ The application is a full-stack React/FastAPI app. The Morning Brief Generator i
 │   └── __init__.py
 └── yarn.lock
 
-6194 directories, 58211 files
+6188 directories, 58191 files
 
 **Key Technical Concepts**
--   **State Management & Conditional Rendering (React)**: Debugged complex interactions between props (), user roles, and local state () to fix UI visibility bugs.
--   **Resilient Backend Dependencies (FastAPI)**: Refactored dependency injection logic () to handle different user roles and optional query parameters without throwing unnecessary errors.
--   **Data Integrity & Type Coercion (JS/Python)**: Fixed a bug where JavaScript's falsy evaluation of  or  prevented data from being sent to the backend.
--   **Legacy Code Integration**: Successfully located and reintegrated critical UI features (KPI configuration tabs) from backup files into the active codebase.
--   **Deployment Debugging Strategy**: The current task follows a user-provided plan to diagnose a container startup issue by reducing workers, adding logs, and setting timeouts.
+-   **Full-Stack Debugging**: Traced UI bugs in the Super Admin dashboard to backend data inconsistencies ( vs. ) and authentication logic errors ( vs. ).
+-   **Client-Side PDF Generation**: Implemented PDF export by using  and  to capture the DOM of specific React components.
+-   **Data Migration (Implicit Need)**: The discovery that older workspaces lack a  field implies the need for a data migration script to ensure data consistency.
+-   **API Design**: Added a new  endpoint for atomic status updates and modified an existing  endpoint to support filtering via a query parameter.
+-   **UI State Management**: Evolved a simple boolean state for a checkbox into a string-based state () to manage a group of exclusive filter buttons.
 
 **key DB schema**
--   **morning_briefs** (New Collection): Stores generated briefs with fields like , , , , .
--   **manager_kpi** (New/Activated Collection): Stores KPI entries made by managers, with fields like , Sat Dec 13 17:54:40 UTC 2025, , .
--   **kpi_configs**: Now heavily used to store who ( or ) tracks specific KPIs (, , etc.).
--   **kpi_entries**: An entry now includes a  field if it originates from an API, preventing manual edits.
+-   **workspaces**: Uses a  field (, , ). **CRITICAL**: Some older documents are missing this field and require a data patch.
+-   **users**: The  field stores the user's hashed password. The  field is incorrect and should not be used.
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   : The target for the next step of debugging the deployment issue.
--   : Contains the recently fixed permission logic and newly added KPI endpoints.
--   : The central component for the major UI and permission fixes. It is very large and a candidate for refactoring.
--   : Contains the complete logic for the Morning Brief feature.
+-   : The primary file for the current task, containing the filter UI and logic.
+-   : Contains the API endpoints for the Super Admin dashboard.
+-   : Contains the database query for fetching workspaces.
+-   : File for the structured morning brief and its PDF export.
+-   : File for the seller evaluation and its PDF export.
+-   : The new component for the cookie banner.
+-   : Directory containing the new legal pages.
 
 **Areas that need refactoring**:
--    has become a monolithic component (handling daily view, history, data entry, and configuration for multiple roles) and urgently needs to be broken down into smaller, manageable components.
--    is still a large file that could be split by feature.
+-   A one-time data migration script should be created and run to add a default  to all workspaces in the database that are missing it. This will resolve the UI inconsistency on the Super Admin dashboard.
 
 **key api endpoints**
--   : Generates and **saves** a morning brief. Now accepts an optional .
--   : **New** endpoint to list saved briefs.
--   : **New** endpoint to delete a brief.
--   : **New/Restored** endpoint to update which roles track which KPIs.
--   : **New** endpoint to retrieve KPIs entered by a manager.
--   : **New** endpoint to save KPIs entered by a manager.
--   : **Modified** to add a check that prevents editing  entries.
+-   : **Modified** to filter workspaces by status.
+-   : **New** endpoint to update a workspace's status.
+-   : **Modified** to return a structured JSON response.
+-   : The main endpoint for Stripe events. Its business logic remains **untested**.
 
 **Critical Info for New Agent**
--   **Deployment is the #1 priority.** Your immediate task is to execute the user's three-step plan to diagnose the backend startup failure during deployment. This is a critical, recurring blocker.
--   **Manager/Gérant permissions were the last major fix.** A complex set of issues preventing managers/gérants from configuring and entering KPIs was resolved. Be aware of the  component, as it's the center of this logic. There is a pending related bug where Gérants can't open this modal from their dashboard.
--   **Stripe is not fully tested.** The user has requested verification of the Stripe integration. A full end-to-end webhook test is a pending high-priority task.
+-   Your immediate task is to finish the Super Admin dashboard filters. This requires two main actions: **1)** Implement a backend script to patch old database records in the  collection that are missing the  field (set it to ). **2)** Finalize the frontend filtering logic in  to correctly display exclusive lists for Tous, Actifs, Suspendus, and Supprimés.
+-   The Super Admin credentials are ** / **. This password was manually set during the session.
+-   The Stripe webhook integration is the most significant piece of unfinished business. It is critical for monetization and must be tested end-to-end by simulating webhook events with .
+-   The user is highly engaged and provides detailed, multi-part prompts. Expect to work on several tasks in parallel.
 
 **documents created in this job**
 -   None.
 
 **Last 10 User Messages and any pending user messages**
-1.  **User (PENDING):** Provided a detailed 3-step plan to debug the recurring deployment failure. **This is your immediate task.**
-2.  **User:** Corrected the agent's assumption, stating they had entered all data. (Status: **Resolved**; a frontend bug was found and fixed).
-3.  **User:** Provided a console error log showing 400/404 errors for Gérants. (Status: **Resolved**).
-4.  **User:** Requested a strict lock feature for API-sourced data. (Status: **Completed**).
-5.  **User:** Clarified that the KPI config tabs were located inside the Mon magasin modal. (Status: **Completed**).
-6.  **User:** Clarified that Gérants should also be able to act as Managers and enter KPIs. (Status: **Completed**).
-7.  **User:** Asked the agent to find and restore legacy code for data source management. (Status: **Completed**).
-8.  **User (URGENT):** Reported that Managers had lost access to KPI entry and configuration. (Status: **Completed**).
-9.  **User:** Requested a history feature for morning briefs. (Status: **Completed**).
-10. **User:** Requested a UI redesign for the morning brief modal. (Status: **Completed**).
+1.  **User (PENDING, HIGHEST PRIORITY):** Reported issues with the Super Admin page: wants exclusive filters (e.g., show only deleted), wants a filter for suspended, and asked why some workspaces have no status/action buttons.
+2.  **User:** Uploaded console logs showing 404 errors when trying to suspend/delete a workspace. (Status: **Completed**)
+3.  **User:** Reported that the show deleted filter was not working as expected (it was showing all workspaces including deleted, not just deleted). (Status: **Completed**)
+4.  **User:** Pointed out a CSS rendering bug on the landing page's 4 pillars section. (Status: **Completed**)
+5.  **User:** Requested content updates for the 4 pillars section. (Status: **Completed**)
+6.  **User:** Requested PDF download functionality for briefs and evaluations. (Status: **Completed**)
+7.  **User:** Requested fixes for legal pages (scroll-to-top, cookie banner). (Status: **Completed**)
+8.  **User:** Requested creation of legal pages with specific company info. (Status: **Completed**)
+9.  **User:** Requested marketing text update for the landing page banner. (Status: **Completed**)
+10. **User:** Provided a 3-part prompt to fix the admin dashboard, update the brief UI, and update API docs. (Status: **Completed**)
 
 **Project Health Check:**
 -   **Broken**:
-    -   **Deployment**: Application is not deployable due to backend health check failures. This is the top priority.
-    -   **Stripe Webhook Integration**: Endpoint exists but remains unverified with test events.
-    -   **Gérant Dashboard UI Flow**: Gérants cannot open the KPI modal by clicking on a store from their main dashboard.
+    -   **Super Admin Data Integrity**: Workspaces in the database are in an inconsistent state; some are missing the  field, which breaks UI rendering.
+    -   **Super Admin Filtering**: The UI filtering logic does not yet meet the user's request for exclusive status filters.
+    -   **Stripe Webhook Integration**: The core business logic that handles payment events is untested and may not work.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
 -   **OpenAI GPT-4o** — uses Emergent LLM Key.
--   **Stripe (Payments)** — requires User API Key.
+-   **Stripe (Payments)** — requires User API Key. Core webhook logic is **untested**.
 -   **Brevo (Transactional Emails)** — requires User API Key.
 -   **Calendly (Scheduling)** — Integrated via public URL, no key required.
+-   **jspdf / html2canvas** — Used for client-side PDF generation.
 
 **Testing status**
--   Testing agent used after significant changes: NO (Testing was done via manual  and screenshots).
+-   Testing agent used after significant changes: YES
 -   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: None.
--   Known regressions: The deployment failure is a known, recurring regression.
+-   Test files created: None
+-   Known regressions: None
 
 **Credentials to test flow:**
 -   **Gérant**:  / 
 -   **Manager**:  / 
+-   **Seller**:  / 
+-   **Super Admin**:  / 
 
 **What agent forgot to execute**
--   The agent did not perform a full end-to-end test of the Stripe webhook integration with simulated events.
--   The agent encountered a bug where a Gérant cannot open the KPI modal from their dashboard but abandoned the debugging effort without resolving it.</analysis>
+-   The agent did not perform end-to-end testing of the Stripe webhook business logic by simulating real events, despite it being a high-priority pending task from the previous handoff.
+-   The agent did not proactively identify and propose a fix for the underlying data inconsistency (missing  field on workspaces) and only started working on it after the user explicitly pointed out the resulting UI bug.</analysis>

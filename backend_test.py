@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class ManagerDashboardAndSuperAdminTester:
-    def __init__(self, base_url="https://invite-fix-1.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://french-site-refresh.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.manager_token = None
         self.superadmin_token = None
@@ -613,7 +613,7 @@ class ManagerDashboardAndSuperAdminTester:
         return self.tests_passed >= self.tests_run * 0.8
 
 class StripeBillingTester:
-    def __init__(self, base_url="https://invite-fix-1.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://french-site-refresh.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.gerant_token = None
         self.seller_token = None
@@ -983,7 +983,7 @@ class StripeBillingTester:
 
 
 class GerantRBACTester:
-    def __init__(self, base_url="https://invite-fix-1.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://french-site-refresh.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.gerant_token = None
         self.gerant_user = None
@@ -1320,7 +1320,7 @@ class GerantRBACTester:
 
 
 class GerantFeaturesTester:
-    def __init__(self, base_url="https://invite-fix-1.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://french-site-refresh.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.gerant_token = None
         self.gerant_user = None
@@ -1743,7 +1743,7 @@ class GerantFeaturesTester:
 
 
 class EvaluationGeneratorTester:
-    def __init__(self, base_url="https://invite-fix-1.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://french-site-refresh.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.manager_token = None
         self.seller_token = None
@@ -2127,7 +2127,7 @@ class EvaluationGeneratorTester:
 
 
 class ImprovedEvaluationGeneratorTester:
-    def __init__(self, base_url="https://invite-fix-1.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://french-site-refresh.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.manager_token = None
         self.seller_token = None
@@ -2600,7 +2600,7 @@ class ImprovedEvaluationGeneratorTester:
         return self.tests_passed >= self.tests_run * 0.8
 
 class GerantSellerDetailsTester:
-    def __init__(self, base_url="https://invite-fix-1.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://french-site-refresh.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.gerant_token = None
         self.gerant_user = None
@@ -2959,7 +2959,7 @@ class GerantSellerDetailsTester:
 
 
 class SpecificFeaturesTester:
-    def __init__(self, base_url="https://invite-fix-1.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://french-site-refresh.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.superadmin_token = None
         self.manager_token = None
