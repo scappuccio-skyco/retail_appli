@@ -655,13 +655,21 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                 {renderBriefContent(brief)}
               </div>
 
-              <div className="flex justify-center gap-3">
+              <div className="flex justify-center gap-3 flex-wrap">
                 <button onClick={handleRegenerate} className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
                   <RefreshCw className="w-4 h-4" /> Regénérer
                 </button>
                 <button onClick={() => handleCopy()} className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 ${copied ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   {copied ? 'Copié !' : 'Copier'}
+                </button>
+                <button 
+                  onClick={() => exportBriefToPDF(brief)} 
+                  disabled={exportingPDF}
+                  className="px-4 py-2 bg-[#1E40AF] text-white font-medium rounded-lg hover:bg-[#1E3A8A] transition-colors flex items-center gap-2 disabled:opacity-50"
+                >
+                  {exportingPDF ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  {exportingPDF ? 'Export...' : 'PDF'}
                 </button>
                 <button onClick={handleClose} className="px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors">
                   Fermer
