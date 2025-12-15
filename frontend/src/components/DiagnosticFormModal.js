@@ -315,7 +315,7 @@ export default function DiagnosticFormModal({ onClose, onSuccess }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API}/diagnostic`, { responses }, {
+      await axios.post(`${API}/ai/diagnostic`, { responses }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
