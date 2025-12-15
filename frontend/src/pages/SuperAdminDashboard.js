@@ -786,7 +786,24 @@ export default function SuperAdminDashboard() {
                     })
                     .map((workspace) => (
                     <React.Fragment key={workspace.id}>
-                      <tr className="border-b border-white/10 hover:bg-white/5 bg-purple-900/20 cursor-pointer">
+                      <tr className={`border-b border-white/10 hover:bg-white/5 cursor-pointer ${
+                        selectedWorkspaces.has(workspace.id) ? 'bg-purple-600/20' : 'bg-purple-900/20'
+                      }`}>
+                        <td className="p-3 w-10">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleWorkspaceSelection(workspace.id);
+                            }}
+                            className="p-1 hover:bg-white/10 rounded transition-colors"
+                          >
+                            {selectedWorkspaces.has(workspace.id) ? (
+                              <CheckSquare className="w-5 h-5 text-purple-300" />
+                            ) : (
+                              <Square className="w-5 h-5 text-purple-400" />
+                            )}
+                          </button>
+                        </td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
                             <button
