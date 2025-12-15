@@ -60,7 +60,7 @@ export default function SuperAdminDashboard() {
 
       const [statsRes, workspacesRes, logsRes, healthRes] = await Promise.all([
         axios.get(`${API}/superadmin/stats`, { headers }),
-        axios.get(`${API}/superadmin/workspaces`, { headers }),
+        axios.get(`${API}/superadmin/workspaces`, { headers, params: { include_deleted: showDeletedWorkspaces } }),
         axios.get(`${API}/superadmin/logs?limit=50&days=7`, { headers }),
         axios.get(`${API}/superadmin/health`, { headers })
       ]);
