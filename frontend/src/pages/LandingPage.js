@@ -591,8 +591,7 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-4">
                   {[
                     '1 à 5 vendeurs',
-                    '150 + (30 × vendeurs) analyses IA Manager/mois',
-                    '100+ analyses IA par vendeur/mois',
+                    'Analyses IA illimitées',
                     'Support email sous 48h'
                   ].map((item, idx) => (
                     <li key={`starter-spec-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
