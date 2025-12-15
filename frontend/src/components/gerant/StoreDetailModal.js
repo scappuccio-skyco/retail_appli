@@ -259,7 +259,7 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
               }`}
             >
               <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline">Accès</span> Manager
+              Espace Manager
             </button>
           </div>
         </div>
