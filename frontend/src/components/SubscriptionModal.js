@@ -1233,12 +1233,8 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                   </ul>
 
                   {/* Specs section */}
-                  <div className={`border-t ${
-                    isRecommended ? 'border-[#F97316]' : 'border-gray-200'
-                  } my-4 pt-4`}>
-                    <p className={`text-sm font-semibold mb-3 ${
-                      isRecommended ? 'text-[#F97316]' : 'text-[#1E40AF]'
-                    }`}>
+                  <div className="my-4 pt-4" style={{ borderTop: `1px solid ${plan.color}40` }}>
+                    <p className="text-sm font-semibold mb-3" style={{ color: plan.color }}>
                       Spécificités :
                     </p>
                     <ul className="space-y-3 mb-4">
