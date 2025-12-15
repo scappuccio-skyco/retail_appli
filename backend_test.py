@@ -1388,31 +1388,31 @@ class GerantFeaturesTester:
             self.log_test(name, False, f"Exception: {str(e)}")
             return False, {}
 
-    def test_manager_authentication(self):
-        """Test Manager authentication for Morning Brief tests"""
-        print("\n🔐 TESTING MANAGER AUTHENTICATION FOR MORNING BRIEF")
+    def test_gerant_authentication(self):
+        """Test Gérant authentication for feature tests"""
+        print("\n🔐 TESTING GÉRANT AUTHENTICATION FOR FEATURE TESTS")
         
-        # Test Manager login (y.legoff@skyco.fr / TestDemo123!)
-        manager_data = {
-            "email": "y.legoff@skyco.fr",
-            "password": "TestDemo123!"
+        # Test Gérant login (gerant@skyco.fr / Gerant123!)
+        gerant_data = {
+            "email": "gerant@skyco.fr",
+            "password": "Gerant123!"
         }
         
         success, response = self.run_test(
-            "Manager Authentication for Morning Brief Tests",
+            "Gérant Authentication for Feature Tests",
             "POST",
             "auth/login",
             200,
-            data=manager_data
+            data=gerant_data
         )
         
         if success and 'token' in response:
-            self.manager_token = response['token']
-            self.manager_user = response.get('user', {})
-            print(f"   ✅ Manager logged in: {self.manager_user.get('email')}")
+            self.gerant_token = response['token']
+            self.gerant_user = response.get('user', {})
+            print(f"   ✅ Gérant logged in: {self.gerant_user.get('email')}")
             return True
         else:
-            print("   ❌ Failed to authenticate Manager")
+            print("   ❌ Failed to authenticate Gérant")
             return False
 
     def test_morning_brief_api(self):
