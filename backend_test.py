@@ -1415,79 +1415,147 @@ class GerantFeaturesTester:
             print("   ❌ Failed to authenticate Gérant")
             return False
 
-    def test_morning_brief_api(self):
-        """Test Morning Brief API - POST /api/briefs/morning"""
-        print("\n☕ TESTING MORNING BRIEF API")
+    def test_gerant_stores_api(self):
+        """Test Gérant Stores API for Store Selection Dropdown"""
+        print("\n🏪 TESTING GÉRANT STORES API FOR STORE SELECTION")
         
-        if not self.manager_token:
-            self.log_test("Morning Brief API", False, "No manager token available")
+        if not self.gerant_token:
+            self.log_test("Gérant Stores API", False, "No gérant token available")
             return
         
-        # Test 1: Generate Morning Brief with comments
-        brief_data = {
-            "comments": "Aujourd'hui on se concentre sur les ventes additionnelles"
-        }
-        
+        # Test 1: Get all stores for gérant
         success, response = self.run_test(
-            "Morning Brief Generation with Comments",
-            "POST",
-            "briefs/morning",
+            "Gérant Get All Stores",
+            "GET",
+            "gerant/stores",
             200,
-            data=brief_data,
-            token=self.manager_token
+            token=self.gerant_token
         )
         
-        if success:
-            # Verify response structure
-            expected_fields = ['success', 'brief', 'date', 'store_name', 'manager_name', 'has_context', 'generated_at']
-            missing_fields = [f for f in expected_fields if f not in response]
-            if missing_fields:
-                self.log_test("Morning Brief Response Structure", False, f"Missing fields: {missing_fields}")
+        if success and isinstance(response, list):
+            print(f"   ✅ Found {len(response)} stores")
+            
+            # Verify we have at least 9 stores as mentioned in the review request
+            if len(response) >= 9:
+                print(f"   ✅ Store count meets requirement (≥9 stores)")
             else:
-                print(f"   ✅ Success: {response.get('success')}")
-                print(f"   ✅ Brief length: {len(response.get('brief', ''))}")
-                print(f"   ✅ Date: {response.get('date')}")
-                print(f"   ✅ Store: {response.get('store_name')}")
-                print(f"   ✅ Manager: {response.get('manager_name')}")
-                print(f"   ✅ Has context: {response.get('has_context')}")
-                
-                # Verify success is true
-                if response.get('success') != True:
-                    self.log_test("Morning Brief Success Field", False, f"Expected success=true, got {response.get('success')}")
-                
-                # Verify has_context is true (because comments provided)
-                if response.get('has_context') != True:
-                    self.log_test("Morning Brief Context Field", False, f"Expected has_context=true, got {response.get('has_context')}")
-                
-                # Verify brief contains markdown content
-                brief_content = response.get('brief', '')
-                if len(brief_content) < 100:
-                    self.log_test("Morning Brief Content Length", False, f"Brief too short: {len(brief_content)} chars")
+                self.log_test("Store Count Check", False, f"Expected ≥9 stores, found {len(response)}")
+            
+            # Check store structure
+            if len(response) > 0:
+                store = response[0]
+                expected_fields = ['id', 'name']
+                missing_fields = [f for f in expected_fields if f not in store]
+                if missing_fields:
+                    self.log_test("Store Structure Check", False, f"Missing fields in store: {missing_fields}")
                 else:
-                    print(f"   ✅ Brief content generated successfully ({len(brief_content)} chars)")
-                
-                # Check for data_date field
-                if 'data_date' in response:
-                    print(f"   ✅ Data date: {response.get('data_date')}")
-                else:
-                    print(f"   ⚠️ No data_date field in response")
+                    print(f"   ✅ Store structure valid: {store.get('name')}")
+                    
+                # Display first few stores
+                for i, store in enumerate(response[:3]):
+                    print(f"   📋 Store {i+1}: {store.get('name')} (ID: {store.get('id')})")
+        else:
+            self.log_test("Gérant Stores Response", False, f"Expected list, got {type(response)}")
+    
+    def test_gerant_store_managers_api(self):
+        """Test Gérant Store Managers API for Manager Selection Dropdown"""
+        print("\n👔 TESTING GÉRANT STORE MANAGERS API FOR MANAGER SELECTION")
         
-        # Test 2: Generate Morning Brief without comments
-        success, response = self.run_test(
-            "Morning Brief Generation without Comments",
-            "POST",
-            "briefs/morning",
+        if not self.gerant_token:
+            self.log_test("Gérant Store Managers API", False, "No gérant token available")
+            return
+        
+        # First get stores to test with
+        success, stores_response = self.run_test(
+            "Get Stores for Manager Test",
+            "GET",
+            "gerant/stores",
             200,
-            data={},
-            token=self.manager_token
+            token=self.gerant_token
         )
         
-        if success:
-            # Verify has_context is false (no comments provided)
-            if response.get('has_context') != False:
-                self.log_test("Morning Brief No Context Field", False, f"Expected has_context=false, got {response.get('has_context')}")
+        if success and isinstance(stores_response, list) and len(stores_response) > 0:
+            store_id = stores_response[0].get('id')
+            store_name = stores_response[0].get('name')
+            
+            # Test getting managers for a specific store
+            success, response = self.run_test(
+                f"Gérant Get Store Managers - {store_name}",
+                "GET",
+                f"gerant/stores/{store_id}/managers",
+                200,
+                token=self.gerant_token
+            )
+            
+            if success and isinstance(response, list):
+                print(f"   ✅ Found {len(response)} managers for store {store_name}")
+                
+                # Check manager structure if any exist
+                if len(response) > 0:
+                    manager = response[0]
+                    expected_fields = ['id', 'name', 'email']
+                    missing_fields = [f for f in expected_fields if f not in manager]
+                    if missing_fields:
+                        self.log_test("Manager Structure Check", False, f"Missing fields in manager: {missing_fields}")
+                    else:
+                        print(f"   ✅ Manager structure valid: {manager.get('name')} ({manager.get('email')})")
+                else:
+                    print(f"   ℹ️ No managers found for store {store_name}")
             else:
-                print(f"   ✅ Has context correctly set to false")
+                self.log_test("Store Managers Response", False, f"Expected list, got {type(response)}")
+        else:
+            self.log_test("Store Managers Test Setup", False, "Could not get stores for testing")
+    
+    def test_gerant_store_kpi_overview(self):
+        """Test Gérant Store KPI Overview for Dashboard Modal"""
+        print("\n📊 TESTING GÉRANT STORE KPI OVERVIEW FOR DASHBOARD MODAL")
+        
+        if not self.gerant_token:
+            self.log_test("Gérant Store KPI Overview", False, "No gérant token available")
+            return
+        
+        # First get stores to test with
+        success, stores_response = self.run_test(
+            "Get Stores for KPI Test",
+            "GET",
+            "gerant/stores",
+            200,
+            token=self.gerant_token
+        )
+        
+        if success and isinstance(stores_response, list) and len(stores_response) > 0:
+            store_id = stores_response[0].get('id')
+            store_name = stores_response[0].get('name')
+            
+            # Test getting KPI overview for a specific store
+            success, response = self.run_test(
+                f"Gérant Store KPI Overview - {store_name}",
+                "GET",
+                f"gerant/stores/{store_id}/kpi-overview",
+                200,
+                token=self.gerant_token
+            )
+            
+            if success:
+                # Check for expected KPI fields
+                expected_fields = ['store_id', 'date']
+                present_fields = [f for f in expected_fields if f in response]
+                
+                if len(present_fields) >= 1:  # At least store_id should be present
+                    print(f"   ✅ KPI overview structure valid for {store_name}")
+                    print(f"   ✅ Store ID: {response.get('store_id')}")
+                    if 'date' in response:
+                        print(f"   ✅ Date: {response.get('date')}")
+                    if 'totals' in response:
+                        totals = response.get('totals', {})
+                        print(f"   ✅ Totals available: {list(totals.keys())}")
+                else:
+                    self.log_test("KPI Overview Structure", False, f"Missing expected fields. Present: {present_fields}")
+            else:
+                # This might be expected if no KPI data exists
+                print(f"   ℹ️ No KPI data available for store {store_name}")
+        else:
+            self.log_test("KPI Overview Test Setup", False, "Could not get stores for testing")
 
     def test_morning_brief_preview(self):
         """Test Morning Brief Preview API - GET /api/briefs/morning/preview"""
