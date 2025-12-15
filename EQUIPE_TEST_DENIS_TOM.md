@@ -55,7 +55,7 @@
 ## 🔐 CONNEXION
 
 ### URL de l'application
-https://fix-deploy-access.preview.emergentagent.com
+https://invite-fix-1.preview.emergentagent.com
 
 ### Manager
 ```

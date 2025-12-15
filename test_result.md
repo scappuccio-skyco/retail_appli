@@ -173,5 +173,5 @@ agent_communication:
 - Gérant: gerant@skyco.fr / Gerant123!
 
 ## Test URLs
-- Frontend: https://fix-deploy-access.preview.emergentagent.com
-- Backend API: https://fix-deploy-access.preview.emergentagent.com/api
+- Frontend: https://invite-fix-1.preview.emergentagent.com
+- Backend API: https://invite-fix-1.preview.emergentagent.com/api
