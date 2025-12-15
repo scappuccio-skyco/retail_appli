@@ -224,13 +224,13 @@ export default function LandingPage() {
       {/* Problem/Solution Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
-          {/* Accroche émotionnelle avec fond coloré */}
+          {/* Accroche Marketing - Bannière Stratégie */}
           <div className="text-center mb-12 bg-gradient-to-r from-[#1E40AF]/10 via-[#F97316]/10 to-[#1E40AF]/10 rounded-2xl p-8 border-2 border-[#F97316]/30">
             <h2 className="text-3xl md:text-4xl font-bold text-[#334155] mb-6 max-w-4xl mx-auto leading-relaxed">
-              Vous ou vos managers retail perdez encore plusieurs heures par jour en suivi manuel, reporting et gestion RH ?
+              Vous avez déjà les <strong className="text-[#1E40AF]">chiffres</strong>. Retail Performer AI vous donne la <strong className="text-[#F97316]">stratégie</strong>.
             </h2>
-            <p className="text-2xl md:text-3xl font-bold text-[#1E40AF]">
-              Retail Performer AI automatise tout ça.
+            <p className="text-xl md:text-2xl text-[#64748B] max-w-3xl mx-auto">
+              Ne perdez plus de temps à interpréter des tableaux complexes. Notre IA analyse vos KPI en temps réel et génère les plans d&apos;action pour vos équipes.
             </p>
           </div>
 
