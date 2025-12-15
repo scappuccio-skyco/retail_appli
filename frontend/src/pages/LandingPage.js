@@ -586,8 +586,8 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <div className="border-t border-[#1E40AF]/30 my-4 pt-4">
-                <p className="text-sm font-semibold text-[#1E40AF] mb-3">Spécificités :</p>
+              <div className="border-t border-[#10B981]/30 my-4 pt-4">
+                <p className="text-sm font-semibold text-[#10B981] mb-3">Spécificités :</p>
                 <ul className="space-y-3 mb-4">
                   {[
                     '1 à 5 vendeurs',
