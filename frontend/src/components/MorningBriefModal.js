@@ -572,7 +572,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                         {isExpanded && (
                           <div className="border-t-2 border-gray-200 bg-gradient-to-br from-orange-50 to-yellow-50 p-6">
                             <div className="space-y-4">
-                              {renderBriefContent(item.brief)}
+                              {renderBriefContent(item)}
                             </div>
                             <div className="mt-4 flex justify-end">
                               <button
