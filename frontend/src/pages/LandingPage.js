@@ -572,7 +572,7 @@ export default function LandingPage() {
 
               <ul className="space-y-3 mb-4">
                 {[
-                  'Dashboard Manager & Vendeur',
+                  'Dashboard Gérant, Manager & Vendeur',
                   'Diagnostic Profil Manager',
                   'Diagnostic Profil Vendeur',
                   'Coaching IA & Briefs Matinaux',
