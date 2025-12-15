@@ -537,15 +537,50 @@ export default function SuperAdminDashboard() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-white">Gestion des Workspaces</h2>
-              <label className="flex items-center gap-2 text-purple-200 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showDeletedWorkspaces}
-                  onChange={(e) => setShowDeletedWorkspaces(e.target.checked)}
-                  className="w-4 h-4 rounded border-purple-300"
-                />
-                <span>Afficher les workspaces supprimés</span>
-              </label>
+              {/* Filtres par statut */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-purple-200 text-sm">Filtrer :</span>
+                <button
+                  onClick={() => setWorkspaceFilter('all')}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                    workspaceFilter === 'all' 
+                      ? 'bg-white text-purple-900' 
+                      : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
+                  }`}
+                >
+                  Tous ({workspaces.length})
+                </button>
+                <button
+                  onClick={() => setWorkspaceFilter('active')}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                    workspaceFilter === 'active' 
+                      ? 'bg-green-500 text-white' 
+                      : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
+                  }`}
+                >
+                  🟢 Actifs ({workspaces.filter(w => (w.status || 'active') === 'active').length})
+                </button>
+                <button
+                  onClick={() => setWorkspaceFilter('suspended')}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                    workspaceFilter === 'suspended' 
+                      ? 'bg-amber-500 text-white' 
+                      : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
+                  }`}
+                >
+                  🟡 Suspendus ({workspaces.filter(w => w.status === 'suspended').length})
+                </button>
+                <button
+                  onClick={() => setWorkspaceFilter('deleted')}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                    workspaceFilter === 'deleted' 
+                      ? 'bg-red-500 text-white' 
+                      : 'bg-purple-800/50 text-purple-200 hover:bg-purple-700'
+                  }`}
+                >
+                  🔴 Supprimés ({workspaces.filter(w => w.status === 'deleted').length})
+                </button>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -562,7 +597,11 @@ export default function SuperAdminDashboard() {
                 </thead>
                 <tbody>
                   {workspaces
-                    .filter(workspace => showDeletedWorkspaces || workspace.status !== 'deleted')
+                    .filter(workspace => {
+                      const status = workspace.status || 'active';
+                      if (workspaceFilter === 'all') return true;
+                      return status === workspaceFilter;
+                    })
                     .map((workspace) => (
                     <React.Fragment key={workspace.id}>
                       <tr className="border-b border-white/10 hover:bg-white/5 bg-purple-900/20 cursor-pointer">
