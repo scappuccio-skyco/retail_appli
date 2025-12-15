@@ -722,9 +722,9 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-4">
                   {[
                     '16+ vendeurs',
-                    '150 + (30 × vendeurs) analyses IA Manager/mois',
-                    '100+ analyses IA par vendeur/mois',
-                    'Support email sous 48h'
+                    'Analyses IA illimitées',
+                    'Connexion API à vos logiciels métier',
+                    'Support prioritaire dédié'
                   ].map((item, idx) => (
                     <li key={`enterprise-spec-${idx}-${item.substring(0, 15)}`} className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-[#10B981] flex-shrink-0" />
