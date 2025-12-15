@@ -108,7 +108,7 @@ function AppContent() {
     // Check diagnostic for new sellers - ensure it completes before navigation
     if (userData.role === 'seller') {
       try {
-        const diagRes = await axios.get(`${API}/diagnostic/me`);
+        const diagRes = await axios.get(`${API}/seller/diagnostic/me`);
         if (diagRes.data.status === 'completed') {
           setDiagnostic(diagRes.data.diagnostic);
           console.log('Diagnostic already completed:', diagRes.data.diagnostic);
