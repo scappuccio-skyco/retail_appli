@@ -633,7 +633,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
                 className="w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
-                Régénérer avec d'autres paramètres
+                Régénérer avec d&apos;autres paramètres
               </button>
             </div>
           )}
