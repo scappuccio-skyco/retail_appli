@@ -78,7 +78,7 @@ const Logo = ({
               </span>
               {showByline && (
                 <span className={`${currentSize.byline} font-bold`}>
-                  by <span className="text-gray-900">SKY</span> <span className="text-[#F97316]">CO</span>
+                  by <span className="text-gray-900">SKY</span> <span className="text-[#ffd871]">CO</span>
                 </span>
               )}
             </div>
@@ -124,7 +124,7 @@ const Logo = ({
               </h1>
               {showByline && (
                 <p className={`${currentSize.byline} font-bold`}>
-                  by <span className="text-gray-900">SKY</span> <span className="text-[#F97316]">CO</span>
+                  by <span className="text-gray-900">SKY</span> <span className="text-[#ffd871]">CO</span>
                 </p>
               )}
             </>
@@ -165,7 +165,7 @@ const Logo = ({
               </span>
               {showByline && (
                 <span className={`${currentSize.byline} font-bold`}>
-                  by <span className="text-gray-900">SKY</span> <span className="text-[#F97316]">CO</span>
+                  by <span className="text-gray-900">SKY</span> <span className="text-[#ffd871]">CO</span>
                 </span>
               )}
             </div>
