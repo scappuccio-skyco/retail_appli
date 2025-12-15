@@ -101,7 +101,7 @@ const Logo = ({
               </span>
               {showByline && (
                 <span className={`${currentSize.byline} font-bold`}>
-                  by <span className="text-white">SKY</span> <span className="text-[#F97316]">CO</span>
+                  by <span className="text-white">SKY</span> <span className="text-[#ffd871]">CO</span>
                 </span>
               )}
             </div>
