@@ -28,13 +28,24 @@ class AdminService:
         workspaces = await self.admin_repo.get_all_workspaces(include_deleted=include_deleted)
         
         for workspace in workspaces:
-            # Get gérant info
-            if workspace.get('gerant_id'):
-                gerant = await self.admin_repo.get_gerant_by_id(workspace['gerant_id'])
-                workspace['gerant'] = gerant
+            workspace_id = workspace.get('id')
+            gerant_id = workspace.get('gerant_id')
             
-            # Get stores for this workspace
-            stores = await self.admin_repo.get_stores_by_gerant(workspace.get('gerant_id'))
+            # Get gérant info
+            if gerant_id:
+                gerant = await self.admin_repo.get_gerant_by_id(gerant_id)
+                workspace['gerant'] = gerant
+            else:
+                workspace['gerant'] = None
+            
+            # Get stores for this workspace - try both gerant_id and workspace_id
+            stores = []
+            if gerant_id:
+                stores = await self.admin_repo.get_stores_by_gerant(gerant_id)
+            
+            # If no stores found via gerant_id, try workspace_id
+            if not stores and workspace_id:
+                stores = await self.admin_repo.get_stores_by_workspace(workspace_id)
             
             # Enrich each store with its manager and sellers
             total_managers = 0
@@ -56,7 +67,7 @@ class AdminService:
                 
                 # Ensure store has a status
                 if not store.get('status'):
-                    store['status'] = 'active'
+                    store['status'] = 'active' if store.get('active', True) else 'inactive'
             
             workspace['stores'] = stores
             workspace['stores_count'] = len(stores)
@@ -64,11 +75,14 @@ class AdminService:
             workspace['sellers_count'] = total_sellers
             
             # Also get total users directly from users collection for accuracy
-            total_workspace_sellers = await self.admin_repo.count_users_by_criteria({
-                "gerant_id": workspace.get('gerant_id'),
-                "role": "seller",
-                "status": "active"
-            })
+            if gerant_id:
+                total_workspace_sellers = await self.admin_repo.count_users_by_criteria({
+                    "gerant_id": gerant_id,
+                    "role": "seller",
+                    "status": "active"
+                })
+            else:
+                total_workspace_sellers = total_sellers
             workspace['total_sellers'] = total_workspace_sellers
             
             # CRITICAL: FORCE subscription object - NEVER null
