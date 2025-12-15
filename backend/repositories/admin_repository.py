@@ -45,6 +45,28 @@ class AdminRepository:
             {"_id": 0}
         ).to_list(100)
     
+    async def get_manager_for_store(self, store_id: str) -> Optional[Dict]:
+        """Get the manager assigned to a store"""
+        return await self.db.users.find_one(
+            {"store_id": store_id, "role": "manager"},
+            {"_id": 0, "password": 0, "password_hash": 0}
+        )
+    
+    async def get_sellers_for_store(self, store_id: str) -> List[Dict]:
+        """Get all sellers for a store"""
+        return await self.db.users.find(
+            {"store_id": store_id, "role": "seller"},
+            {"_id": 0, "password": 0, "password_hash": 0}
+        ).to_list(100)
+    
+    async def count_active_sellers_for_store(self, store_id: str) -> int:
+        """Count active sellers for a store"""
+        return await self.db.users.count_documents({
+            "store_id": store_id,
+            "role": "seller",
+            "status": "active"
+        })
+    
     async def count_users_by_criteria(self, criteria: Dict) -> int:
         """Count users matching criteria"""
         return await self.db.users.count_documents(criteria)
