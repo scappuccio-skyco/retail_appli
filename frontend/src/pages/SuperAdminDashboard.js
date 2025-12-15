@@ -678,31 +678,58 @@ export default function SuperAdminDashboard() {
                       </td>
                       <td className="p-3">
                         <div className="flex gap-2">
-                          {workspace.status === 'active' ? (
+                          {workspace.status === 'active' && (
+                            <>
+                              <button
+                                onClick={() => handleWorkspaceStatusChange(workspace.id, 'suspended')}
+                                className="px-3 py-1 bg-orange-500/20 hover:bg-orange-500/30 text-orange-200 rounded text-sm transition-all"
+                              >
+                                Suspendre
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (window.confirm(`⚠️ Êtes-vous sûr de vouloir supprimer le workspace "${workspace.name}" ?\n\nCette action est IRRÉVERSIBLE et supprimera :\n- Le workspace\n- Tous les utilisateurs (manager + vendeurs)\n- Toutes les données (analyses, diagnostics, etc.)`)) {
+                                    handleWorkspaceStatusChange(workspace.id, 'deleted');
+                                  }
+                                }}
+                                className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded text-sm transition-all"
+                              >
+                                Supprimer
+                              </button>
+                            </>
+                          )}
+                          {workspace.status === 'suspended' && (
+                            <>
+                              <button
+                                onClick={() => handleWorkspaceStatusChange(workspace.id, 'active')}
+                                className="px-3 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-200 rounded text-sm transition-all"
+                              >
+                                Réactiver
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (window.confirm(`⚠️ Êtes-vous sûr de vouloir supprimer le workspace "${workspace.name}" ?`)) {
+                                    handleWorkspaceStatusChange(workspace.id, 'deleted');
+                                  }
+                                }}
+                                className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded text-sm transition-all"
+                              >
+                                Supprimer
+                              </button>
+                            </>
+                          )}
+                          {workspace.status === 'deleted' && (
                             <button
-                              onClick={() => handleWorkspaceStatusChange(workspace.id, 'suspended')}
-                              className="px-3 py-1 bg-orange-500/20 hover:bg-orange-500/30 text-orange-200 rounded text-sm transition-all"
-                            >
-                              Suspendre
-                            </button>
-                          ) : workspace.status === 'suspended' ? (
-                            <button
-                              onClick={() => handleWorkspaceStatusChange(workspace.id, 'active')}
+                              onClick={() => {
+                                if (window.confirm(`Voulez-vous restaurer le workspace "${workspace.name}" ?`)) {
+                                  handleWorkspaceStatusChange(workspace.id, 'active');
+                                }
+                              }}
                               className="px-3 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-200 rounded text-sm transition-all"
                             >
-                              Activer
+                              Restaurer
                             </button>
-                          ) : null}
-                          <button
-                            onClick={() => {
-                              if (window.confirm(`⚠️ Êtes-vous sûr de vouloir supprimer le workspace "${workspace.name}" ?\n\nCette action est IRRÉVERSIBLE et supprimera :\n- Le workspace\n- Tous les utilisateurs (manager + vendeurs)\n- Toutes les données (analyses, diagnostics, etc.)`)) {
-                                handleWorkspaceStatusChange(workspace.id, 'deleted');
-                              }
-                            }}
-                            className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded text-sm transition-all"
-                          >
-                            Supprimer
-                          </button>
+                          )}
                         </div>
                       </td>
                     </tr>
