@@ -213,7 +213,7 @@ function DiagnosticFormContent() {
     if (loading) return;
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/diagnostic`, { responses });
+      const res = await axios.post(`${API}/ai/diagnostic`, { responses });
       toast.success('Diagnostic complété avec succès!');
       
       // Navigate back to dashboard
