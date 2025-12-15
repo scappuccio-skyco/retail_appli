@@ -1177,44 +1177,33 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
               return (
                 <div
                   key={`${planKey}-${isAnnual ? 'annual' : 'monthly'}`}
-                  className={`bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all ${
-                    isRecommended
-                      ? 'border-4 border-[#F97316] relative transform scale-105'
-                      : isEnterprise
-                      ? 'border-2 border-[#1E40AF]/30'
-                      : 'border-2 border-slate-200'
-                  }`}
+                  className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all"
+                  style={{ border: `2px solid ${plan.color}` }}
                 >
                   <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold text-[#1E40AF] mb-2">{plan.name}</h3>
+                    <h3 className="text-2xl font-bold mb-2" style={{ color: plan.color }}>{plan.name}</h3>
                     <p className="text-[#334155] mb-4">{plan.subtitle}</p>
                     {isEnterprise ? (
                       <div>
                         <div className="flex items-baseline justify-center gap-2">
-                          <span className="text-3xl font-bold text-[#1E40AF]">Sur devis</span>
+                          <span className="text-3xl font-bold" style={{ color: plan.color }}>Sur devis</span>
                         </div>
                         <p className="text-sm text-green-600 font-semibold mt-2">16+ espaces vendeur</p>
-                        <p className="text-xs text-gray-600 mt-1">+ Espace Manager inclus</p>
+                        <p className="text-xs text-gray-600 mt-1">+ Espace Gérant & Manager inclus</p>
                       </div>
                     ) : !isAnnual ? (
                       <div>
                         <div className="flex items-baseline justify-center gap-2">
-                          <span className={`text-5xl font-bold ${
-                            isRecommended 
-                              ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent'
-                              : 'text-[#1E40AF]'
-                          }`}>
+                          <span className="text-5xl font-bold" style={{ color: plan.color }}>
                             {plan.pricePerSeller}€
                           </span>
                           <span className="text-[#334155]">/vendeur/mois</span>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
-                        <p className={`text-sm font-semibold mt-2 ${
-                          isRecommended ? 'text-[#EA580C]' : 'text-green-600'
-                        }`}>
+                        <p className="text-sm font-semibold mt-2 text-green-600">
                           {plan.minSellers} à {plan.maxSellers} espaces vendeur
                         </p>
-                        <p className="text-xs text-gray-600 mt-1">+ Espace Manager inclus</p>
+                        <p className="text-xs text-gray-600 mt-1">+ Espace Gérant & Manager inclus</p>
                       </div>
                     ) : (
                       <div>
