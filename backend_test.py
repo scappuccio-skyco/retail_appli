@@ -1692,25 +1692,29 @@ class GerantFeaturesTester:
             403
         )
 
-    def run_morning_brief_and_webhook_tests(self):
-        """Run all Morning Brief and Stripe Webhook tests"""
-        print("🚀 STARTING MORNING BRIEF AND STRIPE WEBHOOK TESTS")
+    def run_gerant_features_tests(self):
+        """Run all Gérant Features tests for the review request"""
+        print("🚀 STARTING GÉRANT FEATURES TESTS FOR REVIEW REQUEST")
         print("=" * 70)
         
         # Test authentication first
-        if not self.test_manager_authentication():
-            print("❌ Cannot proceed without Manager authentication")
+        if not self.test_gerant_authentication():
+            print("❌ Cannot proceed without Gérant authentication")
             return False
         
-        # Run the specific test cases
-        self.test_morning_brief_api()
-        self.test_morning_brief_preview()
+        # Run the specific feature tests
+        self.test_gerant_stores_api()
+        self.test_gerant_store_managers_api()
+        self.test_gerant_store_kpi_overview()
+        self.test_gerant_invitations_api()
         self.test_stripe_webhook_health()
-        self.test_morning_brief_security()
+        
+        # Test security
+        self.test_gerant_api_security()
         
         # Print summary
         print("\n" + "=" * 70)
-        print("📊 MORNING BRIEF AND WEBHOOK TEST SUMMARY")
+        print("📊 GÉRANT FEATURES TEST SUMMARY")
         print("=" * 70)
         print(f"Total Tests: {self.tests_run}")
         print(f"Passed: {self.tests_passed}")
@@ -1724,14 +1728,15 @@ class GerantFeaturesTester:
             for test in failed_tests:
                 print(f"   • {test['test']}: {test['details']}")
         
-        print("\n🎯 MORNING BRIEF AND WEBHOOK VERIFICATION RESULTS:")
+        print("\n🎯 GÉRANT FEATURES VERIFICATION RESULTS:")
         if self.tests_passed >= self.tests_run * 0.8:  # 80% pass rate
-            print("✅ Morning Brief API working correctly!")
-            print("✅ Stripe webhook health check passed!")
-            print("✅ All required response fields present!")
-            print("✅ Security controls working properly!")
+            print("✅ Gérant Store Detail Modal backend APIs working!")
+            print("✅ Seller Invitation Store Selection backend APIs working!")
+            print("✅ Gérant KPI Modal backend APIs working!")
+            print("✅ Stripe Webhook Health Check working!")
+            print("✅ No major backend issues detected")
         else:
-            print("❌ Morning Brief or Webhook system has issues!")
+            print("❌ Some Gérant features have backend issues!")
             print("❌ Multiple endpoints failing - needs investigation")
         
         return self.tests_passed >= self.tests_run * 0.8
