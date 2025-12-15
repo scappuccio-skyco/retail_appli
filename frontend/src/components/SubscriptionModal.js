@@ -1208,11 +1208,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                     ) : (
                       <div>
                         <div className="flex items-baseline justify-center gap-2">
-                          <span className={`text-5xl font-bold ${
-                            isRecommended 
-                              ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] bg-clip-text text-transparent'
-                              : 'text-[#1E40AF]'
-                          }`}>
+                          <span className="text-5xl font-bold" style={{ color: plan.color }}>
                             {Math.round(plan.pricePerSeller * 12 * 0.8)}€
                           </span>
                           <span className="text-[#334155]">/vendeur/an</span>
