@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { X, Sparkles, Copy, Check, FileText, Calendar, Loader2, CheckCircle, AlertTriangle, Target, MessageSquare, Star } from 'lucide-react';
+import { X, Sparkles, Copy, Check, FileText, Calendar, Loader2, CheckCircle, AlertTriangle, Target, MessageSquare, Star, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import jsPDF from 'jspdf';
 
 /**
  * EvaluationGenerator - Modal pour générer un guide d'entretien annuel IA
@@ -27,6 +28,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
   const [stats, setStats] = useState(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
+  const [exportingPDF, setExportingPDF] = useState(false);
 
   if (!isOpen) return null;
 
