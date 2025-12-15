@@ -434,7 +434,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
             <div className="flex flex-col items-center justify-center py-12">
               <Loader2 className="w-12 h-12 text-[#1E40AF] animate-spin mb-4" />
               <p className="text-gray-600 font-medium">Génération en cours...</p>
-              <p className="text-gray-400 text-sm mt-1">L'IA analyse les données de performance</p>
+              <p className="text-gray-400 text-sm mt-1">L&apos;IA analyse les données de performance</p>
             </div>
           )}
 
