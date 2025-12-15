@@ -724,7 +724,7 @@ export default function LandingPage() {
 
               <button
                 onClick={() => scrollToSection('contact')}
-                className="w-full py-3 bg-slate-100 text-[#334155] font-semibold rounded-xl hover:bg-slate-200 transition-colors"
+                className="w-full py-3 bg-[#1E40AF] text-white font-semibold rounded-xl hover:bg-[#1E3A8A] transition-colors"
               >
                 Nous Contacter
               </button>
