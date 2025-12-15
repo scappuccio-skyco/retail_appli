@@ -210,11 +210,11 @@ export default function LandingPage() {
                 <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4 mx-auto">
                   <Zap className="w-6 h-6 text-green-600" />
                 </div>
-                <h3 className="text-lg font-bold text-[#1E40AF] mb-3">Technologie Utile</h3>
+                <h3 className="text-lg font-bold text-[#1E40AF] mb-3">Une Suite Complète</h3>
                 <p className="text-[#334155] text-sm leading-relaxed">
-                  Nous ne remplaçons pas l'humain. Nous utilisons l'IA pour automatiser la paperasse et libérer du temps de vente.
+                  Coaching IA, Analyse des Ventes, Préparation des Évaluations, Suivi des Objectifs & Challenges et Analyse d'Équipe. Tout ce qu'il faut pour piloter la performance.
                 </p>
-                <p className="text-xs text-[#64748B] mt-4 font-medium">IA au Service du Terrain</p>
+                <p className="text-xs text-[#64748B] mt-4 font-medium">Fonctionnalités Clés</p>
               </div>
             </div>
           </div>
