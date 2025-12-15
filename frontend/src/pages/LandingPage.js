@@ -1013,17 +1013,24 @@ export default function LandingPage() {
             {/* Legal */}
             <div>
               <h4 className="font-bold mb-4 text-[#F97316]">Légal</h4>
-              <ul className="space-y-2 text-sm text-[#64748B]">
-                <li><a href="#" className="hover:text-[#EA580C] transition-colors">Mentions légales</a></li>
-                <li><a href="#" className="hover:text-[#EA580C] transition-colors">Confidentialité</a></li>
-                <li><a href="#" className="hover:text-[#EA580C] transition-colors">CGU</a></li>
+              <ul className="space-y-2 text-sm text-[#94A3B8]">
+                <li><Link to="/legal" className="hover:text-white transition-colors">Mentions légales</Link></li>
+                <li><Link to="/privacy" className="hover:text-white transition-colors">Confidentialité</Link></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors">CGU/CGV</Link></li>
               </ul>
             </div>
           </div>
 
           <div className="border-t border-slate-700 pt-8 text-center text-sm text-slate-500">
-            <p>© 2025 Retail Performer AI. Tous droits réservés.</p>
+            <p>© 2025 Retail Performer AI by SKY CO. Tous droits réservés.</p>
             <p className="mt-2">25 allée Rose Dieng-Kuntz, 75019 Paris, France</p>
+            <p className="mt-2 text-xs text-slate-600">
+              <Link to="/legal" className="hover:text-slate-400 transition-colors">Mentions légales</Link>
+              {' • '}
+              <Link to="/terms" className="hover:text-slate-400 transition-colors">CGU</Link>
+              {' • '}
+              <Link to="/privacy" className="hover:text-slate-400 transition-colors">Confidentialité</Link>
+            </p>
           </div>
         </div>
       </footer>
