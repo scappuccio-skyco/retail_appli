@@ -187,19 +187,6 @@ async def update_workspace_status(
         "workspace_id": workspace_id,
         "new_status": status
     }
-            "error_count": error_count,
-            "updated_workspaces": updated_workspaces
-        }
-    })
-    
-    status_label = 'réactivé(s)' if status == 'active' else 'suspendu(s)' if status == 'suspended' else 'supprimé(s)'
-    
-    return {
-        "message": f"{success_count} workspace(s) {status_label} avec succès",
-        "success_count": success_count,
-        "error_count": error_count,
-        "new_status": status
-    }
 
 
 @router.get("/stats")
