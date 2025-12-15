@@ -36,7 +36,7 @@ async def get_workspaces(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.put("/workspaces/{workspace_id}/status")
+@router.patch("/workspaces/{workspace_id}/status")
 async def update_workspace_status(
     workspace_id: str,
     status: str = Query(..., description="New status: 'active', 'suspended', or 'deleted'"),
