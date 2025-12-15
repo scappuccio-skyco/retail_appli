@@ -188,7 +188,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                 🗣️ Question Équipe
               </span>
             </div>
-            <p className="text-gray-800 italic leading-relaxed">"{structured.team_question}"</p>
+            <p className="text-gray-800 italic leading-relaxed">&ldquo;{structured.team_question}&rdquo;</p>
           </div>
         )}
 
@@ -200,7 +200,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                 🚀 Le Mot de la Fin
               </span>
             </div>
-            <p className="text-gray-800 font-medium leading-relaxed">"{structured.booster}"</p>
+            <p className="text-gray-800 font-medium leading-relaxed">&ldquo;{structured.booster}&rdquo;</p>
           </div>
         )}
       </div>
