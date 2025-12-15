@@ -12,23 +12,34 @@ import uuid
 
 
 class KPIEntry(BaseModel):
+    """
+    Entrée KPI pour un vendeur.
+    
+    Règle de verrouillage:
+    - Si `source='api'` (données provenant du logiciel de caisse), 
+      alors `locked=True` et les champs ne sont PAS modifiables par l'utilisateur.
+    - Si `source='manual'` (saisie manuelle), 
+      alors `locked=False` et les champs sont modifiables.
+    
+    Le frontend doit afficher un 🔒 sur les jours verrouillés dans le calendrier KPI.
+    """
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     seller_id: str
-    date: str  # Format: YYYY-MM-DD
+    date: str = Field(..., description="Date de l'entrée au format YYYY-MM-DD")
     # Raw data entered by seller
-    ca_journalier: float = 0
-    nb_ventes: int = 0
-    nb_clients: int = 0  # Number of clients served
-    nb_articles: int = 0  # Number of articles sold
-    nb_prospects: int = 0  # Number of prospects (foot traffic)
+    ca_journalier: float = Field(0, description="Chiffre d'affaires journalier en euros")
+    nb_ventes: int = Field(0, description="Nombre de ventes réalisées")
+    nb_clients: int = Field(0, description="Nombre de clients servis")
+    nb_articles: int = Field(0, description="Nombre d'articles vendus")
+    nb_prospects: int = Field(0, description="Nombre de prospects (trafic entrant)")
     # Calculated KPIs
-    panier_moyen: float = 0
-    taux_transformation: Optional[float] = None  # Can be calculated if prospects are tracked
-    indice_vente: float = 0  # Articles / ventes (UPT)
-    comment: Optional[str] = None
-    source: str = "manual"  # "manual" (saisie utilisateur) ou "api" (logiciel de caisse)
-    locked: bool = False  # True si provient de l'API (non modifiable)
+    panier_moyen: float = Field(0, description="Panier moyen (CA / nb_ventes)")
+    taux_transformation: Optional[float] = Field(None, description="Taux de transformation (ventes / prospects * 100)")
+    indice_vente: float = Field(0, description="Indice de vente / UPT (articles / ventes)")
+    comment: Optional[str] = Field(None, description="Commentaire libre du vendeur")
+    source: str = Field("manual", description="'manual' = saisie utilisateur, 'api' = import logiciel de caisse")
+    locked: bool = Field(False, description="True si source='api' → non modifiable. Afficher 🔒 dans le calendrier UI.")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
