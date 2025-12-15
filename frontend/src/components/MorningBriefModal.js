@@ -22,8 +22,193 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
+  const [exportingPDF, setExportingPDF] = useState(false);
 
   const storeParam = storeId ? `?store_id=${storeId}` : '';
+
+  // Export Brief to PDF
+  const exportBriefToPDF = async (briefData) => {
+    if (!briefData) return;
+    
+    setExportingPDF(true);
+    
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      let yPosition = 0;
+
+      // === HEADER avec gradient ===
+      pdf.setFillColor(30, 64, 175); // Bleu #1E40AF
+      pdf.rect(0, 0, pageWidth, 45, 'F');
+      
+      // Logo text
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Retail Performer AI', margin, 20);
+      
+      // Subtitle
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Brief Matinal', margin, 30);
+      
+      // Date in header
+      pdf.setFontSize(10);
+      const dateText = briefData.date || new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      pdf.text(dateText, pageWidth - margin - pdf.getTextWidth(dateText), 20);
+      
+      // Store name
+      if (briefData.store_name || storeName) {
+        pdf.setFontSize(12);
+        const storeText = briefData.store_name || storeName;
+        pdf.text(storeText, pageWidth - margin - pdf.getTextWidth(storeText), 30);
+      }
+
+      yPosition = 55;
+
+      // === MANAGER INFO BOX ===
+      pdf.setFillColor(249, 115, 22, 0.1); // Orange léger
+      pdf.setDrawColor(249, 115, 22);
+      pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 20, 3, 3, 'FD');
+      
+      pdf.setTextColor(249, 115, 22);
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Manager : ' + (briefData.manager_name || managerName || 'N/A'), margin + 5, yPosition + 8);
+      
+      if (briefData.data_date) {
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('Données du : ' + briefData.data_date, margin + 5, yPosition + 15);
+      }
+      
+      yPosition += 30;
+
+      // === STRUCTURED CONTENT ===
+      const structured = briefData.structured;
+      
+      if (structured) {
+        // Helper function to add a section
+        const addSection = (emoji, title, content, bgColor, textColor) => {
+          if (!content) return;
+          
+          // Check if we need a new page
+          if (yPosition > pageHeight - 60) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+          
+          // Section header
+          pdf.setFillColor(...bgColor);
+          pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 10, 2, 2, 'F');
+          
+          pdf.setTextColor(...textColor);
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(emoji + ' ' + title, margin + 5, yPosition + 7);
+          
+          yPosition += 14;
+          
+          // Section content
+          pdf.setTextColor(60, 60, 60);
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          
+          const lines = pdf.splitTextToSize(content, pageWidth - 2 * margin - 10);
+          lines.forEach(line => {
+            if (yPosition > pageHeight - 20) {
+              pdf.addPage();
+              yPosition = 20;
+            }
+            pdf.text(line, margin + 5, yPosition);
+            yPosition += 5;
+          });
+          
+          yPosition += 8;
+        };
+
+        // Add each section with colors
+        addSection('📊', 'Flash-Back', structured.flashback, [224, 231, 255], [67, 56, 202]); // Indigo
+        addSection('🎯', 'Mission du Jour', structured.focus, [220, 252, 231], [22, 101, 52]); // Green
+        
+        // Examples as bullet points
+        if (structured.examples && structured.examples.length > 0) {
+          if (yPosition > pageHeight - 60) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+          
+          pdf.setFillColor(254, 243, 199); // Amber
+          pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 10, 2, 2, 'F');
+          pdf.setTextColor(180, 83, 9);
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('💡 Méthode', margin + 5, yPosition + 7);
+          yPosition += 14;
+          
+          pdf.setTextColor(60, 60, 60);
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          
+          structured.examples.forEach(example => {
+            if (yPosition > pageHeight - 20) {
+              pdf.addPage();
+              yPosition = 20;
+            }
+            pdf.text('• ' + example, margin + 8, yPosition);
+            yPosition += 6;
+          });
+          yPosition += 8;
+        }
+        
+        addSection('🗣️', 'Question Équipe', structured.team_question, [243, 232, 255], [107, 33, 168]); // Purple
+        addSection('🚀', 'Le Mot de la Fin', structured.booster, [252, 231, 243], [157, 23, 77]); // Pink
+
+      } else {
+        // Fallback: Parse markdown content
+        const briefText = briefData.brief || '';
+        pdf.setTextColor(60, 60, 60);
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        
+        const lines = pdf.splitTextToSize(briefText.replace(/[#*]/g, ''), pageWidth - 2 * margin);
+        lines.forEach(line => {
+          if (yPosition > pageHeight - 20) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+          pdf.text(line, margin, yPosition);
+          yPosition += 5;
+        });
+      }
+
+      // === FOOTER ===
+      const pageCount = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFillColor(248, 250, 252);
+        pdf.rect(0, pageHeight - 15, pageWidth, 15, 'F');
+        
+        pdf.setTextColor(148, 163, 184);
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('Généré par Retail Performer AI • ' + new Date().toLocaleDateString('fr-FR'), margin, pageHeight - 6);
+        pdf.text('Page ' + i + '/' + pageCount, pageWidth - margin - 20, pageHeight - 6);
+      }
+
+      // Save
+      const fileName = `brief_matinal_${(briefData.store_name || storeName || 'store').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      
+      toast.success('PDF téléchargé avec succès !');
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
+      toast.error('Erreur lors de la génération du PDF');
+    } finally {
+      setExportingPDF(false);
+    }
+  };
 
   // Charger l'historique
   useEffect(() => {
