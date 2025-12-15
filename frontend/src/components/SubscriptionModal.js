@@ -26,8 +26,7 @@ const PLANS = {
     ],
     specs: [
       '1 à 5 vendeurs',
-      '150 + (30 × vendeurs) analyses IA Manager/mois',
-      '100+ analyses IA par vendeur/mois',
+      'Analyses IA illimitées',
       'Support email sous 48h'
     ]
   },
@@ -48,8 +47,7 @@ const PLANS = {
     ],
     specs: [
       '6 à 15 vendeurs',
-      '150 + (30 × vendeurs) analyses IA Manager/mois',
-      '100+ analyses IA par vendeur/mois',
+      'Analyses IA illimitées',
       'Support email sous 48h'
     ]
   },
@@ -71,9 +69,9 @@ const PLANS = {
     ],
     specs: [
       '16+ vendeurs',
-      '150 + (30 × vendeurs) analyses IA Manager/mois',
-      '100+ analyses IA par vendeur/mois',
-      'Support email sous 48h'
+      'Analyses IA illimitées',
+      'Connexion API à vos logiciels métier',
+      'Support prioritaire dédié'
     ]
   }
 };
