@@ -296,7 +296,7 @@ export default function LandingPage() {
               Une Plateforme Complète et Intelligente
             </h2>
             <p className="text-xl text-[#334155] max-w-3xl mx-auto">
-              Tout ce dont vous avez besoin pour développer l'excellence de vos équipes commerciales
+              Tout ce dont vous avez besoin pour développer l&apos;excellence de vos équipes commerciales
             </p>
           </div>
 
@@ -305,30 +305,30 @@ export default function LandingPage() {
               {
                 icon: <Users className="w-8 h-8" />,
                 color: 'from-[#1E40AF] to-[#1E3A8A]',
-                title: 'Coaching Psychologique (DISC)',
-                description: "L'IA ne se contente pas d'analyser les chiffres. Elle adapte son ton au profil de chaque vendeur (Direct, Influent, Stable, Consciencieux) pour un impact maximal.",
-                impact: 'Pour un coaching vraiment personnalisé.'
+                title: 'Intelligence Comportementale (DISC)',
+                description: "Ne parlez pas de la même façon à tous vos vendeurs. L'IA identifie le profil de chacun (Rouge, Jaune, Vert, Bleu) et vous dicte les mots exacts pour les motiver et les faire performer.",
+                impact: 'Pour un management 100% personnalisé.'
               },
               {
                 icon: <TrendingUp className="w-8 h-8" />,
                 color: 'from-[#F97316] to-[#EA580C]',
-                title: 'Dashboard Manager',
-                description: 'KPI en temps réel, comparaisons vendeurs et analyses prédictives.',
-                impact: 'Pour visualiser en 10 secondes l\'état réel de votre équipe.'
+                title: 'Briefs & Rituels d\'Animation',
+                description: "Transformez vos KPI en discours mobilisateurs. Chaque matin, générez en 2 secondes le brief parfait : flash-back sur la veille, objectifs du jour et booster de motivation.",
+                impact: 'Pour lancer la journée sur une victoire.'
               },
               {
                 icon: <FileText className="w-8 h-8" />,
                 color: 'from-[#8B5CF6] to-[#7C3AED]',
-                title: 'Entretiens Annuels en 1 Clic',
-                description: "Fini la page blanche. Générez instantanément des trames d'évaluation factuelles, basées sur l'historique réel et protégées par nos garde-fous éthiques.",
-                impact: 'Pour préparer vos bilans en 10 secondes.'
+                title: 'Montée en Compétence',
+                description: "L'évaluation n'est plus une corvée annuelle. Suivez la progression de vos équipes semaine après semaine, détectez les besoins de formation et validez les acquis en temps réel.",
+                impact: 'Pour transformer vos vendeurs en experts.'
               },
               {
                 icon: <Shield className="w-8 h-8" />,
                 color: 'from-[#10B981] to-[#00B886]',
-                title: 'Sécurité Juridique RH',
-                description: "Une IA formée pour respecter les bonnes pratiques RH : pas de sanctions, pas de jugements, uniquement du coaching constructif.",
-                impact: 'Pour manager sereinement.'
+                title: 'Sérénité Managériale',
+                description: "Soyez sûr de vos écrits. Qu'il s'agisse de recadrer, de féliciter ou d'évaluer, l'IA garantit un ton professionnel, constructif et toujours conforme aux bonnes pratiques RH.",
+                impact: 'Pour manager avec assurance et sécurité.'
               }
             ].map((feature, idx) => (
               <div key={`feature-${idx}-${feature.title}`} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all border-2 border-[#1E40AF]/20 hover:border-[#F97316]">
