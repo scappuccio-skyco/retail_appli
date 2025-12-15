@@ -768,12 +768,18 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                             <div className="space-y-4">
                               {renderBriefContent(item)}
                             </div>
-                            <div className="mt-4 flex justify-end">
+                            <div className="mt-4 flex justify-end gap-2">
                               <button
                                 onClick={() => handleCopy(item.brief)}
                                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center gap-2 text-sm"
                               >
                                 <Copy className="w-4 h-4" /> Copier
+                              </button>
+                              <button
+                                onClick={() => exportBriefToPDF(item)}
+                                className="px-4 py-2 bg-[#1E40AF] text-white rounded-lg hover:bg-[#1E3A8A] flex items-center gap-2 text-sm"
+                              >
+                                <Download className="w-4 h-4" /> PDF
                               </button>
                             </div>
                           </div>
