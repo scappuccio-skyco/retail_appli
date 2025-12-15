@@ -122,6 +122,191 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
     return text;
   };
 
+  // Export to PDF
+  const exportToPDF = async () => {
+    if (!guideData) return;
+    
+    setExportingPDF(true);
+    
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      let yPosition = 0;
+
+      // === HEADER ===
+      const headerColor = role === 'seller' ? [249, 115, 22] : [30, 64, 175]; // Orange for seller, Blue for manager
+      pdf.setFillColor(...headerColor);
+      pdf.rect(0, 0, pageWidth, 50, 'F');
+      
+      // Logo
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(22);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Retail Performer AI', margin, 18);
+      
+      // Title
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'normal');
+      const titleText = role === 'seller' ? 'Fiche de Préparation - Entretien Annuel' : "Guide d'Entretien Annuel";
+      pdf.text(titleText, margin, 28);
+      
+      // Employee name
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(employeeName || 'Collaborateur', margin, 40);
+      
+      // Period
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const periodText = `Période : ${new Date(startDate).toLocaleDateString('fr-FR')} - ${new Date(endDate).toLocaleDateString('fr-FR')}`;
+      pdf.text(periodText, pageWidth - margin - pdf.getTextWidth(periodText), 40);
+
+      yPosition = 60;
+
+      // === STATS BOX ===
+      if (stats) {
+        pdf.setFillColor(248, 250, 252);
+        pdf.setDrawColor(226, 232, 240);
+        pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 25, 3, 3, 'FD');
+        
+        pdf.setTextColor(100, 116, 139);
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('STATISTIQUES DE LA PÉRIODE', margin + 5, yPosition + 7);
+        
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(10);
+        pdf.setTextColor(51, 65, 85);
+        
+        const statsLine1 = `CA Total: ${stats.ca_total?.toLocaleString('fr-FR') || 'N/A'}€  •  Ventes: ${stats.nb_ventes || 'N/A'}  •  Jours travaillés: ${stats.nb_jours || 'N/A'}`;
+        pdf.text(statsLine1, margin + 5, yPosition + 16);
+        
+        const statsLine2 = `Panier moyen: ${stats.panier_moyen?.toFixed(0) || 'N/A'}€  •  Indice de vente: ${stats.indice_vente?.toFixed(2) || 'N/A'}`;
+        pdf.text(statsLine2, margin + 5, yPosition + 22);
+        
+        yPosition += 35;
+      }
+
+      // Helper function for sections
+      const addSection = (emoji, title, items, bgColor, titleColor, isList = true) => {
+        if (!items || (Array.isArray(items) && items.length === 0)) return;
+        
+        if (yPosition > pageHeight - 50) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        
+        // Section header
+        pdf.setFillColor(...bgColor);
+        pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 10, 2, 2, 'F');
+        
+        pdf.setTextColor(...titleColor);
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(emoji + ' ' + title, margin + 5, yPosition + 7);
+        
+        yPosition += 14;
+        
+        // Content
+        pdf.setTextColor(55, 65, 81);
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        
+        if (isList && Array.isArray(items)) {
+          items.forEach((item, index) => {
+            if (yPosition > pageHeight - 15) {
+              pdf.addPage();
+              yPosition = 20;
+            }
+            const lines = pdf.splitTextToSize(`${index + 1}. ${item}`, pageWidth - 2 * margin - 15);
+            lines.forEach((line, lineIndex) => {
+              pdf.text(lineIndex === 0 ? line : '   ' + line, margin + 8, yPosition);
+              yPosition += 5;
+            });
+            yPosition += 2;
+          });
+        } else {
+          const lines = pdf.splitTextToSize(items, pageWidth - 2 * margin - 10);
+          lines.forEach(line => {
+            if (yPosition > pageHeight - 15) {
+              pdf.addPage();
+              yPosition = 20;
+            }
+            pdf.text(line, margin + 5, yPosition);
+            yPosition += 5;
+          });
+        }
+        
+        yPosition += 8;
+      };
+
+      // === SECTIONS ===
+      
+      // Synthèse
+      if (guideData.synthese) {
+        addSection('📊', 'Synthèse Globale', guideData.synthese, [224, 231, 255], [67, 56, 202], false);
+      }
+      
+      // Victoires / Points forts
+      if (guideData.victoires?.length) {
+        addSection('🏆', 'Points Forts & Victoires', guideData.victoires, [220, 252, 231], [22, 101, 52]);
+      }
+      
+      // Axes de progrès
+      if (guideData.axes_progres?.length) {
+        addSection('📈', 'Axes de Progrès', guideData.axes_progres, [254, 243, 199], [180, 83, 9]);
+      }
+      
+      // Objectifs (Manager) ou Souhaits (Seller)
+      if (guideData.objectifs?.length) {
+        addSection('🎯', 'Objectifs Proposés', guideData.objectifs, [219, 234, 254], [29, 78, 216]);
+      }
+      if (guideData.souhaits?.length) {
+        addSection('⭐', 'Mes Souhaits & Aspirations', guideData.souhaits, [254, 226, 226], [185, 28, 28]);
+      }
+      
+      // Questions
+      const questions = guideData.questions_coaching || guideData.questions_manager;
+      if (questions?.length) {
+        const qTitle = role === 'seller' ? 'Questions à Poser à Mon Manager' : 'Questions de Coaching';
+        addSection('💬', qTitle, questions, [243, 232, 255], [107, 33, 168]);
+      }
+
+      // === FOOTER ===
+      const pageCount = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFillColor(248, 250, 252);
+        pdf.rect(0, pageHeight - 15, pageWidth, 15, 'F');
+        
+        pdf.setTextColor(148, 163, 184);
+        pdf.setFontSize(8);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('Généré par Retail Performer AI • ' + new Date().toLocaleDateString('fr-FR'), margin, pageHeight - 6);
+        pdf.text('Page ' + i + '/' + pageCount, pageWidth - margin - 20, pageHeight - 6);
+        
+        // Confidential note
+        pdf.setTextColor(220, 38, 38);
+        pdf.setFontSize(7);
+        pdf.text('Document confidentiel', pageWidth / 2 - 15, pageHeight - 6);
+      }
+
+      // Save
+      const roleLabel = role === 'seller' ? 'preparation' : 'evaluation';
+      const fileName = `${roleLabel}_${(employeeName || 'collaborateur').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
+      
+      toast.success('PDF téléchargé avec succès !');
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
+      toast.error('Erreur lors de la génération du PDF');
+    } finally {
+      setExportingPDF(false);
+    }
+  };
+
   const handleClose = () => {
     setGuideData(null);
     setStats(null);
