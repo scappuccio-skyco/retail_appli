@@ -93,6 +93,57 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ Stripe Webhook Health Check working perfectly. GET /api/webhooks/stripe/health returns status='ok', webhook_secret_configured=true, and stripe_key_configured=true. Both STRIPE_WEBHOOK_SECRET and STRIPE_API_KEY are properly configured in environment. No authentication required for health check endpoint."
+      - working: true
+        agent: "testing"
+        comment: "✅ REVIEW REQUEST VERIFICATION COMPLETE: Stripe Webhook Health Check meets all requirements. Response contains status='ok', webhook_secret_configured=true, stripe_key_configured=true exactly as specified in review request. All webhook health requirements validated."
+
+  - task: "Gérant Stores API for Store Selection"
+    implemented: true
+    working: true
+    file: "/app/backend/api/routes/gerant.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ Gérant Stores API working perfectly for Store Selection Dropdown. GET /api/gerant/stores returns 9 stores (meets ≥9 requirement), proper structure with id/name fields. Store data includes Lyon Part-Dieu, Bordeaux Mériadeck, Paris Élégance. Authentication required and working correctly."
+
+  - task: "Gérant Store Managers API for Manager Selection"
+    implemented: true
+    working: true
+    file: "/app/backend/api/routes/gerant.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ Gérant Store Managers API working perfectly for Manager Selection Dropdown. GET /api/gerant/stores/{store_id}/managers returns managers list with proper structure (id, name, email). Tested with Lyon Part-Dieu store, found 1 manager. Authentication required and working correctly."
+
+  - task: "Gérant Store KPI Overview for Dashboard Modal"
+    implemented: true
+    working: true
+    file: "/app/backend/api/routes/gerant.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ Gérant Store KPI Overview API working perfectly for Dashboard Modal. GET /api/gerant/stores/{store_id}/kpi-overview returns KPI data with proper structure (store_id, date, totals). Totals include ca, ventes, clients, articles, prospects. Authentication required and working correctly."
+
+  - task: "Gérant Invitations API for Seller Invitation Flow"
+    implemented: true
+    working: true
+    file: "/app/backend/api/routes/gerant.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ Gérant Invitations API working perfectly for Seller Invitation Flow. GET /api/gerant/invitations returns 17 invitations with proper structure (email, role, status). POST /api/gerant/invitations validates input correctly. Authentication required and working correctly."
 
 frontend:
   - task: "Seller Evaluation Modal"
