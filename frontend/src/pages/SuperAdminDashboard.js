@@ -706,10 +706,68 @@ export default function SuperAdminDashboard() {
                 </button>
               </div>
             </div>
+
+            {/* Bulk Actions Bar */}
+            {selectedWorkspaces.size > 0 && (
+              <div className="mb-4 p-4 bg-purple-600/30 border border-purple-500 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CheckSquare className="w-5 h-5 text-purple-300" />
+                  <span className="text-white font-medium">
+                    {selectedWorkspaces.size} workspace(s) sélectionné(s)
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleBulkStatusChange('active')}
+                    disabled={bulkActionLoading}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-200 rounded-lg text-sm transition-all disabled:opacity-50"
+                  >
+                    <PlayCircle className="w-4 h-4" />
+                    Réactiver
+                  </button>
+                  <button
+                    onClick={() => handleBulkStatusChange('suspended')}
+                    disabled={bulkActionLoading}
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-200 rounded-lg text-sm transition-all disabled:opacity-50"
+                  >
+                    <PauseCircle className="w-4 h-4" />
+                    Suspendre
+                  </button>
+                  <button
+                    onClick={() => handleBulkStatusChange('deleted')}
+                    disabled={bulkActionLoading}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-lg text-sm transition-all disabled:opacity-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Supprimer
+                  </button>
+                  <button
+                    onClick={() => setSelectedWorkspaces(new Set())}
+                    className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-all"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-white/20">
+                    <th className="text-left p-3 text-purple-200 font-semibold w-10">
+                      <button
+                        onClick={toggleSelectAll}
+                        className="p-1 hover:bg-white/10 rounded transition-colors"
+                        title={areAllSelected() ? "Tout désélectionner" : "Tout sélectionner"}
+                      >
+                        {areAllSelected() ? (
+                          <CheckSquare className="w-5 h-5 text-purple-300" />
+                        ) : (
+                          <Square className="w-5 h-5 text-purple-400" />
+                        )}
+                      </button>
+                    </th>
                     <th className="text-left p-3 text-purple-200 font-semibold">Workspace / Gérant</th>
                     <th className="text-left p-3 text-purple-200 font-semibold">Magasins</th>
                     <th className="text-left p-3 text-purple-200 font-semibold">Managers</th>
