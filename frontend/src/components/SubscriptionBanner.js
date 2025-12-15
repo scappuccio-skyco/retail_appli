@@ -15,7 +15,11 @@ export default function SubscriptionBanner({ onUpgradeClick }) {
   const fetchSubscriptionStatus = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/api/subscription/status`, {
+      const userRole = localStorage.getItem('role');
+      const endpoint = userRole === 'gerant' 
+        ? `${API}/api/gerant/subscription/status`
+        : `${API}/api/manager/subscription-status`;
+      const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSubscriptionInfo(response.data);
