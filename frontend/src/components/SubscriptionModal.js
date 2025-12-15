@@ -463,7 +463,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       // Use different endpoint based on user role
       const endpoint = userRole === 'gerant'
         ? `${API}/api/gerant/stripe/checkout`
-        : `${API}/api/checkout/create-session`;
+        : `${API}/api/manager/stripe/checkout`;
       
       const requestData = userRole === 'gerant'
         ? {
