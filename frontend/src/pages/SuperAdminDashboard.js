@@ -209,6 +209,127 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  // ===== BULK SELECTION FUNCTIONS =====
+  
+  // Get filtered workspaces for current view
+  const getFilteredWorkspaces = () => {
+    return workspaces.filter(workspace => {
+      const status = workspace.status || 'active';
+      if (workspaceFilter === 'all') return true;
+      return status === workspaceFilter;
+    });
+  };
+
+  // Toggle single workspace selection
+  const toggleWorkspaceSelection = (workspaceId) => {
+    setSelectedWorkspaces(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(workspaceId)) {
+        newSet.delete(workspaceId);
+      } else {
+        newSet.add(workspaceId);
+      }
+      return newSet;
+    });
+  };
+
+  // Select/Deselect all visible workspaces
+  const toggleSelectAll = () => {
+    const filteredIds = getFilteredWorkspaces().map(w => w.id);
+    const allSelected = filteredIds.every(id => selectedWorkspaces.has(id));
+    
+    if (allSelected) {
+      // Deselect all
+      setSelectedWorkspaces(new Set());
+    } else {
+      // Select all filtered
+      setSelectedWorkspaces(new Set(filteredIds));
+    }
+  };
+
+  // Check if all visible workspaces are selected
+  const areAllSelected = () => {
+    const filteredIds = getFilteredWorkspaces().map(w => w.id);
+    return filteredIds.length > 0 && filteredIds.every(id => selectedWorkspaces.has(id));
+  };
+
+  // Bulk status change
+  const handleBulkStatusChange = async (newStatus) => {
+    if (selectedWorkspaces.size === 0) {
+      toast.error('Aucun workspace sélectionné');
+      return;
+    }
+
+    const statusLabel = newStatus === 'active' ? 'réactiver' : newStatus === 'suspended' ? 'suspendre' : 'supprimer';
+    const confirmMessage = newStatus === 'deleted' 
+      ? `⚠️ Êtes-vous sûr de vouloir SUPPRIMER ${selectedWorkspaces.size} workspace(s) ?\n\nCette action est IRRÉVERSIBLE !`
+      : `Voulez-vous ${statusLabel} ${selectedWorkspaces.size} workspace(s) ?`;
+
+    if (!window.confirm(confirmMessage)) return;
+
+    setBulkActionLoading(true);
+    const token = localStorage.getItem('token');
+    let successCount = 0;
+    let errorCount = 0;
+
+    try {
+      // Use bulk endpoint if available, otherwise loop
+      const response = await axios.patch(
+        `${API}/superadmin/workspaces/bulk/status`,
+        { 
+          workspace_ids: Array.from(selectedWorkspaces),
+          status: newStatus 
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      successCount = response.data.success_count || selectedWorkspaces.size;
+      errorCount = response.data.error_count || 0;
+    } catch (error) {
+      // Fallback to individual requests if bulk endpoint doesn't exist
+      if (error.response?.status === 404) {
+        for (const workspaceId of selectedWorkspaces) {
+          try {
+            await axios.patch(
+              `${API}/superadmin/workspaces/${workspaceId}/status`,
+              null,
+              {
+                params: { status: newStatus },
+                headers: { Authorization: `Bearer ${token}` }
+              }
+            );
+            successCount++;
+          } catch (err) {
+            errorCount++;
+            console.error(`Error updating workspace ${workspaceId}:`, err);
+          }
+        }
+      } else {
+        toast.error('Erreur lors de l\'action groupée');
+        console.error('Bulk action error:', error);
+        setBulkActionLoading(false);
+        return;
+      }
+    }
+
+    setBulkActionLoading(false);
+    setSelectedWorkspaces(new Set());
+    
+    if (errorCount === 0) {
+      const action = newStatus === 'active' ? 'réactivé(s)' : newStatus === 'suspended' ? 'suspendu(s)' : 'supprimé(s)';
+      toast.success(`${successCount} workspace(s) ${action} avec succès`);
+    } else {
+      toast.warning(`${successCount} réussi(s), ${errorCount} échec(s)`);
+    }
+    
+    fetchData();
+  };
+
+  // Clear selection when filter changes
+  useEffect(() => {
+    setSelectedWorkspaces(new Set());
+  }, [workspaceFilter]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
