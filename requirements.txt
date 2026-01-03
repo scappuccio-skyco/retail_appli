@@ -1,0 +1,4 @@
+# Requirements for Vercel serverless function
+# This file references backend requirements
+-r backend/requirements.txt
+
