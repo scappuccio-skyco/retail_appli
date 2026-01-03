@@ -7,11 +7,15 @@ import os
 
 # Add backend directory to Python path
 backend_path = os.path.join(os.path.dirname(__file__), '..', 'backend')
-sys.path.insert(0, backend_path)
+sys.path.insert(0, os.path.abspath(backend_path))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from mangum import Mangum
+
+# Import must be done after path setup
 from backend.main import app
 
 # Create Mangum handler for AWS Lambda/Vercel
+# Vercel expects the handler to be named 'handler'
 handler = Mangum(app, lifespan="off")
 
