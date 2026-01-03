@@ -1,17 +1,7 @@
 """
-AI Service - Integration with Emergent LLM (Legacy Restored)
-============================================================
-🏺 ARCHAEOLOGICAL RESTORATION - December 2025
-
-This service has been restored from the _archived_legacy/server.py
-to bring back the sophisticated AI prompts and proper integration
-with emergentintegrations library.
-
-Key Changes:
-- Fixed import: using LlmChat + UserMessage (not get_client)
-- Restored expert prompts with 15+ years experience persona
-- Using GPT-4o for complex analysis, GPT-4o-mini for quick tasks
-- Proper JSON parsing with fallback handling
+AI Service - Integration with OpenAI
+====================================
+Migration from Emergent LLM to OpenAI SDK (AsyncOpenAI)
 """
 
 import os
@@ -22,21 +12,15 @@ import re
 from typing import Dict, List, Optional
 from datetime import datetime, timezone
 
-# ✅ CORRECT IMPORT (Legacy)
+# OpenAI SDK - Import robuste (sans logging au import-time)
 try:
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
-    EMERGENT_AVAILABLE = True
-except ImportError:
-    EMERGENT_AVAILABLE = False
-    LlmChat = None
-    UserMessage = None
+    from openai import AsyncOpenAI
+except Exception:
+    AsyncOpenAI = None
 
 from core.config import settings
 
 logger = logging.getLogger(__name__)
-
-# AI Configuration
-EMERGENT_KEY = settings.EMERGENT_LLM_KEY
 
 # ==============================================================================
 # 🎯 SYSTEM PROMPTS (Legacy Restored)
@@ -255,68 +239,93 @@ def parse_json_safely(response: str, fallback: Dict) -> Dict:
 
 class AIService:
     """
-    Service for AI operations with Emergent LLM
+    Service for AI operations with OpenAI
     
-    Uses LlmChat from emergentintegrations library
+    Uses AsyncOpenAI from openai SDK
     Models:
     - gpt-4o: Complex analysis (team analysis, detailed bilans)
     - gpt-4o-mini: Quick tasks (daily challenges, feedback)
     """
     
     def __init__(self):
-        self.api_key = EMERGENT_KEY
-        self.available = EMERGENT_AVAILABLE and bool(self.api_key)
-        
-        # For backward compatibility with existing code
-        self.client = self if self.available else None
+        # Lire la clé au runtime (pas au import-time)
+        self.api_key = getattr(settings, "OPENAI_API_KEY", "") or os.environ.get("OPENAI_API_KEY", "")
+        self.available = bool(self.api_key) and AsyncOpenAI is not None
+
+        if self.available:
+            self.client = AsyncOpenAI(api_key=self.api_key)
+        else:
+            self.client = None
+            if not self.api_key:
+                logger.warning("⚠️ OpenAI unavailable (missing OPENAI_API_KEY)")
+            elif AsyncOpenAI is None:
+                logger.warning("⚠️ OpenAI unavailable (OpenAI SDK import failed: AsyncOpenAI missing)")
     
-    def _create_chat(self, session_id: str, system_message: str, model: str = "gpt-4o-mini") -> Optional[LlmChat]:
+    async def _send_message(
+        self,
+        system_message: str,
+        user_prompt: str,
+        model: str = "gpt-4o-mini",
+        temperature: float = 0.7
+    ) -> Optional[str]:
         """
-        Create a new LlmChat instance
+        Send a message to OpenAI and get response
         
         Args:
-            session_id: Unique session identifier
             system_message: System prompt for the AI
+            user_prompt: User prompt
             model: Model to use (gpt-4o or gpt-4o-mini)
-            
-        Returns:
-            Configured LlmChat instance or None
-        """
-        if not self.available:
-            return None
-        
-        try:
-            chat = LlmChat(
-                api_key=self.api_key,
-                session_id=session_id,
-                system_message=system_message
-            ).with_model("openai", model)
-            return chat
-        except Exception as e:
-            logger.error(f"Failed to create LlmChat: {e}")
-            return None
-    
-    async def _send_message(self, chat: LlmChat, prompt: str) -> Optional[str]:
-        """
-        Send a message to the AI and get response
-        
-        Args:
-            chat: LlmChat instance
-            prompt: User prompt
+            temperature: Temperature for generation (0.0-2.0)
             
         Returns:
             AI response text or None
         """
-        if not chat:
+        if not self.available or not self.client:
             return None
         
         try:
-            user_message = UserMessage(text=prompt)
-            response = await chat.send_message(user_message)
-            return response
-        except Exception as e:
-            logger.error(f"AI message failed: {e}")
+            response = await self.client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_message},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=temperature
+            )
+            
+            if response.choices and len(response.choices) > 0:
+                return response.choices[0].message.content
             return None
+        except Exception as e:
+            msg = str(e)
+            if "sk-" in msg or "api_key" in msg.lower():
+                logger.error("OpenAI API error (details hidden)")
+            else:
+                logger.error(f"OpenAI API error: {e}")
+            return None
+    
+    async def generate_admin_response(
+        self,
+        system_prompt: str,
+        user_message: str,
+        model: str = "gpt-4o",
+        temperature: float = 0.7
+    ) -> str:
+        """
+        Public method for admin chat usage.
+        Returns a non-empty string (fallback if OpenAI unavailable / empty response).
+        """
+        response = await self._send_message(
+            system_message=system_prompt,
+            user_prompt=user_message,
+            model=model,
+            temperature=temperature,
+        )
+
+        if response and response.strip():
+            return response.strip()
+
+        return "Désolé, je n'ai pas pu générer une réponse. Le service IA est temporairement indisponible."
 
     # ==========================================================================
     # 🏆 TEAM ANALYSIS (GPT-4o - Premium)
@@ -412,14 +421,12 @@ Fournis l'analyse en 3 parties :
 Format : Markdown simple et structuré."""
 
         # Use GPT-4o for complex analysis
-        session_id = f"team-analysis-{manager_id or uuid.uuid4()}"
-        chat = self._create_chat(
-            session_id=session_id,
+        response = await self._send_message(
             system_message=TEAM_ANALYSIS_SYSTEM_PROMPT,
-            model="gpt-4o"  # 🎯 Premium model for team analysis
+            user_prompt=prompt,
+            model="gpt-4o",
+            temperature=0.7
         )
-        
-        response = await self._send_message(chat, prompt)
         
         if response:
             return response
@@ -520,13 +527,12 @@ Consignes :
 - Recommandations concrètes et actionnables pour chaque vendeur
 - Ton professionnel mais encourageant"""
 
-        chat = self._create_chat(
-            session_id=f"team_bilan_{manager_id}_{periode}",
+        response = await self._send_message(
             system_message=TEAM_BILAN_SYSTEM_PROMPT,
-            model="gpt-4o"  # 🎯 Premium model for team bilan analysis
+            user_prompt=prompt,
+            model="gpt-4o",
+            temperature=0.7
         )
-        
-        response = await self._send_message(chat, prompt)
         
         if response:
             return parse_json_safely(response, self._fallback_team_bilan(periode))
@@ -668,13 +674,12 @@ Tu viens de débriefer une opportunité qui n'a pas abouti. Voici les détails :
 - VOUVOIEMENT pour les exemples de dialogue client
 - Maximum 12 lignes"""
 
-        chat = self._create_chat(
-            session_id=f"debrief_{uuid.uuid4()}",
+        response = await self._send_message(
             system_message=DEBRIEF_SYSTEM_PROMPT,
-            model="gpt-4o-mini"
+            user_prompt=prompt,
+            model="gpt-4o-mini",
+            temperature=0.7
         )
-        
-        response = await self._send_message(chat, prompt)
         
         if response:
             return parse_json_safely(response, self._fallback_debrief(current_scores, is_success))
@@ -737,13 +742,12 @@ Commentaire du vendeur: {evaluation_data.get('auto_comment', 'Aucun')}
 
 Résume les points forts et les points à améliorer de manière positive et coachante en 3-5 phrases maximum. Termine par une suggestion d'action concrète."""
 
-        chat = self._create_chat(
-            session_id=f"eval_{evaluation_data.get('id', uuid.uuid4())}",
+        response = await self._send_message(
             system_message=FEEDBACK_SYSTEM_PROMPT,
-            model="gpt-4o-mini"
+            user_prompt=prompt,
+            model="gpt-4o-mini",
+            temperature=0.7
         )
-        
-        response = await self._send_message(chat, prompt)
         return response or "Feedback automatique temporairement indisponible. Continuez votre excellent travail!"
 
     # ==========================================================================
@@ -776,13 +780,12 @@ Résume les points forts et les points à améliorer de manière positive et coa
 Rappel : Tu dois aider ce vendeur à GRANDIR, pas le juger.
 Réponds en JSON avec le format attendu (style, level, strengths, axes_de_developpement)."""
 
-        chat = self._create_chat(
-            session_id=f"diagnostic_{uuid.uuid4()}",
+        response = await self._send_message(
             system_message=DIAGNOSTIC_SYSTEM_PROMPT,
-            model="gpt-4o"  # 🎯 Premium model for psychological analysis
+            user_prompt=prompt,
+            model="gpt-4o",
+            temperature=0.7
         )
-        
-        response = await self._send_message(chat, prompt)
         
         if response:
             result = parse_json_safely(response, {
@@ -836,13 +839,12 @@ Réponds en JSON avec le format attendu (style, level, strengths, axes_de_develo
 Réponds UNIQUEMENT avec ce JSON :
 {{"title": "Titre accrocheur adapté au profil", "description": "Description motivante en 1-2 phrases", "competence": "accueil|decouverte|argumentation|closing|vente_additionnelle|fidelisation"}}"""
 
-        chat = self._create_chat(
-            session_id=f"challenge_{uuid.uuid4()}",
+        response = await self._send_message(
             system_message=CHALLENGE_SYSTEM_PROMPT,
-            model="gpt-4o-mini"
+            user_prompt=prompt,
+            model="gpt-4o-mini",
+            temperature=0.7
         )
-        
-        response = await self._send_message(chat, prompt)
         
         if response:
             return parse_json_safely(response, {
@@ -909,13 +911,12 @@ Génère un bilan terrain motivant avec :
 2. 3 conseils courts et actionnables pour améliorer PM ou IV
 3. Un objectif simple pour demain"""
 
-        chat = self._create_chat(
-            session_id=f"bilan_{uuid.uuid4()}",
+        response = await self._send_message(
             system_message=SELLER_BILAN_SYSTEM_PROMPT,
-            model="gpt-4o-mini"
+            user_prompt=prompt,
+            model="gpt-4o-mini",
+            temperature=0.7
         )
-        
-        response = await self._send_message(chat, prompt)
         return response or f"Bilan pour {seller_name}: Performance en cours d'analyse."
 
     # ==============================================================================
@@ -1026,16 +1027,12 @@ DONNÉES DU {data_date_french.upper()} (dernier jour travaillé) :
 Génère un brief motivant et concret basé sur ces données."""
 
             # Appel à l'IA
-            session_id = f"morning_brief_{uuid.uuid4().hex[:8]}"
-            
-            chat = LlmChat(
-                api_key=EMERGENT_KEY,
-                session_id=session_id,
-                system_message=system_prompt
-            ).with_model("openai", "gpt-4o")
-            
-            user_message = UserMessage(text=user_prompt)
-            response = await chat.send_message(user_message)
+            response = await self._send_message(
+                system_message=system_prompt,
+                user_prompt=user_prompt,
+                model="gpt-4o",
+                temperature=0.7
+            )
             
             if response:
                 # Parse structured content from the Markdown response
@@ -1357,7 +1354,12 @@ class EvaluationGuideService:
     """Service pour générer les guides d'entretien annuel en JSON structuré"""
     
     def __init__(self):
-        self.emergent_key = os.environ.get('EMERGENT_LLM_KEY')
+        self.api_key = getattr(settings, "OPENAI_API_KEY", "") or os.environ.get("OPENAI_API_KEY", "")
+        self.available = bool(self.api_key) and AsyncOpenAI is not None
+        if self.available:
+            self.client = AsyncOpenAI(api_key=self.api_key)
+        else:
+            self.client = None
     
     async def generate_evaluation_guide(
         self,
@@ -1440,26 +1442,26 @@ Réponds avec ce JSON EXACT (pas de texte avant/après) :
   "questions_manager": ["Question à poser à mon manager 1", "Question 2"]
 }}"""
         
-        # Appel à l'IA avec la bonne syntaxe
+        # Appel à l'IA avec OpenAI
+        if not self.available or not self.client:
+            return self._fallback_guide(role, employee_name, stats)
+        
         try:
-            import uuid
-            from emergentintegrations.llm.chat import UserMessage
-            session_id = str(uuid.uuid4())
+            response = await self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.7
+            )
             
-            chat = LlmChat(
-                api_key=self.emergent_key,
-                session_id=session_id,
-                system_message=system_prompt
-            ).with_model("openai", "gpt-4o")
+            if response.choices and len(response.choices) > 0:
+                content = response.choices[0].message.content
+                if content:
+                    return self._parse_guide_response(content, role)
             
-            user_message = UserMessage(text=user_prompt)
-            response = await chat.send_message(user_message)
-            
-            # Parser le JSON de la réponse
-            if response:
-                return self._parse_guide_response(response, role)
-            else:
-                return self._fallback_guide(role, employee_name, stats)
+            return self._fallback_guide(role, employee_name, stats)
             
         except Exception as e:
             import traceback
@@ -1551,4 +1553,4 @@ Réponds avec ce JSON EXACT (pas de texte avant/après) :
 
 
 # Singleton instance for the AI service
-ai_service = AIService()
+# ai_service = AIService()  # ❌ Supprimé : instanciation locale dans les routes (SAFE-PROD)

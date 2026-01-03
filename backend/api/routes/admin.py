@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from typing import Dict, List
 from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel
+import logging
 
 from core.security import get_super_admin
 from services.admin_service import AdminService
@@ -10,6 +11,8 @@ from repositories.admin_repository import AdminRepository
 from api.dependencies import get_db
 
 router = APIRouter(prefix="/superadmin", tags=["SuperAdmin"])
+
+logger = logging.getLogger(__name__)
 
 
 # Pydantic model for bulk status update
@@ -607,14 +610,15 @@ async def chat_with_ai_assistant(
             role = "User" if msg["role"] == "user" else "Assistant"
             history_context += f"{role}: {msg['content']}\n"
         
-        # Generate AI response using Emergent LLM
+        # Generate AI response using OpenAI
         ai_response = "Désolé, je n'ai pas pu générer une réponse."
         
         try:
-            from emergentintegrations.llm.openai import LlmChat, UserMessage
-            
-            llm_key = os.environ.get('EMERGENT_LLM_KEY', 'sk-emergent-dB388Be0647671cF21')
-            
+            # Import dans la fonction pour éviter circular import et side-effects
+            from services.ai_service import AIService
+
+            ai_service = AIService()
+
             system_prompt = f"""Tu es l'assistant IA expert de la plateforme Retail Performer, dédié aux Super Administrateurs.
 
 {platform_context}
@@ -637,20 +641,20 @@ INSTRUCTIONS:
 - Fais des analyses et recommandations basées sur les données
 - Sois concis et professionnel
 - Réponds en français"""
-            
-            chat = LlmChat(
-                api_key=llm_key,
-                session_id=conversation_id,
-                system_message=system_prompt
+
+            ai_response = await ai_service.generate_admin_response(
+                system_prompt=system_prompt,
+                user_message=user_message,
+                model="gpt-4o",
+                temperature=0.7,
             )
-            
-            ai_response = await chat.send_message(
-                user_message=UserMessage(text=user_message)
-            )
-            
+
+            if not ai_response:
+                ai_response = "Désolé, je n'ai pas pu générer une réponse."
+
         except Exception as ai_error:
-            print(f"AI Error: {ai_error}")
-            ai_response = f"Je rencontre des difficultés techniques. Erreur: {str(ai_error)[:100]}"
+            logger.error(f"AI Error: {ai_error}")
+            ai_response = "Je rencontre des difficultés techniques. Veuillez réessayer plus tard."
         
         # Save AI response
         await db.ai_messages.insert_one({
