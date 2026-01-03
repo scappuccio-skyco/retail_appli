@@ -1,4 +1,3 @@
-frontend/src/components/SubscriptionModal.js
 import React, { useState, useEffect } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
 import { X, Crown, Check, Loader, Users, Star } from 'lucide-react';
