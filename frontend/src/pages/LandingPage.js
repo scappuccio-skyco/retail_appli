@@ -227,7 +227,7 @@ export default function LandingPage() {
           {/* Accroche Marketing - Bannière Stratégie */}
           <div className="text-center mb-12 bg-gradient-to-r from-[#1E40AF]/10 via-[#F97316]/10 to-[#1E40AF]/10 rounded-2xl p-8 border-2 border-[#F97316]/30">
             <h2 className="text-3xl md:text-4xl font-bold text-[#334155] mb-6 max-w-4xl mx-auto leading-relaxed">
-              Vous avez déjà les <strong className="text-[#1E40AF]">chiffres</strong>. Retail Performer AI vous donne la <strong className="text-[#F97316]">stratégie</strong>.
+              Vous avez déjà les <strong className="text-[#1E40AF]">chiffres</strong>.<br />Retail Performer AI vous donne la <strong className="text-[#F97316]">stratégie</strong>.
             </h2>
             <p className="text-xl md:text-2xl text-[#64748B] max-w-3xl mx-auto">
               Ne perdez plus de temps à interpréter des tableaux complexes. Notre IA analyse vos KPI en temps réel et génère les plans d&apos;action pour vos équipes.
@@ -387,7 +387,7 @@ export default function LandingPage() {
               </div>
               <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-[#1E40AF]/20">
                 <img 
-                  src="https://customer-assets.emergentagent.com/job_data-entry-flow/artifacts/5z9e54uo_image.png" 
+                  src="/dashboard-manager.png" 
                   alt="Dashboard Manager - Vue d'ensemble KPI"
                   className="w-full h-auto"
                   loading="lazy"
@@ -424,7 +424,7 @@ export default function LandingPage() {
               </div>
               <div className="md:order-1 rounded-2xl overflow-hidden shadow-2xl border-2 border-[#1E40AF]/20">
                 <img 
-                  src="https://customer-assets.emergentagent.com/job_data-entry-flow/artifacts/0z33pd4m_image.png" 
+                  src="/dashboard-vendeur.png" 
                   alt="Dashboard Vendeur - Mon Bilan Individuel"
                   className="w-full h-auto"
                   loading="lazy"
@@ -480,7 +480,7 @@ export default function LandingPage() {
               </div>
               <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-purple-200">
                 <img 
-                  src="https://customer-assets.emergentagent.com/job_review-helper-8/artifacts/7vi2qv0s_image.png" 
+                  src="/dashboard-manager.png" 
                   alt="Dashboard Gérant - Vue Multi-Magasins"
                   className="w-full h-auto"
                   loading="lazy"
