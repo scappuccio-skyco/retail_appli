@@ -211,22 +211,37 @@ async def create_store(
     
     gerant_service = GerantService(db)
     
+    # Build store dict with proper handling of optional fields
     store_dict = {
         "name": store_data.name,
         "location": store_data.location,
-        "address": store_data.address,
-        "phone": store_data.phone,
-        "opening_hours": store_data.opening_hours
+        "address": store_data.address or "",
+        "phone": store_data.phone or "",
+        "opening_hours": store_data.opening_hours or ""
     }
+    
+    # Add external_id if provided
+    if store_data.external_id:
+        store_dict["external_id"] = store_data.external_id
     
     try:
         store = await gerant_service.create_store(store_dict, tenant_id)
+        
+        # Add external_id to the returned store if it was provided
+        if store_data.external_id:
+            store["external_id"] = store_data.external_id
+            # Update in database if needed
+            await db.stores.update_one(
+                {"id": store["id"]},
+                {"$set": {"external_id": store_data.external_id}}
+            )
+        
         return {"success": True, "store": store}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"Error creating store: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create store")
+        logger.error(f"Error creating store: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to create store: {str(e)}")
 
 
 @router.post("/stores/{store_id}/managers")
