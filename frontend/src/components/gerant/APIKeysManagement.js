@@ -4,6 +4,7 @@ import CopyButton from './CopyButton';
 import StoreDropdown from './StoreDropdown';
 import APIDocModal from './APIDocModal';
 import axios from 'axios';
+import { API_BASE } from '../../lib/api';
 
 const APIKeysManagement = () => {
   const [apiKeys, setApiKeys] = useState([]);
@@ -30,7 +31,7 @@ const APIKeysManagement = () => {
   const fetchStores = async () => {
     try {
       // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/gerant/stores`);
+      const response = await axios.get(`${API_BASE}/api/gerant/stores`);
       // L'endpoint retourne directement un array, pas {stores: [...]}
       setStores(Array.isArray(response.data) ? response.data : (response.data.stores || []));
     } catch (err) {
@@ -43,7 +44,7 @@ const APIKeysManagement = () => {
     try {
       setLoading(true);
       // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys`);
+      const response = await axios.get(`${API_BASE}/api/manager/api-keys`);
       setApiKeys(response.data.api_keys || []);
       setError('');
     } catch (err) {
@@ -57,7 +58,7 @@ const APIKeysManagement = () => {
     try {
       // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys`,
+        `${API_BASE}/api/manager/api-keys`,
         newKeyData
       );
       setCreatedKey(response.data);
@@ -74,7 +75,7 @@ const APIKeysManagement = () => {
 
     try {
       // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys/${keyId}`);
+      await axios.delete(`${API_BASE}/api/manager/api-keys/${keyId}`);
       fetchAPIKeys();
     } catch (err) {
       setError(err.response?.data?.detail || err.message);
@@ -86,7 +87,7 @@ const APIKeysManagement = () => {
 
     try {
       // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/manager/api-keys/${keyId}/permanent`);
+      await axios.delete(`${API_BASE}/api/manager/api-keys/${keyId}/permanent`);
       fetchAPIKeys();
     } catch (err) {
       setError(err.response?.data?.detail || err.message);

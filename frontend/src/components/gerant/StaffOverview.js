@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { 
+import { API_BASE } from '../../lib/api';
   Users, UserCog, Search, Filter, Building2, Mail, Phone, 
   MoreVertical, Trash2, Ban, CheckCircle, ArrowRightLeft, X,
   Clock, RefreshCw, Send, Lock
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
 
 export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCreateStoreModal, isReadOnly = false }) {

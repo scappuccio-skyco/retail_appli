@@ -6,8 +6,9 @@ import html2canvas from 'html2canvas';
 import { unstable_batchedUpdates } from 'react-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { API_BASE } from '../lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 // Fonction utilitaire pour formater les dates
 const formatDate = (dateString) => {

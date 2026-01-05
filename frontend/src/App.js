@@ -28,8 +28,10 @@ import LegalNotice from './pages/legal/LegalNotice';
 import TermsOfService from './pages/legal/TermsOfService';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+// Centralized API configuration
+import { API_BASE } from './lib/api';
+
+const API = `${API_BASE}/api`;
 
 // Axios interceptor for auth token
 axios.interceptors.request.use((config) => {

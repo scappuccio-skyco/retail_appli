@@ -3,6 +3,7 @@ import axios from 'axios';
 import { X, Sparkles, Copy, Check, FileText, Calendar, Loader2, CheckCircle, AlertTriangle, Target, MessageSquare, Star, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
+import { API_BASE } from '../lib/api';
 
 /**
  * EvaluationGenerator - Modal pour générer un guide d'entretien annuel IA
@@ -41,7 +42,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/evaluations/generate`,
+        `${API_BASE}/api/evaluations/generate`,
         {
           employee_id: employeeId,
           start_date: startDate,

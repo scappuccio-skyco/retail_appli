@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { X, Send, Headphones, MessageSquare, Bug, Lightbulb, CreditCard, Loader, CheckCircle, AlertCircle } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE } from '../lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 const CATEGORIES = [
   { id: 'general', label: 'Question générale', icon: MessageSquare, color: 'blue' },

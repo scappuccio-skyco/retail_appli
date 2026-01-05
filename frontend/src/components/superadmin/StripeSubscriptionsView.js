@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { 
+import { API_BASE } from '../../lib/api';
   TrendingUp, CreditCard, Users, DollarSign, CheckCircle, 
   XCircle, Clock, AlertTriangle, ChevronDown, ChevronUp,
   Calendar, Activity
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
 
 export default function StripeSubscriptionsView() {

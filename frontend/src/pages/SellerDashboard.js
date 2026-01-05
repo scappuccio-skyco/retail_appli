@@ -27,8 +27,9 @@ import OnboardingModal from '../components/onboarding/OnboardingModal';
 import { getSellerSteps } from '../components/onboarding/sellerSteps';
 import { useOnboarding } from '../hooks/useOnboarding';
 import { useSyncMode } from '../hooks/useSyncMode';
+import { API_BASE } from '../lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
 
 // Component for progress indicator

@@ -65,7 +65,9 @@
     "start": "craco start",
     "start:prod": "serve -s build -l 3000",
     "build": "craco build",
-    "test": "craco test"
+    "test": "craco test",
+    "lint:url": "node scripts/lint-urls.js",
+    "test:url": "npm run lint:url"
   },
   "browserslist": {
     "production": [

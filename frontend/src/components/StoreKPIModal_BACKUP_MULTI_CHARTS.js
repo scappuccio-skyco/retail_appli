@@ -4,8 +4,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import StoreKPIAIAnalysisModal from './StoreKPIAIAnalysisModal';
+import { API_BASE } from '../lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL || '';
+const API = API_BASE ||; '';
 
 export default function StoreKPIModal({ onClose, onSuccess, initialDate = null }) {
   const [activeTab, setActiveTab] = useState('daily');

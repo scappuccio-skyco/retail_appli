@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
+import { API_BASE } from '../lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
 
 export default function KPIReporting({ user, onBack }) {

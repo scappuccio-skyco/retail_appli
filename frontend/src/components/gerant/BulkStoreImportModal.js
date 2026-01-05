@@ -2,8 +2,9 @@ import React, { useState, useCallback } from 'react';
 import { X, Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, Download, Info } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { API_BASE } from '../../lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 /**
  * Modal d'import massif de magasins via CSV/Excel

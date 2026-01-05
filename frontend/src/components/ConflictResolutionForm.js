@@ -4,8 +4,9 @@ import { toast } from 'sonner';
 import { Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import AIRecommendations from './AIRecommendations';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
+import { API_BASE } from '../lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
 
 export default function ConflictResolutionForm({ sellerId, sellerName }) {

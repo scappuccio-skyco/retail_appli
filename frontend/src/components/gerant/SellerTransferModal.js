@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, RefreshCw, Users } from 'lucide-react';
+import { API_BASE } from '../../lib/api';
 
 const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransfer }) => {
   const [selectedStoreId, setSelectedStoreId] = useState('');
@@ -8,7 +9,7 @@ const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransf
   const [loading, setLoading] = useState(false);
   const [loadingManagers, setLoadingManagers] = useState(false);
   const [error, setError] = useState('');
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = API_BASE;
 
   useEffect(() => {
     if (selectedStoreId) {

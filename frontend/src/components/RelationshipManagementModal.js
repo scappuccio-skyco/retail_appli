@@ -3,8 +3,9 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { X, MessageCircle, AlertTriangle, Users, Loader, Filter, Calendar, ChevronDown, Trash2 } from 'lucide-react';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
+import { API_BASE } from '../lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+const API = API_BASE ||; 'http://localhost:8001';
 
 export default function RelationshipManagementModal({ onClose, onSuccess, sellers = [], autoShowResult = false, storeId = null }) {
   // Filter to show only active sellers (exclude suspended and deleted)

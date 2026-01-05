@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Trash2, RefreshCw, Clock, CheckCircle, XCircle, Search, Edit2, X, Save } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { API_BASE } from '../../lib/api';
 
 const InvitationsManagement = () => {
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = API_BASE;
   const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');

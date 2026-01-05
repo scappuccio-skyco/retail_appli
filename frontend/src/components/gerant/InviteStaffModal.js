@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, Mail, UserPlus, Building2, Users } from 'lucide-react';
+import { API_BASE } from '../../lib/api';
 
 const InviteStaffModal = ({ onClose, onInvite, stores, selectedStoreId = null }) => {
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = API_BASE;
   
   const [formData, setFormData] = useState({
     name: '',

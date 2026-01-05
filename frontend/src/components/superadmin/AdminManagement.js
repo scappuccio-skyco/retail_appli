@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { UserPlus, Trash2, Mail, Shield } from 'lucide-react';
+import { API_BASE } from '../../lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL + '/api';
+const API = API_BASE; + '/api';
 
 export default function AdminManagement() {
   const [admins, setAdmins] = useState([]);

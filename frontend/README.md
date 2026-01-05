@@ -2,6 +2,40 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Configuration des URLs API
+
+### Variable d'environnement
+
+Le frontend utilise `REACT_APP_BACKEND_URL` pour configurer l'URL du backend API.
+
+**En développement local :**
+- Créez un fichier `.env.local` à la racine du dossier `frontend/`
+- Ajoutez : `REACT_APP_BACKEND_URL=https://api.retailperformerai.com`
+
+**En production (Vercel) :**
+- Allez dans Vercel Dashboard → Votre projet → Settings → Environment Variables
+- Ajoutez la variable `REACT_APP_BACKEND_URL` avec la valeur `https://api.retailperformerai.com`
+- Appliquez aux environnements : Production, Preview, Development
+
+### Utilisation dans le code
+
+Au lieu d'utiliser directement `process.env.REACT_APP_BACKEND_URL`, utilisez `API_BASE` depuis `lib/api.js` :
+
+```javascript
+import { API_BASE } from '../lib/api';
+
+const API = `${API_BASE}/api`;
+```
+
+### Vérification des URLs
+
+Pour vérifier qu'il n'y a pas d'URLs en dur de l'ancien backend :
+
+```bash
+npm run lint:url
+npm run test:url  # Alias de lint:url
+```
+
 ## Available Scripts
 
 In the project directory, you can run:

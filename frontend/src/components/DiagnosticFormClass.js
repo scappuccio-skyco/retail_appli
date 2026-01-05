@@ -4,8 +4,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import ErrorBoundary from './ErrorBoundary';
 import Logo from './shared/Logo';
+import { API_BASE } from '../lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
 
 const QUESTIONS = [

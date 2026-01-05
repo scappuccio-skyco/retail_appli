@@ -3,8 +3,9 @@ import { X, MessageSquare, Sparkles, Eye, EyeOff, CheckCircle, XCircle } from 'l
 import axios from 'axios';
 import { toast } from 'sonner';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
+import { API_BASE } from '../lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL || '';
+const API = API_BASE ||; '';
 
 export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExpandDebriefId }) {
   const [filtreHistorique, setFiltreHistorique] = useState('all');

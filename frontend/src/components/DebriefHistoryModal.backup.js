@@ -2,8 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { X, MessageSquare, Sparkles, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { API_BASE } from '../lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL || '';
+const API = API_BASE ||; '';
 
 export default function DebriefHistoryModal({ debriefs, onClose, onNewDebrief, token }) {
   const [activeTab, setActiveTab] = useState('historique'); // 'conclue', 'manquee', 'historique'

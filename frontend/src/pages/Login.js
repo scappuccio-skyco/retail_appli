@@ -4,8 +4,9 @@ import { toast } from 'sonner';
 import { Mail, Lock, User, Eye, EyeOff, Building2, CheckCircle, XCircle } from 'lucide-react';
 import { useSearchParams, Link } from 'react-router-dom';
 import Logo from '../components/shared/Logo';
+import { API_BASE } from '../lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
 
 export default function Login({ onLogin }) {

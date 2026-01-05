@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Users, TrendingUp, UserPlus, RefreshCw, Trash2, Pause, Lock } from 'lucide-react';
 import StoreKPIModal from '../StoreKPIModal';
 import { toast } from 'sonner';
+import { API_BASE } from '../../lib/api';
 
 // Mapping des couleurs selon l'index - couleurs de base pour le gradient
 const STORE_COLOR_CONFIG = [
@@ -23,7 +24,7 @@ const StoreDetailModal = ({ store, colorIndex = 0, isReadOnly = false, onClose, 
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0); // Force re-render après changement de statut
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = API_BASE;
 
   const fetchStoreTeam = async () => {
     try {

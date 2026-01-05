@@ -141,7 +141,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-green-400">GET</div>
-                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/my-stores</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/my-stores</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                 </div>
@@ -162,7 +162,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-green-400">GET</div>
-                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/my-stats</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/my-stats</div>
                   <div className="mt-2 text-gray-400">Query Params:</div>
                   <div className="text-yellow-300">start_date=2024-01-01&end_date=2024-01-31</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
@@ -197,7 +197,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-orange-400">POST</div>
-                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/kpi</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/kpi</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                   <div className="text-yellow-300">Content-Type: application/json</div>
@@ -258,7 +258,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-blue-400">POST</div>
-                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/stores</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/stores</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                   <div className="text-yellow-300">Content-Type: application/json</div>
@@ -288,7 +288,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-indigo-400">POST</div>
-                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/stores/{'{'}<span className="text-yellow-300">store_id</span>{'}'}/managers</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/stores/{'{'}<span className="text-yellow-300">store_id</span>{'}'}/managers</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                   <div className="text-yellow-300">Content-Type: application/json</div>
@@ -318,7 +318,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-purple-400">POST</div>
-                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/stores/{'{'}<span className="text-yellow-300">store_id</span>{'}'}/sellers</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/stores/{'{'}<span className="text-yellow-300">store_id</span>{'}'}/sellers</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                   <div className="text-yellow-300">Content-Type: application/json</div>
@@ -349,7 +349,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-green-400">PUT</div>
-                  <div className="text-blue-300">https://retailperformerai.com/api/v1/integrations/users/{'{'}<span className="text-yellow-300">user_id</span>{'}'}</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/users/{'{'}<span className="text-yellow-300">user_id</span>{'}'}</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                   <div className="text-yellow-300">Content-Type: application/json</div>
@@ -378,11 +378,11 @@ export default function APIDocModal({ isOpen, onClose }) {
                   <h4 className="font-semibold text-gray-900 mb-2">curl (Bash)</h4>
                   <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
                     <pre>{`# Récupérer les magasins
-curl -X GET "https://retailperformerai.com/api/v1/integrations/my-stores" \\
+curl -X GET "https://api.retailperformerai.com/api/v1/integrations/my-stores" \\
   -H "X-API-Key: rp_live_votre_cle"
 
 # Envoyer des KPI
-curl -X POST "https://retailperformerai.com/api/v1/integrations/kpi" \\
+curl -X POST "https://api.retailperformerai.com/api/v1/integrations/kpi" \\
   -H "X-API-Key: rp_live_votre_cle" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -401,7 +401,7 @@ curl -X POST "https://retailperformerai.com/api/v1/integrations/kpi" \\
                     <pre>{`import requests
 
 API_KEY = "rp_live_votre_cle"
-BASE_URL = "https://retailperformerai.com/api/v1/integrations"
+BASE_URL = "https://api.retailperformerai.com/api/v1/integrations"
 
 # Récupérer les magasins
 response = requests.get(

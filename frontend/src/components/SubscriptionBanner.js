@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, Crown, Clock } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE } from '../lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 export default function SubscriptionBanner({ onUpgradeClick }) {
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);

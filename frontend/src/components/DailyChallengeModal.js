@@ -3,8 +3,9 @@ import { X, Award, RefreshCw, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import confetti from 'canvas-confetti';
+import { API_BASE } from '../lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
 
 export default function DailyChallengeModal({ challenge, onClose, onRefresh, onComplete, onOpenHistory }) {

@@ -2,8 +2,9 @@ import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { X, Mail, Copy, Check } from 'lucide-react';
+import { API_BASE } from '../lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
 const FRONTEND_URL = window.location.origin;
 

@@ -7,8 +7,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
+import { API_BASE } from '../lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
 
 export default function CoachingModal({ 

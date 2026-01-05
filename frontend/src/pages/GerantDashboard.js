@@ -20,10 +20,11 @@ import SupportModal from '../components/SupportModal';
 import APIKeysManagement from '../components/gerant/APIKeysManagement';
 import StaffOverview from '../components/gerant/StaffOverview';
 import StoresManagement from '../components/gerant/StoresManagement';
+import { API_BASE } from '../lib/api';
 
 const GerantDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = API_BASE;
 
   const [stores, setStores] = useState([]);
   const [globalStats, setGlobalStats] = useState(null);

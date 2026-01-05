@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { X, Award, Calendar, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { API_BASE } from '../lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
 
 export default function ObjectivesAndChallengesModal({ objectives, challenges, onClose, onUpdate }) {

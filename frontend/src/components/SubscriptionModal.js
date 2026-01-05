@@ -5,8 +5,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import QuantityModal from './QuantityModal';
 import ConfirmActionModal from './ConfirmActionModal';
+import { API_BASE } from '../lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 const PLANS = {
   starter: {

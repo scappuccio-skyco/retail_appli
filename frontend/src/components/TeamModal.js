@@ -6,8 +6,9 @@ import TeamAIAnalysisModal from './TeamAIAnalysisModal';
 import EvaluationGenerator from './EvaluationGenerator';
 import MorningBriefModal from './MorningBriefModal';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import { API_BASE } from '../lib/api';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
 
 // Utility function to format numbers with spaces for thousands

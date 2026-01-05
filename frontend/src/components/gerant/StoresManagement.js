@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Building2, MapPin, Phone, Mail, Edit2, Save, X, Plus, Users, Loader2, Store } from 'lucide-react';
 import { toast } from 'sonner';
+import { API_BASE } from '../../lib/api';
 
 /**
  * StoresManagement - Composant pour gérer les magasins du Gérant
  * Permet de voir la liste des magasins et de modifier leurs informations
  */
 export default function StoresManagement({ onRefresh, onOpenCreateStoreModal, isReadOnly }) {
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = API_BASE;
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingStore, setEditingStore] = useState(null);

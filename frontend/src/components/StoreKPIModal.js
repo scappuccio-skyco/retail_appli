@@ -5,8 +5,9 @@ import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import StoreKPIAIAnalysisModal from './StoreKPIAIAnalysisModal';
 import KPICalendar from './KPICalendar';
+import { API_BASE } from '../lib/api';
 
-const API = process.env.REACT_APP_BACKEND_URL || '';
+const API = API_BASE ||; '';
 
 export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, hideCloseButton = false, storeId = null, storeName = null, isManager = false }) {
   const [activeTab, setActiveTab] = useState('daily');

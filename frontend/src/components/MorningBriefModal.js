@@ -3,8 +3,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { X, Coffee, Sparkles, Copy, Check, RefreshCw, Calendar, Clock, Trash2, ChevronDown, Download, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { API_BASE } from '../lib/api';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = API_BASE;
 
 /**
  * MorningBriefModal - Générateur de Brief Matinal IA

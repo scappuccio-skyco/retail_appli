@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE } from '../lib/api';
 
 export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
   // Define sections based on user role
@@ -16,7 +17,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
   const [teamSellers, setTeamSellers] = useState([]);
   const [loadingCompatibility, setLoadingCompatibility] = useState(false);
   
-  const API = process.env.REACT_APP_BACKEND_URL || '';
+  const API = API_BASE ||; '';
 
   // Fetch manager and sellers data for compatibility
   useEffect(() => {

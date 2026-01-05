@@ -3,11 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Mail, User, Lock, CheckCircle, XCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { API_BASE } from '../lib/api';
 
 const InvitationPage = () => {
   const { token } = useParams();
   const navigate = useNavigate();
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = API_BASE;
   
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
