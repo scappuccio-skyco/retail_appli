@@ -92,10 +92,11 @@ Chaque clé API possède des **permissions** (scopes) qui définissent ce qu'ell
 
 | Permission | Description |
 |------------|-------------|
-| `stores:read` | Lire la liste des magasins |
+| `stores:read` | Lire la liste des magasins, lister les managers et vendeurs d'un magasin |
 | `stores:write` | Créer des magasins |
 | `users:write` | Créer et modifier des utilisateurs (managers, vendeurs) |
-| `kpi:write` | Synchroniser les KPI journaliers |
+| `write:kpi` | Synchroniser les KPI journaliers |
+| `read:stats` | Lire les statistiques (pour usage futur) |
 
 > ⚠️ **Note** : Les permissions utilisent le format `resource:action` (ex: `stores:read`, `users:write`).
 
@@ -120,7 +121,7 @@ Les clés API peuvent être **restreintes** à certains magasins pour renforcer 
 ```json
 {
   "name": "Clé ERP principale",
-  "permissions": ["stores:read", "users:write", "kpi:write"],
+  "permissions": ["stores:read", "users:write", "write:kpi"],
   "store_ids": null
 }
 ```
@@ -129,7 +130,7 @@ Les clés API peuvent être **restreintes** à certains magasins pour renforcer 
 ```json
 {
   "name": "Clé Caisse Magasin Paris",
-  "permissions": ["kpi:write"],
+  "permissions": ["write:kpi"],
   "store_ids": ["store-paris-123", "store-paris-456"]
 }
 ```
@@ -307,7 +308,73 @@ else:
 
 ---
 
-### 3. POST /api/integrations/stores/{store_id}/managers
+### 3. GET /api/integrations/stores/{store_id}/managers
+
+Liste tous les managers d'un magasin.
+
+**Permission requise** : `stores:read`
+
+**Headers** :
+```http
+X-API-Key: sk_live_votre_cle_api_ici
+```
+
+**Réponse 200** :
+```json
+{
+  "managers": [
+    {
+      "id": "manager-789",
+      "name": "Jean Dupont",
+      "email": "jean.dupont@example.com",
+      "phone": "0123456789",
+      "role": "manager",
+      "status": "active",
+      "store_id": "store-123",
+      "gerant_id": "gerant-xyz",
+      "external_id": "MANAGER-001",
+      "created_at": "2024-01-15T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Réponses d'erreur** :
+- `401` : Clé API invalide
+- `403` : Permission `stores:read` manquante, accès au magasin refusé
+- `404` : Magasin non trouvé
+
+**Exemple cURL** :
+```bash
+curl -X GET "https://api.retailperformerai.com/api/integrations/stores/store-123/managers" \
+  -H "X-API-Key: sk_live_votre_cle_api_ici"
+```
+
+**Exemple Python** :
+```python
+import requests
+
+API_KEY = "sk_live_votre_cle_api_ici"
+BASE_URL = "https://api.retailperformerai.com"
+STORE_ID = "store-123"
+
+response = requests.get(
+    f"{BASE_URL}/api/integrations/stores/{STORE_ID}/managers",
+    headers={"X-API-Key": API_KEY}
+)
+
+if response.status_code == 200:
+    managers = response.json()["managers"]
+    print(f"Nombre de managers : {len(managers)}")
+    for manager in managers:
+        print(f"- {manager['name']} ({manager['email']})")
+else:
+    print(f"Erreur {response.status_code}: {response.json()}")
+```
+
+---
+
+### 4. POST /api/integrations/stores/{store_id}/managers
 
 Crée un nouveau manager pour un magasin.
 
@@ -401,7 +468,74 @@ else:
 
 ---
 
-### 4. POST /api/integrations/stores/{store_id}/sellers
+### 5. GET /api/integrations/stores/{store_id}/sellers
+
+Liste tous les vendeurs d'un magasin.
+
+**Permission requise** : `stores:read`
+
+**Headers** :
+```http
+X-API-Key: sk_live_votre_cle_api_ici
+```
+
+**Réponse 200** :
+```json
+{
+  "sellers": [
+    {
+      "id": "seller-456",
+      "name": "Marie Martin",
+      "email": "marie.martin@example.com",
+      "phone": "0123456789",
+      "role": "seller",
+      "status": "active",
+      "store_id": "store-123",
+      "manager_id": "manager-789",
+      "gerant_id": "gerant-xyz",
+      "external_id": "SELLER-001",
+      "created_at": "2024-01-15T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Réponses d'erreur** :
+- `401` : Clé API invalide
+- `403` : Permission `stores:read` manquante, accès au magasin refusé
+- `404` : Magasin non trouvé
+
+**Exemple cURL** :
+```bash
+curl -X GET "https://api.retailperformerai.com/api/integrations/stores/store-123/sellers" \
+  -H "X-API-Key: sk_live_votre_cle_api_ici"
+```
+
+**Exemple Python** :
+```python
+import requests
+
+API_KEY = "sk_live_votre_cle_api_ici"
+BASE_URL = "https://api.retailperformerai.com"
+STORE_ID = "store-123"
+
+response = requests.get(
+    f"{BASE_URL}/api/integrations/stores/{STORE_ID}/sellers",
+    headers={"X-API-Key": API_KEY}
+)
+
+if response.status_code == 200:
+    sellers = response.json()["sellers"]
+    print(f"Nombre de vendeurs : {len(sellers)}")
+    for seller in sellers:
+        print(f"- {seller['name']} ({seller['email']})")
+else:
+    print(f"Erreur {response.status_code}: {response.json()}")
+```
+
+---
+
+### 6. POST /api/integrations/stores/{store_id}/sellers
 
 Crée un nouveau vendeur pour un magasin.
 
@@ -498,7 +632,7 @@ else:
 
 ---
 
-### 5. PUT /api/integrations/users/{user_id}
+### 7. PUT /api/integrations/users/{user_id}
 
 Met à jour un utilisateur (manager ou vendeur).
 
@@ -598,7 +732,7 @@ else:
 
 ---
 
-### 6. DELETE /api/integrations/stores/{store_id}
+### 8. DELETE /api/integrations/stores/{store_id}
 
 Supprime (désactive) un magasin.
 
@@ -654,7 +788,7 @@ else:
 
 ---
 
-### 7. DELETE /api/integrations/users/{user_id}
+### 9. DELETE /api/integrations/users/{user_id}
 
 Supprime (soft delete) un utilisateur (manager ou vendeur).
 
@@ -722,11 +856,11 @@ else:
 
 ---
 
-### 8. POST /api/integrations/kpi/sync
+### 10. POST /api/integrations/kpi/sync
 
 Synchronise les KPI journaliers depuis un système externe (caisse, ERP).
 
-**Permission requise** : `kpi:write`
+**Permission requise** : `write:kpi`
 
 **Headers** :
 ```http
@@ -789,7 +923,7 @@ Content-Type: application/json
 **Réponses d'erreur** :
 - `400` : Plus de 100 entrées, données invalides, erreur d'écriture en base
 - `401` : Clé API invalide
-- `403` : Permission `kpi:write` manquante
+- `403` : Permission `write:kpi` manquante
 
 **Exemple cURL** :
 ```bash

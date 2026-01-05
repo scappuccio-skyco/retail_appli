@@ -258,6 +258,33 @@ async def create_store(
         raise HTTPException(status_code=500, detail=f"Failed to create store: {str(e)}")
 
 
+@router.get("/stores/{store_id}/managers")
+async def list_managers(
+    store_id: str,
+    api_key_data: Dict = Depends(verify_api_key_with_scope("stores:read")),
+    integration_service: IntegrationService = Depends(get_integration_service),
+    db: AsyncIOMotorDatabase = Depends(get_db)
+):
+    """
+    List all managers for a store.
+    Requires stores:read permission.
+    """
+    # Verify store access FIRST
+    store = await verify_store_access(store_id, api_key_data, integration_service, db)
+    
+    tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
+    
+    # Get managers using GerantService
+    gerant_service = GerantService(db)
+    
+    try:
+        managers = await gerant_service.get_store_managers(store_id, tenant_id)
+        return {"managers": managers}
+    except Exception as e:
+        logger.error(f"Error listing managers: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to list managers: {str(e)}")
+
+
 @router.post("/stores/{store_id}/managers")
 async def create_manager(
     store_id: str,
@@ -313,6 +340,33 @@ async def create_manager(
             "external_id": manager_data.external_id
         }
     }
+
+
+@router.get("/stores/{store_id}/sellers")
+async def list_sellers(
+    store_id: str,
+    api_key_data: Dict = Depends(verify_api_key_with_scope("stores:read")),
+    integration_service: IntegrationService = Depends(get_integration_service),
+    db: AsyncIOMotorDatabase = Depends(get_db)
+):
+    """
+    List all sellers for a store.
+    Requires stores:read permission.
+    """
+    # Verify store access FIRST
+    store = await verify_store_access(store_id, api_key_data, integration_service, db)
+    
+    tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
+    
+    # Get sellers using GerantService
+    gerant_service = GerantService(db)
+    
+    try:
+        sellers = await gerant_service.get_store_sellers(store_id, tenant_id)
+        return {"sellers": sellers}
+    except Exception as e:
+        logger.error(f"Error listing sellers: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to list sellers: {str(e)}")
 
 
 @router.post("/stores/{store_id}/sellers")
