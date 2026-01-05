@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { API_BASE } from '../lib/api';
 
-const API = API_BASE ||; '';
+const API = API_BASE || '';
 
 /**
  * Hook pour gérer l'état et la navigation de l'onboarding avec persistance

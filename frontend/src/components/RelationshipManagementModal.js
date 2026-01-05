@@ -5,7 +5,7 @@ import { X, MessageCircle, AlertTriangle, Users, Loader, Filter, Calendar, Chevr
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 import { API_BASE } from '../lib/api';
 
-const API = API_BASE ||; 'http://localhost:8001';
+const API = API_BASE || 'http://localhost:8001';
 
 export default function RelationshipManagementModal({ onClose, onSuccess, sellers = [], autoShowResult = false, storeId = null }) {
   // Filter to show only active sellers (exclude suspended and deleted)

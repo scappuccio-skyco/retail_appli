@@ -7,7 +7,7 @@ import StoreKPIAIAnalysisModal from './StoreKPIAIAnalysisModal';
 import KPICalendar from './KPICalendar';
 import { API_BASE } from '../lib/api';
 
-const API = API_BASE ||; '';
+const API = API_BASE || '';
 
 export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, hideCloseButton = false, storeId = null, storeName = null, isManager = false }) {
   const [activeTab, setActiveTab] = useState('daily');

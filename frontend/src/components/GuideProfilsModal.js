@@ -17,7 +17,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
   const [teamSellers, setTeamSellers] = useState([]);
   const [loadingCompatibility, setLoadingCompatibility] = useState(false);
   
-  const API = API_BASE ||; '';
+  const API = API_BASE || '';
 
   // Fetch manager and sellers data for compatibility
   useEffect(() => {

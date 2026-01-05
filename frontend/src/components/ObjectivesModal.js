@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { API_BASE } from '../lib/api';
 
-const API = API_BASE ||; '';
+const API = API_BASE || '';
 
 export default function ObjectivesModal({ 
   isOpen, 

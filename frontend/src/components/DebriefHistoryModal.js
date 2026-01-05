@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 import { API_BASE } from '../lib/api';
 
-const API = API_BASE ||; '';
+const API = API_BASE || '';
 
 export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExpandDebriefId }) {
   const [filtreHistorique, setFiltreHistorique] = useState('all');

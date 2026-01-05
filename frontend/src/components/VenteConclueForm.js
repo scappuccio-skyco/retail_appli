@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { API_BASE } from '../lib/api';
 
-const BACKEND_URL = API_BASE; || '';
+const BACKEND_URL = API_BASE || '';
 const API = `${BACKEND_URL}/api`;
 
 export default function VenteConclueForm({ token, onSuccess }) {
