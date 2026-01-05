@@ -598,7 +598,131 @@ else:
 
 ---
 
-### 6. POST /api/integrations/kpi/sync
+### 6. DELETE /api/integrations/stores/{store_id}
+
+Supprime (désactive) un magasin.
+
+**Permission requise** : `stores:write`
+
+**⚠️ Important** : Cette opération est une **suppression douce** (soft delete) :
+- Le magasin est marqué comme `active=False`
+- Tous les membres du personnel du magasin sont suspendus automatiquement
+- Les données historiques sont conservées
+
+**Headers** :
+```http
+X-API-Key: sk_live_votre_cle_api_ici
+```
+
+**Réponse 200** :
+```json
+{
+  "success": true,
+  "message": "Magasin supprimé avec succès"
+}
+```
+
+**Réponses d'erreur** :
+- `401` : Clé API invalide
+- `403` : Permission `stores:write` manquante, accès au magasin refusé
+- `404` : Magasin non trouvé
+
+**Exemple cURL** :
+```bash
+curl -X DELETE "https://api.retailperformerai.com/api/integrations/stores/store-123" \
+  -H "X-API-Key: sk_live_votre_cle_api_ici"
+```
+
+**Exemple Python** :
+```python
+import requests
+
+API_KEY = "sk_live_votre_cle_api_ici"
+BASE_URL = "https://api.retailperformerai.com"
+STORE_ID = "store-123"
+
+response = requests.delete(
+    f"{BASE_URL}/api/integrations/stores/{STORE_ID}",
+    headers={"X-API-Key": API_KEY}
+)
+
+if response.status_code == 200:
+    print("Magasin supprimé avec succès")
+else:
+    print(f"Erreur {response.status_code}: {response.json()}")
+```
+
+---
+
+### 7. DELETE /api/integrations/users/{user_id}
+
+Supprime (soft delete) un utilisateur (manager ou vendeur).
+
+**Permission requise** : `users:write`
+
+**⚠️ Important** :
+- Cette opération est une **suppression douce** : le statut est défini à `"deleted"`
+- Les données historiques sont conservées
+- **Impossible de supprimer un gérant** via l'API
+- L'utilisateur doit appartenir au tenant de la clé API
+- Si la clé est restreinte par `store_ids`, l'utilisateur doit appartenir à un magasin autorisé
+
+**Headers** :
+```http
+X-API-Key: sk_live_votre_cle_api_ici
+```
+
+**Réponse 200** :
+```json
+{
+  "success": true,
+  "message": "Manager supprimé avec succès"
+}
+```
+
+ou
+
+```json
+{
+  "success": true,
+  "message": "Seller supprimé avec succès"
+}
+```
+
+**Réponses d'erreur** :
+- `400` : Utilisateur déjà supprimé
+- `401` : Clé API invalide
+- `403` : Permission `users:write` manquante, utilisateur n'appartient pas au tenant, accès au store refusé, tentative de supprimer un gérant
+- `404` : Utilisateur non trouvé
+
+**Exemple cURL** :
+```bash
+curl -X DELETE "https://api.retailperformerai.com/api/integrations/users/manager-789" \
+  -H "X-API-Key: sk_live_votre_cle_api_ici"
+```
+
+**Exemple Python** :
+```python
+import requests
+
+API_KEY = "sk_live_votre_cle_api_ici"
+BASE_URL = "https://api.retailperformerai.com"
+USER_ID = "manager-789"
+
+response = requests.delete(
+    f"{BASE_URL}/api/integrations/users/{USER_ID}",
+    headers={"X-API-Key": API_KEY}
+)
+
+if response.status_code == 200:
+    print(response.json()["message"])
+else:
+    print(f"Erreur {response.status_code}: {response.json()}")
+```
+
+---
+
+### 8. POST /api/integrations/kpi/sync
 
 Synchronise les KPI journaliers depuis un système externe (caisse, ERP).
 

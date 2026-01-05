@@ -454,6 +454,71 @@ export default function APIDocModal({ isOpen, onClose }) {
               </div>
             </section>
 
+            {/* Suppression des magasins */}
+            <section className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">🗑️ Supprimer un magasin via l'API</h3>
+              
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded">
+                <p className="text-red-900 font-semibold mb-2">
+                  ✅ Endpoint disponible : DELETE /api/integrations/stores/{`{store_id}`}
+                </p>
+                <p className="text-red-800 text-sm">
+                  Supprime (désactive) un magasin. Cette opération suspend automatiquement tous les membres du personnel du magasin.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">⚠️ Suppression douce</h4>
+                  <p className="text-gray-700 mb-3">
+                    La suppression est une <strong>suppression douce</strong> : le magasin est marqué comme inactif, mais les données historiques sont conservées.
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                    <pre className="text-green-300">{`curl -X DELETE "https://api.retailperformerai.com/api/integrations/stores/store-123" \\
+  -H "X-API-Key: sk_live_votre_cle_api_ici"`}</pre>
+                  </div>
+                  <p className="text-gray-600 text-sm mt-2">
+                    <strong>Permission requise :</strong> <code className="bg-gray-200 px-1 rounded">stores:write</code>
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* Suppression des utilisateurs */}
+            <section className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">🗑️ Supprimer un utilisateur via l'API</h3>
+              
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded">
+                <p className="text-red-900 font-semibold mb-2">
+                  ✅ Endpoint disponible : DELETE /api/integrations/users/{`{user_id}`}
+                </p>
+                <p className="text-red-800 text-sm">
+                  Supprime (soft delete) un manager ou vendeur. Les données historiques sont conservées.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">⚠️ Suppression douce</h4>
+                  <p className="text-gray-700 mb-3">
+                    La suppression est une <strong>suppression douce</strong> : l'utilisateur est marqué comme supprimé, mais les données historiques sont conservées.
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                    <pre className="text-green-300">{`curl -X DELETE "https://api.retailperformerai.com/api/integrations/users/user-123" \\
+  -H "X-API-Key: sk_live_votre_cle_api_ici"`}</pre>
+                  </div>
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-3 rounded">
+                    <p className="text-yellow-900 text-sm">
+                      <strong>⚠️ Important :</strong> Vous ne pouvez <strong>pas</strong> supprimer un gérant via l'API. Seuls les managers et vendeurs peuvent être supprimés.
+                    </p>
+                  </div>
+                  <p className="text-gray-600 text-sm mt-2">
+                    <strong>Permission requise :</strong> <code className="bg-gray-200 px-1 rounded">users:write</code>
+                  </p>
+                </div>
+              </div>
+            </section>
+
             {/* Exemples pratiques */}
             <section className="mb-8 bg-gray-50 p-6 rounded-lg">
               <h3 className="text-xl font-bold text-gray-900 mb-4">💻 Exemples pour votre développeur</h3>

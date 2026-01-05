@@ -27,9 +27,10 @@ async def get_integrations_pdf(
     Requires gérant authentication.
     """
     if pisa is None:
+        logger.error("xhtml2pdf library not available. Please install: pip install xhtml2pdf")
         raise HTTPException(
             status_code=500,
-            detail="PDF generation library not available. Please install xhtml2pdf."
+            detail="PDF generation library not available. Please install xhtml2pdf. Check server logs for details."
         )
     
     try:

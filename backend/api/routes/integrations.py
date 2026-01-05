@@ -462,6 +462,96 @@ async def update_user(
     }
 
 
+@router.delete("/stores/{store_id}")
+async def delete_store(
+    store_id: str,
+    api_key_data: Dict = Depends(verify_api_key_with_scope("stores:write")),
+    integration_service: IntegrationService = Depends(get_integration_service),
+    db: AsyncIOMotorDatabase = Depends(get_db)
+):
+    """
+    Delete (deactivate) a store.
+    This is a soft delete - sets active=False and suspends all staff.
+    """
+    # Verify store access FIRST
+    store = await verify_store_access(store_id, api_key_data, integration_service, db)
+    
+    tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
+    gerant_service = GerantService(db)
+    
+    try:
+        result = await gerant_service.delete_store(store_id, tenant_id)
+        return {"success": True, "message": result.get("message", "Magasin supprimé avec succès")}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error deleting store: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete store")
+
+
+@router.delete("/users/{user_id}")
+async def delete_user(
+    user_id: str,
+    api_key_data: Dict = Depends(verify_api_key_with_scope("users:write")),
+    integration_service: IntegrationService = Depends(get_integration_service),
+    db: AsyncIOMotorDatabase = Depends(get_db)
+):
+    """
+    Delete (soft delete) a user (manager or seller).
+    Sets status to 'deleted'.
+    """
+    tenant_id = await integration_service.get_tenant_id_from_api_key(api_key_data)
+    if not tenant_id:
+        raise HTTPException(status_code=403, detail="Invalid API key configuration")
+    
+    user_repo = UserRepository(db)
+    
+    # Find user
+    user = await user_repo.find_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Normalize user data
+    user_id_normalized = str(user.get("id") or user.get("_id"))
+    role_norm = (user.get("role") or "").strip().lower()
+    
+    # Verify it's a manager or seller (not gérant)
+    if role_norm in ["gerant", "gérant"]:
+        raise HTTPException(status_code=403, detail="Cannot delete gérant via API")
+    
+    # Calculate user's tenant_id
+    user_tenant_id = user.get("gerant_id")
+    
+    # Verify tenant access
+    if not user_tenant_id or str(user_tenant_id) != str(tenant_id):
+        raise HTTPException(status_code=403, detail="User does not belong to this tenant")
+    
+    # VERROUILLAGE STORE_IDS STRICT
+    store_ids = api_key_data.get('store_ids')
+    user_store_id = user.get("store_id")
+    
+    if store_ids is not None and "*" not in store_ids:
+        # Key is restricted
+        if not user_store_id or str(user_store_id) not in [str(sid) for sid in store_ids]:
+            raise HTTPException(
+                status_code=403,
+                detail="API key does not have access to this user's store"
+            )
+    
+    # Use GerantService to delete user (soft delete)
+    gerant_service = GerantService(db)
+    
+    try:
+        role = "manager" if role_norm == "manager" else "seller"
+        result = await gerant_service.delete_user(user_id_normalized, tenant_id, role)
+        return {"success": True, "message": result.get("message", f"{role.capitalize()} supprimé avec succès")}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error deleting user: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete user")
+
+
 # ===== KPI SYNC ENDPOINT =====
 
 @router.post("/kpi/sync")
