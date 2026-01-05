@@ -132,7 +132,7 @@ export default function APIDocModal({ isOpen, onClose }) {
               {/* Endpoint 1 : my-stores */}
               <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
                 <h4 className="text-lg font-bold text-purple-900 mb-3">
-                  1. GET /api/v1/integrations/my-stores 👥
+                  1. GET /api/integrations/my-stores 👥
                 </h4>
                 <p className="text-gray-700 mb-4">
                   Récupère la liste complète de tous les magasins accessibles avec leur personnel. 
@@ -141,7 +141,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-green-400">GET</div>
-                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/my-stores</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/integrations/my-stores</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                 </div>
@@ -154,7 +154,7 @@ export default function APIDocModal({ isOpen, onClose }) {
               {/* Endpoint 2 : my-stats */}
               <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
                 <h4 className="text-lg font-bold text-green-900 mb-3">
-                  2. GET /api/v1/integrations/my-stats 📊
+                  2. GET /api/integrations/my-stats 📊
                 </h4>
                 <p className="text-gray-700 mb-4">
                   Récupère les statistiques agrégées (CA, ventes, articles) sur une période donnée.
@@ -162,7 +162,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-green-400">GET</div>
-                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/my-stats</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/integrations/my-stats</div>
                   <div className="mt-2 text-gray-400">Query Params:</div>
                   <div className="text-yellow-300">start_date=2024-01-01&end_date=2024-01-31</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
@@ -177,7 +177,7 @@ export default function APIDocModal({ isOpen, onClose }) {
               {/* Endpoint 3 : POST kpi */}
               <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
                 <h4 className="text-lg font-bold text-orange-900 mb-3">
-                  3. POST /api/v1/integrations/kpi ✍️
+                  3. POST /api/integrations/kpi ✍️
                 </h4>
                 
                 <div className="bg-purple-50 border-l-4 border-purple-500 p-3 mb-4">
@@ -192,23 +192,28 @@ export default function APIDocModal({ isOpen, onClose }) {
                 </div>
                 
                 <p className="text-gray-700 mb-4">
-                  Envoie les KPI journaliers d'un vendeur (CA, nombre de ventes, articles vendus, prospects).
+                  Envoie les KPI journaliers d'un ou plusieurs vendeurs (CA, nombre de ventes, articles vendus, prospects).
+                  Permet d'envoyer jusqu'à 100 entrées KPI en une seule requête.
                 </p>
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-orange-400">POST</div>
-                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/kpi</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/integrations/kpi/sync</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                   <div className="text-yellow-300">Content-Type: application/json</div>
                   <div className="mt-2 text-gray-400">Body:</div>
                   <pre className="text-green-300 mt-1">{`{
-  "seller_id": "uuid-du-vendeur",
   "date": "2024-01-15",
-  "ca_journalier": 1250.50,
-  "nb_ventes": 12,
-  "nb_articles": 28,
-  "prospects": 35
+  "kpi_entries": [
+    {
+      "seller_id": "uuid-du-vendeur",
+      "ca_journalier": 1250.50,
+      "nb_ventes": 12,
+      "nb_articles": 28,
+      "prospects": 35
+    }
+  ]
 }`}</pre>
                 </div>
 
@@ -217,12 +222,14 @@ export default function APIDocModal({ isOpen, onClose }) {
                     <strong>📊 Champs disponibles :</strong>
                   </p>
                   <ul className="text-xs text-blue-800 mt-2 ml-4 space-y-1">
-                    <li>• <code className="bg-blue-200 px-1 rounded">seller_id</code> <span className="text-red-600">(requis)</span> : ID du vendeur</li>
-                    <li>• <code className="bg-blue-200 px-1 rounded">date</code> <span className="text-red-600">(requis)</span> : Date YYYY-MM-DD</li>
-                    <li>• <code className="bg-blue-200 px-1 rounded">ca_journalier</code> <span className="text-red-600">(requis)</span> : Chiffre d'affaires en €</li>
-                    <li>• <code className="bg-blue-200 px-1 rounded">nb_ventes</code> <span className="text-red-600">(requis)</span> : Nombre de ventes</li>
-                    <li>• <code className="bg-blue-200 px-1 rounded">nb_articles</code> <span className="text-red-600">(requis)</span> : Nombre d'articles vendus</li>
-                    <li>• <code className="bg-blue-200 px-1 rounded">prospects</code> <span className="text-green-600">(optionnel)</span> : Nombre de prospects/clients entrés dans le magasin (flux entrant)</li>
+                    <li>• <code className="bg-blue-200 px-1 rounded">date</code> <span className="text-red-600">(requis)</span> : Date YYYY-MM-DD pour toutes les entrées</li>
+                    <li>• <code className="bg-blue-200 px-1 rounded">kpi_entries</code> <span className="text-red-600">(requis)</span> : Tableau d'entrées KPI (max 100)</li>
+                    <li className="ml-4 mt-1">Chaque entrée contient :</li>
+                    <li className="ml-8">- <code className="bg-blue-200 px-1 rounded">seller_id</code> <span className="text-red-600">(requis)</span> : ID du vendeur</li>
+                    <li className="ml-8">- <code className="bg-blue-200 px-1 rounded">ca_journalier</code> <span className="text-red-600">(requis)</span> : Chiffre d'affaires en €</li>
+                    <li className="ml-8">- <code className="bg-blue-200 px-1 rounded">nb_ventes</code> <span className="text-red-600">(requis)</span> : Nombre de ventes</li>
+                    <li className="ml-8">- <code className="bg-blue-200 px-1 rounded">nb_articles</code> <span className="text-red-600">(requis)</span> : Nombre d'articles vendus</li>
+                    <li className="ml-8">- <code className="bg-blue-200 px-1 rounded">prospects</code> <span className="text-green-600">(optionnel)</span> : Nombre de prospects/clients</li>
                   </ul>
                 </div>
 
@@ -250,7 +257,7 @@ export default function APIDocModal({ isOpen, onClose }) {
               {/* Endpoint 4 : POST /stores */}
               <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
                 <h4 className="text-lg font-bold text-blue-900 mb-3">
-                  4. POST /api/v1/integrations/stores 🏪
+                  4. POST /api/integrations/stores 🏪
                 </h4>
                 <p className="text-gray-700 mb-4">
                   Créer un nouveau magasin. <strong className="text-red-600">Réservé aux gérants uniquement.</strong>
@@ -258,7 +265,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-blue-400">POST</div>
-                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/stores</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/integrations/stores</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                   <div className="text-yellow-300">Content-Type: application/json</div>
@@ -280,7 +287,7 @@ export default function APIDocModal({ isOpen, onClose }) {
               {/* Endpoint 5 : POST /managers */}
               <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
                 <h4 className="text-lg font-bold text-indigo-900 mb-3">
-                  5. POST /api/v1/integrations/stores/{'{'}store_id{'}'}/managers 👔
+                  5. POST /api/integrations/stores/{'{'}store_id{'}'}/managers 👔
                 </h4>
                 <p className="text-gray-700 mb-4">
                   Créer un nouveau manager pour un magasin spécifique.
@@ -288,7 +295,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-indigo-400">POST</div>
-                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/stores/{'{'}<span className="text-yellow-300">store_id</span>{'}'}/managers</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/integrations/stores/{'{'}<span className="text-yellow-300">store_id</span>{'}'}/managers</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                   <div className="text-yellow-300">Content-Type: application/json</div>
@@ -310,7 +317,7 @@ export default function APIDocModal({ isOpen, onClose }) {
               {/* Endpoint 6 : POST /sellers */}
               <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
                 <h4 className="text-lg font-bold text-purple-900 mb-3">
-                  6. POST /api/v1/integrations/stores/{'{'}store_id{'}'}/sellers 👤
+                  6. POST /api/integrations/stores/{'{'}store_id{'}'}/sellers 👤
                 </h4>
                 <p className="text-gray-700 mb-4">
                   Créer un nouveau vendeur pour un magasin spécifique.
@@ -318,7 +325,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-purple-400">POST</div>
-                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/stores/{'{'}<span className="text-yellow-300">store_id</span>{'}'}/sellers</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/integrations/stores/{'{'}<span className="text-yellow-300">store_id</span>{'}'}/sellers</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                   <div className="text-yellow-300">Content-Type: application/json</div>
@@ -341,7 +348,7 @@ export default function APIDocModal({ isOpen, onClose }) {
               {/* Endpoint 7 : PUT /users */}
               <div className="bg-white border border-gray-300 rounded-lg p-6 mb-6">
                 <h4 className="text-lg font-bold text-green-900 mb-3">
-                  7. PUT /api/v1/integrations/users/{'{'}user_id{'}'} 🔄
+                  7. PUT /api/integrations/users/{'{'}user_id{'}'} 🔄
                 </h4>
                 <p className="text-gray-700 mb-4">
                   Mettre à jour les informations d'un manager ou vendeur (nom, email, statut, etc.)
@@ -349,7 +356,7 @@ export default function APIDocModal({ isOpen, onClose }) {
                 
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto mb-3">
                   <div className="text-green-400">PUT</div>
-                  <div className="text-blue-300">https://api.retailperformerai.com/api/v1/integrations/users/{'{'}<span className="text-yellow-300">user_id</span>{'}'}</div>
+                  <div className="text-blue-300">https://api.retailperformerai.com/api/integrations/users/{'{'}<span className="text-yellow-300">user_id</span>{'}'}</div>
                   <div className="mt-2 text-gray-400">Headers:</div>
                   <div className="text-yellow-300">X-API-Key: rp_live_votre_cle_api_ici</div>
                   <div className="text-yellow-300">Content-Type: application/json</div>
@@ -378,19 +385,24 @@ export default function APIDocModal({ isOpen, onClose }) {
                   <h4 className="font-semibold text-gray-900 mb-2">curl (Bash)</h4>
                   <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
                     <pre>{`# Récupérer les magasins
-curl -X GET "https://api.retailperformerai.com/api/v1/integrations/my-stores" \\
+curl -X GET "https://api.retailperformerai.com/api/integrations/my-stores" \\
   -H "X-API-Key: rp_live_votre_cle"
 
 # Envoyer des KPI
-curl -X POST "https://api.retailperformerai.com/api/v1/integrations/kpi" \\
+curl -X POST "https://api.retailperformerai.com/api/integrations/kpi/sync" \\
   -H "X-API-Key: rp_live_votre_cle" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "seller_id": "uuid-vendeur",
     "date": "2024-01-15",
-    "ca_journalier": 1250.50,
-    "nb_ventes": 12,
-    "nb_articles": 28
+    "kpi_entries": [
+      {
+        "seller_id": "uuid-vendeur",
+        "ca_journalier": 1250.50,
+        "nb_ventes": 12,
+        "nb_articles": 28,
+        "prospects": 35
+      }
+    ]
   }'`}</pre>
                   </div>
                 </div>
@@ -401,7 +413,7 @@ curl -X POST "https://api.retailperformerai.com/api/v1/integrations/kpi" \\
                     <pre>{`import requests
 
 API_KEY = "rp_live_votre_cle"
-BASE_URL = "https://api.retailperformerai.com/api/v1/integrations"
+BASE_URL = "https://api.retailperformerai.com/api/integrations"
 
 # Récupérer les magasins
 response = requests.get(
@@ -412,14 +424,19 @@ stores = response.json()
 
 # Envoyer des KPI
 kpi_data = {
-    "seller_id": "uuid-vendeur",
     "date": "2024-01-15",
-    "ca_journalier": 1250.50,
-    "nb_ventes": 12,
-    "nb_articles": 28
+    "kpi_entries": [
+        {
+            "seller_id": "uuid-vendeur",
+            "ca_journalier": 1250.50,
+            "nb_ventes": 12,
+            "nb_articles": 28,
+            "prospects": 35
+        }
+    ]
 }
 response = requests.post(
-    f"{BASE_URL}/kpi",
+    f"{BASE_URL}/kpi/sync",
     headers={"X-API-Key": API_KEY},
     json=kpi_data
 )`}</pre>
