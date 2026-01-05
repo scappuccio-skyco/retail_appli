@@ -16,7 +16,9 @@ class IntegrationService:
     
     def __init__(self, integration_repo: IntegrationRepository, db=None):
         self.integration_repo = integration_repo
-        self.db = db or integration_repo.db  # Access to database for user lookups
+        self.db = db if db is not None else integration_repo.db  # Access to database for user lookups
+        if self.db is None:
+            raise RuntimeError("IntegrationService: db is required")
     
     async def create_api_key(
         self,
