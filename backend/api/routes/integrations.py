@@ -79,13 +79,27 @@ async def verify_api_key(
             api_key = authorization
     
     if not api_key:
-        raise HTTPException(status_code=401, detail="API key required. Use X-API-Key header or Authorization: Bearer <API_KEY>")
+        raise HTTPException(
+            status_code=401, 
+            detail="API key required. Use X-API-Key header or Authorization: Bearer <API_KEY>"
+        )
     
     try:
         api_key_data = await integration_service.verify_api_key(api_key)
         return api_key_data
     except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
+        error_message = str(e)
+        logger.warning(f"API key verification failed: {error_message}")
+        raise HTTPException(
+            status_code=401, 
+            detail=error_message
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error during API key verification: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or inactive API Key"
+        )
 
 
 # ===== SECURITY MIDDLEWARES =====

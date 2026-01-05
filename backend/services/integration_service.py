@@ -119,15 +119,39 @@ class IntegrationService:
         Raises:
             ValueError: If key is invalid, inactive, or expired
         """
+        if not api_key:
+            raise ValueError("API Key is required")
+        
+        # Validate key format
+        if not api_key.startswith("sk_live_"):
+            logger.warning(f"Invalid API key format. Expected prefix 'sk_live_', got: {api_key[:12]}...")
+            raise ValueError("Invalid API Key format. API keys must start with 'sk_live_'")
+        
         # Find key by prefix
         key_prefix = api_key[:12]
         possible_keys = await self.integration_repo.find_api_keys_by_prefix(key_prefix)
         
+        if not possible_keys:
+            logger.warning(f"No API keys found with prefix: {key_prefix}...")
+            raise ValueError("Invalid or inactive API Key - No matching key found")
+        
+        # Try to match the key with hash verification
         for key_doc in possible_keys:
             if verify_password(api_key, key_doc['key_hash']):
+                # Check if key is active
+                if not key_doc.get('active', True):
+                    logger.warning(f"API key {key_doc.get('id')} is inactive")
+                    raise ValueError("API Key is inactive")
+                
                 # Check expiration
                 if key_doc.get('expires_at'):
-                    if datetime.now(timezone.utc).timestamp() > key_doc['expires_at']:
+                    expires_timestamp = key_doc['expires_at']
+                    if isinstance(expires_timestamp, str):
+                        # Handle ISO format strings
+                        expires_dt = datetime.fromisoformat(expires_timestamp.replace('Z', '+00:00'))
+                        expires_timestamp = expires_dt.timestamp()
+                    if datetime.now(timezone.utc).timestamp() > expires_timestamp:
+                        logger.warning(f"API key {key_doc.get('id')} has expired")
                         raise ValueError("API Key expired")
                 
                 # MIGRATION: If key doesn't have tenant_id, calculate and update it
@@ -149,9 +173,17 @@ class IntegrationService:
                         )
                         raise ValueError("API Key configuration invalid: missing tenant_id")
                 
+                # Update last_used_at
+                await self.integration_repo.api_keys.update_one(
+                    {"id": key_doc['id']},
+                    {"$set": {"last_used_at": datetime.now(timezone.utc)}}
+                )
+                
                 return key_doc
         
-        raise ValueError("Invalid or inactive API Key")
+        # If we get here, the key prefix matched but hash verification failed
+        logger.warning(f"API key hash verification failed for prefix: {key_prefix}...")
+        raise ValueError("Invalid or inactive API Key - Hash verification failed")
     
     async def get_tenant_id_from_api_key(self, api_key_data: Dict) -> Optional[str]:
         """
