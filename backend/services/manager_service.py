@@ -257,29 +257,34 @@ class APIKeyService:
         """
         from uuid import uuid4
         import secrets
+        from core.security import get_password_hash
         
         # Generate secure API key
         random_part = secrets.token_urlsafe(32)
-        api_key = f"rp_live_{random_part}"
+        api_key = f"sk_live_{random_part}"
+        
+        # Hash the key for storage (same system as IntegrationService)
+        hashed_key = get_password_hash(api_key)
         
         # Calculate expiration
         expires_at = None
         if expires_days:
-            expires_at = (datetime.now(timezone.utc) + timedelta(days=expires_days)).isoformat()
+            expires_at = datetime.now(timezone.utc).timestamp() + (expires_days * 86400)
         
-        # Create record
+        # Create record (using same format as IntegrationService for compatibility)
         key_id = str(uuid4())
         key_record = {
             "id": key_id,
             "user_id": user_id,
             "store_id": store_id,
             "gerant_id": gerant_id,
-            "key": api_key,
+            "key_hash": hashed_key,  # Store hashed key instead of plain text
+            "key_prefix": api_key[:12],  # Store prefix for lookup
             "name": name,
             "permissions": permissions,
             "store_ids": store_ids,
             "active": True,
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(timezone.utc),
             "last_used_at": None,
             "expires_at": expires_at
         }
@@ -289,7 +294,7 @@ class APIKeyService:
         return {
             "id": key_id,
             "name": name,
-            "key": api_key,  # Only shown at creation
+            "api_key": api_key,  # Only shown at creation (same field name as IntegrationService)
             "permissions": permissions,
             "active": True,
             "created_at": key_record["created_at"],
@@ -371,23 +376,40 @@ class APIKeyService:
         )
         
         # Generate new key
+        from core.security import get_password_hash
+        
         random_part = secrets.token_urlsafe(32)
-        new_api_key = f"rp_live_{random_part}"
+        new_api_key = f"sk_live_{random_part}"
+        
+        # Hash the key for storage (same system as IntegrationService)
+        hashed_key = get_password_hash(new_api_key)
+        
         new_key_id = str(uuid4())
+        
+        # Handle expiration format (could be timestamp or ISO string)
+        expires_at = old_key.get('expires_at')
+        if expires_at and isinstance(expires_at, str):
+            # Convert ISO string to timestamp if needed
+            try:
+                expires_dt = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                expires_at = expires_dt.timestamp()
+            except:
+                pass
         
         new_key_record = {
             "id": new_key_id,
             "user_id": user_id,
             "store_id": old_key.get('store_id'),
             "gerant_id": old_key.get('gerant_id'),
-            "key": new_api_key,
+            "key_hash": hashed_key,  # Store hashed key instead of plain text
+            "key_prefix": new_api_key[:12],  # Store prefix for lookup
             "name": old_key['name'],
             "permissions": old_key['permissions'],
             "store_ids": old_key.get('store_ids'),
             "active": True,
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(timezone.utc),
             "last_used_at": None,
-            "expires_at": old_key.get('expires_at'),
+            "expires_at": expires_at,
             "previous_key_id": key_id
         }
         
@@ -395,8 +417,8 @@ class APIKeyService:
         
         return {
             "id": new_key_id,
+            "api_key": new_api_key,  # Only shown at regeneration (same field name as IntegrationService)
             "name": new_key_record["name"],
-            "key": new_api_key,  # Only shown at regeneration
             "permissions": new_key_record["permissions"],
             "active": True,
             "created_at": new_key_record["created_at"],
