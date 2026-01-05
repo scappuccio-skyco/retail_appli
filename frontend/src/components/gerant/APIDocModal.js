@@ -330,14 +330,44 @@ export default function APIDocModal({ isOpen, onClose }) {
               
               <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded">
                 <p className="text-blue-900 font-semibold mb-2">
-                  ✅ Endpoint disponible : POST /api/integrations/stores/{`{store_id}`}/managers
+                  ✅ Endpoints disponibles :
                 </p>
-                <p className="text-blue-800 text-sm">
-                  Créez un nouveau manager pour un magasin. Le manager sera automatiquement assigné au magasin spécifié dans l'URL.
-                </p>
+                <ul className="text-blue-800 text-sm space-y-1 ml-4">
+                  <li>• <code className="bg-blue-200 px-1 rounded">GET /api/integrations/stores/{`{store_id}`}/managers</code> - Lister les managers</li>
+                  <li>• <code className="bg-blue-200 px-1 rounded">POST /api/integrations/stores/{`{store_id}`}/managers</code> - Créer un manager</li>
+                </ul>
               </div>
 
               <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">📋 Lister les managers</h4>
+                  <p className="text-gray-700 mb-3">
+                    Récupérez la liste de tous les managers d'un magasin.
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                    <pre className="text-green-300">{`curl -X GET "https://api.retailperformerai.com/api/integrations/stores/store-123/managers" \\
+  -H "X-API-Key: sk_live_votre_cle_api_ici"`}</pre>
+                  </div>
+                  <p className="text-gray-600 text-sm mt-2">
+                    <strong>Permission requise :</strong> <code className="bg-gray-200 px-1 rounded">stores:read</code>
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs mt-3">
+                    <pre className="text-green-300">{`{
+  "managers": [
+    {
+      "id": "manager-789",
+      "name": "Jean Dupont",
+      "email": "jean.dupont@example.com",
+      "phone": "0123456789",
+      "role": "manager",
+      "status": "active",
+      "store_id": "store-123"
+    }
+  ]
+}`}</pre>
+                  </div>
+                </div>
+
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">➕ Créer un manager</h4>
                   <p className="text-gray-700 mb-3">
@@ -371,14 +401,45 @@ export default function APIDocModal({ isOpen, onClose }) {
               
               <div className="bg-purple-50 border-l-4 border-purple-500 p-4 mb-4 rounded">
                 <p className="text-purple-900 font-semibold mb-2">
-                  ✅ Endpoint disponible : POST /api/integrations/stores/{`{store_id}`}/sellers
+                  ✅ Endpoints disponibles :
                 </p>
-                <p className="text-purple-800 text-sm">
-                  Créez un nouveau vendeur pour un magasin. Le vendeur sera automatiquement assigné au magasin et à un manager.
-                </p>
+                <ul className="text-purple-800 text-sm space-y-1 ml-4">
+                  <li>• <code className="bg-purple-200 px-1 rounded">GET /api/integrations/stores/{`{store_id}`}/sellers</code> - Lister les vendeurs</li>
+                  <li>• <code className="bg-purple-200 px-1 rounded">POST /api/integrations/stores/{`{store_id}`}/sellers</code> - Créer un vendeur</li>
+                </ul>
               </div>
 
               <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">📋 Lister les vendeurs</h4>
+                  <p className="text-gray-700 mb-3">
+                    Récupérez la liste de tous les vendeurs d'un magasin.
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                    <pre className="text-green-300">{`curl -X GET "https://api.retailperformerai.com/api/integrations/stores/store-123/sellers" \\
+  -H "X-API-Key: sk_live_votre_cle_api_ici"`}</pre>
+                  </div>
+                  <p className="text-gray-600 text-sm mt-2">
+                    <strong>Permission requise :</strong> <code className="bg-gray-200 px-1 rounded">stores:read</code>
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs mt-3">
+                    <pre className="text-green-300">{`{
+  "sellers": [
+    {
+      "id": "seller-456",
+      "name": "Marie Martin",
+      "email": "marie.martin@example.com",
+      "phone": "0123456789",
+      "role": "seller",
+      "status": "active",
+      "store_id": "store-123",
+      "manager_id": "manager-789"
+    }
+  ]
+}`}</pre>
+                  </div>
+                </div>
+
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">➕ Créer un vendeur</h4>
                   <p className="text-gray-700 mb-3">
