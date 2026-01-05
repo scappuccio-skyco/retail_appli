@@ -291,15 +291,29 @@ class APIKeyService:
         
         await self.db.api_keys.insert_one(key_record)
         
+        # Convert created_at to ISO string for JSON serialization
+        created_at_iso = key_record["created_at"].isoformat() if isinstance(key_record["created_at"], datetime) else key_record["created_at"]
+        
+        # Convert expires_at timestamp to ISO string if it exists
+        expires_at_iso = None
+        if expires_at:
+            if isinstance(expires_at, (int, float)):
+                expires_at_iso = datetime.fromtimestamp(expires_at, tz=timezone.utc).isoformat()
+            elif isinstance(expires_at, datetime):
+                expires_at_iso = expires_at.isoformat()
+            else:
+                expires_at_iso = expires_at
+        
         return {
             "id": key_id,
             "name": name,
-            "api_key": api_key,  # Only shown at creation (same field name as IntegrationService)
+            "key": api_key,  # Only shown at creation (for frontend compatibility)
+            "api_key": api_key,  # Also return as api_key for consistency
             "permissions": permissions,
             "active": True,
-            "created_at": key_record["created_at"],
+            "created_at": created_at_iso,
             "last_used_at": None,
-            "expires_at": expires_at,
+            "expires_at": expires_at_iso,
             "store_ids": store_ids
         }
     
@@ -417,7 +431,8 @@ class APIKeyService:
         
         return {
             "id": new_key_id,
-            "api_key": new_api_key,  # Only shown at regeneration (same field name as IntegrationService)
+            "key": new_api_key,  # Only shown at regeneration (for frontend compatibility)
+            "api_key": new_api_key,  # Also return as api_key for consistency
             "name": new_key_record["name"],
             "permissions": new_key_record["permissions"],
             "active": True,
