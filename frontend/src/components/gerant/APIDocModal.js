@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Book, ExternalLink, Download } from 'lucide-react';
 import { API_BASE } from '../../lib/api';
+import SupportModal from '../SupportModal';
 
 export default function APIDocModal({ isOpen, onClose }) {
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  
   if (!isOpen) return null;
 
   const handleDownloadPDF = async () => {
@@ -384,13 +387,6 @@ else:
               <p className="text-gray-700 mb-4">
                 Pour une documentation complète avec tous les détails techniques, exemples de code, et cas d'usage avancés, téléchargez la notice PDF complète.
               </p>
-              <button
-                onClick={handleDownloadPDF}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-semibold"
-              >
-                <Download className="w-4 h-4" />
-                Télécharger la notice complète (PDF)
-              </button>
             </section>
 
             {/* Support */}
@@ -399,13 +395,13 @@ else:
               <p className="text-gray-700 mb-4">
                 Si vous avez des questions ou rencontrez des difficultés, n'hésitez pas à contacter notre support technique.
               </p>
-              <a
-                href="mailto:contact@retailperformerai.com"
+              <button
+                onClick={() => setShowSupportModal(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
                 <ExternalLink className="w-4 h-4" />
                 Contacter le support
-              </a>
+              </button>
             </section>
 
           </div>
@@ -428,6 +424,12 @@ else:
           </button>
         </div>
       </div>
+
+      {/* Support Modal */}
+      <SupportModal 
+        isOpen={showSupportModal}
+        onClose={() => setShowSupportModal(false)}
+      />
     </div>
   );
 }

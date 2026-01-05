@@ -33,12 +33,12 @@ async def get_integrations_pdf(
         )
     
     try:
-        # Get the markdown file path
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        md_path = os.path.join(base_dir, "docs", "NOTICE_API_INTEGRATIONS.md")
+        # Get the markdown file path - use ROOT_DIR from config
+        from core.config import ROOT_DIR
+        md_path = ROOT_DIR / "docs" / "NOTICE_API_INTEGRATIONS.md"
         
-        if not os.path.exists(md_path):
-            raise HTTPException(status_code=404, detail="Documentation file not found")
+        if not md_path.exists():
+            raise HTTPException(status_code=404, detail=f"Documentation file not found at {md_path}")
         
         # Read markdown file
         with open(md_path, "r", encoding="utf-8") as f:

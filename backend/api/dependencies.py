@@ -174,7 +174,7 @@ def get_integration_service(db: AsyncIOMotorDatabase = Depends(get_db)) -> Integ
             return await integration_service.create_api_key(...)
     """
     integration_repo = IntegrationRepository(db)
-    return IntegrationService(integration_repo)
+    return IntegrationService(integration_repo, db)
 
 
 # API Key Service (for manager routes)
