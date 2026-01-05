@@ -1,0 +1,296 @@
+﻿{
+  "generated_at": "2025-01-XXT00:00:00.000Z",
+  "source": "runtime_app_routes",
+  "base_url": "https://api.retailperformerai.com",
+  "total_routes": 181,
+  "routes": [
+    {
+      "path": "/api/ai/daily-challenge",
+      "method": "POST",
+      "name": "generate_daily_challenge",
+      "tags": ["AI & Diagnostics"],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/ai/diagnostic",
+      "method": "POST",
+      "name": "generate_diagnostic",
+      "tags": ["AI & Diagnostics"],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/ai/seller-bilan",
+      "method": "POST",
+      "name": "generate_seller_bilan",
+      "tags": ["AI & Diagnostics"],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/auth/forgot-password",
+      "method": "POST",
+      "name": "forgot_password",
+      "tags": ["Authentication"],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/auth/invitations/verify/{token}",
+      "method": "GET",
+      "name": "verify_invitation",
+      "tags": ["Authentication"],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/auth/login",
+      "method": "POST",
+      "name": "login",
+      "tags": ["Authentication"],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/auth/me",
+      "method": "GET",
+      "name": "get_current_user_info",
+      "tags": ["Authentication"],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/auth/register",
+      "method": "POST",
+      "name": "register",
+      "tags": ["Authentication"],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/auth/register/invitation",
+      "method": "POST",
+      "name": "register_with_invitation",
+      "tags": ["Authentication"],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/auth/reset-password",
+      "method": "POST",
+      "name": "reset_password",
+      "tags": ["Authentication"],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/auth/reset-password/{token}",
+      "method": "GET",
+      "name": "verify_reset_token",
+      "tags": ["Authentication"],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/stores/",
+      "method": "POST",
+      "name": "create_store",
+      "tags": ["Stores & Workspaces"],
+      "dependencies": ["get_current_gerant"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/stores/my-stores",
+      "method": "GET",
+      "name": "get_my_stores",
+      "tags": ["Stores & Workspaces"],
+      "dependencies": ["get_current_gerant"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/stores/{store_id}/info",
+      "method": "GET",
+      "name": "get_store_info",
+      "tags": ["Stores & Workspaces"],
+      "dependencies": ["get_current_user"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/stores/{store_id}/hierarchy",
+      "method": "GET",
+      "name": "get_store_hierarchy",
+      "tags": ["Stores & Workspaces"],
+      "dependencies": ["get_gerant_or_manager"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/manager/subscription-status",
+      "method": "GET",
+      "name": "get_subscription_status",
+      "tags": ["Manager"],
+      "dependencies": ["get_store_context"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/manager/store-kpi-overview",
+      "method": "GET",
+      "name": "get_store_kpi_overview",
+      "tags": ["Manager"],
+      "dependencies": ["get_store_context"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/manager/dates-with-data",
+      "method": "GET",
+      "name": "get_dates_with_data",
+      "tags": ["Manager"],
+      "dependencies": ["get_store_context"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/manager/available-years",
+      "method": "GET",
+      "name": "get_available_years",
+      "tags": ["Manager"],
+      "dependencies": ["get_store_context"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/seller/subscription-status",
+      "method": "GET",
+      "name": "get_seller_subscription_status",
+      "tags": ["Seller"],
+      "dependencies": ["get_current_seller"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/seller/kpi-enabled",
+      "method": "GET",
+      "name": "check_kpi_enabled",
+      "tags": ["Seller"],
+      "dependencies": ["get_current_user"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/seller/tasks",
+      "method": "GET",
+      "name": "get_seller_tasks",
+      "tags": ["Seller"],
+      "dependencies": ["get_current_seller"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/seller/objectives/active",
+      "method": "GET",
+      "name": "get_active_seller_objectives",
+      "tags": ["Seller"],
+      "dependencies": ["get_current_seller"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/seller/objectives/all",
+      "method": "GET",
+      "name": "get_all_seller_objectives",
+      "tags": ["Seller"],
+      "dependencies": ["get_current_seller"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/integrations/kpi/sync",
+      "method": "POST",
+      "name": "sync_kpi_data",
+      "tags": ["Integrations"],
+      "dependencies": ["verify_api_key"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/integrations/v1/kpi/sync",
+      "method": "POST",
+      "name": "sync_kpi_data_legacy",
+      "tags": ["Integrations"],
+      "dependencies": ["verify_api_key"],
+      "deprecated": true,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/integrations/api-keys",
+      "method": "GET",
+      "name": "list_api_keys",
+      "tags": ["Integrations"],
+      "dependencies": ["get_current_gerant"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/integrations/api-keys",
+      "method": "POST",
+      "name": "create_api_key",
+      "tags": ["Integrations"],
+      "dependencies": ["get_current_gerant"],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/health",
+      "method": "GET",
+      "name": "health_check",
+      "tags": [],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/api/health",
+      "method": "GET",
+      "name": "api_health_check",
+      "tags": [],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/",
+      "method": "GET",
+      "name": "root",
+      "tags": [],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": true
+    },
+    {
+      "path": "/_debug/routes",
+      "method": "GET",
+      "name": "debug_routes",
+      "tags": [],
+      "dependencies": [],
+      "deprecated": false,
+      "include_in_schema": false
+    }
+  ]
+}

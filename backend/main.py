@@ -228,6 +228,68 @@ async def root():
         "docs": "/docs" if settings.ENVIRONMENT != "production" else "Contact admin for documentation"
     }
 
+# Debug endpoint to list all routes (not included in OpenAPI schema)
+@app.get("/_debug/routes", include_in_schema=False)
+async def debug_routes():
+    """
+    Debug endpoint to list all routes at runtime.
+    Not included in OpenAPI schema for security.
+    """
+    from datetime import datetime
+    
+    routes_list = []
+    
+    for route in app.routes:
+        if not hasattr(route, "path"):
+            continue
+        
+        methods = sorted(getattr(route, "methods", set()))
+        methods = [m for m in methods if m not in ["OPTIONS", "HEAD"]]
+        
+        if not methods:
+            continue
+        
+        path = getattr(route, "path", "")
+        name = getattr(route, "name", "")
+        
+        # Get dependencies
+        dependencies = []
+        if hasattr(route, "dependant"):
+            deps = getattr(route.dependant, "dependencies", [])
+            for dep in deps:
+                if hasattr(dep, "call"):
+                    dep_name = getattr(dep.call, "__name__", str(dep.call))
+                    dependencies.append(dep_name)
+        
+        # Get tags
+        tags = []
+        if hasattr(route, "tags"):
+            tags = list(route.tags) if route.tags else []
+        
+        deprecated = getattr(route, "deprecated", False)
+        include_in_schema = getattr(route, "include_in_schema", True)
+        
+        for method in methods:
+            routes_list.append({
+                "path": path,
+                "method": method,
+                "name": name,
+                "tags": tags,
+                "dependencies": dependencies,
+                "deprecated": deprecated,
+                "include_in_schema": include_in_schema
+            })
+    
+    routes_list.sort(key=lambda x: (x["path"], x["method"]))
+    
+    return {
+        "generated_at": datetime.now().isoformat(),
+        "source": "runtime_app_routes",
+        "base_url": "https://api.retailperformerai.com",
+        "total_routes": len(routes_list),
+        "routes": routes_list
+    }
+
 
 # ==========================================
 # Legacy/Compatibility endpoints for old invitation links
