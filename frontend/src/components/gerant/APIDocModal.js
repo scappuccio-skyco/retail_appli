@@ -12,6 +12,11 @@ export default function APIDocModal({ isOpen, onClose }) {
     try {
       const token = localStorage.getItem('token');
       
+      if (!token) {
+        alert('Vous devez être connecté pour télécharger le PDF.');
+        return;
+      }
+
       const response = await fetch(`${API_BASE}/api/docs/integrations.pdf`, {
         method: 'GET',
         headers: {
@@ -20,10 +25,22 @@ export default function APIDocModal({ isOpen, onClose }) {
       });
 
       if (!response.ok) {
-        throw new Error('Erreur lors du téléchargement du PDF');
+        const errorText = await response.text();
+        console.error('Erreur serveur:', response.status, errorText);
+        throw new Error(`Erreur ${response.status}: ${errorText || 'Erreur lors du téléchargement du PDF'}`);
       }
 
       const blob = await response.blob();
+      
+      // Vérifier que c'est bien un PDF
+      if (blob.type && blob.type !== 'application/pdf' && !blob.type.includes('pdf')) {
+        console.error('Type de fichier reçu:', blob.type);
+        // Ne pas bloquer si le type n'est pas défini (certains serveurs ne le renvoient pas)
+        if (blob.type) {
+          throw new Error('Le fichier reçu n\'est pas un PDF');
+        }
+      }
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -34,7 +51,7 @@ export default function APIDocModal({ isOpen, onClose }) {
       document.body.removeChild(a);
     } catch (error) {
       console.error('Erreur lors du téléchargement du PDF:', error);
-      alert('Erreur lors du téléchargement du PDF. Veuillez réessayer.');
+      alert(`Erreur lors du téléchargement du PDF: ${error.message || 'Veuillez réessayer.'}`);
     }
   };
 
@@ -63,13 +80,15 @@ export default function APIDocModal({ isOpen, onClose }) {
             <section className="mb-8">
               <h3 className="text-xl font-bold text-gray-900 mb-4">📋 À quoi sert l'API Intégrations ?</h3>
               <p className="text-gray-700 mb-4">
-                L'API Intégrations permet à vos logiciels externes (caisse, ERP, systèmes de paie) de <strong>synchroniser automatiquement</strong> les données de vente avec Retail Performer AI.
+                L'API Intégrations permet à vos logiciels externes (caisse, ERP, systèmes de paie) de <strong>gérer automatiquement</strong> vos magasins, équipes et données de vente avec Retail Performer AI.
               </p>
               <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
                 <p className="text-blue-900 font-semibold mb-2">💡 Exemples d'utilisation :</p>
                 <ul className="text-blue-800 space-y-2 ml-4">
-                  <li>• <strong>Votre caisse enregistre les ventes</strong> → Les KPI (CA, nombre de ventes) sont automatiquement envoyés à Retail Performer AI</li>
-                  <li>• <strong>Votre ERP gère les stocks</strong> → Les données de vente sont synchronisées chaque jour</li>
+                  <li>• <strong>Créer des magasins automatiquement</strong> → Votre ERP crée un nouveau magasin dans Retail Performer AI</li>
+                  <li>• <strong>Gérer votre équipe</strong> → Créez des managers et vendeurs depuis votre système RH</li>
+                  <li>• <strong>Synchroniser les ventes</strong> → Votre caisse enregistre les ventes et les KPI sont automatiquement envoyés</li>
+                  <li>• <strong>Mettre à jour les informations</strong> → Modifiez les noms, téléphones, statuts des utilisateurs</li>
                   <li>• <strong>Plus besoin de saisie manuelle</strong> → Tout est automatisé</li>
                 </ul>
               </div>
@@ -87,7 +106,14 @@ export default function APIDocModal({ isOpen, onClose }) {
                     <li>Remplissez le formulaire :
                       <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
                         <li><strong>Nom</strong> : Donnez un nom à votre clé (ex: "Caisse Magasin Paris")</li>
-                        <li><strong>Permissions</strong> : Cochez "Synchroniser les KPI" (permission <code className="bg-purple-200 px-1 rounded text-xs">write:kpi</code>)</li>
+                        <li><strong>Permissions</strong> : Cochez les permissions nécessaires :
+                          <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
+                            <li><code className="bg-purple-200 px-1 rounded text-xs">stores:read</code> - Lire les magasins</li>
+                            <li><code className="bg-purple-200 px-1 rounded text-xs">stores:write</code> - Créer des magasins</li>
+                            <li><code className="bg-purple-200 px-1 rounded text-xs">users:write</code> - Créer/modifier des utilisateurs</li>
+                            <li><code className="bg-purple-200 px-1 rounded text-xs">kpi:write</code> - Synchroniser les KPI</li>
+                          </ul>
+                        </li>
                         <li><strong>Expiration</strong> : Optionnel - définissez une date d'expiration pour plus de sécurité</li>
                       </ul>
                     </li>
@@ -241,6 +267,188 @@ export default function APIDocModal({ isOpen, onClose }) {
                   </div>
                   <p className="text-gray-600 text-sm mt-2">
                     Cela signifie que 1 nouvelle entrée a été créée. Si vous envoyez les mêmes données le lendemain, elles seront mises à jour automatiquement.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* Gestion des magasins */}
+            <section className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">🏪 Gérer les magasins via l'API</h3>
+              
+              <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded">
+                <p className="text-green-900 font-semibold mb-2">
+                  ✅ Endpoints disponibles :
+                </p>
+                <ul className="text-green-800 text-sm space-y-1 ml-4">
+                  <li>• <code className="bg-green-200 px-1 rounded">GET /api/integrations/stores</code> - Lister vos magasins</li>
+                  <li>• <code className="bg-green-200 px-1 rounded">POST /api/integrations/stores</code> - Créer un nouveau magasin</li>
+                </ul>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">📋 Lister les magasins</h4>
+                  <p className="text-gray-700 mb-3">
+                    Récupérez la liste de tous vos magasins (ou seulement ceux autorisés si votre clé est restreinte).
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                    <pre className="text-green-300">{`curl -X GET "https://api.retailperformerai.com/api/integrations/stores" \\
+  -H "X-API-Key: sk_live_votre_cle_api_ici"`}</pre>
+                  </div>
+                  <p className="text-gray-600 text-sm mt-2">
+                    <strong>Permission requise :</strong> <code className="bg-gray-200 px-1 rounded">stores:read</code>
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">➕ Créer un magasin</h4>
+                  <p className="text-gray-700 mb-3">
+                    Créez un nouveau magasin depuis votre ERP ou système de gestion.
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                    <pre className="text-green-300">{`curl -X POST "https://api.retailperformerai.com/api/integrations/stores" \\
+  -H "X-API-Key: sk_live_votre_cle_api_ici" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "name": "Magasin Lyon Centre",
+    "location": "69001 Lyon",
+    "address": "456 Rue de la République",
+    "phone": "0123456789"
+  }'`}</pre>
+                  </div>
+                  <p className="text-gray-600 text-sm mt-2">
+                    <strong>Permission requise :</strong> <code className="bg-gray-200 px-1 rounded">stores:write</code>
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* Gestion des managers */}
+            <section className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">👔 Gérer les managers via l'API</h3>
+              
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded">
+                <p className="text-blue-900 font-semibold mb-2">
+                  ✅ Endpoint disponible : POST /api/integrations/stores/{`{store_id}`}/managers
+                </p>
+                <p className="text-blue-800 text-sm">
+                  Créez un nouveau manager pour un magasin. Le manager sera automatiquement assigné au magasin spécifié dans l'URL.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">➕ Créer un manager</h4>
+                  <p className="text-gray-700 mb-3">
+                    Créez un manager depuis votre système RH. Le manager sera automatiquement lié au magasin indiqué dans l'URL.
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                    <pre className="text-green-300">{`curl -X POST "https://api.retailperformerai.com/api/integrations/stores/store-123/managers" \\
+  -H "X-API-Key: sk_live_votre_cle_api_ici" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "name": "Jean Dupont",
+    "email": "jean.dupont@example.com",
+    "phone": "0123456789"
+  }'`}</pre>
+                  </div>
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-3 rounded">
+                    <p className="text-yellow-900 text-sm">
+                      <strong>⚠️ Important :</strong> Le magasin est déterminé par l'URL (<code className="bg-yellow-200 px-1 rounded">/stores/store-123/managers</code>). Tout <code className="bg-yellow-200 px-1 rounded">store_id</code> dans le body sera ignoré.
+                    </p>
+                  </div>
+                  <p className="text-gray-600 text-sm mt-2">
+                    <strong>Permission requise :</strong> <code className="bg-gray-200 px-1 rounded">users:write</code>
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* Gestion des vendeurs */}
+            <section className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">👤 Gérer les vendeurs via l'API</h3>
+              
+              <div className="bg-purple-50 border-l-4 border-purple-500 p-4 mb-4 rounded">
+                <p className="text-purple-900 font-semibold mb-2">
+                  ✅ Endpoint disponible : POST /api/integrations/stores/{`{store_id}`}/sellers
+                </p>
+                <p className="text-purple-800 text-sm">
+                  Créez un nouveau vendeur pour un magasin. Le vendeur sera automatiquement assigné au magasin et à un manager.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">➕ Créer un vendeur</h4>
+                  <p className="text-gray-700 mb-3">
+                    Créez un vendeur depuis votre système RH. Le vendeur sera automatiquement lié au magasin indiqué dans l'URL.
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                    <pre className="text-green-300">{`curl -X POST "https://api.retailperformerai.com/api/integrations/stores/store-123/sellers" \\
+  -H "X-API-Key: sk_live_votre_cle_api_ici" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "name": "Marie Martin",
+    "email": "marie.martin@example.com",
+    "phone": "0123456789",
+    "manager_id": "manager-789"
+  }'`}</pre>
+                  </div>
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-3 rounded">
+                    <p className="text-yellow-900 text-sm">
+                      <strong>💡 Note :</strong> Si vous ne spécifiez pas de <code className="bg-yellow-200 px-1 rounded">manager_id</code>, un manager actif du magasin sera assigné automatiquement.
+                    </p>
+                  </div>
+                  <p className="text-gray-600 text-sm mt-2">
+                    <strong>Permission requise :</strong> <code className="bg-gray-200 px-1 rounded">users:write</code>
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* Mise à jour des utilisateurs */}
+            <section className="mb-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">✏️ Modifier les utilisateurs via l'API</h3>
+              
+              <div className="bg-indigo-50 border-l-4 border-indigo-500 p-4 mb-4 rounded">
+                <p className="text-indigo-900 font-semibold mb-2">
+                  ✅ Endpoint disponible : PUT /api/integrations/users/{`{user_id}`}
+                </p>
+                <p className="text-indigo-800 text-sm">
+                  Modifiez les informations d'un utilisateur (manager ou vendeur). Seuls certains champs peuvent être modifiés.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">📝 Modifier un utilisateur</h4>
+                  <p className="text-gray-700 mb-3">
+                    Mettez à jour le nom, téléphone, statut ou ID externe d'un utilisateur.
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                    <pre className="text-green-300">{`curl -X PUT "https://api.retailperformerai.com/api/integrations/users/user-123" \\
+  -H "X-API-Key: sk_live_votre_cle_api_ici" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "name": "Jean Dupont Modifié",
+    "phone": "0987654321",
+    "status": "active",
+    "external_id": "USER-001"
+  }'`}</pre>
+                  </div>
+                  <div className="bg-red-50 border-l-4 border-red-400 p-3 mt-3 rounded">
+                    <p className="text-red-900 text-sm">
+                      <strong>❌ Champs interdits :</strong> Vous ne pouvez <strong>pas</strong> modifier l'email, le tenant_id, le store_id ou le role via l'API.
+                    </p>
+                  </div>
+                  <div className="bg-green-50 border-l-4 border-green-400 p-3 mt-3 rounded">
+                    <p className="text-green-900 text-sm">
+                      <strong>✅ Champs autorisés :</strong> <code className="bg-green-200 px-1 rounded">name</code>, <code className="bg-green-200 px-1 rounded">phone</code>, <code className="bg-green-200 px-1 rounded">status</code> (active/suspended), <code className="bg-green-200 px-1 rounded">external_id</code>
+                    </p>
+                  </div>
+                  <p className="text-gray-600 text-sm mt-2">
+                    <strong>Permission requise :</strong> <code className="bg-gray-200 px-1 rounded">users:write</code>
                   </p>
                 </div>
               </div>
