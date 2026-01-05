@@ -808,7 +808,7 @@ async def create_api_key(
             store_id=current_user.get('store_id'),
             gerant_id=gerant_id,
             name=key_data.get('name', 'API Key'),
-            permissions=key_data.get('permissions', ["write:kpi", "read:stats"]),
+            permissions=key_data.get('permissions', ["write:kpi", "read:stats", "stores:read", "stores:write", "users:write"]),
             store_ids=key_data.get('store_ids'),
             expires_days=key_data.get('expires_days')
         )

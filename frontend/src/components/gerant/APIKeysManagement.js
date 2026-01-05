@@ -14,7 +14,7 @@ const APIKeysManagement = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newKeyData, setNewKeyData] = useState({
     name: '',
-    permissions: ['write:kpi', 'read:stats'],
+    permissions: ['write:kpi', 'read:stats', 'stores:read', 'stores:write', 'users:write'],
     expires_days: null,
     store_ids: null  // null = all stores
   });
@@ -63,7 +63,7 @@ const APIKeysManagement = () => {
       );
       setCreatedKey(response.data);
       setShowCreateModal(false);
-      setNewKeyData({ name: '', permissions: ['write:kpi', 'read:stats'], expires_days: null, store_ids: null });
+      setNewKeyData({ name: '', permissions: ['write:kpi', 'read:stats', 'stores:read', 'stores:write', 'users:write'], expires_days: null, store_ids: null });
       fetchAPIKeys();
     } catch (err) {
       setError(err.response?.data?.detail || err.message);
@@ -301,9 +301,11 @@ const APIKeysManagement = () => {
                     ? '📝 Écriture KPI' 
                     : perm === 'read:stats' 
                     ? '📊 Lecture stats'
-                    : perm === 'write:stores'
+                    : perm === 'stores:read'
+                    ? '📖 Lire magasins'
+                    : perm === 'stores:write'
                     ? '🏪 Créer magasins'
-                    : perm === 'write:users'
+                    : perm === 'users:write'
                     ? '👥 Gérer utilisateurs'
                     : perm;
                   return (
@@ -314,9 +316,11 @@ const APIKeysManagement = () => {
                         ? 'Permet d\'envoyer des données KPI' 
                         : perm === 'read:stats'
                         ? 'Permet de lire les statistiques'
-                        : perm === 'write:stores'
+                        : perm === 'stores:read'
+                        ? 'Permet de lire les magasins'
+                        : perm === 'stores:write'
                         ? 'Permet de créer des magasins'
-                        : perm === 'write:users'
+                        : perm === 'users:write'
                         ? 'Permet de gérer les utilisateurs'
                         : ''}
                     >
@@ -475,17 +479,46 @@ const APIKeysManagement = () => {
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={newKeyData.permissions.includes('write:stores')}
+                      checked={newKeyData.permissions.includes('stores:read')}
                       onChange={(e) => {
                         if (e.target.checked) {
                           setNewKeyData({
                             ...newKeyData,
-                            permissions: [...newKeyData.permissions, 'write:stores']
+                            permissions: [...newKeyData.permissions, 'stores:read']
                           });
                         } else {
                           setNewKeyData({
                             ...newKeyData,
-                            permissions: newKeyData.permissions.filter(p => p !== 'write:stores')
+                            permissions: newKeyData.permissions.filter(p => p !== 'stores:read')
+                          });
+                        }
+                      }}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-0.5 cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <span className="text-sm font-semibold text-gray-900 block">📖 Lire les magasins</span>
+                      <span className="text-xs text-gray-600 block mt-0.5">
+                        Permet de <strong>lire</strong> la liste des magasins et leurs informations via l'API
+                      </span>
+                    </div>
+                  </label>
+                  
+                  <div className="border-t border-blue-200"></div>
+                  
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newKeyData.permissions.includes('stores:write')}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setNewKeyData({
+                            ...newKeyData,
+                            permissions: [...newKeyData.permissions, 'stores:write']
+                          });
+                        } else {
+                          setNewKeyData({
+                            ...newKeyData,
+                            permissions: newKeyData.permissions.filter(p => p !== 'stores:write')
                           });
                         }
                       }}
@@ -504,17 +537,17 @@ const APIKeysManagement = () => {
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={newKeyData.permissions.includes('write:users')}
+                      checked={newKeyData.permissions.includes('users:write')}
                       onChange={(e) => {
                         if (e.target.checked) {
                           setNewKeyData({
                             ...newKeyData,
-                            permissions: [...newKeyData.permissions, 'write:users']
+                            permissions: [...newKeyData.permissions, 'users:write']
                           });
                         } else {
                           setNewKeyData({
                             ...newKeyData,
-                            permissions: newKeyData.permissions.filter(p => p !== 'write:users')
+                            permissions: newKeyData.permissions.filter(p => p !== 'users:write')
                           });
                         }
                       }}
