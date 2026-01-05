@@ -868,7 +868,7 @@ X-API-Key: sk_live_votre_cle_api_ici
 Content-Type: application/json
 ```
 
-**Body JSON** :
+**Body JSON - Format 1 (une seule date pour toutes les entrées)** :
 ```json
 {
   "store_id": "store-123",
@@ -893,17 +893,49 @@ Content-Type: application/json
 }
 ```
 
+**Body JSON - Format 2 (date et store_id dans chaque entrée - pour plusieurs dates)** :
+```json
+{
+  "kpi_entries": [
+    {
+      "seller_id": "seller-456",
+      "store_id": "store-123",
+      "date": "2024-01-15",
+      "ca_journalier": 1250.50,
+      "nb_ventes": 12,
+      "nb_articles": 28,
+      "prospects": 35
+    },
+    {
+      "seller_id": "seller-456",
+      "store_id": "store-123",
+      "date": "2024-01-16",
+      "ca_journalier": 980.25,
+      "nb_ventes": 8,
+      "nb_articles": 15,
+      "prospects": 20
+    }
+  ],
+  "source": "external_api"
+}
+```
+
 **Champs** :
-- `store_id` (requis) : ID du magasin
-- `date` (requis) : Date au format `YYYY-MM-DD`
+- `store_id` (optionnel au niveau racine) : ID du magasin. Si non fourni au niveau racine, doit être fourni dans chaque entrée.
+- `date` (optionnel au niveau racine) : Date au format `YYYY-MM-DD`. Si non fourni au niveau racine, doit être fourni dans chaque entrée.
 - `kpi_entries` (requis) : Tableau d'entrées KPI (maximum 100 entrées par requête)
   - `seller_id` (requis) : ID du vendeur
+  - `store_id` (optionnel) : ID du magasin (remplace le store_id racine si fourni)
+  - `date` (optionnel) : Date au format `YYYY-MM-DD` (remplace la date racine si fournie)
   - `ca_journalier` (requis) : Chiffre d'affaires journalier en €
   - `nb_ventes` (requis) : Nombre de ventes
   - `nb_articles` (requis) : Nombre d'articles vendus
   - `prospects` (optionnel, défaut: 0) : Nombre de prospects/clients
   - `timestamp` (optionnel) : Horodatage de l'entrée
+  - `workspace_id` (optionnel, ignoré) : Accepté pour compatibilité mais ignoré
 - `source` (optionnel, défaut: `"external_api"`) : Identifiant de la source
+
+**Note** : Vous pouvez utiliser le Format 1 pour envoyer plusieurs vendeurs pour une même date, ou le Format 2 pour envoyer plusieurs dates différentes dans une seule requête.
 
 **Limites** :
 - Maximum **100 entrées KPI** par requête

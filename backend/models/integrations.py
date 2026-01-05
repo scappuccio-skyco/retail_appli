@@ -40,12 +40,16 @@ class KPIEntryIntegration(BaseModel):
     nb_articles: int
     prospects: Optional[int] = 0
     timestamp: Optional[str] = None
+    # Support for per-entry date and store_id (for bulk uploads with multiple dates)
+    date: Optional[str] = None  # Format: YYYY-MM-DD (overrides root date if provided)
+    store_id: Optional[str] = None  # Overrides root store_id if provided
+    workspace_id: Optional[str] = None  # Ignored but accepted for compatibility
 
 
 
 class KPISyncRequest(BaseModel):
-    store_id: str
-    date: str  # Format: YYYY-MM-DD
+    store_id: Optional[str] = None  # Optional if provided in each entry
+    date: Optional[str] = None  # Format: YYYY-MM-DD (optional if provided in each entry)
     kpi_entries: List[KPIEntryIntegration]
     source: str = "external_api"  # Identifier la source
 

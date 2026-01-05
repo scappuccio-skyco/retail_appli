@@ -678,10 +678,26 @@ async def sync_kpi_data(
         
         for entry in data.kpi_entries:
             if entry.seller_id:
+                # Use entry-level date/store_id if provided, otherwise use root-level
+                entry_date = entry.date or data.date
+                entry_store_id = entry.store_id or data.store_id
+                
+                # Validate that we have both date and store_id
+                if not entry_date:
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"Date is required. Provide it either at root level or in each kpi_entry."
+                    )
+                if not entry_store_id:
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"store_id is required. Provide it either at root level or in each kpi_entry."
+                    )
+                
                 # Check if exists
                 existing = await kpi_service.kpi_repo.find_by_seller_and_date(
                     entry.seller_id,
-                    data.date
+                    entry_date
                 )
                 
                 kpi_data = {
@@ -696,7 +712,7 @@ async def sync_kpi_data(
                 
                 if existing:
                     seller_operations.append(UpdateOne(
-                        {"seller_id": entry.seller_id, "date": data.date},
+                        {"seller_id": entry.seller_id, "date": entry_date},
                         {"$set": kpi_data}
                     ))
                     entries_updated += 1
@@ -704,7 +720,7 @@ async def sync_kpi_data(
                     kpi_data.update({
                         "id": str(uuid4()),
                         "seller_id": entry.seller_id,
-                        "date": data.date,
+                        "date": entry_date,
                         "created_at": datetime.now(timezone.utc)
                     })
                     seller_operations.append(InsertOne(kpi_data))
