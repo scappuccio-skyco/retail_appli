@@ -12,11 +12,11 @@ Les clés API pour les intégrations (gérants) doivent commencer par `sk_live_`
 
 ```bash
 # ✅ Format correct
-sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+sk_live_YOUR_KEY_HERE
 
 # ❌ Format incorrect
-ent_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  # C'est pour les entreprises
-rp_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxx  # Ancien format
+ent_YOUR_KEY_HERE  # C'est pour les entreprises
+rp_live_YOUR_KEY_HERE  # Ancien format
 ```
 
 #### 2. En-tête HTTP correct
@@ -25,16 +25,16 @@ Assurez-vous d'envoyer la clé API dans le bon en-tête :
 
 ```bash
 # Option 1 : En-tête X-API-Key (recommandé)
-X-API-Key: sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+X-API-Key: sk_live_YOUR_KEY_HERE
 
 # Option 2 : En-tête Authorization
-Authorization: Bearer sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Authorization: Bearer sk_live_YOUR_KEY_HERE
 ```
 
 **Exemple avec curl :**
 ```bash
 curl -X POST http://localhost:8001/api/integrations/stores \
-  -H "X-API-Key: sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -H "X-API-Key: sk_live_YOUR_KEY_HERE" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Mon Magasin",
