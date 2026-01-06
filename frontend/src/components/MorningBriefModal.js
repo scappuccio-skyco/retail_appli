@@ -89,6 +89,43 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
       // === STRUCTURED CONTENT ===
       const structured = briefData.structured;
       
+      // Helper function to clean Markdown for PDF
+      const cleanMarkdownForPDF = (text) => {
+        if (!text) return '';
+        
+        // Remove markdown bold (**text** -> text)
+        let cleaned = text.replace(/\*\*([^*]+)\*\*/g, '$1');
+        
+        // Remove markdown headers (#, ##, ###)
+        cleaned = cleaned.replace(/^#+\s+/gm, '');
+        
+        // Convert markdown lists (- item) to plain text with bullet
+        cleaned = cleaned.replace(/^-\s+/gm, '• ');
+        
+        // Remove markdown links [text](url) -> text
+        cleaned = cleaned.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+        
+        // Remove markdown emphasis (*text* -> text) but not if it's part of **
+        cleaned = cleaned.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '$1');
+        
+        // Remove markdown horizontal rules
+        cleaned = cleaned.replace(/^---+\s*$/gm, '');
+        cleaned = cleaned.replace(/^\*\*\*\s*$/gm, '');
+        
+        // Clean up multiple spaces
+        cleaned = cleaned.replace(/[ \t]+/g, ' ');
+        
+        // Remove markdown code blocks
+        cleaned = cleaned.replace(/```[\s\S]*?```/g, '');
+        cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
+        
+        // Clean up multiple spaces and newlines
+        cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+        cleaned = cleaned.trim();
+        
+        return cleaned;
+      };
+      
       if (structured) {
         // Helper function to add a section
         const addSection = (emoji, title, content, bgColor, textColor) => {
@@ -100,23 +137,26 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
             yPosition = 20;
           }
           
-          // Section header
+          // Section header (remove emoji for PDF compatibility)
           pdf.setFillColor(...bgColor);
           pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 10, 2, 2, 'F');
           
           pdf.setTextColor(...textColor);
           pdf.setFontSize(12);
           pdf.setFont('helvetica', 'bold');
-          pdf.text(emoji + ' ' + title, margin + 5, yPosition + 7);
+          // Remove emoji and use text only
+          const titleText = title.replace(/[^\w\s]/g, '').trim() || title;
+          pdf.text(titleText, margin + 5, yPosition + 7);
           
           yPosition += 14;
           
-          // Section content
+          // Section content - clean Markdown first
           pdf.setTextColor(60, 60, 60);
           pdf.setFontSize(10);
           pdf.setFont('helvetica', 'normal');
           
-          const lines = pdf.splitTextToSize(content, pageWidth - 2 * margin - 10);
+          const cleanedContent = cleanMarkdownForPDF(content);
+          const lines = pdf.splitTextToSize(cleanedContent, pageWidth - 2 * margin - 10);
           lines.forEach(line => {
             if (yPosition > pageHeight - 20) {
               pdf.addPage();
@@ -145,7 +185,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
           pdf.setTextColor(180, 83, 9);
           pdf.setFontSize(12);
           pdf.setFont('helvetica', 'bold');
-          pdf.text('💡 Méthode', margin + 5, yPosition + 7);
+          pdf.text('Methode', margin + 5, yPosition + 7);
           yPosition += 14;
           
           pdf.setTextColor(60, 60, 60);
@@ -157,14 +197,15 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
               pdf.addPage();
               yPosition = 20;
             }
-            pdf.text('• ' + example, margin + 8, yPosition);
+            const cleanedExample = cleanMarkdownForPDF(example);
+            pdf.text('• ' + cleanedExample, margin + 8, yPosition);
             yPosition += 6;
           });
           yPosition += 8;
         }
         
-        addSection('🗣️', 'Question Équipe', structured.team_question, [243, 232, 255], [107, 33, 168]); // Purple
-        addSection('🚀', 'Le Mot de la Fin', structured.booster, [252, 231, 243], [157, 23, 77]); // Pink
+        addSection('', 'Question Equipe', structured.team_question, [243, 232, 255], [107, 33, 168]); // Purple
+        addSection('', 'Le Mot de la Fin', structured.booster, [252, 231, 243], [157, 23, 77]); // Pink
 
       } else {
         // Fallback: Parse markdown content
@@ -173,7 +214,9 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'normal');
         
-        const lines = pdf.splitTextToSize(briefText.replace(/[#*]/g, ''), pageWidth - 2 * margin);
+        // Clean Markdown before splitting
+        const cleanedText = cleanMarkdownForPDF(briefText);
+        const lines = pdf.splitTextToSize(cleanedText, pageWidth - 2 * margin);
         lines.forEach(line => {
           if (yPosition > pageHeight - 20) {
             pdf.addPage();
