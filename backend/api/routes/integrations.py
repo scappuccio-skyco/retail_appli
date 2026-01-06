@@ -724,12 +724,15 @@ async def sync_kpi_data(
                 "nb_ventes": entry.nb_ventes,
                 "nb_articles": entry.nb_articles,
                 "nb_prospects": entry.prospects or 0,
+                "nb_clients": entry.prospects or 0,  # Use prospects as clients if not provided separately
                 "source": "api",
                 "locked": True,
                 "updated_at": datetime.now(timezone.utc)
             }
             
             if existing:
+                # Ensure store_id is included in update
+                kpi_data["store_id"] = entry_store_id
                 seller_operations.append(UpdateOne(
                     {"seller_id": entry.seller_id, "date": entry_date},
                     {"$set": kpi_data}
@@ -739,6 +742,7 @@ async def sync_kpi_data(
                 kpi_data.update({
                     "id": str(uuid4()),
                     "seller_id": entry.seller_id,
+                    "store_id": entry_store_id,  # CRITICAL: Add store_id for dashboard aggregation
                     "date": entry_date,
                     "created_at": datetime.now(timezone.utc)
                 })
@@ -748,14 +752,25 @@ async def sync_kpi_data(
         # Execute bulk operations
         if seller_operations:
             try:
-                await kpi_service.kpi_repo.bulk_write(seller_operations)
+                result = await kpi_service.kpi_repo.bulk_write(seller_operations)
+                logger.info(f"Bulk write completed: {result}")
             except Exception as bulk_error:
                 logger.error(f"Bulk write failed: {str(bulk_error)}", exc_info=True)
                 raise HTTPException(
                     status_code=400,
                     detail=f"Failed to write KPI data to database: {str(bulk_error)}"
                 )
+        else:
+            logger.warning("No seller operations to execute - all entries may have been skipped")
+            return {
+                "status": "warning",
+                "message": "No KPI entries were processed. Check that seller_id values are valid.",
+                "entries_created": 0,
+                "entries_updated": 0,
+                "total": 0
+            }
         
+        logger.info(f"KPI sync completed: {entries_created} created, {entries_updated} updated")
         return {
             "status": "success",
             "entries_created": entries_created,

@@ -451,6 +451,13 @@ async def get_my_kpi_entries(
                 {"_id": 0}
             ).sort("date", -1).limit(365).to_list(365)
         
+        # Log for debugging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Fetched {len(entries)} KPI entries for seller {seller_id}")
+        if entries:
+            logger.info(f"Date range: {entries[-1].get('date')} to {entries[0].get('date')}")
+        
         return entries
         
     except Exception as e:
