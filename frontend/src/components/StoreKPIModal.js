@@ -1373,6 +1373,122 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                 <div className="space-y-4">
                   {historicalData.length > 0 ? (
                     <>
+                      {/* Calculate Totals */}
+                      {(() => {
+                        const totals = historicalData.reduce((acc, entry) => {
+                          const ca = entry.total_ca || entry.seller_ca || 0;
+                          const ventes = entry.total_ventes || entry.seller_ventes || 0;
+                          const articles = entry.total_articles || entry.seller_articles || 0;
+                          const prospects = entry.total_prospects || entry.seller_prospects || 0;
+                          const clients = entry.total_clients || entry.seller_clients || 0;
+                          
+                          return {
+                            total_ca: acc.total_ca + (typeof ca === 'number' ? ca : 0),
+                            total_ventes: acc.total_ventes + (typeof ventes === 'number' ? ventes : 0),
+                            total_articles: acc.total_articles + (typeof articles === 'number' ? articles : 0),
+                            total_prospects: acc.total_prospects + (typeof prospects === 'number' ? prospects : 0),
+                            total_clients: acc.total_clients + (typeof clients === 'number' ? clients : 0)
+                          };
+                        }, {
+                          total_ca: 0,
+                          total_ventes: 0,
+                          total_articles: 0,
+                          total_prospects: 0,
+                          total_clients: 0
+                        });
+                        
+                        const panierMoyen = totals.total_ventes > 0 
+                          ? (totals.total_ca / totals.total_ventes).toFixed(2) 
+                          : '0.00';
+                        const tauxTransfo = totals.total_prospects > 0 
+                          ? ((totals.total_ventes / totals.total_prospects) * 100).toFixed(1) 
+                          : '0.0';
+                        const indiceVente = totals.total_ventes > 0 
+                          ? (totals.total_articles / totals.total_ventes).toFixed(2) 
+                          : '0.00';
+                        
+                        return (
+                          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border-2 border-orange-300 shadow-lg overflow-hidden">
+                            <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3">
+                              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                📊 TOTAL PÉRIODE
+                                <span className="text-sm font-normal opacity-90">
+                                  ({historicalData.length} {historicalData.length === 1 ? 'jour' : 'jours'})
+                                </span>
+                              </h3>
+                            </div>
+                            
+                            <div className="p-4">
+                              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+                                {/* CA Total */}
+                                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border-2 border-green-300">
+                                  <div className="text-xs text-green-700 font-semibold mb-1">💰 CA Total</div>
+                                  <div className="text-lg font-bold text-green-900">
+                                    {totals.total_ca.toFixed(2)} €
+                                  </div>
+                                </div>
+
+                                {/* Ventes Total */}
+                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border-2 border-blue-300">
+                                  <div className="text-xs text-blue-700 font-semibold mb-1">🛍️ Ventes Total</div>
+                                  <div className="text-lg font-bold text-blue-900">
+                                    {totals.total_ventes}
+                                  </div>
+                                </div>
+
+                                {/* Articles Total */}
+                                <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-3 border-2 border-indigo-300">
+                                  <div className="text-xs text-indigo-700 font-semibold mb-1">📦 Articles Total</div>
+                                  <div className="text-lg font-bold text-indigo-900">
+                                    {totals.total_articles}
+                                  </div>
+                                </div>
+
+                                {/* Prospects Total */}
+                                <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-3 border-2 border-pink-300">
+                                  <div className="text-xs text-pink-700 font-semibold mb-1">👤 Prospects Total</div>
+                                  <div className="text-lg font-bold text-pink-900">
+                                    {totals.total_prospects}
+                                  </div>
+                                </div>
+
+                                {/* Clients Total */}
+                                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3 border-2 border-yellow-300">
+                                  <div className="text-xs text-yellow-700 font-semibold mb-1">👥 Clients Total</div>
+                                  <div className="text-lg font-bold text-yellow-900">
+                                    {totals.total_clients > 0 ? totals.total_clients : 'N/A'}
+                                  </div>
+                                </div>
+
+                                {/* Panier Moyen */}
+                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border-2 border-purple-300">
+                                  <div className="text-xs text-purple-700 font-semibold mb-1">🛒 Panier Moyen</div>
+                                  <div className="text-lg font-bold text-purple-900">
+                                    {panierMoyen} €
+                                  </div>
+                                </div>
+
+                                {/* Taux Transformation */}
+                                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 border-2 border-orange-300">
+                                  <div className="text-xs text-orange-700 font-semibold mb-1">📈 Taux Transfo</div>
+                                  <div className="text-lg font-bold text-orange-900">
+                                    {tauxTransfo}%
+                                  </div>
+                                </div>
+
+                                {/* Indice Vente */}
+                                <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-3 border-2 border-cyan-300">
+                                  <div className="text-xs text-cyan-700 font-semibold mb-1">📊 Indice Vente</div>
+                                  <div className="text-lg font-bold text-cyan-900">
+                                    {indiceVente}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      
                       {/* Data List */}
                       <div className="bg-white rounded-xl border-2 border-gray-200 shadow-sm overflow-hidden">
                         <div className="bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-3">

@@ -5,9 +5,24 @@ import { Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import AIRecommendations from './AIRecommendations';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 import { API_BASE } from '../lib/api';
+import { getApiPrefixByRole, normalizeHistoryResponse } from '../utils/apiHelpers';
 
 const BACKEND_URL = API_BASE;
 const API = `${BACKEND_URL}/api`;
+
+// Get user role from localStorage or JWT
+const getUserRole = () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return 'manager'; // Default to manager
+    
+    // Try to decode JWT payload
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload?.role || 'manager';
+  } catch (e) {
+    return 'manager'; // Default fallback
+  }
+};
 
 export default function ConflictResolutionForm({ sellerId, sellerName }) {
   // Pattern Ultra Simple - États séparés avec useState
@@ -35,10 +50,25 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     setLoadingHistory(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/manager/conflict-history/${sellerId}`, {
+      const userRole = getUserRole();
+      const apiPrefix = getApiPrefixByRole(userRole);
+      
+      let url;
+      if (userRole === 'seller') {
+        // Seller: GET /api/seller/conflict-history (no sellerId param)
+        url = `${API}${apiPrefix}/conflict-history`;
+      } else {
+        // Manager: GET /api/manager/conflict-history/{sellerId}
+        url = `${API}${apiPrefix}/conflict-history/${sellerId}`;
+      }
+      
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setConflictHistory(response.data);
+      
+      // Normalize response (handles both array and {consultations: [...]} formats)
+      const history = normalizeHistoryResponse(response.data);
+      setConflictHistory(history);
       setLoadingHistory(false);
     } catch (err) {
       console.error('Error loading conflict history:', err);
@@ -72,12 +102,25 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API}/manager/conflict-resolution`,
-        {
+      const userRole = getUserRole();
+      const apiPrefix = getApiPrefixByRole(userRole);
+      
+      // Build payload based on role
+      let payload;
+      if (userRole === 'seller') {
+        // Seller: no seller_id needed (uses current user)
+        payload = formData;
+      } else {
+        // Manager: include seller_id
+        payload = {
           seller_id: sellerId,
           ...formData
-        },
+        };
+      }
+      
+      const response = await axios.post(
+        `${API}${apiPrefix}/conflict-resolution`,
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 

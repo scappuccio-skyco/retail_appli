@@ -9,8 +9,10 @@ from datetime import datetime, timezone, timedelta
 from services.seller_service import SellerService
 from api.dependencies import get_seller_service, get_db
 from core.security import get_current_seller, get_current_user
+import logging
 
 router = APIRouter(prefix="/seller", tags=["Seller"])
+logger = logging.getLogger(__name__)
 
 
 # ===== SUBSCRIPTION ACCESS CHECK =====
@@ -284,6 +286,501 @@ async def get_active_seller_challenges(
         return challenges
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch active challenges: {str(e)}")
+
+
+@router.post("/relationship-advice")
+async def create_seller_relationship_advice(
+    advice_data: dict,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Seller requests relationship advice (self-advice).
+    
+    Payload:
+    {
+        "advice_type": "relationnel" | "conflit",
+        "situation_type": "...",
+        "description": "..."
+    }
+    
+    Returns:
+    {
+        "consultation_id": "...",
+        "recommendation": "...",
+        "seller_name": "..."
+    }
+    """
+    from services.relationship_service import RelationshipService
+    
+    try:
+        seller_id = current_user['id']
+        seller_name = current_user.get('name', 'Vendeur')
+        
+        # Get seller's store_id and manager_id
+        seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1, "manager_id": 1})
+        if not seller:
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+        
+        store_id = seller.get('store_id')
+        manager_id = seller.get('manager_id')
+        
+        if not manager_id:
+            raise HTTPException(status_code=400, detail="Vendeur sans manager associé")
+        
+        relationship_service = RelationshipService(db)
+        
+        # Generate recommendation (seller self-advice)
+        advice_result = await relationship_service.generate_recommendation(
+            seller_id=seller_id,
+            advice_type=advice_data.get('advice_type'),
+            situation_type=advice_data.get('situation_type'),
+            description=advice_data.get('description'),
+            manager_id=manager_id,
+            store_id=store_id,
+            is_seller_request=True
+        )
+        
+        # Save to history
+        consultation_id = await relationship_service.save_consultation({
+            "store_id": store_id,
+            "manager_id": manager_id,
+            "seller_id": seller_id,
+            "seller_name": seller_name,
+            "seller_status": current_user.get('status', 'active'),
+            "advice_type": advice_data.get('advice_type'),
+            "situation_type": advice_data.get('situation_type'),
+            "description": advice_data.get('description'),
+            "recommendation": advice_result["recommendation"]
+        })
+        
+        return {
+            "consultation_id": consultation_id,
+            "recommendation": advice_result["recommendation"],
+            "seller_name": seller_name
+        }
+        
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(
+            "Seller relationship advice failed",
+            extra={
+                "seller_id": current_user.get('id') if 'current_user' in locals() else None,
+                "error": str(e)
+            }
+        )
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération: {str(e)}")
+
+
+@router.get("/relationship-advice/history")
+async def get_seller_relationship_history(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Get seller's relationship advice history (self-advice only).
+    
+    Returns: {"consultations": [...], "total": N}
+    """
+    from services.relationship_service import RelationshipService
+    
+    try:
+        seller_id = current_user['id']
+        
+        # Get seller's store_id
+        seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        store_id = seller.get('store_id') if seller else None
+        
+        relationship_service = RelationshipService(db)
+        
+        # Get consultations for this seller only
+        consultations = await relationship_service.list_consultations(
+            seller_id=seller_id,
+            store_id=store_id,
+            limit=100
+        )
+        
+        return {
+            "consultations": consultations,
+            "total": len(consultations)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching seller relationship history: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/conflict-resolution")
+async def create_seller_conflict_resolution(
+    conflict_data: dict,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Seller reports a conflict and gets AI advice.
+    
+    Payload:
+    {
+        "contexte": "...",
+        "comportement_observe": "...",
+        "impact": "...",
+        "tentatives_precedentes": "...",
+        "description_libre": "..."
+    }
+    
+    Returns:
+    {
+        "id": "...",
+        "seller_name": "...",
+        "ai_analyse_situation": "...",
+        "ai_approche_communication": "...",
+        "ai_actions_concretes": [...],
+        "ai_points_vigilance": [...]
+    }
+    """
+    from services.conflict_service import ConflictService
+    
+    try:
+        seller_id = current_user['id']
+        seller_name = current_user.get('name', 'Vendeur')
+        
+        # Get seller's store_id and manager_id
+        seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1, "manager_id": 1})
+        if not seller:
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+        
+        store_id = seller.get('store_id')
+        manager_id = seller.get('manager_id')
+        
+        if not manager_id:
+            raise HTTPException(status_code=400, detail="Vendeur sans manager associé")
+        
+        conflict_service = ConflictService(db)
+        
+        # Generate conflict advice (seller self-advice)
+        advice_result = await conflict_service.generate_conflict_advice(
+            seller_id=seller_id,
+            contexte=conflict_data.get('contexte'),
+            comportement_observe=conflict_data.get('comportement_observe'),
+            impact=conflict_data.get('impact'),
+            tentatives_precedentes=conflict_data.get('tentatives_precedentes'),
+            description_libre=conflict_data.get('description_libre'),
+            manager_id=manager_id,
+            store_id=store_id,
+            is_seller_request=True
+        )
+        
+        # Save to history
+        conflict_id = await conflict_service.save_conflict({
+            "store_id": store_id,
+            "manager_id": manager_id,
+            "seller_id": seller_id,
+            "seller_name": seller_name,
+            "contexte": conflict_data.get('contexte'),
+            "comportement_observe": conflict_data.get('comportement_observe'),
+            "impact": conflict_data.get('impact'),
+            "tentatives_precedentes": conflict_data.get('tentatives_precedentes'),
+            "description_libre": conflict_data.get('description_libre'),
+            "ai_analyse_situation": advice_result["ai_analyse_situation"],
+            "ai_approche_communication": advice_result["ai_approche_communication"],
+            "ai_actions_concretes": advice_result["ai_actions_concretes"],
+            "ai_points_vigilance": advice_result["ai_points_vigilance"],
+            "statut": "ouvert"
+        })
+        
+        return {
+            "id": conflict_id,
+            "seller_name": seller_name,
+            "ai_analyse_situation": advice_result["ai_analyse_situation"],
+            "ai_approche_communication": advice_result["ai_approche_communication"],
+            "ai_actions_concretes": advice_result["ai_actions_concretes"],
+            "ai_points_vigilance": advice_result["ai_points_vigilance"]
+        }
+        
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(
+            "Seller conflict resolution failed",
+            extra={
+                "seller_id": current_user.get('id') if 'current_user' in locals() else None,
+                "error": str(e)
+            }
+        )
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération: {str(e)}")
+
+
+@router.get("/conflict-history")
+async def get_seller_conflict_history(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """
+    Get seller's conflict resolution history.
+    
+    Returns: {"consultations": [...], "total": N}
+    """
+    from services.conflict_service import ConflictService
+    
+    try:
+        seller_id = current_user['id']
+        
+        # Get seller's store_id
+        seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        store_id = seller.get('store_id') if seller else None
+        
+        conflict_service = ConflictService(db)
+        
+        # Get conflicts for this seller only
+        conflicts = await conflict_service.list_conflicts(
+            seller_id=seller_id,
+            store_id=store_id,
+            limit=100
+        )
+        
+        return {
+            "consultations": conflicts,
+            "total": len(conflicts)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching seller conflict history: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/objectives/{objective_id}/progress")
+async def update_seller_objective_progress(
+    objective_id: str,
+    progress_data: dict,
+    current_user: Dict = Depends(get_current_seller),
+    seller_service: SellerService = Depends(get_seller_service),
+    db = Depends(get_db)
+):
+    """
+    Update progress on an objective (seller route with access control)
+    
+    Payload:
+    {
+        "value": number,  # or "current_value" for backward compatibility
+        "date": "YYYY-MM-DD" (optional),
+        "comment": string (optional)
+    }
+    
+    Access Control:
+    - Seller can only update if data_entry_responsible == "seller"
+    - For individual objectives: seller_id must match current_user.id
+    - For collective objectives: seller must be in visible_to_sellers or visible_to_sellers is null/[]
+    - Objective must be visible (visible == true)
+    """
+    try:
+        seller_id = current_user['id']
+        
+        # Get seller's manager and store_id
+        seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "manager_id": 1, "store_id": 1})
+        if not seller or not seller.get('manager_id'):
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé ou sans manager")
+        
+        manager_id = seller['manager_id']
+        seller_store_id = seller.get('store_id')
+        
+        # Get objective
+        query = {"id": objective_id, "manager_id": manager_id}
+        if seller_store_id:
+            query["store_id"] = seller_store_id
+        
+        objective = await db.objectives.find_one(query)
+        
+        if not objective:
+            raise HTTPException(status_code=404, detail="Objectif non trouvé")
+        
+        # CONTROLE D'ACCÈS: Vérifier data_entry_responsible
+        if objective.get('data_entry_responsible') != 'seller':
+            raise HTTPException(
+                status_code=403,
+                detail="Vous n'êtes pas autorisé à mettre à jour cet objectif. Seul le manager peut le faire."
+            )
+        
+        # CONTROLE D'ACCÈS: Vérifier visible
+        if not objective.get('visible', True):
+            raise HTTPException(status_code=403, detail="Cet objectif n'est pas visible")
+        
+        # CONTROLE D'ACCÈS: Vérifier type et seller_id/visible_to_sellers
+        obj_type = objective.get('type', 'collective')
+        if obj_type == 'individual':
+            # Individual: seller_id must match
+            if objective.get('seller_id') != seller_id:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vous n'êtes pas autorisé à mettre à jour cet objectif individuel"
+                )
+        else:
+            # Collective: check visible_to_sellers
+            visible_to = objective.get('visible_to_sellers', [])
+            if visible_to and len(visible_to) > 0 and seller_id not in visible_to:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vous n'êtes pas autorisé à mettre à jour cet objectif collectif"
+                )
+        
+        # Get new value
+        new_value = progress_data.get("value") or progress_data.get("current_value", objective.get("current_value", 0))
+        target_value = objective.get('target_value', 0)
+        end_date = objective.get('period_end')
+        
+        # Recalculate progress_percentage
+        progress_percentage = 0
+        if target_value > 0:
+            progress_percentage = round((new_value / target_value) * 100, 1)
+        
+        # Recompute status using centralized helper
+        new_status = seller_service.compute_status(new_value, target_value, end_date)
+        
+        # Update objective
+        update_data = {
+            "current_value": new_value,
+            "progress_percentage": progress_percentage,
+            "status": new_status,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.objectives.update_one(
+            {"id": objective_id},
+            {"$set": update_data}
+        )
+        
+        return {
+            "success": True,
+            "current_value": new_value,
+            "progress_percentage": progress_percentage,
+            "status": new_status
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating seller objective progress: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
+
+
+@router.post("/challenges/{challenge_id}/progress")
+async def update_seller_challenge_progress(
+    challenge_id: str,
+    progress_data: dict,
+    current_user: Dict = Depends(get_current_seller),
+    seller_service: SellerService = Depends(get_seller_service),
+    db = Depends(get_db)
+):
+    """
+    Update progress on a challenge (seller route with access control)
+    
+    Payload:
+    {
+        "value": number,  # or "current_value" for backward compatibility
+        "date": "YYYY-MM-DD" (optional),
+        "comment": string (optional)
+    }
+    
+    Access Control:
+    - Seller can only update if data_entry_responsible == "seller"
+    - For individual challenges: seller_id must match current_user.id
+    - For collective challenges: seller must be in visible_to_sellers or visible_to_sellers is null/[]
+    - Challenge must be visible (visible == true)
+    """
+    try:
+        seller_id = current_user['id']
+        
+        # Get seller's manager and store_id
+        seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "manager_id": 1, "store_id": 1})
+        if not seller or not seller.get('manager_id'):
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé ou sans manager")
+        
+        manager_id = seller['manager_id']
+        seller_store_id = seller.get('store_id')
+        
+        # Get challenge
+        query = {"id": challenge_id, "manager_id": manager_id}
+        if seller_store_id:
+            query["store_id"] = seller_store_id
+        
+        challenge = await db.challenges.find_one(query)
+        
+        if not challenge:
+            raise HTTPException(status_code=404, detail="Challenge non trouvé")
+        
+        # CONTROLE D'ACCÈS: Vérifier data_entry_responsible
+        if challenge.get('data_entry_responsible') != 'seller':
+            raise HTTPException(
+                status_code=403,
+                detail="Vous n'êtes pas autorisé à mettre à jour ce challenge. Seul le manager peut le faire."
+            )
+        
+        # CONTROLE D'ACCÈS: Vérifier visible
+        if not challenge.get('visible', True):
+            raise HTTPException(status_code=403, detail="Ce challenge n'est pas visible")
+        
+        # CONTROLE D'ACCÈS: Vérifier type et seller_id/visible_to_sellers
+        chall_type = challenge.get('type', 'collective')
+        if chall_type == 'individual':
+            # Individual: seller_id must match
+            if challenge.get('seller_id') != seller_id:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vous n'êtes pas autorisé à mettre à jour ce challenge individuel"
+                )
+        else:
+            # Collective: check visible_to_sellers
+            visible_to = challenge.get('visible_to_sellers', [])
+            if visible_to and len(visible_to) > 0 and seller_id not in visible_to:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vous n'êtes pas autorisé à mettre à jour ce challenge collectif"
+                )
+        
+        # Get new value
+        new_value = progress_data.get("value") or progress_data.get("current_value", challenge.get("current_value", 0))
+        target_value = challenge.get('target_value', 0)
+        end_date = challenge.get('end_date')
+        
+        # Recalculate progress_percentage
+        progress_percentage = 0
+        if target_value > 0:
+            progress_percentage = round((new_value / target_value) * 100, 1)
+        
+        # Recompute status using centralized helper
+        new_status = seller_service.compute_status(new_value, target_value, end_date)
+        
+        # Update challenge
+        update_data = {
+            "current_value": new_value,
+            "progress_percentage": progress_percentage,
+            "status": new_status,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # If achieved, set completed_at
+        if new_status == "achieved":
+            update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
+        
+        await db.challenges.update_one(
+            {"id": challenge_id},
+            {"$set": update_data}
+        )
+        
+        return {
+            "success": True,
+            "current_value": new_value,
+            "progress_percentage": progress_percentage,
+            "status": new_status
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating seller challenge progress: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
 
 
 @router.get("/challenges/history")

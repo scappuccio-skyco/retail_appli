@@ -1177,7 +1177,8 @@ async def delete_objective(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.put("/objectives/{objective_id}/progress")
+@router.post("/objectives/{objective_id}")
+@router.post("/objectives/{objective_id}/progress")  # Alias for explicit progress endpoint
 async def update_objective_progress(
     objective_id: str,
     progress_data: dict,
@@ -1185,10 +1186,31 @@ async def update_objective_progress(
     context: dict = Depends(get_store_context),
     db = Depends(get_db)
 ):
-    """Update progress on an objective"""
+    """
+    Update progress on an objective.
+    
+    Accepts both:
+    - POST /api/manager/objectives/{id} (alias for compatibility)
+    - POST /api/manager/objectives/{id}/progress (explicit endpoint)
+    
+    Payload:
+    {
+        "value": number,  # or "current_value" for backward compatibility
+        "date": "YYYY-MM-DD" (optional),
+        "comment": string (optional)
+    }
+    
+    Effects:
+    - Updates current_value
+    - Recalculates progress_percentage
+    - Updates status using compute_status helper
+    """
     try:
         resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
+        user_role = context.get('role')
         
+        # Get objective
         existing = await db.objectives.find_one(
             {"id": objective_id, "store_id": resolved_store_id}
         )
@@ -1196,21 +1218,50 @@ async def update_objective_progress(
         if not existing:
             raise HTTPException(status_code=404, detail="Objectif non trouvé")
         
-        current_value = progress_data.get("current_value", existing.get("current_value", 0))
+        # CONTROLE D'ACCÈS: Manager peut toujours mettre à jour
+        # (Les vendeurs utiliseront /api/seller/objectives/{id}/progress)
+        if user_role not in ['manager', 'gerant', 'gérant']:
+            raise HTTPException(status_code=403, detail="Seuls les managers peuvent mettre à jour la progression via cette route")
+        
+        # Get new value (support both "value" and "current_value" for backward compatibility)
+        new_value = progress_data.get("value") or progress_data.get("current_value", existing.get("current_value", 0))
+        target_value = existing.get('target_value', 0)
+        end_date = existing.get('period_end')
+        
+        # Recalculate progress_percentage
+        progress_percentage = 0
+        if target_value > 0:
+            progress_percentage = round((new_value / target_value) * 100, 1)
+        
+        # Recompute status using centralized helper
+        from services.seller_service import SellerService
+        seller_service = SellerService(db)
+        new_status = seller_service.compute_status(new_value, target_value, end_date)
+        
+        # Update objective
+        update_data = {
+            "current_value": new_value,
+            "progress_percentage": progress_percentage,
+            "status": new_status,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
         
         await db.objectives.update_one(
             {"id": objective_id},
-            {"$set": {
-                "current_value": current_value,
-                "updated_at": datetime.now(timezone.utc).isoformat()
-            }}
+            {"$set": update_data}
         )
         
-        return {"success": True, "current_value": current_value}
+        return {
+            "success": True,
+            "current_value": new_value,
+            "progress_percentage": progress_percentage,
+            "status": new_status
+        }
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error updating objective progress: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
 
 
 # ===== CHALLENGES CRUD =====
@@ -1455,7 +1506,8 @@ async def delete_challenge(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.put("/challenges/{challenge_id}/progress")
+@router.post("/challenges/{challenge_id}")
+@router.post("/challenges/{challenge_id}/progress")  # Alias for explicit progress endpoint
 async def update_challenge_progress(
     challenge_id: str,
     progress_data: dict,
@@ -1463,10 +1515,31 @@ async def update_challenge_progress(
     context: dict = Depends(get_store_context),
     db = Depends(get_db)
 ):
-    """Update progress on a challenge"""
+    """
+    Update progress on a challenge.
+    
+    Accepts both:
+    - POST /api/manager/challenges/{id} (alias for compatibility)
+    - POST /api/manager/challenges/{id}/progress (explicit endpoint)
+    
+    Payload:
+    {
+        "value": number,  # or "current_value" for backward compatibility
+        "date": "YYYY-MM-DD" (optional),
+        "comment": string (optional)
+    }
+    
+    Effects:
+    - Updates current_value
+    - Recalculates progress_percentage
+    - Updates status using compute_status helper
+    """
     try:
         resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
+        user_role = context.get('role')
         
+        # Get challenge
         existing = await db.challenges.find_one(
             {"id": challenge_id, "store_id": resolved_store_id}
         )
@@ -1474,21 +1547,54 @@ async def update_challenge_progress(
         if not existing:
             raise HTTPException(status_code=404, detail="Challenge non trouvé")
         
-        current_value = progress_data.get("current_value", existing.get("current_value", 0))
+        # CONTROLE D'ACCÈS: Manager peut toujours mettre à jour
+        # (Les vendeurs utiliseront /api/seller/challenges/{id}/progress)
+        if user_role not in ['manager', 'gerant', 'gérant']:
+            raise HTTPException(status_code=403, detail="Seuls les managers peuvent mettre à jour la progression via cette route")
+        
+        # Get new value (support both "value" and "current_value" for backward compatibility)
+        new_value = progress_data.get("value") or progress_data.get("current_value", existing.get("current_value", 0))
+        target_value = existing.get('target_value', 0)
+        end_date = existing.get('end_date')
+        
+        # Recalculate progress_percentage
+        progress_percentage = 0
+        if target_value > 0:
+            progress_percentage = round((new_value / target_value) * 100, 1)
+        
+        # Recompute status using centralized helper
+        from services.seller_service import SellerService
+        seller_service = SellerService(db)
+        new_status = seller_service.compute_status(new_value, target_value, end_date)
+        
+        # Update challenge
+        update_data = {
+            "current_value": new_value,
+            "progress_percentage": progress_percentage,
+            "status": new_status,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # If achieved, set completed_at
+        if new_status == "achieved":
+            update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
         
         await db.challenges.update_one(
             {"id": challenge_id},
-            {"$set": {
-                "current_value": current_value,
-                "updated_at": datetime.now(timezone.utc).isoformat()
-            }}
+            {"$set": update_data}
         )
         
-        return {"success": True, "current_value": current_value}
+        return {
+            "success": True,
+            "current_value": new_value,
+            "progress_percentage": progress_percentage,
+            "status": new_status
+        }
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error updating challenge progress: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
 
 
 # ===== AI STORE KPI ANALYSIS =====
@@ -2245,6 +2351,15 @@ class RelationshipAdviceRequest(BaseModel):
     description: str
 
 
+class ConflictResolutionRequest(BaseModel):
+    seller_id: str
+    contexte: str
+    comportement_observe: str
+    impact: str
+    tentatives_precedentes: str
+    description_libre: str
+
+
 @router.post("/relationship-advice")
 async def get_relationship_advice(
     request: RelationshipAdviceRequest,
@@ -2255,184 +2370,57 @@ async def get_relationship_advice(
     """
     Generate AI-powered relationship/conflict management advice for managers.
     
-    🏺 LEGACY RESTORED - Uses GPT-4o with manager & seller profiles
-    
-    Uses manager profile, seller profile, KPIs, and recent debriefs
-    to provide personalized advice.
+    Uses RelationshipService for centralized logic.
     """
-    from services.ai_service import AIService
-    from uuid import uuid4
-    import json
+    from services.relationship_service import RelationshipService
     
     try:
         resolved_store_id = context.get('resolved_store_id')
         manager_id = context.get('id')
-        current_user = context
+        manager_name = context.get('name', 'Manager')
         
-        # Get seller info
+        relationship_service = RelationshipService(db)
+        
+        # Generate recommendation
+        advice_result = await relationship_service.generate_recommendation(
+            seller_id=request.seller_id,
+            advice_type=request.advice_type,
+            situation_type=request.situation_type,
+            description=request.description,
+            manager_id=manager_id,
+            manager_name=manager_name,
+            store_id=resolved_store_id,
+            is_seller_request=False
+        )
+        
+        # Get seller info for consultation
         seller = await db.users.find_one(
             {"id": request.seller_id, "store_id": resolved_store_id},
             {"_id": 0, "password": 0}
         )
-        if not seller:
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
-        
-        # Get manager profile
-        manager_diagnostic = await db.manager_diagnostic_results.find_one(
-            {"manager_id": manager_id},
-            {"_id": 0}
-        )
-        
-        # Get seller profile
-        seller_diagnostic = await db.diagnostics.find_one(
-            {"seller_id": request.seller_id},
-            {"_id": 0}
-        )
-        
-        # Get seller KPIs (last 30 days)
-        thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).strftime('%Y-%m-%d')
-        kpi_entries = await db.kpi_entries.find(
-            {
-                "seller_id": request.seller_id,
-                "date": {"$gte": thirty_days_ago}
-            },
-            {"_id": 0}
-        ).to_list(100)
-        
-        # Get recent shared debriefs (last 5)
-        recent_debriefs = await db.debriefs.find(
-            {
-                "seller_id": request.seller_id,
-                "shared_with_manager": True
-            },
-            {"_id": 0}
-        ).sort("created_at", -1).limit(5).to_list(5)
-        
-        # Prepare data summary for AI
-        kpi_summary = f"KPIs sur les 30 derniers jours : {len(kpi_entries)} entrées"
-        if kpi_entries:
-            total_ca = sum(entry.get('ca_journalier', 0) or entry.get('ca', 0) for entry in kpi_entries)
-            total_ventes = sum(entry.get('nb_ventes', 0) or entry.get('ventes', 0) for entry in kpi_entries)
-            kpi_summary += f"\n- CA total : {total_ca:.2f}€\n- Ventes totales : {total_ventes}"
-        
-        debrief_summary = f"{len(recent_debriefs)} debriefs récents"
-        if recent_debriefs:
-            debrief_summary += ":\n" + "\n".join([
-                f"- {d.get('date', 'Date inconnue')}: {d.get('summary', d.get('analyse', 'Pas de résumé'))[:100]}"
-                for d in recent_debriefs
-            ])
-        
-        # Build AI prompt
-        advice_type_fr = "relationnelle" if request.advice_type == "relationnel" else "de conflit"
-        
-        system_message = f"""Tu es un expert en management d'équipe retail et en gestion {advice_type_fr}.
-Tu dois fournir des conseils personnalisés basés sur les profils de personnalité et les performances."""
-
-        user_prompt = f"""# Situation {advice_type_fr.upper()}
-
-**Type de situation :** {request.situation_type}
-**Description :** {request.description}
-
-## Contexte Manager
-**Prénom :** {current_user.get('first_name', current_user.get('name', 'Manager'))}
-**Profil de personnalité :** {json.dumps(manager_diagnostic.get('profile', {}), ensure_ascii=False) if manager_diagnostic else 'Non disponible'}
-
-## Contexte Vendeur
-**Prénom :** {seller.get('first_name', seller.get('name', 'Vendeur'))}
-**Statut :** {seller.get('status', 'actif')}
-**Profil de personnalité :** {json.dumps(seller_diagnostic.get('profile', {}), ensure_ascii=False) if seller_diagnostic else 'Non disponible'}
-
-## Performances
-{kpi_summary}
-
-## Debriefs récents
-{debrief_summary}
-
-# Ta mission
-Fournis une recommandation CONCISE et ACTIONNABLE (maximum 400 mots) structurée avec :
-
-## Analyse de la situation (2-3 phrases max)
-- Diagnostic rapide en tenant compte des profils de personnalité
-
-## Conseils pratiques (3 actions concrètes max)
-- Actions spécifiques et immédiatement applicables
-- Adaptées aux profils de personnalité
-
-## Phrases clés (2-3 phrases max)
-- Formulations précises adaptées au profil du vendeur
-
-## Points de vigilance (2 points max)
-- Ce qu'il faut éviter compte tenu des profils
-
-IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE. Évite les longues explications théoriques."""
-
-        # Initialize AI service
-        ai_service = AIService()
-        
-        if not ai_service.available:
-            logger.warning(
-                "Relationship advice failed: AI service unavailable",
-                extra={"store_id": resolved_store_id, "user_id": manager_id, "seller_id": request.seller_id}
-            )
-            raise HTTPException(status_code=503, detail="Service IA non disponible")
-        
-        # Use GPT-4o for relationship advice
-        try:
-            ai_response = await ai_service._send_message(
-                system_message=system_message,
-                user_prompt=user_prompt,
-                model="gpt-4o"
-            )
-        except Exception as ai_error:
-            logger.exception(
-                "Relationship advice failed: AI call error",
-                extra={
-                    "store_id": resolved_store_id,
-                    "user_id": manager_id,
-                    "seller_id": request.seller_id,
-                    "advice_type": request.advice_type,
-                    "situation_type": request.situation_type,
-                    "error": str(ai_error)
-                }
-            )
-            raise HTTPException(
-                status_code=500,
-                detail=f"Erreur lors de la génération du conseil: {str(ai_error)}"
-            )
-        
-        if not ai_response:
-            logger.warning(
-                "Relationship advice failed: Empty AI response",
-                extra={"store_id": resolved_store_id, "user_id": manager_id, "seller_id": request.seller_id}
-            )
-            raise HTTPException(status_code=500, detail="Erreur lors de la génération du conseil: réponse vide")
+        seller_status = seller.get('status', 'active') if seller else 'active'
         
         # Save to history
-        consultation_id = str(uuid4())
-        seller_name = f"{seller.get('first_name', '')} {seller.get('last_name', '')}".strip() or seller.get('name', 'Vendeur')
-        
-        consultation = {
-            "id": consultation_id,
+        consultation_id = await relationship_service.save_consultation({
             "store_id": resolved_store_id,
             "manager_id": manager_id,
             "seller_id": request.seller_id,
-            "seller_name": seller_name,
-            "seller_status": seller.get('status', 'active'),
+            "seller_name": advice_result["seller_name"],
+            "seller_status": seller_status,
             "advice_type": request.advice_type,
             "situation_type": request.situation_type,
             "description": request.description,
-            "recommendation": ai_response,
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
-        
-        await db.relationship_consultations.insert_one(consultation)
+            "recommendation": advice_result["recommendation"]
+        })
         
         return {
             "consultation_id": consultation_id,
-            "recommendation": ai_response,
-            "seller_name": seller_name
+            "recommendation": advice_result["recommendation"],
+            "seller_name": advice_result["seller_name"]
         }
         
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
     except HTTPException:
         raise
     except Exception as e:
@@ -2482,6 +2470,124 @@ async def get_relationship_history(
         
     except Exception as e:
         logger.error(f"Error fetching relationship history: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/conflict-resolution")
+async def create_conflict_resolution(
+    request: ConflictResolutionRequest,
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Generate AI-powered conflict resolution advice for managers.
+    
+    Uses manager profile, seller profile, and conflict details
+    to provide personalized conflict resolution recommendations.
+    """
+    from services.conflict_service import ConflictService
+    
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
+        manager_name = context.get('name', 'Manager')
+        
+        conflict_service = ConflictService(db)
+        
+        # Generate conflict advice
+        advice_result = await conflict_service.generate_conflict_advice(
+            seller_id=request.seller_id,
+            contexte=request.contexte,
+            comportement_observe=request.comportement_observe,
+            impact=request.impact,
+            tentatives_precedentes=request.tentatives_precedentes,
+            description_libre=request.description_libre,
+            manager_id=manager_id,
+            manager_name=manager_name,
+            store_id=resolved_store_id,
+            is_seller_request=False
+        )
+        
+        # Save to history
+        conflict_id = await conflict_service.save_conflict({
+            "store_id": resolved_store_id,
+            "manager_id": manager_id,
+            "seller_id": request.seller_id,
+            "seller_name": advice_result["seller_name"],
+            "contexte": request.contexte,
+            "comportement_observe": request.comportement_observe,
+            "impact": request.impact,
+            "tentatives_precedentes": request.tentatives_precedentes,
+            "description_libre": request.description_libre,
+            "ai_analyse_situation": advice_result["ai_analyse_situation"],
+            "ai_approche_communication": advice_result["ai_approche_communication"],
+            "ai_actions_concretes": advice_result["ai_actions_concretes"],
+            "ai_points_vigilance": advice_result["ai_points_vigilance"],
+            "statut": "ouvert"
+        })
+        
+        return {
+            "id": conflict_id,
+            "seller_name": advice_result["seller_name"],
+            "ai_analyse_situation": advice_result["ai_analyse_situation"],
+            "ai_approche_communication": advice_result["ai_approche_communication"],
+            "ai_actions_concretes": advice_result["ai_actions_concretes"],
+            "ai_points_vigilance": advice_result["ai_points_vigilance"]
+        }
+        
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(
+            "Conflict resolution failed",
+            extra={
+                "store_id": context.get('resolved_store_id') if 'context' in locals() else None,
+                "user_id": context.get('id') if 'context' in locals() else None,
+                "seller_id": request.seller_id if 'request' in locals() else None,
+                "error": str(e)
+            }
+        )
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération: {str(e)}")
+
+
+@router.get("/conflict-history/{seller_id}")
+async def get_conflict_history(
+    seller_id: str,
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
+    context: dict = Depends(get_store_context),
+    db = Depends(get_db)
+):
+    """
+    Get conflict resolution history for a specific seller.
+    
+    Returns: {"consultations": [...], "total": N}
+    """
+    from services.conflict_service import ConflictService
+    
+    try:
+        resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
+        
+        conflict_service = ConflictService(db)
+        
+        # Get conflicts for this seller and manager
+        conflicts = await conflict_service.list_conflicts(
+            manager_id=manager_id,
+            seller_id=seller_id,
+            store_id=resolved_store_id,
+            limit=100
+        )
+        
+        return {
+            "consultations": conflicts,
+            "total": len(conflicts)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching conflict history: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
