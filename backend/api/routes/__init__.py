@@ -5,6 +5,18 @@ print("[ROUTES] Loading API routes...", flush=True)
 # List of all routers to include in main app
 routers = []
 
+# CRITICAL: Import auth router FIRST with explicit import (no silent failures)
+try:
+    from api.routes.auth import router as auth_router
+    routers.append(auth_router)
+    print(f"[ROUTES] ✅ Loaded auth router ({len(auth_router.routes)} routes)", flush=True)
+except Exception as e:
+    print(f"[ROUTES] ❌ FATAL: Failed to load auth router: {e}", flush=True)
+    import traceback
+    traceback.print_exc()
+    # Auth router is CRITICAL - fail startup if it can't be loaded
+    raise RuntimeError(f"CRITICAL: Cannot load auth router: {e}") from e
+
 def safe_import(module_path, router_name, fallback_prefix=None):
     """Safely import a router with error handling"""
     try:
@@ -17,8 +29,7 @@ def safe_import(module_path, router_name, fallback_prefix=None):
         print(f"[ROUTES] ❌ Failed to load {module_path}.{router_name}: {e}", flush=True)
         return None
 
-# Import all routers with error handling
-safe_import('api.routes.auth', 'router')
+# Import other routers with error handling
 safe_import('api.routes.kpis', 'router')
 safe_import('api.routes.stores', 'router')
 safe_import('api.routes.ai', 'router')

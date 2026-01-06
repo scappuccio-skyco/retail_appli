@@ -109,13 +109,42 @@ print("[STARTUP] 9/10 - CORS middleware added", flush=True)
 
 # Include all routers
 print(f"[STARTUP] Registering {len(routers)} routers...", flush=True)
+
+# CRITICAL: Verify auth router is present
+auth_router_found = False
+for router in routers:
+    if router.prefix == "/auth":
+        auth_router_found = True
+        print(f"[STARTUP] ✅ Auth router found with {len(router.routes)} routes", flush=True)
+        logger.info(f"Auth router routes: {[r.path for r in router.routes]}")
+        break
+
+if not auth_router_found:
+    print("[STARTUP] ❌ FATAL: Auth router not found in routers list!", flush=True)
+    logger.error("CRITICAL: Auth router missing from routers list")
+    raise RuntimeError("CRITICAL: Auth router not loaded - cannot start application")
+
 for router in routers:
     app.include_router(router, prefix="/api")
     logger.info(f"Registered router: {router.prefix} ({len(router.routes)} routes)")
+    if router.prefix == "/auth":
+        logger.info(f"✅ Auth router registered: {[r.path for r in router.routes]}")
+        print(f"[STARTUP] ✅ Auth router registered with routes: {[r.path for r in router.routes]}", flush=True)
     if router.prefix == "/briefs":
         logger.info("✅ Loaded router: /api/briefs")
         print("✅ Loaded router: /api/briefs", flush=True)
 print("[STARTUP] 10/10 - All routers registered - APP READY FOR REQUESTS", flush=True)
+
+# Log confirmation of auth routes (CRITICAL)
+auth_routes = [r for r in app.routes if hasattr(r, 'path') and '/auth' in r.path]
+if auth_routes:
+    auth_paths = [f"{r.methods if hasattr(r, 'methods') else '?'} {r.path}" for r in auth_routes]
+    print(f"[STARTUP] ✅ Auth routes registered: {auth_paths}", flush=True)
+    logger.info(f"Auth routes: {auth_paths}")
+else:
+    print("[STARTUP] ❌ FATAL: No auth routes found in app.routes!", flush=True)
+    logger.error("CRITICAL: No auth routes found in app.routes")
+    raise RuntimeError("CRITICAL: Auth routes not registered in FastAPI app")
 
 # Log confirmation of briefs routes
 briefs_routes = [r.path for r in app.routes if hasattr(r, 'path') and 'briefs' in r.path]
