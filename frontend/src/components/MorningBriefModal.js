@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { X, Coffee, Sparkles, Copy, Check, RefreshCw, Calendar, Clock, Trash2, ChevronDown, Download, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { API_BASE } from '../lib/api';
 
 const API_URL = API_BASE;
@@ -24,14 +25,117 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
   const [exportingPDF, setExportingPDF] = useState(false);
+  
+  // Ref pour le container du brief (source unique pour le PDF - DOM snapshot)
+  const briefContentRef = useRef(null);
 
   const storeParam = storeId ? `?store_id=${storeId}` : '';
 
-  // Export Brief to PDF
+  // Export Brief to PDF - NOUVELLE VERSION basée sur DOM snapshot
   const exportBriefToPDF = async (briefData) => {
     if (!briefData) return;
     
     setExportingPDF(true);
+    
+    try {
+      // ============================================================
+      // ÉTAPE 1: DIAGNOSTIC - Logs des 3 sources de contenu
+      // ============================================================
+      console.log('=== PDF GENERATION DIAGNOSTIC ===');
+      console.log('PDF_SOURCE_rawState:', JSON.stringify(briefData, null, 2));
+      console.log('PDF_SOURCE_domText:', briefContentRef.current?.innerText || 'REF_NOT_READY');
+      console.log('PDF_SOURCE_domHTML:', briefContentRef.current?.innerHTML?.substring(0, 500) || 'REF_NOT_READY');
+      
+      // Vérifier si le ref est disponible (le brief doit être rendu)
+      if (!briefContentRef.current) {
+        console.warn('⚠️ briefContentRef not ready, falling back to string-based PDF');
+        // Fallback vers l'ancienne méthode (sera supprimée après validation)
+        return await exportBriefToPDF_legacy(briefData);
+      }
+      
+      // ============================================================
+      // ÉTAPE 2: CAPTURE DOM avec html2canvas (source unique)
+      // ============================================================
+      const briefElement = briefContentRef.current;
+      
+      // Cloner l'élément pour éviter de modifier le DOM visible
+      const clonedElement = briefElement.cloneNode(true);
+      clonedElement.style.position = 'absolute';
+      clonedElement.style.left = '-9999px';
+      clonedElement.style.top = '0';
+      clonedElement.style.width = briefElement.offsetWidth + 'px';
+      document.body.appendChild(clonedElement);
+      
+      try {
+        // Capturer le DOM en canvas
+        const canvas = await html2canvas(clonedElement, {
+          scale: 2, // Haute résolution
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          windowWidth: briefElement.offsetWidth,
+          windowHeight: briefElement.offsetHeight
+        });
+        
+        // Nettoyer le clone
+        document.body.removeChild(clonedElement);
+        
+        // ============================================================
+        // ÉTAPE 3: CRÉER PDF depuis le canvas
+        // ============================================================
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 15;
+        
+        // Calculer les dimensions de l'image pour qu'elle rentre dans la page
+        const imgWidth = pageWidth - 2 * margin;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Ajouter l'image au PDF (gérer le pagination si nécessaire)
+        let heightLeft = imgHeight;
+        let position = margin;
+        
+        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight - 2 * margin;
+        
+        // Ajouter des pages supplémentaires si nécessaire
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight + margin;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight - 2 * margin;
+        }
+        
+        // ============================================================
+        // ÉTAPE 4: SAUVEGARDER
+        // ============================================================
+        const fileName = `brief_matinal_${(briefData.store_name || storeName || 'store').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+        pdf.save(fileName);
+        
+        console.log('✅ PDF généré depuis DOM snapshot (pas de corruption attendue)');
+        toast.success('PDF téléchargé avec succès !');
+        
+      } catch (canvasError) {
+        // Nettoyer le clone en cas d'erreur
+        if (document.body.contains(clonedElement)) {
+          document.body.removeChild(clonedElement);
+        }
+        throw canvasError;
+      }
+      
+    } catch (error) {
+      console.error('Erreur export PDF (DOM-based):', error);
+      toast.error('Erreur lors de la génération du PDF');
+    } finally {
+      setExportingPDF(false);
+    }
+  };
+  
+  // ANCIENNE MÉTHODE (fallback) - À SUPPRIMER après validation
+  const exportBriefToPDF_legacy = async (briefData) => {
+    console.warn('⚠️ Using legacy string-based PDF generation (fallback)');
     
     try {
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -853,7 +957,10 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 space-y-4">
+              <div 
+                ref={briefContentRef}
+                className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 space-y-4"
+              >
                 {renderBriefContent(brief)}
               </div>
 
