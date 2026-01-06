@@ -93,10 +93,21 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
       const cleanMarkdownForPDF = (text) => {
         if (!text) return '';
         
-        // Decode HTML entities first (handle &amp; &lt; etc.)
+        // First, decode HTML entities (handle &amp; &lt; etc.)
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = text;
         let cleaned = tempDiv.textContent || tempDiv.innerText || text;
+        
+        // Remove any remaining isolated & characters that aren't part of HTML entities
+        // This handles cases where & appears between characters (like "&C&A&")
+        // First pass: remove & that are not part of valid HTML entities
+        cleaned = cleaned.replace(/&(?!amp;|lt;|gt;|quot;|apos;|nbsp;|#\d+;|#x[\da-f]+;)/gi, '');
+        
+        // Second pass: if we still have patterns like "&C&A&", remove all isolated &
+        // This handles corrupted text where & appears between every character
+        cleaned = cleaned.replace(/([^&\s])&([^&\s;])/g, '$1$2');
+        cleaned = cleaned.replace(/^&([^&\s;])/g, '$1');
+        cleaned = cleaned.replace(/([^&\s;])&$/g, '$1');
         
         // Remove markdown bold (**text** -> text)
         cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '$1');
