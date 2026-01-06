@@ -443,6 +443,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
               const cleaned = line.trim();
               if (!cleaned || cleaned === '---' || cleaned === '***' || cleaned.startsWith('*Brief généré')) return null;
               
+              // Titre de sous-section (ligne entière en gras)
               if (cleaned.startsWith('**') && cleaned.endsWith('**') && !cleaned.includes(':') && cleaned.split('**').length === 3) {
                 const subtitle = cleaned.replace(/\*\*/g, '');
                 return (
@@ -453,34 +454,70 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                 );
               }
               
-              if (cleaned.startsWith('-') || cleaned.startsWith('•')) {
+              // Fonction helper pour parser le texte en gras
+              const parseBoldText = (text) => {
+                if (!text) return [<span key="empty"></span>];
+                
+                // Regex améliorée pour capturer **texte** même avec caractères spéciaux, espaces, etc.
+                const parts = [];
+                let lastIndex = 0;
+                const regex = /\*\*([^*]+)\*\*/g;
+                let match;
+                
+                while ((match = regex.exec(text)) !== null) {
+                  // Ajouter le texte avant le match
+                  if (match.index > lastIndex) {
+                    const beforeText = text.substring(lastIndex, match.index);
+                    if (beforeText) {
+                      parts.push(beforeText);
+                    }
+                  }
+                  // Ajouter le texte en gras
+                  parts.push({ type: 'bold', text: match[1] });
+                  lastIndex = regex.lastIndex;
+                }
+                
+                // Ajouter le reste du texte
+                if (lastIndex < text.length) {
+                  const remainingText = text.substring(lastIndex);
+                  if (remainingText) {
+                    parts.push(remainingText);
+                  }
+                }
+                
+                // Si aucun match, retourner le texte tel quel
+                if (parts.length === 0) {
+                  parts.push(text);
+                }
+                
+                return parts.map((part, i) => {
+                  if (typeof part === 'object' && part.type === 'bold') {
+                    return <strong key={i} className="font-semibold text-gray-900">{part.text}</strong>;
+                  }
+                  return <span key={i}>{part}</span>;
+                });
+              };
+              
+              // Liste avec tiret (doit aller à la ligne)
+              // Détecte les tirets avec ou sans espace après
+              if (cleaned.match(/^[-•]\s*/)) {
+                // Retirer le tiret et l'espace qui suit
                 const text = cleaned.replace(/^[-•]\s*/, '');
-                const parts = text.split(/(\*\*.*?\*\*)/g);
                 
                 return (
-                  <div key={lineIdx} className="flex gap-3 items-start pl-2">
+                  <div key={lineIdx} className="flex gap-3 items-start pl-2 mb-2">
                     <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 bg-gradient-to-br ${colorScheme.gradient}`}></span>
-                    <p className="flex-1 text-gray-700 leading-relaxed">
-                      {parts.map((part, i) => {
-                        if (part.startsWith('**') && part.endsWith('**')) {
-                          return <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>;
-                        }
-                        return <span key={i}>{part}</span>;
-                      })}
-                    </p>
+                    <div className="flex-1 text-gray-700 leading-relaxed">
+                      {parseBoldText(text)}
+                    </div>
                   </div>
                 );
               }
               
-              const parts = cleaned.split(/(\*\*.*?\*\*)/g);
+              // Texte normal avec support du gras
               return (
                 <p key={lineIdx} className="text-gray-700 leading-relaxed">
-                  {parts.map((part, i) => {
-                    if (part.startsWith('**') && part.endsWith('**')) {
-                      return <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>;
-                    }
-                    return <span key={i}>{part}</span>;
-                  })}
+                  {parseBoldText(cleaned)}
                 </p>
               );
             })}
