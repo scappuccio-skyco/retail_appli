@@ -5,6 +5,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import Logo from '../components/shared/Logo';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import { API_BASE } from '../lib/api';
 
 export default function Login({ onLogin }) {
   const [searchParams] = useSearchParams();
@@ -98,6 +99,12 @@ export default function Login({ onLogin }) {
         // Login
         endpoint = '/auth/login';
         payload = { email: formData.email, password: formData.password };
+      }
+      
+      // Log en dev pour confirmer l'endpoint utilisé
+      if (process.env.NODE_ENV === 'development') {
+        logger.log('Login endpoint used:', endpoint);
+        logger.log('Full URL will be:', `${API_BASE}/api${endpoint}`);
       }
       
       const res = await api.post(endpoint, payload);
