@@ -1424,13 +1424,12 @@ Format : Markdown simple et concis."""
         
         # 🎯 Use GPT-4o for store analysis (Legacy Restored)
         try:
-            chat = ai_service._create_chat(
-                session_id=f"kpi-analysis-{user_id}-{end_date}",
+            analysis_text = await ai_service._send_message(
                 system_message="Tu es un expert en analyse de performance retail avec 15 ans d'expérience.",
-                model="gpt-4o"  # 🏺 Premium model restored
+                user_prompt=prompt,
+                model="gpt-4o",  # 🏺 Premium model restored
+                temperature=0.7
             )
-            
-            analysis_text = await ai_service._send_message(chat, prompt)
             
             if not analysis_text:
                 raise Exception("No response from AI")
