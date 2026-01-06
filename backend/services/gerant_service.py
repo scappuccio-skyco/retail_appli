@@ -1437,17 +1437,15 @@ class GerantService:
         frontend_url = os.environ.get('FRONTEND_URL', '')
         
         # In production, extract URL from CORS_ORIGINS if FRONTEND_URL is not properly set
-        if not frontend_url or 'preview.emergentagent.com' in frontend_url or 'localhost' in frontend_url:
+        if not frontend_url or 'localhost' in frontend_url:
             # Try to get production URL from CORS_ORIGINS
             if cors_origins and cors_origins != '*':
                 origins = [o.strip() for o in cors_origins.split(',')]
-                # Prefer retailperformerai.com, then emergent.host
+                # Prefer retailperformerai.com
                 for origin in origins:
                     if 'retailperformerai.com' in origin:
                         frontend_url = origin
                         break
-                    elif 'emergent.host' in origin and 'preview' not in origin:
-                        frontend_url = origin
                 if not frontend_url and origins:
                     frontend_url = origins[0]  # Use first origin as fallback
                 logger.info(f"[INVITATION EMAIL] Using URL from CORS_ORIGINS: {frontend_url}")
@@ -1461,8 +1459,7 @@ class GerantService:
                 env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
                 env_vars = dotenv_values(env_path)
                 env_frontend = env_vars.get('FRONTEND_URL', '')
-                # Only use .env URL if it's not a preview URL
-                if env_frontend and 'preview.emergentagent.com' not in env_frontend:
+                if env_frontend:
                     frontend_url = env_frontend
             except Exception:
                 pass

@@ -1,7 +1,7 @@
 """
 AI Service - Integration with OpenAI
 ====================================
-Migration from Emergent LLM to OpenAI SDK (AsyncOpenAI)
+Uses OpenAI SDK (AsyncOpenAI) for AI operations
 """
 
 import os
@@ -944,8 +944,9 @@ Génère un bilan terrain motivant avec :
         Returns:
             Dict avec le brief formaté en markdown et les métadonnées
         """
-        if not EMERGENT_AVAILABLE:
-            return self._fallback_morning_brief(stats, manager_name, store_name)
+        # Si OpenAI n'est pas disponible, utiliser le fallback
+        if not self.available:
+            return self._fallback_morning_brief(stats, manager_name, store_name, data_date)
         
         try:
             # Construire l'instruction de contexte
@@ -1050,12 +1051,12 @@ Génère un brief motivant et concret basé sur ces données."""
                     "generated_at": datetime.now(timezone.utc).isoformat()
                 }
             else:
-                return self._fallback_morning_brief(stats, manager_name, store_name)
+                return self._fallback_morning_brief(stats, manager_name, store_name, data_date)
                 
         except Exception as e:
             import traceback
             logger.error(f"Erreur génération brief matinal: {str(e)}\n{traceback.format_exc()}")
-            return self._fallback_morning_brief(stats, manager_name, store_name)
+            return self._fallback_morning_brief(stats, manager_name, store_name, data_date)
     
     def _parse_brief_to_structured(self, markdown_brief: str) -> Optional[Dict]:
         """
@@ -1182,12 +1183,13 @@ Génère un brief motivant et concret basé sur ces données."""
         
         return "\n".join(lines) if lines else "Pas de données disponibles pour hier"
     
-    def _fallback_morning_brief(self, stats: Dict, manager_name: str, store_name: str) -> Dict:
-        """Brief de fallback si l'IA échoue"""
-        today = datetime.now().strftime("%A %d %B %Y").capitalize()
+    def _fallback_morning_brief(self, stats: Dict, manager_name: str, store_name: str, data_date: Optional[str] = None) -> Dict:
+        """Brief de fallback si l'IA n'est pas disponible (mode test)"""
+        today = datetime.now(timezone.utc).date().isoformat()
+        today_french = datetime.now().strftime("%A %d %B %Y").capitalize()
         ca_hier = stats.get('ca_yesterday', stats.get('ca_hier', 0))
         
-        fallback_brief = f"""# ☕ Brief du Matin - {today}
+        fallback_brief = f"""# ☕ Brief du Matin - {today_french}
 ## {store_name}
 
 ### 1. 🌤️ L'Humeur du Jour
@@ -1227,8 +1229,8 @@ Le premier à atteindre 500€ de CA gagne un café offert par le manager !
             "success": True,
             "brief": fallback_brief,
             "structured": structured,
-            "date": today,
-            "data_date": stats.get('data_date', 'hier'),
+            "date": today_french,
+            "data_date": data_date or stats.get('data_date', datetime.now(timezone.utc).date().isoformat()),
             "store_name": store_name,
             "manager_name": manager_name,
             "has_context": False,
