@@ -569,7 +569,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
           date: formData.date,
           nb_prospects: parseInt(formData.nb_prospects)
         }
-        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       toast.success('Prospects enregistrés avec succès !');

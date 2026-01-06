@@ -280,7 +280,6 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       const response = await api.post(
         `/gerant/subscription/update-seats?new_seats=${newSeats}`,
         {}
-        { headers: { Authorization: `Bearer ${token}` } }
       );
       
       logger.log('✅ API response:', response.data);
