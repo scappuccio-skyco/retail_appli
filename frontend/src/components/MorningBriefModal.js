@@ -98,16 +98,30 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
         tempDiv.innerHTML = text;
         let cleaned = tempDiv.textContent || tempDiv.innerText || text;
         
-        // Remove any remaining isolated & characters that aren't part of HTML entities
-        // This handles cases where & appears between characters (like "&C&A&")
-        // First pass: remove & that are not part of valid HTML entities
-        cleaned = cleaned.replace(/&(?!amp;|lt;|gt;|quot;|apos;|nbsp;|#\d+;|#x[\da-f]+;)/gi, '');
+        // Aggressively remove corrupted patterns where & appears between characters
+        // Pattern: &[char]& repeated (like "&C&A& &r&é&a&l&i&s&é&")
+        // Strategy: Remove all & that are not part of valid HTML entities, then clean up spacing
         
-        // Second pass: if we still have patterns like "&C&A&", remove all isolated &
-        // This handles corrupted text where & appears between every character
-        cleaned = cleaned.replace(/([^&\s])&([^&\s;])/g, '$1$2');
-        cleaned = cleaned.replace(/^&([^&\s;])/g, '$1');
-        cleaned = cleaned.replace(/([^&\s;])&$/g, '$1');
+        // First, protect valid HTML entities by temporarily replacing them
+        const entityMap = {};
+        let entityCounter = 0;
+        cleaned = cleaned.replace(/&(amp|lt|gt|quot|apos|nbsp|#\d+|#x[\da-f]+);/gi, (match) => {
+          const key = `__ENTITY_${entityCounter}__`;
+          entityMap[key] = match;
+          entityCounter++;
+          return key;
+        });
+        
+        // Now remove ALL remaining & characters (they're corrupted)
+        cleaned = cleaned.replace(/&/g, '');
+        
+        // Restore valid HTML entities
+        Object.keys(entityMap).forEach(key => {
+          cleaned = cleaned.replace(key, entityMap[key]);
+        });
+        
+        // Clean up any double spaces created by removing &
+        cleaned = cleaned.replace(/\s+/g, ' ');
         
         // Remove markdown bold (**text** -> text)
         cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '$1');
