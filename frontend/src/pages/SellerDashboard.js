@@ -620,8 +620,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
   const fetchKpiConfig = async () => {
     try {
-      const res = await api.get('/seller/kpi-config');
+      // Passer explicitement le store_id pour s'assurer que la config est liée au magasin
+      const storeParam = user?.store_id ? `?store_id=${user.store_id}` : '';
+      const res = await api.get(`/seller/kpi-config${storeParam}`);
       setKpiConfig(res.data);
+      logger.log('✅ KPI Config récupérée pour store:', user?.store_id, res.data);
     } catch (err) {
       logger.error('Error fetching KPI config:', err);
     }

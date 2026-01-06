@@ -860,18 +860,25 @@ async def get_seller_dates_with_data(
 
 @router.get("/kpi-config")
 async def get_seller_kpi_config(
+    store_id: Optional[str] = Query(None, description="Store ID (optionnel, utilise celui du vendeur si non fourni)"),
     current_user: Dict = Depends(get_current_seller),
     db = Depends(get_db)
 ):
     """
-    Get KPI configuration that applies to this seller.
-    Returns which KPIs the seller should track (based on manager's config).
+    Get KPI configuration that applies to this seller for a specific store.
+    Returns which KPIs the seller should track (based on store's config).
+    
+    CRITICAL: Uses store_id to ensure config is store-specific, not manager-specific.
+    This allows sellers and managers to work across multiple stores.
     """
     try:
         # Get seller's store_id
         user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
         
-        if not user or not user.get('store_id'):
+        # Use provided store_id or seller's store_id
+        effective_store_id = store_id or (user.get('store_id') if user else None)
+        
+        if not effective_store_id:
             # No store, return default config (all enabled)
             return {
                 "track_ca": True,
@@ -881,27 +888,11 @@ async def get_seller_kpi_config(
                 "track_prospects": True
             }
         
-        # Find the manager of this store
-        manager = await db.users.find_one({
-            "store_id": user['store_id'],
-            "role": "manager"
-        }, {"_id": 0, "id": 1})
-        
-        if not manager:
-            # No manager found, return default
-            return {
-                "track_ca": True,
-                "track_ventes": True,
-                "track_clients": True,
-                "track_articles": True,
-                "track_prospects": True
-            }
-        
-        # Get manager's KPI config
-        config = await db.kpi_configs.find_one({"manager_id": manager['id']}, {"_id": 0})
+        # Get KPI config for this store (CRITICAL: search by store_id, not manager_id)
+        config = await db.kpi_configs.find_one({"store_id": effective_store_id}, {"_id": 0})
         
         if not config:
-            # No config found, return default
+            # No config found for this store, return default
             return {
                 "track_ca": True,
                 "track_ventes": True,
@@ -921,6 +912,7 @@ async def get_seller_kpi_config(
         }
         
     except Exception as e:
+        logger.error(f"Error fetching seller KPI config for store {effective_store_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error fetching KPI config: {str(e)}")
 
 
