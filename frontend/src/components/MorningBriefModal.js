@@ -93,8 +93,13 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
       const cleanMarkdownForPDF = (text) => {
         if (!text) return '';
         
+        // Decode HTML entities first (handle &amp; &lt; etc.)
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = text;
+        let cleaned = tempDiv.textContent || tempDiv.innerText || text;
+        
         // Remove markdown bold (**text** -> text)
-        let cleaned = text.replace(/\*\*([^*]+)\*\*/g, '$1');
+        cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '$1');
         
         // Remove markdown headers (#, ##, ###)
         cleaned = cleaned.replace(/^#+\s+/gm, '');
@@ -112,14 +117,19 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
         cleaned = cleaned.replace(/^---+\s*$/gm, '');
         cleaned = cleaned.replace(/^\*\*\*\s*$/gm, '');
         
-        // Clean up multiple spaces
-        cleaned = cleaned.replace(/[ \t]+/g, ' ');
+        // Remove emojis and special Unicode characters that jsPDF can't handle well
+        cleaned = cleaned.replace(/[\u{1F300}-\u{1F9FF}]/gu, ''); // Emojis
+        cleaned = cleaned.replace(/[\u{2600}-\u{26FF}]/gu, ''); // Misc symbols
+        cleaned = cleaned.replace(/[\u{2700}-\u{27BF}]/gu, ''); // Dingbats
         
         // Remove markdown code blocks
         cleaned = cleaned.replace(/```[\s\S]*?```/g, '');
         cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
         
-        // Clean up multiple spaces and newlines
+        // Clean up multiple spaces
+        cleaned = cleaned.replace(/[ \t]+/g, ' ');
+        
+        // Clean up multiple newlines
         cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
         cleaned = cleaned.trim();
         
@@ -144,9 +154,17 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
           pdf.setTextColor(...textColor);
           pdf.setFontSize(12);
           pdf.setFont('helvetica', 'bold');
-          // Remove emoji and use text only
-          const titleText = title.replace(/[^\w\s]/g, '').trim() || title;
-          pdf.text(titleText, margin + 5, yPosition + 7);
+          // Remove emoji and special characters, clean for PDF
+          let titleText = cleanMarkdownForPDF(title);
+          // Remove any remaining problematic characters but keep French accents
+          titleText = titleText.replace(/[^\w\s\-àâäéèêëïîôùûüÿçÀÂÄÉÈÊËÏÎÔÙÛÜŸÇ]/gi, '').trim();
+          if (!titleText) {
+            // Fallback: use original title without special chars but keep accents
+            titleText = title.replace(/[^\w\s\-àâäéèêëïîôùûüÿçÀÂÄÉÈÊËÏÎÔÙÛÜŸÇ]/gi, '').trim();
+          }
+          if (titleText) {
+            pdf.text(titleText, margin + 5, yPosition + 7);
+          }
           
           yPosition += 14;
           
@@ -361,6 +379,82 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
     { badge: 'bg-pink-100 text-pink-800', card: 'bg-pink-50 border-pink-200', gradient: 'from-pink-500 to-rose-600' }
   ];
 
+  // Helper function to parse Markdown bold text
+  const parseBoldText = (text) => {
+    if (!text) return [<span key="empty"></span>];
+    
+    const parts = [];
+    let lastIndex = 0;
+    const regex = /\*\*([^*]+)\*\*/g;
+    let match;
+    
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        const beforeText = text.substring(lastIndex, match.index);
+        if (beforeText) {
+          parts.push(beforeText);
+        }
+      }
+      parts.push({ type: 'bold', text: match[1] });
+      lastIndex = regex.lastIndex;
+    }
+    
+    if (lastIndex < text.length) {
+      const remainingText = text.substring(lastIndex);
+      if (remainingText) {
+        parts.push(remainingText);
+      }
+    }
+    
+    if (parts.length === 0) {
+      parts.push(text);
+    }
+    
+    return parts.map((part, i) => {
+      if (typeof part === 'object' && part.type === 'bold') {
+        return <strong key={i} className="font-semibold text-gray-900">{part.text}</strong>;
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
+  // Helper function to render content with Markdown support
+  const renderContentWithMarkdown = (content) => {
+    if (!content) return null;
+    
+    // Split by lines to handle lists
+    const lines = content.split('\n');
+    
+    return (
+      <div className="space-y-2">
+        {lines.map((line, lineIdx) => {
+          const cleaned = line.trim();
+          if (!cleaned) return null;
+          
+          // Handle list items (lines starting with -)
+          if (cleaned.match(/^[-•]\s*/)) {
+            const text = cleaned.replace(/^[-•]\s*/, '');
+            return (
+              <div key={lineIdx} className="flex gap-3 items-start pl-2 mb-1">
+                <span className="w-2 h-2 rounded-full mt-2 flex-shrink-0 bg-indigo-500"></span>
+                <div className="flex-1 text-gray-700 leading-relaxed">
+                  {parseBoldText(text)}
+                </div>
+              </div>
+            );
+          }
+          
+          // Regular text with bold support
+          return (
+            <p key={lineIdx} className="text-gray-700 leading-relaxed">
+              {parseBoldText(cleaned)}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
+
   // Render structured brief (nouveau format V2)
   const renderStructuredBrief = (structured) => {
     if (!structured) return null;
@@ -375,7 +469,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                 📊 Flash-Back
               </span>
             </div>
-            <p className="text-gray-700 leading-relaxed">{structured.flashback}</p>
+            {renderContentWithMarkdown(structured.flashback)}
           </div>
         )}
 
@@ -387,7 +481,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                 🎯 Mission du Jour
               </span>
             </div>
-            <p className="text-gray-800 font-medium leading-relaxed">{structured.focus}</p>
+            {renderContentWithMarkdown(structured.focus)}
           </div>
         )}
 
@@ -403,7 +497,9 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
               {structured.examples.map((example, idx) => (
                 <li key={idx} className="flex gap-3 items-start">
                   <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 bg-gradient-to-br ${colorPalette[0].gradient}`}></span>
-                  <span className="text-gray-700">{example}</span>
+                  <div className="text-gray-700">
+                    {parseBoldText(example)}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -418,7 +514,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                 🗣️ Question Équipe
               </span>
             </div>
-            <p className="text-gray-800 italic leading-relaxed">&ldquo;{structured.team_question}&rdquo;</p>
+            {renderContentWithMarkdown(structured.team_question)}
           </div>
         )}
 
@@ -430,7 +526,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
                 🚀 Le Mot de la Fin
               </span>
             </div>
-            <p className="text-gray-800 font-medium leading-relaxed">&ldquo;{structured.booster}&rdquo;</p>
+            {renderContentWithMarkdown(structured.booster)}
           </div>
         )}
       </div>
