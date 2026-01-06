@@ -640,7 +640,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                     <Target className="w-4 h-4" />
                     <span>En cours ({objectives.filter(obj => {
                       const today = new Date().toISOString().split('T')[0];
-                      return obj.period_end >= today && obj.status !== 'achieved';
+                      return obj.period_end >= today && obj.status !== 'achieved' && obj.status !== 'failed';
                     }).length})</span>
                   </div>
                 </button>
@@ -656,7 +656,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                     <Trophy className="w-4 h-4" />
                     <span>Terminés ({objectives.filter(obj => {
                       const today = new Date().toISOString().split('T')[0];
-                      return obj.period_end < today || obj.status === 'achieved';
+                      return obj.period_end < today || obj.status === 'achieved' || obj.status === 'failed';
                     }).length})</span>
                   </div>
                 </button>
@@ -1252,7 +1252,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                       {(() => {
                         const today = new Date().toISOString().split('T')[0];
                         const activeObjectives = objectives.filter(obj => {
-                          return obj.period_end >= today && obj.status !== 'achieved';
+                          // Objective is active if:
+                          // 1. Period hasn't ended yet (period_end >= today)
+                          // 2. AND status is 'active' (not 'achieved' or 'failed')
+                          return obj.period_end >= today && obj.status !== 'achieved' && obj.status !== 'failed';
                         });
                         
                         return activeObjectives.length === 0 ? (
@@ -1535,7 +1538,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                       {(() => {
                         const today = new Date().toISOString().split('T')[0];
                         const completedObjectives = objectives.filter(obj => {
-                          return obj.period_end < today || obj.status === 'achieved';
+                          // Objective is completed if:
+                          // 1. Period has ended (period_end < today, meaning we're past the deadline)
+                          // 2. OR status is 'achieved' or 'failed' (explicitly marked as completed)
+                          return obj.period_end < today || obj.status === 'achieved' || obj.status === 'failed';
                         });
                         
                         return completedObjectives.length === 0 ? (

@@ -11,7 +11,7 @@ import logging
 
 from api.dependencies import get_db
 from core.security import get_current_user
-from services.ai_service import ai_service
+from services.ai_service import AIService
 
 router = APIRouter(prefix="/briefs", tags=["Morning Briefs"])
 logger = logging.getLogger(__name__)
@@ -150,6 +150,7 @@ async def generate_morning_brief(
     data_date = stats.get("data_date")
     
     # Générer le brief via le service IA
+    ai_service = AIService()
     result = await ai_service.generate_morning_brief(
         stats=stats,
         manager_name=manager_name,

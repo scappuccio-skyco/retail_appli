@@ -376,15 +376,28 @@ class SellerService:
             elif kpi_name == 'indice_vente':
                 current_kpi_value = indice_vente
             
-            objective_met = current_kpi_value >= target
+            # Only consider objective met if target is meaningful (> 0) and current value >= target
+            # If target is 0 or very small, keep status as 'active' (not achieved)
+            if target > 0.01:  # Only check if target is meaningful
+                objective_met = current_kpi_value >= target
+            else:
+                # If target is 0 or very small, objective is not considered met
+                objective_met = False
             
+            # Check if period is over (today is after end_date, meaning the day after the deadline)
             if today > end_date:
+                # Period is over (day after deadline): objective is completed
+                # Status is 'achieved' if target was met, 'failed' otherwise
                 objective['status'] = 'achieved' if objective_met else 'failed'
             else:
+                # Period is ongoing (today is on or before end_date): objective is still active
+                # Can be 'achieved' if already met, or 'active' if still in progress
                 objective['status'] = 'achieved' if objective_met else 'active'
         else:
             # For other objective types (legacy logic)
+            # Check if period is over (today is after end_date, meaning the day after the deadline)
             if today > end_date:
+                # Period is over (day after deadline): objective is completed
                 objective_met = True
                 if objective.get('ca_target') and total_ca < objective['ca_target']:
                     objective_met = False
@@ -393,8 +406,10 @@ class SellerService:
                 if objective.get('indice_vente_target') and indice_vente < objective['indice_vente_target']:
                     objective_met = False
                 
+                # Status is 'achieved' if target was met, 'failed' otherwise
                 objective['status'] = 'achieved' if objective_met else 'failed'
             else:
+                # Period is ongoing: check if objective is met
                 objective_met = True
                 if objective.get('ca_target') and total_ca < objective['ca_target']:
                     objective_met = False
@@ -403,7 +418,8 @@ class SellerService:
                 if objective.get('indice_vente_target') and indice_vente < objective['indice_vente_target']:
                     objective_met = False
                 
-                objective['status'] = 'achieved' if objective_met else 'in_progress'
+                # Use 'active' instead of 'in_progress' for consistency with frontend filtering
+                objective['status'] = 'achieved' if objective_met else 'active'
         
         # Save progress to database
         await self.db.manager_objectives.update_one(
@@ -414,7 +430,7 @@ class SellerService:
                 "progress_articles": total_articles,
                 "progress_panier_moyen": panier_moyen,
                 "progress_indice_vente": indice_vente,
-                "status": objective.get('status', 'in_progress')
+                "status": objective.get('status', 'active')
             }}
         )
     
