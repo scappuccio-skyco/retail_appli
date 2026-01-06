@@ -99,17 +99,14 @@ class SellerService:
         # Ensure status field exists (for old objectives created before migration)
         for objective in filtered_objectives:
             if 'status' not in objective or objective['status'] is None:
+                # Use centralized status computation
                 current_val = objective.get('current_value', 0)
-                target_val = objective.get('target_value', 1)
-                today_date = datetime.now(timezone.utc).date()
-                period_end_date = datetime.fromisoformat(objective['period_end']).date()
-                
-                if current_val >= target_val:
-                    objective['status'] = 'achieved'
-                elif today_date > period_end_date:
-                    objective['status'] = 'failed'
+                target_val = objective.get('target_value', 0)
+                period_end = objective.get('period_end')
+                if period_end:
+                    objective['status'] = self.compute_status(current_val, target_val, period_end)
                 else:
-                    objective['status'] = 'active'
+                    objective['status'] = 'active'  # Fallback if no end_date
         
         return filtered_objectives
     
@@ -289,6 +286,44 @@ class SellerService:
     
     # ===== HELPER FUNCTIONS =====
     
+    @staticmethod
+    def compute_status(current_value: float, target_value: float, end_date: str) -> str:
+        """
+        Compute objective status based on current value, target value, and end date.
+        
+        Rules:
+        - status="active" by default (at creation)
+        - status="achieved" only if current_value >= target_value (and target_value > 0)
+        - status="failed" only if now > end_date AND not achieved
+        - Never force "achieved" based on objective_type alone
+        
+        Args:
+            current_value: Current progress value
+            target_value: Target value
+            end_date: End date in format YYYY-MM-DD
+            
+        Returns:
+            "active" | "achieved" | "failed"
+        """
+        today = datetime.now(timezone.utc).date()
+        end_date_obj = datetime.fromisoformat(end_date).date()
+        
+        # Check if objective is achieved (only if target is meaningful and current >= target)
+        is_achieved = False
+        if target_value > 0.01:  # Only consider achieved if target is meaningful
+            is_achieved = current_value >= target_value
+        
+        # Check if period is over (today is after end_date)
+        is_expired = today > end_date_obj
+        
+        # Determine status
+        if is_achieved:
+            return "achieved"
+        elif is_expired:
+            return "failed"
+        else:
+            return "active"
+    
     async def calculate_objective_progress(self, objective: dict, manager_id: str):
         """Calculate progress for an objective (team-wide)"""
         start_date = objective['period_start']
@@ -355,73 +390,41 @@ class SellerService:
         objective['progress_panier_moyen'] = panier_moyen
         objective['progress_indice_vente'] = indice_vente
         
-        # Determine status based on objective_type
-        today = datetime.now(timezone.utc).date().isoformat()
+        # Determine current_value and target_value for status computation
+        target_value = objective.get('target_value', 0)
+        current_value = 0
         
-        # For kpi_standard objectives, compare the relevant KPI with target_value
+        # For kpi_standard objectives, use the relevant KPI value
         if objective.get('objective_type') == 'kpi_standard' and objective.get('kpi_name'):
             kpi_name = objective['kpi_name']
-            target = objective.get('target_value', 0)
-            
-            # Map KPI names to their calculated values
-            current_kpi_value = 0
             if kpi_name == 'ca':
-                current_kpi_value = total_ca
+                current_value = total_ca
             elif kpi_name == 'ventes':
-                current_kpi_value = total_ventes
+                current_value = total_ventes
             elif kpi_name == 'articles':
-                current_kpi_value = total_articles
+                current_value = total_articles
             elif kpi_name == 'panier_moyen':
-                current_kpi_value = panier_moyen
+                current_value = panier_moyen
             elif kpi_name == 'indice_vente':
-                current_kpi_value = indice_vente
-            
-            # Only consider objective met if target is meaningful (> 0) and current value >= target
-            # If target is 0 or very small, keep status as 'active' (not achieved)
-            if target > 0.01:  # Only check if target is meaningful
-                objective_met = current_kpi_value >= target
-            else:
-                # If target is 0 or very small, objective is not considered met
-                objective_met = False
-            
-            # Check if period is over (today is after end_date, meaning the day after the deadline)
-            if today > end_date:
-                # Period is over (day after deadline): objective is completed
-                # Status is 'achieved' if target was met, 'failed' otherwise
-                objective['status'] = 'achieved' if objective_met else 'failed'
-            else:
-                # Period is ongoing (today is on or before end_date): objective is still active
-                # Can be 'achieved' if already met, or 'active' if still in progress
-                objective['status'] = 'achieved' if objective_met else 'active'
+                current_value = indice_vente
         else:
-            # For other objective types (legacy logic)
-            # Check if period is over (today is after end_date, meaning the day after the deadline)
-            if today > end_date:
-                # Period is over (day after deadline): objective is completed
-                objective_met = True
-                if objective.get('ca_target') and total_ca < objective['ca_target']:
-                    objective_met = False
-                if objective.get('panier_moyen_target') and panier_moyen < objective['panier_moyen_target']:
-                    objective_met = False
-                if objective.get('indice_vente_target') and indice_vente < objective['indice_vente_target']:
-                    objective_met = False
-                
-                # Status is 'achieved' if target was met, 'failed' otherwise
-                objective['status'] = 'achieved' if objective_met else 'failed'
-            else:
-                # Period is ongoing: check if objective is met
-                objective_met = True
-                if objective.get('ca_target') and total_ca < objective['ca_target']:
-                    objective_met = False
-                if objective.get('panier_moyen_target') and panier_moyen < objective['panier_moyen_target']:
-                    objective_met = False
-                if objective.get('indice_vente_target') and indice_vente < objective['indice_vente_target']:
-                    objective_met = False
-                
-                # Use 'active' instead of 'in_progress' for consistency with frontend filtering
-                objective['status'] = 'achieved' if objective_met else 'active'
+            # For other objective types, use current_value if set, otherwise calculate from CA
+            current_value = objective.get('current_value', total_ca)
+            # For legacy objectives, check if they have specific targets
+            if objective.get('ca_target'):
+                target_value = objective.get('ca_target', 0)
+                current_value = total_ca
+            elif objective.get('panier_moyen_target'):
+                target_value = objective.get('panier_moyen_target', 0)
+                current_value = panier_moyen
+            elif objective.get('indice_vente_target'):
+                target_value = objective.get('indice_vente_target', 0)
+                current_value = indice_vente
         
-        # Save progress to database
+        # Use centralized status computation
+        objective['status'] = self.compute_status(current_value, target_value, end_date)
+        
+        # Save progress to database (including computed status)
         await self.db.manager_objectives.update_one(
             {"id": objective['id']},
             {"$set": {
@@ -430,29 +433,41 @@ class SellerService:
                 "progress_articles": total_articles,
                 "progress_panier_moyen": panier_moyen,
                 "progress_indice_vente": indice_vente,
-                "status": objective.get('status', 'active')
+                "status": objective['status'],  # Use computed status
+                "current_value": current_value  # Update current_value
             }}
         )
     
     async def calculate_challenge_progress(self, challenge: dict, seller_id: str = None):
         """Calculate progress for a challenge"""
-        start_date = challenge['start_date']
-        end_date = challenge['end_date']
+        start_date = challenge.get('start_date') or challenge.get('period_start')
+        end_date = challenge.get('end_date') or challenge.get('period_end')
         manager_id = challenge['manager_id']
+        store_id = challenge.get('store_id')
         
-        if challenge['type'] == 'collective':
-            # Get all sellers for this manager
+        if challenge.get('type') == 'collective':
+            # Get all sellers for this manager/store
+            seller_query = {"role": "seller"}
+            if store_id:
+                seller_query["store_id"] = store_id
+            else:
+                seller_query["manager_id"] = manager_id
+            
             sellers = await self.db.users.find(
-                {"manager_id": manager_id, "role": "seller"}, 
+                seller_query,
                 {"_id": 0, "id": 1}
             ).to_list(1000)
             seller_ids = [s['id'] for s in sellers]
             
             # Get KPI entries for all sellers in date range
-            entries = await self.db.kpi_entries.find({
+            kpi_query = {
                 "seller_id": {"$in": seller_ids},
                 "date": {"$gte": start_date, "$lte": end_date}
-            }, {"_id": 0}).to_list(10000)
+            }
+            if store_id:
+                kpi_query["store_id"] = store_id
+            
+            entries = await self.db.kpi_entries.find(kpi_query, {"_id": 0}).to_list(10000)
         else:
             # Individual challenge
             target_seller_id = seller_id or challenge.get('seller_id')

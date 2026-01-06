@@ -1016,12 +1016,22 @@ async def create_objective(
             "progress_percentage": 0
         }
         
+        # Compute initial status using centralized helper
+        # At creation, current_value is always 0, so status should be "active"
+        from services.seller_service import SellerService
+        seller_service = SellerService(db)
+        
+        # Ensure status is "active" at creation (current_value = 0)
+        objective['status'] = seller_service.compute_status(
+            current_value=0,
+            target_value=objective.get('target_value', 0),
+            end_date=objective.get('period_end')
+        )
+        
         await db.objectives.insert_one(objective)
         objective.pop("_id", None)
         
         # Calculate initial progress based on existing KPI data
-        from services.seller_service import SellerService
-        seller_service = SellerService(db)
         await seller_service.calculate_objective_progress(objective, manager_id)
         
         # Calculate percentage progress
@@ -1046,12 +1056,20 @@ async def create_objective(
             objective['current_value'] = current_value
             objective['progress_percentage'] = round((current_value / target_value) * 100, 1)
             
-            # Update in database with calculated values
+            # Recompute status after calculating progress (using centralized helper)
+            objective['status'] = seller_service.compute_status(
+                current_value=current_value,
+                target_value=target_value,
+                end_date=objective.get('period_end')
+            )
+            
+            # Update in database with calculated values (including correct status)
             await db.objectives.update_one(
                 {"id": objective["id"]},
                 {"$set": {
                     "current_value": current_value,
                     "progress_percentage": objective['progress_percentage'],
+                    "status": objective['status'],  # Use computed status
                     "progress_ca": objective.get('progress_ca', 0),
                     "progress_ventes": objective.get('progress_ventes', 0),
                     "progress_articles": objective.get('progress_articles', 0),
@@ -1061,6 +1079,16 @@ async def create_objective(
             )
         else:
             objective['progress_percentage'] = 0
+            # Status should remain "active" if target is 0
+            objective['status'] = seller_service.compute_status(
+                current_value=0,
+                target_value=0,
+                end_date=objective.get('period_end')
+            )
+            await db.objectives.update_one(
+                {"id": objective["id"]},
+                {"$set": {"status": objective['status']}}
+            )
         
         return objective
     except Exception as e:
@@ -1186,16 +1214,94 @@ async def get_all_challenges(
     """
     Get ALL challenges for the store (active + inactive)
     Used by the manager settings modal
+    Enriches challenges with progress data and normalizes field names
     """
     try:
         resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
         
         challenges = await db.challenges.find(
             {"store_id": resolved_store_id},
             {"_id": 0}
         ).sort("created_at", -1).to_list(100)
         
-        return challenges
+        # Enrich each challenge with progress data and normalize fields
+        from services.seller_service import SellerService
+        seller_service = SellerService(db)
+        
+        enriched_challenges = []
+        for challenge in challenges:
+            # Calculate progress if not already calculated
+            await seller_service.calculate_challenge_progress(challenge, None)
+            
+            # Normalize field names for frontend compatibility
+            # Convert kpi_type (legacy) to kpi_name if challenge_type is kpi_standard
+            if not challenge.get('challenge_type') and challenge.get('kpi_type'):
+                # Legacy challenge: infer challenge_type from kpi_type
+                challenge['challenge_type'] = 'kpi_standard'
+                # Map kpi_type to kpi_name
+                kpi_type = challenge.get('kpi_type', '')
+                if 'ca' in kpi_type.lower() or 'journalier' in kpi_type.lower():
+                    challenge['kpi_name'] = 'ca'
+                elif 'vente' in kpi_type.lower():
+                    challenge['kpi_name'] = 'ventes'
+                elif 'article' in kpi_type.lower():
+                    challenge['kpi_name'] = 'articles'
+                else:
+                    challenge['kpi_name'] = 'ca'  # Default
+            elif challenge.get('challenge_type') == 'kpi_standard' and not challenge.get('kpi_name'):
+                # New format but missing kpi_name
+                challenge['kpi_name'] = 'ca'  # Default
+            
+            # Ensure required fields have defaults
+            if 'challenge_type' not in challenge:
+                challenge['challenge_type'] = None  # Legacy challenge
+            if 'unit' not in challenge:
+                challenge['unit'] = '€'  # Default unit
+            if 'data_entry_responsible' not in challenge:
+                challenge['data_entry_responsible'] = 'manager'  # Default
+            if 'visible' not in challenge:
+                challenge['visible'] = True  # Default
+            if 'visible_to_sellers' not in challenge:
+                challenge['visible_to_sellers'] = []  # Default
+            
+            # Calculate progress_percentage for challenges with target_value
+            if challenge.get('target_value') and challenge.get('target_value') > 0:
+                current_value = challenge.get('current_value', 0)
+                if challenge.get('challenge_type') == 'kpi_standard' and challenge.get('kpi_name'):
+                    # Use the relevant progress field
+                    kpi_name = challenge.get('kpi_name')
+                    if kpi_name == 'ca':
+                        current_value = challenge.get('progress_ca', 0)
+                    elif kpi_name == 'ventes':
+                        current_value = challenge.get('progress_ventes', 0)
+                    elif kpi_name == 'articles':
+                        current_value = challenge.get('progress_articles', 0)
+                    elif kpi_name == 'panier_moyen':
+                        current_value = challenge.get('progress_panier_moyen', 0)
+                    elif kpi_name == 'indice_vente':
+                        current_value = challenge.get('progress_indice_vente', 0)
+                
+                challenge['current_value'] = current_value
+                challenge['progress_percentage'] = round((current_value / challenge['target_value']) * 100, 1)
+            else:
+                challenge['progress_percentage'] = 0
+            
+            # Ensure progress fields exist (default to 0)
+            if 'progress_ca' not in challenge:
+                challenge['progress_ca'] = 0
+            if 'progress_ventes' not in challenge:
+                challenge['progress_ventes'] = 0
+            if 'progress_articles' not in challenge:
+                challenge['progress_articles'] = 0
+            if 'progress_panier_moyen' not in challenge:
+                challenge['progress_panier_moyen'] = 0
+            if 'progress_indice_vente' not in challenge:
+                challenge['progress_indice_vente'] = 0
+            
+            enriched_challenges.append(challenge)
+        
+        return enriched_challenges
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -2228,19 +2334,42 @@ IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE. Évite les longues explications th�
         ai_service = AIService()
         
         if not ai_service.available:
+            logger.warning(
+                "Relationship advice failed: AI service unavailable",
+                extra={"store_id": resolved_store_id, "user_id": manager_id, "seller_id": request.seller_id}
+            )
             raise HTTPException(status_code=503, detail="Service IA non disponible")
         
         # Use GPT-4o for relationship advice
-        chat = ai_service._create_chat(
-            session_id=f"relationship_{manager_id}_{request.seller_id}_{datetime.now(timezone.utc).isoformat()}",
-            system_message=system_message,
-            model="gpt-4o"
-        )
-        
-        ai_response = await ai_service._send_message(chat, user_prompt)
+        try:
+            ai_response = await ai_service._send_message(
+                system_message=system_message,
+                user_prompt=user_prompt,
+                model="gpt-4o"
+            )
+        except Exception as ai_error:
+            logger.exception(
+                "Relationship advice failed: AI call error",
+                extra={
+                    "store_id": resolved_store_id,
+                    "user_id": manager_id,
+                    "seller_id": request.seller_id,
+                    "advice_type": request.advice_type,
+                    "situation_type": request.situation_type,
+                    "error": str(ai_error)
+                }
+            )
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erreur lors de la génération du conseil: {str(ai_error)}"
+            )
         
         if not ai_response:
-            raise HTTPException(status_code=500, detail="Erreur lors de la génération du conseil")
+            logger.warning(
+                "Relationship advice failed: Empty AI response",
+                extra={"store_id": resolved_store_id, "user_id": manager_id, "seller_id": request.seller_id}
+            )
+            raise HTTPException(status_code=500, detail="Erreur lors de la génération du conseil: réponse vide")
         
         # Save to history
         consultation_id = str(uuid4())
@@ -2271,8 +2400,16 @@ IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE. Évite les longues explications th�
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error generating relationship advice: {e}")
-        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+        logger.exception(
+            "Relationship advice failed",
+            extra={
+                "store_id": context.get('resolved_store_id') if 'context' in locals() else None,
+                "user_id": context.get('id') if 'context' in locals() else None,
+                "seller_id": request.seller_id if 'request' in locals() else None,
+                "error": str(e)
+            }
+        )
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la génération du conseil: {str(e)}")
 
 
 @router.get("/relationship-history")
