@@ -770,8 +770,9 @@ Résume les points forts et les points à améliorer de manière positive et coa
         
         # Construire le texte des réponses en utilisant question_id comme référence principale
         # Si 'question' est fourni, l'utiliser pour le prompt, sinon utiliser question_id
-        responses_text = "\n".join([
-            f"Q{r.get('question_id', '?')}: {r.get('question', f\"Question {r.get('question_id', '?')}\")}\nR: {r['answer']}"
+        newline = "\n"
+        responses_text = newline.join([
+            f"Q{r.get('question_id', '?')}: {r.get('question', f'Question {r.get(\"question_id\", \"?\")}')}{newline}R: {r['answer']}"
             for r in responses
         ])
         
