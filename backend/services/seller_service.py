@@ -293,19 +293,33 @@ class SellerService:
         """Calculate progress for an objective (team-wide)"""
         start_date = objective['period_start']
         end_date = objective['period_end']
+        store_id = objective.get('store_id')
         
-        # Get all sellers for this manager
+        # Build query for sellers - use store_id if available (multi-store support)
+        seller_query = {"role": "seller"}
+        if store_id:
+            seller_query["store_id"] = store_id
+        else:
+            # Fallback to manager_id for backward compatibility
+            seller_query["manager_id"] = manager_id
+        
+        # Get all sellers for this store/manager
         sellers = await self.db.users.find(
-            {"manager_id": manager_id, "role": "seller"}, 
+            seller_query,
             {"_id": 0, "id": 1}
         ).to_list(1000)
         seller_ids = [s['id'] for s in sellers]
         
-        # Get KPI entries for all sellers in date range
-        entries = await self.db.kpi_entries.find({
+        # Build KPI query with store_id filter if available
+        kpi_query = {
             "seller_id": {"$in": seller_ids},
             "date": {"$gte": start_date, "$lte": end_date}
-        }, {"_id": 0}).to_list(10000)
+        }
+        if store_id:
+            kpi_query["store_id"] = store_id
+        
+        # Get KPI entries for all sellers in date range
+        entries = await self.db.kpi_entries.find(kpi_query, {"_id": 0}).to_list(10000)
         
         # Calculate totals from seller entries
         total_ca = sum(e.get('ca_journalier', 0) for e in entries)
@@ -313,10 +327,14 @@ class SellerService:
         total_articles = sum(e.get('nb_articles', 0) for e in entries)
         
         # Fallback to manager KPIs if seller data is missing
-        manager_entries = await self.db.manager_kpis.find({
+        manager_kpi_query = {
             "manager_id": manager_id,
             "date": {"$gte": start_date, "$lte": end_date}
-        }, {"_id": 0}).to_list(10000)
+        }
+        if store_id:
+            manager_kpi_query["store_id"] = store_id
+        
+        manager_entries = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).to_list(10000)
         
         if manager_entries:
             if total_ca == 0:
@@ -433,10 +451,14 @@ class SellerService:
         total_articles = sum(e.get('nb_articles', 0) for e in entries)
         
         # Fallback to manager KPIs if seller data is missing
-        manager_entries = await self.db.manager_kpis.find({
+        manager_kpi_query = {
             "manager_id": manager_id,
             "date": {"$gte": start_date, "$lte": end_date}
-        }, {"_id": 0}).to_list(10000)
+        }
+        if store_id:
+            manager_kpi_query["store_id"] = store_id
+        
+        manager_entries = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).to_list(10000)
         
         if manager_entries:
             if total_ca == 0:

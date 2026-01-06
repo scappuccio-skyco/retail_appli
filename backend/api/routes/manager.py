@@ -915,17 +915,54 @@ async def get_all_objectives(
     """
     Get ALL objectives for the store (active + inactive)
     Used by the manager settings modal
+    Automatically calculates progress based on KPI data
     """
     try:
         resolved_store_id = context.get('resolved_store_id')
+        manager_id = context.get('id')
         
         objectives = await db.objectives.find(
             {"store_id": resolved_store_id},
             {"_id": 0}
         ).sort("created_at", -1).to_list(100)
         
+        # Calculate progress for each objective
+        from services.seller_service import SellerService
+        seller_service = SellerService(db)
+        
+        for objective in objectives:
+            # Calculate progress based on KPI data
+            await seller_service.calculate_objective_progress(objective, manager_id)
+            
+            # Calculate percentage progress
+            target_value = objective.get('target_value', 0)
+            if target_value > 0:
+                # Determine current value based on objective type
+                current_value = 0
+                if objective.get('objective_type') == 'kpi_standard':
+                    kpi_name = objective.get('kpi_name', 'ca')
+                    if kpi_name == 'ca':
+                        current_value = objective.get('progress_ca', 0)
+                    elif kpi_name == 'ventes':
+                        current_value = objective.get('progress_ventes', 0)
+                    elif kpi_name == 'articles':
+                        current_value = objective.get('progress_articles', 0)
+                    elif kpi_name == 'panier_moyen':
+                        current_value = objective.get('progress_panier_moyen', 0)
+                    elif kpi_name == 'indice_vente':
+                        current_value = objective.get('progress_indice_vente', 0)
+                else:
+                    # For other types, use current_value if set, otherwise calculate from CA
+                    current_value = objective.get('current_value', objective.get('progress_ca', 0))
+                
+                objective['current_value'] = current_value
+                objective['progress_percentage'] = round((current_value / target_value) * 100, 1)
+            else:
+                objective['progress_percentage'] = 0
+        
         return objectives
     except Exception as e:
+        logger.error(f"Error fetching objectives: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -958,11 +995,72 @@ async def create_objective(
             "end_date": objective_data.get("end_date") or objective_data.get("period_end"),
             "status": "active",
             "created_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            # NEW FLEXIBLE OBJECTIVE SYSTEM fields
+            "type": objective_data.get("type", "collective"),  # "individual" or "collective"
+            "seller_id": objective_data.get("seller_id"),
+            "visible": objective_data.get("visible", True),
+            "visible_to_sellers": objective_data.get("visible_to_sellers"),
+            "objective_type": objective_data.get("objective_type", "kpi_standard"),  # "kpi_standard" | "product_focus" | "custom"
+            "kpi_name": objective_data.get("kpi_name"),  # For kpi_standard: "ca", "ventes", "articles", etc.
+            "product_name": objective_data.get("product_name"),  # For product_focus
+            "custom_description": objective_data.get("custom_description"),  # For custom
+            "data_entry_responsible": objective_data.get("data_entry_responsible", "manager"),  # "manager" | "seller"
+            "unit": objective_data.get("unit"),  # Unit for display (€, ventes, articles, etc.)
+            # Progress tracking fields (will be calculated automatically)
+            "progress_ca": 0,
+            "progress_ventes": 0,
+            "progress_articles": 0,
+            "progress_panier_moyen": 0,
+            "progress_indice_vente": 0,
+            "progress_percentage": 0
         }
         
         await db.objectives.insert_one(objective)
         objective.pop("_id", None)
+        
+        # Calculate initial progress based on existing KPI data
+        from services.seller_service import SellerService
+        seller_service = SellerService(db)
+        await seller_service.calculate_objective_progress(objective, manager_id)
+        
+        # Calculate percentage progress
+        target_value = objective.get('target_value', 0)
+        if target_value > 0:
+            current_value = 0
+            if objective.get('objective_type') == 'kpi_standard':
+                kpi_name = objective.get('kpi_name', 'ca')
+                if kpi_name == 'ca':
+                    current_value = objective.get('progress_ca', 0)
+                elif kpi_name == 'ventes':
+                    current_value = objective.get('progress_ventes', 0)
+                elif kpi_name == 'articles':
+                    current_value = objective.get('progress_articles', 0)
+                elif kpi_name == 'panier_moyen':
+                    current_value = objective.get('progress_panier_moyen', 0)
+                elif kpi_name == 'indice_vente':
+                    current_value = objective.get('progress_indice_vente', 0)
+            else:
+                current_value = objective.get('current_value', objective.get('progress_ca', 0))
+            
+            objective['current_value'] = current_value
+            objective['progress_percentage'] = round((current_value / target_value) * 100, 1)
+            
+            # Update in database with calculated values
+            await db.objectives.update_one(
+                {"id": objective["id"]},
+                {"$set": {
+                    "current_value": current_value,
+                    "progress_percentage": objective['progress_percentage'],
+                    "progress_ca": objective.get('progress_ca', 0),
+                    "progress_ventes": objective.get('progress_ventes', 0),
+                    "progress_articles": objective.get('progress_articles', 0),
+                    "progress_panier_moyen": objective.get('progress_panier_moyen', 0),
+                    "progress_indice_vente": objective.get('progress_indice_vente', 0)
+                }}
+            )
+        else:
+            objective['progress_percentage'] = 0
         
         return objective
     except Exception as e:

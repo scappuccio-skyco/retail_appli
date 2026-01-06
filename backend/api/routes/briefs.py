@@ -2,7 +2,7 @@
 Morning Brief Routes
 API endpoints for generating morning briefs for managers
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, List
 from datetime import datetime, timedelta, timezone
@@ -96,8 +96,8 @@ class BriefHistoryItem(BaseModel):
 
 @router.post("/morning", response_model=MorningBriefResponse)
 async def generate_morning_brief(
-    request: MorningBriefRequest,
     store_id: Optional[str] = Query(None, description="Store ID (pour gérant visualisant un magasin)"),
+    request: MorningBriefRequest = Body(...),
     current_user: dict = Depends(get_current_user),
     db = Depends(get_db)
 ):
