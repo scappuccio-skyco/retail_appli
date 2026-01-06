@@ -771,10 +771,12 @@ Résume les points forts et les points à améliorer de manière positive et coa
         # Construire le texte des réponses en utilisant question_id comme référence principale
         # Si 'question' est fourni, l'utiliser pour le prompt, sinon utiliser question_id
         newline = "\n"
-        responses_text = newline.join([
-            f"Q{r.get('question_id', '?')}: {r.get('question', f'Question {r.get(\"question_id\", \"?\")}')}{newline}R: {r['answer']}"
-            for r in responses
-        ])
+        response_lines = []
+        for r in responses:
+            question_id = r.get('question_id', '?')
+            question_text = r.get('question') or f'Question {question_id}'
+            response_lines.append(f"Q{question_id}: {question_text}{newline}R: {r['answer']}")
+        responses_text = newline.join(response_lines)
         
         prompt = f"""Analyse les réponses de {seller_name} pour identifier son profil DISC et ses axes de développement.
 
