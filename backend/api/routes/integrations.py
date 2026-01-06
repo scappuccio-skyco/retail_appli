@@ -677,58 +677,85 @@ async def sync_kpi_data(
         entries_updated = 0
         
         for entry in data.kpi_entries:
-            if entry.seller_id:
-                # Use entry-level date/store_id if provided, otherwise use root-level
-                entry_date = entry.date or data.date
-                entry_store_id = entry.store_id or data.store_id
+            if not entry.seller_id:
+                logger.warning(f"Skipping entry without seller_id: {entry}")
+                continue
                 
-                # Validate that we have both date and store_id
-                if not entry_date:
-                    raise HTTPException(
-                        status_code=422,
-                        detail=f"Date is required. Provide it either at root level or in each kpi_entry."
-                    )
-                if not entry_store_id:
-                    raise HTTPException(
-                        status_code=422,
-                        detail=f"store_id is required. Provide it either at root level or in each kpi_entry."
-                    )
-                
-                # Check if exists
+            # Use entry-level date/store_id if provided, otherwise use root-level
+            entry_date = entry.date or data.date
+            entry_store_id = entry.store_id or data.store_id
+            
+            # Validate that we have both date and store_id
+            if not entry_date:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Date is required for seller_id {entry.seller_id}. Provide it either at root level or in each kpi_entry."
+                )
+            if not entry_store_id:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"store_id is required for seller_id {entry.seller_id}. Provide it either at root level or in each kpi_entry."
+                )
+            
+            # Optional: Validate seller exists (log warning but don't block)
+            try:
+                seller = await db.users.find_one({"id": entry.seller_id}, {"_id": 0, "id": 1, "role": 1})
+                if not seller:
+                    logger.warning(f"Seller {entry.seller_id} not found in database, but continuing with KPI creation")
+                elif seller.get("role") != "seller":
+                    logger.warning(f"User {entry.seller_id} is not a seller (role: {seller.get('role')}), but continuing")
+            except Exception as seller_check_error:
+                logger.warning(f"Error checking seller {entry.seller_id}: {str(seller_check_error)}, continuing anyway")
+            
+            # Check if exists
+            try:
                 existing = await kpi_service.kpi_repo.find_by_seller_and_date(
                     entry.seller_id,
                     entry_date
                 )
-                
-                kpi_data = {
-                    "ca_journalier": entry.ca_journalier,
-                    "nb_ventes": entry.nb_ventes,
-                    "nb_articles": entry.nb_articles,
-                    "nb_prospects": entry.prospects or 0,
-                    "source": "api",
-                    "locked": True,
-                    "updated_at": datetime.now(timezone.utc)
-                }
-                
-                if existing:
-                    seller_operations.append(UpdateOne(
-                        {"seller_id": entry.seller_id, "date": entry_date},
-                        {"$set": kpi_data}
-                    ))
-                    entries_updated += 1
-                else:
-                    kpi_data.update({
-                        "id": str(uuid4()),
-                        "seller_id": entry.seller_id,
-                        "date": entry_date,
-                        "created_at": datetime.now(timezone.utc)
-                    })
-                    seller_operations.append(InsertOne(kpi_data))
-                    entries_created += 1
+            except Exception as find_error:
+                logger.error(f"Error finding existing KPI for seller {entry.seller_id}, date {entry_date}: {str(find_error)}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Error checking existing KPI: {str(find_error)}"
+                )
+            
+            kpi_data = {
+                "ca_journalier": entry.ca_journalier,
+                "nb_ventes": entry.nb_ventes,
+                "nb_articles": entry.nb_articles,
+                "nb_prospects": entry.prospects or 0,
+                "source": "api",
+                "locked": True,
+                "updated_at": datetime.now(timezone.utc)
+            }
+            
+            if existing:
+                seller_operations.append(UpdateOne(
+                    {"seller_id": entry.seller_id, "date": entry_date},
+                    {"$set": kpi_data}
+                ))
+                entries_updated += 1
+            else:
+                kpi_data.update({
+                    "id": str(uuid4()),
+                    "seller_id": entry.seller_id,
+                    "date": entry_date,
+                    "created_at": datetime.now(timezone.utc)
+                })
+                seller_operations.append(InsertOne(kpi_data))
+                entries_created += 1
         
         # Execute bulk operations
         if seller_operations:
-            await kpi_service.kpi_repo.bulk_write(seller_operations)
+            try:
+                await kpi_service.kpi_repo.bulk_write(seller_operations)
+            except Exception as bulk_error:
+                logger.error(f"Bulk write failed: {str(bulk_error)}", exc_info=True)
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Failed to write KPI data to database: {str(bulk_error)}"
+                )
         
         return {
             "status": "success",
@@ -739,7 +766,11 @@ async def sync_kpi_data(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Database write operation failed")
+        logger.error(f"KPI sync error: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to sync KPI data: {str(e)}"
+        )
 
 
 # Legacy endpoint alias for backward compatibility with N8N
