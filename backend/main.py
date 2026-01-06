@@ -66,14 +66,23 @@ app = FastAPI(
 print("[STARTUP] 8/10 - FastAPI app created", flush=True)
 
 # Configure CORS - CRITICAL for production
-# Parse CORS origins from environment
+# ⚠️ allow_credentials=True + "*" = ERREUR EN PROD
+# Force explicit list for production
 if settings.CORS_ORIGINS == "*":
-    # Wildcard not allowed with credentials
-    logger.warning("CORS_ORIGINS set to '*' - this is insecure and may not work with credentials!")
-    allowed_origins = ["*"]
+    # Default to production URLs if wildcard is set
+    logger.warning("CORS_ORIGINS set to '*' - using explicit production origins")
+    allowed_origins = [
+        "https://retailperformerai.com",
+        "https://www.retailperformerai.com",
+    ]
 else:
     # Parse comma-separated list and strip whitespace
-    allowed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
+    parsed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
+    # Ensure production URLs are always included
+    allowed_origins = list(set(parsed_origins + [
+        "https://retailperformerai.com",
+        "https://www.retailperformerai.com",
+    ]))
 
 logger.info(f"CORS allowed origins: {allowed_origins}")
 print(f"[STARTUP] CORS origins: {allowed_origins}", flush=True)
@@ -92,7 +101,19 @@ print(f"[STARTUP] Registering {len(routers)} routers...", flush=True)
 for router in routers:
     app.include_router(router, prefix="/api")
     logger.info(f"Registered router: {router.prefix} ({len(router.routes)} routes)")
+    if router.prefix == "/briefs":
+        logger.info("✅ Loaded router: /api/briefs")
+        print("✅ Loaded router: /api/briefs", flush=True)
 print("[STARTUP] 10/10 - All routers registered - APP READY FOR REQUESTS", flush=True)
+
+# Log confirmation of briefs routes
+briefs_routes = [r.path for r in app.routes if hasattr(r, 'path') and 'briefs' in r.path]
+if briefs_routes:
+    print(f"[STARTUP] Briefs routes registered: {briefs_routes}", flush=True)
+    logger.info(f"Briefs routes: {briefs_routes}")
+else:
+    print("[STARTUP] ⚠️ WARNING: No briefs routes found!", flush=True)
+    logger.warning("No briefs routes found in app.routes")
 
 # Startup event
 @app.on_event("startup")
