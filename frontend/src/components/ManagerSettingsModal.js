@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { X, Settings, Target, Trophy, Edit2, Trash2, Plus } from 'lucide-react';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalType = 'objectives', storeIdParam = null }) {
   const [activeTab, setActiveTab] = useState(
@@ -18,9 +15,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const [loading, setLoading] = useState(true);
   const [editingChallenge, setEditingChallenge] = useState(null);
   const [editingObjective, setEditingObjective] = useState(null);
-  
-  const token = localStorage.getItem('token');
-  const headers = { Authorization: `Bearer ${token}` };
   
   // Build store_id param for gerant viewing as manager
   const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
@@ -95,17 +89,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   }, [isOpen, modalType]);
 
   const fetchData = async () => {
-    console.log('🔍 ManagerSettingsModal - fetchData called, storeParam:', storeParam);
+    logger.log('🔍 ManagerSettingsModal - fetchData called, storeParam:', storeParam);
     try {
       setLoading(true);
       const [configRes, objectivesRes, challengesRes, sellersRes] = await Promise.all([
-        axios.get(`${API}/manager/kpi-config${storeParam}`, { headers }),
-        axios.get(`${API}/manager/objectives${storeParam}`, { headers }),
-        axios.get(`${API}/manager/challenges${storeParam}`, { headers }),
-        axios.get(`${API}/manager/sellers${storeParam}`, { headers })
+        api.get(`/manager/kpi-config${storeParam}`),
+        api.get(`/manager/objectives${storeParam}`),
+        api.get(`/manager/challenges${storeParam}`),
+        api.get(`/manager/sellers${storeParam}`)
       ]);
       
-      console.log('✅ ManagerSettingsModal - fetchData success', {
+      logger.log('✅ ManagerSettingsModal - fetchData success', {
         kpiConfig: configRes.data,
         objectives: objectivesRes.data?.length,
         challenges: challengesRes.data?.length,
@@ -117,10 +111,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       setChallenges(challengesRes.data);
       setSellers(sellersRes.data);
     } catch (err) {
-      console.error('❌ ManagerSettingsModal - fetchData error:', err);
+      logger.error('❌ ManagerSettingsModal - fetchData error:', err);
       toast.error('Erreur de chargement des données');
     } finally {
-      console.log('🔄 ManagerSettingsModal - setting loading to false');
+      logger.log('🔄 ManagerSettingsModal - setting loading to false');
       setLoading(false);
     }
   };
@@ -272,11 +266,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const handleKPIConfigUpdate = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${API}/manager/kpi-config${storeParam}`, kpiConfig, { headers });
+      await api.put(`/manager/kpi-config${storeParam}`, kpiConfig);
       toast.success('Configuration KPI mise à jour');
       if (onUpdate) onUpdate();
     } catch (err) {
-      console.error('Error updating KPI config:', err);
+      logger.error('Error updating KPI config:', err);
       toast.error('Erreur lors de la mise à jour');
     }
   };
@@ -321,7 +315,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.custom_description = newChallenge.custom_description;
       }
       
-      await axios.post(`${API}/manager/challenges${storeParam}`, cleanedData, { headers });
+      await api.post(`/manager/challenges${storeParam}`, cleanedData);
       toast.success('Challenge créé avec succès');
       setNewChallenge({
         title: '',
@@ -344,7 +338,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       fetchData();
       if (onUpdate) onUpdate();
     } catch (err) {
-      console.error('Error creating challenge:', err);
+      logger.error('Error creating challenge:', err);
       toast.error('Erreur lors de la création du challenge');
     }
   };
@@ -388,7 +382,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.custom_description = newChallenge.custom_description;
       }
       
-      await axios.put(`${API}/manager/challenges/${editingChallenge.id}${storeParam}`, cleanedData, { headers });
+      await api.put(`/manager/challenges/${editingChallenge.id}${storeParam}`, cleanedData);
       toast.success('Challenge modifié avec succès');
       setEditingChallenge(null);
       
@@ -397,7 +391,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       
       if (onUpdate) onUpdate();
     } catch (err) {
-      console.error('Error updating challenge:', err);
+      logger.error('Error updating challenge:', err);
       toast.error('Erreur lors de la modification du challenge');
     }
   };
@@ -405,12 +399,12 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const handleDeleteChallenge = async (challengeId, challengeTitle) => {
     if (window.confirm(`Êtes-vous sûr de vouloir supprimer le challenge "${challengeTitle}" ?`)) {
       try {
-        await axios.delete(`${API}/manager/challenges/${challengeId}${storeParam}`, { headers });
+        await api.delete(`/manager/challenges/${challengeId}${storeParam}`);
         toast.success('Challenge supprimé avec succès');
         fetchData();
         if (onUpdate) onUpdate();
       } catch (err) {
-        console.error('Error deleting challenge:', err);
+        logger.error('Error deleting challenge:', err);
         toast.error('Erreur lors de la suppression');
       }
     }
@@ -423,10 +417,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     }
 
     try {
-      await axios.post(
-        `${API}/manager/challenges/${challengeId}/progress${storeParam}`,
-        { current_value: parseFloat(challengeProgressValue) },
-        { headers }
+      await api.post(
+        `/manager/challenges/${challengeId}/progress${storeParam}`,
+        { current_value: parseFloat(challengeProgressValue) }
       );
       toast.success('Progression mise à jour avec succès');
       setUpdatingProgressChallengeId(null);
@@ -434,7 +427,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       fetchData();
       if (onUpdate) onUpdate();
     } catch (err) {
-      console.error('Error updating challenge progress:', err);
+      logger.error('Error updating challenge progress:', err);
       toast.error(err.response?.data?.detail || 'Erreur lors de la mise à jour de la progression');
     }
   };
@@ -481,7 +474,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.custom_description = newObjective.custom_description;
       }
       
-      await axios.post(`${API}/manager/objectives${storeParam}`, cleanedData, { headers });
+      await api.post(`/manager/objectives${storeParam}`, cleanedData);
       toast.success('Objectif créé avec succès');
       setNewObjective({
         title: '',
@@ -504,7 +497,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       fetchData();
       if (onUpdate) onUpdate();
     } catch (err) {
-      console.error('Error creating objective:', err);
+      logger.error('Error creating objective:', err);
       toast.error('Erreur lors de la création de l\'objectif');
     }
   };
@@ -548,7 +541,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.custom_description = newObjective.custom_description;
       }
       
-      await axios.put(`${API}/manager/objectives/${editingObjective.id}${storeParam}`, cleanedData, { headers });
+      await api.put(`/manager/objectives/${editingObjective.id}${storeParam}`, cleanedData);
       toast.success('Objectif modifié avec succès');
       setEditingObjective(null);
       
@@ -557,7 +550,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       
       if (onUpdate) onUpdate();
     } catch (err) {
-      console.error('Error updating objective:', err);
+      logger.error('Error updating objective:', err);
       toast.error('Erreur lors de la modification de l\'objectif');
     }
   };
@@ -565,12 +558,12 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const handleDeleteObjective = async (objectiveId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cet objectif ?')) {
       try {
-        await axios.delete(`${API}/manager/objectives/${objectiveId}${storeParam}`, { headers });
+        await api.delete(`/manager/objectives/${objectiveId}${storeParam}`);
         toast.success('Objectif supprimé avec succès');
         fetchData();
         if (onUpdate) onUpdate();
       } catch (err) {
-        console.error('Error deleting objective:', err);
+        logger.error('Error deleting objective:', err);
         toast.error('Erreur lors de la suppression');
       }
     }
@@ -583,10 +576,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     }
 
     try {
-      await axios.post(
-        `${API}/manager/objectives/${objectiveId}/progress${storeParam}`,
-        { current_value: parseFloat(progressValue) },
-        { headers }
+      await api.post(
+        `/manager/objectives/${objectiveId}/progress${storeParam}`,
+        { current_value: parseFloat(progressValue) }
       );
       toast.success('Progression mise à jour avec succès');
       setUpdatingProgressObjectiveId(null);
@@ -594,7 +586,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       fetchData();
       if (onUpdate) onUpdate();
     } catch (err) {
-      console.error('Error updating progress:', err);
+      logger.error('Error updating progress:', err);
       toast.error(err.response?.data?.detail || 'Erreur lors de la mise à jour de la progression');
     }
   };
@@ -967,7 +959,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 }
                               } catch (error) {
                                 // showPicker n'est pas supporté par ce navigateur
-                                console.log('showPicker not supported');
+                                logger.log('showPicker not supported');
                               }
                             }}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer"
@@ -1001,7 +993,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                 }
                               } catch (error) {
                                 // showPicker n'est pas supporté par ce navigateur
-                                console.log('showPicker not supported');
+                                logger.log('showPicker not supported');
                               }
                             }}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer"
@@ -1888,7 +1880,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   e.target.showPicker();
                                 }
                               } catch (error) {
-                                console.log('showPicker not supported');
+                                logger.log('showPicker not supported');
                               }
                             }}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#ffd871] focus:outline-none cursor-pointer"
@@ -1924,7 +1916,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   e.target.showPicker();
                                 }
                               } catch (error) {
-                                console.log('showPicker not supported');
+                                logger.log('showPicker not supported');
                               }
                             }}
                             className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#ffd871] focus:outline-none cursor-pointer"
@@ -2532,23 +2524,21 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                               try {
                                                 // For challenges with target_value (kpi_standard, product_focus)
                                                 if (challenge.target_value && !challenge.ca_target && !challenge.ventes_target) {
-                                                  await axios.post(
-                                                    `${API}/manager/challenges/${challenge.id}/progress${storeParam}`,
+                                                  await api.post(
+                                                    `/manager/challenges/${challenge.id}/progress${storeParam}`,
                                                     {
                                                       current_value: parseFloat(challengeProgressValue) || challenge.current_value || 0
-                                                    },
-                                                    { headers }
+                                                    }
                                                   );
                                                 } else {
                                                   // For challenges with multiple targets
-                                                  await axios.post(
-                                                    `${API}/manager/challenges/${challenge.id}/progress${storeParam}`,
+                                                  await api.post(
+                                                    `/manager/challenges/${challenge.id}/progress${storeParam}`,
                                                     {
                                                       progress_ca: challenge.progress_ca,
                                                       progress_ventes: challenge.progress_ventes,
                                                       progress_clients: challenge.progress_clients
-                                                    },
-                                                    { headers }
+                                                    }
                                                   );
                                                 }
                                                 toast.success('Progression mise à jour');
@@ -2557,7 +2547,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                 fetchData();
                                                 if (onUpdate) onUpdate();
                                               } catch (err) {
-                                                console.error('Error:', err);
+                                                logger.error('Error:', err);
                                                 toast.error('Erreur');
                                               }
                                             }}

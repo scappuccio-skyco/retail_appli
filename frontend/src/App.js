@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import '@/App.css';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
@@ -28,19 +27,9 @@ import LegalNotice from './pages/legal/LegalNotice';
 import TermsOfService from './pages/legal/TermsOfService';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 
-// Centralized API configuration
-import { API_BASE } from './lib/api';
-
-const API = `${API_BASE}/api`;
-
-// Axios interceptor for auth token
-axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// API Client unifié
+import { api } from './lib/apiClient';
+import { logger } from './utils/logger';
 
 // Inner component that has access to navigate
 function AppContent() {
@@ -59,27 +48,27 @@ function AppContent() {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        const res = await axios.get(`${API}/auth/me`);
+        const res = await api.get('/auth/me');
         setUser(res.data);
         
         // Check diagnostic status for sellers - MUST complete before setting loading to false
         if (res.data.role === 'seller') {
           try {
-            const diagRes = await axios.get(`${API}/seller/diagnostic/me`);
+            const diagRes = await api.get('/seller/diagnostic/me');
             if (diagRes.data.status === 'completed') {
               setDiagnostic(diagRes.data.diagnostic);
-              console.log('Diagnostic loaded:', diagRes.data.diagnostic);
+              logger.log('Diagnostic loaded:', diagRes.data.diagnostic);
             } else {
-              console.log('Diagnostic not completed yet');
+              logger.log('Diagnostic not completed yet');
             }
           } catch (err) {
-            console.log('No diagnostic yet:', err.response?.status);
+            logger.log('No diagnostic yet:', err.response?.status);
             // If 404, seller hasn't started diagnostic - this is expected
             setDiagnostic(null);
           }
         }
       } catch (err) {
-        console.log('Auth error:', err);
+        logger.log('Auth error:', err);
         localStorage.removeItem('token');
         setUser(null);
       }
@@ -93,10 +82,10 @@ function AppContent() {
     setUser(userData);
     
     // Redirection selon le rôle
-    console.log('🔍 User role for redirect:', userData.role, 'Type:', typeof userData.role);
+    logger.log('🔍 User role for redirect:', userData.role, 'Type:', typeof userData.role);
     if (userData.role === 'gérant' || userData.role === 'gerant') {
       // Gérant → Dashboard Gérant
-      console.log('✅ Redirecting to gerant-dashboard');
+      logger.log('✅ Redirecting to gerant-dashboard');
       window.location.href = '/gerant-dashboard';
       return;
     }
@@ -116,23 +105,23 @@ function AppContent() {
     // Check diagnostic for new sellers - ensure it completes before navigation
     if (userData.role === 'seller') {
       try {
-        const diagRes = await axios.get(`${API}/seller/diagnostic/me`);
+        const diagRes = await api.get('/seller/diagnostic/me');
         if (diagRes.data.status === 'completed') {
           setDiagnostic(diagRes.data.diagnostic);
-          console.log('Diagnostic already completed:', diagRes.data.diagnostic);
+          logger.log('Diagnostic already completed:', diagRes.data.diagnostic);
         } else {
-          console.log('Diagnostic not completed');
+          logger.log('Diagnostic not completed');
           setDiagnostic(null);
         }
       } catch (err) {
-        console.log('No diagnostic yet:', err.response?.status);
+        logger.log('No diagnostic yet:', err.response?.status);
         setDiagnostic(null);
       }
     }
     
     // Navigate to dashboard after successful login (Manager or Seller)
     // Using window.location for reliable redirect
-    console.log('⚠️ Fallback redirect to /dashboard for role:', userData.role);
+    logger.log('⚠️ Fallback redirect to /dashboard for role:', userData.role);
     window.location.href = '/dashboard';
   };
 

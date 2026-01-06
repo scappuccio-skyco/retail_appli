@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { LogOut, Users, TrendingUp, Award, Clock, CheckCircle, XCircle, Sparkles, Settings, RefreshCw, Edit2, Trash2, Target, BarChart3, Bell, ChevronLeft, ChevronRight, Headphones, Coffee } from 'lucide-react';
 import Logo from '../components/shared/Logo';
@@ -25,10 +24,8 @@ import TutorialButton from '../components/onboarding/TutorialButton';
 import OnboardingModal from '../components/onboarding/OnboardingModal';
 import { getManagerSteps } from '../components/onboarding/managerSteps';
 import { useOnboarding } from '../hooks/useOnboarding';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 // Component for progress indicator
 const ProgressIndicator = ({ label, emoji, target, progress, type = 'currency', colorScheme = 'blue' }) => {
@@ -108,11 +105,7 @@ export default function ManagerDashboard({ user, onLogout }) {
   useEffect(() => {
     const detectKpiMode = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const API = `${BACKEND_URL}/api`;
-        const res = await axios.get(`${API}/seller/kpi-enabled${apiStoreIdParam}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get(`/seller/kpi-enabled${apiStoreIdParam}`);
         
         let mode;
         if (isReadOnly) {
@@ -126,7 +119,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         setKpiMode(mode);
       } catch (error) {
         // Si erreur, garder le mode par défaut
-        console.error('Error detecting KPI mode:', error);
+        logger.error('Error detecting KPI mode:', error);
       }
     };
     
@@ -273,10 +266,7 @@ export default function ManagerDashboard({ user, onLogout }) {
       // Show loading toast
       const loadingToast = toast.loading('🔄 Vérification du paiement en cours...');
       
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/checkout/status/${sessionId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/checkout/status/${sessionId}`);
       
       toast.dismiss(loadingToast);
       
@@ -333,7 +323,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         fetchStoreKPIStats();
       }
     } catch (error) {
-      console.error('Error checking payment status:', error);
+      logger.error('Error checking payment status:', error);
       toast.error('Erreur lors de la vérification du paiement. Veuillez rafraîchir la page.', {
         duration: 5000
       });
@@ -356,25 +346,19 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const fetchActiveObjectives = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/manager/objectives/active${apiStoreIdParam}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/manager/objectives/active${apiStoreIdParam}`);
       setActiveObjectives(res.data);
     } catch (err) {
-      console.error('Error fetching active objectives:', err);
+      logger.error('Error fetching active objectives:', err);
     }
   };
 
   const fetchActiveChallenges = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/manager/challenges/active${apiStoreIdParam}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/manager/challenges/active${apiStoreIdParam}`);
       setActiveChallenges(res.data);
     } catch (err) {
-      console.error('Error fetching active challenges:', err);
+      logger.error('Error fetching active challenges:', err);
     }
   };
 
@@ -416,10 +400,7 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const fetchBilanForWeek = async (startDate, endDate, periode) => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/manager/team-bilans/all${apiStoreIdParam}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/manager/team-bilans/all${apiStoreIdParam}`);
       if (res.data.status === 'success' && res.data.bilans) {
         const bilan = res.data.bilans.find(b => b.periode === periode);
         if (bilan) {
@@ -436,31 +417,25 @@ export default function ManagerDashboard({ user, onLogout }) {
         }
       }
     } catch (err) {
-      console.error('Error fetching bilan for week:', err);
+      logger.error('Error fetching bilan for week:', err);
     }
   };
 
   const fetchKpiConfig = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/manager/kpi-config${apiStoreIdParam}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/manager/kpi-config${apiStoreIdParam}`);
       setKpiConfig(res.data);
     } catch (err) {
-      console.error('Error fetching KPI config:', err);
+      logger.error('Error fetching KPI config:', err);
     }
   };
 
   const fetchStoreKPIStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/manager/store-kpi/stats${apiStoreIdParam}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/manager/store-kpi/stats${apiStoreIdParam}`);
       setStoreKPIStats(res.data);
     } catch (err) {
-      console.error('Error fetching store KPI stats:', err);
+      logger.error('Error fetching store KPI stats:', err);
     }
   };
 
@@ -503,14 +478,9 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
       const [sellersRes, invitesRes] = await Promise.all([
-        axios.get(`${API}/manager/sellers${apiStoreIdParam}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${API}/manager/invitations${apiStoreIdParam}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        api.get(`/manager/sellers${apiStoreIdParam}`),
+        api.get(`/manager/invitations${apiStoreIdParam}`)
       ]);
       setSellers(sellersRes.data);
       setInvitations(invitesRes.data);
@@ -518,14 +488,12 @@ export default function ManagerDashboard({ user, onLogout }) {
       // Récupérer le nom du magasin si on a un store_id
       if (effectiveStoreId) {
         try {
-          const storeRes = await axios.get(`${API}/stores/${effectiveStoreId}/info`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          const storeRes = await api.get(`/stores/${effectiveStoreId}/info`);
           if (storeRes.data?.name) {
             setStoreName(storeRes.data.name);
           }
         } catch (err) {
-          console.error('Could not fetch store name:', err);
+          logger.error('Could not fetch store name:', err);
         }
       }
     } catch (err) {
@@ -537,15 +505,12 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   const fetchManagerDiagnostic = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/manager-diagnostic/me${apiStoreIdParam}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/manager-diagnostic/me${apiStoreIdParam}`);
       if (res.data.status === 'completed') {
         setManagerDiagnostic(res.data.diagnostic);
       }
     } catch (err) {
-      console.error('Error fetching manager diagnostic:', err);
+      logger.error('Error fetching manager diagnostic:', err);
     }
   };
 
@@ -554,7 +519,7 @@ export default function ManagerDashboard({ user, onLogout }) {
       const weekDates = getWeekDates(0);
       await fetchBilanForWeek(weekDates.startISO, weekDates.endISO, weekDates.periode);
     } catch (err) {
-      console.error('Error fetching team bilan:', err);
+      logger.error('Error fetching team bilan:', err);
     }
   };
 
@@ -562,13 +527,13 @@ export default function ManagerDashboard({ user, onLogout }) {
     setGeneratingTeamBilan(true);
     try {
       const weekDates = getWeekDates(currentWeekOffset);
-      const res = await axios.post(`${API}/manager/team-bilan?start_date=${weekDates.startISO}&end_date=${weekDates.endISO}`);
+      const res = await api.post(`/manager/team-bilan?start_date=${weekDates.startISO}&end_date=${weekDates.endISO}`);
       if (res.data) {
         setTeamBilan(res.data);
         toast.success('Bilan régénéré avec succès !');
       }
     } catch (err) {
-      console.error('Error regenerating team bilan:', err);
+      logger.error('Error regenerating team bilan:', err);
       toast.error('Erreur lors de la régénération du bilan');
     } finally {
       setGeneratingTeamBilan(false);
@@ -578,9 +543,9 @@ export default function ManagerDashboard({ user, onLogout }) {
   const fetchSellerStats = async (sellerId) => {
     try {
       const [statsRes, diagRes, kpiRes] = await Promise.all([
-        axios.get(`${API}/manager/seller/${sellerId}/stats`),
-        axios.get(`${API}/manager-diagnostic/seller/${sellerId}`),
-        axios.get(`${API}/manager/kpi-entries/${sellerId}?days=7`)
+        api.get(`/manager/seller/${sellerId}/stats`),
+        api.get(`/manager-diagnostic/seller/${sellerId}`),
+        api.get(`/manager/kpi-entries/${sellerId}?days=7`)
       ]);
       setSellerStats(statsRes.data);
       setSellerDiagnostic(diagRes.data);
@@ -1155,7 +1120,7 @@ export default function ManagerDashboard({ user, onLogout }) {
             setAutoShowRelationshipResult(false);
           }}
           onSuccess={async (formData) => {
-            console.log('Form data:', formData);
+            logger.log('Form data:', formData);
             // FERMER LE MODAL IMMÉDIATEMENT (pattern correct)
             setShowRelationshipModal(false);
             
@@ -1164,11 +1129,9 @@ export default function ManagerDashboard({ user, onLogout }) {
             
             try {
               // Faire l'appel API APRÈS fermeture du modal
-              const token = localStorage.getItem('token');
-              const response = await axios.post(
-                `${API}/manager/relationship-advice${apiStoreIdParam}`,
-                formData,
-                { headers: { Authorization: `Bearer ${token}` } }
+              const response = await api.post(
+                `/manager/relationship-advice${apiStoreIdParam}`,
+                formData
               );
               
               setGeneratingAIAdvice(false);
@@ -1185,7 +1148,7 @@ export default function ManagerDashboard({ user, onLogout }) {
               
             } catch (error) {
               setGeneratingAIAdvice(false);
-              console.error('Error generating advice:', error);
+              logger.error('Error generating advice:', error);
               toast.error('Erreur lors de la génération des recommandations');
             }
           }}

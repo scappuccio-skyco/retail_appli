@@ -7,8 +7,8 @@
  * Standardizes PDF download behavior across the application.
  */
 
-import axios from 'axios';
-import { API_BASE } from '../lib/api';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 /**
  * Download a PDF from a backend API endpoint
@@ -35,16 +35,18 @@ export async function apiDownloadPdf(url, filename = null, options = {}) {
       throw new Error('Vous devez être connecté pour télécharger le PDF.');
     }
 
-    // Build full URL if relative
-    const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+    // Nettoyer l'URL (enlever /api/ si présent, car apiClient l'ajoute déjà)
+    let cleanUrl = url;
+    if (cleanUrl.startsWith('/api/')) {
+      cleanUrl = cleanUrl.substring(4);
+    }
+    if (!cleanUrl.startsWith('/')) {
+      cleanUrl = '/' + cleanUrl;
+    }
 
-    // Make request with responseType blob
-    const response = await axios.get(fullUrl, {
-      responseType: 'blob',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        ...(options.headers || {})
-      },
+    // Make request with responseType blob via apiClient
+    const response = await api.getBlob(cleanUrl, {
+      ...(options.headers || {}),
       onDownloadProgress: options.onProgress ? (progressEvent) => {
         if (progressEvent.total) {
           options.onProgress(progressEvent.loaded, progressEvent.total);
@@ -55,7 +57,7 @@ export async function apiDownloadPdf(url, filename = null, options = {}) {
     // Verify response is PDF
     const contentType = response.headers['content-type'] || response.data.type;
     if (contentType && !contentType.includes('application/pdf') && !contentType.includes('pdf')) {
-      console.error('Type de fichier reçu:', contentType);
+      logger.error('Type de fichier reçu:', contentType);
       throw new Error('Le fichier reçu n\'est pas un PDF');
     }
 
@@ -86,7 +88,7 @@ export async function apiDownloadPdf(url, filename = null, options = {}) {
     await downloadBlobAsFile(response.data, finalFilename);
 
   } catch (error) {
-    console.error('Erreur lors du téléchargement du PDF:', error);
+    logger.error('Erreur lors du téléchargement du PDF:', error);
     
     if (error.response) {
       // Server error

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { LogOut, Plus, TrendingUp, Award, MessageSquare, Sparkles, BarChart3, RefreshCw, ChevronLeft, ChevronRight, User, Headphones, FileText } from 'lucide-react';
 import Logo from '../components/shared/Logo';
@@ -27,10 +26,8 @@ import OnboardingModal from '../components/onboarding/OnboardingModal';
 import { getSellerSteps } from '../components/onboarding/sellerSteps';
 import { useOnboarding } from '../hooks/useOnboarding';
 import { useSyncMode } from '../hooks/useSyncMode';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 // Component for progress indicator
 const ProgressIndicator = ({ label, emoji, target, progress, type = 'currency', colorScheme = 'blue' }) => {
@@ -176,10 +173,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   useEffect(() => {
     const detectKpiMode = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`${API}/seller/kpi-enabled`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get('/seller/kpi-enabled');
         
         let mode;
         if (isReadOnly) {
@@ -192,7 +186,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         
         setKpiMode(mode);
       } catch (error) {
-        console.error('Error detecting KPI mode:', error);
+        logger.error('Error detecting KPI mode:', error);
       }
     };
     
@@ -304,43 +298,32 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
   const fetchActiveObjectives = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/seller/objectives/active`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/seller/objectives/active');
       setActiveObjectives(res.data);
     } catch (err) {
-      console.error('Error fetching active objectives:', err);
+      logger.error('Error fetching active objectives:', err);
     }
   };
 
   const fetchActiveChallenges = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/seller/challenges/active`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/seller/challenges/active');
       setActiveChallenges(res.data);
     } catch (err) {
-      console.error('Error fetching active challenges:', err);
+      logger.error('Error fetching active challenges:', err);
     }
   };
 
   const fetchDailyChallenge = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/seller/daily-challenge`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/seller/daily-challenge');
       setDailyChallenge(res.data);
       
       // Fetch challenge stats
-      const statsRes = await axios.get(`${API}/seller/daily-challenge/stats`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const statsRes = await api.get('/seller/daily-challenge/stats');
       setChallengeStats(statsRes.data);
     } catch (err) {
-      console.error('Error fetching daily challenge:', err);
+      logger.error('Error fetching daily challenge:', err);
     }
   };
 
@@ -355,15 +338,13 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     
     setLoadingChallenge(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post(
-        `${API}/seller/daily-challenge/complete`,
+      const res = await api.post(
+        '/seller/daily-challenge/complete',
         { 
           challenge_id: dailyChallenge.id,
           result: result,
           comment: challengeFeedbackComment || null
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
       setDailyChallenge(res.data);
       setShowFeedbackForm(false);
@@ -376,7 +357,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       };
       toast.success(messages[result] || '✅ Feedback enregistré !');
     } catch (err) {
-      console.error('Error completing challenge:', err);
+      logger.error('Error completing challenge:', err);
       toast.error('Erreur lors de la validation');
     } finally {
       setLoadingChallenge(false);
@@ -386,16 +367,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const refreshDailyChallenge = async () => {
     setLoadingChallenge(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post(
-        `${API}/seller/daily-challenge/refresh`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.post('/seller/daily-challenge/refresh', {});
       setDailyChallenge(res.data);
       toast.success('✨ Nouveau challenge généré !');
     } catch (err) {
-      console.error('Error refreshing challenge:', err);
+      logger.error('Error refreshing challenge:', err);
       toast.error('Erreur lors de la génération');
     } finally {
       setLoadingChallenge(false);
@@ -404,22 +380,20 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
   const fetchDebriefs = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const debriefsRes = await axios.get(`${API}/debriefs`, { headers: { Authorization: `Bearer ${token}` } });
+      const debriefsRes = await api.get('/debriefs');
       setDebriefs(debriefsRes.data);
     } catch (error) {
-      console.error('Error fetching debriefs:', error);
+      logger.error('Error fetching debriefs:', error);
     }
   };
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
       const [evalsRes, salesRes, tasksRes, debriefsRes] = await Promise.all([
-        axios.get(`${API}/evaluations`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/sales`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/seller/tasks`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/debriefs`, { headers: { Authorization: `Bearer ${token}` } })
+        api.get('/evaluations'),
+        api.get('/sales'),
+        api.get('/seller/tasks'),
+        api.get('/debriefs')
       ]);
       
       setEvaluations(evalsRes.data);
@@ -429,7 +403,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       
       // Try to load live scores (non-blocking)
       try {
-        const liveScoresRes = await axios.get(`${API}/seller/diagnostic/me/live-scores`, { headers: { Authorization: `Bearer ${token}` } });
+        const liveScoresRes = await api.get('/seller/diagnostic/me/live-scores');
         if (liveScoresRes.data && liveScoresRes.data.live_scores) {
           const { live_scores, diagnostic_age_days } = liveScoresRes.data;
           const scoreEntry = {
@@ -444,37 +418,35 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           setCompetencesHistory([scoreEntry]);
         }
       } catch (err) {
-        console.log('No diagnostic or live scores available yet');
+        logger.log('No diagnostic or live scores available yet');
         setCompetencesHistory([]);
       }
       
       // Try to load diagnostic info
       try {
-        const diagnosticRes = await axios.get(`${API}/seller/diagnostic/me`, { headers: { Authorization: `Bearer ${token}` } });
+        const diagnosticRes = await api.get('/seller/diagnostic/me');
         if (diagnosticRes.data) {
           setDiagnostic(diagnosticRes.data);
         }
       } catch (err) {
-        console.log('No diagnostic available yet');
+        logger.log('No diagnostic available yet');
       }
       
       // Récupérer le nom du magasin si on a un store_id
       if (user?.store_id) {
         try {
-          const storeRes = await axios.get(`${API}/stores/${user.store_id}/info`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          const storeRes = await api.get(`/stores/${user.store_id}/info`);
           if (storeRes.data?.name) {
             setStoreName(storeRes.data.name);
           }
         } catch (err) {
-          console.error('Could not fetch store name:', err);
+          logger.error('Could not fetch store name:', err);
         }
       }
       
       // Get KPI entries
       try {
-        const kpiRes = await axios.get(`${API}/seller/kpi-entries`, { headers: { Authorization: `Bearer ${token}` } });
+        const kpiRes = await api.get('/seller/kpi-entries');
         setKpiEntries(kpiRes.data);
         
         // Check if today's KPI has been entered
@@ -501,11 +473,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         
         setTasks(newTasks);
       } catch (err) {
-        console.log('KPI entries not available:', err);
+        logger.log('KPI entries not available:', err);
         setKpiEntries([]);
       }
     } catch (err) {
-      console.error('Error loading data:', err);
+      logger.error('Error loading data:', err);
       toast.error('Erreur de chargement des données');
     } finally {
       setLoading(false);
@@ -562,7 +534,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       return entryDate >= start && entryDate <= end;
     });
 
-    console.log('Calculating KPI for week:', { startDate, endDate, weekKPIsCount: weekKPIs.length });
+    logger.log('Calculating KPI for week:', { startDate, endDate, weekKPIsCount: weekKPIs.length });
 
     // Calculer les totaux et moyennes
     const kpi_resume = {
@@ -598,25 +570,23 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       }
     }
 
-    console.log('Calculated KPI resume:', kpi_resume);
+    logger.log('Calculated KPI resume:', kpi_resume);
     return kpi_resume;
   };
 
   const fetchBilanForWeek = async (startDate, endDate, periode) => {
     try {
-      const token = localStorage.getItem('token');
-      
       // 1. D'abord récupérer tous les KPI du vendeur
-      const kpiRes = await axios.get(`${API}/seller/kpi-entries`, { headers: { Authorization: `Bearer ${token}` } });
+      const kpiRes = await api.get('/seller/kpi-entries');
       const allKpiEntries = kpiRes.data || [];
       
-      console.log('All KPI entries loaded:', allKpiEntries.length);
+      logger.log('All KPI entries loaded:', allKpiEntries.length);
       
       // 2. Calculer automatiquement les KPI de la semaine
       const kpi_resume = calculateWeeklyKPI(startDate, endDate, allKpiEntries);
       
       // 3. Chercher si un bilan IA existe pour cette semaine
-      const res = await axios.get(`${API}/seller/bilan-individuel/all`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.get('/seller/bilan-individuel/all');
       let existingBilan = null;
       
       if (res.data.status === 'success' && res.data.bilans) {
@@ -644,24 +614,22 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         });
       }
     } catch (err) {
-      console.error('Error fetching bilan for week:', err);
+      logger.error('Error fetching bilan for week:', err);
     }
   };
 
   const fetchKpiConfig = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/seller/kpi-config`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.get('/seller/kpi-config');
       setKpiConfig(res.data);
     } catch (err) {
-      console.error('Error fetching KPI config:', err);
+      logger.error('Error fetching KPI config:', err);
     }
   };
 
   const refreshCompetenceScores = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const liveScoresRes = await axios.get(`${API}/seller/diagnostic/me/live-scores`, { headers: { Authorization: `Bearer ${token}` } });
+      const liveScoresRes = await api.get('/seller/diagnostic/me/live-scores');
       if (liveScoresRes.data && liveScoresRes.data.live_scores) {
         const { live_scores, diagnostic_age_days } = liveScoresRes.data;
         const scoreEntry = {
@@ -677,7 +645,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         toast.success('✨ Tes compétences ont été mises à jour !');
       }
     } catch (err) {
-      console.log('Unable to refresh competence scores');
+      logger.log('Unable to refresh competence scores');
     }
   };
 
@@ -686,21 +654,19 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       const weekDates = getWeekDates(offset);
       await fetchBilanForWeek(weekDates.startISO, weekDates.endISO, weekDates.periode);
     } catch (err) {
-      console.error('Error fetching individual bilan:', err);
+      logger.error('Error fetching individual bilan:', err);
     }
   };
 
   const regenerateBilan = async () => {
     setGeneratingBilan(true);
     try {
-      const token = localStorage.getItem('token');
       const weekDates = getWeekDates(currentWeekOffset);
       
       // Regenerate the bilan for this week
-      const res = await axios.post(
-        `${API}/seller/bilan-individuel?start_date=${weekDates.startISO}&end_date=${weekDates.endISO}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.post(
+        `/seller/bilan-individuel?start_date=${weekDates.startISO}&end_date=${weekDates.endISO}`,
+        {}
       );
       
       if (res.data) {
@@ -708,7 +674,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
         toast.success('✨ Bravo ! Bilan régénéré avec succès');
       }
     } catch (err) {
-      console.error('Error regenerating bilan:', err);
+      logger.error('Error regenerating bilan:', err);
       toast.error('Erreur lors de la régénération du bilan');
     } finally {
       setGeneratingBilan(false);
@@ -1374,7 +1340,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               <button
                 onClick={async () => {
                   try {
-                    await axios.post(`${API}/seller/respond-request`, {
+                    await api.post('/seller/respond-request', {
                       request_id: selectedTask.id,
                       response: taskResponse
                     });

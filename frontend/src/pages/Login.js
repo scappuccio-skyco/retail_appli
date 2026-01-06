@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { Mail, Lock, User, Eye, EyeOff, Building2, CheckCircle, XCircle } from 'lucide-react';
 import { useSearchParams, Link } from 'react-router-dom';
 import Logo from '../components/shared/Logo';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 export default function Login({ onLogin }) {
   const [searchParams] = useSearchParams();
@@ -37,7 +34,7 @@ export default function Login({ onLogin }) {
 
   const verifyInvitation = async (token) => {
     try {
-      const res = await axios.get(`${API}/invitations/verify/${token}`);
+      const res = await api.get(`/invitations/verify/${token}`);
       setInviteInfo(res.data);
       setFormData(prev => ({ ...prev, email: res.data.email, invitation_token: token }));
       toast.success(`Invitation de ${res.data.manager_name}`);
@@ -56,12 +53,12 @@ export default function Login({ onLogin }) {
     const checkAvailability = async () => {
       setCheckingWorkspace(true);
       try {
-        const res = await axios.post(`${API}/workspaces/check-availability`, {
+        const res = await api.post('/workspaces/check-availability', {
           name: formData.workspace_name
         });
         setWorkspaceAvailability(res.data);
       } catch (err) {
-        console.error('Error checking workspace availability:', err);
+        logger.error('Error checking workspace availability:', err);
       } finally {
         setCheckingWorkspace(false);
       }
@@ -103,7 +100,7 @@ export default function Login({ onLogin }) {
         payload = { email: formData.email, password: formData.password };
       }
       
-      const res = await axios.post(`${API}${endpoint}`, payload);
+      const res = await api.post(endpoint, payload);
       // toast.success(isRegister ? 'Compte créé avec succès!' : 'Connexion réussie!');
       onLogin(res.data.user, res.data.token);
     } catch (err) {

@@ -88,6 +88,15 @@ else:
 logger.info(f"CORS allowed origins: {allowed_origins}")
 print(f"[STARTUP] CORS origins: {allowed_origins}", flush=True)
 
+# Add logging middleware FIRST (before CORS to capture all requests)
+try:
+    from middleware.logging import LoggingMiddleware
+    app.add_middleware(LoggingMiddleware)
+    print("[STARTUP] 8.5/10 - Logging middleware added", flush=True)
+except Exception as e:
+    logger.warning(f"Failed to load LoggingMiddleware: {e}")
+    print(f"[STARTUP] WARNING: LoggingMiddleware not loaded: {e}", flush=True)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
@@ -186,10 +195,30 @@ async def create_indexes_background():
         
         # Create indexes for performance - use background=True
         try:
+            # Existing indexes
             await db.users.create_index("stripe_customer_id", sparse=True, background=True)
             await db.subscriptions.create_index("stripe_customer_id", sparse=True, background=True)
             await db.subscriptions.create_index("stripe_subscription_id", sparse=True, background=True)
             await db.workspaces.create_index("stripe_customer_id", sparse=True, background=True)
+            
+            # ✅ CRITICAL: Indexes for kpi_entries (most queried collection)
+            await db.kpi_entries.create_index([("seller_id", 1), ("date", -1)], background=True)
+            await db.kpi_entries.create_index([("store_id", 1), ("date", -1)], background=True)
+            await db.kpi_entries.create_index([("seller_id", 1), ("store_id", 1), ("date", -1)], background=True)
+            
+            # Indexes for objectives/challenges
+            await db.objectives.create_index([("store_id", 1), ("status", 1)], background=True)
+            await db.objectives.create_index([("seller_id", 1), ("status", 1)], background=True)
+            await db.challenges.create_index([("store_id", 1), ("status", 1)], background=True)
+            
+            # Indexes for users (frequently queried)
+            await db.users.create_index([("store_id", 1), ("role", 1), ("status", 1)], background=True)
+            await db.users.create_index([("store_id", 1), ("role", 1)], background=True)
+            
+            # Indexes for sales/debriefs
+            await db.sales.create_index([("seller_id", 1), ("date", -1)], background=True)
+            await db.debriefs.create_index([("seller_id", 1), ("created_at", -1)], background=True)
+            
             logger.info(f"✅ Database indexes created/verified (worker {worker_id})")
         except Exception as e:
             logger.warning(f"Index creation warning: {e}")
