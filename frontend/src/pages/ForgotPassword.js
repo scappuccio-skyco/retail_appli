@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
+import { api } from '../lib/apiClient';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -17,7 +14,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      await axios.post(`${BACKEND_URL}/api/auth/forgot-password`, { email });
+      await api.post('/auth/forgot-password', { email });
       setEmailSent(true);
       toast.success('Email envoyé !');
     } catch (error) {

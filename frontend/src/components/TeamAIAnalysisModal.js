@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { X, Trash2, Calendar, Clock, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function TeamAIAnalysisModal({ teamData, periodFilter, customDateRange, onClose, storeIdParam = null }) {
   const [aiAnalysis, setAiAnalysis] = useState(null);
@@ -33,14 +30,10 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
   const loadHistory = async () => {
     setLoadingHistory(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(
-        `${API}/manager/team-analyses-history${storeParam}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.get(`/manager/team-analyses-history${storeParam}`);
       setHistory(res.data.analyses || []);
     } catch (err) {
-      console.error('Error loading history:', err);
+      logger.error('Error loading history:', err);
       toast.error('Erreur lors du chargement de l\'historique');
     } finally {
       setLoadingHistory(false);
@@ -53,15 +46,11 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
     }
     
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${API}/manager/team-analysis/${analysisId}${storeParam}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete(`/manager/team-analysis/${analysisId}${storeParam}`);
       toast.success('Analyse supprimée');
       loadHistory();
     } catch (err) {
-      console.error('Error deleting analysis:', err);
+      logger.error('Error deleting analysis:', err);
       toast.error('Erreur lors de la suppression');
     }
   };
@@ -70,8 +59,6 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      
       // Prepare team context for AI
       const teamContext = {
         total_sellers: teamData.length,
@@ -101,10 +88,9 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
         requestBody.end_date = customDateRange.end;
       }
 
-      const res = await axios.post(
-        `${API}/manager/analyze-team${storeParam}`,
-        requestBody,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.post(
+        `/manager/analyze-team${storeParam}`,
+        requestBody
       );
 
       setAiAnalysis(res.data.analysis);
@@ -118,7 +104,7 @@ export default function TeamAIAnalysisModal({ teamData, periodFilter, customDate
       // Refresh history
       loadHistory();
     } catch (err) {
-      console.error('Error generating AI analysis:', err);
+      logger.error('Error generating AI analysis:', err);
       toast.error('Erreur lors de l\'analyse IA');
     } finally {
       setLoading(false);

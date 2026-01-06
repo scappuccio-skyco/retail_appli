@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { Users, Lock, User, Phone, CheckCircle, Building2 } from 'lucide-react';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function RegisterManager() {
   const { token } = useParams();
@@ -27,7 +24,7 @@ export default function RegisterManager() {
 
   const verifyToken = async () => {
     try {
-      const res = await axios.get(`${API}/invitations/gerant/verify/${token}`);
+      const res = await api.get(`/invitations/gerant/verify/${token}`);
       if (res.data.role !== 'manager') {
         toast.error('Cette invitation n\'est pas pour un compte Manager');
         setTimeout(() => navigate('/login'), 2000);
@@ -57,7 +54,7 @@ export default function RegisterManager() {
     setSubmitting(true);
 
     try {
-      await axios.post(`${API}/auth/register-with-gerant-invite`, {
+      await api.post('/auth/register-with-gerant-invite', {
         invitation_token: token,
         name: formData.name,
         password: formData.password,
@@ -67,7 +64,7 @@ export default function RegisterManager() {
       toast.success('Compte créé avec succès ! Redirection...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (error) {
-      console.error('Registration error:', error);
+      logger.error('Registration error:', error);
       let errorMessage = 'Erreur lors de l\'inscription';
       
       if (error.response?.data?.detail) {

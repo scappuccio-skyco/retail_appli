@@ -915,26 +915,37 @@ async def get_all_objectives(
     """
     Get ALL objectives for the store (active + inactive)
     Used by the manager settings modal
-    Automatically calculates progress based on KPI data
+    Automatically calculates progress based on KPI data (optimized batch processing)
     """
+    import time
+    from utils.db_counter import init_counter, increment_db_op, get_db_ops_count, get_request_id
+    
+    start_time = time.time()
+    
+    # Initialize DB operations counter (PERF_DEBUG mode)
+    init_counter()
+    
     try:
         resolved_store_id = context.get('resolved_store_id')
         manager_id = context.get('id')
         
+        increment_db_op("db.objectives.find")
         objectives = await db.objectives.find(
             {"store_id": resolved_store_id},
             {"_id": 0}
         ).sort("created_at", -1).to_list(100)
         
-        # Calculate progress for each objective
+        # Calculate progress for all objectives in batch (optimized)
         from services.seller_service import SellerService
         seller_service = SellerService(db)
         
+        # Use batch processing instead of N individual calls
+        objectives = await seller_service.calculate_objectives_progress_batch(
+            objectives, manager_id, resolved_store_id
+        )
+        
+        # Calculate percentage progress for each objective
         for objective in objectives:
-            # Calculate progress based on KPI data
-            await seller_service.calculate_objective_progress(objective, manager_id)
-            
-            # Calculate percentage progress
             target_value = objective.get('target_value', 0)
             if target_value > 0:
                 # Determine current value based on objective type
@@ -960,9 +971,42 @@ async def get_all_objectives(
             else:
                 objective['progress_percentage'] = 0
         
+        # Instrumentation: log duration and count
+        duration_ms = (time.time() - start_time) * 1000
+        db_ops_count = get_db_ops_count()
+        request_id = get_request_id()
+        
+        log_extra = {
+            'endpoint': '/api/manager/objectives',
+            'objectives_count': len(objectives),
+            'duration_ms': round(duration_ms, 2),
+            'store_id': resolved_store_id,
+            'manager_id': manager_id
+        }
+        
+        # Add PERF_DEBUG metrics if enabled
+        if db_ops_count > 0:
+            log_extra['db_ops_count'] = db_ops_count
+            if request_id:
+                log_extra['request_id'] = request_id
+        
+        logger.info(
+            f"get_all_objectives completed",
+            extra=log_extra
+        )
+        
         return objectives
     except Exception as e:
-        logger.error(f"Error fetching objectives: {e}", exc_info=True)
+        duration_ms = (time.time() - start_time) * 1000
+        logger.error(
+            f"Error fetching objectives: {e}",
+            extra={
+                'endpoint': '/api/manager/objectives',
+                'duration_ms': round(duration_ms, 2),
+                'error': str(e)
+            },
+            exc_info=True
+        )
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -1277,26 +1321,38 @@ async def get_all_challenges(
     """
     Get ALL challenges for the store (active + inactive)
     Used by the manager settings modal
-    Enriches challenges with progress data and normalizes field names
+    Enriches challenges with progress data and normalizes field names (optimized batch processing)
     """
+    import time
+    from utils.db_counter import init_counter, increment_db_op, get_db_ops_count, get_request_id
+    
+    start_time = time.time()
+    
+    # Initialize DB operations counter (PERF_DEBUG mode)
+    init_counter()
+    
     try:
         resolved_store_id = context.get('resolved_store_id')
         manager_id = context.get('id')
         
+        increment_db_op("db.challenges.find")
         challenges = await db.challenges.find(
             {"store_id": resolved_store_id},
             {"_id": 0}
         ).sort("created_at", -1).to_list(100)
         
-        # Enrich each challenge with progress data and normalize fields
+        # Calculate progress for all challenges in batch (optimized)
         from services.seller_service import SellerService
         seller_service = SellerService(db)
         
+        # Use batch processing instead of N individual calls
+        challenges = await seller_service.calculate_challenges_progress_batch(
+            challenges, manager_id, resolved_store_id
+        )
+        
+        # Enrich each challenge with normalized field names
         enriched_challenges = []
         for challenge in challenges:
-            # Calculate progress if not already calculated
-            await seller_service.calculate_challenge_progress(challenge, None)
-            
             # Normalize field names for frontend compatibility
             # Convert kpi_type (legacy) to kpi_name if challenge_type is kpi_standard
             if not challenge.get('challenge_type') and challenge.get('kpi_type'):
@@ -1364,8 +1420,42 @@ async def get_all_challenges(
             
             enriched_challenges.append(challenge)
         
+        # Instrumentation: log duration and count
+        duration_ms = (time.time() - start_time) * 1000
+        db_ops_count = get_db_ops_count()
+        request_id = get_request_id()
+        
+        log_extra = {
+            'endpoint': '/api/manager/challenges',
+            'challenges_count': len(enriched_challenges),
+            'duration_ms': round(duration_ms, 2),
+            'store_id': resolved_store_id,
+            'manager_id': manager_id
+        }
+        
+        # Add PERF_DEBUG metrics if enabled
+        if db_ops_count > 0:
+            log_extra['db_ops_count'] = db_ops_count
+            if request_id:
+                log_extra['request_id'] = request_id
+        
+        logger.info(
+            f"get_all_challenges completed",
+            extra=log_extra
+        )
+        
         return enriched_challenges
     except Exception as e:
+        duration_ms = (time.time() - start_time) * 1000
+        logger.error(
+            f"Error fetching challenges: {e}",
+            extra={
+                'endpoint': '/api/manager/challenges',
+                'duration_ms': round(duration_ms, 2),
+                'error': str(e)
+            },
+            exc_info=True
+        )
         raise HTTPException(status_code=500, detail=str(e))
 
 

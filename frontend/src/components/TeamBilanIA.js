@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { Sparkles, TrendingUp, AlertTriangle, Target, MessageSquare, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function TeamBilanIA() {
   const [bilan, setBilan] = useState(null);
@@ -20,23 +17,23 @@ export default function TeamBilanIA() {
 
   const fetchBilan = async () => {
     try {
-      const res = await axios.get(`${API}/manager/team-bilan/latest`);
+      const res = await api.get('/manager/team-bilan/latest');
       if (res.data.status === 'success') {
         setBilan(res.data.bilan);
       }
     } catch (err) {
-      console.error('Error fetching bilan:', err);
+      logger.error('Error fetching bilan:', err);
     }
   };
 
   const generateNewBilan = async () => {
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/manager/team-bilan`);
+      const res = await api.post('/manager/team-bilan');
       setBilan(res.data);
       toast.success('Bilan IA généré ! 🤖');
     } catch (err) {
-      console.error('Error generating bilan:', err);
+      logger.error('Error generating bilan:', err);
       toast.error('Erreur lors de la génération du bilan');
     } finally {
       setLoading(false);

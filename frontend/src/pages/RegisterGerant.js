@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { Building2, Mail, Lock, User, Phone, CheckCircle } from 'lucide-react';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function RegisterGerant() {
   const { token } = useParams();
@@ -28,7 +25,7 @@ export default function RegisterGerant() {
 
   const verifyToken = async () => {
     try {
-      const res = await axios.get(`${API}/invitations/gerant/verify/${token}`);
+      const res = await api.get(`/invitations/gerant/verify/${token}`);
       setInvitation(res.data);
       setLoading(false);
     } catch (error) {
@@ -53,7 +50,7 @@ export default function RegisterGerant() {
     setSubmitting(true);
 
     try {
-      await axios.post(`${API}/auth/register-with-gerant-invite`, {
+      await api.post('/auth/register-with-gerant-invite', {
         token,
         name: formData.name,
         password: formData.password,

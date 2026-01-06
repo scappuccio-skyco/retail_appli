@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, Award, RefreshCw, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import confetti from 'canvas-confetti';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function DailyChallengeModal({ challenge, onClose, onRefresh, onComplete, onOpenHistory }) {
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
@@ -21,13 +18,10 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/seller/daily-challenge/stats`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/seller/daily-challenge/stats');
       setStats(res.data);
     } catch (err) {
-      console.error('Error fetching stats:', err);
+      logger.error('Error fetching stats:', err);
     }
   };
 
@@ -100,15 +94,13 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post(
-        `${API}/seller/daily-challenge/complete`,
+      const res = await api.post(
+        '/seller/daily-challenge/complete',
         {
           challenge_id: challenge.id,
           result: result,
           comment: feedbackComment || null
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
 
       const messages = {
@@ -139,7 +131,7 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
         onClose();
       }, 1500);
     } catch (err) {
-      console.error('Error completing challenge:', err);
+      logger.error('Error completing challenge:', err);
       toast.error('Erreur lors de la validation');
     } finally {
       setLoading(false);
@@ -149,19 +141,14 @@ export default function DailyChallengeModal({ challenge, onClose, onRefresh, onC
   const handleRefresh = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post(
-        `${API}/seller/daily-challenge/refresh`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.post('/seller/daily-challenge/refresh', {});
       toast.success('✨ Nouveau défi généré !');
       
       if (onRefresh) {
         onRefresh(res.data);
       }
     } catch (err) {
-      console.error('Error refreshing challenge:', err);
+      logger.error('Error refreshing challenge:', err);
       toast.error('Erreur lors du rafraîchissement');
     } finally {
       setLoading(false);

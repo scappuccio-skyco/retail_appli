@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { X, ShoppingBag } from 'lucide-react';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function EvaluationModal({ sales, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -31,7 +28,7 @@ export default function EvaluationModal({ sales, onClose, onSuccess }) {
 
       // Create sale if needed
       if (createNewSale) {
-        const saleRes = await axios.post(`${API}/sales`, {
+        const saleRes = await api.post('/sales', {
           store_name: formData.store_name,
           total_amount: parseFloat(formData.total_amount),
           comments: ''
@@ -40,7 +37,7 @@ export default function EvaluationModal({ sales, onClose, onSuccess }) {
       }
 
       // Create evaluation
-      await axios.post(`${API}/evaluations`, {
+      await api.post('/evaluations', {
         sale_id: saleId,
         accueil: formData.accueil,
         decouverte: formData.decouverte,

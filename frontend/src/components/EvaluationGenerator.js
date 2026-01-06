@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
-import axios from 'axios';
 import { X, Sparkles, Copy, Check, FileText, Calendar, Loader2, CheckCircle, AlertTriangle, Target, MessageSquare, Star, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { API_BASE } from '../lib/api';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 /**
  * EvaluationGenerator - Modal pour générer un guide d'entretien annuel IA
@@ -44,17 +44,13 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
     setStats(null);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API_BASE}/api/evaluations/generate`,
+      const response = await api.post(
+        '/evaluations/generate',
         {
           employee_id: employeeId,
           start_date: startDate,
           end_date: endDate,
           comments: comments.trim() || null
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
         }
       );
 
@@ -137,14 +133,14 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
       // ============================================================
       // ÉTAPE 1: DIAGNOSTIC - Logs des sources de contenu
       // ============================================================
-      console.log('=== PDF GENERATION DIAGNOSTIC (ENTRETIEN) ===');
-      console.log('PDF_SOURCE_rawState:', JSON.stringify(guideData, null, 2));
-      console.log('PDF_SOURCE_domText:', guideContentRef.current?.innerText?.substring(0, 300) || 'REF_NOT_READY');
-      console.log('PDF_SOURCE_domHTML:', guideContentRef.current?.innerHTML?.substring(0, 500) || 'REF_NOT_READY');
+      logger.log('=== PDF GENERATION DIAGNOSTIC (ENTRETIEN) ===');
+      logger.log('PDF_SOURCE_rawState:', JSON.stringify(guideData, null, 2));
+      logger.log('PDF_SOURCE_domText:', guideContentRef.current?.innerText?.substring(0, 300) || 'REF_NOT_READY');
+      logger.log('PDF_SOURCE_domHTML:', guideContentRef.current?.innerHTML?.substring(0, 500) || 'REF_NOT_READY');
       
       // Vérifier si le ref est disponible (le guide doit être rendu)
       if (!guideContentRef.current) {
-        console.warn('⚠️ guideContentRef not ready, cannot generate PDF');
+        logger.warn('⚠️ guideContentRef not ready, cannot generate PDF');
         toast.error('Le contenu n\'est pas encore chargé. Veuillez réessayer.');
         return;
       }
@@ -248,7 +244,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
         const fileName = `${roleLabel}_${(employeeName || 'collaborateur').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
         pdf.save(fileName);
         
-        console.log('✅ PDF généré depuis DOM snapshot (pas de corruption attendue)');
+        logger.log('✅ PDF généré depuis DOM snapshot (pas de corruption attendue)');
         toast.success('PDF téléchargé avec succès !');
         
       } catch (canvasError) {
@@ -260,7 +256,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
       }
       
     } catch (error) {
-      console.error('Erreur export PDF (DOM-based):', error);
+      logger.error('Erreur export PDF (DOM-based):', error);
       toast.error('Erreur lors de la génération du PDF');
     } finally {
       setExportingPDF(false);

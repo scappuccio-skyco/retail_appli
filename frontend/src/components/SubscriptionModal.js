@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { unstable_batchedUpdates } from 'react-dom';
 import { X, Crown, Check, Loader, Users, Star } from 'lucide-react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import QuantityModal from './QuantityModal';
 import ConfirmActionModal from './ConfirmActionModal';
-import { API_BASE } from '../lib/api';
-
-const API = API_BASE;
 
 const PLANS = {
   starter: {
@@ -140,18 +138,16 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       
       setLoadingPreview(true);
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.post(
-          `${API}/api/gerant/seats/preview`,
-          { new_seats: newSeatsCount },
-          { headers: { Authorization: `Bearer ${token}` } }
+        const response = await api.post(
+          `/gerant/seats/preview`,
+          { new_seats: newSeatsCount }
         );
         
         if (isMounted) {
           setSeatsPreview(response.data);
         }
       } catch (error) {
-        console.error('Error fetching seats preview:', error);
+        logger.error('Error fetching seats preview:', error);
         if (isMounted) {
           setSeatsPreview(null);
         }
@@ -216,20 +212,17 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
 
   const fetchSubscriptionStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
       // Use different endpoint based on user role
       const endpoint = userRole === 'gerant' 
-        ? `${API}/api/gerant/subscription/status`
-        : `${API}/api/manager/subscription-status`;
+        ? `/gerant/subscription/status`
+        : `/manager/subscription-status`;
       
-      const response = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(endpoint);
       if (isMounted) {
         setSubscriptionInfo(response.data);
       }
     } catch (error) {
-      console.error('Error fetching subscription:', error);
+      logger.error('Error fetching subscription:', error);
     } finally {
       if (isMounted) {
         setLoading(false);
@@ -239,17 +232,14 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
 
   const fetchSellerCount = async () => {
     try {
-      const token = localStorage.getItem('token');
       // Use different endpoint based on user role
       const endpoint = userRole === 'gerant'
-        ? `${API}/api/gerant/dashboard/stats`
-        : `${API}/api/manager/sellers`;
+        ? `/gerant/dashboard/stats`
+        : `/manager/sellers`;
       
-      console.log('🔍 Fetching seller count from:', endpoint, 'for role:', userRole);
-      const response = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      console.log('📦 Response data:', response.data);
+      logger.log('🔍 Fetching seller count from:', endpoint, 'for role:', userRole);
+      const response = await api.get(endpoint);
+      logger.log('📦 Response data:', response.data);
       
       if (isMounted) {
         // Extract seller count based on response structure
@@ -258,10 +248,10 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
           ? (response.data.total_sellers || 0)
           : (response.data.length || 0);
         setSellerCount(count);
-        console.log('✅ Seller count set to:', count);
+        logger.log('✅ Seller count set to:', count);
       }
     } catch (error) {
-      console.error('❌ Error fetching sellers:', error);
+      logger.error('❌ Error fetching sellers:', error);
     }
   };
 
@@ -272,15 +262,12 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
     }
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/api/manager/subscription-history`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/manager/subscription-history');
       if (isMounted) {
         setSubscriptionHistory(response.data.history || []);
       }
     } catch (error) {
-      console.error('Error fetching subscription history:', error);
+      logger.error('Error fetching subscription history:', error);
     }
   };
 
@@ -288,16 +275,15 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
     if (!subscriptionInfo) return;
     
     try {
-      const token = localStorage.getItem('token');
-      console.log('📡 Making API call to change seats...');
+      logger.log('📡 Making API call to change seats...');
       
-      const response = await axios.post(
-        `${API}/api/gerant/subscription/update-seats?new_seats=${newSeats}`,
-        {},
+      const response = await api.post(
+        `/gerant/subscription/update-seats?new_seats=${newSeats}`,
+        {}
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      console.log('✅ API response:', response.data);
+      logger.log('✅ API response:', response.data);
       
       if (response.data.success) {
         toast.success('Nombre de sièges modifié avec succès !');
@@ -308,7 +294,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       }
     } catch (error) {
       const errorMsg = error.response?.data?.detail || 'Erreur lors du changement de sièges';
-      console.error('❌ API Error:', errorMsg);
+      logger.error('❌ API Error:', errorMsg);
       // Show error with toast - modal stays open
       toast.error(errorMsg, { duration: 6000 });
     }
@@ -345,17 +331,15 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       // Fetch preview first
       setLoadingIntervalSwitch(true);
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.post(
-          `${API}/api/gerant/subscription/preview`,
-          { new_interval: 'year' },
-          { headers: { Authorization: `Bearer ${token}` } }
+        const response = await api.post(
+          `/gerant/subscription/preview`,
+          { new_interval: 'year' }
         );
         
         setIntervalSwitchPreview(response.data);
         setShowIntervalSwitchModal(true);
       } catch (error) {
-        console.error('Error fetching interval preview:', error);
+        logger.error('Error fetching interval preview:', error);
         toast.error(error.response?.data?.detail || 'Erreur lors du calcul du changement');
       } finally {
         setLoadingIntervalSwitch(false);
@@ -370,11 +354,9 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
   const handleConfirmIntervalSwitch = async () => {
     setSwitchingInterval(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API}/api/gerant/subscription/switch-interval`,
-        { interval: 'year' },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await api.post(
+        `/gerant/subscription/switch-interval`,
+        { interval: 'year' }
       );
       
       // Success!
@@ -391,7 +373,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       }
       
     } catch (error) {
-      console.error('Error switching interval:', error);
+      logger.error('Error switching interval:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors du changement d\'intervalle');
     } finally {
       setSwitchingInterval(false);
@@ -451,7 +433,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
     if (!selectedPlan) return;
     
     // OPTION 1: Close ALL modals FIRST to avoid DOM conflicts
-    console.log('🔄 Closing modals before checkout...');
+    logger.log('🔄 Closing modals before checkout...');
     setShowQuantityModal(false);
     onClose(); // Close main modal
     
@@ -459,15 +441,14 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
     await new Promise(resolve => setTimeout(resolve, 300));
     
     try {
-      const token = localStorage.getItem('token');
       const originUrl = window.location.origin;
       
-      console.log('📡 Creating checkout session for role:', userRole);
+      logger.log('📡 Creating checkout session for role:', userRole);
       
       // Use different endpoint based on user role
       const endpoint = userRole === 'gerant'
-        ? `${API}/api/gerant/stripe/checkout`
-        : `${API}/api/manager/stripe/checkout`;
+        ? `/gerant/stripe/checkout`
+        : `/manager/stripe/checkout`;
       
       const requestData = userRole === 'gerant'
         ? {
@@ -482,24 +463,22 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
             billing_period: isAnnual ? 'annual' : 'monthly'
           };
       
-      const response = await axios.post(endpoint, requestData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.post(endpoint, requestData);
       
-      console.log('✅ Checkout response:', response.data);
+      logger.log('✅ Checkout response:', response.data);
       
       // If there's a checkout_url (for gerant) or url (for manager), redirect to Stripe
       const checkoutUrl = response.data.checkout_url || response.data.url;
       if (checkoutUrl) {
-        console.log('🔄 Redirecting to Stripe...');
+        logger.log('🔄 Redirecting to Stripe...');
         window.location.replace(checkoutUrl);
       } else if (response.data.success) {
         // If no URL (subscription updated directly), reload
-        console.log('✅ Subscription updated, reloading...');
+        logger.log('✅ Subscription updated, reloading...');
         window.location.reload();
       }
     } catch (error) {
-      console.error('❌ Checkout error COMPLET:', {
+      logger.error('❌ Checkout error COMPLET:', {
         message: error.message,
         response: error.response,
         responseData: error.response?.data,
@@ -539,13 +518,9 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
   
   const confirmCancelSubscription = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API}/api/gerant/subscription/cancel`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+      const response = await api.post(
+        `/gerant/subscription/cancel`,
+        {}
       );
 
       toast.success(response.data.message);
@@ -553,7 +528,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       // Refresh subscription status
       fetchSubscriptionStatus();
     } catch (error) {
-      console.error('Error canceling subscription:', error);
+      logger.error('Error canceling subscription:', error);
       const errorMessage = error.response?.data?.detail || 'Erreur lors de l\'annulation de l\'abonnement';
       toast.error(errorMessage);
     }
@@ -567,13 +542,9 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
   
   const confirmReactivateSubscription = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API}/api/gerant/subscription/reactivate`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+      const response = await api.post(
+        `/gerant/subscription/reactivate`,
+        {}
       );
 
       toast.success('✅ ' + response.data.message);
@@ -581,7 +552,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
       // Refresh subscription status to update UI
       fetchSubscriptionStatus();
     } catch (error) {
-      console.error('Error reactivating subscription:', error);
+      logger.error('Error reactivating subscription:', error);
       const errorMessage = error.response?.data?.detail || 'Erreur lors de la réactivation de l\'abonnement';
       toast.error('❌ ' + errorMessage);
     }
@@ -1025,13 +996,10 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                     setAdjustingSeats(true);
                     
                     try {
-                      const token = localStorage.getItem('token');
-                      
                       // Call the new update-seats endpoint
-                      const response = await axios.post(
-                        `${API}/api/gerant/subscription/update-seats`,
-                        { seats: newSeatsCount },
-                        { headers: { Authorization: `Bearer ${token}` } }
+                      const response = await api.post(
+                        '/gerant/subscription/update-seats',
+                        { seats: newSeatsCount }
                       );
                       
                       if (response.data.success) {
@@ -1054,7 +1022,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                         setNewSeatsCount(response.data.new_seats);
                       }
                     } catch (error) {
-                      console.error('Error updating seats:', error);
+                      logger.error('Error updating seats:', error);
                       toast.error(
                         error.response?.data?.detail || 'Erreur lors de la mise à jour des sièges',
                         { duration: 6000 }
@@ -1537,13 +1505,12 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                   await new Promise(resolve => setTimeout(resolve, 300));
                   
                   try {
-                    const token = localStorage.getItem('token');
                     const originUrl = window.location.origin;
                     
                     // Use different endpoint based on user role
                     const endpoint = userRole === 'gerant'
-                      ? `${API}/api/gerant/stripe/checkout`
-                      : `${API}/api/manager/stripe/checkout`;
+                      ? '/gerant/stripe/checkout'
+                      : '/manager/stripe/checkout';
                     
                     const requestData = userRole === 'gerant'
                       ? {
@@ -1558,9 +1525,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                           billing_period: isAnnual ? 'annual' : 'monthly'
                         };
                     
-                    const response = await axios.post(endpoint, requestData, {
-                      headers: { Authorization: `Bearer ${token}` }
-                    });
+                    const response = await api.post(endpoint, requestData);
                     
                     // Handle both checkout_url (gerant) and url (manager) fields
                     const checkoutUrl = response.data.checkout_url || response.data.url;
@@ -1570,7 +1535,7 @@ export default function SubscriptionModal({ isOpen, onClose, subscriptionInfo: p
                       window.location.reload();
                     }
                   } catch (error) {
-                    console.error('❌ Checkout error:', error);
+                    logger.error('❌ Checkout error:', error);
                     toast.error('Erreur lors de la création de la session');
                     setTimeout(() => window.location.reload(), 2000);
                   }

@@ -8,7 +8,8 @@ import OnboardingModal from '../components/onboarding/OnboardingModal';
 import { gerantSteps } from '../components/onboarding/gerantSteps';
 import { useOnboarding } from '../hooks/useOnboarding';
 import { toast } from 'sonner';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import StoreCard from '../components/gerant/StoreCard';
 import StoreDetailModal from '../components/gerant/StoreDetailModal';
 import ManagerTransferModal from '../components/gerant/ManagerTransferModal';
@@ -20,11 +21,9 @@ import SupportModal from '../components/SupportModal';
 import APIKeysManagement from '../components/gerant/APIKeysManagement';
 import StaffOverview from '../components/gerant/StaffOverview';
 import StoresManagement from '../components/gerant/StoresManagement';
-import { API_BASE } from '../lib/api';
 
 const GerantDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
-  const backendUrl = API_BASE;
 
   const [stores, setStores] = useState([]);
   const [globalStats, setGlobalStats] = useState(null);
@@ -175,19 +174,13 @@ const GerantDashboard = ({ user, onLogout }) => {
   // Fonction pour récupérer les stats des cartes (toujours semaine -1)
   const fetchStoreCardsData = async (storesList) => {
     try {
-      const token = localStorage.getItem('token');
-      
       // Récupérer deux jeux de données: année courante ET dernière semaine complète
       const yearPromises = storesList.map(store =>
-        fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=year&period_offset=0`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }).then(res => res.json())
+        api.get(`/gerant/stores/${store.id}/stats?period_type=year&period_offset=0`)
       );
       
       const weekPromises = storesList.map(store =>
-        fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=week&period_offset=-2`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }).then(res => res.json())
+        api.get(`/gerant/stores/${store.id}/stats?period_type=week&period_offset=-2`)
       );
       
       const [yearStatsArray, weekStatsArray] = await Promise.all([
@@ -197,8 +190,8 @@ const GerantDashboard = ({ user, onLogout }) => {
       
       const statsMap = {};
       storesList.forEach((store, index) => {
-        const yearStats = yearStatsArray[index];
-        const weekStats = weekStatsArray[index];
+        const yearStats = yearStatsArray[index].data;
+        const weekStats = weekStatsArray[index].data;
         
         statsMap[store.id] = {
           managers_count: yearStats.managers_count || 0,
@@ -217,25 +210,22 @@ const GerantDashboard = ({ user, onLogout }) => {
       });
       setStoresStats(statsMap);
     } catch (err) {
-      console.error('Error fetching store cards data:', err);
+      logger.error('Error fetching store cards data:', err);
     }
   };
 
   // Fonction pour récupérer les stats du classement (période sélectionnée)
   const fetchRankingData = async (storesList) => {
     try {
-      const token = localStorage.getItem('token');
-      
       // Pour le classement, utiliser la période sélectionnée
       const rankingStatsPromises = storesList.map(store =>
-        fetch(`${backendUrl}/api/gerant/stores/${store.id}/stats?period_type=${periodType}&period_offset=${periodOffset}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }).then(res => res.json())
+        api.get(`/gerant/stores/${store.id}/stats?period_type=${periodType}&period_offset=${periodOffset}`)
       );
       
       const rankingStatsArray = await Promise.all(rankingStatsPromises);
       const statsMap = {};
-      rankingStatsArray.forEach((stats, index) => {
+      rankingStatsArray.forEach((response, index) => {
+        const stats = response.data;
         // Map API response to expected format for ranking
         statsMap[storesList[index].id] = {
           period_ca: stats.period?.ca || 0,
@@ -246,21 +236,17 @@ const GerantDashboard = ({ user, onLogout }) => {
       });
       setRankingStats(statsMap);
     } catch (err) {
-      console.error('Error fetching ranking data:', err);
+      logger.error('Error fetching ranking data:', err);
     }
   };
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('token');
-
       // Récupérer les stats globales et la liste des magasins
-      const statsResponse = await fetch(`${backendUrl}/api/gerant/dashboard/stats`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const statsResponse = await api.get('/gerant/dashboard/stats');
 
-      if (statsResponse.ok) {
-        const data = await statsResponse.json();
+      if (statsResponse.data) {
+        const data = statsResponse.data;
         setGlobalStats(data);
         setStores(data.stores || []);
 
@@ -283,7 +269,7 @@ const GerantDashboard = ({ user, onLogout }) => {
         setPendingInvitations({ managers: pendingManagers, sellers: pendingSellers });
       }
     } catch (error) {
-      console.error('Erreur chargement données:', error);
+      logger.error('Erreur chargement données:', error);
     } finally {
       setLoading(false);
     }
@@ -309,15 +295,11 @@ const GerantDashboard = ({ user, onLogout }) => {
 
   const fetchSubscriptionInfo = async () => {
     try {
-      const token = localStorage.getItem('token');
       // Use gerant-specific endpoint
-      const res = await fetch(`${backendUrl}/api/gerant/subscription/status`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      setSubscriptionInfo(data);
+      const res = await api.get('/gerant/subscription/status');
+      setSubscriptionInfo(res.data);
     } catch (err) {
-      console.error('Error fetching subscription:', err);
+      logger.error('Error fetching subscription:', err);
     }
   };
 
@@ -338,23 +320,13 @@ const GerantDashboard = ({ user, onLogout }) => {
 
   const handleCreateStore = async (formData) => {
     try {
-      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${backendUrl}/api/gerant/stores`, 
-        formData,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
+      await api.post('/gerant/stores', formData);
 
       toast.success('Magasin créé avec succès ! 🎉');
       await fetchDashboardData();
     } catch (error) {
-      console.error('Erreur création magasin:', error);
+      logger.error('Erreur création magasin:', error);
       const errorMessage = error.response?.data?.detail || 'Erreur lors de la création';
       throw new Error(errorMessage);
     }
@@ -362,22 +334,12 @@ const GerantDashboard = ({ user, onLogout }) => {
 
   const handleTransferManager = async (managerId, newStoreId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${backendUrl}/api/gerant/managers/${managerId}/transfer`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ new_store_id: newStoreId })
-      });
+      const response = await api.post(
+        `/gerant/managers/${managerId}/transfer`,
+        { new_store_id: newStoreId }
+      );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Erreur lors du transfert');
-      }
-
-      const result = await response.json();
+      const result = response.data;
       
       if (result.warning) {
         toast.warning(result.warning);
@@ -387,33 +349,26 @@ const GerantDashboard = ({ user, onLogout }) => {
       
       await fetchDashboardData();
     } catch (error) {
-      console.error('Erreur transfert manager:', error);
+      logger.error('Erreur transfert manager:', error);
       throw error;
     }
   };
 
   const handleTransferSeller = async (sellerId, newStoreId, newManagerId) => {
     try {
-      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${backendUrl}/api/gerant/sellers/${sellerId}/transfer`, 
+      // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
+      await api.post(
+        `/gerant/sellers/${sellerId}/transfer`, 
         {
           new_store_id: newStoreId,
           new_manager_id: newManagerId
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
         }
       );
 
       toast.success('Vendeur transféré avec succès ! 🎉');
       await fetchDashboardData();
     } catch (error) {
-      console.error('Erreur transfert vendeur:', error);
+      logger.error('Erreur transfert vendeur:', error);
       const errorMessage = error.response?.data?.detail || 'Erreur lors du transfert';
       throw new Error(errorMessage);
     }
@@ -421,18 +376,13 @@ const GerantDashboard = ({ user, onLogout }) => {
 
   const handleDeleteStore = async (storeId) => {
     try {
-      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      const token = localStorage.getItem('token');
-      await axios.delete(`${backendUrl}/api/gerant/stores/${storeId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
+      await api.delete(`/gerant/stores/${storeId}`);
 
       toast.success('Magasin supprimé avec succès ! L\'équipe a été suspendue automatiquement.');
       await fetchDashboardData();
     } catch (error) {
-      console.error('Erreur suppression magasin:', error);
+      logger.error('Erreur suppression magasin:', error);
       const errorMessage = error.response?.data?.detail || 'Erreur lors de la suppression';
       throw new Error(errorMessage);
     }
@@ -440,25 +390,15 @@ const GerantDashboard = ({ user, onLogout }) => {
 
   const handleInviteStaff = async (inviteData) => {
     try {
-      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${backendUrl}/api/gerant/invitations`, 
-        inviteData,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
+      const response = await api.post('/gerant/invitations', inviteData);
 
       const roleText = inviteData.role === 'manager' ? 'Manager' : 'Vendeur';
       toast.success(`Invitation envoyée avec succès ! 📨 Le ${roleText} recevra un email pour rejoindre votre équipe.`);
       
       await fetchDashboardData();
     } catch (error) {
-      console.error('Erreur invitation:', error);
+      logger.error('Erreur invitation:', error);
       const errorMessage = error.response?.data?.detail || 'Erreur lors de l\'invitation';
       throw new Error(errorMessage);
     }

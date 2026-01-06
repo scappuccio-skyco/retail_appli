@@ -1,15 +1,12 @@
 import React, { useState, useEffect, startTransition } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { X, Users, TrendingUp, Target, Award, AlertCircle, Info, PauseCircle, Archive, RefreshCw, FileText, Coffee } from 'lucide-react';
 import { toast } from 'sonner';
 import TeamAIAnalysisModal from './TeamAIAnalysisModal';
 import EvaluationGenerator from './EvaluationGenerator';
 import MorningBriefModal from './MorningBriefModal';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 // Utility function to format numbers with spaces for thousands
 const formatNumber = (num) => {
@@ -62,7 +59,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
 
   // Initialize visible sellers only once when sellers change
   useEffect(() => {
-    console.log(`[TeamModal] 🔄 Initializing visible sellers`);
+    logger.log(`[TeamModal] 🔄 Initializing visible sellers`);
     const initialVisibleSellers = {};
     sellers.forEach((seller, index) => {
       initialVisibleSellers[seller.id] = index < 5; // Only first 5 are visible
@@ -72,21 +69,21 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
 
   // Fetch team data when sellers or period changes
   useEffect(() => {
-    console.log(`[TeamModal] 🔄 Fetching team data for period: ${periodFilter}, custom dates: ${customDateRange.start} - ${customDateRange.end}`);
+    logger.log(`[TeamModal] 🔄 Fetching team data for period: ${periodFilter}, custom dates: ${customDateRange.start} - ${customDateRange.end}`);
     // Only fetch if:
     // - Period is not custom, OR
     // - Period is custom AND both dates are set
     if (periodFilter !== 'custom' || (periodFilter === 'custom' && customDateRange.start && customDateRange.end)) {
-      console.log(`[TeamModal] ✅ Conditions met, calling fetchTeamData()`);
+      logger.log(`[TeamModal] ✅ Conditions met, calling fetchTeamData()`);
       fetchTeamData();
     } else {
-      console.log(`[TeamModal] ⏸️ Waiting for both dates to be set`);
+      logger.log(`[TeamModal] ⏸️ Waiting for both dates to be set`);
     }
   }, [sellers, periodFilter, customDateRange.start, customDateRange.end]);
 
   // Prepare chart data when period changes
   useEffect(() => {
-    console.log(`[TeamModal] 🔄 Period changed to: ${periodFilter}, preparing chart data`);
+    logger.log(`[TeamModal] 🔄 Period changed to: ${periodFilter}, preparing chart data`);
     if (Object.keys(visibleSellers).length > 0) {
       prepareChartData();
     }
@@ -99,9 +96,8 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
     }
     
     try {
-      const token = localStorage.getItem('token');
       
-      console.log(`[TeamModal] ========== FETCHING DATA FOR PERIOD: ${periodFilter} days ==========`);
+      logger.log(`[TeamModal] ========== FETCHING DATA FOR PERIOD: ${periodFilter} days ==========`);
       
       // Fetch data for each seller
       const sellersDataPromises = sellersToUse.map(async (seller) => {
@@ -118,26 +114,23 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
             apiParams.store_id = storeIdParam;
           }
           
-          let kpiUrl = `${API}/manager/kpi-entries/${seller.id}?days=${daysParam}${storeParam}`;
+          let kpiUrl = `/manager/kpi-entries/${seller.id}?days=${daysParam}${storeParam}`;
           
           if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
-            kpiUrl = `${API}/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}${storeParam}`;
-            console.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with custom dates: ${customDateRange.start} to ${customDateRange.end}`);
+            kpiUrl = `/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}${storeParam}`;
+            logger.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with custom dates: ${customDateRange.start} to ${customDateRange.end}`);
           } else {
-            console.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with days=${daysParam}`);
+            logger.log(`[TeamModal] 📥 Fetching ${seller.name} (ID: ${seller.id}) with days=${daysParam}`);
           }
           
           const [statsRes, kpiRes, diagRes] = await Promise.all([
-            axios.get(`${API}/manager/seller/${seller.id}/stats${storeParamFirst}`, { 
-              headers: { Authorization: `Bearer ${token}` },
+            api.get(`/manager/seller/${seller.id}/stats${storeParamFirst}`, { 
               params: apiParams
             }),
-            axios.get(kpiUrl, { 
-              headers: { Authorization: `Bearer ${token}` },
+            api.get(kpiUrl, { 
               params: { _t: Date.now() }
             }),
-            axios.get(`${API}/manager/seller/${seller.id}/diagnostic${storeParamFirst}`, { 
-              headers: { Authorization: `Bearer ${token}` },
+            api.get(`/manager/seller/${seller.id}/diagnostic${storeParamFirst}`, { 
               params: { _t: Date.now(), ...(storeIdParam ? { store_id: storeIdParam } : {}) }
             }).catch(() => ({ data: null })) // If no diagnostic, return null
           ]);
@@ -146,11 +139,11 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
           const kpiEntries = kpiRes.data;
           const diagnostic = diagRes.data;
 
-          console.log(`[TeamModal] 📊 ${seller.name}: ${kpiEntries.length} entries returned from API`);
+          logger.log(`[TeamModal] 📊 ${seller.name}: ${kpiEntries.length} entries returned from API`);
           
           // Debug: show first and last entry dates
           if (kpiEntries.length > 0) {
-            console.log(`[TeamModal] 📅 ${seller.name} date range: ${kpiEntries[kpiEntries.length - 1]?.date} to ${kpiEntries[0]?.date}`);
+            logger.log(`[TeamModal] 📅 ${seller.name} date range: ${kpiEntries[kpiEntries.length - 1]?.date} to ${kpiEntries[0]?.date}`);
           }
 
           // Calculate period totals
@@ -160,10 +153,10 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
           
           // Debug: show a sample entry
           if (kpiEntries.length > 0) {
-            console.log(`[TeamModal] 📋 ${seller.name} SAMPLE ENTRY:`, kpiEntries[0]);
+            logger.log(`[TeamModal] 📋 ${seller.name} SAMPLE ENTRY:`, kpiEntries[0]);
           }
           
-          console.log(`[TeamModal] 💰 ${seller.name} CALCULATED => CA: ${monthlyCA.toFixed(2)} €, Ventes: ${monthlyVentes}`);
+          logger.log(`[TeamModal] 💰 ${seller.name} CALCULATED => CA: ${monthlyCA.toFixed(2)} €, Ventes: ${monthlyVentes}`);
 
           // Get competences scores
           const competences = stats.avg_radar_scores || {};
@@ -219,7 +212,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
             niveau: diagnostic?.level || seller.niveau || 'Non défini'
           };
         } catch (err) {
-          console.error(`Error fetching data for seller ${seller.id}:`, err);
+          logger.error(`Error fetching data for seller ${seller.id}:`, err);
           return {
             ...seller,
             monthlyCA: 0,
@@ -236,20 +229,20 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
 
       const sellersData = await Promise.all(sellersDataPromises);
       
-      console.log(`[TeamModal] ✅ ALL DATA PROCESSED, setting state with ${sellersData.length} sellers:`);
+      logger.log(`[TeamModal] ✅ ALL DATA PROCESSED, setting state with ${sellersData.length} sellers:`);
       sellersData.forEach(s => {
-        console.log(`[TeamModal]    - ${s.name}: CA=${s.monthlyCA.toFixed(2)} €`);
+        logger.log(`[TeamModal]    - ${s.name}: CA=${s.monthlyCA.toFixed(2)} €`);
       });
       
       setTeamData(sellersData);
       
       // Also refresh chart data after team data is updated
       if (Object.keys(visibleSellers).length > 0) {
-        console.log('[TeamModal] 📈 Refreshing chart data after team data update');
+        logger.log('[TeamModal] 📈 Refreshing chart data after team data update');
         prepareChartData();
       }
     } catch (err) {
-      console.error('Error fetching team data:', err);
+      logger.error('Error fetching team data:', err);
       toast.error('Erreur lors du chargement des données d\'équipe');
     } finally {
       setLoading(false);
@@ -261,19 +254,14 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
   // Fonction pour rafraîchir les données sans recharger la page
   const refreshSellersData = async () => {
     try {
-      const token = localStorage.getItem('token');
       // Build store param for gerant
       const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
       
       // Re-fetch la liste des vendeurs actifs
-      const response = await axios.get(`${API}/manager/sellers${storeParam}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/manager/sellers${storeParam}`);
       
       // Re-fetch les vendeurs archivés
-      const archivedResponse = await axios.get(`${API}/manager/sellers/archived${storeParam}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const archivedResponse = await api.get(`/manager/sellers/archived${storeParam}`);
       setArchivedSellers(archivedResponse.data);
       
       // IMPORTANT: Re-calculer teamData avec les nouvelles données
@@ -291,7 +279,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
         return cleaned;
       });
     } catch (error) {
-      console.error('Erreur lors du rafraîchissement:', error);
+      logger.error('Erreur lors du rafraîchissement:', error);
     }
   };
 
@@ -302,7 +290,6 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
 
   const prepareChartData = async () => {
     try {
-      const token = localStorage.getItem('token');
       const daysParam = periodFilter === 'all' ? 365 : (periodFilter === 'custom' ? 0 : periodFilter);
       
       // Build store_id param for gerant viewing as manager
@@ -311,16 +298,14 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
       // Fetch historical KPI data for each seller
       const chartDataPromises = sellers.map(async (seller) => {
         try {
-          let url = `${API}/manager/kpi-entries/${seller.id}?days=${daysParam}${storeParam}`;
+          let url = `/manager/kpi-entries/${seller.id}?days=${daysParam}${storeParam}`;
           
           // Use custom dates if period is custom
           if (periodFilter === 'custom' && customDateRange.start && customDateRange.end) {
-            url = `${API}/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}${storeParam}`;
+            url = `/manager/kpi-entries/${seller.id}?start_date=${customDateRange.start}&end_date=${customDateRange.end}${storeParam}`;
           }
           
-          const res = await axios.get(url, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          const res = await api.get(url);
           return { sellerId: seller.id, sellerName: seller.name, data: res.data };
         } catch (err) {
           return { sellerId: seller.id, sellerName: seller.name, data: [] };
@@ -382,7 +367,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
       
       setChartData(chartArray);
     } catch (err) {
-      console.error('Error preparing chart data:', err);
+      logger.error('Error preparing chart data:', err);
     }
   };
 
@@ -505,7 +490,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
   const teamTotalVentes = teamData.reduce((sum, s) => sum + (s.monthlyVentes || 0), 0);
   const sellersWithKPI = teamData.filter(s => s.hasKpiToday).length;
   
-  console.log('[TeamModal] 📊 Team totals:', { teamTotalCA, teamTotalVentes, teamDataLength: teamData.length });
+  logger.log('[TeamModal] 📊 Team totals:', { teamTotalCA, teamTotalVentes, teamDataLength: teamData.length });
 
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -559,14 +544,11 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                       setShowArchivedSellers(true);
                       // Charger les vendeurs en veille
                       try {
-                        const token = localStorage.getItem('token');
                         const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
-                        const response = await axios.get(`${API}/manager/sellers/archived${storeParam}`, {
-                          headers: { Authorization: `Bearer ${token}` }
-                        });
+                        const response = await api.get(`/manager/sellers/archived${storeParam}`);
                         setArchivedSellers(response.data);
                       } catch (error) {
-                        console.error('Error fetching suspended sellers:', error);
+                        logger.error('Error fetching suspended sellers:', error);
                         toast.error('Erreur lors du chargement des vendeurs en veille');
                       }
                     }}
@@ -672,7 +654,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                 }
                               } catch (error) {
                                 // showPicker n'est pas supporté par ce navigateur
-                                console.log('showPicker not supported');
+                                logger.log('showPicker not supported');
                               }
                             }}
                             className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none cursor-pointer"
@@ -700,7 +682,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                 }
                               } catch (error) {
                                 // showPicker n'est pas supporté par ce navigateur
-                                console.log('showPicker not supported');
+                                logger.log('showPicker not supported');
                               }
                             }}
                             className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none cursor-pointer"
@@ -1244,7 +1226,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                   }
                                 } catch (error) {
                                   // showPicker n'est pas supporté par ce navigateur
-                                  console.log('showPicker not supported');
+                                  logger.log('showPicker not supported');
                                 }
                               }}
                               className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none cursor-pointer"
@@ -1272,7 +1254,7 @@ export default function TeamModal({ sellers, storeIdParam, onClose, onViewSeller
                                   }
                                 } catch (error) {
                                   // showPicker n'est pas supporté par ce navigateur
-                                  console.log('showPicker not supported');
+                                  logger.log('showPicker not supported');
                                 }
                               }}
                               className="w-full px-3 py-2 text-sm border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none cursor-pointer"

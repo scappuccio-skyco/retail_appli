@@ -3,8 +3,8 @@ import { Copy, Eye, EyeOff, Plus, Trash2, AlertCircle, CheckCircle } from 'lucid
 import CopyButton from './CopyButton';
 import StoreDropdown from './StoreDropdown';
 import APIDocModal from './APIDocModal';
-import axios from 'axios';
-import { API_BASE } from '../../lib/api';
+import { api } from '../../lib/apiClient';
+import { logger } from '../../utils/logger';
 
 const APIKeysManagement = () => {
   const [apiKeys, setApiKeys] = useState([]);
@@ -30,12 +30,12 @@ const APIKeysManagement = () => {
 
   const fetchStores = async () => {
     try {
-      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      const response = await axios.get(`${API_BASE}/api/gerant/stores`);
+      // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
+      const response = await api.get('/gerant/stores');
       // L'endpoint retourne directement un array, pas {stores: [...]}
       setStores(Array.isArray(response.data) ? response.data : (response.data.stores || []));
     } catch (err) {
-      console.error('Erreur chargement magasins:', err);
+      logger.error('Erreur chargement magasins:', err);
       setStores([]);
     }
   };
@@ -43,8 +43,8 @@ const APIKeysManagement = () => {
   const fetchAPIKeys = async () => {
     try {
       setLoading(true);
-      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      const response = await axios.get(`${API_BASE}/api/manager/api-keys`);
+      // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
+      const response = await api.get('/manager/api-keys');
       setApiKeys(response.data.api_keys || []);
       setError('');
     } catch (err) {
@@ -56,9 +56,9 @@ const APIKeysManagement = () => {
 
   const createAPIKey = async () => {
     try {
-      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      const response = await axios.post(
-        `${API_BASE}/api/manager/api-keys`,
+      // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
+      const response = await api.post(
+        '/manager/api-keys',
         newKeyData
       );
       setCreatedKey(response.data);
@@ -74,8 +74,8 @@ const APIKeysManagement = () => {
     if (!window.confirm('Êtes-vous sûr de vouloir désactiver cette clé API ?')) return;
 
     try {
-      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      await axios.delete(`${API_BASE}/api/manager/api-keys/${keyId}`);
+      // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
+      await api.delete(`/manager/api-keys/${keyId}`);
       fetchAPIKeys();
     } catch (err) {
       setError(err.response?.data?.detail || err.message);
@@ -86,8 +86,8 @@ const APIKeysManagement = () => {
     if (!window.confirm('⚠️ ATTENTION : Cette action est IRRÉVERSIBLE !\n\nVoulez-vous vraiment supprimer définitivement cette clé API désactivée ?\n\nElle sera supprimée de la base de données et ne pourra pas être récupérée.')) return;
 
     try {
-      // Utiliser axios au lieu de fetch pour éviter l'interception de rrweb-recorder
-      await axios.delete(`${API_BASE}/api/manager/api-keys/${keyId}/permanent`);
+      // Utiliser apiClient (qui utilise axios en interne) pour éviter l'interception de rrweb-recorder
+      await api.delete(`/manager/api-keys/${keyId}/permanent`);
       fetchAPIKeys();
     } catch (err) {
       setError(err.response?.data?.detail || err.message);

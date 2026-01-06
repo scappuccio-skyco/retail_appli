@@ -1,11 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { X, MessageSquare, Sparkles, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
-import { API_BASE } from '../lib/api';
-
-const API = API_BASE || '';
 
 export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExpandDebriefId }) {
   const [filtreHistorique, setFiltreHistorique] = useState('all');
@@ -58,12 +56,10 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
   
   const fetchDebriefs = async () => {
     try {
-      const response = await axios.get(`${API}/api/debriefs`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/debriefs');
       setDebriefs(response.data);
     } catch (error) {
-      console.error('Erreur chargement debriefs:', error);
+      logger.error('Erreur chargement debriefs:', error);
     }
   };
   
@@ -164,8 +160,8 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
         ? formConclue.raisons_echec.filter(r => r !== 'Autre').concat([formConclue.raisons_echec_autre]).join(', ')
         : formConclue.raisons_echec.join(', ');
       
-      const response = await axios.post(
-        `${API}/api/debriefs`,
+      const response = await api.post(
+        '/debriefs',
         {
           vente_conclue: true,
           visible_to_manager: formConclue.visible_to_manager,
@@ -176,8 +172,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
           moment_perte_client: moment,
           raisons_echec: raisons,
           amelioration_pensee: formConclue.amelioration_pensee
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
       
       toast.success('🎉 Analyse créée avec succès !');
@@ -185,7 +180,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
       // Déclencher onSuccess via useEffect pour éviter conflit DOM
       setPendingSuccess(response.data);
     } catch (error) {
-      console.error('Error:', error);
+      logger.error('Error:', error);
       toast.error('Erreur lors de la création');
       setLoading(false);
     }
@@ -243,8 +238,8 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
         ? formManquee.raisons_echec.filter(r => r !== 'Autre').concat([formManquee.raisons_echec_autre]).join(', ')
         : formManquee.raisons_echec.join(', ');
       
-      const response = await axios.post(
-        `${API}/api/debriefs`,
+      const response = await api.post(
+        '/debriefs',
         {
           vente_conclue: false,
           visible_to_manager: formManquee.visible_to_manager,
@@ -255,8 +250,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
           moment_perte_client: moment,
           raisons_echec: raisons,
           amelioration_pensee: formManquee.amelioration_pensee
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
       
       toast.success('Analyse créée avec succès !');
@@ -264,7 +258,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
       // Déclencher onSuccess via useEffect pour éviter conflit DOM
       setPendingSuccess(response.data);
     } catch (error) {
-      console.error('Error:', error);
+      logger.error('Error:', error);
       toast.error('Erreur lors de la création');
       setLoading(false);
     }
@@ -275,10 +269,9 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
     try {
       const newVisibility = !currentVisibility;
       
-      await axios.patch(
-        `${API}/api/debriefs/${debriefId}/visibility?visible_to_manager=${newVisibility}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.patch(
+        `/debriefs/${debriefId}/visibility?visible_to_manager=${newVisibility}`,
+        {}
       );
       
       // Mettre à jour localement sans fermer le modal
@@ -294,7 +287,7 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
           : '🔒 Analyse masquée au manager'
       );
     } catch (error) {
-      console.error('Error toggling visibility:', error);
+      logger.error('Error toggling visibility:', error);
       toast.error('Erreur lors de la modification');
     }
   };

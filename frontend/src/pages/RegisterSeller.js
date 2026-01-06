@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { UserPlus, Lock, User, Phone, CheckCircle, Building2 } from 'lucide-react';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function RegisterSeller() {
   const { token } = useParams();
@@ -28,7 +25,7 @@ export default function RegisterSeller() {
   const verifyToken = async () => {
     try {
       // Try gerant invitation first
-      const res = await axios.get(`${API}/invitations/gerant/verify/${token}`);
+      const res = await api.get(`/invitations/gerant/verify/${token}`);
       if (res.data.role === 'seller') {
         setInvitation(res.data);
         setLoading(false);
@@ -37,7 +34,7 @@ export default function RegisterSeller() {
     } catch (error) {
       // Try manager invitation
       try {
-        const res = await axios.get(`${API}/invitations/verify/${token}`);
+        const res = await api.get(`/invitations/verify/${token}`);
         setInvitation(res.data);
         setLoading(false);
         return;
@@ -66,10 +63,10 @@ export default function RegisterSeller() {
     try {
       // Determine which endpoint to use based on invitation type
       const endpoint = invitation.gerant_id 
-        ? `${API}/auth/register-with-gerant-invite`
-        : `${API}/auth/register/invitation`;
+        ? '/auth/register-with-gerant-invite'
+        : '/auth/register/invitation';
 
-      await axios.post(endpoint, {
+      await api.post(endpoint, {
         invitation_token: token,
         name: formData.name,
         password: formData.password,
@@ -79,7 +76,7 @@ export default function RegisterSeller() {
       toast.success('Compte créé avec succès ! Redirection...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (error) {
-      console.error('Registration error:', error);
+      logger.error('Registration error:', error);
       let errorMessage = 'Erreur lors de l\'inscription';
       
       if (error.response?.data?.detail) {

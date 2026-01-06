@@ -132,20 +132,20 @@ function AppContent() {
   };
 
   const handleDiagnosticComplete = async (result) => {
-    console.log('🎯 handleDiagnosticComplete called with result:', result);
-    console.log('🎯 Result keys:', Object.keys(result));
-    console.log('🎯 Full result:', JSON.stringify(result, null, 2));
-    console.log('🎯 Setting diagnosticLoading to true');
+    logger.log('🎯 handleDiagnosticComplete called with result:', result);
+    logger.log('🎯 Result keys:', Object.keys(result));
+    logger.log('🎯 Full result:', JSON.stringify(result, null, 2));
+    logger.log('🎯 Setting diagnosticLoading to true');
     
     setDiagnosticLoading(true);
     
     // Set diagnostic immediately from the response
     setDiagnostic(result);
     
-    console.log('🎯 Diagnostic set, now setting showDiagnosticResult to true');
+    logger.log('🎯 Diagnostic set, now setting showDiagnosticResult to true');
     setShowDiagnosticResult(true);
     
-    console.log('🎯 States updated - navigating or showing result');
+    logger.log('🎯 States updated - navigating or showing result');
     
     // Small delay to ensure state updates propagate
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -154,13 +154,13 @@ function AppContent() {
     
     // Fetch fresh diagnostic data from backend to ensure consistency
     try {
-      const diagRes = await axios.get(`${API}/seller/diagnostic/me`);
+      const diagRes = await api.get('/seller/diagnostic/me');
       if (diagRes.data.status === 'completed') {
         setDiagnostic(diagRes.data.diagnostic);
-        console.log('🎯 Diagnostic reloaded from API:', diagRes.data.diagnostic);
+        logger.log('🎯 Diagnostic reloaded from API:', diagRes.data.diagnostic);
       }
     } catch (err) {
-      console.error('❌ Error reloading diagnostic:', err);
+      logger.error('❌ Error reloading diagnostic:', err);
     }
   };
 

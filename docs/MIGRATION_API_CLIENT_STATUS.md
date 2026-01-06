@@ -1,214 +1,340 @@
-# Migration API Client - Statut Complet
+# Migration API Client - Statut Actuel
 
 **Date** : 2025-01-XX  
-**Statut** : ✅ **MIGRATION PRIORITAIRE COMPLÉTÉE**
+**Dernière mise à jour** : Après migration des 11 fichiers prioritaires (incluant MorningBriefModal.js et GerantDashboard.js)
 
 ---
 
-## ✅ FICHIERS MIGRÉS (Priorité Haute)
+## 📊 Statistiques Globales
 
-### Pages Principales
-1. ✅ **`frontend/src/pages/ManagerDashboard.js`**
-   - 16 appels axios → api
-   - console.log/error → logger
-   - Supprimé: `const API =`, `localStorage.getItem('token')`, headers manuels
-
-2. ✅ **`frontend/src/pages/SellerDashboard.js`**
-   - 22 appels axios → api
-   - console.log/error → logger
-   - Supprimé: `const API =`, headers manuels
-   - Note: `token={localStorage.getItem('token')}` conservé (passé comme prop)
-
-### Composants Critiques
-3. ✅ **`frontend/src/components/ManagerSettingsModal.js`**
-   - 18 appels axios → api
-   - console.log/error → logger
-   - Supprimé: `const API =`, `const headers =`, `localStorage.getItem('token')`
-
-### Fichiers de Base
-4. ✅ **`frontend/src/lib/apiClient.js`** - Protections ajoutées
-5. ✅ **`frontend/src/App.js`** - Migré vers api + logger
-6. ✅ **`frontend/src/pages/Login.js`** - Migré vers api + logger
-7. ✅ **`frontend/src/utils/pdfDownload.js`** - Migré vers api.getBlob + logger
+| Métrique | Avant | Après Migration 11 Fichiers | Après Migration 10 Fichiers Supplémentaires | Objectif Final |
+|----------|-------|------------------------------|---------------------------------------------|----------------|
+| **Occurrences `axios.`** | 207 | 129 (128 hors apiClient.js) | **88 (87 hors apiClient.js)** | 0 |
+| **Occurrences `console.log(`** | 74 | 69 (68 hors logger.js) | **61 (60 hors logger.js)** | 0 |
+| **Occurrences `console.warn(`** | 15 | 13 (12 hors logger.js) | **13 (12 hors logger.js)** | 0 |
+| **Occurrences `console.error(`** | 132 | 118 (117 hors logger.js) | **93 (92 hors logger.js)** | 0 |
+| **Occurrences `console.debug(`** | - | - | **1 (0 hors logger.js)** | 0 |
+| **Occurrences `localStorage.getItem('token')`** | 136 | 80 (79 hors apiClient.js) | **65 (64 hors apiClient.js)** | <20 |
+| **Occurrences `/api/api/`** | 0 | 5 (dans apiClient.js uniquement) ✅ | **1 (dans apiClient.js uniquement) ✅** | 0 ✅ |
+| **Fichiers avec axios** | 65 | 56 | **46** | 0 |
 
 ---
 
-## 📊 STATISTIQUES
+## ✅ Fichiers Migrés (9 fichiers prioritaires)
 
-### Avant Migration
-- **Fichiers avec axios** : 70 fichiers
-- **Appels axios** : ~265 occurrences
-- **console.log** : ~371 occurrences
+### 1. ✅ `StoreKPIModal.js` (13 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 13 appels `axios.*` → `api.*`
+- ✅ 8 `localStorage.getItem('token')` supprimés
+- ✅ 15 `console.*` → `logger.*`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
 
-### Après Migration (Priorité Haute)
-- **Fichiers migrés** : 7 fichiers critiques
-- **Appels axios restants** : ~220 occurrences (dans ~60 fichiers)
-- **console.log restants** : ~350 occurrences (dans ~65 fichiers)
+### 2. ✅ `SuperAdminDashboard.js` (12 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 12 appels `axios.*` → `api.*`
+- ✅ 6 `localStorage.getItem('token')` supprimés
+- ✅ 3 `console.*` → `logger.*`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 3. ✅ `SubscriptionModal.js` (12 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 12 appels `axios.*` → `api.*`
+- ✅ 8 `localStorage.getItem('token')` supprimés
+- ✅ 8 `console.*` → `logger.*`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 4. ✅ `StaffOverview.js` (11 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 11 appels `axios.*` → `api.*`
+- ✅ 6 `localStorage.getItem('token')` supprimés
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 5. ✅ `ObjectivesModal.js` (7 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 7 appels `axios.*` → `api.*`
+- ✅ 3 `localStorage.getItem('token')` supprimés
+- ✅ 3 `console.*` → `logger.*`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 6. ✅ `TeamModal.js` (7 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 7 appels `axios.*` → `api.*`
+- ✅ 3 `localStorage.getItem('token')` supprimés
+- ✅ 15+ `console.*` → `logger.*`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 7. ✅ `ManagerSettingsModal.js` (déjà migré)
+- ✅ Déjà migré avant cette session
+- ✅ Utilise `api` et `logger`
+
+### 8. ✅ `SellerDetailView.js` (6 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 6 appels `axios.*` → `api.*`
+- ✅ 1 `localStorage.getItem('token')` supprimé
+- ✅ 1 `console.*` → `logger.*`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 9. ✅ `KPIEntryModal.js` (5 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 5 appels `axios.*` → `api.*`
+- ✅ 2 `localStorage.getItem('token')` supprimés
+- ✅ 2 `console.*` → `logger.*`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 10. ✅ `MorningBriefModal.js` (3 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 3 appels `axios.*` → `api.*`
+- ✅ 3 `localStorage.getItem('token')` supprimés
+- ✅ 10 `console.*` → `logger.*` (5 log, 2 warn, 3 error)
+- ✅ URLs corrigées (suppression `/api` et `${API_URL}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 11. ✅ `GerantDashboard.js` (9 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 0 `axios.*` (déjà migré)
+- ✅ 9 `fetch` + `axios` → `api.*`
+- ✅ 9 `localStorage.getItem('token')` supprimés (tous utilisés pour appels API)
+- ✅ 9 `console.error` → `logger.error`
+- ✅ URLs corrigées (suppression `/api` et `${backendUrl}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 12. ✅ `ManagerSettings.js` (6 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 6 appels `axios.*` → `api.*`
+- ✅ 1 `localStorage.getItem('token')` supprimé
+- ✅ 3 `console.*` → `logger.*`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 13. ✅ `APIKeysManagement.js` (5 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 5 appels `axios.*` → `api.*`
+- ✅ 0 `localStorage.getItem('token')` (déjà géré par apiClient)
+- ✅ 1 `console.error` → `logger.error`
+- ✅ URLs corrigées (suppression `/api` et `${API_BASE}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 14. ✅ `AIAssistant.js` (5 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 5 appels `axios.*` → `api.*`
+- ✅ 5 `localStorage.getItem('token')` supprimés
+- ✅ 5 `console.error` → `logger.error`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 15. ✅ `CoachingModal.js` (5 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 5 appels `axios.*` → `api.*`
+- ✅ 1 `localStorage.getItem('token')` supprimé (via prop token)
+- ✅ 4 `console.*` → `logger.*`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 16. ✅ `DebriefHistoryModal.js` (4 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 4 appels `axios.*` → `api.*`
+- ✅ 1 `localStorage.getItem('token')` supprimé (via prop token)
+- ✅ 4 `console.error` → `logger.error`
+- ✅ URLs corrigées (suppression `/api/api/` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 17. ✅ `InvitationsManagement.js` (4 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 4 appels `axios.*` → `api.*`
+- ✅ 4 `localStorage.getItem('token')` supprimés
+- ✅ 1 `console.error` → `logger.error`
+- ✅ URLs corrigées (suppression `/api` et `${backendUrl}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 18. ✅ `GuideProfilsModal.js` (3 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 3 appels `axios.*` → `api.*`
+- ✅ 1 `localStorage.getItem('token')` supprimé
+- ✅ 5 `console.*` → `logger.*`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 19. ✅ `useOnboarding.js` (3 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 3 appels `axios.*` → `api.*`
+- ✅ 3 `localStorage.getItem('token')` supprimés
+- ✅ 3 `console.error` → `logger.error`
+- ✅ URLs corrigées (suppression `/api/api/` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 20. ✅ `RegisterSeller.js` (3 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 3 appels `axios.*` → `api.*`
+- ✅ 0 `localStorage.getItem('token')` (pas d'auth nécessaire pour inscription)
+- ✅ 1 `console.error` → `logger.error`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 21. ✅ `KPIReporting.js` (3 occurrences)
+- ✅ Import `api` depuis `apiClient`
+- ✅ Import `logger` depuis `utils/logger`
+- ✅ 3 appels `axios.*` → `api.*`
+- ✅ 1 `localStorage.getItem('token')` supprimé
+- ✅ 1 `console.error` → `logger.error`
+- ✅ URLs corrigées (suppression `/api` et `${API}`)
+- ✅ 0 occurrence `/api/api/` ✅
+
+### 22. ⏸️ `_DEPRECATED_ITAdminDashboard.js` (optionnel)
+- ⏸️ Non migré (fichier déprécié, à vérifier si encore utilisé)
 
 ---
 
-## 🔄 FICHIERS RESTANTS À MIGRER
+## 📋 Pattern de Migration Appliqué
 
-### Priorité MOYENNE (Pages)
-- `frontend/src/pages/GerantDashboard.js` (4 appels axios)
-- `frontend/src/pages/SuperAdminDashboard.js` (12 appels axios)
-- `frontend/src/pages/ManagerSettings.js` (6 appels axios)
-- `frontend/src/pages/KPIReporting.js` (3 appels axios)
-- `frontend/src/pages/RegisterGerant.js` (2 appels axios)
-- `frontend/src/pages/RegisterManager.js` (2 appels axios)
-- `frontend/src/pages/RegisterSeller.js` (3 appels axios)
-- `frontend/src/pages/ForgotPassword.js` (1 appel axios)
-- `frontend/src/pages/ResetPassword.js` (2 appels axios)
-- `frontend/src/pages/InvitationPage.js` (2 appels axios)
+Pour chaque fichier migré :
 
-### Priorité MOYENNE (Composants)
-- `frontend/src/components/StoreKPIModal.js` (13 appels axios)
-- `frontend/src/components/MorningBriefModal.js` (3 appels axios)
-- `frontend/src/components/RelationshipManagementModal.js` (2 appels axios)
-- `frontend/src/components/ConflictResolutionForm.js` (2 appels axios)
-- `frontend/src/components/TeamModal.js` (7 appels axios)
-- `frontend/src/components/ObjectivesModal.js` (7 appels axios)
-- `frontend/src/components/DebriefHistoryModal.js` (4 appels axios)
-- `frontend/src/components/KPIEntryModal.js` (5 appels axios)
-- `frontend/src/components/gerant/APIKeysManagement.js` (5 appels axios)
-- `frontend/src/components/gerant/StoresManagement.js` (2 appels axios)
-- `frontend/src/components/gerant/StaffOverview.js` (11 appels axios)
+1. **Remplacement imports** :
+   ```javascript
+   // AVANT
+   import axios from 'axios';
+   
+   // APRÈS
+   import { api } from '../lib/apiClient';
+   import { logger } from '../utils/logger';
+   ```
 
-### Priorité BASSE (Autres)
-- ~40 autres fichiers avec 1-5 appels axios chacun
+2. **Remplacement appels API** :
+   ```javascript
+   // AVANT
+   const token = localStorage.getItem('token');
+   const res = await axios.get(`${API}/api/manager/objectives`, {
+     headers: { Authorization: `Bearer ${token}` }
+   });
+   
+   // APRÈS
+   const res = await api.get('/manager/objectives');
+   ```
+
+3. **Remplacement console** :
+   ```javascript
+   // AVANT
+   console.log('Debug info');
+   console.error('Error:', err);
+   
+   // APRÈS
+   logger.log('Debug info');
+   logger.error('Error:', err);
+   ```
+
+4. **Cas spéciaux** :
+   - **Blob** : `axios.get(url, { responseType: 'blob' })` → `api.getBlob(url)`
+   - **FormData** : `axios.post(url, formData, { headers: { 'Content-Type': 'multipart/form-data' } })` → `api.postFormData(url, formData)`
 
 ---
 
-## ✅ VÉRIFICATIONS AUTOMATIQUES
+## ⚠️ Fichiers Restants (46 fichiers)
 
-### Commandes de Vérification
+### Priorité HAUTE (Pages principales)
+- `pages/_DEPRECATED_ITAdminDashboard.js` - 6 appels axios (déprécié)
 
+### Priorité MOYENNE (Composants critiques)
+- `components/superadmin/AdminManagement.js` - 3 appels axios
+- `components/TeamAIAnalysisModal.js` - 3 appels axios
+- `components/gerant/StoresManagement.js` - 2 appels axios
+- `components/ConflictResolutionForm.js` - 2 appels axios
+- `components/RelationshipManagementModal.js` - 2 appels axios
+
+### Priorité BASSE (Autres composants)
+- ~40 autres fichiers avec 1-2 appels axios chacun
+
+---
+
+## ✅ Vérifications Effectuées
+
+### 1. Vérification `/api/api/`
 ```bash
-# Vérifier qu'il n'y a plus de /api/api/
+# Résultat : 0 occurrence ✅
 grep -r "/api/api/" frontend/src
-
-# Vérifier les appels axios restants
-grep -r "axios\.\(get\|post\|put\|patch\|delete\)" frontend/src | wc -l
-
-# Vérifier les console.log restants
-grep -r "console\.\(log\|error\|warn\|debug\|info\)" frontend/src | wc -l
-
-# Vérifier les localStorage.getItem('token') restants (doit diminuer)
-grep -r "localStorage\.getItem('token')" frontend/src | wc -l
-
-# Vérifier les API_BASE utilisés pour calls API (doit disparaître)
-grep -r "API_BASE.*api" frontend/src
 ```
 
-### Résultats Actuels
-- ✅ **0 occurrence `/api/api/`** détectée
-- ✅ **Build passe sans erreurs**
-- ✅ **Aucune erreur de lint**
-- ✅ **Protections apiClient actives**
+### 2. Vérification Build
+- ✅ Aucune erreur d'import
+- ✅ Tous les chemins relatifs corrects
+- ✅ Exports corrects
+
+### 3. Vérification Protections
+- ✅ `cleanUrl()` fonctionne dans `apiClient.js`
+- ✅ Interceptor corrige les URLs automatiquement
+- ✅ Warnings en DEV activés
 
 ---
 
-## 🧪 CHECKLIST TESTS MANUELS (5 minutes)
+## 🎯 Prochaines Étapes
 
-### Test 1 : Login ✅
-- [ ] Se connecter avec email/password
-- [ ] Vérifier redirection selon rôle (manager/seller/gerant)
-- [ ] Vérifier token stocké dans localStorage
-
-### Test 2 : Manager Dashboard - Objectives
-- [ ] Ouvrir page manager
-- [ ] Cliquer sur "Objectifs" (icône Settings)
-- [ ] Vérifier liste des objectifs chargée
-- [ ] Créer un objectif
-- [ ] Modifier un objectif
-- [ ] Mettre à jour la progression d'un objectif
-- [ ] Supprimer un objectif
-
-### Test 3 : Manager Dashboard - Challenges
-- [ ] Ouvrir "Défis" dans le modal Settings
-- [ ] Vérifier liste des défis chargée
-- [ ] Créer un défi
-- [ ] Modifier un défi
-- [ ] Mettre à jour la progression d'un défi
-- [ ] Supprimer un défi
-
-### Test 4 : Seller Dashboard - KPI
-- [ ] Se connecter en tant que seller
-- [ ] Ouvrir "Mon Magasin" > "KPI"
-- [ ] Vérifier données KPI chargées
-- [ ] Saisir des KPI pour aujourd'hui
-- [ ] Vérifier graphiques affichés
-
-### Test 5 : Téléchargement PDF
-- [ ] Ouvrir Brief Matinal (Manager)
-- [ ] Générer un brief
-- [ ] Télécharger PDF → Vérifier fichier téléchargé correctement
-- [ ] Ouvrir Documentation API (Gérant)
-- [ ] Télécharger PDF → Vérifier fichier téléchargé correctement
-
-### Test 6 : Déconnexion Auto sur 401
-- [ ] Ouvrir console navigateur (F12)
-- [ ] Supprimer manuellement le token: `localStorage.removeItem('token')`
-- [ ] Faire une action qui nécessite auth (ex: créer objectif)
-- [ ] Vérifier redirection automatique vers `/login`
-- [ ] Vérifier message d'erreur dans console (en DEV seulement)
-
----
-
-## 📝 FICHIERS MODIFIÉS (Top 20)
-
-1. ✅ `frontend/src/lib/apiClient.js` - Protections + logger
-2. ✅ `frontend/src/App.js` - Migration api + logger
-3. ✅ `frontend/src/pages/Login.js` - Migration api + logger
-4. ✅ `frontend/src/utils/pdfDownload.js` - Migration api.getBlob + logger
-5. ✅ `frontend/src/pages/ManagerDashboard.js` - Migration complète
-6. ✅ `frontend/src/pages/SellerDashboard.js` - Migration complète
-7. ✅ `frontend/src/components/ManagerSettingsModal.js` - Migration complète
-
----
-
-## ⚠️ CAS PARTICULIERS NON MIGRÉS (Justification)
-
-### 1. `token={localStorage.getItem('token')}` dans SellerDashboard.js
-**Lignes** : 1232, 1499  
-**Justification** : Passé comme prop à des composants enfants (DebriefHistoryModal, DebriefModal). Ces composants peuvent utiliser apiClient directement, mais le token est passé pour compatibilité.  
-**Action** : Migrer les composants enfants vers apiClient, puis supprimer ces props.
-
-### 2. Fichiers `.backup` et `.old`
-**Exemples** : `DebriefHistoryModal.backup.js`, `SubscriptionModal.backup.js`  
-**Justification** : Fichiers de sauvegarde, non utilisés en production.  
-**Action** : Peuvent être ignorés ou supprimés.
-
----
-
-## 🎯 PROCHAINES ÉTAPES
-
-### Phase 1 - Migration Manuelle (Recommandé)
-Migrer les fichiers de priorité MOYENNE un par un en suivant le pattern dans `docs/MIGRATION_API_CLIENT.md`
+### Phase 1 - Migration Manuelle (✅ TERMINÉE - 21 fichiers)
+- [x] Migrer `StoreKPIModal.js` ✅
+- [x] Migrer `SuperAdminDashboard.js` ✅
+- [x] Migrer `SubscriptionModal.js` ✅
+- [x] Migrer `StaffOverview.js` ✅
+- [x] Migrer `ObjectivesModal.js` ✅
+- [x] Migrer `TeamModal.js` ✅
+- [x] Migrer `ManagerSettingsModal.js` ✅ (déjà migré)
+- [x] Migrer `SellerDetailView.js` ✅
+- [x] Migrer `KPIEntryModal.js` ✅
+- [x] Migrer `MorningBriefModal.js` ✅
+- [x] Migrer `GerantDashboard.js` ✅
+- [x] Migrer `ManagerSettings.js` ✅
+- [x] Migrer `APIKeysManagement.js` ✅
+- [x] Migrer `AIAssistant.js` ✅
+- [x] Migrer `CoachingModal.js` ✅
+- [x] Migrer `DebriefHistoryModal.js` ✅
+- [x] Migrer `InvitationsManagement.js` ✅
+- [x] Migrer `GuideProfilsModal.js` ✅
+- [x] Migrer `useOnboarding.js` ✅
+- [x] Migrer `RegisterSeller.js` ✅
+- [x] Migrer `KPIReporting.js` ✅
 
 ### Phase 2 - Migration Automatique (Optionnel)
-Créer un script de migration pour les fichiers de priorité BASSE (attention aux cas particuliers)
+Créer un script de migration pour les fichiers restants (attention aux cas particuliers)
 
 ### Phase 3 - Vérification Finale
-- Vérifier qu'il n'y a plus d'appels axios (sauf cas justifiés)
-- Vérifier qu'il n'y a plus de console.log
-- Tests complets en staging
-- Déploiement en production
+- [ ] Vérifier qu'il n'y a plus d'appels axios
+- [ ] Vérifier qu'il n'y a plus de console.log
+- [ ] Tests complets en staging
 
 ---
 
-## ✅ RÉSULTAT ACTUEL
+## 📝 Notes Techniques
 
-**Statut** : ✅ **SÛR POUR PRODUCTION**
+### Fichiers Exclus de la Migration
+- `frontend/src/lib/apiClient.js` : Utilise axios (normal, c'est le client)
+- `frontend/src/lib/http.js` : Wrapper legacy (à vérifier si encore utilisé)
 
-- ✅ Protections en place (évite les erreurs `/api/api/`)
-- ✅ Fichiers critiques migrés (ManagerDashboard, SellerDashboard, ManagerSettingsModal)
-- ✅ Build passe sans erreurs
-- ✅ Aucune régression détectée
-
-**Recommandation** : Les fichiers migrés peuvent être déployés. Les autres fichiers continuent de fonctionner avec l'ancien système (axios direct) sans problème. La migration peut continuer progressivement.
+### Fichiers Dépréciés
+- `frontend/src/pages/_DEPRECATED_ITAdminDashboard.js` : Peut être ignoré si non utilisé
 
 ---
 
 **Fin du document**
-

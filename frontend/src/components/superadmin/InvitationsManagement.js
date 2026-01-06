@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Trash2, RefreshCw, Clock, CheckCircle, XCircle, Search, Edit2, X, Save } from 'lucide-react';
-import axios from 'axios';
+import { api } from '../../lib/apiClient';
+import { logger } from '../../utils/logger';
 import { toast } from 'sonner';
-import { API_BASE } from '../../lib/api';
 
 const InvitationsManagement = () => {
-  const backendUrl = API_BASE;
   const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -20,17 +19,14 @@ const InvitationsManagement = () => {
   const fetchInvitations = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       const url = filter === 'all' 
-        ? `${backendUrl}/api/superadmin/invitations`
-        : `${backendUrl}/api/superadmin/invitations?status=${filter}`;
+        ? '/superadmin/invitations'
+        : `/superadmin/invitations?status=${filter}`;
       
-      const response = await axios.get(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await api.get(url);
       setInvitations(response.data);
     } catch (error) {
-      console.error('Erreur chargement invitations:', error);
+      logger.error('Erreur chargement invitations:', error);
       toast.error('Erreur lors du chargement des invitations');
     } finally {
       setLoading(false);
@@ -41,10 +37,7 @@ const InvitationsManagement = () => {
     if (!window.confirm(`Supprimer l'invitation pour ${email} ?`)) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${backendUrl}/api/superadmin/invitations/${invitationId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      await api.delete(`/superadmin/invitations/${invitationId}`);
       toast.success('Invitation supprimée');
       fetchInvitations();
     } catch (error) {
@@ -54,11 +47,9 @@ const InvitationsManagement = () => {
 
   const handleResend = async (invitationId, email) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${backendUrl}/api/superadmin/invitations/${invitationId}/resend`,
-        {},
-        { headers: { 'Authorization': `Bearer ${token}` } }
+      await api.post(
+        `/superadmin/invitations/${invitationId}/resend`,
+        {}
       );
       toast.success(`Invitation renvoyée à ${email}`);
     } catch (error) {
@@ -83,11 +74,9 @@ const InvitationsManagement = () => {
 
   const saveEdit = async (invitationId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(
-        `${backendUrl}/api/superadmin/invitations/${invitationId}`,
-        editData,
-        { headers: { 'Authorization': `Bearer ${token}` } }
+      await api.patch(
+        `/superadmin/invitations/${invitationId}`,
+        editData
       );
       toast.success('Invitation mise à jour');
       setEditingId(null);

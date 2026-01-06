@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import { API_BASE } from '../lib/api';
-
-const API = API_BASE || '';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 /**
  * Hook pour gérer l'état et la navigation de l'onboarding avec persistance
@@ -20,12 +18,7 @@ export const useOnboarding = (totalSteps) => {
   useEffect(() => {
     const loadProgress = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
-        const response = await axios.get(`${API}/api/onboarding/progress`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.get('/onboarding/progress');
 
         if (response.data && !response.data.is_completed) {
           setCurrentStep(response.data.current_step || 0);
@@ -33,7 +26,7 @@ export const useOnboarding = (totalSteps) => {
         }
         setIsLoaded(true);
       } catch (error) {
-        console.error('Error loading onboarding progress:', error);
+        logger.error('Error loading onboarding progress:', error);
         setIsLoaded(true);
       }
     };
@@ -44,32 +37,22 @@ export const useOnboarding = (totalSteps) => {
   // Sauvegarder la progression dans le backend
   const saveProgress = useCallback(async (step, completed) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      await axios.post(`${API}/api/onboarding/progress`, {
+      await api.post('/onboarding/progress', {
         current_step: step,
         completed_steps: completed,
         is_completed: false
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
     } catch (error) {
-      console.error('Error saving onboarding progress:', error);
+      logger.error('Error saving onboarding progress:', error);
     }
   }, []);
 
   // Marquer l'onboarding comme terminé
   const markAsComplete = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      await axios.post(`${API}/api/onboarding/complete`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post('/onboarding/complete', {});
     } catch (error) {
-      console.error('Error marking onboarding complete:', error);
+      logger.error('Error marking onboarding complete:', error);
     }
   }, []);
 

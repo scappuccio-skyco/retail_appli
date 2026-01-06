@@ -4,11 +4,9 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, L
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { unstable_batchedUpdates } from 'react-dom';
-import axios from 'axios';
 import { toast } from 'sonner';
-import { API_BASE } from '../lib/api';
-
-const API = API_BASE;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 // Fonction utilitaire pour formater les dates
 const formatDate = (dateString) => {
@@ -148,7 +146,7 @@ export default function PerformanceModal({
 
   // Fonction pour sauvegarder directement les KPI sans ouvrir de modal
   const handleDirectSaveKPI = async (data) => {
-    console.log('🚀 handleDirectSaveKPI appelé avec:', data);
+    logger.log('🚀 handleDirectSaveKPI appelé avec:', data);
     
     // Vérifier les anomalies
     const detectedWarnings = checkAnomalies(data);
@@ -170,21 +168,15 @@ export default function PerformanceModal({
     setSaveMessage(null);
     
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Non authentifié');
-      }
-
-      console.log('📤 Envoi des données à l\'API:', `${API}/api/seller/kpi-entry`);
+      logger.log('📤 Envoi des données à l\'API:', '/seller/kpi-entry');
       
       // Envoyer les données à l'API
-      const response = await axios.post(
-        `${API}/api/seller/kpi-entry`,
-        data,
-        { headers: { Authorization: `Bearer ${token}` }}
+      const response = await api.post(
+        '/seller/kpi-entry',
+        data
       );
 
-      console.log('✅ Réponse API:', response.data);
+      logger.log('✅ Réponse API:', response.data);
 
       // Afficher le message de succès
       setSaveMessage({ type: 'success', text: editingEntry ? '✅ Modifications enregistrées avec succès !' : '✅ Vos chiffres ont été enregistrés avec succès !' });
@@ -202,8 +194,8 @@ export default function PerformanceModal({
       }, 1500);
       
     } catch (error) {
-      console.error('❌ Erreur complète:', error);
-      console.error('❌ Réponse erreur:', error.response?.data);
+      logger.error('❌ Erreur complète:', error);
+      logger.error('❌ Réponse erreur:', error.response?.data);
       setSaveMessage({ 
         type: 'error', 
         text: `❌ Erreur: ${error.response?.data?.detail || error.message || 'Veuillez réessayer.'}` 
@@ -312,7 +304,7 @@ export default function PerformanceModal({
   // Export to PDF function
   const exportToPDF = async () => {
     if (!contentRef.current || !document.body.contains(contentRef.current)) {
-      console.error('Content ref not available');
+      logger.error('Content ref not available');
       return;
     }
     
@@ -376,7 +368,7 @@ export default function PerformanceModal({
       pdf.save(fileName);
       
     } catch (error) {
-      console.error('Erreur export PDF:', error);
+      logger.error('Erreur export PDF:', error);
       alert('Erreur lors de l\'export PDF');
     } finally {
       unstable_batchedUpdates(() => {

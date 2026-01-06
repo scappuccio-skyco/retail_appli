@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Target, Trophy, History, Filter } from 'lucide-react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
-import { API_BASE } from '../lib/api';
-
-const API = API_BASE || '';
 
 export default function ObjectivesModal({ 
   isOpen, 
@@ -48,39 +46,27 @@ export default function ObjectivesModal({
   
   const fetchHistory = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
       // Fetch objectives history
-      const objRes = await axios.get(`${API}/api/seller/objectives/history`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const objRes = await api.get('/seller/objectives/history');
       setHistoryObjectives(objRes.data);
       
       // Fetch challenges history
-      const challRes = await axios.get(`${API}/api/seller/challenges/history`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const challRes = await api.get('/seller/challenges/history');
       setHistoryChallenges(challRes.data);
     } catch (err) {
-      console.error('Error fetching history:', err);
+      logger.error('Error fetching history:', err);
       toast.error('Erreur lors du chargement de l\'historique');
     }
   };
   
   const refreshActiveData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
       // Fetch active objectives
-      const objRes = await axios.get(`${API}/api/seller/objectives/active`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const objRes = await api.get('/seller/objectives/active');
       setActiveObjectives(objRes.data);
       
       // Fetch active challenges
-      const challRes = await axios.get(`${API}/api/seller/challenges/active`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const challRes = await api.get('/seller/challenges/active');
       setActiveChallenges(challRes.data);
       
       // Also call parent's onUpdate if provided
@@ -88,7 +74,7 @@ export default function ObjectivesModal({
         onUpdate();
       }
     } catch (err) {
-      console.error('Error refreshing data:', err);
+      logger.error('Error refreshing data:', err);
     }
   };
   
@@ -100,11 +86,9 @@ export default function ObjectivesModal({
         return;
       }
       
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${API}/api/manager/objectives/${objectiveId}/progress`,
-        { current_value: value },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.post(
+        `/manager/objectives/${objectiveId}/progress`,
+        { current_value: value }
       );
       
       toast.success('Progression mise à jour !');
@@ -114,15 +98,13 @@ export default function ObjectivesModal({
       // Rafraîchir les données sans recharger la page
       await refreshActiveData();
     } catch (error) {
-      console.error('Error updating progress:', error);
+      logger.error('Error updating progress:', error);
       toast.error('Erreur lors de la mise à jour');
     }
   };
 
   const handleUpdateChallengeProgress = async (challengeId, challengeType) => {
     try {
-      const token = localStorage.getItem('token');
-      
       // Pour les challenges de type kpi_standard, envoyer current_value
       if (challengeType === 'kpi_standard') {
         const value = parseFloat(challengeCurrentValue);
@@ -131,21 +113,19 @@ export default function ObjectivesModal({
           return;
         }
         
-        await axios.post(
-          `${API}/api/manager/challenges/${challengeId}/progress`,
-          { current_value: value },
-          { headers: { Authorization: `Bearer ${token}` } }
+        await api.post(
+          `/manager/challenges/${challengeId}/progress`,
+          { current_value: value }
         );
       } else {
         // Pour les autres challenges, envoyer progress_ca, progress_ventes, etc.
-        await axios.post(
-          `${API}/api/manager/challenges/${challengeId}/progress`,
+        await api.post(
+          `/manager/challenges/${challengeId}/progress`,
           {
             progress_ca: challengeProgress.ca,
             progress_ventes: challengeProgress.ventes,
             progress_clients: challengeProgress.clients
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
+          }
         );
       }
       
@@ -157,7 +137,7 @@ export default function ObjectivesModal({
       // Rafraîchir les données sans recharger la page
       await refreshActiveData();
     } catch (error) {
-      console.error('Error updating challenge progress:', error);
+      logger.error('Error updating challenge progress:', error);
       toast.error('Erreur lors de la mise à jour');
     }
   };

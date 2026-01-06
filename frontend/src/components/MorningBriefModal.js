@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { X, Coffee, Sparkles, Copy, Check, RefreshCw, Calendar, Clock, Trash2, ChevronDown, Download, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { API_BASE } from '../lib/api';
-
-const API_URL = API_BASE;
 
 /**
  * MorningBriefModal - Générateur de Brief Matinal IA
@@ -41,14 +39,14 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
       // ============================================================
       // ÉTAPE 1: DIAGNOSTIC - Logs des 3 sources de contenu
       // ============================================================
-      console.log('=== PDF GENERATION DIAGNOSTIC ===');
-      console.log('PDF_SOURCE_rawState:', JSON.stringify(briefData, null, 2));
-      console.log('PDF_SOURCE_domText:', briefContentRef.current?.innerText || 'REF_NOT_READY');
-      console.log('PDF_SOURCE_domHTML:', briefContentRef.current?.innerHTML?.substring(0, 500) || 'REF_NOT_READY');
+      logger.log('=== PDF GENERATION DIAGNOSTIC ===');
+      logger.log('PDF_SOURCE_rawState:', JSON.stringify(briefData, null, 2));
+      logger.log('PDF_SOURCE_domText:', briefContentRef.current?.innerText || 'REF_NOT_READY');
+      logger.log('PDF_SOURCE_domHTML:', briefContentRef.current?.innerHTML?.substring(0, 500) || 'REF_NOT_READY');
       
       // Vérifier si le ref est disponible (le brief doit être rendu)
       if (!briefContentRef.current) {
-        console.warn('⚠️ briefContentRef not ready, falling back to string-based PDF');
+        logger.warn('⚠️ briefContentRef not ready, falling back to string-based PDF');
         // Fallback vers l'ancienne méthode (sera supprimée après validation)
         return await exportBriefToPDF_legacy(briefData);
       }
@@ -114,7 +112,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
         const fileName = `brief_matinal_${(briefData.store_name || storeName || 'store').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
         pdf.save(fileName);
         
-        console.log('✅ PDF généré depuis DOM snapshot (pas de corruption attendue)');
+        logger.log('✅ PDF généré depuis DOM snapshot (pas de corruption attendue)');
         toast.success('PDF téléchargé avec succès !');
         
       } catch (canvasError) {
@@ -126,7 +124,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
       }
       
     } catch (error) {
-      console.error('Erreur export PDF (DOM-based):', error);
+      logger.error('Erreur export PDF (DOM-based):', error);
       toast.error('Erreur lors de la génération du PDF');
     } finally {
       setExportingPDF(false);
@@ -135,7 +133,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
   
   // ANCIENNE MÉTHODE (fallback) - À SUPPRIMER après validation
   const exportBriefToPDF_legacy = async (briefData) => {
-    console.warn('⚠️ Using legacy string-based PDF generation (fallback)');
+    logger.warn('⚠️ Using legacy string-based PDF generation (fallback)');
     
     try {
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -394,7 +392,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
       
       toast.success('PDF téléchargé avec succès !');
     } catch (error) {
-      console.error('Erreur export PDF:', error);
+      logger.error('Erreur export PDF:', error);
       toast.error('Erreur lors de la génération du PDF');
     } finally {
       setExportingPDF(false);
@@ -417,14 +415,10 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
   const loadHistory = async () => {
     setLoadingHistory(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(
-        `${API_URL}/api/briefs/morning/history${storeParam}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.get(`/briefs/morning/history${storeParam}`);
       setHistory(res.data.briefs || []);
     } catch (err) {
-      console.error('Error loading brief history:', err);
+      logger.error('Error loading brief history:', err);
     } finally {
       setLoadingHistory(false);
     }
@@ -435,11 +429,9 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
     setBrief(null);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API_URL}/api/briefs/morning${storeParam}`,
-        { comments: comments.trim() || null },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await api.post(
+        `/briefs/morning${storeParam}`,
+        { comments: comments.trim() || null }
       );
 
       if (response.data.success) {
@@ -450,7 +442,7 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
         toast.error('Erreur lors de la génération');
       }
     } catch (error) {
-      console.error('Erreur génération brief:', error);
+      logger.error('Erreur génération brief:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors de la génération du brief');
     } finally {
       setIsLoading(false);
@@ -463,15 +455,11 @@ const MorningBriefModal = ({ isOpen, onClose, storeName, managerName, storeId })
     }
     
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${API_URL}/api/briefs/morning/${briefId}${storeParam}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.delete(`/briefs/morning/${briefId}${storeParam}`);
       toast.success('Brief supprimé');
       loadHistory();
     } catch (err) {
-      console.error('Error deleting brief:', err);
+      logger.error('Error deleting brief:', err);
       toast.error('Erreur lors de la suppression');
     }
   };

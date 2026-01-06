@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { X, Calendar, AlertTriangle, Lock } from 'lucide-react';
 import { useSyncMode } from '../hooks/useSyncMode';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) {
   const { isReadOnly } = useSyncMode();
@@ -31,14 +28,11 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      
       const [statusRes, entriesRes, configRes, historicalRes] = await Promise.all([
-        axios.get(`${API}/seller/kpi-enabled`, { headers }),
-        axios.get(`${API}/seller/kpi-entries?days=1`, { headers }),
-        axios.get(`${API}/seller/kpi-config`, { headers }),
-        axios.get(`${API}/seller/kpi-entries?days=30`, { headers }) // Last 30 days for average
+        api.get('/seller/kpi-enabled'),
+        api.get('/seller/kpi-entries?days=1'),
+        api.get('/seller/kpi-config'),
+        api.get('/seller/kpi-entries?days=30') // Last 30 days for average
       ]);
       
       setEnabled(statusRes.data.enabled || false);
@@ -63,7 +57,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
         setComment('');
       }
     } catch (err) {
-      console.error('Error loading KPI data:', err);
+      logger.error('Error loading KPI data:', err);
       toast.error('Erreur de chargement des KPI');
     } finally {
       setLoading(false);
@@ -206,8 +200,7 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
   const saveKPIData = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${API}/seller/kpi-entry`, {
+      await api.post('/seller/kpi-entry', {
         date,
         ca_journalier: kpiConfig?.track_ca ? parseFloat(caJournalier) : 0,
         nb_ventes: kpiConfig?.track_ventes ? parseInt(nbVentes) : 0,
@@ -215,14 +208,12 @@ export default function KPIEntryModal({ onClose, onSuccess, editEntry = null }) 
         nb_articles: kpiConfig?.track_articles ? parseInt(nbArticles) : 0,
         nb_prospects: kpiConfig?.track_prospects ? parseInt(nbProspects) : 0,
         comment: comment || null
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('KPI enregistrés avec succès!');
       onSuccess();
       onClose();
     } catch (err) {
-      console.error('Error saving KPI:', err);
+      logger.error('Error saving KPI:', err);
       toast.error(err.response?.data?.detail || 'Erreur lors de l\'enregistrement');
     } finally {
       setSaving(false);

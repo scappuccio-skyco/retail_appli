@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { Sparkles, X } from 'lucide-react';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 const questions = [
   {
@@ -381,7 +378,7 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
         ...prev,
         [questionId]: optionIndex
       };
-      console.log('Updated manager responses:', updated);
+      logger.log('Updated manager responses:', updated);
       return updated;
     });
   };
@@ -396,15 +393,12 @@ export default function ManagerDiagnosticForm({ onClose, onSuccess }) {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${API}/manager-diagnostic`, { responses }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post('/manager-diagnostic', { responses });
       toast.success('Ton profil manager est prêt ! 🔥');
       onSuccess();
       onClose();
     } catch (err) {
-      console.error('Error submitting diagnostic:', err);
+      logger.error('Error submitting diagnostic:', err);
       toast.error('Erreur lors de l\'analyse du profil');
     } finally {
       setLoading(false);

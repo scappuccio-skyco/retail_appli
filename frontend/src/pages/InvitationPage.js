@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Mail, User, Lock, CheckCircle, XCircle, Loader2, Eye, EyeOff } from 'lucide-react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
-import { API_BASE } from '../lib/api';
 
 const InvitationPage = () => {
   const { token } = useParams();
   const navigate = useNavigate();
-  const backendUrl = API_BASE;
   
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -30,7 +29,7 @@ const InvitationPage = () => {
   const verifyToken = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/auth/invitations/verify/${token}`);
+      const response = await api.get(`/auth/invitations/verify/${token}`);
       setInvitation(response.data);
       setFormData(prev => ({
         ...prev,
@@ -59,7 +58,7 @@ const InvitationPage = () => {
 
     try {
       setSubmitting(true);
-      await axios.post(`${backendUrl}/api/auth/register/invitation`, {
+      await api.post('/auth/register/invitation', {
         email: formData.email,
         password: formData.password,
         name: formData.name,

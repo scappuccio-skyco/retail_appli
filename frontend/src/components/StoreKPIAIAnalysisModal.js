@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { X } from 'lucide-react';
 import { toast } from 'sonner';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 export default function StoreKPIAIAnalysisModal({ 
   kpiData, 
@@ -21,8 +18,6 @@ export default function StoreKPIAIAnalysisModal({
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      
       // Build store_id param for gerant
       const storeParam = storeId ? `?store_id=${storeId}` : '';
       
@@ -30,10 +25,10 @@ export default function StoreKPIAIAnalysisModal({
       let payload = {};
 
       if (analysisType === 'daily') {
-        endpoint = `${API}/manager/analyze-store-kpis${storeParam}`;
+        endpoint = `/manager/analyze-store-kpis${storeParam}`;
         payload = { kpi_data: kpiData };
       } else if (analysisType === 'overview') {
-        endpoint = `${API}/manager/analyze-store-kpis${storeParam}`;
+        endpoint = `/manager/analyze-store-kpis${storeParam}`;
         
         // Calculate aggregated metrics
         const { historicalData, viewMode, period } = viewContext;
@@ -73,14 +68,12 @@ export default function StoreKPIAIAnalysisModal({
         };
       }
 
-      const res = await axios.post(endpoint, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.post(endpoint, payload);
 
       setAiAnalysis(res.data.analysis);
       toast.success('Analyse IA générée !');
     } catch (err) {
-      console.error('Error generating AI analysis:', err);
+      logger.error('Error generating AI analysis:', err);
       toast.error('Erreur lors de l\'analyse IA');
     } finally {
       setLoading(false);

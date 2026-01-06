@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../../lib/apiClient';
+import { logger } from '../../utils/logger';
 import { toast } from 'sonner';
 import { Calendar, Clock, Users, Search, AlertCircle, CheckCircle } from 'lucide-react';
-import { API_BASE } from '../../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function TrialManagement() {
   const [gerants, setGerants] = useState([]);
@@ -22,13 +19,10 @@ export default function TrialManagement() {
   const fetchGerants = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      
-      const response = await axios.get(`${API}/superadmin/gerants/trials`, { headers });
+      const response = await api.get('/superadmin/gerants/trials');
       setGerants(response.data);
     } catch (error) {
-      console.error('Error fetching gerants:', error);
+      logger.error('Error fetching gerants:', error);
       toast.error('Erreur lors du chargement des gérants');
     } finally {
       setLoading(false);
@@ -42,13 +36,9 @@ export default function TrialManagement() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      
-      await axios.patch(
-        `${API}/superadmin/gerants/${gerantId}/trial`,
-        { trial_end: newTrialEnd },
-        { headers }
+      await api.patch(
+        `/superadmin/gerants/${gerantId}/trial`,
+        { trial_end: newTrialEnd }
       );
       
       toast.success('Période d\'essai mise à jour avec succès');
@@ -56,7 +46,7 @@ export default function TrialManagement() {
       setNewTrialEnd('');
       fetchGerants();
     } catch (error) {
-      console.error('Error updating trial:', error);
+      logger.error('Error updating trial:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
     }
   };

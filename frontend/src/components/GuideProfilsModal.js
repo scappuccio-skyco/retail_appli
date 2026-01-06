@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import axios from 'axios';
-import { API_BASE } from '../lib/api';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 export default function GuideProfilsModal({ onClose, userRole = 'manager', storeIdParam = null }) {
   // Define sections based on user role
@@ -22,8 +22,6 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
   const urlStoreId = urlParams.get('store_id');
   const effectiveStoreId = storeIdParam || urlStoreId;
   const storeParam = effectiveStoreId ? `?store_id=${effectiveStoreId}` : '';
-  
-  const API = API_BASE || '';
 
   // Fetch manager and sellers data for compatibility
   useEffect(() => {
@@ -42,46 +40,38 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
   const fetchCompatibilityData = async () => {
     setLoadingCompatibility(true);
     try {
-      const token = localStorage.getItem('token');
-      
       // Get manager info
-      const managerRes = await axios.get(`${API}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      console.log('[GuideProfils] Manager data:', managerRes.data);
+      const managerRes = await api.get('/auth/me');
+      logger.log('[GuideProfils] Manager data:', managerRes.data);
       
       // Get manager diagnostic to have profil_nom
-      const diagnosticRes = await axios.get(`${API}/manager-diagnostic/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      console.log('Manager diagnostic:', diagnosticRes.data);
+      const diagnosticRes = await api.get('/manager-diagnostic/me');
+      logger.log('Manager diagnostic:', diagnosticRes.data);
       
       // Combine manager data with diagnostic profil_nom
       const managerWithProfile = {
         ...managerRes.data,
         management_style: diagnosticRes.data?.diagnostic?.profil_nom || managerRes.data.management_style || 'Pilote'
       };
-      console.log('Manager with profile:', managerWithProfile);
+      logger.log('Manager with profile:', managerWithProfile);
       setManagerProfile(managerWithProfile);
       
       // Get sellers - Use same endpoint and params as TeamModal/ManagerSettingsModal
-      const sellersUrl = `${API}/manager/sellers${storeParam}`;
-      console.log('[GuideProfils] 🔍 Fetching sellers:', {
+      const sellersUrl = `/manager/sellers${storeParam}`;
+      logger.log('[GuideProfils] 🔍 Fetching sellers:', {
         url: sellersUrl,
         storeId: effectiveStoreId,
         storeParam: storeParam
       });
       
-      const sellersRes = await axios.get(sellersUrl, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const sellersRes = await api.get(sellersUrl);
       
       // Normalize response (handles both array and {sellers: []} formats)
       const sellersData = Array.isArray(sellersRes.data) 
         ? sellersRes.data 
         : (sellersRes.data?.sellers || sellersRes.data || []);
       
-      console.log('[GuideProfils] ✅ Sellers response:', {
+      logger.log('[GuideProfils] ✅ Sellers response:', {
         rawResponse: sellersRes.data,
         normalizedSellers: sellersData,
         sellersCount: sellersData.length,
@@ -92,7 +82,7 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager', store
       setTeamSellers(sellersData);
       
     } catch (error) {
-      console.error('Error fetching compatibility data:', error);
+      logger.error('Error fetching compatibility data:', error);
     } finally {
       setLoadingCompatibility(false);
     }

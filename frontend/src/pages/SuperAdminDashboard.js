@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import AdminManagement from '../components/superadmin/AdminManagement';
 import AIAssistant from '../components/superadmin/AIAssistant';
@@ -13,10 +14,6 @@ import {
   CheckSquare, Square, Trash2, PauseCircle, PlayCircle
 } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function SuperAdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -52,15 +49,12 @@ export default function SuperAdminDashboard() {
   useEffect(() => {
     const fetchWorkspaces = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const headers = { Authorization: `Bearer ${token}` };
-        const res = await axios.get(`${API}/superadmin/workspaces`, { 
-          headers, 
+        const res = await api.get('/superadmin/workspaces', { 
           params: { include_deleted: true } // Always fetch all, filter client-side
         });
         setWorkspaces(res.data);
       } catch (error) {
-        console.error('Error fetching workspaces:', error);
+        logger.error('Error fetching workspaces:', error);
       }
     };
     fetchWorkspaces();
@@ -77,14 +71,12 @@ export default function SuperAdminDashboard() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
 
       const [statsRes, workspacesRes, logsRes, healthRes] = await Promise.all([
-        axios.get(`${API}/superadmin/stats`, { headers }),
-        axios.get(`${API}/superadmin/workspaces`, { headers, params: { include_deleted: true } }),
-        axios.get(`${API}/superadmin/logs?limit=50&days=7`, { headers }),
-        axios.get(`${API}/superadmin/health`, { headers })
+        api.get('/superadmin/stats'),
+        api.get('/superadmin/workspaces', { params: { include_deleted: true } }),
+        api.get('/superadmin/logs?limit=50&days=7'),
+        api.get('/superadmin/health')
       ]);
 
       setStats(statsRes.data);
@@ -99,7 +91,7 @@ export default function SuperAdminDashboard() {
       } else {
         toast.error('Erreur lors du chargement des données');
       }
-      console.error('Error:', error);
+      logger.error('Error:', error);
     } finally {
       setLoading(false);
     }
@@ -107,37 +99,31 @@ export default function SuperAdminDashboard() {
 
   const fetchHealth = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      const healthRes = await axios.get(`${API}/superadmin/health`, { headers });
+      const healthRes = await api.get('/superadmin/health');
       setHealth(healthRes.data);
     } catch (error) {
-      console.error('Error fetching health:', error);
+      logger.error('Error fetching health:', error);
     }
   };
 
   const fetchSystemLogs = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
       const params = {
         limit: 100,
         hours: logFilters.hours,
         ...(logFilters.level && { level: logFilters.level }),
         ...(logFilters.type && { type: logFilters.type })
       };
-      const res = await axios.get(`${API}/superadmin/system-logs`, { headers, params });
+      const res = await api.get('/superadmin/system-logs', { params });
       setSystemLogs(res.data);
     } catch (error) {
-      console.error('Error fetching system logs:', error);
+      logger.error('Error fetching system logs:', error);
       toast.error('Erreur lors du chargement des logs');
     }
   };
 
   const fetchAuditLogs = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
       const params = {
         limit: 100,
         days: auditFilters.days,
@@ -146,24 +132,22 @@ export default function SuperAdminDashboard() {
           admin_emails: auditFilters.admin_emails.join(',') 
         })
       };
-      const res = await axios.get(`${API}/superadmin/logs`, { headers, params });
+      const res = await api.get('/superadmin/logs', { params });
       setAuditLogData(res.data);
       setLogs(res.data.logs || res.data);
     } catch (error) {
-      console.error('Error fetching audit logs:', error);
+      logger.error('Error fetching audit logs:', error);
       toast.error('Erreur lors du chargement des logs d\'audit');
     }
   };
 
   const handleWorkspaceStatusChange = async (workspaceId, newStatus) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(
-        `${API}/superadmin/workspaces/${workspaceId}/status`,
+      await api.patch(
+        `/superadmin/workspaces/${workspaceId}/status`,
         null,
         {
-          params: { status: newStatus },
-          headers: { Authorization: `Bearer ${token}` }
+          params: { status: newStatus }
         }
       );
       const statusMessage = newStatus === 'active' ? 'activé' : newStatus === 'suspended' ? 'suspendu' : 'supprimé';
@@ -171,7 +155,7 @@ export default function SuperAdminDashboard() {
       fetchData();
     } catch (error) {
       toast.error('Erreur lors de la modification');
-      console.error('Error:', error);
+      logger.error('Error:', error);
     }
   };
 
@@ -195,18 +179,16 @@ export default function SuperAdminDashboard() {
     }
 
     try {
-      const token = localStorage.getItem('token');
       // Endpoint à créer dans le backend
-      await axios.patch(
-        `${API}/superadmin/workspaces/${workspaceId}/plan`,
-        { plan: newPlan.toLowerCase() },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.patch(
+        `/superadmin/workspaces/${workspaceId}/plan`,
+        { plan: newPlan.toLowerCase() }
       );
       toast.success(`Plan changé en ${newPlan}`);
       fetchData();
     } catch (error) {
       toast.error('Erreur lors du changement de plan');
-      console.error('Error:', error);
+      logger.error('Error:', error);
     }
   };
 
@@ -269,19 +251,17 @@ export default function SuperAdminDashboard() {
     if (!window.confirm(confirmMessage)) return;
 
     setBulkActionLoading(true);
-    const token = localStorage.getItem('token');
     let successCount = 0;
     let errorCount = 0;
 
     try {
       // Use bulk endpoint if available, otherwise loop
-      const response = await axios.patch(
-        `${API}/superadmin/workspaces/bulk/status`,
+      const response = await api.patch(
+        `/superadmin/workspaces/bulk/status`,
         { 
           workspace_ids: Array.from(selectedWorkspaces),
           status: newStatus 
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
       
       successCount = response.data.success_count || selectedWorkspaces.size;
@@ -291,23 +271,22 @@ export default function SuperAdminDashboard() {
       if (error.response?.status === 404) {
         for (const workspaceId of selectedWorkspaces) {
           try {
-            await axios.patch(
-              `${API}/superadmin/workspaces/${workspaceId}/status`,
+            await api.patch(
+              `/superadmin/workspaces/${workspaceId}/status`,
               null,
               {
-                params: { status: newStatus },
-                headers: { Authorization: `Bearer ${token}` }
+                params: { status: newStatus }
               }
             );
             successCount++;
           } catch (err) {
             errorCount++;
-            console.error(`Error updating workspace ${workspaceId}:`, err);
+            logger.error(`Error updating workspace ${workspaceId}:`, err);
           }
         }
       } else {
         toast.error('Erreur lors de l\'action groupée');
-        console.error('Bulk action error:', error);
+        logger.error('Bulk action error:', error);
         setBulkActionLoading(false);
         return;
       }

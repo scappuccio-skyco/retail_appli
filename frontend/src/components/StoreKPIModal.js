@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, TrendingUp } from 'lucide-react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import StoreKPIAIAnalysisModal from './StoreKPIAIAnalysisModal';
 import KPICalendar from './KPICalendar';
-import { API_BASE } from '../lib/api';
-
-const API = API_BASE || '';
 
 export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, hideCloseButton = false, storeId = null, storeName = null, isManager = false }) {
   const [activeTab, setActiveTab] = useState('daily');
@@ -115,16 +113,13 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
   const fetchOverviewData = async () => {
     try {
-      const token = localStorage.getItem('token');
       const endpoint = storeId 
-        ? `${API}/api/gerant/stores/${storeId}/kpi-overview?date=${overviewDate}`
-        : `${API}/api/manager/store-kpi-overview?date=${overviewDate}`;
-      const res = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+        ? `/gerant/stores/${storeId}/kpi-overview?date=${overviewDate}`
+        : `/manager/store-kpi-overview?date=${overviewDate}`;
+      const res = await api.get(endpoint);
       setOverviewData(res.data);
     } catch (err) {
-      console.error('Error fetching overview:', err);
+      logger.error('Error fetching overview:', err);
       toast.error('Erreur lors du chargement de la synthèse');
     }
   };
@@ -132,7 +127,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   const fetchHistoricalData = async () => {
     setLoadingHistorical(true); // Start loading
     try {
-      const token = localStorage.getItem('token');
       let days = 90; // default 3 months
       let startDate = null;
       let endDate = null;
@@ -177,16 +171,14 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       if (storeId) {
         // Gérant: Fetch aggregated data for the store
         // Build URL with start_date and end_date for better filtering
-        let url = `${API}/api/gerant/stores/${storeId}/kpi-history?days=${days}`;
+        let url = `/gerant/stores/${storeId}/kpi-history?days=${days}`;
         if (startDate && endDate) {
           const startStr = startDate.toISOString().split('T')[0];
           const endStr = endDate.toISOString().split('T')[0];
-          url = `${API}/api/gerant/stores/${storeId}/kpi-history?start_date=${startStr}&end_date=${endStr}`;
+          url = `/gerant/stores/${storeId}/kpi-history?start_date=${startStr}&end_date=${endStr}`;
         }
         
-        const historyRes = await axios.get(url, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const historyRes = await api.get(url);
         
         // Transform data to match expected format
         // The API returns an array directly, not an object with data property
@@ -201,9 +193,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         }));
       } else {
         // Manager: Fetch all sellers data
-        const usersRes = await axios.get(`${API}/api/manager/sellers`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const usersRes = await api.get('/manager/sellers');
         
         const sellers = usersRes.data;
         
@@ -214,15 +204,13 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         if (startDate && endDate) {
           const startStr = startDate.toISOString().split('T')[0];
           const endStr = endDate.toISOString().split('T')[0];
-          kpiUrl = (sellerId) => `${API}/api/manager/kpi-entries/${sellerId}?start_date=${startStr}&end_date=${endStr}${storeParam}`;
+          kpiUrl = (sellerId) => `/manager/kpi-entries/${sellerId}?start_date=${startStr}&end_date=${endStr}${storeParam}`;
         } else {
-          kpiUrl = (sellerId) => `${API}/api/manager/kpi-entries/${sellerId}?days=${days}${storeParam}`;
+          kpiUrl = (sellerId) => `/manager/kpi-entries/${sellerId}?days=${days}${storeParam}`;
         }
         
         const sellersDataPromises = sellers.map(seller =>
-          axios.get(kpiUrl(seller.id), {
-            headers: { Authorization: `Bearer ${token}` }
-          })
+          api.get(kpiUrl(seller.id))
         );
 
         const sellersDataResponses = await Promise.all(sellersDataPromises);
@@ -233,10 +221,10 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         managerStartDate.setDate(today.getDate() - days);
         
         const managerKpiUrl = storeId 
-          ? `${API}/api/manager/manager-kpi?start_date=${managerStartDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}&store_id=${storeId}`
-          : `${API}/api/manager/manager-kpi?start_date=${managerStartDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`;
+          ? `/manager/manager-kpi?start_date=${managerStartDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}&store_id=${storeId}`
+          : `/manager/manager-kpi?start_date=${managerStartDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`;
         
-        const managerKpiRes = await axios.get(managerKpiUrl, { headers: { Authorization: `Bearer ${token}` }});
+        const managerKpiRes = await api.get(managerKpiUrl);
         
         // Aggregate data by date
         const dateMap = {};
@@ -399,7 +387,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
       setHistoricalData(finalData);
     } catch (err) {
-      console.error('Error fetching historical data:', err);
+        logger.error('Error fetching historical data:', err);
       toast.error('Erreur lors du chargement des données historiques');
     } finally {
       setLoadingHistorical(false); // Stop loading
@@ -408,16 +396,13 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
   // Fetch all dates with data (last 2 years) for calendar highlighting
   const fetchDatesWithData = async () => {
-    console.log('[DEBUG] fetchDatesWithData called, storeId:', storeId);
+    logger.log('[DEBUG] fetchDatesWithData called, storeId:', storeId);
     try {
-      const token = localStorage.getItem('token');
       const days = 730; // 2 years
       
       if (storeId) {
         // Gérant: Fetch aggregated data for the store
-        const historyRes = await axios.get(`${API}/api/gerant/stores/${storeId}/kpi-history?days=${days}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const historyRes = await api.get(`/gerant/stores/${storeId}/kpi-history?days=${days}`);
         
         const rawData = Array.isArray(historyRes.data) ? historyRes.data : [];
         // Extract dates that have actual data (non-zero values)
@@ -436,9 +421,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         setLockedDates(locked);
       } else {
         // Manager: Fetch from seller entries
-        const usersRes = await axios.get(`${API}/api/manager/sellers`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const usersRes = await api.get('/manager/sellers');
         
         const sellers = usersRes.data;
         const today = new Date();
@@ -446,9 +429,8 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         startDate.setDate(today.getDate() - days);
         
         const sellersDataPromises = sellers.map(seller =>
-          axios.get(
-            `${API}/api/manager/kpi-entries/${seller.id}?start_date=${startDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+          api.get(
+            `/manager/kpi-entries/${seller.id}?start_date=${startDate.toISOString().split('T')[0]}&end_date=${today.toISOString().split('T')[0]}`
           )
         );
 
@@ -464,20 +446,20 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
               allDates.add(entry.date);
             }
             if (entry.locked === true) {
-              console.log('[DEBUG] Found locked date:', entry.date, entry);
+              logger.log('[DEBUG] Found locked date:', entry.date, entry);
               allLockedDates.add(entry.date);
             }
           });
         });
         
-        console.log('[DEBUG] All dates with data:', [...allDates]);
-        console.log('[DEBUG] All locked dates:', [...allLockedDates]);
+        logger.log('[DEBUG] All dates with data:', [...allDates]);
+        logger.log('[DEBUG] All locked dates:', [...allLockedDates]);
         
         setDatesWithData([...allDates]);
         setLockedDates([...allLockedDates]);
       }
     } catch (err) {
-      console.error('Error fetching dates with data:', err);
+      logger.error('Error fetching dates with data:', err);
     }
   };
 
@@ -485,18 +467,15 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
   // Fetch available years for the year selector
   const fetchAvailableYears = async () => {
     try {
-      const token = localStorage.getItem('token');
       if (storeId) {
         // Gérant view: fetch available years from API
-        const res = await axios.get(`${API}/api/gerant/stores/${storeId}/available-years`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get(`/gerant/stores/${storeId}/available-years`);
         if (res.data.years && res.data.years.length > 0) {
           setAvailableYears(res.data.years);
         }
       }
     } catch (err) {
-      console.error('Error fetching available years:', err);
+      logger.error('Error fetching available years:', err);
     }
   };
 
@@ -522,12 +501,9 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
   const fetchKPIConfig = async () => {
     try {
-      const token = localStorage.getItem('token');
       // Ajouter store_id pour les gérants
       const storeParam = storeId ? `?store_id=${storeId}` : '';
-      const res = await axios.get(`${API}/api/manager/kpi-config${storeParam}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/manager/kpi-config${storeParam}`);
       if (res.data) {
         let config = res.data;
         
@@ -548,13 +524,12 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
         setKpiConfig(config);
       }
     } catch (err) {
-      console.error('Error fetching KPI config:', err);
+      logger.error('Error fetching KPI config:', err);
     }
   };
 
   const handleKPIUpdate = async (field, value) => {
     try {
-      const token = localStorage.getItem('token');
       let updatedConfig = { ...kpiConfig, [field]: value };
       
       // Exclusivité mutuelle
@@ -573,14 +548,12 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       
       // Ajouter store_id pour les gérants
       const storeParam = storeId ? `?store_id=${storeId}` : '';
-      await axios.put(`${API}/api/manager/kpi-config${storeParam}`, updatedConfig, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put(`/manager/kpi-config${storeParam}`, updatedConfig);
       
       setKpiConfig(updatedConfig);
       toast.success('Configuration mise à jour !');
     } catch (err) {
-      console.error('Error updating KPI config:', err);
+      logger.error('Error updating KPI config:', err);
       toast.error('Erreur lors de la mise à jour');
     }
   };
@@ -590,13 +563,12 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${API}/api/manager/store-kpi`,
+      await api.post(
+        `/manager/store-kpi`,
         {
           date: formData.date,
           nb_prospects: parseInt(formData.nb_prospects)
-        },
+        }
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -604,7 +576,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
       onSuccess();
       onClose();
     } catch (err) {
-      console.error('Error saving store KPI:', err);
+      logger.error('Error saving store KPI:', err);
       toast.error('Erreur lors de l\'enregistrement');
     } finally {
       setLoading(false);
@@ -616,7 +588,6 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
       const payload = {
         date: managerKPIData.date
       };
@@ -641,17 +612,16 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
 
       // Add store_id for gerant viewing specific store
       const storeParam = storeId ? `?store_id=${storeId}` : '';
-      await axios.post(
-        `${API}/api/manager/manager-kpi${storeParam}`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.post(
+        `/manager/manager-kpi${storeParam}`,
+        payload
       );
 
       toast.success('KPI Manager enregistrés avec succès !');
       onSuccess();
       onClose();
     } catch (err) {
-      console.error('Error saving manager KPI:', err);
+      logger.error('Error saving manager KPI:', err);
       toast.error('Erreur lors de l\'enregistrement');
     } finally {
       setLoading(false);
@@ -979,7 +949,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                             e.target.showPicker();
                           }
                         } catch (error) {
-                          console.log('showPicker not supported');
+                          logger.log('showPicker not supported');
                         }
                       }}
                       className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer"
@@ -1011,7 +981,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                             e.target.showPicker();
                           }
                         } catch (error) {
-                          console.log('showPicker not supported');
+                          logger.log('showPicker not supported');
                         }
                       }}
                       className="flex-1 max-w-md px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-400 focus:outline-none cursor-pointer"
@@ -1839,7 +1809,7 @@ export default function StoreKPIModal({ onClose, onSuccess, initialDate = null, 
                               e.target.showPicker();
                             }
                           } catch (error) {
-                            console.log('showPicker not supported');
+                            logger.log('showPicker not supported');
                           }
                         }}
                         className={`w-full p-3 border-2 rounded-lg focus:outline-none cursor-pointer ${

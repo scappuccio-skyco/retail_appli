@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../../lib/apiClient';
+import { logger } from '../../utils/logger';
 import { Building2, MapPin, Phone, Mail, Edit2, Save, X, Plus, Users, Loader2, Store } from 'lucide-react';
 import { toast } from 'sonner';
-import { API_BASE } from '../../lib/api';
 
 /**
  * StoresManagement - Composant pour gérer les magasins du Gérant
  * Permet de voir la liste des magasins et de modifier leurs informations
  */
 export default function StoresManagement({ onRefresh, onOpenCreateStoreModal, isReadOnly }) {
-  const backendUrl = API_BASE;
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingStore, setEditingStore] = useState(null);
@@ -24,13 +23,10 @@ export default function StoresManagement({ onRefresh, onOpenCreateStoreModal, is
   const fetchStores = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${backendUrl}/api/gerant/stores`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/gerant/stores');
       setStores(response.data);
     } catch (error) {
-      console.error('Erreur chargement magasins:', error);
+      logger.error('Erreur chargement magasins:', error);
       toast.error('Erreur lors du chargement des magasins');
     } finally {
       setLoading(false);
@@ -63,11 +59,9 @@ export default function StoresManagement({ onRefresh, onOpenCreateStoreModal, is
     
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(
-        `${backendUrl}/api/gerant/stores/${storeId}`,
-        editForm,
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.put(
+        `/gerant/stores/${storeId}`,
+        editForm
       );
       
       toast.success('Magasin mis à jour avec succès !');
@@ -76,7 +70,7 @@ export default function StoresManagement({ onRefresh, onOpenCreateStoreModal, is
       fetchStores();
       if (onRefresh) onRefresh();
     } catch (error) {
-      console.error('Erreur mise à jour:', error);
+      logger.error('Erreur mise à jour:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
     } finally {
       setSaving(false);

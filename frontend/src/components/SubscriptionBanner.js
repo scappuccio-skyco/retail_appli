@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, Crown, Clock } from 'lucide-react';
-import axios from 'axios';
-import { API_BASE } from '../lib/api';
-
-const API = API_BASE;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 export default function SubscriptionBanner({ onUpgradeClick }) {
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
@@ -15,17 +13,14 @@ export default function SubscriptionBanner({ onUpgradeClick }) {
 
   const fetchSubscriptionStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
       const userRole = localStorage.getItem('role');
       const endpoint = userRole === 'gerant' 
-        ? `${API}/api/gerant/subscription/status`
-        : `${API}/api/manager/subscription-status`;
-      const response = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+        ? '/gerant/subscription/status'
+        : '/manager/subscription-status';
+      const response = await api.get(endpoint);
       setSubscriptionInfo(response.data);
     } catch (error) {
-      console.error('Error fetching subscription:', error);
+      logger.error('Error fetching subscription:', error);
     } finally {
       setLoading(false);
     }

@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import AIRecommendations from './AIRecommendations';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
-import { API_BASE } from '../lib/api';
 import { getApiPrefixByRole, normalizeHistoryResponse } from '../utils/apiHelpers';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 // Get user role from localStorage or JWT
 const getUserRole = () => {
@@ -49,29 +46,26 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
   const fetchConflictHistory = async () => {
     setLoadingHistory(true);
     try {
-      const token = localStorage.getItem('token');
       const userRole = getUserRole();
       const apiPrefix = getApiPrefixByRole(userRole);
       
       let url;
       if (userRole === 'seller') {
         // Seller: GET /api/seller/conflict-history (no sellerId param)
-        url = `${API}${apiPrefix}/conflict-history`;
+        url = `${apiPrefix}/conflict-history`;
       } else {
         // Manager: GET /api/manager/conflict-history/{sellerId}
-        url = `${API}${apiPrefix}/conflict-history/${sellerId}`;
+        url = `${apiPrefix}/conflict-history/${sellerId}`;
       }
       
-      const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(url);
       
       // Normalize response (handles both array and {consultations: [...]} formats)
       const history = normalizeHistoryResponse(response.data);
       setConflictHistory(history);
       setLoadingHistory(false);
     } catch (err) {
-      console.error('Error loading conflict history:', err);
+      logger.error('Error loading conflict history:', err);
       toast.error('Erreur de chargement de l\'historique');
       setLoadingHistory(false);
     }
@@ -101,7 +95,6 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
     const loadingToast = toast.loading('🤖 Génération des recommandations IA...');
     
     try {
-      const token = localStorage.getItem('token');
       const userRole = getUserRole();
       const apiPrefix = getApiPrefixByRole(userRole);
       
@@ -118,10 +111,9 @@ export default function ConflictResolutionForm({ sellerId, sellerName }) {
         };
       }
       
-      const response = await axios.post(
-        `${API}${apiPrefix}/conflict-resolution`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await api.post(
+        `${apiPrefix}/conflict-resolution`,
+        payload
       );
 
       toast.dismiss(loadingToast);

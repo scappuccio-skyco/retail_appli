@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { Settings, Target, Trophy } from 'lucide-react';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function ManagerSettings() {
   const [kpiConfig, setKpiConfig] = useState(null);
   const [objectives, setObjectives] = useState([]);
   const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Get token from localStorage
-  const token = localStorage.getItem('token');
-  const headers = { Authorization: `Bearer ${token}` };
   
   // New objective form
   const [newObjective, setNewObjective] = useState({
@@ -47,17 +40,17 @@ export default function ManagerSettings() {
   const fetchData = async () => {
     try {
       const [configRes, objectivesRes, challengesRes] = await Promise.all([
-        axios.get(`${API}/manager/kpi-config`, { headers }),
-        axios.get(`${API}/manager/objectives`, { headers }),
-        axios.get(`${API}/manager/challenges`, { headers })
+        api.get('/manager/kpi-config'),
+        api.get('/manager/objectives'),
+        api.get('/manager/challenges')
       ]);
       
-      console.log('KPI Config loaded:', configRes.data);
+      logger.log('KPI Config loaded:', configRes.data);
       setKpiConfig(configRes.data);
       setObjectives(objectivesRes.data);
       setChallenges(challengesRes.data);
     } catch (err) {
-      console.error('Error loading data:', err);
+      logger.error('Error loading data:', err);
       toast.error('Erreur de chargement des données');
     } finally {
       setLoading(false);
@@ -66,13 +59,13 @@ export default function ManagerSettings() {
 
   const updateKPIConfig = async (field, value) => {
     try {
-      const res = await axios.put(`${API}/manager/kpi-config`, {
+      const res = await api.put('/manager/kpi-config', {
         [field]: value
-      }, { headers });
+      });
       setKpiConfig(res.data);
       toast.success('Configuration mise à jour');
     } catch (err) {
-      console.error('Error updating config:', err);
+      logger.error('Error updating config:', err);
       toast.error('Erreur de mise à jour');
     }
   };
@@ -88,7 +81,7 @@ export default function ManagerSettings() {
         period_end: newObjective.period_end
       };
       
-      await axios.post(`${API}/manager/objectives`, data, { headers });
+      await api.post('/manager/objectives', data);
       toast.success('Objectif créé');
       fetchData();
       setNewObjective({
@@ -99,7 +92,7 @@ export default function ManagerSettings() {
         period_end: ''
       });
     } catch (err) {
-      console.error('Error creating objective:', err);
+      logger.error('Error creating objective:', err);
       toast.error('Erreur de création');
     }
   };
@@ -120,7 +113,7 @@ export default function ManagerSettings() {
         end_date: newChallenge.end_date
       };
       
-      await axios.post(`${API}/manager/challenges`, data, { headers });
+      await api.post('/manager/challenges', data);
       toast.success('Challenge créé');
       fetchData();
       setNewChallenge({
@@ -136,7 +129,7 @@ export default function ManagerSettings() {
         end_date: ''
       });
     } catch (err) {
-      console.error('Error creating challenge:', err);
+      logger.error('Error creating challenge:', err);
       toast.error('Erreur de création du challenge');
     }
   };

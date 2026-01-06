@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { X, Settings, BarChart3 } from 'lucide-react';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function KPIConfigModal({ onClose, onSuccess }) {
   const [enabled, setEnabled] = useState(false);
@@ -18,10 +15,7 @@ export default function KPIConfigModal({ onClose, onSuccess }) {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const configRes = await axios.get(`${API}/manager/kpi-config`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const configRes = await api.get('/manager/kpi-config');
       setEnabled(configRes.data.enabled || configRes.data.saisie_enabled || false);
     } catch (err) {
       toast.error('Erreur de chargement de la configuration');
@@ -33,11 +27,8 @@ export default function KPIConfigModal({ onClose, onSuccess }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API}/manager/kpi-config`, {
+      await api.put('/manager/kpi-config', {
         enabled: enabled
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Configuration sauvegardée!');
       onSuccess();

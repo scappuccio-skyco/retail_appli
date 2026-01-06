@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../../lib/apiClient';
+import { logger } from '../../utils/logger';
 import { toast } from 'react-hot-toast';
 import { UserPlus, Trash2, Mail, Shield } from 'lucide-react';
-import { API_BASE } from '../../lib/api';
-
-const API = API_BASE; + '/api';
 
 export default function AdminManagement() {
   const [admins, setAdmins] = useState([]);
@@ -20,15 +18,12 @@ export default function AdminManagement() {
   const fetchAdmins = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      console.log('Fetching admins from:', `${API}/superadmin/admins`);
-      const res = await axios.get(`${API}/superadmin/admins`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      console.log('Admins received:', res.data);
+      logger.log('Fetching admins from:', '/superadmin/admins');
+      const res = await api.get('/superadmin/admins');
+      logger.log('Admins received:', res.data);
       setAdmins(res.data.admins || []);
     } catch (error) {
-      console.error('Error fetching admins:', error);
+      logger.error('Error fetching admins:', error);
       toast.error('Erreur lors du chargement des admins');
     } finally {
       setLoading(false);
@@ -44,11 +39,9 @@ export default function AdminManagement() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post(
-        `${API}/superadmin/admins?email=${encodeURIComponent(newAdmin.email)}&name=${encodeURIComponent(newAdmin.name)}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.post(
+        `/superadmin/admins?email=${encodeURIComponent(newAdmin.email)}&name=${encodeURIComponent(newAdmin.name)}`,
+        {}
       );
 
       setTempPassword(res.data.temporary_password);
@@ -64,10 +57,7 @@ export default function AdminManagement() {
     if (!window.confirm('Êtes-vous sûr de vouloir retirer ce super admin ?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${API}/superadmin/admins/${adminId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/superadmin/admins/${adminId}`);
 
       toast.success('Super admin retiré');
       fetchAdmins();

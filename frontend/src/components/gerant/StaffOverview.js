@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../../lib/apiClient';
+import { logger } from '../../utils/logger';
 import { toast } from 'sonner';
 import { 
   Users, UserCog, Search, Filter, Building2, Mail, Phone, 
   MoreVertical, Trash2, Ban, CheckCircle, ArrowRightLeft, X,
   Clock, RefreshCw, Send, Lock
 } from 'lucide-react';
-import { API_BASE } from '../../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCreateStoreModal, isReadOnly = false }) {
   const [activeTab, setActiveTab] = useState('managers');
@@ -34,14 +31,11 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-
       const [managersRes, sellersRes, storesRes, invitationsRes] = await Promise.all([
-        axios.get(`${API}/gerant/managers`, { headers }),
-        axios.get(`${API}/gerant/sellers`, { headers }),
-        axios.get(`${API}/gerant/stores`, { headers }),
-        axios.get(`${API}/gerant/invitations`, { headers }).catch(() => ({ data: [] }))
+        api.get('/gerant/managers'),
+        api.get('/gerant/sellers'),
+        api.get('/gerant/stores'),
+        api.get('/gerant/invitations').catch(() => ({ data: [] }))
       ]);
 
       setManagers(managersRes.data || []);
@@ -50,7 +44,7 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
       setInvitations(invitationsRes.data || []);
     } catch (error) {
       toast.error('Erreur lors du chargement des données');
-      console.error(error);
+      logger.error(error);
     } finally {
       setLoading(false);
     }
@@ -59,10 +53,7 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
   const handleResendInvitation = async (invitationId) => {
     setResendingInvitation(invitationId);
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      
-      await axios.post(`${API}/gerant/invitations/${invitationId}/resend`, {}, { headers });
+      await api.post(`/gerant/invitations/${invitationId}/resend`, {});
       toast.success('Invitation renvoyée avec succès !');
       fetchData();
     } catch (error) {
@@ -76,10 +67,7 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
     if (!window.confirm('Êtes-vous sûr de vouloir annuler cette invitation ?')) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      
-      await axios.delete(`${API}/gerant/invitations/${invitationId}`, { headers });
+      await api.delete(`/gerant/invitations/${invitationId}`);
       toast.success('Invitation annulée');
       fetchData();
     } catch (error) {
@@ -91,13 +79,11 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
     if (!window.confirm('Êtes-vous sûr de vouloir suspendre cet utilisateur ?')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
       const endpoint = role === 'manager' 
-        ? `${API}/gerant/managers/${userId}/suspend`
-        : `${API}/gerant/sellers/${userId}/suspend`;
+        ? `/gerant/managers/${userId}/suspend`
+        : `/gerant/sellers/${userId}/suspend`;
 
-      await axios.patch(endpoint, {}, { headers });
+      await api.patch(endpoint, {});
       toast.success('Utilisateur suspendu avec succès');
       fetchData();
       if (onRefresh) onRefresh(); // Rafraîchir les cartes de magasins
@@ -109,13 +95,11 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
 
   const handleReactivate = async (userId, role) => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
       const endpoint = role === 'manager'
-        ? `${API}/gerant/managers/${userId}/reactivate`
-        : `${API}/gerant/sellers/${userId}/reactivate`;
+        ? `/gerant/managers/${userId}/reactivate`
+        : `/gerant/sellers/${userId}/reactivate`;
 
-      await axios.patch(endpoint, {}, { headers });
+      await api.patch(endpoint, {});
       toast.success('Utilisateur réactivé avec succès');
       fetchData();
       if (onRefresh) onRefresh(); // Rafraîchir les cartes de magasins
@@ -147,13 +131,11 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer définitivement cet utilisateur ? Cette action est irréversible.')) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
       const endpoint = role === 'manager'
-        ? `${API}/gerant/managers/${userId}`
-        : `${API}/gerant/sellers/${userId}`;
+        ? `/gerant/managers/${userId}`
+        : `/gerant/sellers/${userId}`;
 
-      await axios.delete(endpoint, { headers });
+      await api.delete(endpoint);
       toast.success('Utilisateur supprimé avec succès');
       fetchData();
       if (onRefresh) onRefresh(); // Rafraîchir les cartes de magasins
@@ -171,20 +153,15 @@ export default function StaffOverview({ onRefresh, onOpenInviteModal, onOpenCrea
 
   const handleTransfer = async (newStoreId, newManagerId) => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-
       if (selectedUser.role === 'manager') {
-        await axios.post(
-          `${API}/gerant/managers/${selectedUser.id}/transfer`,
-          { new_store_id: newStoreId },
-          { headers }
+        await api.post(
+          `/gerant/managers/${selectedUser.id}/transfer`,
+          { new_store_id: newStoreId }
         );
       } else {
-        await axios.post(
-          `${API}/gerant/sellers/${selectedUser.id}/transfer`,
-          { new_store_id: newStoreId, new_manager_id: newManagerId },
-          { headers }
+        await api.post(
+          `/gerant/sellers/${selectedUser.id}/transfer`,
+          { new_store_id: newStoreId, new_manager_id: newManagerId }
         );
       }
 

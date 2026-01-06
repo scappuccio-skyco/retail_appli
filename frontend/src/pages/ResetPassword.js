@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { Lock, Eye, EyeOff, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -33,7 +31,7 @@ export default function ResetPassword() {
 
   const verifyToken = async () => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/auth/reset-password/${token}`);
+      const response = await api.get(`/auth/reset-password/${token}`);
       setTokenValid(true);
       setUserEmail(response.data.email);
     } catch (error) {
@@ -60,7 +58,7 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      await axios.post(`${BACKEND_URL}/api/auth/reset-password`, {
+      await api.post('/auth/reset-password', {
         token,
         new_password: password
       });

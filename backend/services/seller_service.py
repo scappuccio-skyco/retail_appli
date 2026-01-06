@@ -507,6 +507,223 @@ class SellerService:
             }}
         )
     
+    async def calculate_objectives_progress_batch(self, objectives: List[Dict], manager_id: str, store_id: str):
+        """
+        Calculate progress for multiple objectives in batch (optimized version)
+        Preloads all KPI data once instead of N queries per objective
+        
+        Args:
+            objectives: List of objective dicts
+            manager_id: Manager ID
+            store_id: Store ID (all objectives must be from same store)
+        
+        Returns:
+            List of objectives with progress calculated (in-place modification)
+        """
+        if not objectives:
+            return objectives
+        
+        # Get all sellers for this store/manager (1 query)
+        from utils.db_counter import increment_db_op
+        
+        seller_query = {"role": "seller"}
+        if store_id:
+            seller_query["store_id"] = store_id
+        else:
+            seller_query["manager_id"] = manager_id
+        
+        increment_db_op("db.users.find (sellers - objectives)")
+        sellers = await self.db.users.find(
+            seller_query,
+            {"_id": 0, "id": 1}
+        ).to_list(1000)
+        seller_ids = [s['id'] for s in sellers]
+        
+        if not seller_ids:
+            # No sellers, set all progress to 0
+            for objective in objectives:
+                objective['progress_ca'] = 0
+                objective['progress_ventes'] = 0
+                objective['progress_articles'] = 0
+                objective['progress_panier_moyen'] = 0
+                objective['progress_indice_vente'] = 0
+                objective['current_value'] = 0
+                objective['status'] = self.compute_status(0, objective.get('target_value', 0), objective.get('period_end'))
+            return objectives
+        
+        # Calculate global date range (min start, max end)
+        min_start = min(obj.get('period_start', '') for obj in objectives if obj.get('period_start'))
+        max_end = max(obj.get('period_end', '') for obj in objectives if obj.get('period_end'))
+        
+        if not min_start or not max_end:
+            # Invalid date ranges, set all progress to 0
+            for objective in objectives:
+                objective['progress_ca'] = 0
+                objective['progress_ventes'] = 0
+                objective['progress_articles'] = 0
+                objective['progress_panier_moyen'] = 0
+                objective['progress_indice_vente'] = 0
+                objective['current_value'] = 0
+                objective['status'] = self.compute_status(0, objective.get('target_value', 0), objective.get('period_end'))
+            return objectives
+        
+        # Preload all KPI entries for the global date range (1 query)
+        kpi_query = {
+            "seller_id": {"$in": seller_ids},
+            "date": {"$gte": min_start, "$lte": max_end}
+        }
+        if store_id:
+            kpi_query["store_id"] = store_id
+        
+        increment_db_op("db.kpi_entries.find (batch - objectives)")
+        all_kpi_entries = await self.db.kpi_entries.find(kpi_query, {"_id": 0}).to_list(100000)
+        
+        # Preload all manager KPIs for the global date range (1 query)
+        manager_kpi_query = {
+            "manager_id": manager_id,
+            "date": {"$gte": min_start, "$lte": max_end}
+        }
+        if store_id:
+            manager_kpi_query["store_id"] = store_id
+        
+        increment_db_op("db.manager_kpis.find (batch - objectives)")
+        all_manager_kpis = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).to_list(100000)
+        
+        # Group KPI entries by (seller_id, date) for fast lookup
+        kpi_by_seller_date = {}
+        for entry in all_kpi_entries:
+            seller_id = entry.get('seller_id')
+            date = entry.get('date')
+            if seller_id and date:
+                key = (seller_id, date)
+                if key not in kpi_by_seller_date:
+                    kpi_by_seller_date[key] = []
+                kpi_by_seller_date[key].append(entry)
+        
+        # Group manager KPIs by (manager_id, date) for fast lookup
+        manager_kpi_by_date = {}
+        for entry in all_manager_kpis:
+            date = entry.get('date')
+            if date:
+                if date not in manager_kpi_by_date:
+                    manager_kpi_by_date[date] = []
+                manager_kpi_by_date[date].append(entry)
+        
+        # Calculate progress for each objective using preloaded data
+        updates = []
+        for objective in objectives:
+            start_date = objective.get('period_start')
+            end_date = objective.get('period_end')
+            
+            if not start_date or not end_date:
+                # Invalid date range, set progress to 0
+                objective['progress_ca'] = 0
+                objective['progress_ventes'] = 0
+                objective['progress_articles'] = 0
+                objective['progress_panier_moyen'] = 0
+                objective['progress_indice_vente'] = 0
+                objective['current_value'] = 0
+                objective['status'] = self.compute_status(0, objective.get('target_value', 0), end_date)
+                continue
+            
+            # Filter KPI entries for this objective's date range (in-memory filter)
+            objective_kpi_entries = [
+                entry for entry in all_kpi_entries
+                if start_date <= entry.get('date', '') <= end_date
+            ]
+            
+            # Filter manager KPIs for this objective's date range (in-memory filter)
+            objective_manager_kpis = [
+                entry for entry in all_manager_kpis
+                if start_date <= entry.get('date', '') <= end_date
+            ]
+            
+            # Calculate totals from seller entries
+            total_ca = sum(e.get('ca_journalier', 0) for e in objective_kpi_entries)
+            total_ventes = sum(e.get('nb_ventes', 0) for e in objective_kpi_entries)
+            total_articles = sum(e.get('nb_articles', 0) for e in objective_kpi_entries)
+            
+            # Fallback to manager KPIs if seller data is missing
+            if objective_manager_kpis:
+                if total_ca == 0:
+                    total_ca = sum(e.get('ca_journalier', 0) for e in objective_manager_kpis if e.get('ca_journalier'))
+                if total_ventes == 0:
+                    total_ventes = sum(e.get('nb_ventes', 0) for e in objective_manager_kpis if e.get('nb_ventes'))
+                if total_articles == 0:
+                    total_articles = sum(e.get('nb_articles', 0) for e in objective_manager_kpis if e.get('nb_articles'))
+            
+            # Calculate averages
+            panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
+            indice_vente = total_ca / total_articles if total_articles > 0 else 0
+            
+            # Update progress
+            objective['progress_ca'] = total_ca
+            objective['progress_ventes'] = total_ventes
+            objective['progress_articles'] = total_articles
+            objective['progress_panier_moyen'] = panier_moyen
+            objective['progress_indice_vente'] = indice_vente
+            
+            # Determine current_value and target_value for status computation
+            target_value = objective.get('target_value', 0)
+            current_value = 0
+            
+            # For kpi_standard objectives, use the relevant KPI value
+            if objective.get('objective_type') == 'kpi_standard' and objective.get('kpi_name'):
+                kpi_name = objective['kpi_name']
+                if kpi_name == 'ca':
+                    current_value = total_ca
+                elif kpi_name == 'ventes':
+                    current_value = total_ventes
+                elif kpi_name == 'articles':
+                    current_value = total_articles
+                elif kpi_name == 'panier_moyen':
+                    current_value = panier_moyen
+                elif kpi_name == 'indice_vente':
+                    current_value = indice_vente
+            else:
+                # For other objective types, use current_value if set, otherwise calculate from CA
+                current_value = objective.get('current_value', total_ca)
+                # For legacy objectives, check if they have specific targets
+                if objective.get('ca_target'):
+                    target_value = objective.get('ca_target', 0)
+                    current_value = total_ca
+                elif objective.get('panier_moyen_target'):
+                    target_value = objective.get('panier_moyen_target', 0)
+                    current_value = panier_moyen
+                elif objective.get('indice_vente_target'):
+                    target_value = objective.get('indice_vente_target', 0)
+                    current_value = indice_vente
+            
+            # Use centralized status computation
+            objective['status'] = self.compute_status(current_value, target_value, end_date)
+            objective['current_value'] = current_value
+            
+            # Prepare batch update
+            updates.append({
+                "id": objective['id'],
+                "update": {
+                    "$set": {
+                        "progress_ca": total_ca,
+                        "progress_ventes": total_ventes,
+                        "progress_articles": total_articles,
+                        "progress_panier_moyen": panier_moyen,
+                        "progress_indice_vente": indice_vente,
+                        "status": objective['status'],
+                        "current_value": current_value
+                    }
+                }
+            })
+        
+        # Batch update all objectives (1 bulk operation)
+        if updates:
+            from pymongo import UpdateOne
+            bulk_ops = [UpdateOne({"id": u["id"]}, u["update"]) for u in updates]
+            if bulk_ops:
+                increment_db_op("db.manager_objectives.bulk_write")
+                await self.db.manager_objectives.bulk_write(bulk_ops)
+        
+        return objectives
+    
     async def calculate_challenge_progress(self, challenge: dict, seller_id: str = None):
         """Calculate progress for a challenge"""
         start_date = challenge.get('start_date') or challenge.get('period_start')
@@ -619,3 +836,196 @@ class SellerService:
                     "progress_indice_vente": indice_vente
                 }}
             )
+    
+    async def calculate_challenges_progress_batch(self, challenges: List[Dict], manager_id: str, store_id: str):
+        """
+        Calculate progress for multiple challenges in batch (optimized version)
+        Preloads all KPI data once instead of N queries per challenge
+        
+        Args:
+            challenges: List of challenge dicts
+            manager_id: Manager ID
+            store_id: Store ID (all challenges must be from same store)
+        
+        Returns:
+            List of challenges with progress calculated (in-place modification)
+        """
+        if not challenges:
+            return challenges
+        
+        # Get all sellers for this store/manager (1 query)
+        from utils.db_counter import increment_db_op
+        
+        seller_query = {"role": "seller"}
+        if store_id:
+            seller_query["store_id"] = store_id
+        else:
+            seller_query["manager_id"] = manager_id
+        
+        increment_db_op("db.users.find (sellers - challenges)")
+        sellers = await self.db.users.find(
+            seller_query,
+            {"_id": 0, "id": 1}
+        ).to_list(1000)
+        seller_ids = [s['id'] for s in sellers]
+        
+        # Calculate global date range (min start, max end)
+        date_ranges = []
+        individual_seller_ids = set()
+        for challenge in challenges:
+            start_date = challenge.get('start_date') or challenge.get('period_start')
+            end_date = challenge.get('end_date') or challenge.get('period_end')
+            if start_date and end_date:
+                date_ranges.append((start_date, end_date))
+            
+            # Collect individual challenge seller_ids
+            if challenge.get('type') != 'collective':
+                individual_seller_id = challenge.get('seller_id')
+                if individual_seller_id:
+                    individual_seller_ids.add(individual_seller_id)
+        
+        if not date_ranges:
+            # No valid date ranges, set all progress to 0
+            for challenge in challenges:
+                challenge['progress_ca'] = 0
+                challenge['progress_ventes'] = 0
+                challenge['progress_articles'] = 0
+                challenge['progress_panier_moyen'] = 0
+                challenge['progress_indice_vente'] = 0
+            return challenges
+        
+        min_start = min(dr[0] for dr in date_ranges)
+        max_end = max(dr[1] for dr in date_ranges)
+        
+        # Combine seller_ids (collective + individual)
+        all_seller_ids = list(set(seller_ids + list(individual_seller_ids)))
+        
+        # Preload all KPI entries for the global date range (1 query)
+        kpi_query = {
+            "seller_id": {"$in": all_seller_ids},
+            "date": {"$gte": min_start, "$lte": max_end}
+        }
+        if store_id:
+            kpi_query["store_id"] = store_id
+        
+        increment_db_op("db.kpi_entries.find (batch - challenges)")
+        all_kpi_entries = await self.db.kpi_entries.find(kpi_query, {"_id": 0}).to_list(100000)
+        
+        # Preload all manager KPIs for the global date range (1 query)
+        manager_kpi_query = {
+            "manager_id": manager_id,
+            "date": {"$gte": min_start, "$lte": max_end}
+        }
+        if store_id:
+            manager_kpi_query["store_id"] = store_id
+        
+        increment_db_op("db.manager_kpis.find (batch - challenges)")
+        all_manager_kpis = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).to_list(100000)
+        
+        # Calculate progress for each challenge using preloaded data
+        updates = []
+        today = datetime.now(timezone.utc).date().isoformat()
+        
+        for challenge in challenges:
+            start_date = challenge.get('start_date') or challenge.get('period_start')
+            end_date = challenge.get('end_date') or challenge.get('period_end')
+            
+            if not start_date or not end_date:
+                # Invalid date range, set progress to 0
+                challenge['progress_ca'] = 0
+                challenge['progress_ventes'] = 0
+                challenge['progress_articles'] = 0
+                challenge['progress_panier_moyen'] = 0
+                challenge['progress_indice_vente'] = 0
+                continue
+            
+            # Filter KPI entries for this challenge's date range and type
+            if challenge.get('type') == 'collective':
+                # Collective: filter by seller_ids and date range
+                challenge_kpi_entries = [
+                    entry for entry in all_kpi_entries
+                    if entry.get('seller_id') in seller_ids
+                    and start_date <= entry.get('date', '') <= end_date
+                ]
+            else:
+                # Individual: filter by specific seller_id and date range
+                target_seller_id = challenge.get('seller_id')
+                challenge_kpi_entries = [
+                    entry for entry in all_kpi_entries
+                    if entry.get('seller_id') == target_seller_id
+                    and start_date <= entry.get('date', '') <= end_date
+                ]
+            
+            # Filter manager KPIs for this challenge's date range
+            challenge_manager_kpis = [
+                entry for entry in all_manager_kpis
+                if start_date <= entry.get('date', '') <= end_date
+            ]
+            
+            # Calculate totals from seller entries
+            total_ca = sum(e.get('ca_journalier', 0) for e in challenge_kpi_entries)
+            total_ventes = sum(e.get('nb_ventes', 0) for e in challenge_kpi_entries)
+            total_articles = sum(e.get('nb_articles', 0) for e in challenge_kpi_entries)
+            
+            # Fallback to manager KPIs if seller data is missing
+            if challenge_manager_kpis:
+                if total_ca == 0:
+                    total_ca = sum(e.get('ca_journalier', 0) for e in challenge_manager_kpis if e.get('ca_journalier'))
+                if total_ventes == 0:
+                    total_ventes = sum(e.get('nb_ventes', 0) for e in challenge_manager_kpis if e.get('nb_ventes'))
+                if total_articles == 0:
+                    total_articles = sum(e.get('nb_articles', 0) for e in challenge_manager_kpis if e.get('nb_articles'))
+            
+            # Calculate averages
+            panier_moyen = total_ca / total_ventes if total_ventes > 0 else 0
+            indice_vente = total_ca / total_articles if total_articles > 0 else 0
+            
+            # Update progress
+            challenge['progress_ca'] = total_ca
+            challenge['progress_ventes'] = total_ventes
+            challenge['progress_articles'] = total_articles
+            challenge['progress_panier_moyen'] = panier_moyen
+            challenge['progress_indice_vente'] = indice_vente
+            
+            # Check if challenge is completed
+            update_data = {
+                "progress_ca": total_ca,
+                "progress_ventes": total_ventes,
+                "progress_articles": total_articles,
+                "progress_panier_moyen": panier_moyen,
+                "progress_indice_vente": indice_vente
+            }
+            
+            if today > end_date:
+                if challenge.get('status') == 'active':
+                    # Check if all targets are met
+                    completed = True
+                    if challenge.get('ca_target') and total_ca < challenge['ca_target']:
+                        completed = False
+                    if challenge.get('ventes_target') and total_ventes < challenge['ventes_target']:
+                        completed = False
+                    if challenge.get('panier_moyen_target') and panier_moyen < challenge['panier_moyen_target']:
+                        completed = False
+                    if challenge.get('indice_vente_target') and indice_vente < challenge['indice_vente_target']:
+                        completed = False
+                    
+                    new_status = 'completed' if completed else 'failed'
+                    challenge['status'] = new_status
+                    update_data['status'] = new_status
+                    update_data['completed_at'] = datetime.now(timezone.utc).isoformat()
+            
+            # Prepare batch update
+            updates.append({
+                "id": challenge['id'],
+                "update": {"$set": update_data}
+            })
+        
+        # Batch update all challenges (1 bulk operation)
+        if updates:
+            from pymongo import UpdateOne
+            bulk_ops = [UpdateOne({"id": u["id"]}, u["update"]) for u in updates]
+            if bulk_ops:
+                increment_db_op("db.challenges.bulk_write")
+                await self.db.challenges.bulk_write(bulk_ops)
+        
+        return challenges

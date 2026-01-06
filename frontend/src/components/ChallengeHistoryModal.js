@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Award, CheckCircle, AlertCircle, XCircle, Calendar } from 'lucide-react';
-import axios from 'axios';
 import { toast } from 'sonner';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 export default function ChallengeHistoryModal({ onClose }) {
   const [challenges, setChallenges] = useState([]);
@@ -19,13 +16,10 @@ export default function ChallengeHistoryModal({ onClose }) {
 
   const fetchChallengeHistory = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API}/seller/daily-challenge/history`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/seller/daily-challenge/history');
       setChallenges(res.data || []);
     } catch (err) {
-      console.error('Error fetching challenge history:', err);
+      logger.error('Error fetching challenge history:', err);
       toast.error('Erreur lors du chargement de l\'historique');
     } finally {
       setLoading(false);

@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { X, Award, Calendar, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
-import axios from 'axios';
 import { toast } from 'sonner';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 export default function ObjectivesAndChallengesModal({ objectives, challenges, onClose, onUpdate }) {
   const [showInactive, setShowInactive] = useState(false);
@@ -51,13 +48,11 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API}/manager/objectives/${objectiveId}/progress`,
-        { current_value: parseFloat(progressValue) },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await api.post(
+        `/manager/objectives/${objectiveId}/progress`,
+        { current_value: parseFloat(progressValue) }
       );
-      console.log('✅ Progress updated, response:', response.data);
+      logger.log('✅ Progress updated, response:', response.data);
       toast.success('Progression mise à jour avec succès');
       setUpdatingProgressObjectiveId(null);
       setProgressValue('');
@@ -73,7 +68,7 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
         // This will be handled by parent component re-opening
       }, 100);
     } catch (err) {
-      console.error('Error updating progress:', err);
+      logger.error('Error updating progress:', err);
       toast.error(err.response?.data?.detail || 'Erreur lors de la mise à jour de la progression');
     }
   };

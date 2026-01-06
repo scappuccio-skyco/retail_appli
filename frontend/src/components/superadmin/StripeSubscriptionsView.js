@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../../lib/apiClient';
+import { logger } from '../../utils/logger';
 import { toast } from 'sonner';
 import { 
   TrendingUp, CreditCard, Users, DollarSign, CheckCircle, 
   XCircle, Clock, AlertTriangle, ChevronDown, ChevronUp,
   Calendar, Activity
 } from 'lucide-react';
-import { API_BASE } from '../../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function StripeSubscriptionsView() {
   const [overview, setOverview] = useState(null);
@@ -24,14 +21,11 @@ export default function StripeSubscriptionsView() {
   const fetchOverview = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/superadmin/subscriptions/overview`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/superadmin/subscriptions/overview');
       setOverview(response.data);
     } catch (error) {
       toast.error('Erreur lors du chargement des abonnements');
-      console.error(error);
+      logger.error(error);
     } finally {
       setLoading(false);
     }
@@ -39,14 +33,11 @@ export default function StripeSubscriptionsView() {
 
   const fetchGerantDetails = async (gerantId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/superadmin/subscriptions/${gerantId}/details`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/superadmin/subscriptions/${gerantId}/details`);
       setGerantDetails(prev => ({ ...prev, [gerantId]: response.data }));
     } catch (error) {
       toast.error('Erreur lors du chargement des détails');
-      console.error(error);
+      logger.error(error);
     }
   };
 

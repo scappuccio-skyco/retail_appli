@@ -1,10 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { X, Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, Download, Info } from 'lucide-react';
-import axios from 'axios';
 import { toast } from 'sonner';
-import { API_BASE } from '../../lib/api';
-
-const API = API_BASE;
+import { api } from '../../lib/apiClient';
 
 /**
  * Modal d'import massif de magasins via CSV/Excel
@@ -144,15 +141,11 @@ export default function BulkStoreImportModal({ isOpen, onClose, onSuccess }) {
     setImportResult(null);
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API}/api/gerant/stores/import-bulk`,
+      const response = await api.post(
+        '/gerant/stores/import-bulk',
         {
           stores: parsedData,
           mode: importMode
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
         }
       );
       

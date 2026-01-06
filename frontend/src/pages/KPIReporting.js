@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function KPIReporting({ user, onBack }) {
   const navigate = useNavigate();
@@ -27,21 +24,18 @@ export default function KPIReporting({ user, onBack }) {
   const fetchKPIData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      
       // Récupérer la config KPI et les entrées
       const [configRes, allRes, filteredRes] = await Promise.all([
-        axios.get(`${API}/seller/kpi-config`, { headers }),
-        axios.get(`${API}/seller/kpi-entries`, { headers }),
-        axios.get(`${API}/seller/kpi-entries?days=${period === 'week' ? 7 : period === 'month' ? 30 : period === 'quarter' ? 90 : 365}`, { headers })
+        api.get('/seller/kpi-config'),
+        api.get('/seller/kpi-entries'),
+        api.get(`/seller/kpi-entries?days=${period === 'week' ? 7 : period === 'month' ? 30 : period === 'quarter' ? 90 : 365}`)
       ]);
       
       setKpiConfig(configRes.data);
       setAllEntries(allRes.data);
       setEntries(filteredRes.data);
     } catch (err) {
-      console.error('Error loading KPI data:', err);
+      logger.error('Error loading KPI data:', err);
       toast.error('Erreur de chargement des KPI');
     } finally {
       setLoading(false);

@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { ArrowLeft, TrendingUp, Award, MessageSquare, BarChart3, Calendar } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import ConflictResolutionForm from './ConflictResolutionForm';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function SellerDetailView({ seller, onBack }) {
   const [diagnostic, setDiagnostic] = useState(null);
@@ -41,14 +38,13 @@ export default function SellerDetailView({ seller, onBack }) {
   const fetchSellerData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const [statsRes, diagRes, debriefsRes, competencesRes, kpiRes, kpiConfigRes] = await Promise.all([
-        axios.get(`${API}/manager/seller/${seller.id}/stats`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/manager-diagnostic/seller/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/manager/debriefs/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/manager/competences-history/${seller.id}`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/manager/kpi-entries/${seller.id}?days=30`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/manager/kpi-config`, { headers: { Authorization: `Bearer ${token}` } })
+        api.get(`/manager/seller/${seller.id}/stats`),
+        api.get(`/manager-diagnostic/seller/${seller.id}`),
+        api.get(`/manager/debriefs/${seller.id}`),
+        api.get(`/manager/competences-history/${seller.id}`),
+        api.get(`/manager/kpi-entries/${seller.id}?days=30`),
+        api.get(`/manager/kpi-config`)
       ]);
 
       // Extract LIVE scores from stats endpoint (harmonized with manager overview)
@@ -78,7 +74,7 @@ export default function SellerDetailView({ seller, onBack }) {
       setKpiEntries(kpiRes.data);
       setKpiConfig(kpiConfigRes.data); // Store manager's KPI configuration
     } catch (err) {
-      console.error('Error loading seller data:', err);
+      logger.error('Error loading seller data:', err);
       toast.error('Erreur de chargement des données du vendeur');
     } finally {
       setLoading(false);

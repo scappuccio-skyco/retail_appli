@@ -1,11 +1,9 @@
 import React, { useState, useRef } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { X, Mail, Copy, Check } from 'lucide-react';
-import { API_BASE } from '../lib/api';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 const FRONTEND_URL = window.location.origin;
 
 export default function InviteModal({ onClose, onSuccess, sellerCount = 0, subscriptionInfo = null }) {
@@ -25,7 +23,7 @@ export default function InviteModal({ onClose, onSuccess, sellerCount = 0, subsc
     setLoading(true);
 
     try {
-      const res = await axios.post(`${API}/manager/invite`, { email });
+      const res = await api.post('/manager/invite', { email });
       const token = res.data.token;
       const link = `${FRONTEND_URL}/login?invite=${token}`;
       setInviteLink(link);
@@ -45,7 +43,7 @@ export default function InviteModal({ onClose, onSuccess, sellerCount = 0, subsc
       toast.success('Lien copié!');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Failed to copy:', error);
+      logger.error('Failed to copy:', error);
       // Fallback using React ref for browsers that don't support clipboard API
       if (textAreaRef.current) {
         textAreaRef.current.value = inviteLink;

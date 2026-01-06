@@ -3,14 +3,11 @@ import { X, Award, MessageSquare, RefreshCw, Eye, EyeOff, CheckCircle, XCircle, 
 import ChallengeHistoryModal from './ChallengeHistoryModal';
 import VenteConclueForm from './VenteConclueForm';
 import OpportuniteManqueeForm from './OpportuniteManqueeForm';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function CoachingModal({ 
   isOpen, 
@@ -47,12 +44,10 @@ export default function CoachingModal({
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`${API}/seller/daily-challenge/stats`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/seller/daily-challenge/stats');
       setStats(res.data);
     } catch (err) {
-      console.error('Error fetching stats:', err);
+      logger.error('Error fetching stats:', err);
     }
   };
 
@@ -91,14 +86,13 @@ export default function CoachingModal({
 
     setLoading(true);
     try {
-      await axios.post(
-        `${API}/seller/daily-challenge/complete`,
+      await api.post(
+        '/seller/daily-challenge/complete',
         {
           challenge_id: dailyChallenge.id,
           result,
           comment: feedbackComment
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
 
       if (result === 'success') {
@@ -119,7 +113,7 @@ export default function CoachingModal({
       
       await fetchStats();
     } catch (err) {
-      console.error('Error completing challenge:', err);
+      logger.error('Error completing challenge:', err);
       toast.error('Erreur lors de la validation');
     } finally {
       setLoading(false);
@@ -129,10 +123,9 @@ export default function CoachingModal({
   const handleRefresh = async () => {
     setLoading(true);
     try {
-      const res = await axios.post(
-        `${API}/seller/daily-challenge/refresh`,
-        { competence: selectedCompetence },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.post(
+        '/seller/daily-challenge/refresh',
+        { competence: selectedCompetence }
       );
       
       if (onRefreshChallenge) {
@@ -141,7 +134,7 @@ export default function CoachingModal({
       
       toast.success('✨ Nouveau défi généré !');
     } catch (err) {
-      console.error('Error refreshing challenge:', err);
+      logger.error('Error refreshing challenge:', err);
       toast.error('Erreur lors de la génération du défi');
     } finally {
       setLoading(false);
@@ -161,32 +154,29 @@ export default function CoachingModal({
     }
     
     try {
-      await axios.delete(`${API}/debriefs/${debriefId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/debriefs/${debriefId}`);
       toast.success('Analyse supprimée');
       if (onCreateDebrief) {
         await onCreateDebrief();
       }
     } catch (err) {
-      console.error('Error deleting debrief:', err);
+      logger.error('Error deleting debrief:', err);
       toast.error('Erreur lors de la suppression');
     }
   };
 
   const handleToggleVisibility = async (debriefId, currentVisibility) => {
     try {
-      await axios.patch(
-        `${API}/debriefs/${debriefId}/visibility`,
-        { visible_to_manager: !currentVisibility },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.patch(
+        `/debriefs/${debriefId}/visibility`,
+        { visible_to_manager: !currentVisibility }
       );
       toast.success(!currentVisibility ? 'Partagé avec le manager' : 'Partagé uniquement avec moi');
       if (onCreateDebrief) {
         await onCreateDebrief();
       }
     } catch (err) {
-      console.error('Error updating visibility:', err);
+      logger.error('Error updating visibility:', err);
       toast.error('Erreur lors de la mise à jour');
     }
   };
@@ -525,7 +515,7 @@ export default function CoachingModal({
                         const firstAnalysis = document.querySelector('[data-debrief-card]');
                         if (firstAnalysis) {
                           const debriefId = firstAnalysis.getAttribute('data-debrief-id');
-                          console.log('Opening debrief:', debriefId);
+                          logger.log('Opening debrief:', debriefId);
                           if (debriefId) {
                             // Déplier la première analyse
                             setExpandedDebriefs(prev => ({ [debriefId]: true }));
@@ -555,7 +545,7 @@ export default function CoachingModal({
                         const firstAnalysis = document.querySelector('[data-debrief-card]');
                         if (firstAnalysis) {
                           const debriefId = firstAnalysis.getAttribute('data-debrief-id');
-                          console.log('Opening debrief:', debriefId);
+                          logger.log('Opening debrief:', debriefId);
                           if (debriefId) {
                             // Déplier la première analyse
                             setExpandedDebriefs(prev => ({ [debriefId]: true }));

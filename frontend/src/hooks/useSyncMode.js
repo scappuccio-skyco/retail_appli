@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 /**
  * Décode le payload d'un JWT (sans vérification de signature)
@@ -22,7 +19,7 @@ const decodeJWTPayload = (token) => {
     );
     return JSON.parse(jsonPayload);
   } catch (e) {
-    console.error('Error decoding JWT:', e);
+      logger.error('Error decoding JWT:', e);
     return null;
   }
 };
@@ -63,20 +60,18 @@ export const useSyncMode = (storeId = null) => {
       // Décoder le JWT pour obtenir le rôle utilisateur
       const payload = decodeJWTPayload(token);
       const userRole = payload?.role || null;
-      console.log('🔐 useSyncMode - Decoded role from JWT:', userRole);
+      logger.log('🔐 useSyncMode - Decoded role from JWT:', userRole);
       
       // Get store_id from URL if not passed as prop (for gerant viewing as manager)
       const urlParams = new URLSearchParams(window.location.search);
       const effectiveStoreId = storeId || urlParams.get('store_id');
       const storeIdParam = effectiveStoreId ? `?store_id=${effectiveStoreId}` : '';
       
-      console.log('🏪 useSyncMode - Using storeId:', effectiveStoreId);
+      logger.log('🏪 useSyncMode - Using storeId:', effectiveStoreId);
 
       // Récupérer le mode sync (pour tous les rôles - vendeurs inclus pour Enterprise mode)
       try {
-        const response = await axios.get(`${API}/manager/sync-mode${storeIdParam}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.get(`/manager/sync-mode${storeIdParam}`);
 
         // Ensure sync_mode is never null - default to "manual"
         const fetchedSyncMode = response.data.sync_mode || 'manual';
@@ -86,7 +81,7 @@ export const useSyncMode = (storeId = null) => {
         setCanEditKPI(response.data.can_edit_kpi !== false);
         setCanEditObjectives(response.data.can_edit_objectives !== false);
       } catch (error) {
-        console.error('Error fetching sync mode:', error);
+        logger.error('Error fetching sync mode:', error);
         setSyncMode('manual');
         setIsEnterprise(false);
         setCanEditKPI(true);
@@ -98,21 +93,19 @@ export const useSyncMode = (storeId = null) => {
       if (userRole === 'seller' || userRole === 'manager') {
         try {
           const endpoint = userRole === 'seller' 
-            ? `${API}/seller/subscription-status`
-            : `${API}/manager/subscription-status${storeIdParam}`;
+            ? `/seller/subscription-status`
+            : `/manager/subscription-status${storeIdParam}`;
           
-          console.log('📡 useSyncMode - Fetching subscription status from:', endpoint);
+          logger.log('📡 useSyncMode - Fetching subscription status from:', endpoint);
           
-          const subResponse = await axios.get(endpoint, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          const subResponse = await api.get(endpoint);
           
-          console.log('✅ useSyncMode - Subscription response:', subResponse.data);
+          logger.log('✅ useSyncMode - Subscription response:', subResponse.data);
           
           setParentSubscriptionStatus(subResponse.data.status);
           setIsSubscriptionExpired(subResponse.data.isReadOnly === true);
         } catch (error) {
-          console.error('Error fetching subscription status:', error);
+          logger.error('Error fetching subscription status:', error);
           // En cas d'erreur, on reste permissif (pas de blocage)
         }
       } else if (userRole === 'gerant' || userRole === 'gérant') {

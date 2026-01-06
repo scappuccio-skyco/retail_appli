@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import { api } from '../../lib/apiClient';
+import { logger } from '../../utils/logger';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { Send, Sparkles, Loader2, Trash2, MessageSquare, AlertCircle, CheckCircle } from 'lucide-react';
-import { API_BASE } from '../../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function AIAssistant() {
   const [messages, setMessages] = useState([]);
@@ -31,25 +28,21 @@ export default function AIAssistant() {
 
   const fetchConversations = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      const res = await axios.get(`${API}/superadmin/ai-assistant/conversations`, { headers });
+      const res = await api.get('/superadmin/ai-assistant/conversations');
       setConversations(res.data.conversations || []);
     } catch (error) {
-      console.error('Error fetching conversations:', error);
+      logger.error('Error fetching conversations:', error);
     }
   };
 
   const loadConversation = async (convId) => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      const res = await axios.get(`${API}/superadmin/ai-assistant/conversation/${convId}`, { headers });
+      const res = await api.get(`/superadmin/ai-assistant/conversation/${convId}`);
       setMessages(res.data.messages || []);
       setConversationId(convId);
     } catch (error) {
       toast.error('Erreur lors du chargement de la conversation');
-      console.error('Error loading conversation:', error);
+      logger.error('Error loading conversation:', error);
     }
   };
 
@@ -63,9 +56,7 @@ export default function AIAssistant() {
     if (!window.confirm('Supprimer cette conversation ?')) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      await axios.delete(`${API}/superadmin/ai-assistant/conversation/${convId}`, { headers });
+      await api.delete(`/superadmin/ai-assistant/conversation/${convId}`);
       toast.success('Conversation supprimée');
       
       if (convId === conversationId) {
@@ -75,7 +66,7 @@ export default function AIAssistant() {
       fetchConversations();
     } catch (error) {
       toast.error('Erreur lors de la suppression');
-      console.error('Error deleting conversation:', error);
+      logger.error('Error deleting conversation:', error);
     }
   };
 
@@ -95,16 +86,12 @@ export default function AIAssistant() {
     setMessages(prev => [...prev, userMsg]);
 
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      
-      const res = await axios.post(
-        `${API}/superadmin/ai-assistant/chat`,
+      const res = await api.post(
+        '/superadmin/ai-assistant/chat',
         {
           message: userMessage,
           conversation_id: conversationId
-        },
-        { headers }
+        }
       );
 
       // Add assistant response
@@ -128,7 +115,7 @@ export default function AIAssistant() {
 
     } catch (error) {
       toast.error('Erreur lors de l\'envoi du message');
-      console.error('Error sending message:', error);
+      logger.error('Error sending message:', error);
       
       // Remove user message on error
       setMessages(prev => prev.slice(0, -1));
@@ -139,17 +126,13 @@ export default function AIAssistant() {
 
   const executeAction = async (actionType, targetId, params = {}) => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      
-      const res = await axios.post(
-        `${API}/superadmin/ai-assistant/execute-action`,
+      const res = await api.post(
+        '/superadmin/ai-assistant/execute-action',
         {
           action_type: actionType,
           target_id: targetId,
           params: params
-        },
-        { headers }
+        }
       );
 
       toast.success(res.data.message);

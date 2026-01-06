@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'react-hot-toast';
 import { X, MessageCircle, AlertTriangle, Users, Loader, Filter, Calendar, ChevronDown, Trash2 } from 'lucide-react';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
-import { API_BASE } from '../lib/api';
 import { getApiPrefixByRole, normalizeHistoryResponse } from '../utils/apiHelpers';
-
-const API = API_BASE || 'http://localhost:8001';
 
 // Get user role from localStorage or JWT
 const getUserRole = () => {
@@ -32,11 +30,11 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   const storeIdParam = storeId ? `?store_id=${storeId}` : '';
   
   // Debug
-  console.log('Total sellers:', sellers.length);
-  console.log('Active sellers:', activeSellers.length);
-  console.log('Sellers data:', sellers);
+  logger.log('Total sellers:', sellers.length);
+  logger.log('Active sellers:', activeSellers.length);
+  logger.log('Sellers data:', sellers);
   if (sellers.length > 0) {
-    console.log('First seller structure:', sellers[0]);
+    logger.log('First seller structure:', sellers[0]);
   }
   const [activeMainTab, setActiveMainTab] = useState(autoShowResult ? 'history' : 'form'); // 'form' or 'history'
   const [activeFormTab, setActiveFormTab] = useState('relationnel'); // 'relationnel' or 'conflit'
@@ -79,25 +77,22 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   // Load history
   const loadHistory = async (sellerId = null) => {
     try {
-      const token = localStorage.getItem('token');
       const userRole = getUserRole();
       const apiPrefix = getApiPrefixByRole(userRole);
       
       let url;
       if (userRole === 'seller') {
         // Seller: GET /api/seller/relationship-advice/history (no sellerId param)
-        url = `${API}${apiPrefix}/relationship-advice/history`;
+        url = `${apiPrefix}/relationship-advice/history`;
       } else {
         // Manager: GET /api/manager/relationship-advice/history?store_id=...&seller_id=...
-        url = `${API}${apiPrefix}/relationship-advice/history${storeIdParam}`;
+        url = `${apiPrefix}/relationship-advice/history${storeIdParam}`;
         if (sellerId) {
           url += storeIdParam ? `&seller_id=${sellerId}` : `?seller_id=${sellerId}`;
         }
       }
       
-      const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(url);
       
       // Normalize response (handles both array and {consultations: [...]} formats)
       const consultations = normalizeHistoryResponse(response.data);
@@ -109,7 +104,7 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
         setExpandedItems({ [latestId]: true });
       }
     } catch (error) {
-      console.error('Error loading history:', error);
+      logger.error('Error loading history:', error);
       toast.error('Erreur lors du chargement de l\'historique');
     }
   };
@@ -120,17 +115,15 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
     }
     
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${API}/api/manager/relationship-consultation/${consultationId}${storeIdParam}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.delete(
+        `/manager/relationship-consultation/${consultationId}${storeIdParam}`
       );
       
       toast.success('Consultation supprimée avec succès');
       // Recharger l'historique
       loadHistory(historyFilter !== 'all' ? historyFilter : null);
     } catch (error) {
-      console.error('Error deleting consultation:', error);
+      logger.error('Error deleting consultation:', error);
       toast.error('Erreur lors de la suppression');
     }
   };

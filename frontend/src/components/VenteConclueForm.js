@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { CheckCircle, Share2 } from 'lucide-react';
-import axios from 'axios';
 import { toast } from 'sonner';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE || '';
-const API = `${BACKEND_URL}/api`;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 export default function VenteConclueForm({ token, onSuccess }) {
   const [loading, setLoading] = useState(false);
@@ -73,8 +70,8 @@ export default function VenteConclueForm({ token, onSuccess }) {
         ? formConclue.raisons_echec.filter(r => r !== 'Autre').concat([formConclue.raisons_echec_autre]).join(', ')
         : formConclue.raisons_echec.join(', ');
 
-      const res = await axios.post(
-        `${API}/debriefs`,
+      const res = await api.post(
+        '/debriefs',
         {
           vente_conclue: true,
           visible_to_manager: formConclue.visible_to_manager,
@@ -85,8 +82,7 @@ export default function VenteConclueForm({ token, onSuccess }) {
           moment_perte_client: moment,
           raisons_echec: raisons,
           amelioration_pensee: formConclue.amelioration_pensee
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
 
       toast.success('✅ Analyse créée avec succès !');
@@ -108,7 +104,7 @@ export default function VenteConclueForm({ token, onSuccess }) {
         onSuccess(res.data);
       }
     } catch (err) {
-      console.error('Error submitting debrief:', err);
+      logger.error('Error submitting debrief:', err);
       toast.error('Erreur lors de la création de l\'analyse');
     } finally {
       setLoading(false);

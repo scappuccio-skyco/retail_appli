@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 import { toast } from 'sonner';
 import { X, Sparkles } from 'lucide-react';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
 
 export default function DebriefModal({ onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
@@ -37,13 +34,10 @@ export default function DebriefModal({ onClose, onSuccess }) {
   useEffect(() => {
     const fetchHistorique = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${API}/debriefs`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.get('/debriefs');
         setHistorique(response.data);
       } catch (error) {
-        console.error('Erreur chargement historique:', error);
+        logger.error('Erreur chargement historique:', error);
       }
     };
     fetchHistorique();
@@ -93,14 +87,12 @@ export default function DebriefModal({ onClose, onSuccess }) {
     };
     
     try {
-      const response = await axios.post(`${API}/debriefs`, submitData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
+      const response = await api.post('/debriefs', submitData);
       setAiAnalysis(response.data);
       setShowResult(true);
       toast.success('Analyse de vente enregistrée avec succès!');
     } catch (err) {
-      console.error('Error submitting debrief:', err);
+      logger.error('Error submitting debrief:', err);
       toast.error(err.response?.data?.detail || 'Erreur lors de l\'enregistrement');
     } finally {
       setLoading(false);

@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { X, Send, Headphones, MessageSquare, Bug, Lightbulb, CreditCard, Loader, CheckCircle, AlertCircle } from 'lucide-react';
-import axios from 'axios';
-import { API_BASE } from '../lib/api';
-
-const API = API_BASE;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 const CATEGORIES = [
   { id: 'general', label: 'Question générale', icon: MessageSquare, color: 'blue' },
@@ -45,12 +43,10 @@ const SupportModal = ({ isOpen, onClose }) => {
     setErrorMessage('');
 
     try {
-      const token = localStorage.getItem('token');
       // Use generic support endpoint that works for all roles
-      await axios.post(
-        `${API}/api/support/contact`,
-        { subject, message, category },
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.post(
+        '/support/contact',
+        { subject, message, category }
       );
       
       setStatus('success');
@@ -59,7 +55,7 @@ const SupportModal = ({ isOpen, onClose }) => {
         handleClose();
       }, 3000);
     } catch (error) {
-      console.error('Error sending support message:', error);
+      logger.error('Error sending support message:', error);
       setStatus('error');
       setErrorMessage(error.response?.data?.detail || 'Une erreur est survenue lors de l\'envoi');
     } finally {
