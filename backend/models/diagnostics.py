@@ -33,8 +33,15 @@ class DiagnosticResult(BaseModel):
 
 
 
+class DiagnosticResponse(BaseModel):
+    """Modèle pour une réponse individuelle au diagnostic"""
+    question_id: int = Field(..., description="ID numérique de la question")
+    answer: str = Field(..., description="Réponse du vendeur (string)")
+    question: Optional[str] = Field(None, description="Texte de la question (optionnel, pour debug)")
+
 class DiagnosticCreate(BaseModel):
-    responses: dict
+    """Modèle pour la création d'un diagnostic - accepte soit l'ancien format (dict) soit le nouveau (List[DiagnosticResponse])"""
+    responses: dict  # Gardé pour compatibilité rétroactive
 
 
 

@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { X, Sparkles } from 'lucide-react';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 // Questions organisées par sections comme le manager
 const questions = [
@@ -300,7 +297,7 @@ export default function DiagnosticFormModal({ onClose, onSuccess }) {
         ...prev,
         [questionId]: valueToStore
       };
-      console.log('Updated responses:', updated);
+      logger.log('Updated responses:', updated);
       return updated;
     });
   };
@@ -315,17 +312,34 @@ export default function DiagnosticFormModal({ onClose, onSuccess }) {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${API}/ai/diagnostic`, { responses }, {
-        headers: { Authorization: `Bearer ${token}` }
+      // Convert responses object to list format expected by backend
+      // Backend expects: List[Dict] with { question_id: Number, answer: String, question?: String }
+      const responsesList = [];
+      questions.forEach(section => {
+        section.items.forEach(question => {
+          const questionId = question.id;
+          const answer = responses[questionId];
+          if (answer !== undefined && answer !== null) {
+            responsesList.push({
+              question_id: Number(questionId),
+              question: question.text, // Optionnel pour debug
+              answer: String(answer ?? "")
+            });
+          }
+        });
       });
+
+      // Backend expects the list directly, not wrapped in { responses: [...] }
+      await api.post('/ai/diagnostic', responsesList);
       
       toast.success('Ton profil vendeur est prêt ! 🔥');
       onSuccess();
       onClose();
     } catch (err) {
-      console.error('Error submitting diagnostic:', err);
-      toast.error('Erreur lors de l\'analyse du profil');
+      logger.error('Error submitting diagnostic:', err);
+      logger.error('Error status:', err.response?.status);
+      logger.error('Error data:', err.response?.data);
+      toast.error(err.response?.data?.detail || 'Erreur lors de l\'analyse du profil');
     } finally {
       setLoading(false);
     }

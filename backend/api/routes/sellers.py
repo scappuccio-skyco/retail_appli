@@ -910,12 +910,14 @@ async def get_seller_kpi_config(
                 "track_prospects": True
             }
         
+        # Use seller_track_* if it exists, otherwise fallback to track_* (legacy), otherwise default to True
+        # Priority: seller_track_* > track_* (legacy) > True (default)
         return {
-            "track_ca": config.get('seller_track_ca', config.get('track_ca', True)),
-            "track_ventes": config.get('seller_track_ventes', config.get('track_ventes', True)),
-            "track_clients": config.get('seller_track_clients', config.get('track_clients', True)),
-            "track_articles": config.get('seller_track_articles', config.get('track_articles', True)),
-            "track_prospects": config.get('seller_track_prospects', config.get('track_prospects', True))
+            "track_ca": config.get('seller_track_ca') if 'seller_track_ca' in config else config.get('track_ca', True),
+            "track_ventes": config.get('seller_track_ventes') if 'seller_track_ventes' in config else config.get('track_ventes', True),
+            "track_clients": config.get('seller_track_clients') if 'seller_track_clients' in config else config.get('track_clients', True),
+            "track_articles": config.get('seller_track_articles') if 'seller_track_articles' in config else config.get('track_articles', True),
+            "track_prospects": config.get('seller_track_prospects') if 'seller_track_prospects' in config else config.get('track_prospects', True)
         }
         
     except Exception as e:

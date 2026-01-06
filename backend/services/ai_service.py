@@ -768,8 +768,10 @@ Résume les points forts et les points à améliorer de manière positive et coa
                 "axes_de_developpement": ["À explorer avec ton manager"]
             }
         
+        # Construire le texte des réponses en utilisant question_id comme référence principale
+        # Si 'question' est fourni, l'utiliser pour le prompt, sinon utiliser question_id
         responses_text = "\n".join([
-            f"Q: {r['question']}\nR: {r['answer']}"
+            f"Q{r.get('question_id', '?')}: {r.get('question', f\"Question {r.get('question_id', '?')}\")}\nR: {r['answer']}"
             for r in responses
         ])
         

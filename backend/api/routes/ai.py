@@ -1,17 +1,18 @@
 """AI & Diagnostic Routes - Clean Architecture"""
 from fastapi import APIRouter, Depends, HTTPException
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from services.ai_service import AIService, AIDataService
 from api.dependencies import get_ai_service, get_ai_data_service
 from core.security import get_current_user, get_current_seller
+from models.diagnostics import DiagnosticResponse
 
 router = APIRouter(prefix="/ai", tags=["AI & Diagnostics"])
 
 
 @router.post("/diagnostic")
 async def generate_diagnostic(
-    responses: List[Dict],
+    responses: List[Union[DiagnosticResponse, Dict]],
     current_user: Dict = Depends(get_current_seller),
     ai_service: AIService = Depends(get_ai_service)
 ):
@@ -19,7 +20,7 @@ async def generate_diagnostic(
     Generate DISC diagnostic from seller responses
     
     Args:
-        responses: List of question/answer pairs
+        responses: List of question/answer pairs (format: { question_id: int, answer: str, question?: str })
         current_user: Authenticated seller
         ai_service: AI service instance
         
@@ -27,11 +28,44 @@ async def generate_diagnostic(
         Diagnostic result with style, level, strengths, weaknesses
     """
     try:
+        # Normaliser les réponses au format attendu par le service AI
+        normalized_responses = []
+        for r in responses:
+            if isinstance(r, dict):
+                # Ancien format ou nouveau format dict
+                if 'question_id' in r:
+                    # Nouveau format avec question_id
+                    normalized_responses.append({
+                        'question_id': r['question_id'],
+                        'question': r.get('question', f"Question {r['question_id']}"),
+                        'answer': str(r['answer'])
+                    })
+                elif 'question' in r:
+                    # Ancien format avec question text
+                    normalized_responses.append({
+                        'question': r['question'],
+                        'answer': str(r['answer'])
+                    })
+                else:
+                    # Format inconnu, essayer de convertir
+                    raise HTTPException(status_code=422, detail=f"Format de réponse invalide: {r}")
+            elif isinstance(r, DiagnosticResponse):
+                # Nouveau format Pydantic
+                normalized_responses.append({
+                    'question_id': r.question_id,
+                    'question': r.question or f"Question {r.question_id}",
+                    'answer': r.answer
+                })
+            else:
+                raise HTTPException(status_code=422, detail=f"Type de réponse invalide: {type(r)}")
+        
         result = await ai_service.generate_diagnostic(
-            responses=responses,
+            responses=normalized_responses,
             seller_name=current_user['name']
         )
         return result
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

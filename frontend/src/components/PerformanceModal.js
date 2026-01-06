@@ -122,6 +122,25 @@ export default function PerformanceModal({
       }
     }
     
+    // Vérifier Articles
+    if (data.nb_articles > 0 && averages.avgArticles > 0) {
+      if (data.nb_articles > averages.avgArticles * THRESHOLD_HIGH) {
+        detectedWarnings.push({
+          kpi: 'Nombre d\'articles',
+          value: data.nb_articles,
+          average: Math.round(averages.avgArticles),
+          percentage: ((data.nb_articles / averages.avgArticles - 1) * 100).toFixed(0)
+        });
+      } else if (data.nb_articles < averages.avgArticles * THRESHOLD_LOW) {
+        detectedWarnings.push({
+          kpi: 'Nombre d\'articles',
+          value: data.nb_articles,
+          average: Math.round(averages.avgArticles),
+          percentage: ((data.nb_articles / averages.avgArticles - 1) * 100).toFixed(0)
+        });
+      }
+    }
+    
     // Vérifier Prospects
     if (data.nb_prospects > 0 && averages.avgProspects > 0) {
       if (data.nb_prospects > averages.avgProspects * THRESHOLD_HIGH) {
@@ -147,6 +166,8 @@ export default function PerformanceModal({
   // Fonction pour sauvegarder directement les KPI sans ouvrir de modal
   const handleDirectSaveKPI = async (data) => {
     logger.log('🚀 handleDirectSaveKPI appelé avec:', data);
+    logger.log('📋 KPI Config reçue:', kpiConfig);
+    logger.log('✅ Champs à afficher - CA:', kpiConfig?.track_ca, 'Ventes:', kpiConfig?.track_ventes, 'Articles:', kpiConfig?.track_articles, 'Prospects:', kpiConfig?.track_prospects);
     
     // Vérifier les anomalies
     const detectedWarnings = checkAnomalies(data);
@@ -839,9 +860,10 @@ export default function PerformanceModal({
                   const formData = new FormData(e.target);
                   const data = {
                     date: formData.get('date'),
-                    ca_journalier: parseFloat(formData.get('ca_journalier')) || 0,
-                    nb_ventes: parseInt(formData.get('nb_ventes')) || 0,
-                    nb_prospects: parseInt(formData.get('nb_prospects')) || 0
+                    ca_journalier: kpiConfig?.track_ca ? (parseFloat(formData.get('ca_journalier')) || 0) : 0,
+                    nb_ventes: kpiConfig?.track_ventes ? (parseInt(formData.get('nb_ventes')) || 0) : 0,
+                    nb_articles: kpiConfig?.track_articles ? (parseInt(formData.get('nb_articles')) || 0) : 0,
+                    nb_prospects: kpiConfig?.track_prospects ? (parseInt(formData.get('nb_prospects')) || 0) : 0
                   };
                   
                   // Sauvegarde directe sans ouvrir de modal
@@ -869,10 +891,10 @@ export default function PerformanceModal({
                     </p>
                   </div>
 
-                  {/* KPIs en grille - Configuration identique au manager */}
+                  {/* KPIs en grille - Affichage basé sur track_* (déjà mappé depuis seller_track_* par le backend) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* CA - Toujours affiché si configuré par le manager */}
-                    {(kpiConfig?.seller_track_ca || kpiConfig?.track_ca) && (
+                    {/* CA - Affiché uniquement si seller_track_ca = true */}
+                    {kpiConfig?.track_ca && (
                       <div className="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
                         <label className="block text-sm font-semibold text-orange-900 mb-2">
                           💰 Chiffre d'Affaires (€)
@@ -889,8 +911,8 @@ export default function PerformanceModal({
                       </div>
                     )}
 
-                    {/* Ventes - Toujours affiché si configuré */}
-                    {(kpiConfig?.seller_track_ventes || kpiConfig?.track_ventes) && (
+                    {/* Ventes - Affiché uniquement si seller_track_ventes = true */}
+                    {kpiConfig?.track_ventes && (
                       <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
                         <label className="block text-sm font-semibold text-green-900 mb-2">
                           🛒 Nombre de Ventes
@@ -906,8 +928,25 @@ export default function PerformanceModal({
                       </div>
                     )}
 
-                    {/* Prospects - Toujours affiché si configuré */}
-                    {(kpiConfig?.seller_track_prospects || kpiConfig?.track_prospects) && (
+                    {/* Articles - Affiché uniquement si seller_track_articles = true */}
+                    {kpiConfig?.track_articles && (
+                      <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                        <label className="block text-sm font-semibold text-blue-900 mb-2">
+                          📦 Nombre d'Articles
+                        </label>
+                        <input
+                          type="number"
+                          name="nb_articles"
+                          min="0"
+                          defaultValue={editingEntry?.nb_articles || ''}
+                          placeholder="Ex: 20"
+                          className="w-full px-4 py-2 border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                        />
+                      </div>
+                    )}
+
+                    {/* Prospects - Affiché uniquement si seller_track_prospects = true */}
+                    {kpiConfig?.track_prospects && (
                       <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
                         <label className="block text-sm font-semibold text-purple-900 mb-2">
                           🚶 Nombre de Prospects

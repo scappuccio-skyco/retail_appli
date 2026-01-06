@@ -1,14 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import ErrorBoundary from './ErrorBoundary';
 import Logo from './shared/Logo';
-import { API_BASE } from '../lib/api';
-
-const BACKEND_URL = API_BASE;
-const API = `${BACKEND_URL}/api`;
+import { api } from '../lib/apiClient';
+import { logger } from '../utils/logger';
 
 const QUESTIONS = [
   {
@@ -214,7 +211,19 @@ function DiagnosticFormContent() {
     if (loading) return;
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/ai/diagnostic`, { responses });
+      // Convert responses object to list format expected by backend
+      // Backend expects: List[Dict] with { question_id: Number, answer: String, question?: String }
+      const responsesList = QUESTIONS.map(q => {
+        const answer = responses[q.id];
+        return {
+          question_id: Number(q.id),
+          question: q.question, // Optionnel pour debug
+          answer: String(answer ?? "")
+        };
+      }).filter(r => r.answer !== '');
+
+      // Backend expects the list directly, not wrapped in { responses: [...] }
+      const res = await api.post('/ai/diagnostic', responsesList);
       toast.success('Diagnostic complété avec succès!');
       
       // Navigate back to dashboard
@@ -222,6 +231,9 @@ function DiagnosticFormContent() {
         navigate('/', { replace: true });
       }, 500);
     } catch (err) {
+      logger.error('Error submitting diagnostic:', err);
+      logger.error('Error status:', err.response?.status);
+      logger.error('Error data:', err.response?.data);
       toast.error(err.response?.data?.detail || 'Erreur lors de l\'envoi du diagnostic');
       setLoading(false);
     }
