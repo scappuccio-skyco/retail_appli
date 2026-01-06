@@ -641,7 +641,8 @@ async def delete_user(
 async def sync_kpi_data(
     data: KPISyncRequest,
     api_key: Dict = Depends(verify_api_key),
-    kpi_service: KPIService = Depends(get_kpi_service)
+    kpi_service: KPIService = Depends(get_kpi_service),
+    db: AsyncIOMotorDatabase = Depends(get_db)
 ):
     """
     Sync KPI data from external systems (POS, ERP, etc.)
@@ -652,8 +653,6 @@ async def sync_kpi_data(
     try:
         # === GUARD CLAUSE: Check subscription access ===
         from services.gerant_service import GerantService
-        from core.database import get_database
-        db = get_database()
         gerant_service = GerantService(db)
         gerant_id = api_key.get('user_id')
         if gerant_id:
