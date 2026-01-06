@@ -1044,7 +1044,11 @@ async def create_objective(
             "type": objective_data.get("type", "collective"),  # "individual" or "collective"
             "seller_id": objective_data.get("seller_id"),
             "visible": objective_data.get("visible", True),
-            "visible_to_sellers": objective_data.get("visible_to_sellers"),
+            # CRITICAL: Ensure visible_to_sellers is properly saved
+            # If visible=True and visible_to_sellers is [], it means visible to all sellers
+            # If visible=True and visible_to_sellers is [id1, id2], it means visible only to these sellers
+            # If visible=False, visible_to_sellers should be None
+            "visible_to_sellers": objective_data.get("visible_to_sellers") if objective_data.get("visible", True) else None,
             "objective_type": objective_data.get("objective_type", "kpi_standard"),  # "kpi_standard" | "product_focus" | "custom"
             "kpi_name": objective_data.get("kpi_name"),  # For kpi_standard: "ca", "ventes", "articles", etc.
             "product_name": objective_data.get("product_name"),  # For product_focus
@@ -1295,12 +1299,22 @@ async def update_objective_progress(
             {"$set": update_data}
         )
         
-        return {
-            "success": True,
-            "current_value": new_value,
-            "progress_percentage": progress_percentage,
-            "status": new_status
-        }
+        # Fetch and return the complete updated objective
+        updated_objective = await db.objectives.find_one(
+            {"id": objective_id},
+            {"_id": 0}
+        )
+        
+        if updated_objective:
+            return updated_objective
+        else:
+            return {
+                "success": True,
+                "current_value": new_value,
+                "progress_percentage": progress_percentage,
+                "status": new_status,
+                "updated_at": update_data["updated_at"]
+            }
     except HTTPException:
         raise
     except Exception as e:
@@ -1495,7 +1509,11 @@ async def create_challenge(
             "type": challenge_data.get("type", "collective"),  # "individual" or "collective"
             "seller_id": challenge_data.get("seller_id"),
             "visible": challenge_data.get("visible", True),
-            "visible_to_sellers": challenge_data.get("visible_to_sellers"),  # None, [], or [seller_ids]
+            # CRITICAL: Ensure visible_to_sellers is properly saved
+            # If visible=True and visible_to_sellers is [], it means visible to all sellers
+            # If visible=True and visible_to_sellers is [id1, id2], it means visible only to these sellers
+            # If visible=False, visible_to_sellers should be None
+            "visible_to_sellers": challenge_data.get("visible_to_sellers") if challenge_data.get("visible", True) else None,
             # NEW FLEXIBLE CHALLENGE SYSTEM fields
             "challenge_type": challenge_data.get("challenge_type", "kpi_standard"),
             "kpi_name": challenge_data.get("kpi_name"),
@@ -1674,12 +1692,22 @@ async def update_challenge_progress(
             {"$set": update_data}
         )
         
-        return {
-            "success": True,
-            "current_value": new_value,
-            "progress_percentage": progress_percentage,
-            "status": new_status
-        }
+        # Fetch and return the complete updated challenge
+        updated_challenge = await db.challenges.find_one(
+            {"id": challenge_id},
+            {"_id": 0}
+        )
+        
+        if updated_challenge:
+            return updated_challenge
+        else:
+            return {
+                "success": True,
+                "current_value": new_value,
+                "progress_percentage": progress_percentage,
+                "status": new_status,
+                "updated_at": update_data["updated_at"]
+            }
     except HTTPException:
         raise
     except Exception as e:

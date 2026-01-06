@@ -85,7 +85,8 @@ class SellerService:
             query["store_id"] = seller_store_id
         
         # Get active objectives from the seller's manager
-        objectives = await self.db.manager_objectives.find(
+        # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
+        objectives = await self.db.objectives.find(
             query,
             {"_id": 0}
         ).sort("period_start", 1).to_list(10)
@@ -101,8 +102,15 @@ class SellerService:
                     filtered_objectives.append(objective)
             # Collective objectives: check visible_to_sellers list
             else:
-                visible_to = objective.get('visible_to_sellers', [])
-                if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
+                visible_to = objective.get('visible_to_sellers')
+                # CRITICAL: 
+                # - If visible_to_sellers is None or [] (empty), objective is visible to ALL sellers
+                # - If visible_to_sellers is [id1, id2], objective is visible ONLY to these sellers
+                if visible_to is None or (isinstance(visible_to, list) and len(visible_to) == 0):
+                    # Visible to all sellers (no restriction)
+                    filtered_objectives.append(objective)
+                elif isinstance(visible_to, list) and seller_id in visible_to:
+                    # Visible only to specific sellers, and this seller is in the list
                     filtered_objectives.append(objective)
         
         # Ensure status field exists (for old objectives created before migration)
@@ -136,7 +144,8 @@ class SellerService:
             query["store_id"] = seller_store_id
         
         # Get ALL objectives from the seller's manager
-        all_objectives = await self.db.manager_objectives.find(
+        # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
+        all_objectives = await self.db.objectives.find(
             query,
             {"_id": 0}
         ).sort("period_start", -1).to_list(100)
@@ -155,8 +164,15 @@ class SellerService:
                     should_include = True
             # Collective objectives: check visible_to_sellers list
             else:
-                visible_to = objective.get('visible_to_sellers', [])
-                if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
+                visible_to = objective.get('visible_to_sellers')
+                # CRITICAL: 
+                # - If visible_to_sellers is None or [] (empty), objective is visible to ALL sellers
+                # - If visible_to_sellers is [id1, id2], objective is visible ONLY to these sellers
+                if visible_to is None or (isinstance(visible_to, list) and len(visible_to) == 0):
+                    # Visible to all sellers (no restriction)
+                    should_include = True
+                elif isinstance(visible_to, list) and seller_id in visible_to:
+                    # Visible only to specific sellers, and this seller is in the list
                     should_include = True
             
             if should_include:
@@ -192,7 +208,8 @@ class SellerService:
             query["store_id"] = seller_store_id
         
         # Get past objectives from the seller's manager
-        objectives = await self.db.manager_objectives.find(
+        # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
+        objectives = await self.db.objectives.find(
             query,
             {"_id": 0}
         ).sort("period_start", -1).to_list(50)
@@ -208,8 +225,15 @@ class SellerService:
                     filtered_objectives.append(objective)
             # Collective objectives: check visible_to_sellers list
             else:
-                visible_to = objective.get('visible_to_sellers', [])
-                if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
+                visible_to = objective.get('visible_to_sellers')
+                # CRITICAL: 
+                # - If visible_to_sellers is None or [] (empty), objective is visible to ALL sellers
+                # - If visible_to_sellers is [id1, id2], objective is visible ONLY to these sellers
+                if visible_to is None or (isinstance(visible_to, list) and len(visible_to) == 0):
+                    # Visible to all sellers (no restriction)
+                    filtered_objectives.append(objective)
+                elif isinstance(visible_to, list) and seller_id in visible_to:
+                    # Visible only to specific sellers, and this seller is in the list
                     filtered_objectives.append(objective)
         
         # Calculate progress for each objective
@@ -254,8 +278,15 @@ class SellerService:
                 filtered_challenges.append(challenge)
             # Collective challenges: check visible_to_sellers list
             else:
-                visible_to = challenge.get('visible_to_sellers', [])
-                if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
+                visible_to = challenge.get('visible_to_sellers')
+                # CRITICAL: 
+                # - If visible_to_sellers is None or [] (empty), challenge is visible to ALL sellers
+                # - If visible_to_sellers is [id1, id2], challenge is visible ONLY to these sellers
+                if visible_to is None or (isinstance(visible_to, list) and len(visible_to) == 0):
+                    # Visible to all sellers (no restriction)
+                    filtered_challenges.append(challenge)
+                elif isinstance(visible_to, list) and seller_id in visible_to:
+                    # Visible only to specific sellers, and this seller is in the list
                     filtered_challenges.append(challenge)
         
         # Calculate progress for each challenge
@@ -299,8 +330,15 @@ class SellerService:
                     filtered_challenges.append(challenge)
             # Collective challenges: check visible_to_sellers list
             else:
-                visible_to = challenge.get('visible_to_sellers', [])
-                if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
+                visible_to = challenge.get('visible_to_sellers')
+                # CRITICAL: 
+                # - If visible_to_sellers is None or [] (empty), challenge is visible to ALL sellers
+                # - If visible_to_sellers is [id1, id2], challenge is visible ONLY to these sellers
+                if visible_to is None or (isinstance(visible_to, list) and len(visible_to) == 0):
+                    # Visible to all sellers (no restriction)
+                    filtered_challenges.append(challenge)
+                elif isinstance(visible_to, list) and seller_id in visible_to:
+                    # Visible only to specific sellers, and this seller is in the list
                     filtered_challenges.append(challenge)
         
         # Calculate progress for each challenge
@@ -343,8 +381,15 @@ class SellerService:
                     filtered_challenges.append(challenge)
             # Collective challenges: check visible_to_sellers list
             else:
-                visible_to = challenge.get('visible_to_sellers', [])
-                if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
+                visible_to = challenge.get('visible_to_sellers')
+                # CRITICAL: 
+                # - If visible_to_sellers is None or [] (empty), challenge is visible to ALL sellers
+                # - If visible_to_sellers is [id1, id2], challenge is visible ONLY to these sellers
+                if visible_to is None or (isinstance(visible_to, list) and len(visible_to) == 0):
+                    # Visible to all sellers (no restriction)
+                    filtered_challenges.append(challenge)
+                elif isinstance(visible_to, list) and seller_id in visible_to:
+                    # Visible only to specific sellers, and this seller is in the list
                     filtered_challenges.append(challenge)
         
         # Calculate progress for each challenge
@@ -494,7 +539,8 @@ class SellerService:
         objective['status'] = self.compute_status(current_value, target_value, end_date)
         
         # Save progress to database (including computed status)
-        await self.db.manager_objectives.update_one(
+        # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
+        await self.db.objectives.update_one(
             {"id": objective['id']},
             {"$set": {
                 "progress_ca": total_ca,
@@ -719,8 +765,9 @@ class SellerService:
             from pymongo import UpdateOne
             bulk_ops = [UpdateOne({"id": u["id"]}, u["update"]) for u in updates]
             if bulk_ops:
-                increment_db_op("db.manager_objectives.bulk_write")
-                await self.db.manager_objectives.bulk_write(bulk_ops)
+                # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
+                increment_db_op("db.objectives.bulk_write")
+                await self.db.objectives.bulk_write(bulk_ops)
         
         return objectives
     

@@ -653,12 +653,22 @@ async def update_seller_objective_progress(
             {"$set": update_data}
         )
         
-        return {
-            "success": True,
-            "current_value": new_value,
-            "progress_percentage": progress_percentage,
-            "status": new_status
-        }
+        # Fetch and return the complete updated objective
+        updated_objective = await db.objectives.find_one(
+            {"id": objective_id},
+            {"_id": 0}
+        )
+        
+        if updated_objective:
+            return updated_objective
+        else:
+            return {
+                "success": True,
+                "current_value": new_value,
+                "progress_percentage": progress_percentage,
+                "status": new_status,
+                "updated_at": update_data["updated_at"]
+            }
     except HTTPException:
         raise
     except Exception as e:
@@ -770,12 +780,22 @@ async def update_seller_challenge_progress(
             {"$set": update_data}
         )
         
-        return {
-            "success": True,
-            "current_value": new_value,
-            "progress_percentage": progress_percentage,
-            "status": new_status
-        }
+        # Fetch and return the complete updated challenge
+        updated_challenge = await db.challenges.find_one(
+            {"id": challenge_id},
+            {"_id": 0}
+        )
+        
+        if updated_challenge:
+            return updated_challenge
+        else:
+            return {
+                "success": True,
+                "current_value": new_value,
+                "progress_percentage": progress_percentage,
+                "status": new_status,
+                "updated_at": update_data["updated_at"]
+            }
     except HTTPException:
         raise
     except Exception as e:
@@ -1130,9 +1150,66 @@ async def get_my_diagnostic(
         )
         
         if not diagnostic:
-            raise HTTPException(status_code=404, detail="Diagnostic non trouvé")
+            # Return empty response instead of 404 to avoid console errors (consistent with diagnostic_router)
+            return {
+                "status": "not_started",
+                "has_diagnostic": False,
+                "message": "Diagnostic DISC non encore complété"
+            }
         
-        return diagnostic
+        # Return with status 'completed' for frontend compatibility (consistent with diagnostic_router)
+        return {
+            "status": "completed",
+            "has_diagnostic": True,
+            "diagnostic": diagnostic  # Include the full diagnostic data
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/diagnostic/me/live-scores")
+async def get_my_diagnostic_live_scores(
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Get seller's live competence scores (updated after debriefs)."""
+    try:
+        diagnostic = await db.diagnostics.find_one(
+            {"seller_id": current_user['id']},
+            {"_id": 0}
+        )
+        
+        if not diagnostic:
+            # Return default scores instead of 404 (consistent with diagnostic_router)
+            return {
+                "has_diagnostic": False,
+                "seller_id": current_user['id'],
+                "scores": {
+                    "accueil": 3.0,
+                    "decouverte": 3.0,
+                    "argumentation": 3.0,
+                    "closing": 3.0,
+                    "fidelisation": 3.0
+                },
+                "message": "Scores par défaut (diagnostic non complété)"
+            }
+        
+        # Return live scores (consistent with diagnostic_router)
+        return {
+            "has_diagnostic": True,
+            "seller_id": current_user['id'],
+            "scores": {
+                "accueil": diagnostic.get('score_accueil', 3.0),
+                "decouverte": diagnostic.get('score_decouverte', 3.0),
+                "argumentation": diagnostic.get('score_argumentation', 3.0),
+                "closing": diagnostic.get('score_closing', 3.0),
+                "fidelisation": diagnostic.get('score_fidelisation', 3.0)
+            },
+            "updated_at": diagnostic.get('updated_at', diagnostic.get('created_at'))
+        }
         
     except HTTPException:
         raise

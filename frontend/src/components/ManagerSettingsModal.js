@@ -417,14 +417,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     }
 
     try {
-      await api.post(
+      const response = await api.post(
         `/manager/challenges/${challengeId}/progress${storeParam}`,
         { current_value: parseFloat(challengeProgressValue) }
       );
+      logger.log('✅ Progression challenge mise à jour, réponse:', response.data);
       toast.success('Progression mise à jour avec succès');
       setUpdatingProgressChallengeId(null);
       setChallengeProgressValue('');
-      fetchData();
+      
+      // Rafraîchir les données pour afficher la date de mise à jour et le restant
+      await fetchData();
       if (onUpdate) onUpdate();
     } catch (err) {
       logger.error('Error updating challenge progress:', err);
@@ -576,14 +579,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     }
 
     try {
-      await api.post(
+      const response = await api.post(
         `/manager/objectives/${objectiveId}/progress${storeParam}`,
         { current_value: parseFloat(progressValue) }
       );
+      logger.log('✅ Progression mise à jour, réponse:', response.data);
       toast.success('Progression mise à jour avec succès');
       setUpdatingProgressObjectiveId(null);
       setProgressValue('');
-      fetchData();
+      
+      // Rafraîchir les données pour afficher la date de mise à jour et le restant
+      await fetchData();
       if (onUpdate) onUpdate();
     } catch (err) {
       logger.error('Error updating progress:', err);
@@ -1388,6 +1394,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       </span>
                                       <span className="text-xs sm:text-sm font-semibold text-gray-700">
                                         📊 Actuel: {(objective.current_value || 0)?.toLocaleString('fr-FR')} {objective.unit || ''}
+                                      </span>
+                                      <span className="text-xs sm:text-sm font-semibold text-blue-600">
+                                        ⏳ Restant: {Math.max(0, (objective.target_value || 0) - (objective.current_value || 0))?.toLocaleString('fr-FR')} {objective.unit || ''}
                                       </span>
                                     </div>
                                   )}
@@ -2277,9 +2286,16 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                         }
                                       </span>
                                       {challenge.target_value && (
-                                        <div className="text-xs sm:text-sm">
-                                          <span className="text-gray-700">Objectif : </span>
-                                          <span className="font-bold text-blue-700">{challenge.target_value.toLocaleString('fr-FR')} {challenge.unit || ''}</span>
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 text-xs sm:text-sm mt-2 pt-2 border-t border-gray-200">
+                                          <span className="text-gray-700">
+                                            🎯 Cible: {challenge.target_value?.toLocaleString('fr-FR')} {challenge.unit || ''}
+                                          </span>
+                                          <span className="text-gray-700">
+                                            📊 Actuel: {(challenge.current_value || 0)?.toLocaleString('fr-FR')} {challenge.unit || ''}
+                                          </span>
+                                          <span className="text-blue-600 font-semibold">
+                                            ⏳ Restant: {Math.max(0, (challenge.target_value || 0) - (challenge.current_value || 0))?.toLocaleString('fr-FR')} {challenge.unit || ''}
+                                          </span>
                                         </div>
                                       )}
                                     </div>
@@ -2457,9 +2473,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                               )}
                                             </div>
                                             {challenge.target_value && (
-                                              <p className="text-xs text-gray-500">
-                                                Objectif : {challenge.target_value} {challenge.unit || ''}
-                                              </p>
+                                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 text-xs">
+                                                <span className="text-gray-500">
+                                                  🎯 Cible: {challenge.target_value?.toLocaleString('fr-FR')} {challenge.unit || ''}
+                                                </span>
+                                                <span className="text-gray-500">
+                                                  📊 Actuel: {(challenge.current_value || 0)?.toLocaleString('fr-FR')} {challenge.unit || ''}
+                                                </span>
+                                                <span className="text-blue-600 font-semibold">
+                                                  ⏳ Restant: {Math.max(0, (challenge.target_value || 0) - (challenge.current_value || 0))?.toLocaleString('fr-FR')} {challenge.unit || ''}
+                                                </span>
+                                              </div>
                                             )}
                                           </div>
                                         ) : (
