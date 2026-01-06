@@ -97,7 +97,7 @@ class BriefHistoryItem(BaseModel):
 @router.post("/morning", response_model=MorningBriefResponse)
 async def generate_morning_brief(
     request: MorningBriefRequest,
-    store_id: Optional[str] = None,
+    store_id: Optional[str] = Query(None, description="Store ID (pour gérant visualisant un magasin)"),
     current_user: dict = Depends(get_current_user),
     db = Depends(get_db)
 ):
@@ -187,7 +187,7 @@ async def generate_morning_brief(
 
 @router.get("/morning/preview")
 async def preview_morning_brief_data(
-    store_id: Optional[str] = None,
+    store_id: Optional[str] = Query(None, description="Store ID (pour gérant visualisant un magasin)"),
     current_user: dict = Depends(get_current_user),
     db = Depends(get_db)
 ):
