@@ -2413,6 +2413,7 @@ IMPORTANT : Sois CONCIS, DIRECT et PRATIQUE. Évite les longues explications th�
 
 
 @router.get("/relationship-history")
+@router.get("/relationship-advice/history")  # Alias for consistency
 async def get_relationship_history(
     seller_id: Optional[str] = Query(None, description="Filter by seller ID"),
     store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)"),
@@ -2423,6 +2424,8 @@ async def get_relationship_history(
     Get manager's relationship consultation history.
     
     Optionally filter by seller_id.
+    
+    Returns: {"consultations": [...]}
     """
     try:
         resolved_store_id = context.get('resolved_store_id')

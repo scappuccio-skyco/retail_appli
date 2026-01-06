@@ -65,7 +65,7 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
   const loadHistory = async (sellerId = null) => {
     try {
       const token = localStorage.getItem('token');
-      let url = `${API}/api/manager/relationship-history${storeIdParam}`;
+      let url = `${API}/api/manager/relationship-advice/history${storeIdParam}`;
       if (sellerId) {
         url += storeIdParam ? `&seller_id=${sellerId}` : `?seller_id=${sellerId}`;
       }
@@ -74,7 +74,8 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      const consultations = response.data.consultations || [];
+      // L'API renvoie res.data.consultations (pas un array root)
+      const consultations = response.data?.consultations ?? [];
       setHistory(consultations);
       
       // Si autoShowResult, auto-expand le dernier bilan
@@ -467,10 +468,15 @@ export default function RelationshipManagementModal({ onClose, onSuccess, seller
               </div>
               
               {/* History list */}
-              {filteredHistory.length === 0 ? (
+              {history.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                  <p>Aucune consultation dans l'historique</p>
+                  <p>Aucun historique</p>
+                </div>
+              ) : filteredHistory.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>Aucune consultation correspondant aux filtres</p>
                 </div>
               ) : (
                 <div className="space-y-4">
