@@ -71,13 +71,22 @@ class SellerService:
         """Get active team objectives for display in seller dashboard"""
         today = datetime.now(timezone.utc).date().isoformat()
         
+        # Get seller's store_id for filtering
+        seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        seller_store_id = seller.get("store_id") if seller else None
+        
+        # Build query: filter by manager_id, store_id (if available), visible, and period
+        query = {
+            "manager_id": manager_id,
+            "period_end": {"$gte": today},
+            "visible": True
+        }
+        if seller_store_id:
+            query["store_id"] = seller_store_id
+        
         # Get active objectives from the seller's manager
         objectives = await self.db.manager_objectives.find(
-            {
-                "manager_id": manager_id,
-                "period_end": {"$gte": today},
-                "visible": True
-            },
+            query,
             {"_id": 0}
         ).sort("period_start", 1).to_list(10)
         
@@ -114,12 +123,21 @@ class SellerService:
         """Get all team objectives (active and inactive) for seller"""
         today = datetime.now(timezone.utc).date().isoformat()
         
+        # Get seller's store_id for filtering
+        seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        seller_store_id = seller.get("store_id") if seller else None
+        
+        # Build query: filter by manager_id, store_id (if available), and visible
+        query = {
+            "manager_id": manager_id,
+            "visible": True
+        }
+        if seller_store_id:
+            query["store_id"] = seller_store_id
+        
         # Get ALL objectives from the seller's manager
         all_objectives = await self.db.manager_objectives.find(
-            {
-                "manager_id": manager_id,
-                "visible": True
-            },
+            query,
             {"_id": 0}
         ).sort("period_start", -1).to_list(100)
         
@@ -160,13 +178,22 @@ class SellerService:
         """Get completed objectives (past period_end date) for seller"""
         today = datetime.now(timezone.utc).date().isoformat()
         
+        # Get seller's store_id for filtering
+        seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        seller_store_id = seller.get("store_id") if seller else None
+        
+        # Build query: filter by manager_id, store_id (if available), visible, and period
+        query = {
+            "manager_id": manager_id,
+            "period_end": {"$lt": today},
+            "visible": True
+        }
+        if seller_store_id:
+            query["store_id"] = seller_store_id
+        
         # Get past objectives from the seller's manager
         objectives = await self.db.manager_objectives.find(
-            {
-                "manager_id": manager_id,
-                "period_end": {"$lt": today},
-                "visible": True
-            },
+            query,
             {"_id": 0}
         ).sort("period_start", -1).to_list(50)
         
@@ -195,36 +222,69 @@ class SellerService:
     
     async def get_seller_challenges(self, seller_id: str, manager_id: str) -> List[Dict]:
         """Get all challenges (collective + individual) for seller"""
+        # Get seller's store_id for filtering
+        seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        seller_store_id = seller.get("store_id") if seller else None
+        
+        # Build query: filter by manager_id, store_id (if available), visible, and type
+        query = {
+            "manager_id": manager_id,
+            "visible": True,
+            "$or": [
+                {"type": "collective"},
+                {"type": "individual", "seller_id": seller_id}
+            ]
+        }
+        if seller_store_id:
+            query["store_id"] = seller_store_id
+        
         # Get collective challenges + individual challenges assigned to this seller
         challenges = await self.db.challenges.find(
-            {
-                "manager_id": manager_id,
-                "$or": [
-                    {"type": "collective"},
-                    {"type": "individual", "seller_id": seller_id}
-                ]
-            },
+            query,
             {"_id": 0}
         ).sort("created_at", -1).to_list(100)
         
-        # Calculate progress for each challenge
+        # Filter challenges based on visibility rules (for collective challenges)
+        filtered_challenges = []
         for challenge in challenges:
+            chall_type = challenge.get('type', 'collective')
+            
+            # Individual challenges: already filtered by query
+            if chall_type == 'individual':
+                filtered_challenges.append(challenge)
+            # Collective challenges: check visible_to_sellers list
+            else:
+                visible_to = challenge.get('visible_to_sellers', [])
+                if not visible_to or len(visible_to) == 0 or seller_id in visible_to:
+                    filtered_challenges.append(challenge)
+        
+        # Calculate progress for each challenge
+        for challenge in filtered_challenges:
             await self.calculate_challenge_progress(challenge, seller_id)
         
-        return challenges
+        return filtered_challenges
     
     async def get_seller_challenges_active(self, seller_id: str, manager_id: str) -> List[Dict]:
         """Get only active challenges (collective + personal) for display in seller dashboard"""
         today = datetime.now(timezone.utc).date().isoformat()
         
+        # Get seller's store_id for filtering
+        seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        seller_store_id = seller.get("store_id") if seller else None
+        
+        # Build query: filter by manager_id, store_id (if available), visible, status, and period
+        query = {
+            "manager_id": manager_id,
+            "status": "active",
+            "end_date": {"$gte": today},
+            "visible": True
+        }
+        if seller_store_id:
+            query["store_id"] = seller_store_id
+        
         # Get active challenges from the seller's manager
         challenges = await self.db.challenges.find(
-            {
-                "manager_id": manager_id,
-                "status": "active",
-                "end_date": {"$gte": today},
-                "visible": True
-            },
+            query,
             {"_id": 0}
         ).sort("start_date", 1).to_list(10)
         
@@ -253,13 +313,22 @@ class SellerService:
         """Get completed challenges (past end_date) for seller"""
         today = datetime.now(timezone.utc).date().isoformat()
         
+        # Get seller's store_id for filtering
+        seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
+        seller_store_id = seller.get("store_id") if seller else None
+        
+        # Build query: filter by manager_id, store_id (if available), visible, and period
+        query = {
+            "manager_id": manager_id,
+            "end_date": {"$lt": today},
+            "visible": True
+        }
+        if seller_store_id:
+            query["store_id"] = seller_store_id
+        
         # Get past challenges from the seller's manager
         challenges = await self.db.challenges.find(
-            {
-                "manager_id": manager_id,
-                "end_date": {"$lt": today},
-                "visible": True
-            },
+            query,
             {"_id": 0}
         ).sort("start_date", -1).to_list(50)
         

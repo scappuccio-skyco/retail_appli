@@ -1125,7 +1125,19 @@ async def update_objective(
             "start_date": objective_data.get("start_date") or objective_data.get("period_start") or existing.get("start_date"),
             "end_date": objective_data.get("end_date") or objective_data.get("period_end") or existing.get("end_date"),
             "status": objective_data.get("status", existing.get("status")),
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            # Visibility fields - only update if provided in request
+            "type": objective_data.get("type") if "type" in objective_data else existing.get("type"),
+            "seller_id": objective_data.get("seller_id") if "seller_id" in objective_data else existing.get("seller_id"),
+            "visible": objective_data.get("visible") if "visible" in objective_data else existing.get("visible", True),
+            "visible_to_sellers": objective_data.get("visible_to_sellers") if "visible_to_sellers" in objective_data else existing.get("visible_to_sellers"),
+            # NEW FLEXIBLE OBJECTIVE SYSTEM fields
+            "objective_type": objective_data.get("objective_type") if "objective_type" in objective_data else existing.get("objective_type"),
+            "kpi_name": objective_data.get("kpi_name") if "kpi_name" in objective_data else existing.get("kpi_name"),
+            "product_name": objective_data.get("product_name") if "product_name" in objective_data else existing.get("product_name"),
+            "custom_description": objective_data.get("custom_description") if "custom_description" in objective_data else existing.get("custom_description"),
+            "data_entry_responsible": objective_data.get("data_entry_responsible") if "data_entry_responsible" in objective_data else existing.get("data_entry_responsible"),
+            "unit": objective_data.get("unit") if "unit" in objective_data else existing.get("unit")
         }
         
         await db.objectives.update_one(
@@ -1337,7 +1349,19 @@ async def create_challenge(
             "status": "active",
             "participants": challenge_data.get("participants", []),
             "created_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            # Visibility fields
+            "type": challenge_data.get("type", "collective"),  # "individual" or "collective"
+            "seller_id": challenge_data.get("seller_id"),
+            "visible": challenge_data.get("visible", True),
+            "visible_to_sellers": challenge_data.get("visible_to_sellers"),  # None, [], or [seller_ids]
+            # NEW FLEXIBLE CHALLENGE SYSTEM fields
+            "challenge_type": challenge_data.get("challenge_type", "kpi_standard"),
+            "kpi_name": challenge_data.get("kpi_name"),
+            "product_name": challenge_data.get("product_name"),
+            "custom_description": challenge_data.get("custom_description"),
+            "data_entry_responsible": challenge_data.get("data_entry_responsible", "manager"),
+            "unit": challenge_data.get("unit")
         }
         
         await db.challenges.insert_one(challenge)
@@ -1379,7 +1403,19 @@ async def update_challenge(
             "end_date": challenge_data.get("end_date") or challenge_data.get("period_end") or existing.get("end_date"),
             "status": challenge_data.get("status", existing.get("status")),
             "participants": challenge_data.get("participants", existing.get("participants", [])),
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            # Visibility fields - only update if provided in request
+            "type": challenge_data.get("type") if "type" in challenge_data else existing.get("type"),
+            "seller_id": challenge_data.get("seller_id") if "seller_id" in challenge_data else existing.get("seller_id"),
+            "visible": challenge_data.get("visible") if "visible" in challenge_data else existing.get("visible", True),
+            "visible_to_sellers": challenge_data.get("visible_to_sellers") if "visible_to_sellers" in challenge_data else existing.get("visible_to_sellers"),
+            # NEW FLEXIBLE CHALLENGE SYSTEM fields
+            "challenge_type": challenge_data.get("challenge_type") if "challenge_type" in challenge_data else existing.get("challenge_type"),
+            "kpi_name": challenge_data.get("kpi_name") if "kpi_name" in challenge_data else existing.get("kpi_name"),
+            "product_name": challenge_data.get("product_name") if "product_name" in challenge_data else existing.get("product_name"),
+            "custom_description": challenge_data.get("custom_description") if "custom_description" in challenge_data else existing.get("custom_description"),
+            "data_entry_responsible": challenge_data.get("data_entry_responsible") if "data_entry_responsible" in challenge_data else existing.get("data_entry_responsible"),
+            "unit": challenge_data.get("unit") if "unit" in challenge_data else existing.get("unit")
         }
         
         await db.challenges.update_one(

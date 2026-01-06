@@ -303,9 +303,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.seller_id = newChallenge.seller_id;
       }
       
-      // Add visible_to_sellers if specific sellers selected
-      if (newChallenge.visible && selectedVisibleSellersChallenge.length > 0) {
-        cleanedData.visible_to_sellers = selectedVisibleSellersChallenge;
+      // Add visible_to_sellers: send [] if visible=true but no selection (means "all sellers")
+      // Send null/undefined if visible=false (not visible to anyone)
+      if (newChallenge.visible) {
+        cleanedData.visible_to_sellers = selectedVisibleSellersChallenge.length > 0 ? selectedVisibleSellersChallenge : [];
+      } else {
+        // If not visible, don't send visible_to_sellers (will be set to false on backend)
+        cleanedData.visible_to_sellers = null;
       }
       
       // Add specific fields based on challenge_type
@@ -367,9 +371,12 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.seller_id = newChallenge.seller_id;
       }
       
-      // Ajouter visible_to_sellers si type collective
-      if (newChallenge.type === 'collective') {
-        cleanedData.visible_to_sellers = selectedVisibleSellersChallenge;
+      // Add visible_to_sellers: send [] if visible=true but no selection (means "all sellers")
+      // Send null/undefined if visible=false (not visible to anyone)
+      if (newChallenge.visible) {
+        cleanedData.visible_to_sellers = selectedVisibleSellersChallenge.length > 0 ? selectedVisibleSellersChallenge : [];
+      } else {
+        cleanedData.visible_to_sellers = null;
       }
       
       // Add specific fields based on challenge_type
@@ -456,9 +463,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.seller_id = newObjective.seller_id;
       }
       
-      // Add visible_to_sellers if specific sellers selected
-      if (newObjective.visible && selectedVisibleSellers.length > 0) {
-        cleanedData.visible_to_sellers = selectedVisibleSellers;
+      // Add visible_to_sellers: send [] if visible=true but no selection (means "all sellers")
+      // Send null/undefined if visible=false (not visible to anyone)
+      if (newObjective.visible) {
+        cleanedData.visible_to_sellers = selectedVisibleSellers.length > 0 ? selectedVisibleSellers : [];
+      } else {
+        // If not visible, don't send visible_to_sellers (will be set to false on backend)
+        cleanedData.visible_to_sellers = null;
       }
       
       // Add specific fields based on objective_type
@@ -520,9 +531,12 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         cleanedData.seller_id = newObjective.seller_id;
       }
       
-      // Ajouter visible_to_sellers si type collective
-      if (newObjective.type === 'collective') {
-        cleanedData.visible_to_sellers = selectedVisibleSellers;
+      // Add visible_to_sellers: send [] if visible=true but no selection (means "all sellers")
+      // Send null/undefined if visible=false (not visible to anyone)
+      if (newObjective.visible) {
+        cleanedData.visible_to_sellers = selectedVisibleSellers.length > 0 ? selectedVisibleSellers : [];
+      } else {
+        cleanedData.visible_to_sellers = null;
       }
       
       // Add specific fields based on objective_type
