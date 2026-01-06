@@ -7,8 +7,9 @@ sys.stdout.reconfigure(line_buffering=True) if hasattr(sys.stdout, 'reconfigure'
 print("[STARTUP] 1/10 - main.py loading started", flush=True)
 
 try:
-    from fastapi import FastAPI
+    from fastapi import FastAPI, Query, Request
     from fastapi.middleware.cors import CORSMiddleware
+    from typing import Optional
     import logging
     print("[STARTUP] 2/10 - FastAPI imports done", flush=True)
 except Exception as e:
@@ -93,6 +94,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition", "Content-Type", "Content-Length"],  # Expose headers for PDF downloads
 )
 print("[STARTUP] 9/10 - CORS middleware added", flush=True)
 
@@ -315,6 +317,76 @@ async def debug_routes():
 # ==========================================
 # Legacy/Compatibility endpoints for old invitation links
 # ==========================================
+
+# ==========================================
+# Compatibility routes for manager KPI endpoints (fix 404 in production)
+# ==========================================
+
+@app.get("/api/manager/kpi-entries/{seller_id}")
+async def get_seller_kpi_entries_compat(
+    request: Request,
+    seller_id: str,
+    days: int = Query(30, description="Number of days to fetch"),
+    start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)")
+):
+    """
+    Compatibility route for GET /api/manager/kpi-entries/{seller_id}
+    Delegates to the manager router handler.
+    """
+    from api.routes.manager import get_seller_kpi_entries, get_store_context
+    from api.dependencies import get_db
+    from core.security import get_current_user
+    from fastapi import Depends
+    
+    # Get dependencies using FastAPI dependency injection
+    current_user = await get_current_user()
+    db = await get_db()
+    context = await get_store_context(request=request, current_user=current_user, db=db)
+    
+    # Call the actual handler
+    return await get_seller_kpi_entries(
+        seller_id=seller_id,
+        days=days,
+        start_date=start_date,
+        end_date=end_date,
+        store_id=store_id,
+        context=context,
+        db=db
+    )
+
+
+@app.get("/api/manager/seller/{seller_id}/stats")
+async def get_seller_stats_compat(
+    request: Request,
+    seller_id: str,
+    days: int = Query(30, description="Number of days for stats calculation"),
+    store_id: Optional[str] = Query(None, description="Store ID (requis pour gérant)")
+):
+    """
+    Compatibility route for GET /api/manager/seller/{seller_id}/stats
+    Delegates to the manager router handler.
+    """
+    from api.routes.manager import get_seller_stats, get_store_context
+    from api.dependencies import get_db
+    from core.security import get_current_user
+    from fastapi import Depends
+    
+    # Get dependencies using FastAPI dependency injection
+    current_user = await get_current_user()
+    db = await get_db()
+    context = await get_store_context(request=request, current_user=current_user, db=db)
+    
+    # Call the actual handler
+    return await get_seller_stats(
+        seller_id=seller_id,
+        days=days,
+        store_id=store_id,
+        context=context,
+        db=db
+    )
+
 
 @app.get("/api/invitations/gerant/verify/{token}")
 async def verify_gerant_invitation_legacy(token: str):

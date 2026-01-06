@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { X, Sparkles, Copy, Check, FileText, Calendar, Loader2, CheckCircle, AlertTriangle, Target, MessageSquare, Star, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { API_BASE } from '../lib/api';
 
 /**
@@ -30,6 +31,9 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
   const [exportingPDF, setExportingPDF] = useState(false);
+
+  // Ref pour le container du guide (source unique pour le PDF - DOM snapshot)
+  const guideContentRef = useRef(null);
 
   if (!isOpen) return null;
 
@@ -123,185 +127,140 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
     return text;
   };
 
-  // Export to PDF
+  // Export to PDF - NOUVELLE VERSION basée sur DOM snapshot (comme brief matinal)
   const exportToPDF = async () => {
     if (!guideData) return;
     
     setExportingPDF(true);
     
     try {
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 15;
-      let yPosition = 0;
-
-      // === HEADER ===
-      const headerColor = role === 'seller' ? [249, 115, 22] : [30, 64, 175]; // Orange for seller, Blue for manager
-      pdf.setFillColor(...headerColor);
-      pdf.rect(0, 0, pageWidth, 50, 'F');
+      // ============================================================
+      // ÉTAPE 1: DIAGNOSTIC - Logs des sources de contenu
+      // ============================================================
+      console.log('=== PDF GENERATION DIAGNOSTIC (ENTRETIEN) ===');
+      console.log('PDF_SOURCE_rawState:', JSON.stringify(guideData, null, 2));
+      console.log('PDF_SOURCE_domText:', guideContentRef.current?.innerText?.substring(0, 300) || 'REF_NOT_READY');
+      console.log('PDF_SOURCE_domHTML:', guideContentRef.current?.innerHTML?.substring(0, 500) || 'REF_NOT_READY');
       
-      // Logo
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(22);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('Retail Performer AI', margin, 18);
-      
-      // Title
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'normal');
-      const titleText = role === 'seller' ? 'Fiche de Préparation - Entretien Annuel' : "Guide d&apos;Entretien Annuel";
-      pdf.text(titleText, margin, 28);
-      
-      // Employee name
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(employeeName || 'Collaborateur', margin, 40);
-      
-      // Period
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      const periodText = `Période : ${new Date(startDate).toLocaleDateString('fr-FR')} - ${new Date(endDate).toLocaleDateString('fr-FR')}`;
-      pdf.text(periodText, pageWidth - margin - pdf.getTextWidth(periodText), 40);
-
-      yPosition = 60;
-
-      // === STATS BOX ===
-      if (stats) {
-        pdf.setFillColor(248, 250, 252);
-        pdf.setDrawColor(226, 232, 240);
-        pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 25, 3, 3, 'FD');
-        
-        pdf.setTextColor(100, 116, 139);
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('STATISTIQUES DE LA PÉRIODE', margin + 5, yPosition + 7);
-        
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(10);
-        pdf.setTextColor(51, 65, 85);
-        
-        const statsLine1 = `CA Total: ${stats.ca_total?.toLocaleString('fr-FR') || 'N/A'}€  •  Ventes: ${stats.nb_ventes || 'N/A'}  •  Jours travaillés: ${stats.nb_jours || 'N/A'}`;
-        pdf.text(statsLine1, margin + 5, yPosition + 16);
-        
-        const statsLine2 = `Panier moyen: ${stats.panier_moyen?.toFixed(0) || 'N/A'}€  •  Indice de vente: ${stats.indice_vente?.toFixed(2) || 'N/A'}`;
-        pdf.text(statsLine2, margin + 5, yPosition + 22);
-        
-        yPosition += 35;
+      // Vérifier si le ref est disponible (le guide doit être rendu)
+      if (!guideContentRef.current) {
+        console.warn('⚠️ guideContentRef not ready, cannot generate PDF');
+        toast.error('Le contenu n\'est pas encore chargé. Veuillez réessayer.');
+        return;
       }
-
-      // Helper function for sections
-      const addSection = (emoji, title, items, bgColor, titleColor, isList = true) => {
-        if (!items || (Array.isArray(items) && items.length === 0)) return;
+      
+      // ============================================================
+      // ÉTAPE 2: CAPTURE DOM avec html2canvas (source unique)
+      // ============================================================
+      const guideElement = guideContentRef.current;
+      
+      // Cloner l'élément pour éviter de modifier le DOM visible
+      const clonedElement = guideElement.cloneNode(true);
+      clonedElement.style.position = 'absolute';
+      clonedElement.style.left = '-9999px';
+      clonedElement.style.top = '0';
+      clonedElement.style.width = guideElement.offsetWidth + 'px';
+      clonedElement.style.backgroundColor = '#ffffff';
+      document.body.appendChild(clonedElement);
+      
+      try {
+        // Attendre un peu pour que le clone soit rendu
+        await new Promise(resolve => setTimeout(resolve, 100));
         
-        if (yPosition > pageHeight - 50) {
+        // Capturer le DOM en canvas
+        const canvas = await html2canvas(clonedElement, {
+          scale: 2, // Haute résolution
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          windowWidth: guideElement.offsetWidth,
+          windowHeight: guideElement.offsetHeight
+        });
+        
+        // Nettoyer le clone
+        document.body.removeChild(clonedElement);
+        
+        // ============================================================
+        // ÉTAPE 3: CRÉER PDF depuis le canvas
+        // ============================================================
+        const imgData = canvas.toDataURL('image/png', 0.95);
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 15;
+        
+        // Ajouter un header professionnel
+        const headerColor = role === 'seller' ? [249, 115, 22] : [30, 64, 175];
+        pdf.setFillColor(...headerColor);
+        pdf.rect(0, 0, pageWidth, 30, 'F');
+        
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(18);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Retail Performer AI', margin, 12);
+        
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'normal');
+        const titleText = role === 'seller' ? 'Fiche de Préparation - Entretien Annuel' : "Guide d'Entretien Annuel";
+        pdf.text(titleText, margin, 20);
+        
+        pdf.setFontSize(10);
+        const periodText = `Période : ${new Date(startDate).toLocaleDateString('fr-FR')} - ${new Date(endDate).toLocaleDateString('fr-FR')}`;
+        pdf.text(periodText, pageWidth - margin - pdf.getTextWidth(periodText), 20);
+        
+        // Calculer les dimensions de l'image pour qu'elle rentre dans la page
+        const imgWidth = pageWidth - 2 * margin;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Ajouter l'image au PDF (gérer la pagination si nécessaire)
+        let heightLeft = imgHeight;
+        let position = 35; // Après le header
+        
+        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - position - margin);
+        
+        // Ajouter des pages supplémentaires si nécessaire
+        while (heightLeft > 0) {
+          position = -heightLeft + margin;
           pdf.addPage();
-          yPosition = 20;
+          pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+          heightLeft -= (pageHeight - 2 * margin);
         }
         
-        // Section header
-        pdf.setFillColor(...bgColor);
-        pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 10, 2, 2, 'F');
-        
-        pdf.setTextColor(...titleColor);
-        pdf.setFontSize(11);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text(emoji + ' ' + title, margin + 5, yPosition + 7);
-        
-        yPosition += 14;
-        
-        // Content
-        pdf.setTextColor(55, 65, 81);
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'normal');
-        
-        if (isList && Array.isArray(items)) {
-          items.forEach((item, index) => {
-            if (yPosition > pageHeight - 15) {
-              pdf.addPage();
-              yPosition = 20;
-            }
-            const lines = pdf.splitTextToSize(`${index + 1}. ${item}`, pageWidth - 2 * margin - 15);
-            lines.forEach((line, lineIndex) => {
-              pdf.text(lineIndex === 0 ? line : '   ' + line, margin + 8, yPosition);
-              yPosition += 5;
-            });
-            yPosition += 2;
-          });
-        } else {
-          const lines = pdf.splitTextToSize(items, pageWidth - 2 * margin - 10);
-          lines.forEach(line => {
-            if (yPosition > pageHeight - 15) {
-              pdf.addPage();
-              yPosition = 20;
-            }
-            pdf.text(line, margin + 5, yPosition);
-            yPosition += 5;
-          });
+        // Ajouter un footer sur chaque page
+        const pageCount = pdf.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          pdf.setPage(i);
+          pdf.setFillColor(248, 250, 252);
+          pdf.rect(0, pageHeight - 12, pageWidth, 12, 'F');
+          
+          pdf.setTextColor(148, 163, 184);
+          pdf.setFontSize(8);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text('Généré par Retail Performer AI • ' + new Date().toLocaleDateString('fr-FR'), margin, pageHeight - 5);
+          pdf.text('Page ' + i + '/' + pageCount, pageWidth - margin - 20, pageHeight - 5);
         }
         
-        yPosition += 8;
-      };
-
-      // === SECTIONS ===
-      
-      // Synthèse
-      if (guideData.synthese) {
-        addSection('📊', 'Synthèse Globale', guideData.synthese, [224, 231, 255], [67, 56, 202], false);
-      }
-      
-      // Victoires / Points forts
-      if (guideData.victoires?.length) {
-        addSection('🏆', 'Points Forts & Victoires', guideData.victoires, [220, 252, 231], [22, 101, 52]);
-      }
-      
-      // Axes de progrès
-      if (guideData.axes_progres?.length) {
-        addSection('📈', 'Axes de Progrès', guideData.axes_progres, [254, 243, 199], [180, 83, 9]);
-      }
-      
-      // Objectifs (Manager) ou Souhaits (Seller)
-      if (guideData.objectifs?.length) {
-        addSection('🎯', 'Objectifs Proposés', guideData.objectifs, [219, 234, 254], [29, 78, 216]);
-      }
-      if (guideData.souhaits?.length) {
-        addSection('⭐', 'Mes Souhaits & Aspirations', guideData.souhaits, [254, 226, 226], [185, 28, 28]);
-      }
-      
-      // Questions
-      const questions = guideData.questions_coaching || guideData.questions_manager;
-      if (questions?.length) {
-        const qTitle = role === 'seller' ? 'Questions à Poser à Mon Manager' : 'Questions de Coaching';
-        addSection('💬', qTitle, questions, [243, 232, 255], [107, 33, 168]);
-      }
-
-      // === FOOTER ===
-      const pageCount = pdf.internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        pdf.setPage(i);
-        pdf.setFillColor(248, 250, 252);
-        pdf.rect(0, pageHeight - 15, pageWidth, 15, 'F');
+        // ============================================================
+        // ÉTAPE 4: SAUVEGARDER
+        // ============================================================
+        const roleLabel = role === 'seller' ? 'preparation' : 'evaluation';
+        const fileName = `${roleLabel}_${(employeeName || 'collaborateur').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+        pdf.save(fileName);
         
-        pdf.setTextColor(148, 163, 184);
-        pdf.setFontSize(8);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text('Généré par Retail Performer AI • ' + new Date().toLocaleDateString('fr-FR'), margin, pageHeight - 6);
-        pdf.text('Page ' + i + '/' + pageCount, pageWidth - margin - 20, pageHeight - 6);
+        console.log('✅ PDF généré depuis DOM snapshot (pas de corruption attendue)');
+        toast.success('PDF téléchargé avec succès !');
         
-        // Confidential note
-        pdf.setTextColor(220, 38, 38);
-        pdf.setFontSize(7);
-        pdf.text('Document confidentiel', pageWidth / 2 - 15, pageHeight - 6);
+      } catch (canvasError) {
+        // Nettoyer le clone en cas d'erreur
+        if (document.body.contains(clonedElement)) {
+          document.body.removeChild(clonedElement);
+        }
+        throw canvasError;
       }
-
-      // Save
-      const roleLabel = role === 'seller' ? 'preparation' : 'evaluation';
-      const fileName = `${roleLabel}_${(employeeName || 'collaborateur').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-      pdf.save(fileName);
       
-      toast.success('PDF téléchargé avec succès !');
     } catch (error) {
-      console.error('Erreur export PDF:', error);
+      console.error('Erreur export PDF (DOM-based):', error);
       toast.error('Erreur lors de la génération du PDF');
     } finally {
       setExportingPDF(false);
@@ -473,7 +432,7 @@ export default function EvaluationGenerator({ isOpen, onClose, employeeId, emplo
 
           {/* Generated Content - CARTES COLORÉES */}
           {guideData && (
-            <div className="space-y-4">
+            <div ref={guideContentRef} className="space-y-4">
               {/* Header avec bouton copier */}
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-gray-800">

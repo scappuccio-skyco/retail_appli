@@ -3,7 +3,7 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE } from '../lib/api';
 
-export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
+export default function GuideProfilsModal({ onClose, userRole = 'manager', storeIdParam = null }) {
   // Define sections based on user role
   const allSections = userRole === 'seller' 
     ? ['style_vente', 'niveau', 'motivation', 'disc']  // 4 sections for sellers
@@ -17,6 +17,12 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
   const [teamSellers, setTeamSellers] = useState([]);
   const [loadingCompatibility, setLoadingCompatibility] = useState(false);
   
+  // Get store_id from URL if not provided as prop (for gerant accessing as manager)
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlStoreId = urlParams.get('store_id');
+  const effectiveStoreId = storeIdParam || urlStoreId;
+  const storeParam = effectiveStoreId ? `?store_id=${effectiveStoreId}` : '';
+  
   const API = API_BASE || '';
 
   // Fetch manager and sellers data for compatibility
@@ -24,14 +30,14 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
     if (activeSection === 'compatibilite' && userRole === 'manager') {
       fetchCompatibilityData();
     }
-  }, [activeSection]);
+  }, [activeSection, storeParam]); // Re-fetch if storeParam changes
 
   // Reload compatibility data when modal opens
   useEffect(() => {
     if (userRole === 'manager') {
       fetchCompatibilityData();
     }
-  }, []);
+  }, [storeParam]); // Re-fetch if storeParam changes
 
   const fetchCompatibilityData = async () => {
     setLoadingCompatibility(true);
@@ -39,13 +45,13 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
       const token = localStorage.getItem('token');
       
       // Get manager info
-      const managerRes = await axios.get(`${API}/api/auth/me`, {
+      const managerRes = await axios.get(`${API}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('Manager data:', managerRes.data);
+      console.log('[GuideProfils] Manager data:', managerRes.data);
       
       // Get manager diagnostic to have profil_nom
-      const diagnosticRes = await axios.get(`${API}/api/manager-diagnostic/me`, {
+      const diagnosticRes = await axios.get(`${API}/manager-diagnostic/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('Manager diagnostic:', diagnosticRes.data);
@@ -58,12 +64,32 @@ export default function GuideProfilsModal({ onClose, userRole = 'manager' }) {
       console.log('Manager with profile:', managerWithProfile);
       setManagerProfile(managerWithProfile);
       
-      // Get sellers
-      const sellersRes = await axios.get(`${API}/api/manager/sellers`, {
+      // Get sellers - Use same endpoint and params as TeamModal/ManagerSettingsModal
+      const sellersUrl = `${API}/manager/sellers${storeParam}`;
+      console.log('[GuideProfils] 🔍 Fetching sellers:', {
+        url: sellersUrl,
+        storeId: effectiveStoreId,
+        storeParam: storeParam
+      });
+      
+      const sellersRes = await axios.get(sellersUrl, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('Sellers data:', sellersRes.data);
-      setTeamSellers(sellersRes.data);
+      
+      // Normalize response (handles both array and {sellers: []} formats)
+      const sellersData = Array.isArray(sellersRes.data) 
+        ? sellersRes.data 
+        : (sellersRes.data?.sellers || sellersRes.data || []);
+      
+      console.log('[GuideProfils] ✅ Sellers response:', {
+        rawResponse: sellersRes.data,
+        normalizedSellers: sellersData,
+        sellersCount: sellersData.length,
+        responseKeys: Object.keys(sellersRes.data || {}),
+        firstSeller: sellersData[0] || null
+      });
+      
+      setTeamSellers(sellersData);
       
     } catch (error) {
       console.error('Error fetching compatibility data:', error);

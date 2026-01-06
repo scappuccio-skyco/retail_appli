@@ -165,12 +165,14 @@ async def get_integrations_pdf(
         pdf_buffer.seek(0)
         pdf_content = pdf_buffer.read()
         
-        # Return PDF response
+        # Return PDF response with proper headers
         return Response(
             content=pdf_content,
             media_type="application/pdf",
             headers={
-                "Content-Disposition": "attachment; filename=NOTICE_API_INTEGRATIONS.pdf"
+                "Content-Disposition": "attachment; filename=NOTICE_API_INTEGRATIONS.pdf",
+                "Content-Type": "application/pdf",
+                "Access-Control-Expose-Headers": "Content-Disposition, Content-Type, Content-Length"
             }
         )
         

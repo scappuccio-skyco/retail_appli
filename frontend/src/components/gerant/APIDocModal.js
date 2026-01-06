@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Book, ExternalLink, Download } from 'lucide-react';
 import { API_BASE } from '../../lib/api';
 import SupportModal from '../SupportModal';
+import { apiDownloadPdf } from '../../utils/pdfDownload';
 
 export default function APIDocModal({ isOpen, onClose }) {
   const [showSupportModal, setShowSupportModal] = useState(false);
@@ -10,45 +11,8 @@ export default function APIDocModal({ isOpen, onClose }) {
 
   const handleDownloadPDF = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        alert('Vous devez être connecté pour télécharger le PDF.');
-        return;
-      }
-
-      const response = await fetch(`${API_BASE}/api/docs/integrations.pdf`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Erreur serveur:', response.status, errorText);
-        throw new Error(`Erreur ${response.status}: ${errorText || 'Erreur lors du téléchargement du PDF'}`);
-      }
-
-      const blob = await response.blob();
-      
-      // Vérifier que c'est bien un PDF
-      if (blob.type && blob.type !== 'application/pdf' && !blob.type.includes('pdf')) {
-        console.error('Type de fichier reçu:', blob.type);
-        // Ne pas bloquer si le type n'est pas défini (certains serveurs ne le renvoient pas)
-        if (blob.type) {
-          throw new Error('Le fichier reçu n\'est pas un PDF');
-        }
-      }
-
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'NOTICE_API_INTEGRATIONS.pdf';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Use unified PDF download helper
+      await apiDownloadPdf('/api/docs/integrations.pdf', 'NOTICE_API_INTEGRATIONS.pdf');
     } catch (error) {
       console.error('Erreur lors du téléchargement du PDF:', error);
       alert(`Erreur lors du téléchargement du PDF: ${error.message || 'Veuillez réessayer.'}`);
