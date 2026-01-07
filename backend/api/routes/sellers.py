@@ -1227,22 +1227,45 @@ async def get_my_diagnostic(
             formatted_diagnostic = dict(diagnostic)
             formatted_diagnostic['style'] = map_style(formatted_diagnostic.get('style'))
             formatted_diagnostic['level'] = map_level(formatted_diagnostic.get('level'))
+            
             # If motivation is missing, infer it from style or use default
             if not formatted_diagnostic.get('motivation'):
                 # Infer motivation from DISC style if available
                 disc_style = formatted_diagnostic.get('disc_dominant', '').upper()
-                if disc_style == 'D':
+                # Check the original style value BEFORE mapping (could be "S", "D", "I", "C")
+                original_style = str(diagnostic.get('style', '')).upper().strip()
+                
+                if disc_style == 'D' or original_style == 'D':
                     formatted_diagnostic['motivation'] = 'Performance'
-                elif disc_style == 'I':
+                elif disc_style == 'I' or original_style == 'I':
                     formatted_diagnostic['motivation'] = 'Reconnaissance'
-                elif disc_style == 'S':
+                elif disc_style == 'S' or original_style == 'S':
                     formatted_diagnostic['motivation'] = 'Relation'
-                elif disc_style == 'C':
+                elif disc_style == 'C' or original_style == 'C':
                     formatted_diagnostic['motivation'] = 'Découverte'
                 else:
                     formatted_diagnostic['motivation'] = map_motivation(formatted_diagnostic.get('motivation'))
             else:
                 formatted_diagnostic['motivation'] = map_motivation(formatted_diagnostic.get('motivation'))
+            
+            # Generate ai_profile_summary from strengths and axes_de_developpement if missing
+            if not formatted_diagnostic.get('ai_profile_summary'):
+                strengths = formatted_diagnostic.get('strengths', [])
+                axes = formatted_diagnostic.get('axes_de_developpement', [])
+                
+                summary_parts = []
+                if strengths:
+                    summary_parts.append("💪 Tes forces :")
+                    for strength in strengths[:3]:  # Max 3 strengths
+                        summary_parts.append(f"• {strength}")
+                
+                if axes:
+                    summary_parts.append("\n🎯 Axes de développement :")
+                    for axe in axes[:3]:  # Max 3 axes
+                        summary_parts.append(f"• {axe}")
+                
+                if summary_parts:
+                    formatted_diagnostic['ai_profile_summary'] = "\n".join(summary_parts)
             
             diagnostic = formatted_diagnostic
         
