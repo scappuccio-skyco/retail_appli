@@ -1969,11 +1969,11 @@ def calculate_disc_profile(disc_responses: dict) -> dict:
     }
 
 
-@diagnostic_router.post("")
-async def create_diagnostic(
+# Helper function to create diagnostic (used by both routers)
+async def _create_diagnostic_impl(
     diagnostic_data: DiagnosticCreate,
-    current_user: Dict = Depends(get_current_seller),
-    db = Depends(get_db)
+    current_user: Dict,
+    db
 ):
     """
     Create or update seller's DISC diagnostic profile.
@@ -1984,7 +1984,15 @@ async def create_diagnostic(
     
     try:
         seller_id = current_user['id']
-        responses = diagnostic_data.responses
+        # Ensure responses is a dict (convert from list if needed)
+        if isinstance(diagnostic_data.responses, list):
+            # Convert list format to dict format
+            responses = {}
+            for item in diagnostic_data.responses:
+                if isinstance(item, dict) and 'question_id' in item:
+                    responses[str(item['question_id'])] = str(item.get('answer', ''))
+        else:
+            responses = diagnostic_data.responses
         
         # Delete existing diagnostic if any (allow update)
         await db.diagnostics.delete_many({"seller_id": seller_id})
@@ -2153,6 +2161,25 @@ Réponds au format JSON:
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating diagnostic: {str(e)}")
+
+# Add POST endpoint in main router for /seller/diagnostic path
+@router.post("/diagnostic")
+async def create_diagnostic_seller(
+    diagnostic_data: DiagnosticCreate,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Create seller diagnostic - endpoint at /seller/diagnostic"""
+    return await _create_diagnostic_impl(diagnostic_data, current_user, db)
+
+@diagnostic_router.post("")
+async def create_diagnostic(
+    diagnostic_data: DiagnosticCreate,
+    current_user: Dict = Depends(get_current_seller),
+    db = Depends(get_db)
+):
+    """Create seller diagnostic - endpoint at /diagnostic"""
+    return await _create_diagnostic_impl(diagnostic_data, current_user, db)
 
 
 @diagnostic_router.delete("/me")
