@@ -1169,6 +1169,79 @@ async def get_my_diagnostic(
                 "message": "Diagnostic DISC non encore complété"
             }
         
+        # Mapping functions to convert raw values to formatted values
+        def map_style(style_value):
+            """Convert raw style (D, I, S, C) or other formats to formatted style"""
+            if not style_value:
+                return "Convivial"
+            style_str = str(style_value).upper().strip()
+            # DISC mapping
+            disc_to_style = {
+                'D': 'Dynamique',
+                'I': 'Convivial',
+                'S': 'Empathique',
+                'C': 'Stratège'
+            }
+            if style_str in disc_to_style:
+                return disc_to_style[style_str]
+            # If already formatted, return as is
+            valid_styles = ['Convivial', 'Explorateur', 'Dynamique', 'Discret', 'Stratège', 'Empathique', 'Relationnel']
+            if style_value in valid_styles:
+                return style_value
+            return "Convivial"  # Default
+        
+        def map_level(level_value):
+            """Convert raw level (number) to formatted level"""
+            if not level_value:
+                return "Challenger"
+            # If it's already a string, return as is
+            if isinstance(level_value, str):
+                valid_levels = ['Explorateur', 'Challenger', 'Ambassadeur', 'Maître du Jeu', 'Débutant', 'Intermédiaire', 'Expert terrain']
+                if level_value in valid_levels:
+                    return level_value
+            # If it's a number, map to level
+            if isinstance(level_value, (int, float)):
+                if level_value >= 80:
+                    return "Maître du Jeu"
+                elif level_value >= 60:
+                    return "Ambassadeur"
+                elif level_value >= 40:
+                    return "Challenger"
+                else:
+                    return "Explorateur"
+            return "Challenger"  # Default
+        
+        def map_motivation(motivation_value):
+            """Convert raw motivation to formatted motivation"""
+            if not motivation_value:
+                return "Relation"
+            motivation_str = str(motivation_value).strip()
+            valid_motivations = ['Relation', 'Reconnaissance', 'Performance', 'Découverte', 'Équipe', 'Résultats', 'Dépassement', 'Apprentissage', 'Progression', 'Stabilité', 'Polyvalence', 'Contribution']
+            if motivation_str in valid_motivations:
+                return motivation_str
+            return "Relation"  # Default
+        
+        # Format diagnostic values if needed (convert raw values to formatted)
+        if diagnostic:
+            diagnostic['style'] = map_style(diagnostic.get('style'))
+            diagnostic['level'] = map_level(diagnostic.get('level'))
+            # If motivation is missing, infer it from style or use default
+            if not diagnostic.get('motivation'):
+                # Infer motivation from DISC style if available
+                disc_style = diagnostic.get('disc_dominant', '').upper()
+                if disc_style == 'D':
+                    diagnostic['motivation'] = 'Performance'
+                elif disc_style == 'I':
+                    diagnostic['motivation'] = 'Reconnaissance'
+                elif disc_style == 'S':
+                    diagnostic['motivation'] = 'Relation'
+                elif disc_style == 'C':
+                    diagnostic['motivation'] = 'Découverte'
+                else:
+                    diagnostic['motivation'] = map_motivation(diagnostic.get('motivation'))
+            else:
+                diagnostic['motivation'] = map_motivation(diagnostic.get('motivation'))
+        
         # Return with status 'completed' for frontend compatibility (consistent with diagnostic_router)
         return {
             "status": "completed",
@@ -1900,6 +1973,58 @@ async def create_diagnostic(
             "summary": "Profil en cours d'analyse."
         }
         
+        # Mapping functions to convert raw values to formatted values
+        def map_style(style_value):
+            """Convert raw style (D, I, S, C) or other formats to formatted style"""
+            if not style_value:
+                return "Convivial"
+            style_str = str(style_value).upper().strip()
+            # DISC mapping
+            disc_to_style = {
+                'D': 'Dynamique',
+                'I': 'Convivial',
+                'S': 'Empathique',
+                'C': 'Stratège'
+            }
+            if style_str in disc_to_style:
+                return disc_to_style[style_str]
+            # If already formatted, return as is
+            valid_styles = ['Convivial', 'Explorateur', 'Dynamique', 'Discret', 'Stratège', 'Empathique', 'Relationnel']
+            if style_value in valid_styles:
+                return style_value
+            return "Convivial"  # Default
+        
+        def map_level(level_value):
+            """Convert raw level (number) to formatted level"""
+            if not level_value:
+                return "Challenger"
+            # If it's already a string, return as is
+            if isinstance(level_value, str):
+                valid_levels = ['Explorateur', 'Challenger', 'Ambassadeur', 'Maître du Jeu', 'Débutant', 'Intermédiaire', 'Expert terrain']
+                if level_value in valid_levels:
+                    return level_value
+            # If it's a number, map to level
+            if isinstance(level_value, (int, float)):
+                if level_value >= 80:
+                    return "Maître du Jeu"
+                elif level_value >= 60:
+                    return "Ambassadeur"
+                elif level_value >= 40:
+                    return "Challenger"
+                else:
+                    return "Explorateur"
+            return "Challenger"  # Default
+        
+        def map_motivation(motivation_value):
+            """Convert raw motivation to formatted motivation"""
+            if not motivation_value:
+                return "Relation"
+            motivation_str = str(motivation_value).strip()
+            valid_motivations = ['Relation', 'Reconnaissance', 'Performance', 'Découverte', 'Équipe', 'Résultats', 'Dépassement', 'Apprentissage', 'Progression', 'Stabilité', 'Polyvalence', 'Contribution']
+            if motivation_str in valid_motivations:
+                return motivation_str
+            return "Relation"  # Default
+        
         if ai_service.available:
             try:
                 # Format responses for AI
@@ -1943,15 +2068,15 @@ Réponds au format JSON:
             except Exception as e:
                 print(f"AI diagnostic error: {e}")
         
-        # Create diagnostic document
+        # Create diagnostic document with mapped values
         diagnostic = {
             "id": str(uuid4()),
             "seller_id": seller_id,
             "responses": responses,
             "ai_profile_summary": ai_analysis.get('summary', ''),
-            "style": ai_analysis.get('style', 'Convivial'),
-            "level": ai_analysis.get('level', 'Challenger'),
-            "motivation": ai_analysis.get('motivation', 'Relation'),
+            "style": map_style(ai_analysis.get('style', 'Convivial')),
+            "level": map_level(ai_analysis.get('level', 'Challenger')),
+            "motivation": map_motivation(ai_analysis.get('motivation', 'Relation')),
             "score_accueil": competence_scores.get('score_accueil', 3.0),
             "score_decouverte": competence_scores.get('score_decouverte', 3.0),
             "score_argumentation": competence_scores.get('score_argumentation', 3.0),
