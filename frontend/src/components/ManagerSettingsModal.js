@@ -50,6 +50,22 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const [updatingProgressChallengeId, setUpdatingProgressChallengeId] = useState(null);
   const [challengeProgressValue, setChallengeProgressValue] = useState('');
 
+  // When opening an "update progress" form, start with an empty input (incremental entry UX).
+  // Some browsers may re-inject the last value via autofill; we clear twice (sync + next tick).
+  useEffect(() => {
+    if (!updatingProgressObjectiveId) return;
+    setProgressValue('');
+    const t = setTimeout(() => setProgressValue(''), 0);
+    return () => clearTimeout(t);
+  }, [updatingProgressObjectiveId]);
+
+  useEffect(() => {
+    if (!updatingProgressChallengeId) return;
+    setChallengeProgressValue('');
+    const t = setTimeout(() => setChallengeProgressValue(''), 0);
+    return () => clearTimeout(t);
+  }, [updatingProgressChallengeId]);
+
   // New objective form - NEW FLEXIBLE SYSTEM
   const [newObjective, setNewObjective] = useState({
     title: '',
@@ -1468,6 +1484,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                           <div className="flex items-center gap-2 flex-1">
                                             <input
+                                              key={updatingProgressObjectiveId || 'objective-progress'}
+                                              name={`objective_progress_${objective.id}`}
+                                              autoComplete="new-password"
                                               type="number"
                                               step="0.01"
                                               min="0"
@@ -2498,6 +2517,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                 type="number"
                                                 step="0.01"
                                                 min="0"
+                                                name={`challenge_progress_${challenge.id}`}
+                                                autoComplete="new-password"
                                                 placeholder="Saisir la progression (ex: 200)"
                                                 value={challengeProgressValue}
                                                 onChange={(e) => setChallengeProgressValue(e.target.value)}
