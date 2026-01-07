@@ -1286,13 +1286,29 @@ async def update_objective_progress(
         seller_service = SellerService(db)
         new_status = seller_service.compute_status(new_value, target_value, end_date)
         
-        # Update objective
+        # Prepare update payload
         update_data = {
             "current_value": new_value,
             "progress_percentage": progress_percentage,
             "status": new_status,
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
+
+        # IMPORTANT: keep list view consistent – for KPI-based objectives,
+        # also mirror the manual/current value into the corresponding progress_* field
+        # so that subsequent GET (which derives from progress_* for kpi_standard) reflects the change.
+        if existing.get('objective_type') == 'kpi_standard':
+            kpi_name = existing.get('kpi_name', 'ca')
+            if kpi_name == 'ca':
+                update_data['progress_ca'] = new_value
+            elif kpi_name == 'ventes':
+                update_data['progress_ventes'] = new_value
+            elif kpi_name == 'articles':
+                update_data['progress_articles'] = new_value
+            elif kpi_name == 'panier_moyen':
+                update_data['progress_panier_moyen'] = new_value
+            elif kpi_name == 'indice_vente':
+                update_data['progress_indice_vente'] = new_value
         
         await db.objectives.update_one(
             {"id": objective_id},
