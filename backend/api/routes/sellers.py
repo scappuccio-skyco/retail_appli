@@ -1223,24 +1223,28 @@ async def get_my_diagnostic(
         
         # Format diagnostic values if needed (convert raw values to formatted)
         if diagnostic:
-            diagnostic['style'] = map_style(diagnostic.get('style'))
-            diagnostic['level'] = map_level(diagnostic.get('level'))
+            # Create a copy to avoid modifying the original dict
+            formatted_diagnostic = dict(diagnostic)
+            formatted_diagnostic['style'] = map_style(formatted_diagnostic.get('style'))
+            formatted_diagnostic['level'] = map_level(formatted_diagnostic.get('level'))
             # If motivation is missing, infer it from style or use default
-            if not diagnostic.get('motivation'):
+            if not formatted_diagnostic.get('motivation'):
                 # Infer motivation from DISC style if available
-                disc_style = diagnostic.get('disc_dominant', '').upper()
+                disc_style = formatted_diagnostic.get('disc_dominant', '').upper()
                 if disc_style == 'D':
-                    diagnostic['motivation'] = 'Performance'
+                    formatted_diagnostic['motivation'] = 'Performance'
                 elif disc_style == 'I':
-                    diagnostic['motivation'] = 'Reconnaissance'
+                    formatted_diagnostic['motivation'] = 'Reconnaissance'
                 elif disc_style == 'S':
-                    diagnostic['motivation'] = 'Relation'
+                    formatted_diagnostic['motivation'] = 'Relation'
                 elif disc_style == 'C':
-                    diagnostic['motivation'] = 'Découverte'
+                    formatted_diagnostic['motivation'] = 'Découverte'
                 else:
-                    diagnostic['motivation'] = map_motivation(diagnostic.get('motivation'))
+                    formatted_diagnostic['motivation'] = map_motivation(formatted_diagnostic.get('motivation'))
             else:
-                diagnostic['motivation'] = map_motivation(diagnostic.get('motivation'))
+                formatted_diagnostic['motivation'] = map_motivation(formatted_diagnostic.get('motivation'))
+            
+            diagnostic = formatted_diagnostic
         
         # Return with status 'completed' for frontend compatibility (consistent with diagnostic_router)
         return {

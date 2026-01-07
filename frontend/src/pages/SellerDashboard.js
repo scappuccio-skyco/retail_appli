@@ -425,10 +425,8 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       // Try to load diagnostic info
       try {
         const diagnosticRes = await api.get('/seller/diagnostic/me');
-        if (diagnosticRes.data && diagnosticRes.data.has_diagnostic && diagnosticRes.data.diagnostic) {
-          setDiagnostic(diagnosticRes.data.diagnostic);
-        } else if (diagnosticRes.data && diagnosticRes.data.status === 'completed' && diagnosticRes.data.diagnostic) {
-          // Fallback for different response format
+        // Same logic as manager: check status === 'completed' and use diagnostic directly
+        if (diagnosticRes.data && diagnosticRes.data.status === 'completed' && diagnosticRes.data.diagnostic) {
           setDiagnostic(diagnosticRes.data.diagnostic);
         }
       } catch (err) {
