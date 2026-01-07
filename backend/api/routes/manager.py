@@ -1280,6 +1280,7 @@ async def update_objective_progress(
         resolved_store_id = context.get('resolved_store_id')
         manager_id = context.get('id')
         user_role = context.get('role')
+        actor_name = context.get('name') or context.get('full_name') or context.get('email') or 'Manager'
         
         # Get objective
         existing = await db.objectives.find_one(
@@ -1314,7 +1315,9 @@ async def update_objective_progress(
             "current_value": new_value,
             "progress_percentage": progress_percentage,
             "status": new_status,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": manager_id,
+            "updated_by_name": actor_name
         }
 
         # IMPORTANT: keep list view consistent – for KPI-based objectives,
@@ -1333,9 +1336,21 @@ async def update_objective_progress(
             elif kpi_name == 'indice_vente':
                 update_data['progress_indice_vente'] = new_value
         
+        # Append to progress history (keep last 50)
+        progress_entry = {
+            "value": new_value,
+            "date": update_data["updated_at"],
+            "updated_by": manager_id,
+            "updated_by_name": actor_name,
+            "role": user_role
+        }
+
         await db.objectives.update_one(
             {"id": objective_id},
-            {"$set": update_data}
+            {
+                "$set": update_data,
+                "$push": {"progress_history": {"$each": [progress_entry], "$slice": -50}}
+            }
         )
         
         # Fetch and return the complete updated objective
@@ -1685,6 +1700,7 @@ async def update_challenge_progress(
         resolved_store_id = context.get('resolved_store_id')
         manager_id = context.get('id')
         user_role = context.get('role')
+        actor_name = context.get('name') or context.get('full_name') or context.get('email') or 'Manager'
         
         # Get challenge
         existing = await db.challenges.find_one(
@@ -1719,16 +1735,30 @@ async def update_challenge_progress(
             "current_value": new_value,
             "progress_percentage": progress_percentage,
             "status": new_status,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": manager_id,
+            "updated_by_name": actor_name
         }
         
         # If achieved, set completed_at
         if new_status == "achieved":
             update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
         
+        # Append to progress history (keep last 50)
+        progress_entry = {
+            "value": new_value,
+            "date": update_data["updated_at"],
+            "updated_by": manager_id,
+            "updated_by_name": actor_name,
+            "role": user_role
+        }
+
         await db.challenges.update_one(
             {"id": challenge_id},
-            {"$set": update_data}
+            {
+                "$set": update_data,
+                "$push": {"progress_history": {"$each": [progress_entry], "$slice": -50}}
+            }
         )
         
         # Fetch and return the complete updated challenge

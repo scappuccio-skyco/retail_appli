@@ -1281,16 +1281,12 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           >
                             <div>
                               <div>
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
-                                  <h4 className="font-bold text-gray-800 text-base sm:text-lg">
-                                    🎯 {objective.title}
-                                  </h4>
-                                  {objective.description && (
-                                    <p className="text-sm text-gray-600 sm:ml-2">
-                                      {objective.description}
-                                    </p>
-                                  )}
-                                  <div className="flex flex-wrap items-center gap-2">
+                                <div className="mb-3">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                    <h4 className="font-bold text-gray-800 text-base sm:text-lg">
+                                      🎯 {objective.title}
+                                    </h4>
+                                    <div className="flex flex-wrap items-center gap-2">
                                     {/* Type badge */}
                                     <span className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${
                                       objective.type === 'collective' 
@@ -1326,7 +1322,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       {objective.status === 'achieved' ? '✅ Réussi' : 
                                         objective.status === 'failed' ? '❌ Raté' : '⏳ En cours'}
                                     </span>
+                                    </div>
                                   </div>
+                                  {objective.description && (
+                                    <p className="text-sm text-gray-600 mt-1 break-words">
+                                      {objective.description}
+                                    </p>
+                                  )}
                                 </div>
                                 <div className="text-sm text-gray-600 mb-2">
                                   📅 Période: {new Date(objective.period_start).toLocaleDateString('fr-FR')} - {new Date(objective.period_end).toLocaleDateString('fr-FR')}
@@ -1507,6 +1509,28 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                         >
                                           📝 Mettre à jour la progression
                                         </button>
+                                      )}
+
+                                      {/* Historique des mises à jour (sous le bouton) */}
+                                      {Array.isArray(objective.progress_history) && objective.progress_history.length > 0 && (
+                                        <div className="mt-2 bg-white/70 rounded-lg p-2 border border-gray-200">
+                                          <p className="text-xs font-semibold text-gray-600 mb-1">📜 Historique des mises à jour</p>
+                                          <div className="max-h-28 overflow-y-auto space-y-1">
+                                            {[...objective.progress_history].slice(-10).reverse().map((entry, idx) => {
+                                              const dt = entry?.date;
+                                              const label = dt ? new Date(dt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                                              const who = entry?.updated_by_name ? ` • ${entry.updated_by_name}` : '';
+                                              const val = entry?.value ?? '';
+                                              const valLabel = typeof val === 'number' ? val.toLocaleString('fr-FR') : val;
+                                              return (
+                                                <div key={idx} className="flex items-center justify-between gap-2 text-[11px] text-gray-700">
+                                                  <span className="text-gray-600 truncate">{label}{who}</span>
+                                                  <span className="font-semibold whitespace-nowrap">{valLabel} {objective.unit || ''}</span>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
                                       )}
                                     </div>
                                   )}
@@ -2219,16 +2243,12 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                           >
                             <div>
                               <div>
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
-                                  <h4 className="font-bold text-gray-800 text-base sm:text-lg">
-                                    🏆 {challenge.title}
-                                  </h4>
-                                  {challenge.description && (
-                                    <p className="text-sm text-gray-600 sm:ml-2">
-                                      {challenge.description}
-                                    </p>
-                                  )}
-                                  <div className="flex flex-wrap items-center gap-2">
+                                <div className="mb-3">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                    <h4 className="font-bold text-gray-800 text-base sm:text-lg">
+                                      🏆 {challenge.title}
+                                    </h4>
+                                    <div className="flex flex-wrap items-center gap-2">
                                     {/* Type badge */}
                                     <span className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${
                                       challenge.type === 'collective' 
@@ -2264,7 +2284,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       {challenge.status === 'completed' ? '✅ Réussi' : 
                                         challenge.status === 'failed' ? '❌ Raté' : '⏳ En cours'}
                                     </span>
+                                    </div>
                                   </div>
+                                  {challenge.description && (
+                                    <p className="text-sm text-gray-600 mt-1 break-words">
+                                      {challenge.description}
+                                    </p>
+                                  )}
                                 </div>
                                 <div className="text-sm text-gray-600 mb-2">
                                   📅 Période: {new Date(challenge.start_date).toLocaleDateString('fr-FR')} - {new Date(challenge.end_date).toLocaleDateString('fr-FR')}
@@ -2606,6 +2632,28 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       >
                                         📝 Mettre à jour la progression
                                       </button>
+                                    )}
+
+                                    {/* Historique des mises à jour (sous le bouton) */}
+                                    {Array.isArray(challenge.progress_history) && challenge.progress_history.length > 0 && (
+                                      <div className="mt-2 bg-white/70 rounded-lg p-2 border border-gray-200">
+                                        <p className="text-xs font-semibold text-gray-600 mb-1">📜 Historique des mises à jour</p>
+                                        <div className="max-h-28 overflow-y-auto space-y-1">
+                                          {[...challenge.progress_history].slice(-10).reverse().map((entry, idx) => {
+                                            const dt = entry?.date;
+                                            const label = dt ? new Date(dt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                                            const who = entry?.updated_by_name ? ` • ${entry.updated_by_name}` : '';
+                                            const val = entry?.value ?? '';
+                                            const valLabel = typeof val === 'number' ? val.toLocaleString('fr-FR') : val;
+                                            return (
+                                              <div key={idx} className="flex items-center justify-between gap-2 text-[11px] text-gray-700">
+                                                <span className="text-gray-600 truncate">{label}{who}</span>
+                                                <span className="font-semibold whitespace-nowrap">{valLabel} {challenge.unit || ''}</span>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
                                     )}
                                   </div>
                                 )}

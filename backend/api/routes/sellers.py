@@ -640,17 +640,32 @@ async def update_seller_objective_progress(
         # Recompute status using centralized helper
         new_status = seller_service.compute_status(new_value, target_value, end_date)
         
+        actor_name = current_user.get('name') or current_user.get('full_name') or current_user.get('email') or 'Vendeur'
+
         # Update objective
         update_data = {
             "current_value": new_value,
             "progress_percentage": progress_percentage,
             "status": new_status,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": seller_id,
+            "updated_by_name": actor_name
+        }
+
+        progress_entry = {
+            "value": new_value,
+            "date": update_data["updated_at"],
+            "updated_by": seller_id,
+            "updated_by_name": actor_name,
+            "role": "seller"
         }
         
         await db.objectives.update_one(
             {"id": objective_id},
-            {"$set": update_data}
+            {
+                "$set": update_data,
+                "$push": {"progress_history": {"$each": [progress_entry], "$slice": -50}}
+            }
         )
         
         # Fetch and return the complete updated objective
@@ -763,21 +778,36 @@ async def update_seller_challenge_progress(
         # Recompute status using centralized helper
         new_status = seller_service.compute_status(new_value, target_value, end_date)
         
+        actor_name = current_user.get('name') or current_user.get('full_name') or current_user.get('email') or 'Vendeur'
+
         # Update challenge
         update_data = {
             "current_value": new_value,
             "progress_percentage": progress_percentage,
             "status": new_status,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": seller_id,
+            "updated_by_name": actor_name
         }
         
         # If achieved, set completed_at
         if new_status == "achieved":
             update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
         
+        progress_entry = {
+            "value": new_value,
+            "date": update_data["updated_at"],
+            "updated_by": seller_id,
+            "updated_by_name": actor_name,
+            "role": "seller"
+        }
+
         await db.challenges.update_one(
             {"id": challenge_id},
-            {"$set": update_data}
+            {
+                "$set": update_data,
+                "$push": {"progress_history": {"$each": [progress_entry], "$slice": -50}}
+            }
         )
         
         # Fetch and return the complete updated challenge
