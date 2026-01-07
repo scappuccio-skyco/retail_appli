@@ -284,6 +284,31 @@ class AuthService:
         # Remove MongoDB _id if present (added by insert_one)
         user.pop('_id', None)
         
+        # If this is a manager, automatically reassign orphan sellers (without manager_id) in the same store
+        if invitation['role'] == 'manager' and user.get('store_id'):
+            from datetime import datetime, timezone
+            orphan_sellers_result = await self.db.users.update_many(
+                {
+                    "role": "seller",
+                    "store_id": user.get('store_id'),
+                    "$or": [
+                        {"manager_id": None},
+                        {"manager_id": {"$exists": False}}
+                    ],
+                    "status": {"$ne": "deleted"}
+                },
+                {
+                    "$set": {
+                        "manager_id": user_id,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }
+                }
+            )
+            if orphan_sellers_result.modified_count > 0:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"Auto-assigned {orphan_sellers_result.modified_count} orphan seller(s) to new manager {email}")
+        
         # Mark invitation as used in the correct collection
         collection = self.db.gerant_invitations if invitation_collection == "gerant_invitations" else self.db.invitations
         await collection.update_one(

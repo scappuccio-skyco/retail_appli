@@ -161,17 +161,48 @@ async def get_active_seller_objectives(
     - Visible to this seller (individual or collective with visibility rules)
     """
     try:
+        print(f"🔍 [GET SELLER OBJECTIVES] Request from seller: {current_user.get('id')} ({current_user.get('name')})")
+        
         # Get seller's manager
         user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
         
+        # AUTO-FIX: If seller has no manager_id but has a store_id, try to auto-assign a manager
+        if user and not user.get('manager_id') and user.get('store_id'):
+            store_id = user.get('store_id')
+            # Find active manager in the same store
+            manager = await seller_service.db.users.find_one({
+                "role": "manager",
+                "store_id": store_id,
+                "status": "active"
+            }, {"_id": 0, "id": 1, "name": 1})
+            
+            if manager:
+                manager_id = manager.get('id')
+                # Auto-assign the manager
+                from datetime import datetime, timezone
+                await seller_service.db.users.update_one(
+                    {"id": current_user['id']},
+                    {"$set": {
+                        "manager_id": manager_id,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                print(f"✅ [AUTO-FIX] Auto-assigned seller {current_user.get('name')} to manager {manager.get('name')} ({manager_id})")
+                user['manager_id'] = manager_id
+        
         if not user or not user.get('manager_id'):
+            print(f"🔍 [GET SELLER OBJECTIVES] No manager found for seller")
             return []
+        
+        print(f"🔍 [GET SELLER OBJECTIVES] Manager ID: {user.get('manager_id')}")
         
         # Fetch objectives
         objectives = await seller_service.get_seller_objectives_active(
             current_user['id'], 
             user['manager_id']
         )
+        
+        print(f"🔍 [GET SELLER OBJECTIVES] Returning {len(objectives)} objectives to frontend")
         return objectives
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch objectives: {str(e)}")
@@ -272,17 +303,48 @@ async def get_active_seller_challenges(
     - Visible to this seller
     """
     try:
+        print(f"🔍 [GET SELLER CHALLENGES] Request from seller: {current_user.get('id')} ({current_user.get('name')})")
+        
         # Get seller's manager
         user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
         
+        # AUTO-FIX: If seller has no manager_id but has a store_id, try to auto-assign a manager
+        if user and not user.get('manager_id') and user.get('store_id'):
+            store_id = user.get('store_id')
+            # Find active manager in the same store
+            manager = await seller_service.db.users.find_one({
+                "role": "manager",
+                "store_id": store_id,
+                "status": "active"
+            }, {"_id": 0, "id": 1, "name": 1})
+            
+            if manager:
+                manager_id = manager.get('id')
+                # Auto-assign the manager
+                from datetime import datetime, timezone
+                await seller_service.db.users.update_one(
+                    {"id": current_user['id']},
+                    {"$set": {
+                        "manager_id": manager_id,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                print(f"✅ [AUTO-FIX] Auto-assigned seller {current_user.get('name')} to manager {manager.get('name')} ({manager_id})")
+                user['manager_id'] = manager_id
+        
         if not user or not user.get('manager_id'):
+            print(f"🔍 [GET SELLER CHALLENGES] No manager found for seller")
             return []
+        
+        print(f"🔍 [GET SELLER CHALLENGES] Manager ID: {user.get('manager_id')}")
         
         # Fetch active challenges
         challenges = await seller_service.get_seller_challenges_active(
             current_user['id'], 
             user['manager_id']
         )
+        
+        print(f"🔍 [GET SELLER CHALLENGES] Returning {len(challenges)} challenges to frontend")
         return challenges
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch active challenges: {str(e)}")

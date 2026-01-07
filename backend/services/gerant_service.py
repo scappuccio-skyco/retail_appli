@@ -1391,6 +1391,23 @@ class GerantService:
         if existing_invitation:
             raise ValueError("Une invitation est déjà en attente pour cet email")
         
+        # For sellers: automatically assign manager_id if there's a manager in the store
+        manager_id = None
+        manager_name = None
+        if role == 'seller':
+            # Find active manager in the store
+            manager = await self.user_repo.find_one({
+                "role": "manager",
+                "store_id": store_id,
+                "status": "active"
+            })
+            if manager:
+                manager_id = manager.get('id')
+                manager_name = manager.get('name')
+                logger.info(f"Auto-assigning seller invitation to manager {manager_name} ({manager_id}) for store {store_id}")
+            else:
+                logger.warning(f"No active manager found for store {store_id} when creating seller invitation")
+        
         # Create invitation
         invitation_id = str(uuid4())
         token = str(uuid4())
@@ -1404,6 +1421,8 @@ class GerantService:
             "store_id": store_id,
             "store_name": store.get('name'),
             "gerant_id": gerant_id,
+            "manager_id": manager_id,  # Auto-assigned for sellers
+            "manager_name": manager_name,  # For email display
             "status": "pending",
             "created_at": datetime.now(timezone.utc).isoformat(),
             "expires_at": (datetime.now(timezone.utc).replace(hour=0, minute=0, second=0) + 
