@@ -1099,6 +1099,13 @@ async def create_objective(
             end_date=objective.get('period_end')
         )
         
+        print(f"🔍 [CREATE OBJECTIVE] Creating objective:")
+        print(f"   - Title: {objective.get('title')}")
+        print(f"   - Type: {objective.get('type')}")
+        print(f"   - Visible: {objective.get('visible')}")
+        print(f"   - visible_to_sellers: {objective.get('visible_to_sellers')}")
+        print(f"   - seller_id: {objective.get('seller_id')}")
+        
         await db.objectives.insert_one(objective)
         objective.pop("_id", None)
         
@@ -1588,6 +1595,13 @@ async def create_challenge(
             "data_entry_responsible": challenge_data.get("data_entry_responsible", "manager"),
             "unit": challenge_data.get("unit")
         }
+        
+        print(f"🔍 [CREATE CHALLENGE] Creating challenge:")
+        print(f"   - Title: {challenge.get('title')}")
+        print(f"   - Type: {challenge.get('type')}")
+        print(f"   - Visible: {challenge.get('visible')}")
+        print(f"   - visible_to_sellers: {challenge.get('visible_to_sellers')}")
+        print(f"   - seller_id: {challenge.get('seller_id')}")
         
         await db.challenges.insert_one(challenge)
         challenge.pop("_id", None)

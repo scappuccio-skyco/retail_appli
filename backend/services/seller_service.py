@@ -84,6 +84,9 @@ class SellerService:
         if seller_store_id:
             query["store_id"] = seller_store_id
         
+        print(f"🔍 [SELLER OBJECTIVES] Query: {query}")
+        print(f"🔍 [SELLER OBJECTIVES] Seller ID: {seller_id}")
+        
         # Get active objectives from the seller's manager
         # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
         objectives = await self.db.objectives.find(
@@ -91,27 +94,41 @@ class SellerService:
             {"_id": 0}
         ).sort("period_start", 1).to_list(10)
         
+        print(f"🔍 [SELLER OBJECTIVES] Found {len(objectives)} objectives before filtering")
+        
         # Filter objectives based on visibility rules
         filtered_objectives = []
         for objective in objectives:
             obj_type = objective.get('type', 'collective')
+            visible_to = objective.get('visible_to_sellers')
+            
+            print(f"🔍 [SELLER OBJECTIVES] Objective: {objective.get('title')}")
+            print(f"   - Type: {obj_type}")
+            print(f"   - visible_to_sellers: {visible_to}")
+            print(f"   - seller_id in objective: {objective.get('seller_id')}")
             
             # Individual objectives: only show if it's for this seller
             if obj_type == 'individual':
                 if objective.get('seller_id') == seller_id:
+                    print(f"   ✅ INCLUDED (individual, matches seller)")
                     filtered_objectives.append(objective)
+                else:
+                    print(f"   ❌ EXCLUDED (individual, doesn't match seller)")
             # Collective objectives: check visible_to_sellers list
             else:
-                visible_to = objective.get('visible_to_sellers')
                 # CRITICAL: 
                 # - If visible_to_sellers is None or [] (empty), objective is visible to ALL sellers
                 # - If visible_to_sellers is [id1, id2], objective is visible ONLY to these sellers
                 if visible_to is None or (isinstance(visible_to, list) and len(visible_to) == 0):
                     # Visible to all sellers (no restriction)
+                    print(f"   ✅ INCLUDED (collective, visible to all)")
                     filtered_objectives.append(objective)
                 elif isinstance(visible_to, list) and seller_id in visible_to:
                     # Visible only to specific sellers, and this seller is in the list
+                    print(f"   ✅ INCLUDED (collective, seller in list)")
                     filtered_objectives.append(objective)
+                else:
+                    print(f"   ❌ EXCLUDED (collective, seller not in list)")
         
         # Ensure status field exists (for old objectives created before migration)
         for objective in filtered_objectives:
@@ -313,33 +330,50 @@ class SellerService:
         if seller_store_id:
             query["store_id"] = seller_store_id
         
+        print(f"🔍 [SELLER CHALLENGES] Query: {query}")
+        print(f"🔍 [SELLER CHALLENGES] Seller ID: {seller_id}")
+        
         # Get active challenges from the seller's manager
         challenges = await self.db.challenges.find(
             query,
             {"_id": 0}
         ).sort("start_date", 1).to_list(10)
         
+        print(f"🔍 [SELLER CHALLENGES] Found {len(challenges)} challenges before filtering")
+        
         # Filter challenges based on visibility rules
         filtered_challenges = []
         for challenge in challenges:
             chall_type = challenge.get('type', 'collective')
+            visible_to = challenge.get('visible_to_sellers')
+            
+            print(f"🔍 [SELLER CHALLENGES] Challenge: {challenge.get('title')}")
+            print(f"   - Type: {chall_type}")
+            print(f"   - visible_to_sellers: {visible_to}")
+            print(f"   - seller_id in challenge: {challenge.get('seller_id')}")
             
             # Individual challenges: only show if it's for this seller
             if chall_type == 'individual':
                 if challenge.get('seller_id') == seller_id:
+                    print(f"   ✅ INCLUDED (individual, matches seller)")
                     filtered_challenges.append(challenge)
+                else:
+                    print(f"   ❌ EXCLUDED (individual, doesn't match seller)")
             # Collective challenges: check visible_to_sellers list
             else:
-                visible_to = challenge.get('visible_to_sellers')
                 # CRITICAL: 
                 # - If visible_to_sellers is None or [] (empty), challenge is visible to ALL sellers
                 # - If visible_to_sellers is [id1, id2], challenge is visible ONLY to these sellers
                 if visible_to is None or (isinstance(visible_to, list) and len(visible_to) == 0):
                     # Visible to all sellers (no restriction)
+                    print(f"   ✅ INCLUDED (collective, visible to all)")
                     filtered_challenges.append(challenge)
                 elif isinstance(visible_to, list) and seller_id in visible_to:
                     # Visible only to specific sellers, and this seller is in the list
+                    print(f"   ✅ INCLUDED (collective, seller in list)")
                     filtered_challenges.append(challenge)
+                else:
+                    print(f"   ❌ EXCLUDED (collective, seller not in list)")
         
         # Calculate progress for each challenge
         for challenge in filtered_challenges:
