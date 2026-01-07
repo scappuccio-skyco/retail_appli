@@ -46,6 +46,10 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const [isChallengeSellerDropdownOpen, setIsChallengeSellerDropdownOpen] = useState(false);
   const challengeSellerDropdownRef = useRef(null);
   
+  // Progress update state for objectives
+  const [updatingProgressObjectiveId, setUpdatingProgressObjectiveId] = useState(null);
+  const [progressValue, setProgressValue] = useState('');
+
   // Progress update state for challenges
   const [updatingProgressChallengeId, setUpdatingProgressChallengeId] = useState(null);
   const [challengeProgressValue, setChallengeProgressValue] = useState('');
@@ -91,10 +95,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   // Dropdown state for seller selection
   const [isSellerDropdownOpen, setIsSellerDropdownOpen] = useState(false);
   const sellerDropdownRef = useRef(null);
-  
-  // Progress update state
-  const [updatingProgressObjectiveId, setUpdatingProgressObjectiveId] = useState(null);
-  const [progressValue, setProgressValue] = useState('');
 
   useEffect(() => {
     if (isOpen) {
