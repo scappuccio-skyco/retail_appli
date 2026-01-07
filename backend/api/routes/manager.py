@@ -1295,8 +1295,19 @@ async def update_objective_progress(
         if user_role not in ['manager', 'gerant', 'gérant']:
             raise HTTPException(status_code=403, detail="Seuls les managers peuvent mettre à jour la progression via cette route")
         
-        # Get new value (support both "value" and "current_value" for backward compatibility)
-        new_value = progress_data.get("value") or progress_data.get("current_value", existing.get("current_value", 0))
+        # Read increment value (support both "value" and "current_value")
+        increment_value = progress_data.get("value")
+        if increment_value is None:
+            increment_value = progress_data.get("current_value", 0)
+        try:
+            increment_value = float(increment_value)
+        except Exception:
+            increment_value = 0.0
+
+        # Accumulate total by default (additive progression). To force absolute set, client can send mode='set'.
+        mode = (progress_data.get("mode") or "add").lower()
+        previous_total = float(existing.get("current_value", 0) or 0)
+        new_value = increment_value if mode == "set" else previous_total + increment_value
         target_value = existing.get('target_value', 0)
         end_date = existing.get('period_end')
         
@@ -1338,11 +1349,12 @@ async def update_objective_progress(
         
         # Append to progress history (keep last 50)
         progress_entry = {
-            "value": new_value,
+            "value": increment_value,
             "date": update_data["updated_at"],
             "updated_by": manager_id,
             "updated_by_name": actor_name,
-            "role": user_role
+            "role": user_role,
+            "total_after": new_value
         }
 
         await db.objectives.update_one(
@@ -1715,8 +1727,19 @@ async def update_challenge_progress(
         if user_role not in ['manager', 'gerant', 'gérant']:
             raise HTTPException(status_code=403, detail="Seuls les managers peuvent mettre à jour la progression via cette route")
         
-        # Get new value (support both "value" and "current_value" for backward compatibility)
-        new_value = progress_data.get("value") or progress_data.get("current_value", existing.get("current_value", 0))
+        # Read increment value (support both "value" and "current_value")
+        increment_value = progress_data.get("value")
+        if increment_value is None:
+            increment_value = progress_data.get("current_value", 0)
+        try:
+            increment_value = float(increment_value)
+        except Exception:
+            increment_value = 0.0
+
+        # Accumulate total by default (additive). To force absolute set, send mode='set'
+        mode = (progress_data.get("mode") or "add").lower()
+        previous_total = float(existing.get("current_value", 0) or 0)
+        new_value = increment_value if mode == "set" else previous_total + increment_value
         target_value = existing.get('target_value', 0)
         end_date = existing.get('end_date')
         
@@ -1746,11 +1769,12 @@ async def update_challenge_progress(
         
         # Append to progress history (keep last 50)
         progress_entry = {
-            "value": new_value,
+            "value": increment_value,
             "date": update_data["updated_at"],
             "updated_by": manager_id,
             "updated_by_name": actor_name,
-            "role": user_role
+            "role": user_role,
+            "total_after": new_value
         }
 
         await db.challenges.update_one(

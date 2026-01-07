@@ -1514,7 +1514,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       {/* Historique des mises à jour (sous le bouton) */}
                                       {Array.isArray(objective.progress_history) && objective.progress_history.length > 0 && (
                                         <div className="mt-2 bg-white/70 rounded-lg p-2 border border-gray-200">
-                                          <p className="text-xs font-semibold text-gray-600 mb-1">📜 Historique des mises à jour</p>
+                                          <p className="text-xs font-semibold text-gray-600 mb-1">📜 Historique des progression</p>
                                           <div className="max-h-28 overflow-y-auto space-y-1">
                                             {[...objective.progress_history].slice(-10).reverse().map((entry, idx) => {
                                               const dt = entry?.date;
@@ -2637,7 +2637,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     {/* Historique des mises à jour (sous le bouton) */}
                                     {Array.isArray(challenge.progress_history) && challenge.progress_history.length > 0 && (
                                       <div className="mt-2 bg-white/70 rounded-lg p-2 border border-gray-200">
-                                        <p className="text-xs font-semibold text-gray-600 mb-1">📜 Historique des mises à jour</p>
+                                          <p className="text-xs font-semibold text-gray-600 mb-1">📜 Historique des progression</p>
                                         <div className="max-h-28 overflow-y-auto space-y-1">
                                           {[...challenge.progress_history].slice(-10).reverse().map((entry, idx) => {
                                             const dt = entry?.date;

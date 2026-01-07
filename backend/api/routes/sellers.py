@@ -627,8 +627,17 @@ async def update_seller_objective_progress(
                     detail="Vous n'êtes pas autorisé à mettre à jour cet objectif collectif"
                 )
         
-        # Get new value
-        new_value = progress_data.get("value") or progress_data.get("current_value", objective.get("current_value", 0))
+        # Get increment value
+        increment_value = progress_data.get("value")
+        if increment_value is None:
+            increment_value = progress_data.get("current_value", 0)
+        try:
+            increment_value = float(increment_value)
+        except Exception:
+            increment_value = 0.0
+        mode = (progress_data.get("mode") or "add").lower()
+        previous_total = float(objective.get("current_value", 0) or 0)
+        new_value = increment_value if mode == "set" else previous_total + increment_value
         target_value = objective.get('target_value', 0)
         end_date = objective.get('period_end')
         
@@ -653,11 +662,12 @@ async def update_seller_objective_progress(
         }
 
         progress_entry = {
-            "value": new_value,
+            "value": increment_value,
             "date": update_data["updated_at"],
             "updated_by": seller_id,
             "updated_by_name": actor_name,
-            "role": "seller"
+            "role": "seller",
+            "total_after": new_value
         }
         
         await db.objectives.update_one(
@@ -765,8 +775,17 @@ async def update_seller_challenge_progress(
                     detail="Vous n'êtes pas autorisé à mettre à jour ce challenge collectif"
                 )
         
-        # Get new value
-        new_value = progress_data.get("value") or progress_data.get("current_value", challenge.get("current_value", 0))
+        # Get increment value
+        increment_value = progress_data.get("value")
+        if increment_value is None:
+            increment_value = progress_data.get("current_value", 0)
+        try:
+            increment_value = float(increment_value)
+        except Exception:
+            increment_value = 0.0
+        mode = (progress_data.get("mode") or "add").lower()
+        previous_total = float(challenge.get("current_value", 0) or 0)
+        new_value = increment_value if mode == "set" else previous_total + increment_value
         target_value = challenge.get('target_value', 0)
         end_date = challenge.get('end_date')
         
@@ -795,11 +814,12 @@ async def update_seller_challenge_progress(
             update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
         
         progress_entry = {
-            "value": new_value,
+            "value": increment_value,
             "date": update_data["updated_at"],
             "updated_by": seller_id,
             "updated_by_name": actor_name,
-            "role": "seller"
+            "role": "seller",
+            "total_after": new_value
         }
 
         await db.challenges.update_one(
