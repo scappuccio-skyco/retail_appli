@@ -425,8 +425,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       // Try to load diagnostic info
       try {
         const diagnosticRes = await api.get('/seller/diagnostic/me');
-        if (diagnosticRes.data) {
-          setDiagnostic(diagnosticRes.data);
+        if (diagnosticRes.data && diagnosticRes.data.has_diagnostic && diagnosticRes.data.diagnostic) {
+          setDiagnostic(diagnosticRes.data.diagnostic);
+        } else if (diagnosticRes.data && diagnosticRes.data.status === 'completed' && diagnosticRes.data.diagnostic) {
+          // Fallback for different response format
+          setDiagnostic(diagnosticRes.data.diagnostic);
         }
       } catch (err) {
         logger.log('No diagnostic available yet');

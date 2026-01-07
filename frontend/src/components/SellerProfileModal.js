@@ -39,17 +39,17 @@ export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnost
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="bg-purple-50 rounded-xl p-4">
                 <p className="text-sm text-purple-600 mb-2">🎨 Style de vente</p>
-                <p className="text-xl font-bold text-purple-900">{diagnostic.style}</p>
+                <p className="text-xl font-bold text-purple-900">{diagnostic.style || 'Non défini'}</p>
                 <p className="text-xs text-purple-500 mt-1">Ton approche client</p>
               </div>
               <div className="bg-green-50 rounded-xl p-4">
                 <p className="text-sm text-[#10B981] mb-2">⭐ Niveau d'expérience</p>
-                <p className="text-xl font-bold text-green-900">{diagnostic.level}</p>
+                <p className="text-xl font-bold text-green-900">{diagnostic.level || 'Non défini'}</p>
                 <p className="text-xs text-[#10B981] mt-1">Ta progression</p>
               </div>
               <div className="bg-orange-50 rounded-xl p-4">
                 <p className="text-sm text-[#F97316] mb-2">⚡ Moteur de motivation</p>
-                <p className="text-xl font-bold text-orange-900">{diagnostic.motivation}</p>
+                <p className="text-xl font-bold text-orange-900">{diagnostic.motivation || 'Non défini'}</p>
                 <p className="text-xs text-[#F97316] mt-1">Ce qui t'anime</p>
               </div>
             </div>
