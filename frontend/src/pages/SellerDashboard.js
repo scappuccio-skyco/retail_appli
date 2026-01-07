@@ -1024,8 +1024,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
 
       <div className="max-w-7xl mx-auto flex flex-col">
         {/* Tasks Section - Always visible - Compact */}
-        <div className="glass-morphism rounded-2xl p-3 mb-6 !border-2 !border-[#1E40AF]">
-          <h2 className="text-lg font-bold text-gray-800 mb-2">Mes tâches à faire</h2>
+        <div className={`glass-morphism rounded-2xl ${tasks.length > 0 ? 'p-3 mb-6' : 'p-1 mb-2'} border border-[#1E40AF]`}>
+          {tasks.length > 0 && (
+            <h2 className="text-lg font-bold text-gray-800 mb-2">Mes tâches à faire</h2>
+          )}
           
           {tasks.length > 0 ? (
             <div className="space-y-1.5">
@@ -1072,13 +1074,10 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               ))}
             </div>
           ) : (
-            <div className="bg-green-50 rounded-xl px-3 py-2 text-center border border-green-200">
-              <div className="flex items-center justify-center gap-2 flex-wrap">
-                <span className="text-lg">🎉</span>
-                <span className="font-semibold text-green-800">Bravo !</span>
-                <span className="text-green-700 text-sm">Tu as rempli toutes tes tâches du jour.</span>
-                <span className="text-[#10B981] text-sm">Continue comme ça, tu es au top ! 💪</span>
-              </div>
+            <div className="bg-green-50/70 rounded px-2 py-0.5 text-center">
+              <span className="text-[11px] text-green-800 font-medium whitespace-nowrap inline-flex items-center gap-1">
+                <span>🎉</span> <span>Bravo ! Toutes tes tâches sont faites.</span>
+              </span>
             </div>
           )}
         </div>
