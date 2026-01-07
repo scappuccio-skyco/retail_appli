@@ -506,11 +506,34 @@ export default function DiagnosticFormScrollable({ onComplete, onClose, isModal 
       });
 
       // Backend expects the list directly, not wrapped in { responses: [...] }
-      const response = await api.post('/ai/diagnostic', responsesList);
+      const aiResponse = await api.post('/ai/diagnostic', responsesList);
+      
+      // Save the diagnostic to database with the AI results
+      // Convert responsesList back to dict format for the diagnostic endpoint
+      const responsesDict = {};
+      responsesList.forEach(r => {
+        responsesDict[r.question_id] = r.answer;
+      });
+      
+      // Save diagnostic with AI results included
+      try {
+        await api.post('/seller/diagnostic', {
+          responses: responsesDict,
+          // Include AI results if available
+          style: aiResponse.data?.style,
+          level: aiResponse.data?.level,
+          motivation: aiResponse.data?.motivation,
+          strengths: aiResponse.data?.strengths,
+          axes_de_developpement: aiResponse.data?.axes_de_developpement
+        });
+      } catch (saveErr) {
+        logger.error('Error saving diagnostic:', saveErr);
+        // Continue anyway - the AI analysis was successful
+      }
       
       toast.success('Ton profil vendeur est prêt ! 🔥');
       if (onComplete) {
-        onComplete(response.data);
+        onComplete(aiResponse.data);
       }
     } catch (err) {
       logger.error('Error submitting diagnostic:', err);

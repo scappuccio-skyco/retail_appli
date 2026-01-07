@@ -3,7 +3,7 @@ Seller Routes
 API endpoints for seller-specific features (tasks, objectives, challenges)
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from datetime import datetime, timezone, timedelta
 
 from services.seller_service import SellerService
@@ -1849,6 +1849,11 @@ from uuid import uuid4
 
 class DiagnosticCreate(BaseModel):
     responses: dict
+    style: Optional[str] = None
+    level: Optional[Union[str, int, float]] = None
+    motivation: Optional[str] = None
+    strengths: Optional[List[str]] = None
+    axes_de_developpement: Optional[List[str]] = None
 
 
 def calculate_competence_scores_from_questionnaire(responses: dict) -> dict:
@@ -2095,15 +2100,41 @@ Réponds au format JSON:
             except Exception as e:
                 print(f"AI diagnostic error: {e}")
         
+        # Get strengths and axes_de_developpement from request if provided (from /ai/diagnostic)
+        strengths = diagnostic_data.dict().get('strengths') or ai_analysis.get('strengths', [])
+        axes_de_developpement = diagnostic_data.dict().get('axes_de_developpement') or ai_analysis.get('axes_de_developpement', [])
+        
+        # Generate ai_profile_summary from strengths and axes if available
+        ai_summary = ai_analysis.get('summary', '')
+        if not ai_summary and (strengths or axes_de_developpement):
+            summary_parts = []
+            if strengths:
+                summary_parts.append("💪 Tes forces :")
+                for strength in strengths[:3]:  # Max 3 strengths
+                    summary_parts.append(f"• {strength}")
+            if axes_de_developpement:
+                summary_parts.append("\n🎯 Axes de développement :")
+                for axe in axes_de_developpement[:3]:  # Max 3 axes
+                    summary_parts.append(f"• {axe}")
+            if summary_parts:
+                ai_summary = "\n".join(summary_parts)
+        
+        # Use provided style/level/motivation from request if available, otherwise use AI analysis
+        final_style = map_style(diagnostic_data.dict().get('style') or ai_analysis.get('style', 'Convivial'))
+        final_level = map_level(diagnostic_data.dict().get('level') or ai_analysis.get('level', 'Challenger'))
+        final_motivation = map_motivation(diagnostic_data.dict().get('motivation') or ai_analysis.get('motivation', 'Relation'))
+        
         # Create diagnostic document with mapped values
         diagnostic = {
             "id": str(uuid4()),
             "seller_id": seller_id,
             "responses": responses,
-            "ai_profile_summary": ai_analysis.get('summary', ''),
-            "style": map_style(ai_analysis.get('style', 'Convivial')),
-            "level": map_level(ai_analysis.get('level', 'Challenger')),
-            "motivation": map_motivation(ai_analysis.get('motivation', 'Relation')),
+            "ai_profile_summary": ai_summary,
+            "style": final_style,
+            "level": final_level,
+            "motivation": final_motivation,
+            "strengths": strengths if strengths else [],
+            "axes_de_developpement": axes_de_developpement if axes_de_developpement else [],
             "score_accueil": competence_scores.get('score_accueil', 3.0),
             "score_decouverte": competence_scores.get('score_decouverte', 3.0),
             "score_argumentation": competence_scores.get('score_argumentation', 3.0),
