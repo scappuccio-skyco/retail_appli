@@ -62,7 +62,8 @@ export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnost
             )}
 
             {/* DISC Profile Section */}
-            {diagnostic.disc_dominant && (
+            {diagnostic.disc_dominant && diagnostic.disc_percentages && 
+             Object.values(diagnostic.disc_percentages).some(p => p > 0) && (
               <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border-2 border-purple-200 mb-4">
                 <div className="mb-4">
                   <p className="text-lg font-bold text-purple-800 mb-2">
@@ -90,10 +91,27 @@ export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnost
                 </div>
               </div>
             )}
+            {diagnostic.disc_dominant && (!diagnostic.disc_percentages || 
+              !Object.values(diagnostic.disc_percentages || {}).some(p => p > 0)) && (
+              <div className="bg-yellow-50 rounded-xl p-4 mb-4 border-2 border-yellow-200">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ Les pourcentages DISC ne sont pas disponibles. Veuillez refaire le diagnostic.
+                </p>
+              </div>
+            )}
 
             {/* Compétences */}
             <div className="bg-gray-50 rounded-xl p-5">
               <p className="text-sm font-semibold text-gray-900 mb-4">📊 Tes compétences :</p>
+              {diagnostic.score_accueil === 0 && diagnostic.score_decouverte === 0 && 
+               diagnostic.score_argumentation === 0 && diagnostic.score_closing === 0 && 
+               diagnostic.score_fidelisation === 0 && (
+                <div className="bg-yellow-50 rounded-xl p-4 mb-4 border-2 border-yellow-200">
+                  <p className="text-sm text-yellow-800">
+                    ⚠️ Les scores de compétences ne sont pas disponibles. Veuillez refaire le diagnostic.
+                  </p>
+                </div>
+              )}
               <div className="grid grid-cols-5 gap-3">
                 <div className="text-center">
                   <p className="text-xs text-gray-600 mb-1">Accueil</p>

@@ -1900,13 +1900,15 @@ def calculate_competence_scores_from_questionnaire(responses: dict) -> dict:
             q_key = str(q_id)
             if q_key in responses:
                 response_value = responses[q_key]
-                if isinstance(response_value, int):
-                    option_idx = response_value
-                    if q_id in question_scores and option_idx < len(question_scores[q_id]):
+                try:
+                    # Convert to int if string (e.g., "0" -> 0)
+                    option_idx = int(response_value) if not isinstance(response_value, int) else response_value
+                    if q_id in question_scores and 0 <= option_idx < len(question_scores[q_id]):
                         scores[competence].append(question_scores[q_id][option_idx])
                     else:
                         scores[competence].append(3.0)
-                else:
+                except (ValueError, TypeError):
+                    # Invalid response format, use default
                     scores[competence].append(3.0)
     
     final_scores = {}
@@ -1940,15 +1942,20 @@ def calculate_disc_profile(disc_responses: dict) -> dict:
     for q_key, response in disc_responses.items():
         if q_key in disc_mapping:
             mapping = disc_mapping[q_key]
-            if isinstance(response, int):
-                if response in mapping.get('D', []):
+            try:
+                # Convert to int if string (e.g., "0" -> 0)
+                response_int = int(response) if not isinstance(response, int) else response
+                if response_int in mapping.get('D', []):
                     d_score += 1
-                elif response in mapping.get('I', []):
+                elif response_int in mapping.get('I', []):
                     i_score += 1
-                elif response in mapping.get('S', []):
+                elif response_int in mapping.get('S', []):
                     s_score += 1
-                elif response in mapping.get('C', []):
+                elif response_int in mapping.get('C', []):
                     c_score += 1
+            except (ValueError, TypeError):
+                # Skip invalid response
+                pass
     
     total = d_score + i_score + s_score + c_score
     if total == 0:
@@ -1993,6 +2000,22 @@ async def _create_diagnostic_impl(
                     responses[str(item['question_id'])] = str(item.get('answer', ''))
         else:
             responses = diagnostic_data.responses
+        
+        # Convert string responses to int for calculations (questions expect option indices as integers)
+        if isinstance(responses, dict):
+            normalized_responses = {}
+            for key, value in responses.items():
+                try:
+                    # Try to convert to int (for option indices: 0, 1, 2, 3)
+                    if isinstance(value, str) and value.isdigit():
+                        normalized_responses[key] = int(value)
+                    elif isinstance(value, (int, float)):
+                        normalized_responses[key] = int(value)
+                    else:
+                        normalized_responses[key] = value
+                except (ValueError, TypeError):
+                    normalized_responses[key] = value
+            responses = normalized_responses
         
         # Delete existing diagnostic if any (allow update)
         await db.diagnostics.delete_many({"seller_id": seller_id})
@@ -2114,6 +2137,9 @@ Réponds au format JSON:
         
         # Generate ai_profile_summary from strengths and axes if available
         ai_summary = ai_analysis.get('summary', '')
+        # Remove default "Profil en cours d'analyse" message if it's still the default
+        if ai_summary == "Profil en cours d'analyse.":
+            ai_summary = ''
         if not ai_summary and (strengths or axes_de_developpement):
             summary_parts = []
             if strengths:
@@ -2152,6 +2178,24 @@ Réponds au format JSON:
             "disc_percentages": disc_profile['percentages'],
             "created_at": datetime.now(timezone.utc).isoformat()
         }
+        
+        # Validate diagnostic before saving
+        validation_errors = []
+        if not disc_profile.get('percentages') or sum(disc_profile['percentages'].values()) == 0:
+            validation_errors.append("DISC percentages are all zero")
+        if all(score == 3.0 for score in [
+            diagnostic['score_accueil'], diagnostic['score_decouverte'],
+            diagnostic['score_argumentation'], diagnostic['score_closing'],
+            diagnostic['score_fidelisation']
+        ]):
+            validation_errors.append("All competence scores are default (3.0)")
+        
+        if validation_errors:
+            logger.warning(f"Diagnostic validation warnings for seller {seller_id}: {validation_errors}")
+            # Log the responses for debugging
+            response_keys = list(responses.keys())
+            response_types = [type(v).__name__ for v in list(responses.values())[:10]]
+            logger.debug(f"Responses received: {len(response_keys)} questions, sample types: {response_types}")
         
         await db.diagnostics.insert_one(diagnostic)
         if '_id' in diagnostic:
