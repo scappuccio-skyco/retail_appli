@@ -1003,6 +1003,18 @@ async def get_daily_challenge(
         if existing:
             return existing
         
+        # Check if there's already a completed challenge for today
+        # If yes, don't generate a new one - user must wait until tomorrow
+        completed_today = await db.daily_challenges.find_one({
+            "seller_id": seller_id,
+            "date": today,
+            "completed": True
+        }, {"_id": 0})
+        
+        if completed_today:
+            # Return the completed challenge instead of generating a new one
+            return completed_today
+        
         # Generate new challenge
         # Get seller's diagnostic for personalization
         diagnostic = await db.diagnostics.find_one({
