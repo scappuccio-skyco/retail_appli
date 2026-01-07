@@ -1179,10 +1179,11 @@ export default function ManagerDashboard({ user, onLogout }) {
 
       {/* Seller Detail Modal */}
       {showDetailView && selectedSeller && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-          <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl w-full max-w-7xl my-8 shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[95vh] shadow-2xl flex flex-col my-4">
             <SellerDetailView 
-              seller={selectedSeller} 
+              seller={selectedSeller}
+              storeIdParam={urlStoreId}
               onBack={() => {
                 setShowDetailView(false);
                 setSelectedSeller(null);

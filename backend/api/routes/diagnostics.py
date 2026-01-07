@@ -10,10 +10,13 @@ from pydantic import BaseModel
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from fastapi import Request
+
 from core.security import get_current_user
 from services.manager_service import DiagnosticService
 from api.dependencies import get_diagnostic_service, get_db
 from services.ai_service import AIService
+from api.routes.manager import get_store_context
 
 router = APIRouter(prefix="/manager-diagnostic", tags=["Diagnostics"])
 
@@ -200,22 +203,25 @@ async def get_my_diagnostic(
 @router.get("/seller/{seller_id}")
 async def get_seller_diagnostic_for_manager(
     seller_id: str,
-    current_user: dict = Depends(verify_manager_or_gerant),
+    request: Request,
+    context: dict = Depends(get_store_context),
     db = Depends(get_db)
 ):
     """
     Get a seller's diagnostic (for manager/gérant viewing seller details)
     """
     try:
-        # Verify seller exists and belongs to same store (for managers)
+        resolved_store_id = context.get('resolved_store_id')
+        current_user = context
+        
+        # Verify seller exists and belongs to the store
         seller = await db.users.find_one({"id": seller_id, "role": "seller"}, {"_id": 0})
         if not seller:
             return None
         
-        # For managers, verify same store
-        if current_user.get('role') == 'manager':
-            if seller.get('store_id') != current_user.get('store_id'):
-                raise HTTPException(status_code=403, detail="Vendeur non trouvé dans votre magasin")
+        # Verify seller belongs to the resolved store_id
+        if resolved_store_id and seller.get('store_id') != resolved_store_id:
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé ou n'appartient pas à ce magasin")
         
         diagnostic = await db.diagnostics.find_one({"seller_id": seller_id}, {"_id": 0})
         

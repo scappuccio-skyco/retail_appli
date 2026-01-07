@@ -7,7 +7,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Responsi
 import ConflictResolutionForm from './ConflictResolutionForm';
 import { renderMarkdownBold } from '../utils/markdownRenderer';
 
-export default function SellerDetailView({ seller, onBack }) {
+export default function SellerDetailView({ seller, onBack, storeIdParam = null }) {
   const [diagnostic, setDiagnostic] = useState(null);
   const [debriefs, setDebriefs] = useState([]);
   const [competencesHistory, setCompetencesHistory] = useState([]);
@@ -31,20 +31,24 @@ export default function SellerDetailView({ seller, onBack }) {
     indiceVente: true
   }); // New state for chart visibility toggles
 
+  // Build store_id param for API calls (for gerant viewing as manager)
+  const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
+  const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
+
   useEffect(() => {
     fetchSellerData();
-  }, [seller.id]);
+  }, [seller.id, storeIdParam]);
 
   const fetchSellerData = async () => {
     setLoading(true);
     try {
       const [statsRes, diagRes, debriefsRes, competencesRes, kpiRes, kpiConfigRes] = await Promise.all([
-        api.get(`/manager/seller/${seller.id}/stats`),
-        api.get(`/manager-diagnostic/seller/${seller.id}`),
-        api.get(`/manager/debriefs/${seller.id}`),
-        api.get(`/manager/competences-history/${seller.id}`),
-        api.get(`/manager/kpi-entries/${seller.id}?days=30`),
-        api.get(`/manager/kpi-config`)
+        api.get(`/manager/seller/${seller.id}/stats${storeParam}`),
+        api.get(`/manager-diagnostic/seller/${seller.id}${storeParam}`),
+        api.get(`/manager/debriefs/${seller.id}${storeParam}`),
+        api.get(`/manager/competences-history/${seller.id}${storeParam}`),
+        api.get(`/manager/kpi-entries/${seller.id}?days=30${storeParamAnd}`),
+        api.get(`/manager/kpi-config${storeParam}`)
       ]);
 
       // Extract LIVE scores from stats endpoint (harmonized with manager overview)
@@ -164,75 +168,80 @@ export default function SellerDetailView({ seller, onBack }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cyan-600 to-blue-600 p-8">
-        <div className="text-center py-12">Chargement...</div>
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-600 to-blue-600 p-4 sm:p-8">
-      <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="glass-morphism rounded-2xl p-6 mb-8">
+    <div className="flex flex-col h-full max-h-[95vh] overflow-hidden">
+      {/* Header - Compact */}
+      <div className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-700 px-4 sm:px-6 py-4 rounded-t-2xl">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <button
               onClick={onBack}
-              className="btn-secondary flex items-center gap-2"
+              className="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
+              title="Retour"
             >
               <ArrowLeft className="w-5 h-5" />
-              Retour
             </button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">{seller.name}</h1>
-              <p className="text-gray-600">{seller.email}</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl font-bold text-white truncate">{seller.name}</h1>
+              <p className="text-xs sm:text-sm text-blue-100 truncate">{seller.email}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Diagnostic Profile */}
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto bg-gray-50 p-3 sm:p-4">
+
+      {/* Diagnostic Profile - Compact */}
       {diagnostic ? (
-        <div className="glass-morphism rounded-2xl p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Profil de vente</h2>
+        <div className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-200">
+          <h2 className="text-base font-bold text-gray-800 mb-3">Profil de vente</h2>
           
-          <div className="bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] rounded-xl p-4 shadow-lg">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-100">
             {/* Show legacy detailed format (Style, Level, Motivation) OR new simplified format (Score, Profile) */}
             {diagnostic.style ? (
               // Legacy format for older diagnostics
               <>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                  <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                    <p className="text-xs text-gray-600 mb-1">🎨 Style</p>
-                    <p className="text-lg font-bold text-gray-800">{diagnostic.style}</p>
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="bg-white rounded-lg p-2 text-center">
+                    <p className="text-[10px] text-gray-500 mb-0.5">🎨 Style</p>
+                    <p className="text-sm font-bold text-gray-800">{diagnostic.style}</p>
                   </div>
-                  <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                    <p className="text-xs text-gray-600 mb-1">🎯 Niveau</p>
-                    <p className="text-lg font-bold text-gray-800">{diagnostic.level || 'N/A'}</p>
+                  <div className="bg-white rounded-lg p-2 text-center">
+                    <p className="text-[10px] text-gray-500 mb-0.5">🎯 Niveau</p>
+                    <p className="text-sm font-bold text-gray-800">{diagnostic.level || 'N/A'}</p>
                   </div>
-                  <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                    <p className="text-xs text-gray-600 mb-1">⚡ Motivation</p>
-                    <p className="text-lg font-bold text-gray-800">{diagnostic.motivation || 'N/A'}</p>
+                  <div className="bg-white rounded-lg p-2 text-center">
+                    <p className="text-[10px] text-gray-500 mb-0.5">⚡ Motivation</p>
+                    <p className="text-sm font-bold text-gray-800">{diagnostic.motivation || 'N/A'}</p>
                   </div>
                 </div>
                 
                 {diagnostic.ai_profile_summary && (
-                  <div className="bg-white bg-opacity-70 rounded-lg p-4">
-                    <p className="text-sm text-gray-800 whitespace-pre-line">{renderMarkdownBold(diagnostic.ai_profile_summary)}</p>
+                  <div className="bg-white rounded-lg p-3">
+                    <p className="text-xs text-gray-700 leading-relaxed">{renderMarkdownBold(diagnostic.ai_profile_summary)}</p>
                   </div>
                 )}
               </>
             ) : (
               // New simplified format for recent diagnostics
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                  <p className="text-xs text-gray-600 mb-1">📊 Score Diagnostic</p>
-                  <p className="text-lg font-bold text-gray-800">{diagnostic.score ? `${diagnostic.score.toFixed(2)} / 5` : 'N/A'}</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-white rounded-lg p-2 text-center">
+                  <p className="text-[10px] text-gray-500 mb-0.5">📊 Score</p>
+                  <p className="text-sm font-bold text-gray-800">{diagnostic.score ? `${diagnostic.score.toFixed(2)} / 5` : 'N/A'}</p>
                 </div>
-                <div className="bg-white bg-opacity-70 rounded-lg p-3">
-                  <p className="text-xs text-gray-600 mb-1">🎯 Profil</p>
-                  <p className="text-lg font-bold text-gray-800">
+                <div className="bg-white rounded-lg p-2 text-center">
+                  <p className="text-[10px] text-gray-500 mb-0.5">🎯 Profil</p>
+                  <p className="text-xs font-bold text-gray-800">
                     {diagnostic.profile === 'communicant_naturel' ? 'Communicant Naturel' :
                      diagnostic.profile === 'excellence_commerciale' ? 'Excellence Commerciale' :
                      diagnostic.profile === 'potentiel_developper' ? 'Potentiel à Développer' :
@@ -245,54 +254,51 @@ export default function SellerDetailView({ seller, onBack }) {
           </div>
         </div>
       ) : (
-        <div className="glass-morphism rounded-2xl p-6 mb-8 bg-gray-50">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Profil de vente</h2>
-          <div className="text-center py-8">
-            <p className="text-gray-600 mb-4">
+        <div className="bg-white rounded-xl p-4 mb-4 shadow-sm border border-gray-200">
+          <h2 className="text-base font-bold text-gray-800 mb-3">Profil de vente</h2>
+          <div className="text-center py-4">
+            <p className="text-sm text-gray-600 mb-2">
               {seller.name} n'a pas encore complété son diagnostic de vente.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs text-gray-500">
               Le vendeur doit se connecter à son compte et compléter le diagnostic pour voir son profil ici.
             </p>
           </div>
         </div>
       )}
 
-      {/* Tab Navigation */}
-      <div className="glass-morphism rounded-2xl p-2 mb-8">
-        <div className="flex gap-2">
+      {/* Tab Navigation - Compact */}
+      <div className="bg-white rounded-lg p-1 mb-4 shadow-sm border border-gray-200">
+        <div className="flex gap-1">
           <button
             onClick={() => setActiveTab('competences')}
-            className={`flex-1 py-3 px-2 sm:px-6 rounded-xl font-semibold transition-all text-sm sm:text-base ${
+            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all text-xs sm:text-sm ${
               activeTab === 'competences'
-                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-lg'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
-            <span className="sm:hidden">📊</span>
-            <span className="hidden sm:inline">📊 Compétences</span>
+            📊 Compétences
           </button>
           <button
             onClick={() => setActiveTab('kpi')}
-            className={`flex-1 py-3 px-2 sm:px-6 rounded-xl font-semibold transition-all text-sm sm:text-base ${
+            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all text-xs sm:text-sm ${
               activeTab === 'kpi'
-                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-lg'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
-            <span className="sm:hidden">💰</span>
-            <span className="hidden sm:inline">💰 KPI</span>
+            💰 KPI
           </button>
           <button
             onClick={() => setActiveTab('debriefs')}
-            className={`flex-1 py-3 px-2 sm:px-6 rounded-xl font-semibold transition-all text-sm sm:text-base ${
+            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-all text-xs sm:text-sm ${
               activeTab === 'debriefs'
-                ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-lg'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
-            <span className="sm:hidden">📝</span>
-            <span className="hidden sm:inline">📝 Analyses des ventes</span>
+            📝 Analyses
           </button>
         </div>
       </div>
@@ -300,64 +306,63 @@ export default function SellerDetailView({ seller, onBack }) {
       {/* Tab Content - Compétences */}
       {activeTab === 'competences' && (
         <>
-      {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      {/* Charts - Compact */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
         {/* Radar Chart */}
-        <div className="glass-morphism rounded-2xl p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Compétences actuelles</h2>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+          <h2 className="text-sm font-bold text-gray-800 mb-3">Compétences actuelles</h2>
           {radarData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={220}>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#cbd5e1" />
-                <PolarAngleAxis dataKey="skill" tick={{ fill: '#475569', fontSize: 12 }} />
-                <PolarRadiusAxis angle={90} domain={[0, 5]} tick={{ fill: '#64748b', fontSize: 10 }} />
-                <Radar name="Score" dataKey="value" stroke="#ffd871" fill="#ffd871" fillOpacity={0.6} />
+                <PolarAngleAxis dataKey="skill" tick={{ fill: '#475569', fontSize: 11 }} />
+                <PolarRadiusAxis angle={90} domain={[0, 5]} tick={{ fill: '#64748b', fontSize: 9 }} />
+                <Radar name="Score" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.5} />
               </RadarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="text-center py-12 text-gray-500">Aucune donnée disponible</div>
+            <div className="text-center py-8 text-gray-500 text-sm">Aucune donnée disponible</div>
           )}
         </div>
 
         {/* Evolution Chart */}
-        <div className="glass-morphism rounded-2xl p-6">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Évolution du score global</h2>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+          <div className="mb-3">
+            <h2 className="text-sm font-bold text-gray-800">Évolution du score global</h2>
             {evolutionData.length > 0 && (
-              <p className="text-sm text-gray-600 mt-1">
-                Score actuel : <span className="font-bold text-[#ffd871]">{evolutionData[evolutionData.length - 1]['Score Global']}/25</span>
+              <p className="text-xs text-gray-600 mt-1">
+                Score actuel : <span className="font-bold text-blue-600">{evolutionData[evolutionData.length - 1]['Score Global']}/25</span>
                 {evolutionData.length > 1 && (
-                  <span className="ml-2">
+                  <span className="ml-1">
                     ({evolutionData[evolutionData.length - 1]['Score Global'] - evolutionData[0]['Score Global'] >= 0 ? '+' : ''}
-                    {(evolutionData[evolutionData.length - 1]['Score Global'] - evolutionData[0]['Score Global']).toFixed(1)} points)
+                    {(evolutionData[evolutionData.length - 1]['Score Global'] - evolutionData[0]['Score Global']).toFixed(1)} pts)
                   </span>
                 )}
               </p>
             )}
           </div>
           {evolutionData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={220}>
               <LineChart data={evolutionData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                <XAxis dataKey="fullDate" tick={{ fill: '#475569', fontSize: 12 }} />
-                <YAxis domain={[0, 25]} tick={{ fill: '#475569' }} />
+                <XAxis dataKey="fullDate" tick={{ fill: '#475569', fontSize: 10 }} />
+                <YAxis domain={[0, 25]} tick={{ fill: '#475569', fontSize: 10 }} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', border: '2px solid #ffd871', borderRadius: '8px' }}
-                  labelStyle={{ color: '#1f2937', fontWeight: 'bold' }}
+                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #3b82f6', borderRadius: '6px', fontSize: '12px' }}
+                  labelStyle={{ color: '#1f2937', fontWeight: 'bold', fontSize: '11px' }}
                 />
-                <Legend />
                 <Line 
                   type="monotone" 
                   dataKey="Score Global" 
-                  stroke="#ffd871" 
-                  strokeWidth={3} 
-                  dot={{ r: 5, fill: '#ffd871', strokeWidth: 2, stroke: '#fff' }}
-                  activeDot={{ r: 7 }}
+                  stroke="#3b82f6" 
+                  strokeWidth={2} 
+                  dot={{ r: 3, fill: '#3b82f6' }}
+                  activeDot={{ r: 5 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="text-center py-12 text-gray-500">Pas encore d'historique</div>
+            <div className="text-center py-8 text-gray-500 text-sm">Pas encore d'historique</div>
           )}
         </div>
       </div>
@@ -366,37 +371,37 @@ export default function SellerDetailView({ seller, onBack }) {
 
       {/* Tab Content - KPI */}
       {activeTab === 'kpi' && (
-        <div className="glass-morphism rounded-2xl p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 KPI</h2>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+          <h2 className="text-base font-bold text-gray-800 mb-4">📊 KPI</h2>
           
-          {/* Filtres */}
-          <div className="flex gap-3 mb-6">
+          {/* Filtres - Compact */}
+          <div className="flex gap-2 mb-4">
             <button
               onClick={() => setKpiFilter('7j')}
-              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 kpiFilter === '7j'
-                  ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-md'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              7 derniers jours
+              7j
             </button>
             <button
               onClick={() => setKpiFilter('30j')}
-              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 kpiFilter === '30j'
-                  ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-md'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              30 derniers jours
+              30j
             </button>
             <button
               onClick={() => setKpiFilter('tout')}
-              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 kpiFilter === 'tout'
-                  ? 'bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white shadow-md'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               Tout
@@ -405,8 +410,8 @@ export default function SellerDetailView({ seller, onBack }) {
 
           {/* Chart visibility toggles - Only show buttons for available charts */}
           {Object.values(availableCharts).some(v => v) && (
-          <div className="bg-white rounded-xl p-4 border border-gray-200 mb-6">
-            <p className="text-sm font-semibold text-gray-700 mb-3">📊 Graphiques affichés :</p>
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 mb-4">
+            <p className="text-xs font-semibold text-gray-700 mb-2">📊 Graphiques :</p>
             <div className="flex flex-wrap gap-2">
               {availableCharts.ca && (
               <button
@@ -510,12 +515,12 @@ export default function SellerDetailView({ seller, onBack }) {
           
           {kpiEntries.length > 0 ? (
             <>
-              {/* KPI Cards - Only show configured KPIs */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
+              {/* KPI Cards - Only show configured KPIs - Compact */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
                 {kpiConfig && kpiConfig.track_ca && (
-                <div className="bg-blue-50 rounded-xl p-4">
-                  <p className="text-sm text-blue-600 mb-2">💰 CA Total</p>
-                  <p className="text-2xl font-bold text-blue-900">
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <p className="text-xs text-blue-600 mb-1">💰 CA Total</p>
+                  <p className="text-lg font-bold text-blue-900">
                     {(() => {
                       const filteredEntries = kpiFilter === '7j' 
                         ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -528,9 +533,9 @@ export default function SellerDetailView({ seller, onBack }) {
                 </div>
                 )}
                 {kpiConfig && kpiConfig.track_ventes && (
-                <div className="bg-green-50 rounded-xl p-4">
-                  <p className="text-sm text-[#10B981] mb-2">🛒 Ventes</p>
-                  <p className="text-2xl font-bold text-green-900">
+                <div className="bg-green-50 rounded-lg p-3">
+                  <p className="text-xs text-[#10B981] mb-1">🛒 Ventes</p>
+                  <p className="text-lg font-bold text-green-900">
                     {(() => {
                       const filteredEntries = kpiFilter === '7j' 
                         ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -543,9 +548,9 @@ export default function SellerDetailView({ seller, onBack }) {
                 </div>
                 )}
                 {kpiConfig && kpiConfig.track_clients && (
-                <div className="bg-purple-50 rounded-xl p-4">
-                  <p className="text-sm text-purple-600 mb-2">👥 Clients</p>
-                  <p className="text-2xl font-bold text-purple-900">
+                <div className="bg-purple-50 rounded-lg p-3">
+                  <p className="text-xs text-purple-600 mb-1">👥 Clients</p>
+                  <p className="text-lg font-bold text-purple-900">
                     {(() => {
                       const filteredEntries = kpiFilter === '7j' 
                         ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -558,9 +563,9 @@ export default function SellerDetailView({ seller, onBack }) {
                 </div>
                 )}
                 {kpiConfig && kpiConfig.track_ca && kpiConfig.track_ventes && (
-                <div className="bg-orange-50 rounded-xl p-4">
-                  <p className="text-sm text-[#F97316] mb-2">🧮 Panier Moyen</p>
-                  <p className="text-2xl font-bold text-orange-900">
+                <div className="bg-orange-50 rounded-lg p-3">
+                  <p className="text-xs text-[#F97316] mb-1">🧮 Panier Moyen</p>
+                  <p className="text-lg font-bold text-orange-900">
                     {(() => {
                       const filteredEntries = kpiFilter === '7j' 
                         ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -577,9 +582,9 @@ export default function SellerDetailView({ seller, onBack }) {
                 </div>
                 )}
                 {kpiConfig && kpiConfig.track_ca && kpiConfig.track_ventes && kpiConfig.track_articles && (
-                <div className="bg-amber-50 rounded-xl p-4">
-                  <p className="text-sm text-amber-600 mb-2">💎 Indice Vente</p>
-                  <p className="text-2xl font-bold text-amber-900">
+                <div className="bg-amber-50 rounded-lg p-3">
+                  <p className="text-xs text-amber-600 mb-1">💎 Indice Vente</p>
+                  <p className="text-lg font-bold text-amber-900">
                     {(() => {
                       const filteredEntries = kpiFilter === '7j' 
                         ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -593,18 +598,18 @@ export default function SellerDetailView({ seller, onBack }) {
                         : '0.00';
                     })()}
                   </p>
-                  <p className="text-xs text-amber-700 mt-1">articles/vente</p>
+                  <p className="text-[10px] text-amber-700 mt-0.5">articles/vente</p>
                 </div>
                 )}
               </div>
 
-              {/* Graphiques - Affichés selon les filtres ET la configuration du manager */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Graphiques - Affichés selon les filtres ET la configuration du manager - Compact */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {/* Graphique CA */}
                 {availableCharts.ca && visibleCharts.ca && (
-                  <div className="bg-white rounded-xl p-4 border border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">💰 Évolution du CA</h3>
-                    <ResponsiveContainer width="100%" height={250}>
+                  <div className="bg-white rounded-lg p-3 border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-800 mb-2">💰 Évolution du CA</h3>
+                    <ResponsiveContainer width="100%" height={180}>
                       <LineChart data={(() => {
                         const filteredEntries = kpiFilter === '7j' 
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -630,9 +635,9 @@ export default function SellerDetailView({ seller, onBack }) {
 
                 {/* Graphique Ventes */}
                 {availableCharts.ventes && visibleCharts.ventes && (
-                  <div className="bg-white rounded-xl p-4 border border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">🛍️ Évolution des ventes</h3>
-                    <ResponsiveContainer width="100%" height={250}>
+                  <div className="bg-white rounded-lg p-3 border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-800 mb-2">🛍️ Évolution des ventes</h3>
+                    <ResponsiveContainer width="100%" height={180}>
                       <LineChart data={(() => {
                         const filteredEntries = kpiFilter === '7j' 
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -658,9 +663,9 @@ export default function SellerDetailView({ seller, onBack }) {
 
                 {/* Graphique Clients */}
                 {availableCharts.clients && visibleCharts.clients && (
-                  <div className="bg-white rounded-xl p-4 border border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">👥 Évolution des clients</h3>
-                    <ResponsiveContainer width="100%" height={250}>
+                  <div className="bg-white rounded-lg p-3 border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-800 mb-2">👥 Évolution des clients</h3>
+                    <ResponsiveContainer width="100%" height={180}>
                       <LineChart data={(() => {
                         const filteredEntries = kpiFilter === '7j' 
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -686,9 +691,9 @@ export default function SellerDetailView({ seller, onBack }) {
 
                 {/* Graphique Articles */}
                 {availableCharts.articles && visibleCharts.articles && (
-                  <div className="bg-white rounded-xl p-4 border border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">📦 Évolution des articles vendus</h3>
-                    <ResponsiveContainer width="100%" height={250}>
+                  <div className="bg-white rounded-lg p-3 border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-800 mb-2">📦 Articles vendus</h3>
+                    <ResponsiveContainer width="100%" height={180}>
                       <LineChart data={(() => {
                         const filteredEntries = kpiFilter === '7j' 
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -714,9 +719,9 @@ export default function SellerDetailView({ seller, onBack }) {
 
                 {/* Graphique Ventes vs Clients */}
                 {availableCharts.ventesVsClients && visibleCharts.ventesVsClients && (
-                  <div className="bg-white rounded-xl p-4 border border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">📊 Ventes vs Clients</h3>
-                    <ResponsiveContainer width="100%" height={250}>
+                  <div className="bg-white rounded-lg p-3 border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-800 mb-2">📊 Ventes vs Clients</h3>
+                    <ResponsiveContainer width="100%" height={180}>
                       <BarChart data={(() => {
                         const filteredEntries = kpiFilter === '7j' 
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -745,9 +750,9 @@ export default function SellerDetailView({ seller, onBack }) {
 
                 {/* Graphique Panier Moyen */}
                 {availableCharts.panierMoyen && visibleCharts.panierMoyen && (
-                  <div className="bg-white rounded-xl p-4 border border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">🛒 Panier Moyen</h3>
-                    <ResponsiveContainer width="100%" height={250}>
+                  <div className="bg-white rounded-lg p-3 border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-800 mb-2">🛒 Panier Moyen</h3>
+                    <ResponsiveContainer width="100%" height={180}>
                       <LineChart data={(() => {
                         const filteredEntries = kpiFilter === '7j' 
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -776,9 +781,9 @@ export default function SellerDetailView({ seller, onBack }) {
 
                 {/* Graphique Taux de Transformation */}
                 {availableCharts.tauxTransfo && visibleCharts.tauxTransfo && (
-                  <div className="bg-white rounded-xl p-4 border border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">📈 Taux de Transformation</h3>
-                    <ResponsiveContainer width="100%" height={250}>
+                  <div className="bg-white rounded-lg p-3 border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-800 mb-2">📈 Taux Transformation</h3>
+                    <ResponsiveContainer width="100%" height={180}>
                       <LineChart data={(() => {
                         const filteredEntries = kpiFilter === '7j' 
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -807,9 +812,9 @@ export default function SellerDetailView({ seller, onBack }) {
 
                 {/* Graphique Indice de Vente */}
                 {availableCharts.indiceVente && visibleCharts.indiceVente && (
-                  <div className="bg-white rounded-xl p-4 border border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">💎 Indice de Vente</h3>
-                    <ResponsiveContainer width="100%" height={250}>
+                  <div className="bg-white rounded-lg p-3 border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-800 mb-2">💎 Indice de Vente</h3>
+                    <ResponsiveContainer width="100%" height={180}>
                       <LineChart data={(() => {
                         const filteredEntries = kpiFilter === '7j' 
                           ? kpiEntries.filter(e => new Date(e.date) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
@@ -840,7 +845,7 @@ export default function SellerDetailView({ seller, onBack }) {
               </div>
             </>
           ) : (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-8 text-gray-500 text-sm">
               Aucune donnée KPI disponible
             </div>
           )}
@@ -849,16 +854,16 @@ export default function SellerDetailView({ seller, onBack }) {
 
       {/* Tab Content - Analyses des ventes */}
       {activeTab === 'debriefs' && (
-      <div className="glass-morphism rounded-2xl p-6 mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">📝 Dernières analyses des ventes</h2>
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <h2 className="text-base font-bold text-gray-800 mb-4">📝 Dernières analyses des ventes</h2>
         
         {debriefs.length > 0 ? (
           <>
-            {/* Filtres */}
-            <div className="flex gap-3 mb-6">
+            {/* Filtres - Compact */}
+            <div className="flex gap-2 mb-4">
               <button
                 onClick={() => setDebriefFilter('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   debriefFilter === 'all'
                     ? 'bg-blue-600 text-white shadow-md'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -868,7 +873,7 @@ export default function SellerDetailView({ seller, onBack }) {
               </button>
               <button
                 onClick={() => setDebriefFilter('success')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   debriefFilter === 'success'
                     ? 'bg-green-600 text-white shadow-md'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -878,7 +883,7 @@ export default function SellerDetailView({ seller, onBack }) {
               </button>
               <button
                 onClick={() => setDebriefFilter('missed')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   debriefFilter === 'missed'
                     ? 'bg-orange-600 text-white shadow-md'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -888,7 +893,7 @@ export default function SellerDetailView({ seller, onBack }) {
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
               {debriefs
                 .filter(debrief => {
                   if (debriefFilter === 'success') return debrief.vente_conclue === true;
@@ -901,70 +906,70 @@ export default function SellerDetailView({ seller, onBack }) {
                   return (
                 <div
                   key={debrief.id}
-                  className="bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all"
+                  className="bg-gray-50 rounded-lg border border-gray-200 hover:shadow-sm transition-all"
                 >
                   <button
                     onClick={() => toggleDebrief(debrief.id)}
-                    className="w-full p-4 text-left hover:bg-gray-50 transition-colors rounded-xl"
+                    className="w-full p-3 text-left hover:bg-gray-100 transition-colors rounded-lg"
                   >
                     <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className={`px-3 py-1 text-xs font-bold rounded-full ${
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${
                             isConclue 
                               ? 'bg-green-100 text-green-700' 
                               : 'bg-orange-100 text-orange-700'
                           }`}>
-                            {isConclue ? '✅ Vente réussie' : '❌ Opportunité manquée'}
+                            {isConclue ? '✅ Réussi' : '❌ Manqué'}
                           </span>
-                          <span className="text-sm text-gray-500">
-                            🗓️ {new Date(debrief.created_at).toLocaleDateString('fr-FR')}
+                          <span className="text-xs text-gray-500">
+                            🗓️ {new Date(debrief.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-500 mb-2">
-                          📦 Produit : {debrief.produit || debrief.context} — 👤 Type : {debrief.type_client || debrief.customer_profile}
+                        <p className="text-xs text-gray-600 mb-1 truncate">
+                          📦 {debrief.produit || debrief.context || 'N/A'} — 👤 {debrief.type_client || debrief.customer_profile || 'N/A'}
                         </p>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <p>💬 Description : {debrief.description_vente || debrief.demarche_commerciale}</p>
-                          <p>📍 Moment clé : {debrief.moment_perte_client || debrief.moment_perte_client}</p>
-                          <p>❌ Raisons : {debrief.raisons_echec || debrief.objections}</p>
-                        </div>
+                        {!expandedDebriefs[debrief.id] && (
+                          <p className="text-xs text-gray-500 truncate">
+                            {debrief.description_vente || debrief.demarche_commerciale || 'Aucune description'}
+                          </p>
+                        )}
                       </div>
-                      <div className="ml-4 text-gray-600 font-bold text-xl flex-shrink-0">
+                      <div className="ml-2 text-gray-400 font-bold text-lg flex-shrink-0">
                         {expandedDebriefs[debrief.id] ? '−' : '+'}
                       </div>
                     </div>
                   </button>
 
                   {expandedDebriefs[debrief.id] && (
-                    <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3 animate-fadeIn">
+                    <div className="px-3 pb-3 space-y-2 border-t border-gray-200 pt-2">
                       {debrief.ai_recommendation && (
-                        <div className="bg-blue-50 rounded-lg p-3">
-                          <p className="text-xs font-semibold text-blue-900 mb-1">💡 Recommandation IA</p>
-                          <p className="text-sm text-blue-800 whitespace-pre-line">{debrief.ai_recommendation}</p>
+                        <div className="bg-blue-50 rounded p-2">
+                          <p className="text-[10px] font-semibold text-blue-900 mb-1">💡 Recommandation IA</p>
+                          <p className="text-xs text-blue-800 leading-relaxed">{debrief.ai_recommendation}</p>
                         </div>
                       )}
                       
-                      <div className="grid grid-cols-5 gap-2">
-                        <div className="bg-purple-50 rounded-lg p-2 text-center">
-                          <p className="text-xs text-purple-600">Accueil</p>
-                          <p className="text-lg font-bold text-purple-900">{debrief.score_accueil || 0}/5</p>
+                      <div className="grid grid-cols-5 gap-1.5">
+                        <div className="bg-purple-50 rounded p-1.5 text-center">
+                          <p className="text-[10px] text-purple-600">Accueil</p>
+                          <p className="text-sm font-bold text-purple-900">{debrief.score_accueil || 0}/5</p>
                         </div>
-                        <div className="bg-green-50 rounded-lg p-2 text-center">
-                          <p className="text-xs text-[#10B981]">Découverte</p>
-                          <p className="text-lg font-bold text-green-900">{debrief.score_decouverte || 0}/5</p>
+                        <div className="bg-green-50 rounded p-1.5 text-center">
+                          <p className="text-[10px] text-green-600">Découverte</p>
+                          <p className="text-sm font-bold text-green-900">{debrief.score_decouverte || 0}/5</p>
                         </div>
-                        <div className="bg-orange-50 rounded-lg p-2 text-center">
-                          <p className="text-xs text-[#F97316]">Argumentation</p>
-                          <p className="text-lg font-bold text-orange-900">{debrief.score_argumentation || 0}/5</p>
+                        <div className="bg-orange-50 rounded p-1.5 text-center">
+                          <p className="text-[10px] text-orange-600">Argumentation</p>
+                          <p className="text-sm font-bold text-orange-900">{debrief.score_argumentation || 0}/5</p>
                         </div>
-                        <div className="bg-red-50 rounded-lg p-2 text-center">
-                          <p className="text-xs text-red-600">Closing</p>
-                          <p className="text-lg font-bold text-red-900">{debrief.score_closing || 0}/5</p>
+                        <div className="bg-red-50 rounded p-1.5 text-center">
+                          <p className="text-[10px] text-red-600">Closing</p>
+                          <p className="text-sm font-bold text-red-900">{debrief.score_closing || 0}/5</p>
                         </div>
-                        <div className="bg-blue-50 rounded-lg p-2 text-center">
-                          <p className="text-xs text-blue-600">Fidélisation</p>
-                          <p className="text-lg font-bold text-blue-900">{debrief.score_fidelisation || 0}/5</p>
+                        <div className="bg-blue-50 rounded p-1.5 text-center">
+                          <p className="text-[10px] text-blue-600">Fidélisation</p>
+                          <p className="text-sm font-bold text-blue-900">{debrief.score_fidelisation || 0}/5</p>
                         </div>
                       </div>
                     </div>
@@ -974,12 +979,12 @@ export default function SellerDetailView({ seller, onBack }) {
               })}
             </div>
             
-            {/* Bouton Charger plus */}
+            {/* Bouton Charger plus - Compact */}
             {debriefs.length > 3 && (
-              <div className="mt-6 text-center">
+              <div className="mt-4 text-center">
                 <button
                   onClick={() => setShowAllDebriefs(!showAllDebriefs)}
-                  className="btn-secondary px-6 py-2"
+                  className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-colors"
                 >
                   {showAllDebriefs ? '↑ Voir moins' : `↓ Charger plus (${debriefs.length - 3} autres)`}
                 </button>
@@ -987,7 +992,7 @@ export default function SellerDetailView({ seller, onBack }) {
             )}
           </>
         ) : (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-8 text-gray-500 text-sm">
             Aucune analyse de vente pour le moment
           </div>
         )}
@@ -996,12 +1001,12 @@ export default function SellerDetailView({ seller, onBack }) {
 
       {/* Tab Content - Gestion de Conflit */}
       {activeTab === 'conflit' && (
-        <div className="mb-8">
+        <div>
           <ConflictResolutionForm sellerId={seller.id} sellerName={seller.name} />
         </div>
       )}
 
-      </div> {/* Fermeture du conteneur max-w-7xl */}
+      </div> {/* Fermeture du conteneur scrollable */}
     </div>
   );
 }
