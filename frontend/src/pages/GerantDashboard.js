@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key, UserCog, Info, Lock, Upload, Headphones, Store } from 'lucide-react';
+import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key, UserCog, Info, Lock, Headphones, Store } from 'lucide-react';
 import CreateStoreModal from '../components/gerant/CreateStoreModal';
-import BulkStoreImportModal from '../components/gerant/BulkStoreImportModal';
 import TutorialButton from '../components/onboarding/TutorialButton';
 import OnboardingModal from '../components/onboarding/OnboardingModal';
 import { gerantSteps } from '../components/onboarding/gerantSteps';
@@ -41,7 +40,6 @@ const GerantDashboard = ({ user, onLogout }) => {
 
   // Modal states
   const [showCreateStoreModal, setShowCreateStoreModal] = useState(false);
-  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [showStoreDetailModal, setShowStoreDetailModal] = useState(false);
   const [showManagerTransferModal, setShowManagerTransferModal] = useState(false);
   const [showSellerTransferModal, setShowSellerTransferModal] = useState(false);
@@ -1039,24 +1037,6 @@ const GerantDashboard = ({ user, onLogout }) => {
                 <span className="hidden xs:inline">Nouveau</span> Magasin
                 {isReadOnly && <Lock className="w-3 h-3 ml-1" />}
               </button>
-              
-              {/* Bouton Import Massif - Visible pour Enterprise ou flag can_bulk_import */}
-              {(user?.role === 'enterprise' || user?.can_bulk_import || user?.sync_mode === 'api_sync' || true) && (
-                <button
-                  onClick={() => !isReadOnly && setShowBulkImportModal(true)}
-                  disabled={isReadOnly}
-                  title={isReadOnly ? "Période d'essai terminée" : "Importer plusieurs magasins via CSV"}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold rounded-xl transition-all ${
-                    isReadOnly 
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                      : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:shadow-lg'
-                  }`}
-                >
-                  <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="hidden sm:inline">Import CSV</span>
-                  {isReadOnly && <Lock className="w-3 h-3 ml-1" />}
-                </button>
-              )}
             </div>
           </div>
 
@@ -1120,19 +1100,6 @@ const GerantDashboard = ({ user, onLogout }) => {
         <CreateStoreModal
           onClose={() => setShowCreateStoreModal(false)}
           onCreate={handleCreateStore}
-        />
-      )}
-
-      {/* Modal Import Massif de Magasins */}
-      {showBulkImportModal && (
-        <BulkStoreImportModal
-          isOpen={showBulkImportModal}
-          onClose={() => setShowBulkImportModal(false)}
-          onSuccess={() => {
-            // Recharger toutes les données du dashboard après import réussi
-            fetchDashboardData();
-            toast.success('Liste des magasins mise à jour');
-          }}
         />
       )}
 
