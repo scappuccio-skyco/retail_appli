@@ -1473,7 +1473,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                               min="0"
                                               value={progressValue}
                                               onChange={(e) => setProgressValue(e.target.value)}
-                                              placeholder={`Valeur`}
+                                              placeholder="Saisir la progression (ex: 200)"
                                               className="w-24 sm:flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                               autoFocus
                                             />
@@ -1503,7 +1503,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                         <button
                                           onClick={() => {
                                             setUpdatingProgressObjectiveId(objective.id);
-                                            setProgressValue(objective.current_value?.toString() || '0');
+                                            // On veut une saisie "incrementale" : champ vide à l'ouverture
+                                            setProgressValue('');
                                           }}
                                           className="w-full px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-semibold flex items-center justify-center gap-2"
                                         >
@@ -2497,8 +2498,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                 type="number"
                                                 step="0.01"
                                                 min="0"
-                                                placeholder={`Valeur`}
-                                                defaultValue={challenge.current_value || 0}
+                                                placeholder="Saisir la progression (ex: 200)"
+                                                value={challengeProgressValue}
                                                 onChange={(e) => setChallengeProgressValue(e.target.value)}
                                                 className="w-32 sm:flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                               />
@@ -2531,7 +2532,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                 step="0.01"
                                                 min="0"
                                                 placeholder="Valeur"
-                                                defaultValue={challenge.progress_ca || 0}
+                                                defaultValue=""
                                                 className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                                 onBlur={(e) => {
                                                   const val = parseFloat(e.target.value) || 0;
@@ -2548,7 +2549,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                 type="number"
                                                 min="0"
                                                 placeholder="Nombre"
-                                                defaultValue={challenge.progress_ventes || 0}
+                                                defaultValue=""
                                                 className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                                 onBlur={(e) => {
                                                   const val = parseInt(e.target.value) || 0;
@@ -2564,7 +2565,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                                 type="number"
                                                 min="0"
                                                 placeholder="Nombre"
-                                                defaultValue={challenge.progress_clients || 0}
+                                                defaultValue=""
                                                 className="flex-1 p-2 border-2 border-purple-300 rounded-lg focus:border-purple-500 focus:outline-none text-xs sm:text-sm"
                                                 onBlur={(e) => {
                                                   const val = parseInt(e.target.value) || 0;
@@ -2627,6 +2628,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                       <button
                                         onClick={() => {
                                           setUpdatingProgressChallengeId(challenge.id);
+                                          // Champ vide à l'ouverture
+                                          setChallengeProgressValue('');
                                         }}
                                         className="w-full px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-semibold flex items-center justify-center gap-2"
                                       >
