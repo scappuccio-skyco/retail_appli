@@ -1038,6 +1038,9 @@ class GerantService:
         if not seller:
             raise ValueError("Vendeur non trouvé ou accès non autorisé")
         
+        # Check if this is a same-store manager change or a full transfer
+        is_same_store = seller.get('store_id') == transfer.new_store_id
+        
         # Verify new store exists, is active, and belongs to current gérant
         new_store = await self.store_repo.find_one({
             "id": transfer.new_store_id,
@@ -1045,14 +1048,15 @@ class GerantService:
         }, {"_id": 0})
         
         if not new_store:
-            raise ValueError("Nouveau magasin non trouvé ou accès non autorisé")
+            raise ValueError("Magasin non trouvé ou accès non autorisé")
         
-        if not new_store.get('active', False):
+        # Only check if store is active if it's a different store
+        if not is_same_store and not new_store.get('active', False):
             raise ValueError(
                 f"Le magasin '{new_store['name']}' est inactif. Impossible de transférer vers un magasin inactif."
             )
         
-        # Verify new manager exists and is in the new store
+        # Verify new manager exists and is in the target store
         new_manager = await self.user_repo.find_one({
             "id": transfer.new_manager_id,
             "store_id": transfer.new_store_id,
@@ -1065,10 +1069,13 @@ class GerantService:
         
         # Prepare update fields
         update_fields = {
-            "store_id": transfer.new_store_id,
             "manager_id": transfer.new_manager_id,
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
+        
+        # Only update store_id if it's a different store
+        if not is_same_store:
+            update_fields["store_id"] = transfer.new_store_id
         unset_fields = {}
         
         # Auto-reactivation if seller was suspended due to inactive store
@@ -1092,16 +1099,20 @@ class GerantService:
         )
         
         # Build response message
-        message = f"Vendeur transféré avec succès vers {new_store['name']}"
-        if update_fields.get("status") == "active":
-            message += " et réactivé automatiquement"
+        if is_same_store:
+            message = f"Manager changé avec succès : {seller.get('name')} est maintenant sous la responsabilité de {new_manager['name']}"
+        else:
+            message = f"Vendeur transféré avec succès vers {new_store['name']}"
+            if update_fields.get("status") == "active":
+                message += " et réactivé automatiquement"
         
         return {
             "success": True,
             "message": message,
-            "new_store": new_store['name'],
+            "new_store": new_store['name'] if not is_same_store else seller.get('store_id'),
             "new_manager": new_manager['name'],
-            "reactivated": update_fields.get("status") == "active"
+            "reactivated": update_fields.get("status") == "active",
+            "same_store": is_same_store
         }
 
     async def _format_db_subscription(self, db_subscription: Dict, gerant_id: str) -> Dict:

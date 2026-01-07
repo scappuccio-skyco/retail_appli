@@ -3,6 +3,7 @@ import { X, RefreshCw, Users } from 'lucide-react';
 import { API_BASE } from '../../lib/api';
 
 const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransfer }) => {
+  const [transferMode, setTransferMode] = useState('same_store'); // 'same_store' or 'new_store'
   const [selectedStoreId, setSelectedStoreId] = useState('');
   const [selectedManagerId, setSelectedManagerId] = useState('');
   const [managers, setManagers] = useState([]);
@@ -12,13 +13,17 @@ const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransf
   const backendUrl = API_BASE;
 
   useEffect(() => {
-    if (selectedStoreId) {
+    // If same store mode, load managers from current store immediately
+    if (transferMode === 'same_store' && currentStoreId) {
+      fetchManagers(currentStoreId);
+    } else if (transferMode === 'new_store' && selectedStoreId) {
       fetchManagers(selectedStoreId);
     } else {
       setManagers([]);
       setSelectedManagerId('');
+      setSelectedStoreId('');
     }
-  }, [selectedStoreId]);
+  }, [transferMode, selectedStoreId, currentStoreId]);
 
   const fetchManagers = async (storeId) => {
     setLoadingManagers(true);
@@ -40,13 +45,17 @@ const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransf
   };
 
   const handleTransfer = async () => {
-    if (!selectedStoreId) {
-      setError('Veuillez sélectionner un magasin');
+    // Determine the store ID to use
+    const targetStoreId = transferMode === 'same_store' ? currentStoreId : selectedStoreId;
+    
+    if (!targetStoreId) {
+      setError('Magasin non trouvé');
       return;
     }
 
     if (!selectedManagerId) {
-      setError('Veuillez sélectionner un manager dans le nouveau magasin');
+      const modeText = transferMode === 'same_store' ? 'le magasin actuel' : 'le nouveau magasin';
+      setError(`Veuillez sélectionner un manager dans ${modeText}`);
       return;
     }
 
@@ -54,7 +63,7 @@ const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransf
     setLoading(true);
 
     try {
-      await onTransfer(seller.id, selectedStoreId, selectedManagerId);
+      await onTransfer(seller.id, targetStoreId, selectedManagerId);
       onClose();
     } catch (err) {
       setError(err.message || 'Erreur lors du transfert');
@@ -82,8 +91,8 @@ const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransf
               <RefreshCw className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white">Transférer un Vendeur</h2>
-              <p className="text-white opacity-90 text-sm">Changer {seller.name} de magasin</p>
+              <h2 className="text-2xl font-bold text-white">Changer le Manager d'un Vendeur</h2>
+              <p className="text-white opacity-90 text-sm">Attribuer un autre manager à {seller.name}</p>
             </div>
           </div>
         </div>
@@ -103,11 +112,42 @@ const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransf
             <p className="text-sm text-gray-600">{seller.email}</p>
           </div>
 
-          {/* Store Transfer */}
+          {/* Mode Selection */}
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Type de changement
+            </label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setTransferMode('same_store')}
+                className={`flex-1 p-3 rounded-lg border-2 transition-all font-semibold ${
+                  transferMode === 'same_store'
+                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                📍 Même magasin
+              </button>
+              <button
+                type="button"
+                onClick={() => setTransferMode('new_store')}
+                className={`flex-1 p-3 rounded-lg border-2 transition-all font-semibold ${
+                  transferMode === 'new_store'
+                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                🔄 Nouveau magasin
+              </button>
+            </div>
+          </div>
+
+          {/* Store Info */}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                De (Magasin Actuel)
+                Magasin actuel
               </label>
               <div className="p-3 bg-gray-100 rounded-lg border border-gray-300">
                 <p className="font-semibold text-gray-800">📍 {currentStore?.name || 'Magasin actuel'}</p>
@@ -115,35 +155,40 @@ const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransf
               </div>
             </div>
 
-            <div className="flex justify-center">
-              <div className="text-3xl">↓</div>
-            </div>
+            {/* New Store Selection (only if new_store mode) */}
+            {transferMode === 'new_store' && (
+              <>
+                <div className="flex justify-center">
+                  <div className="text-3xl">↓</div>
+                </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Vers (Nouveau Magasin) *
-              </label>
-              <select
-                value={selectedStoreId}
-                onChange={(e) => setSelectedStoreId(e.target.value)}
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
-              >
-                <option value="">Sélectionner un magasin...</option>
-                {stores
-                  .filter(store => store.id !== currentStoreId && store.active)
-                  .map(store => (
-                    <option key={store.id} value={store.id}>
-                      📍 {store.name} - {store.location}
-                    </option>
-                  ))}
-              </select>
-            </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Nouveau Magasin *
+                  </label>
+                  <select
+                    value={selectedStoreId}
+                    onChange={(e) => setSelectedStoreId(e.target.value)}
+                    className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+                  >
+                    <option value="">Sélectionner un magasin...</option>
+                    {stores
+                      .filter(store => store.id !== currentStoreId && store.active)
+                      .map(store => (
+                        <option key={store.id} value={store.id}>
+                          📍 {store.name} - {store.location}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </>
+            )}
 
             {/* Manager Selection */}
-            {selectedStoreId && (
+            {(transferMode === 'same_store' || selectedStoreId) && (
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Nouveau Manager *
+                  {transferMode === 'same_store' ? 'Nouveau Manager dans le même magasin *' : 'Nouveau Manager *'}
                 </label>
                 
                 {loadingManagers ? (
@@ -179,10 +224,12 @@ const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransf
           </div>
 
           {/* Info */}
-          {selectedStoreId && selectedManagerId && (
+          {selectedManagerId && (
             <div className="mt-4 p-4 bg-green-50 border border-green-300 rounded-lg">
               <p className="text-sm text-green-800">
-                ✅ Le vendeur sera transféré avec ses KPIs historiques conservés
+                {transferMode === 'same_store' 
+                  ? '✅ Le manager sera changé, le vendeur reste dans le même magasin'
+                  : '✅ Le vendeur sera transféré avec ses KPIs historiques conservés'}
               </p>
             </div>
           )}
@@ -199,15 +246,15 @@ const SellerTransferModal = ({ seller, stores, currentStoreId, onClose, onTransf
           </button>
           <button
             onClick={handleTransfer}
-            disabled={loading || !selectedStoreId || !selectedManagerId}
+            disabled={loading || (transferMode === 'new_store' && !selectedStoreId) || !selectedManagerId}
             className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
-              <>Transfert en cours...</>
+              <>Modification en cours...</>
             ) : (
               <>
                 <RefreshCw className="w-4 h-4" />
-                Confirmer le Transfert
+                {transferMode === 'same_store' ? 'Changer le Manager' : 'Confirmer le Transfert'}
               </>
             )}
           </button>
