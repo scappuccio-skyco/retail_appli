@@ -440,6 +440,19 @@ class SellerService:
     
     async def calculate_objective_progress(self, objective: dict, manager_id: str):
         """Calculate progress for an objective (team-wide)"""
+        # If progress is entered manually by the manager, do NOT overwrite it from KPI aggregates.
+        # Otherwise, any refresh will "reset" manual progress back to KPI-derived totals (often 0).
+        if str(objective.get('data_entry_responsible', '')).lower() == 'manager':
+            target_value = objective.get('target_value', 0)
+            end_date = objective.get('period_end') or objective.get('end_date')
+            current_value = float(objective.get('current_value') or 0)
+            objective['status'] = self.compute_status(current_value, target_value, end_date)
+            await self.db.objectives.update_one(
+                {"id": objective['id']},
+                {"$set": {"status": objective['status']}}
+            )
+            return
+
         start_date = objective['period_start']
         end_date = objective['period_end']
         store_id = objective.get('store_id')
@@ -660,6 +673,15 @@ class SellerService:
         for objective in objectives:
             start_date = objective.get('period_start')
             end_date = objective.get('period_end')
+
+            # If progress is entered manually by the manager, do NOT overwrite it from KPI aggregates.
+            # Important: this function bulk-writes computed fields back to DB; we must skip manual objectives.
+            if str(objective.get('data_entry_responsible', '')).lower() == 'manager':
+                target_value = objective.get('target_value', 0)
+                current_value = float(objective.get('current_value') or 0)
+                objective['status'] = self.compute_status(current_value, target_value, end_date)
+                # Keep stored progress_* and current_value as-is; do not append bulk update.
+                continue
             
             if not start_date or not end_date:
                 # Invalid date range, set progress to 0

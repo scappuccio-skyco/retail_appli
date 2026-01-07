@@ -1285,6 +1285,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   <h4 className="font-bold text-gray-800 text-base sm:text-lg">
                                     🎯 {objective.title}
                                   </h4>
+                                  {objective.description && (
+                                    <p className="text-sm text-gray-600 sm:ml-2">
+                                      {objective.description}
+                                    </p>
+                                  )}
                                   <div className="flex flex-wrap items-center gap-2">
                                     {/* Type badge */}
                                     <span className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${
@@ -2218,6 +2223,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                   <h4 className="font-bold text-gray-800 text-base sm:text-lg">
                                     🏆 {challenge.title}
                                   </h4>
+                                  {challenge.description && (
+                                    <p className="text-sm text-gray-600 sm:ml-2">
+                                      {challenge.description}
+                                    </p>
+                                  )}
                                   <div className="flex flex-wrap items-center gap-2">
                                     {/* Type badge */}
                                     <span className={`text-xs font-semibold px-2 py-1 rounded whitespace-nowrap ${
@@ -2268,9 +2278,7 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
                                     }).join(', ')}
                                   </div>
                                 )}
-                                {challenge.description && (
-                                  <p className="text-sm text-gray-600 mb-2">{challenge.description}</p>
-                                )}
+                                
                                 
                                 {/* Display challenge details based on type */}
                                 <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-3 mb-3">
