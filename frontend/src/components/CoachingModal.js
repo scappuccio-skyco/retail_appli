@@ -169,7 +169,7 @@ export default function CoachingModal({
     try {
       await api.patch(
         `/debriefs/${debriefId}/visibility`,
-        { visible_to_manager: !currentVisibility }
+        { shared_with_manager: !currentVisibility }
       );
       toast.success(!currentVisibility ? 'Partagé avec le manager' : 'Partagé uniquement avec moi');
       if (onCreateDebrief) {

@@ -270,14 +270,14 @@ export default function DebriefHistoryModal({ onClose, onSuccess, token, autoExp
       const newVisibility = !currentVisibility;
       
       await api.patch(
-        `/debriefs/${debriefId}/visibility?visible_to_manager=${newVisibility}`,
-        {}
+        `/debriefs/${debriefId}/visibility`,
+        { shared_with_manager: newVisibility }
       );
       
       // Mettre à jour localement sans fermer le modal
       setDebriefs(prev => prev.map(d => 
         d.id === debriefId 
-          ? { ...d, visible_to_manager: newVisibility }
+          ? { ...d, visible_to_manager: newVisibility, shared_with_manager: newVisibility }
           : d
       ));
       

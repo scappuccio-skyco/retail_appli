@@ -155,6 +155,10 @@ async def create_debrief(
         if '_id' in debrief:
             del debrief['_id']
         
+        # Add visible_to_manager alias for frontend compatibility
+        if 'shared_with_manager' in debrief:
+            debrief['visible_to_manager'] = debrief['shared_with_manager']
+        
         return debrief
         
     except HTTPException:
@@ -191,6 +195,11 @@ async def get_debriefs(
             else:
                 debriefs = []
         
+        # Add visible_to_manager alias for frontend compatibility
+        for debrief in debriefs:
+            if 'shared_with_manager' in debrief:
+                debrief['visible_to_manager'] = debrief['shared_with_manager']
+        
         return debriefs
         
     except Exception as e:
@@ -206,7 +215,8 @@ async def toggle_debrief_visibility(
 ):
     """Toggle whether a debrief is shared with the manager."""
     try:
-        shared = data.get('shared_with_manager', False)
+        # Accept both field names for compatibility (visible_to_manager or shared_with_manager)
+        shared = data.get('shared_with_manager', data.get('visible_to_manager', False))
         
         result = await db.debriefs.update_one(
             {"id": debrief_id, "seller_id": current_user['id']},
@@ -216,7 +226,7 @@ async def toggle_debrief_visibility(
         if result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Debrief not found")
         
-        return {"success": True, "shared_with_manager": shared}
+        return {"success": True, "shared_with_manager": shared, "visible_to_manager": shared}
         
     except HTTPException:
         raise
