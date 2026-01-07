@@ -8,6 +8,10 @@ export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnost
   
   if (!diagnostic) return null;
 
+  // Mapping pour afficher le libellé DISC complet au lieu de la lettre brute
+  const discLabels = { D: 'Dominant', I: 'Influent', S: 'Stable', C: 'Consciencieux' };
+  const discName = discLabels[diagnostic.disc_dominant] || diagnostic.disc_dominant;
+
   const handleRedo = () => {
     onClose();
     if (onRedoDiagnostic) {
@@ -67,7 +71,7 @@ export default function SellerProfileModal({ diagnostic, onClose, onRedoDiagnost
               <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-5 border-2 border-purple-200 mb-4">
                 <div className="mb-4">
                   <p className="text-lg font-bold text-purple-800 mb-2">
-                    🎭 Ton Profil DISC : <span className="text-2xl text-indigo-700">{diagnostic.disc_dominant}</span>
+                    🎭 Ton Profil DISC : <span className="text-2xl text-indigo-700">{discName}</span>
                   </p>
                 </div>
                 
