@@ -948,26 +948,49 @@ async def get_all_objectives(
         for objective in objectives:
             target_value = objective.get('target_value', 0)
             if target_value > 0:
-                # Determine current value based on objective type
+                # Determine current value with precedence rules
                 current_value = 0
-                if objective.get('objective_type') == 'kpi_standard':
-                    kpi_name = objective.get('kpi_name', 'ca')
-                    if kpi_name == 'ca':
-                        current_value = objective.get('progress_ca', 0)
-                    elif kpi_name == 'ventes':
-                        current_value = objective.get('progress_ventes', 0)
-                    elif kpi_name == 'articles':
-                        current_value = objective.get('progress_articles', 0)
-                    elif kpi_name == 'panier_moyen':
-                        current_value = objective.get('progress_panier_moyen', 0)
-                    elif kpi_name == 'indice_vente':
-                        current_value = objective.get('progress_indice_vente', 0)
+                prefer_manual = str(objective.get('data_entry_responsible', '')).lower() in ['manager', 'seller']
+
+                obj_type = objective.get('objective_type')
+                if obj_type == 'kpi_standard':
+                    # Prefer manual current_value if manual entry is enabled
+                    if prefer_manual and objective.get('current_value') is not None:
+                        current_value = float(objective.get('current_value') or 0)
+                    else:
+                        # Derive from progress_* fields (computed from KPI data)
+                        kpi_name = objective.get('kpi_name', 'ca')
+                        if kpi_name == 'ca':
+                            current_value = objective.get('progress_ca', 0)
+                        elif kpi_name == 'ventes':
+                            current_value = objective.get('progress_ventes', 0)
+                        elif kpi_name == 'articles':
+                            current_value = objective.get('progress_articles', 0)
+                        elif kpi_name == 'panier_moyen':
+                            current_value = objective.get('progress_panier_moyen', 0)
+                        elif kpi_name == 'indice_vente':
+                            current_value = objective.get('progress_indice_vente', 0)
+                elif obj_type == 'product_focus':
+                    # Product focus: choose metric based on unit when manual current_value is not set
+                    if prefer_manual and objective.get('current_value') is not None:
+                        current_value = float(objective.get('current_value') or 0)
+                    else:
+                        unit = (objective.get('unit') or '').lower()
+                        if '€' in unit or 'ca' in unit:
+                            current_value = objective.get('progress_ca', 0)
+                        elif 'vente' in unit:
+                            current_value = objective.get('progress_ventes', 0)
+                        elif 'article' in unit:
+                            current_value = objective.get('progress_articles', 0)
+                        else:
+                            # fallback to ventes
+                            current_value = objective.get('progress_ventes', 0)
                 else:
-                    # For other types, use current_value if set, otherwise calculate from CA
+                    # For other types, always use current_value if provided
                     current_value = objective.get('current_value', objective.get('progress_ca', 0))
                 
                 objective['current_value'] = current_value
-                objective['progress_percentage'] = round((current_value / target_value) * 100, 1)
+                objective['progress_percentage'] = round((float(current_value) / float(target_value)) * 100, 1)
             else:
                 objective['progress_percentage'] = 0
         
