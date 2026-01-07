@@ -144,6 +144,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
   const [showCoachingModal, setShowCoachingModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [storeName, setStoreName] = useState('');
+  const [managerName, setManagerName] = useState('');
   
   // Onboarding logic
   const { isReadOnly, isSubscriptionExpired } = useSyncMode();
@@ -323,6 +324,19 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
     try {
       const res = await api.get('/seller/objectives/active');
       setActiveObjectives(res.data);
+      
+      // After fetching objectives, the backend auto-fix may have assigned a manager_id
+      // So refresh manager_name if not already set
+      if (!managerName && user?.manager_id) {
+        try {
+          const meRes = await api.get('/auth/me');
+          if (meRes.data?.manager_name) {
+            setManagerName(meRes.data.manager_name);
+          }
+        } catch (err) {
+          logger.error('Could not fetch manager name after objectives load:', err);
+        }
+      }
     } catch (err) {
       logger.error('Error fetching active objectives:', err);
     }
@@ -465,6 +479,22 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           }
         } catch (err) {
           logger.error('Could not fetch store name:', err);
+        }
+      }
+      
+      // Récupérer le nom du manager depuis l'objet user (inclus dans /auth/me)
+      if (user?.manager_name) {
+        setManagerName(user.manager_name);
+      } else if (user?.manager_id) {
+        // Fallback: si manager_name n'est pas inclus, essayer de récupérer le nom
+        try {
+          // Récupérer à nouveau /auth/me pour avoir le manager_name mis à jour
+          const meRes = await api.get('/auth/me');
+          if (meRes.data?.manager_name) {
+            setManagerName(meRes.data.manager_name);
+          }
+        } catch (err) {
+          logger.error('Could not fetch manager name:', err);
         }
       }
       
@@ -811,9 +841,19 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </h1>
               <p className="text-gray-600">
                 Suivez vos performances et progressez chaque jour
-                {storeName && (
-                  <span className="inline-flex items-center gap-1 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap">
-                    • 🏢 {storeName}
+                {(storeName || managerName) && (
+                  <span className="inline-flex items-center gap-2 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap flex-wrap">
+                    {storeName && (
+                      <span className="inline-flex items-center gap-1">
+                        🏢 Nom de la boutique: {storeName}
+                      </span>
+                    )}
+                    {managerName && (
+                      <span className="inline-flex items-center gap-1 text-purple-600">
+                        {storeName && <span className="text-gray-400">•</span>}
+                        👤 Votre manager: {managerName}
+                      </span>
+                    )}
                   </span>
                 )}
               </p>

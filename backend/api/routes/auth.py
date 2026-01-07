@@ -280,14 +280,31 @@ async def reset_password(
 
 
 @router.get("/me")
-async def get_me(current_user: dict = Depends(get_current_user)):
+async def get_me(
+    current_user: dict = Depends(get_current_user),
+    db = Depends(get_db)
+):
     """
     Get current authenticated user information
     
     Args:
         current_user: Current authenticated user from JWT token
+        db: Database connection
         
     Returns:
-        User information without password
+        User information without password, including manager_name if seller
     """
+    # If user is a seller and has a manager_id, include manager name
+    if current_user.get('role') == 'seller' and current_user.get('manager_id'):
+        try:
+            manager = await db.users.find_one(
+                {"id": current_user.get('manager_id')},
+                {"_id": 0, "name": 1}
+            )
+            if manager and manager.get('name'):
+                current_user['manager_name'] = manager.get('name')
+        except Exception:
+            # If error, just don't include manager_name
+            pass
+    
     return current_user
