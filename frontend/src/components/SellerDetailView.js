@@ -124,31 +124,29 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
 
   // Determine which charts should be available based on manager's KPI configuration
   const availableCharts = useMemo(() => {
-    if (!kpiConfig) {
-      return {
-        ca: false,
-        ventes: false,
-        clients: false,
-        articles: false,
-        ventesVsClients: false,
-        panierMoyen: false,
-        tauxTransfo: false,
-        indiceVente: false
-      };
-    }
-    
-    const charts = {
-      ca: kpiConfig.track_ca === true,
-      ventes: kpiConfig.track_ventes === true,
-      clients: kpiConfig.track_clients === true,
-      articles: kpiConfig.track_articles === true,
-      ventesVsClients: kpiConfig.track_ventes === true && kpiConfig.track_clients === true,
-      panierMoyen: kpiConfig.track_ca === true && kpiConfig.track_ventes === true,
-      tauxTransfo: kpiConfig.track_ventes === true && kpiConfig.track_clients === true,
-      indiceVente: kpiConfig.track_ca === true && kpiConfig.track_ventes === true && kpiConfig.track_articles === true
+    // Helper: check flags with backward compatibility (manager_*, seller_*, track_*)
+    const track = (key) => {
+      if (!kpiConfig) return true; // si pas de config, ne pas bloquer l'affichage
+      const managerKey = `manager_track_${key}`;
+      const sellerKey = `seller_track_${key}`;
+      const legacyKey = `track_${key}`;
+      return (
+        kpiConfig[managerKey] === true ||
+        kpiConfig[sellerKey] === true ||
+        kpiConfig[legacyKey] === true
+      );
     };
-    
-    return charts;
+
+    return {
+      ca: track('ca'),
+      ventes: track('ventes'),
+      clients: track('clients'),
+      articles: track('articles'),
+      ventesVsClients: track('ventes') && track('clients'),
+      panierMoyen: track('ca') && track('ventes'),
+      tauxTransfo: track('ventes') && track('clients'),
+      indiceVente: track('ca') && track('ventes') && track('articles')
+    };
   }, [kpiConfig]);
 
   // Calculate KPI stats (last 7 days)
@@ -164,6 +162,19 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
     totalEvaluations: (diagnostic ? 1 : 0) + debriefs.length,
     totalVentes: recentKpis.reduce((sum, e) => sum + (e.nb_ventes || 0), 0),
     totalCA: recentKpis.reduce((sum, e) => sum + (e.ca_journalier || 0), 0)
+  };
+
+  // Helper accessible dans le rendu pour contrôler l'affichage des cartes KPI
+  const isTrack = (key) => {
+    if (!kpiConfig) return true;
+    const managerKey = `manager_track_${key}`;
+    const sellerKey = `seller_track_${key}`;
+    const legacyKey = `track_${key}`;
+    return (
+      kpiConfig[managerKey] === true ||
+      kpiConfig[sellerKey] === true ||
+      kpiConfig[legacyKey] === true
+    );
   };
 
   if (loading) {
@@ -517,7 +528,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
             <>
               {/* KPI Cards - Only show configured KPIs - Compact */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
-                {kpiConfig && kpiConfig.track_ca && (
+                {isTrack('ca') && (
                 <div className="bg-blue-50 rounded-lg p-3">
                   <p className="text-xs text-blue-600 mb-1">💰 CA Total</p>
                   <p className="text-lg font-bold text-blue-900">
@@ -532,7 +543,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
                   </p>
                 </div>
                 )}
-                {kpiConfig && kpiConfig.track_ventes && (
+                {isTrack('ventes') && (
                 <div className="bg-green-50 rounded-lg p-3">
                   <p className="text-xs text-[#10B981] mb-1">🛒 Ventes</p>
                   <p className="text-lg font-bold text-green-900">
@@ -547,7 +558,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
                   </p>
                 </div>
                 )}
-                {kpiConfig && kpiConfig.track_clients && (
+                {isTrack('clients') && (
                 <div className="bg-purple-50 rounded-lg p-3">
                   <p className="text-xs text-purple-600 mb-1">👥 Clients</p>
                   <p className="text-lg font-bold text-purple-900">
@@ -562,7 +573,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
                   </p>
                 </div>
                 )}
-                {kpiConfig && kpiConfig.track_ca && kpiConfig.track_ventes && (
+                {isTrack('ca') && isTrack('ventes') && (
                 <div className="bg-orange-50 rounded-lg p-3">
                   <p className="text-xs text-[#F97316] mb-1">🧮 Panier Moyen</p>
                   <p className="text-lg font-bold text-orange-900">
@@ -581,7 +592,7 @@ export default function SellerDetailView({ seller, onBack, storeIdParam = null }
                   </p>
                 </div>
                 )}
-                {kpiConfig && kpiConfig.track_ca && kpiConfig.track_ventes && kpiConfig.track_articles && (
+                {isTrack('ca') && isTrack('ventes') && isTrack('articles') && (
                 <div className="bg-amber-50 rounded-lg p-3">
                   <p className="text-xs text-amber-600 mb-1">💎 Indice Vente</p>
                   <p className="text-lg font-bold text-amber-900">
