@@ -1289,13 +1289,26 @@ async def update_objective_progress(
         user_role = context.get('role')
         actor_name = context.get('name') or context.get('full_name') or context.get('email') or 'Manager'
         
+        # For gérants, store_id must be provided in query params
+        if user_role in ['gerant', 'gérant'] and not resolved_store_id:
+            raise HTTPException(
+                status_code=400, 
+                detail="Le paramètre store_id est requis pour mettre à jour la progression d'un objectif"
+            )
+        
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="Impossible de déterminer le magasin")
+        
         # Get objective
         existing = await db.objectives.find_one(
             {"id": objective_id, "store_id": resolved_store_id}
         )
         
         if not existing:
-            raise HTTPException(status_code=404, detail="Objectif non trouvé")
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Objectif non trouvé dans le magasin spécifié (store_id: {resolved_store_id})"
+            )
         
         # CONTROLE D'ACCÈS: Manager peut toujours mettre à jour
         # (Les vendeurs utiliseront /api/seller/objectives/{id}/progress)
@@ -1728,13 +1741,26 @@ async def update_challenge_progress(
         user_role = context.get('role')
         actor_name = context.get('name') or context.get('full_name') or context.get('email') or 'Manager'
         
+        # For gérants, store_id must be provided in query params
+        if user_role in ['gerant', 'gérant'] and not resolved_store_id:
+            raise HTTPException(
+                status_code=400, 
+                detail="Le paramètre store_id est requis pour mettre à jour la progression d'un challenge"
+            )
+        
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="Impossible de déterminer le magasin")
+        
         # Get challenge
         existing = await db.challenges.find_one(
             {"id": challenge_id, "store_id": resolved_store_id}
         )
         
         if not existing:
-            raise HTTPException(status_code=404, detail="Challenge non trouvé")
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Challenge non trouvé dans le magasin spécifié (store_id: {resolved_store_id})"
+            )
         
         # CONTROLE D'ACCÈS: Manager peut toujours mettre à jour
         # (Les vendeurs utiliseront /api/seller/challenges/{id}/progress)
