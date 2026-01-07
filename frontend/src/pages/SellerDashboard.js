@@ -1072,13 +1072,13 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               ))}
             </div>
           ) : (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 text-center border-2 border-green-200">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="text-3xl">🎉</span>
-                <h3 className="text-lg font-bold text-green-800">Bravo !</h3>
+            <div className="bg-green-50 rounded-xl px-3 py-2 text-center border border-green-200">
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <span className="text-lg">🎉</span>
+                <span className="font-semibold text-green-800">Bravo !</span>
+                <span className="text-green-700 text-sm">Tu as rempli toutes tes tâches du jour.</span>
+                <span className="text-[#10B981] text-sm">Continue comme ça, tu es au top ! 💪</span>
               </div>
-              <p className="text-green-700 text-sm">Tu as rempli toutes tes tâches du jour !</p>
-              <p className="text-[#10B981] text-xs mt-1">Continue comme ça, tu es au top ! 💪</p>
             </div>
           )}
         </div>
