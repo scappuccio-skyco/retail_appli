@@ -470,7 +470,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       
       // Check if challenge just became "achieved" or "completed"
       const updatedChallenge = response.data;
+      console.log('🎯 [MANAGER PROGRESS] Challenge updated:', {
+        id: updatedChallenge.id,
+        status: updatedChallenge.status,
+        current_value: updatedChallenge.current_value,
+        target_value: updatedChallenge.target_value
+      });
+      
       if (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') {
+        console.log('🎉 [MANAGER PROGRESS] Challenge achieved! Triggering confetti...');
         triggerConfetti();
         toast.success('🎉 Félicitations ! Challenge réussi !', { 
           duration: 5000,
@@ -637,30 +645,36 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
 
   // Function to trigger confetti animation
   const triggerConfetti = () => {
-    const duration = 3000;
-    const end = Date.now() + duration;
-    const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
+    console.log('🎊 [CONFETTI] Triggering confetti animation (Manager)...');
+    try {
+      const duration = 3000;
+      const end = Date.now() + duration;
+      const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
 
-    (function frame() {
-      confetti({
-        particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: colors
-      });
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: colors
-      });
+      (function frame() {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: colors
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: colors
+        });
 
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    }());
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      }());
+      console.log('✅ [CONFETTI] Confetti animation started (Manager)');
+    } catch (error) {
+      console.error('❌ [CONFETTI] Error triggering confetti (Manager):', error);
+    }
   };
 
   const handleUpdateProgress = async (objectiveId) => {
@@ -678,7 +692,15 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       
       // Check if objective just became "achieved"
       const updatedObjective = response.data;
+      console.log('🎯 [MANAGER PROGRESS] Objective updated:', {
+        id: updatedObjective.id,
+        status: updatedObjective.status,
+        current_value: updatedObjective.current_value,
+        target_value: updatedObjective.target_value
+      });
+      
       if (updatedObjective.status === 'achieved') {
+        console.log('🎉 [MANAGER PROGRESS] Objective achieved! Triggering confetti...');
         triggerConfetti();
         toast.success('🎉 Félicitations ! Objectif atteint !', { 
           duration: 5000,

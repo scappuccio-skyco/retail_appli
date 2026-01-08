@@ -182,30 +182,36 @@ export default function ObjectivesModal({
   
   // Function to trigger confetti animation
   const triggerConfetti = () => {
-    const duration = 3000;
-    const end = Date.now() + duration;
-    const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
+    console.log('🎊 [CONFETTI] Triggering confetti animation...');
+    try {
+      const duration = 3000;
+      const end = Date.now() + duration;
+      const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
 
-    (function frame() {
-      confetti({
-        particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: colors
-      });
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: colors
-      });
+      (function frame() {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: colors
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: colors
+        });
 
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    }());
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      }());
+      console.log('✅ [CONFETTI] Confetti animation started');
+    } catch (error) {
+      console.error('❌ [CONFETTI] Error triggering confetti:', error);
+    }
   };
 
   const handleUpdateProgress = async (objectiveId) => {
@@ -222,6 +228,14 @@ export default function ObjectivesModal({
       );
       
       const updatedObjective = response.data;
+      
+      console.log('🎉 [PROGRESS UPDATE] Objective updated:', {
+        id: updatedObjective.id,
+        status: updatedObjective.status,
+        has_unseen_achievement: updatedObjective.has_unseen_achievement,
+        current_value: updatedObjective.current_value,
+        target_value: updatedObjective.target_value
+      });
       
       setUpdatingObjectiveId(null);
       setObjectiveProgressValue('');
@@ -240,6 +254,7 @@ export default function ObjectivesModal({
         return; // Exit early to prevent refresh
       } else if (updatedObjective.status === 'achieved') {
         // Already seen, but still trigger confetti and congratulation message
+        console.log('🎉 [PROGRESS UPDATE] Objective achieved (already seen), triggering confetti...');
         triggerConfetti();
         toast.success('🎉 Félicitations ! Objectif atteint !', { 
           duration: 5000,
@@ -266,6 +281,8 @@ export default function ObjectivesModal({
 
   const handleUpdateChallengeProgress = async (challengeId, challengeType) => {
     try {
+      let response;
+      
       // Pour les challenges de type kpi_standard, envoyer value (increment)
       if (challengeType === 'kpi_standard') {
         const value = parseFloat(challengeCurrentValue);
@@ -274,7 +291,7 @@ export default function ObjectivesModal({
           return;
         }
         
-        await api.post(
+        response = await api.post(
           `/seller/challenges/${challengeId}/progress`,
           { value: value }
         );
@@ -287,41 +304,39 @@ export default function ObjectivesModal({
           return;
         }
         
-        await api.post(
+        response = await api.post(
           `/seller/challenges/${challengeId}/progress`,
           { value: totalValue }
         );
       }
       
-      // Check if challenge is now achieved
-      const updatedChallenge = await api.get('/seller/challenges/active');
-      const chall = updatedChallenge.data?.find(c => c.id === challengeId);
-      const isNowAchieved = chall && (chall.status === 'achieved' || (chall.current_value >= chall.target_value && chall.target_value > 0));
+      const updatedChallenge = response.data;
       
       setUpdatingChallengeId(null);
       setChallengeProgress({ ca: 0, ventes: 0, clients: 0 });
       setChallengeCurrentValue('');
       
-      // Rafraîchir les données sans recharger la page
-      await refreshActiveData();
-      
-      // Show celebration after data refresh
-      if (isNowAchieved) {
+      // Check if challenge just became "achieved" or "completed"
+      if (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') {
+        console.log('🎉 [PROGRESS UPDATE] Challenge just achieved! status:', updatedChallenge.status);
+        // Trigger confetti immediately
         triggerConfetti();
-        setTimeout(() => {
-          toast.success('🎉 Félicitations ! Challenge réussi !', { 
-            duration: 5000,
-            style: {
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              padding: '16px',
-            }
-          });
-        }, 300);
+        toast.success('🎉 Félicitations ! Challenge réussi !', { 
+          duration: 5000,
+          style: {
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            color: 'white',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            padding: '16px',
+          }
+        });
+        // Then refresh data
+        await refreshActiveData();
       } else {
         toast.success('Progression du challenge mise à jour !');
+        // Refresh normally
+        await refreshActiveData();
       }
     } catch (error) {
       logger.error('Error updating challenge progress:', error);
