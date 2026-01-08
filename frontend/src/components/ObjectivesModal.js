@@ -87,8 +87,8 @@ export default function ObjectivesModal({
       }
       
       await api.post(
-        `/manager/objectives/${objectiveId}/progress`,
-        { current_value: value }
+        `/seller/objectives/${objectiveId}/progress`,
+        { value: value }
       );
       
       toast.success('Progression mise à jour !');
@@ -99,13 +99,13 @@ export default function ObjectivesModal({
       await refreshActiveData();
     } catch (error) {
       logger.error('Error updating progress:', error);
-      toast.error('Erreur lors de la mise à jour');
+      toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
     }
   };
 
   const handleUpdateChallengeProgress = async (challengeId, challengeType) => {
     try {
-      // Pour les challenges de type kpi_standard, envoyer current_value
+      // Pour les challenges de type kpi_standard, envoyer value (increment)
       if (challengeType === 'kpi_standard') {
         const value = parseFloat(challengeCurrentValue);
         if (isNaN(value) || value < 0) {
@@ -114,18 +114,21 @@ export default function ObjectivesModal({
         }
         
         await api.post(
-          `/manager/challenges/${challengeId}/progress`,
-          { current_value: value }
+          `/seller/challenges/${challengeId}/progress`,
+          { value: value }
         );
       } else {
-        // Pour les autres challenges, envoyer progress_ca, progress_ventes, etc.
+        // Pour les autres challenges, envoyer value comme increment
+        // Note: Pour les challenges multi-KPI, on peut envoyer une valeur globale
+        const totalValue = challengeProgress.ca + challengeProgress.ventes + challengeProgress.clients;
+        if (totalValue <= 0) {
+          toast.error('Veuillez entrer au moins une valeur');
+          return;
+        }
+        
         await api.post(
-          `/manager/challenges/${challengeId}/progress`,
-          {
-            progress_ca: challengeProgress.ca,
-            progress_ventes: challengeProgress.ventes,
-            progress_clients: challengeProgress.clients
-          }
+          `/seller/challenges/${challengeId}/progress`,
+          { value: totalValue }
         );
       }
       
@@ -138,7 +141,7 @@ export default function ObjectivesModal({
       await refreshActiveData();
     } catch (error) {
       logger.error('Error updating challenge progress:', error);
-      toast.error('Erreur lors de la mise à jour');
+      toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
     }
   };
 
@@ -363,7 +366,8 @@ export default function ObjectivesModal({
                               <button
                                 onClick={() => {
                                   setUpdatingObjectiveId(objective.id);
-                                  setObjectiveProgressValue(objective.current_value?.toString() || '0');
+                                  // Clear value for fresh entry (incremental UX)
+                                  setObjectiveProgressValue('');
                                 }}
                                 className="w-full px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all font-semibold flex items-center justify-center gap-2"
                               >
@@ -623,13 +627,14 @@ export default function ObjectivesModal({
                               <button
                                 onClick={() => {
                                   setUpdatingChallengeId(challenge.id);
+                                  // Clear values for fresh entry (incremental UX)
                                   if (challenge.challenge_type === 'kpi_standard') {
-                                    setChallengeCurrentValue(challenge.current_value?.toString() || '0');
+                                    setChallengeCurrentValue('');
                                   } else {
                                     setChallengeProgress({
-                                      ca: challenge.progress_ca || 0,
-                                      ventes: challenge.progress_ventes || 0,
-                                      clients: challenge.progress_clients || 0
+                                      ca: 0,
+                                      ventes: 0,
+                                      clients: 0
                                     });
                                   }
                                 }}
