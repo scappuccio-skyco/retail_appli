@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X, Trophy, Target, Sparkles } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 
 export default function AchievementModal({ 
   isOpen, 
@@ -12,6 +13,8 @@ export default function AchievementModal({
   onMarkAsSeen,
   userRole = 'seller' // 'seller' or 'manager'
 }) {
+  const confettiTriggered = useRef(false);
+  
   // Add shimmer animation styles
   useEffect(() => {
     if (typeof document !== 'undefined' && !document.getElementById('achievement-modal-styles')) {
@@ -25,10 +28,138 @@ export default function AchievementModal({
         .animate-shimmer {
           animation: shimmer 2s ease-in-out infinite;
         }
+        @keyframes modal-enter {
+          0% {
+            opacity: 0;
+            transform: scale(0.7) translateY(-50px) rotate(-5deg);
+          }
+          50% {
+            transform: scale(1.05) translateY(0) rotate(2deg);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0) rotate(0deg);
+          }
+        }
+        @keyframes pulse-glow {
+          0%, 100% {
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 140, 0, 0.3);
+          }
+          50% {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 140, 0, 0.5);
+          }
+        }
+        .modal-enter {
+          animation: modal-enter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-glow {
+          animation: pulse-glow 2s ease-in-out infinite;
+        }
       `;
       document.head.appendChild(style);
     }
   }, []);
+  
+  // Trigger confetti when modal opens
+  useEffect(() => {
+    if (isOpen && item && !confettiTriggered.current) {
+      confettiTriggered.current = true;
+      
+      // Delay confetti slightly to let modal appear first
+      setTimeout(() => {
+        triggerConfetti();
+      }, 300);
+    } else if (!isOpen) {
+      // Reset when modal closes
+      confettiTriggered.current = false;
+    }
+  }, [isOpen, item]);
+  
+  const triggerConfetti = () => {
+    const duration = 6000; // 6 seconds of confetti for better visibility
+    const end = Date.now() + duration;
+    const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff', '#ffa502', '#ff6348'];
+    
+    // Initial big burst from center
+    confetti({
+      particleCount: 150,
+      spread: 80,
+      origin: { x: 0.5, y: 0.5 },
+      colors: colors,
+      startVelocity: 45,
+      gravity: 0.8,
+      ticks: 300,
+      decay: 0.9
+    });
+    
+    // Second burst after a short delay
+    setTimeout(() => {
+      confetti({
+        particleCount: 100,
+        spread: 60,
+        origin: { x: 0.5, y: 0.4 },
+        colors: colors,
+        startVelocity: 35,
+        gravity: 0.9,
+        ticks: 250
+      });
+    }, 500);
+    
+    // Continuous confetti from sides and top
+    (function frame() {
+      // Left side
+      confetti({
+        particleCount: 8,
+        angle: 60,
+        spread: 60,
+        origin: { x: 0 },
+        colors: colors,
+        startVelocity: 35,
+        gravity: 0.8
+      });
+      
+      // Right side
+      confetti({
+        particleCount: 8,
+        angle: 120,
+        spread: 60,
+        origin: { x: 1 },
+        colors: colors,
+        startVelocity: 35,
+        gravity: 0.8
+      });
+      
+      // Top center
+      confetti({
+        particleCount: 5,
+        angle: 90,
+        spread: 50,
+        origin: { x: 0.5, y: 0 },
+        colors: colors,
+        startVelocity: 30,
+        gravity: 0.9
+      });
+      
+      // Random bursts
+      if (Math.random() > 0.7) {
+        confetti({
+          particleCount: 20,
+          spread: 40,
+          origin: { 
+            x: Math.random() * 0.4 + 0.3, 
+            y: Math.random() * 0.3 + 0.2 
+          },
+          colors: colors,
+          startVelocity: 25,
+          gravity: 0.85
+        });
+      }
+      
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    }());
+  };
   
   if (!isOpen || !item) return null;
   
@@ -118,14 +249,16 @@ export default function AchievementModal({
         }
       }}
     >
-      <div className="bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50 rounded-3xl shadow-2xl max-w-2xl w-full border-4 border-yellow-400 animate-[pulse_2s_ease-in-out_infinite]">
+      <div className="bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50 rounded-3xl shadow-2xl max-w-2xl w-full border-4 border-yellow-400 modal-enter modal-glow relative overflow-hidden">
         {/* Header with confetti effect */}
         <div className="relative bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-400 p-6 rounded-t-3xl">
           <div className="absolute inset-0 overflow-hidden rounded-t-3xl">
-            <Sparkles className="absolute top-2 left-4 w-6 h-6 text-yellow-200 animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0s' }} />
-            <Sparkles className="absolute top-4 right-8 w-5 h-5 text-pink-200 animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }} />
-            <Sparkles className="absolute bottom-2 left-1/4 w-4 h-4 text-orange-200 animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.4s' }} />
-            <Sparkles className="absolute bottom-4 right-1/4 w-5 h-5 text-yellow-200 animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.6s' }} />
+            {/* More sparkles for better effect */}
+            <Sparkles className="absolute top-2 left-4 w-8 h-8 text-yellow-200 animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0s' }} />
+            <Sparkles className="absolute top-4 right-8 w-7 h-7 text-pink-200 animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }} />
+            <Sparkles className="absolute bottom-2 left-1/4 w-6 h-6 text-orange-200 animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.4s' }} />
+            <Sparkles className="absolute bottom-4 right-1/4 w-7 h-7 text-yellow-200 animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.6s' }} />
+            <Sparkles className="absolute top-1/2 left-1/2 w-10 h-10 text-white animate-[bounce_0.8s_ease-in-out_infinite] transform -translate-x-1/2 -translate-y-1/2" style={{ animationDelay: '0.3s' }} />
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20 animate-shimmer"></div>
           </div>
           <div className="relative flex items-center justify-between">
