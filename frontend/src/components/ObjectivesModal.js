@@ -43,6 +43,13 @@ export default function ObjectivesModal({
       fetchHistory();
     }
   }, [activeTab, isOpen]);
+
+  // Refresh active data when modal opens
+  useEffect(() => {
+    if (isOpen && activeTab !== 'historique') {
+      refreshActiveData();
+    }
+  }, [isOpen]);
   
   const fetchHistory = async () => {
     try {
@@ -63,11 +70,16 @@ export default function ObjectivesModal({
     try {
       // Fetch active objectives
       const objRes = await api.get('/seller/objectives/active');
-      setActiveObjectives(objRes.data);
+      setActiveObjectives(objRes.data || []);
       
       // Fetch active challenges
       const challRes = await api.get('/seller/challenges/active');
-      setActiveChallenges(challRes.data);
+      setActiveChallenges(challRes.data || []);
+      
+      // Also refresh history if we're on the history tab
+      if (activeTab === 'historique') {
+        await fetchHistory();
+      }
       
       // Also call parent's onUpdate if provided
       if (onUpdate) {
@@ -86,12 +98,21 @@ export default function ObjectivesModal({
         return;
       }
       
-      await api.post(
+      const response = await api.post(
         `/seller/objectives/${objectiveId}/progress`,
         { value: value }
       );
       
-      toast.success('Progression mise à jour !');
+      // Check if objective is now achieved from the response
+      const updatedObj = response.data;
+      const isNowAchieved = updatedObj && (updatedObj.status === 'achieved' || (updatedObj.current_value >= updatedObj.target_value && updatedObj.target_value > 0));
+      
+      if (isNowAchieved) {
+        toast.success('🎉 Félicitations ! Objectif atteint !', { duration: 5000 });
+      } else {
+        toast.success('Progression mise à jour !');
+      }
+      
       setUpdatingObjectiveId(null);
       setObjectiveProgressValue('');
       
@@ -148,7 +169,30 @@ export default function ObjectivesModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <>
+      <style>{`
+        @keyframes celebrate {
+          0%, 100% { transform: scale(1) rotate(0deg); }
+          25% { transform: scale(1.1) rotate(-5deg); }
+          50% { transform: scale(1.15) rotate(5deg); }
+          75% { transform: scale(1.1) rotate(-3deg); }
+        }
+        @keyframes confetti {
+          0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+        .celebrate-animation {
+          animation: celebrate 0.6s ease-in-out infinite;
+        }
+        .confetti {
+          position: absolute;
+          width: 10px;
+          height: 10px;
+          background: #10b981;
+          animation: confetti 2s ease-out forwards;
+        }
+      `}</style>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-900 via-teal-800 to-green-800 p-4">
@@ -222,20 +266,47 @@ export default function ObjectivesModal({
               <div className="px-6 py-6">
                 {activeObjectives.length > 0 ? (
                   <div className="space-y-4">
-                    {activeObjectives.map((objective, index) => (
+                    {activeObjectives.map((objective, index) => {
+                      const isAchieved = objective.status === 'achieved' || (objective.current_value >= objective.target_value && objective.target_value > 0);
+                      const isCompleted = objective.status === 'completed' || new Date(objective.period_end) < new Date();
+                      
+                      return (
                       <div 
                         key={index}
-                        className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200 hover:border-purple-300 transition-all"
+                        className={`rounded-xl p-4 border-2 transition-all ${
+                          isAchieved 
+                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 hover:border-green-400 animate-pulse' 
+                            : isCompleted
+                            ? 'bg-gradient-to-r from-gray-50 to-slate-50 border-gray-300'
+                            : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:border-purple-300'
+                        }`}
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <h4 className="font-bold text-gray-800 mb-1">{objective.title || objective.name}</h4>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-bold text-gray-800">{objective.title || objective.name}</h4>
+                              {isAchieved && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-500 text-white rounded-full text-xs font-bold animate-bounce">
+                                  🎉 Réussi !
+                                </span>
+                              )}
+                              {isCompleted && !isAchieved && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-500 text-white rounded-full text-xs font-semibold">
+                                  ✓ Terminé
+                                </span>
+                              )}
+                            </div>
                             <p className="text-sm text-gray-600">{objective.description}</p>
                           </div>
-                          <div className="ml-4">
+                          <div className="ml-4 flex flex-col gap-2">
                             <span className="px-3 py-1 bg-purple-600 text-white rounded-full text-xs font-semibold">
                               {objective.type || 'Standard'}
                             </span>
+                            {isAchieved && (
+                              <div className="text-center">
+                                <div className="text-2xl animate-spin">🎊</div>
+                              </div>
+                            )}
                           </div>
                         </div>
                         
@@ -401,20 +472,47 @@ export default function ObjectivesModal({
               <div className="px-6 py-6">
                 {activeChallenges.length > 0 ? (
                   <div className="space-y-4">
-                    {activeChallenges.map((challenge, index) => (
+                    {activeChallenges.map((challenge, index) => {
+                      const isAchieved = challenge.status === 'achieved' || (challenge.current_value >= challenge.target_value && challenge.target_value > 0);
+                      const isCompleted = challenge.status === 'completed' || new Date(challenge.end_date) < new Date();
+                      
+                      return (
                       <div 
                         key={index}
-                        className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-xl p-4 border-2 border-pink-200 hover:border-pink-300 transition-all"
+                        className={`rounded-xl p-4 border-2 transition-all ${
+                          isAchieved 
+                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 hover:border-green-400 animate-pulse' 
+                            : isCompleted
+                            ? 'bg-gradient-to-r from-gray-50 to-slate-50 border-gray-300'
+                            : 'bg-gradient-to-r from-pink-50 to-orange-50 border-pink-200 hover:border-pink-300'
+                        }`}
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <h4 className="font-bold text-gray-800 mb-1">{challenge.title || challenge.name}</h4>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-bold text-gray-800">{challenge.title || challenge.name}</h4>
+                              {isAchieved && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-500 text-white rounded-full text-xs font-bold animate-bounce">
+                                  🎉 Réussi !
+                                </span>
+                              )}
+                              {isCompleted && !isAchieved && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-500 text-white rounded-full text-xs font-semibold">
+                                  ✓ Terminé
+                                </span>
+                              )}
+                            </div>
                             <p className="text-sm text-gray-600">{challenge.description}</p>
                           </div>
-                          <div className="ml-4">
+                          <div className="ml-4 flex flex-col gap-2">
                             <span className="px-3 py-1 bg-pink-600 text-white rounded-full text-xs font-semibold">
                               {challenge.type || 'Challenge'}
                             </span>
+                            {isAchieved && (
+                              <div className="text-center">
+                                <div className="text-2xl animate-spin">🎊</div>
+                              </div>
+                            )}
                           </div>
                         </div>
                         
@@ -646,7 +744,8 @@ export default function ObjectivesModal({
                           </div>
                         )}
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-12 text-gray-500">
@@ -862,5 +961,6 @@ export default function ObjectivesModal({
         </div>
       </div>
     </div>
+    </>
   );
 }
