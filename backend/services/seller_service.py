@@ -13,6 +13,72 @@ class SellerService:
     def __init__(self, db):
         self.db = db
     
+    # ===== ACHIEVEMENT NOTIFICATIONS =====
+    
+    async def check_achievement_notification(self, user_id: str, item_type: str, item_id: str) -> bool:
+        """
+        Check if user has already seen the achievement notification for an objective/challenge
+        
+        Args:
+            user_id: User ID (seller or manager)
+            item_type: "objective" or "challenge"
+            item_id: Objective or challenge ID
+            
+        Returns:
+            True if notification has been seen, False if unseen
+        """
+        notification = await self.db.achievement_notifications.find_one({
+            "user_id": user_id,
+            "item_type": item_type,
+            "item_id": item_id
+        })
+        return notification is not None
+    
+    async def mark_achievement_as_seen(self, user_id: str, item_type: str, item_id: str):
+        """
+        Mark an achievement notification as seen by a user
+        
+        Args:
+            user_id: User ID (seller or manager)
+            item_type: "objective" or "challenge"
+            item_id: Objective or challenge ID
+        """
+        await self.db.achievement_notifications.update_one(
+            {
+                "user_id": user_id,
+                "item_type": item_type,
+                "item_id": item_id
+            },
+            {
+                "$set": {
+                    "seen_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            },
+            upsert=True
+        )
+    
+    async def add_achievement_notification_flag(self, items: List[Dict], user_id: str, item_type: str):
+        """
+        Add has_unseen_achievement flag to objectives or challenges
+        
+        Args:
+            items: List of objectives or challenges
+            user_id: User ID (seller or manager)
+            item_type: "objective" or "challenge"
+        """
+        for item in items:
+            # Check if item is achieved/completed and notification not seen
+            status = item.get('status')
+            is_achieved = status in ['achieved', 'completed']
+            
+            if is_achieved:
+                item_id = item.get('id')
+                has_seen = await self.check_achievement_notification(user_id, item_type, item_id)
+                item['has_unseen_achievement'] = not has_seen
+            else:
+                item['has_unseen_achievement'] = False
+    
     # ===== TASKS =====
     
     async def get_seller_tasks(self, seller_id: str) -> List[Dict]:
@@ -153,6 +219,9 @@ class SellerService:
                     objective['status'] = self.compute_status(current_val, target_val, period_end)
                 else:
                     objective['status'] = 'active'  # Fallback if no end_date
+        
+        # Add achievement notification flags
+        await self.add_achievement_notification_flag(filtered_objectives, seller_id, "objective")
         
         return filtered_objectives
     
@@ -350,6 +419,9 @@ class SellerService:
         for challenge in filtered_challenges:
             await self.calculate_challenge_progress(challenge, seller_id)
         
+        # Add achievement notification flags
+        await self.add_achievement_notification_flag(filtered_challenges, seller_id, "challenge")
+        
         return filtered_challenges
     
     async def get_seller_challenges_active(self, seller_id: str, manager_id: str) -> List[Dict]:
@@ -427,6 +499,9 @@ class SellerService:
         # Calculate progress for each challenge
         for challenge in filtered_challenges:
             await self.calculate_challenge_progress(challenge, seller_id)
+        
+        # Add achievement notification flags
+        await self.add_achievement_notification_flag(filtered_challenges, seller_id, "challenge")
         
         return filtered_challenges
     

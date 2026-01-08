@@ -262,6 +262,27 @@ async def get_seller_objectives_history(
         raise HTTPException(status_code=500, detail=f"Failed to fetch objectives history: {str(e)}")
 
 
+@router.post("/objectives/{objective_id}/mark-achievement-seen")
+async def mark_objective_achievement_seen(
+    objective_id: str,
+    current_user: Dict = Depends(get_current_seller),
+    seller_service: SellerService = Depends(get_seller_service)
+):
+    """
+    Mark an objective achievement notification as seen by the seller
+    After this, the objective will move to history
+    """
+    try:
+        await seller_service.mark_achievement_as_seen(
+            current_user['id'],
+            "objective",
+            objective_id
+        )
+        return {"success": True, "message": "Notification marquée comme vue"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to mark notification as seen: {str(e)}")
+
+
 # ===== CHALLENGES =====
 
 @router.get("/challenges")
@@ -348,6 +369,27 @@ async def get_active_seller_challenges(
         return challenges
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch active challenges: {str(e)}")
+
+
+@router.post("/challenges/{challenge_id}/mark-achievement-seen")
+async def mark_challenge_achievement_seen(
+    challenge_id: str,
+    current_user: Dict = Depends(get_current_seller),
+    seller_service: SellerService = Depends(get_seller_service)
+):
+    """
+    Mark a challenge achievement notification as seen by the seller
+    After this, the challenge will move to history
+    """
+    try:
+        await seller_service.mark_achievement_as_seen(
+            current_user['id'],
+            "challenge",
+            challenge_id
+        )
+        return {"success": True, "message": "Notification marquée comme vue"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to mark notification as seen: {str(e)}")
 
 
 @router.post("/relationship-advice")

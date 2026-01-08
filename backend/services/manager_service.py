@@ -183,27 +183,42 @@ class ManagerService:
     
     async def get_active_objectives(self, manager_id: str, store_id: str) -> List[Dict]:
         """Get active objectives for manager's team"""
+        from services.seller_service import SellerService
+        seller_service = SellerService(self.db)
+        
+        today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
         objectives = await self.db.objectives.find(
             {
                 "store_id": store_id,
-                "status": "active",
-                "end_date": {"$gte": datetime.now(timezone.utc).strftime('%Y-%m-%d')}
+                "$or": [
+                    {"status": "active", "period_end": {"$gte": today}},
+                    {"status": "achieved"}  # Include achieved objectives even if period ended
+                ]
             },
             {"_id": 0}
         ).to_list(100)
+        
+        # Add achievement notification flags
+        await seller_service.add_achievement_notification_flag(objectives, manager_id, "objective")
         
         return objectives
     
     async def get_active_challenges(self, manager_id: str, store_id: str) -> List[Dict]:
         """Get active challenges for manager's team"""
+        from services.seller_service import SellerService
+        seller_service = SellerService(self.db)
+        
         challenges = await self.db.challenges.find(
             {
                 "store_id": store_id,
-                "status": "active",
+                "status": {"$in": ["active", "completed"]},  # Include completed challenges
                 "end_date": {"$gte": datetime.now(timezone.utc).strftime('%Y-%m-%d')}
             },
             {"_id": 0}
         ).to_list(100)
+        
+        # Add achievement notification flags
+        await seller_service.add_achievement_notification_flag(challenges, manager_id, "challenge")
         
         return challenges
 

@@ -9,7 +9,8 @@ import logging
 
 from core.security import get_current_user
 from services.manager_service import ManagerService, APIKeyService
-from api.dependencies import get_manager_service, get_api_key_service, get_db
+from api.dependencies import get_manager_service, get_api_key_service, get_db, get_seller_service
+from services.seller_service import SellerService
 
 router = APIRouter(prefix="/manager", tags=["Manager"])
 logger = logging.getLogger(__name__)
@@ -759,6 +760,50 @@ async def get_active_objectives(
         return objectives
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/challenges/{challenge_id}/mark-achievement-seen")
+async def mark_challenge_achievement_seen_manager(
+    challenge_id: str,
+    context: dict = Depends(get_store_context),
+    seller_service: SellerService = Depends(get_seller_service)
+):
+    """
+    Mark a challenge achievement notification as seen by the manager/gérant
+    After this, the challenge will move to history
+    """
+    try:
+        manager_id = context.get('id')
+        await seller_service.mark_achievement_as_seen(
+            manager_id,
+            "challenge",
+            challenge_id
+        )
+        return {"success": True, "message": "Notification marquée comme vue"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to mark notification as seen: {str(e)}")
+
+
+@router.post("/objectives/{objective_id}/mark-achievement-seen")
+async def mark_objective_achievement_seen_manager(
+    objective_id: str,
+    context: dict = Depends(get_store_context),
+    seller_service: SellerService = Depends(get_seller_service)
+):
+    """
+    Mark an objective achievement notification as seen by the manager/gérant
+    After this, the objective will move to history
+    """
+    try:
+        manager_id = context.get('id')
+        await seller_service.mark_achievement_as_seen(
+            manager_id,
+            "objective",
+            objective_id
+        )
+        return {"success": True, "message": "Notification marquée comme vue"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to mark notification as seen: {str(e)}")
 
 
 @router.get("/challenges/active")
