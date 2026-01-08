@@ -398,26 +398,23 @@ class SellerService:
         for objective in filtered_objectives:
             await self.calculate_objective_progress(objective, manager_id)
         
-        # Filter: only include objectives that should be in history
-        # 1. Period ended (period_end < today)
-        # 2. OR status is 'achieved'/'failed' AND notification has been seen
+        # Filter: include ALL objectives that should be in history
+        # 1. Period ended (period_end < today) - regardless of status
+        # 2. OR status is 'achieved'/'failed' - regardless of notification status
+        # This ensures achieved objectives appear in history even if notification wasn't seen
         final_objectives = []
         for objective in filtered_objectives:
             status = objective.get('status')
             period_end = objective.get('period_end', '')
             
-            # Check if notification has been seen
-            item_id = objective.get('id')
-            has_seen = await self.check_achievement_notification(seller_id, "objective", item_id)
-            
             # Include in history if:
-            # 1. Period has ended
-            # 2. OR (status is achieved/failed AND notification has been seen)
+            # 1. Period has ended (regardless of status)
+            # 2. OR status is achieved/failed (regardless of period_end or notification status)
             if period_end < today:
                 # Period ended, include in history
                 final_objectives.append(objective)
-            elif status in ['achieved', 'failed'] and has_seen:
-                # Achieved/failed and notification seen, include in history
+            elif status in ['achieved', 'failed']:
+                # Achieved/failed, include in history (even if notification not seen)
                 final_objectives.append(objective)
         
         return final_objectives

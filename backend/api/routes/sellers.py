@@ -790,15 +790,29 @@ async def update_seller_objective_progress(
         )
         
         if updated_objective:
+            # If objective just became "achieved", add the achievement notification flag
+            if new_status == 'achieved':
+                # Check if notification has been seen
+                has_seen = await seller_service.check_achievement_notification(seller_id, "objective", objective_id)
+                updated_objective['has_unseen_achievement'] = not has_seen
+                updated_objective['just_achieved'] = True  # Flag to indicate this just happened
+                print(f"🎉 [PROGRESS UPDATE] Objective '{updated_objective.get('title')}' just became achieved! has_unseen_achievement={not has_seen}")
+            
             return updated_objective
         else:
-            return {
+            result = {
                 "success": True,
                 "current_value": new_value,
                 "progress_percentage": progress_percentage,
                 "status": new_status,
                 "updated_at": update_data["updated_at"]
             }
+            # If objective just became "achieved", add the flag
+            if new_status == 'achieved':
+                has_seen = await seller_service.check_achievement_notification(seller_id, "objective", objective_id)
+                result['has_unseen_achievement'] = not has_seen
+                result['just_achieved'] = True
+            return result
     except HTTPException:
         raise
     except Exception as e:

@@ -166,37 +166,39 @@ export default function ObjectivesModal({
         { value: value }
       );
       
-      // Check if objective is now achieved from the response
-      const updatedObj = response.data;
-      const isNowAchieved = updatedObj && (
-        updatedObj.status === 'achieved' || 
-        (updatedObj.current_value >= updatedObj.target_value && updatedObj.target_value > 0)
-      );
+      const updatedObjective = response.data;
       
       setUpdatingObjectiveId(null);
       setObjectiveProgressValue('');
       
-      // Rafraîchir les données sans recharger la page
-      await refreshActiveData();
-      
-      // Show celebration after data refresh so animation is visible
-      if (isNowAchieved) {
-        // Small delay to ensure UI is updated
-        setTimeout(() => {
-          toast.success('🎉 Félicitations ! Objectif atteint !', { 
-            duration: 5000,
-            style: {
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              padding: '16px',
-            }
-          });
-        }, 300);
+      // Check if objective just became "achieved" and has unseen achievement
+      if (updatedObjective.status === 'achieved' && updatedObjective.has_unseen_achievement === true) {
+        console.log('🎉 [PROGRESS UPDATE] Objective just achieved! Showing modal...');
+        // Show achievement modal immediately (before refreshing)
+        setAchievementModal({
+          isOpen: true,
+          item: updatedObjective,
+          itemType: 'objective'
+        });
+        toast.success('🎉 Objectif atteint !');
+      } else if (updatedObjective.status === 'achieved') {
+        // Already seen, just show toast
+        toast.success('🎉 Félicitations ! Objectif atteint !', { 
+          duration: 5000,
+          style: {
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            color: 'white',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            padding: '16px',
+          }
+        });
       } else {
         toast.success('Progression mise à jour !');
       }
+      
+      // Rafraîchir les données sans recharger la page
+      await refreshActiveData();
     } catch (error) {
       logger.error('Error updating progress:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');

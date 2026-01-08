@@ -135,21 +135,53 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
 
     try {
       const response = await api.post(
-        `/manager/objectives/${objectiveId}/progress`,
-        { current_value: parseFloat(progressValue) }
+        `/seller/objectives/${objectiveId}/progress`,
+        { value: parseFloat(progressValue) }
       );
       logger.log('✅ Progress updated, response:', response.data);
-      toast.success('Progression mise à jour avec succès');
+      
+      const updatedObjective = response.data;
+      
+      // Check if objective just became "achieved" and has unseen achievement
+      if (updatedObjective.status === 'achieved' && updatedObjective.has_unseen_achievement === true) {
+        console.log('🎉 [PROGRESS UPDATE] Objective just achieved! Showing modal...');
+        // Show achievement modal immediately
+        setAchievementModal({
+          isOpen: true,
+          item: updatedObjective,
+          itemType: 'objective'
+        });
+        toast.success('🎉 Objectif atteint !');
+      } else if (updatedObjective.status === 'achieved') {
+        // Already seen, just show toast
+        toast.success('🎉 Félicitations ! Objectif atteint !');
+      } else {
+        toast.success('Progression mise à jour avec succès');
+      }
+      
       setUpdatingProgressObjectiveId(null);
       setProgressValue('');
       
-      // Refresh local data
+      // Refresh local data (but keep the achieved objective temporarily if it has unseen achievement)
       try {
         const [objRes, challRes] = await Promise.all([
           api.get('/seller/objectives/active'),
           api.get('/seller/challenges/active')
         ]);
-        setLocalObjectives(objRes.data || []);
+        
+        // If we just achieved an objective and it's not in active list anymore,
+        // add it temporarily so the modal can show it
+        if (updatedObjective.status === 'achieved' && updatedObjective.has_unseen_achievement === true) {
+          const activeList = objRes.data || [];
+          const isInActiveList = activeList.some(obj => obj.id === updatedObjective.id);
+          if (!isInActiveList) {
+            console.log('📦 [PROGRESS UPDATE] Adding achieved objective to active list temporarily');
+            activeList.push(updatedObjective);
+          }
+          setLocalObjectives(activeList);
+        } else {
+          setLocalObjectives(objRes.data || []);
+        }
         setLocalChallenges(challRes.data || []);
       } catch (err) {
         logger.error('Error refreshing after progress update:', err);
