@@ -20,6 +20,13 @@ export default function ObjectivesModal({
     setActiveObjectives(initialObjectives);
     setActiveChallenges(initialChallenges);
   }, [initialObjectives, initialChallenges]);
+  
+  // Always refresh data when modal opens to ensure latest updates are shown
+  useEffect(() => {
+    if (isOpen) {
+      refreshActiveData();
+    }
+  }, [isOpen]);
   const [activeTab, setActiveTab] = useState('objectifs'); // 'objectifs', 'challenges', or 'historique'
   const [updatingObjectiveId, setUpdatingObjectiveId] = useState(null);
   const [objectiveProgressValue, setObjectiveProgressValue] = useState('');
@@ -44,9 +51,10 @@ export default function ObjectivesModal({
     }
   }, [activeTab, isOpen]);
 
-  // Refresh active data when modal opens
+  // Refresh active data when modal opens or when isOpen changes
   useEffect(() => {
-    if (isOpen && activeTab !== 'historique') {
+    if (isOpen) {
+      // Always refresh data when modal opens to get latest updates
       refreshActiveData();
     }
   }, [isOpen]);
@@ -105,19 +113,35 @@ export default function ObjectivesModal({
       
       // Check if objective is now achieved from the response
       const updatedObj = response.data;
-      const isNowAchieved = updatedObj && (updatedObj.status === 'achieved' || (updatedObj.current_value >= updatedObj.target_value && updatedObj.target_value > 0));
-      
-      if (isNowAchieved) {
-        toast.success('🎉 Félicitations ! Objectif atteint !', { duration: 5000 });
-      } else {
-        toast.success('Progression mise à jour !');
-      }
+      const isNowAchieved = updatedObj && (
+        updatedObj.status === 'achieved' || 
+        (updatedObj.current_value >= updatedObj.target_value && updatedObj.target_value > 0)
+      );
       
       setUpdatingObjectiveId(null);
       setObjectiveProgressValue('');
       
       // Rafraîchir les données sans recharger la page
       await refreshActiveData();
+      
+      // Show celebration after data refresh so animation is visible
+      if (isNowAchieved) {
+        // Small delay to ensure UI is updated
+        setTimeout(() => {
+          toast.success('🎉 Félicitations ! Objectif atteint !', { 
+            duration: 5000,
+            style: {
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              padding: '16px',
+            }
+          });
+        }, 300);
+      } else {
+        toast.success('Progression mise à jour !');
+      }
     } catch (error) {
       logger.error('Error updating progress:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
@@ -153,13 +177,35 @@ export default function ObjectivesModal({
         );
       }
       
-      toast.success('Progression du challenge mise à jour !');
+      // Check if challenge is now achieved
+      const updatedChallenge = await api.get('/seller/challenges/active');
+      const chall = updatedChallenge.data?.find(c => c.id === challengeId);
+      const isNowAchieved = chall && (chall.status === 'achieved' || (chall.current_value >= chall.target_value && chall.target_value > 0));
+      
       setUpdatingChallengeId(null);
       setChallengeProgress({ ca: 0, ventes: 0, clients: 0 });
       setChallengeCurrentValue('');
       
       // Rafraîchir les données sans recharger la page
       await refreshActiveData();
+      
+      // Show celebration after data refresh
+      if (isNowAchieved) {
+        setTimeout(() => {
+          toast.success('🎉 Félicitations ! Challenge réussi !', { 
+            duration: 5000,
+            style: {
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              padding: '16px',
+            }
+          });
+        }, 300);
+      } else {
+        toast.success('Progression du challenge mise à jour !');
+      }
     } catch (error) {
       logger.error('Error updating challenge progress:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
@@ -272,21 +318,29 @@ export default function ObjectivesModal({
                       
                       return (
                       <div 
-                        key={index}
-                        className={`rounded-xl p-4 border-2 transition-all ${
+                        key={`${objective.id}-${index}`}
+                        className={`rounded-xl p-4 border-2 transition-all relative overflow-hidden ${
                           isAchieved 
-                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 hover:border-green-400 animate-pulse' 
+                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-400 hover:border-green-500 shadow-lg' 
                             : isCompleted
                             ? 'bg-gradient-to-r from-gray-50 to-slate-50 border-gray-300'
                             : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:border-purple-300'
                         }`}
                       >
-                        <div className="flex items-start justify-between mb-3">
+                        {isAchieved && (
+                          <div className="absolute inset-0 pointer-events-none">
+                            <div className="absolute top-2 right-2 text-4xl animate-bounce">🎉</div>
+                            <div className="absolute top-8 right-8 text-3xl animate-pulse">✨</div>
+                            <div className="absolute bottom-4 left-4 text-3xl animate-bounce" style={{ animationDelay: '0.2s' }}>🌟</div>
+                            <div className="absolute bottom-8 right-12 text-2xl animate-pulse" style={{ animationDelay: '0.4s' }}>💫</div>
+                          </div>
+                        )}
+                        <div className="flex items-start justify-between mb-3 relative z-10">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <h4 className="font-bold text-gray-800">{objective.title || objective.name}</h4>
                               {isAchieved && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-500 text-white rounded-full text-xs font-bold animate-bounce">
+                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full text-xs font-bold shadow-md celebrate-animation">
                                   🎉 Réussi !
                                 </span>
                               )}
@@ -304,7 +358,7 @@ export default function ObjectivesModal({
                             </span>
                             {isAchieved && (
                               <div className="text-center">
-                                <div className="text-2xl animate-spin">🎊</div>
+                                <div className="text-3xl celebrate-animation">🏆</div>
                               </div>
                             )}
                           </div>
@@ -362,16 +416,27 @@ export default function ObjectivesModal({
                         
                         {/* Barre de progression */}
                         {objective.target_value && (
-                          <div className="mt-3">
+                          <div className="mt-3 relative z-10">
                             <div className="flex justify-between text-xs text-gray-600 mb-1">
                               <span>Progression</span>
-                              <span className="font-semibold">{objective.current_value || 0} / {objective.target_value} {objective.unit || ''}</span>
+                              <span className={`font-semibold ${isAchieved ? 'text-green-600 font-bold' : ''}`}>
+                                {objective.current_value || 0} / {objective.target_value} {objective.unit || ''}
+                                {isAchieved && ' 🎯'}
+                              </span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="w-full bg-gray-200 rounded-full h-3 relative overflow-hidden">
                               <div 
-                                className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all"
+                                className={`h-3 rounded-full transition-all duration-500 ${
+                                  isAchieved 
+                                    ? 'bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 animate-pulse' 
+                                    : 'bg-gradient-to-r from-purple-600 to-pink-600'
+                                }`}
                                 style={{ width: `${Math.min(((objective.current_value || 0) / objective.target_value) * 100, 100)}%` }}
-                              ></div>
+                              >
+                                {isAchieved && (
+                                  <div className="absolute inset-0 bg-white opacity-30 animate-ping"></div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         )}

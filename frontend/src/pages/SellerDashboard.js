@@ -1481,6 +1481,11 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
           onClose={() => setShowObjectivesModal(false)}
           activeObjectives={activeObjectives}
           activeChallenges={activeChallenges}
+          onUpdate={async () => {
+            // Refresh objectives and challenges when modal updates
+            await fetchActiveObjectives();
+            await fetchActiveChallenges();
+          }}
         />
       )}
 
