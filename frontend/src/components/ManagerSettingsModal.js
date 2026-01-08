@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { X, Settings, Target, Trophy, Edit2, Trash2, Plus } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import confetti from 'canvas-confetti';
 import AchievementModal from './AchievementModal';
 
 export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalType = 'objectives', storeIdParam = null }) {
@@ -466,7 +467,25 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         { current_value: parseFloat(challengeProgressValue) }
       );
       logger.log('✅ Progression challenge mise à jour, réponse:', response.data);
-      toast.success('Progression mise à jour avec succès');
+      
+      // Check if challenge just became "achieved" or "completed"
+      const updatedChallenge = response.data;
+      if (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') {
+        triggerConfetti();
+        toast.success('🎉 Félicitations ! Challenge réussi !', { 
+          duration: 5000,
+          style: {
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            color: 'white',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            padding: '16px',
+          }
+        });
+      } else {
+        toast.success('Progression mise à jour avec succès');
+      }
+      
       setUpdatingProgressChallengeId(null);
       setChallengeProgressValue('');
       
@@ -616,6 +635,34 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     }
   };
 
+  // Function to trigger confetti animation
+  const triggerConfetti = () => {
+    const duration = 3000;
+    const end = Date.now() + duration;
+    const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
+
+    (function frame() {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: colors
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: colors
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    }());
+  };
+
   const handleUpdateProgress = async (objectiveId) => {
     if (!progressValue || progressValue === '') {
       toast.error('Veuillez entrer une valeur');
@@ -628,7 +675,25 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         { current_value: parseFloat(progressValue) }
       );
       logger.log('✅ Progression mise à jour, réponse:', response.data);
-      toast.success('Progression mise à jour avec succès');
+      
+      // Check if objective just became "achieved"
+      const updatedObjective = response.data;
+      if (updatedObjective.status === 'achieved') {
+        triggerConfetti();
+        toast.success('🎉 Félicitations ! Objectif atteint !', { 
+          duration: 5000,
+          style: {
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            color: 'white',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            padding: '16px',
+          }
+        });
+      } else {
+        toast.success('Progression mise à jour avec succès');
+      }
+      
       setUpdatingProgressObjectiveId(null);
       setProgressValue('');
       

@@ -63,14 +63,21 @@ export default function AchievementModal({
   // Trigger confetti when modal opens
   useEffect(() => {
     if (isOpen && item && !confettiTriggered.current) {
+      console.log('🎉 [CONFETTI] Modal opened, triggering confetti in 500ms...');
       confettiTriggered.current = true;
       
-      // Delay confetti slightly to let modal appear first
-      setTimeout(() => {
+      // Delay confetti slightly to let modal appear first and be visible
+      const confettiTimeout = setTimeout(() => {
+        console.log('🎉 [CONFETTI] Triggering confetti now!');
         triggerConfetti();
-      }, 300);
+      }, 500); // Increased delay to ensure modal is fully visible
+      
+      return () => {
+        clearTimeout(confettiTimeout);
+      };
     } else if (!isOpen) {
-      // Reset when modal closes
+      // Reset when modal closes so it can trigger again next time
+      console.log('🎉 [CONFETTI] Modal closed, resetting confetti trigger');
       confettiTriggered.current = false;
     }
   }, [isOpen, item]);
@@ -167,6 +174,7 @@ export default function AchievementModal({
 
   const handleMarkAsSeen = async () => {
     try {
+      console.log('✅ [ACHIEVEMENT MODAL] Marking achievement as seen...');
       const endpoint = userRole === 'seller' 
         ? `/${userRole}/${itemType}s/${item.id}/mark-achievement-seen`
         : `/manager/${itemType}s/${item.id}/mark-achievement-seen`;
@@ -174,13 +182,19 @@ export default function AchievementModal({
       await api.post(endpoint);
       logger.log(`✅ Achievement notification marked as seen for ${itemType}:`, item.id);
       
-      // Call parent callback to refresh data
-      if (onMarkAsSeen) {
-        await onMarkAsSeen();
-      }
-      
-      onClose();
-      toast.success('Félicitations ! 🎉');
+      // Wait longer before closing to ensure animation is visible
+      // The confetti lasts 6 seconds, so we keep modal open for at least 2 seconds
+      setTimeout(() => {
+        onClose();
+        toast.success('Félicitations ! 🎉');
+        
+        // Then call parent callback to refresh data (after modal closes)
+        setTimeout(async () => {
+          if (onMarkAsSeen) {
+            await onMarkAsSeen();
+          }
+        }, 300);
+      }, 2000); // Keep modal open for 2 seconds to see animation and confetti
     } catch (err) {
       logger.error('Error marking achievement as seen:', err);
       toast.error('Erreur lors de la mise à jour');

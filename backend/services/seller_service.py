@@ -246,18 +246,21 @@ class SellerService:
         # Filter out achieved objectives (they should go to history)
         # Achieved objectives are moved to history, regardless of notification status
         # The notification can still be shown when viewing history or dashboard
+        # IMPORTANT: Once an objective is "achieved", it should NEVER appear in active list again
         final_objectives = []
         
         for objective in filtered_objectives:
             status = objective.get('status')
             
             # Keep in active list ONLY if status is 'active' or 'failed'
-            # ALL achieved objectives go to history
+            # ALL achieved objectives go to history (even if has_unseen_achievement is true)
+            # The notification modal should be triggered BEFORE the objective moves to history
             if status in ['active', 'failed']:
                 final_objectives.append(objective)
             elif status == 'achieved':
                 # Exclude from active list - will appear in history
-                print(f"📦 [ACTIVE LIST] Excluding achieved objective '{objective.get('title')}' from active list (status: achieved)")
+                # Even if has_unseen_achievement is true, don't show it in active list
+                print(f"📦 [ACTIVE LIST] Excluding achieved objective '{objective.get('title')}' from active list (status: achieved, has_unseen: {objective.get('has_unseen_achievement', False)})")
             # All other statuses are excluded
         
         return final_objectives
@@ -710,17 +713,21 @@ class SellerService:
     
     async def calculate_objective_progress(self, objective: dict, manager_id: str):
         """Calculate progress for an objective (team-wide)"""
-        # If progress is entered manually by the manager, do NOT overwrite it from KPI aggregates.
+        # If progress is entered manually by the manager or seller, do NOT overwrite it from KPI aggregates.
         # Otherwise, any refresh will "reset" manual progress back to KPI-derived totals (often 0).
-        if str(objective.get('data_entry_responsible', '')).lower() == 'manager':
+        # This prevents synchronization issues where manual updates are overwritten by automatic calculations.
+        data_entry_responsible = str(objective.get('data_entry_responsible', '')).lower()
+        if data_entry_responsible in ['manager', 'seller']:
             target_value = objective.get('target_value', 0)
             end_date = objective.get('period_end') or objective.get('end_date')
             current_value = float(objective.get('current_value') or 0)
             objective['status'] = self.compute_status(current_value, target_value, end_date)
+            # Only update status in DB, keep current_value as-is (manually entered)
             await self.db.objectives.update_one(
                 {"id": objective['id']},
                 {"$set": {"status": objective['status']}}
             )
+            print(f"🔒 [PROGRESS PROTECTION] Objective '{objective.get('title')}': preserving manual current_value={current_value} (data_entry_responsible={data_entry_responsible})")
             return
 
         start_date = objective['period_start']
@@ -957,13 +964,16 @@ class SellerService:
             start_date = objective.get('period_start')
             end_date = objective.get('period_end')
 
-            # If progress is entered manually by the manager, do NOT overwrite it from KPI aggregates.
+            # If progress is entered manually by the manager or seller, do NOT overwrite it from KPI aggregates.
             # Important: this function bulk-writes computed fields back to DB; we must skip manual objectives.
-            if str(objective.get('data_entry_responsible', '')).lower() == 'manager':
+            # This prevents synchronization issues where manual updates are overwritten by automatic calculations.
+            data_entry_responsible = str(objective.get('data_entry_responsible', '')).lower()
+            if data_entry_responsible in ['manager', 'seller']:
                 target_value = objective.get('target_value', 0)
                 current_value = float(objective.get('current_value') or 0)
                 objective['status'] = self.compute_status(current_value, target_value, end_date)
                 # Keep stored progress_* and current_value as-is; do not append bulk update.
+                print(f"🔒 [PROGRESS PROTECTION] Objective '{objective.get('title')}': preserving manual current_value={current_value} (data_entry_responsible={data_entry_responsible})")
                 continue
             
             if not start_date or not end_date:
@@ -1078,6 +1088,28 @@ class SellerService:
     
     async def calculate_challenge_progress(self, challenge: dict, seller_id: str = None):
         """Calculate progress for a challenge"""
+        # If progress is entered manually by the manager or seller, do NOT overwrite it from KPI aggregates.
+        # Otherwise, any refresh will "reset" manual progress back to KPI-derived totals (often 0).
+        # This prevents synchronization issues where manual updates are overwritten by automatic calculations.
+        data_entry_responsible = str(challenge.get('data_entry_responsible', '')).lower()
+        if data_entry_responsible in ['manager', 'seller']:
+            target_value = challenge.get('target_value', 0)
+            end_date = challenge.get('end_date') or challenge.get('period_end')
+            current_value = float(challenge.get('current_value') or 0)
+            # Recalculate status based on current_value (manually entered)
+            new_status = self.compute_status(current_value, target_value, end_date)
+            challenge['status'] = new_status
+            # Only update status in DB, keep current_value as-is (manually entered)
+            update_data = {"status": new_status}
+            if new_status in ['achieved', 'completed']:
+                update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
+            await self.db.challenges.update_one(
+                {"id": challenge['id']},
+                {"$set": update_data}
+            )
+            print(f"🔒 [PROGRESS PROTECTION] Challenge '{challenge.get('title')}': preserving manual current_value={current_value} (data_entry_responsible={data_entry_responsible})")
+            return
+        
         start_date = challenge.get('start_date') or challenge.get('period_start')
         end_date = challenge.get('end_date') or challenge.get('period_end')
         manager_id = challenge['manager_id']
@@ -1281,6 +1313,19 @@ class SellerService:
         for challenge in challenges:
             start_date = challenge.get('start_date') or challenge.get('period_start')
             end_date = challenge.get('end_date') or challenge.get('period_end')
+            
+            # If progress is entered manually by the manager or seller, do NOT overwrite it from KPI aggregates.
+            # Important: this function bulk-writes computed fields back to DB; we must skip manual challenges.
+            # This prevents synchronization issues where manual updates are overwritten by automatic calculations.
+            data_entry_responsible = str(challenge.get('data_entry_responsible', '')).lower()
+            if data_entry_responsible in ['manager', 'seller']:
+                target_value = challenge.get('target_value', 0)
+                current_value = float(challenge.get('current_value') or 0)
+                new_status = self.compute_status(current_value, target_value, end_date)
+                challenge['status'] = new_status
+                # Keep stored progress_* and current_value as-is; do not append bulk update.
+                print(f"🔒 [PROGRESS PROTECTION] Challenge '{challenge.get('title')}': preserving manual current_value={current_value} (data_entry_responsible={data_entry_responsible})")
+                continue
             
             if not start_date or not end_date:
                 # Invalid date range, set progress to 0

@@ -3,6 +3,7 @@ import { X, Target, Trophy, History, Filter } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 import AchievementModal from './AchievementModal';
 
 export default function ObjectivesModal({ 
@@ -87,44 +88,58 @@ export default function ObjectivesModal({
       // Fetch active objectives
       const objRes = await api.get('/seller/objectives/active');
       const objectives = objRes.data || [];
-      setActiveObjectives(objectives);
       
       // Fetch active challenges
       const challRes = await api.get('/seller/challenges/active');
       const challenges = challRes.data || [];
+      
+      // CRITICAL: Filter out achieved objectives from active list
+      // Even if backend returns them, we don't want them in active list
+      const activeOnly = objectives.filter(obj => {
+        const isAchieved = obj.status === 'achieved';
+        if (isAchieved) {
+          console.log(`🚫 [FRONTEND] Filtering out achieved objective "${obj.title}" from active list`);
+        }
+        return !isAchieved;
+      });
+      
+      setActiveObjectives(activeOnly);
       setActiveChallenges(challenges);
       
       // Debug: log objectives to check flags
-      console.log('🔍 [FRONTEND] Objectives received:', objectives.length);
+      console.log('🔍 [FRONTEND] Objectives received:', objectives.length, 'After filtering achieved:', activeOnly.length);
       objectives.forEach(obj => {
         if (obj.status === 'achieved') {
-          console.log(`🔍 [FRONTEND] Objective "${obj.title}": status=${obj.status}, has_unseen_achievement=${obj.has_unseen_achievement}`);
+          console.log(`⚠️ [FRONTEND] Objective "${obj.title}": status=${obj.status}, has_unseen_achievement=${obj.has_unseen_achievement} - FILTERED OUT`);
         }
       });
       
       // Check for unseen achievements and show modal
-      const unseenObjective = objectives.find(obj => obj.has_unseen_achievement === true);
-      const unseenChallenge = challenges.find(chall => chall.has_unseen_achievement === true);
-      
-      console.log('🔍 [FRONTEND] Unseen objective:', unseenObjective ? unseenObjective.title : 'none');
-      console.log('🔍 [FRONTEND] Unseen challenge:', unseenChallenge ? unseenChallenge.title : 'none');
-      
-      // Priority: show objective first, then challenge
-      // Only show if modal is not already open
-      if (unseenObjective && !achievementModal.isOpen) {
-        console.log('🎉 [ACHIEVEMENT] Showing achievement modal for objective:', unseenObjective.title);
-        setAchievementModal({
-          isOpen: true,
-          item: unseenObjective,
-          itemType: 'objective'
-        });
-      } else if (unseenChallenge && !achievementModal.isOpen && !unseenObjective) {
-        console.log('🎉 [ACHIEVEMENT] Showing achievement modal for challenge:', unseenChallenge.title);
-        setAchievementModal({
-          isOpen: true,
-          item: unseenChallenge,
-          itemType: 'challenge'
-        });
+      // Only check if modal is not already open to avoid conflicts
+      if (!achievementModal.isOpen) {
+        // Check in the filtered list (no achieved objectives)
+        const unseenObjective = activeOnly.find(obj => obj.has_unseen_achievement === true);
+        const unseenChallenge = challenges.find(chall => chall.has_unseen_achievement === true);
+        
+        console.log('🔍 [FRONTEND] Unseen objective:', unseenObjective ? unseenObjective.title : 'none');
+        console.log('🔍 [FRONTEND] Unseen challenge:', unseenChallenge ? unseenChallenge.title : 'none');
+        
+        // Priority: show objective first, then challenge
+        if (unseenObjective) {
+          console.log('🎉 [ACHIEVEMENT] Showing achievement modal for objective:', unseenObjective.title);
+          setAchievementModal({
+            isOpen: true,
+            item: unseenObjective,
+            itemType: 'objective'
+          });
+        } else if (unseenChallenge) {
+          console.log('🎉 [ACHIEVEMENT] Showing achievement modal for challenge:', unseenChallenge.title);
+          setAchievementModal({
+            isOpen: true,
+            item: unseenChallenge,
+            itemType: 'challenge'
+          });
+        }
       }
       
       // Also refresh history if we're on the history tab
@@ -142,17 +157,57 @@ export default function ObjectivesModal({
   };
   
   const handleMarkAchievementAsSeen = async () => {
-    // Refresh data after marking as seen
-    await refreshActiveData();
-    // Also refresh history to show the objective there
-    if (activeTab === 'historique') {
-      await fetchHistory();
-    }
-    if (activeTab === 'historique') {
-      await fetchHistory();
-    }
+    console.log('✅ [ACHIEVEMENT] Marking achievement as seen, refreshing data...');
+    
+    // Close modal first (but wait a bit so animation is visible)
+    setTimeout(() => {
+      setAchievementModal({ isOpen: false, item: null, itemType: null });
+    }, 100);
+    
+    // Refresh data after marking as seen (with delay to ensure modal closes smoothly)
+    setTimeout(async () => {
+      await refreshActiveData();
+      
+      // Also refresh history to show the objective there
+      if (activeTab === 'historique') {
+        await fetchHistory();
+      }
+      
+      // Also call parent's onUpdate if provided
+      if (onUpdate) {
+        onUpdate();
+      }
+    }, 500);
   };
   
+  // Function to trigger confetti animation
+  const triggerConfetti = () => {
+    const duration = 3000;
+    const end = Date.now() + duration;
+    const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
+
+    (function frame() {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: colors
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: colors
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    }());
+  };
+
   const handleUpdateProgress = async (objectiveId) => {
     try {
       const value = parseFloat(objectiveProgressValue);
@@ -174,15 +229,18 @@ export default function ObjectivesModal({
       // Check if objective just became "achieved" and has unseen achievement
       if (updatedObjective.status === 'achieved' && updatedObjective.has_unseen_achievement === true) {
         console.log('🎉 [PROGRESS UPDATE] Objective just achieved! Showing modal...');
-        // Show achievement modal immediately (before refreshing)
+        // Show achievement modal immediately (BEFORE refreshing to avoid conflicts)
         setAchievementModal({
           isOpen: true,
           item: updatedObjective,
           itemType: 'objective'
         });
-        toast.success('🎉 Objectif atteint !');
+        // Don't refresh immediately - let the modal show first
+        // The refresh will happen after the modal is closed
+        return; // Exit early to prevent refresh
       } else if (updatedObjective.status === 'achieved') {
-        // Already seen, just show toast
+        // Already seen, but still trigger confetti and congratulation message
+        triggerConfetti();
         toast.success('🎉 Félicitations ! Objectif atteint !', { 
           duration: 5000,
           style: {
@@ -193,12 +251,13 @@ export default function ObjectivesModal({
             padding: '16px',
           }
         });
+        // Refresh after toast
+        await refreshActiveData();
       } else {
         toast.success('Progression mise à jour !');
+        // Refresh normally
+        await refreshActiveData();
       }
-      
-      // Rafraîchir les données sans recharger la page
-      await refreshActiveData();
     } catch (error) {
       logger.error('Error updating progress:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
@@ -248,6 +307,7 @@ export default function ObjectivesModal({
       
       // Show celebration after data refresh
       if (isNowAchieved) {
+        triggerConfetti();
         setTimeout(() => {
           toast.success('🎉 Félicitations ! Challenge réussi !', { 
             duration: 5000,

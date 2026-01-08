@@ -46,11 +46,14 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
   
   // Check for unseen achievements when objectives/challenges change
   useEffect(() => {
-    const unseenObjective = localObjectives?.find(obj => obj.has_unseen_achievement === true);
+    // Filter out achieved objectives first - they shouldn't trigger modals from active list
+    const activeOnly = localObjectives?.filter(obj => obj.status !== 'achieved') || [];
+    
+    const unseenObjective = activeOnly.find(obj => obj.has_unseen_achievement === true);
     const unseenChallenge = localChallenges?.find(chall => chall.has_unseen_achievement === true);
     
-    console.log('🔍 [ACHIEVEMENT CHECK] Objectives:', localObjectives?.length, 'Challenges:', localChallenges?.length);
-    console.log('🔍 [ACHIEVEMENT CHECK] All objectives:', localObjectives?.map(obj => ({
+    console.log('🔍 [ACHIEVEMENT CHECK] Objectives:', localObjectives?.length, 'After filtering achieved:', activeOnly.length, 'Challenges:', localChallenges?.length);
+    console.log('🔍 [ACHIEVEMENT CHECK] All objectives:', activeOnly.map(obj => ({
       title: obj.title,
       status: obj.status,
       has_unseen: obj.has_unseen_achievement
@@ -59,6 +62,7 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
     console.log('🔍 [ACHIEVEMENT CHECK] Unseen challenge:', unseenChallenge?.title, unseenChallenge?.has_unseen_achievement);
     
     // Priority: show objective first, then challenge
+    // Only show if modal is not already open
     if (unseenObjective && !achievementModal.isOpen) {
       console.log('🎉 [ACHIEVEMENT] Showing achievement modal for objective:', unseenObjective.title);
       setAchievementModal({
@@ -78,32 +82,46 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
   
   const handleMarkAchievementAsSeen = async () => {
     console.log('✅ [ACHIEVEMENT] Marking achievement as seen, refreshing data...');
-    // Refresh data after marking as seen
-    try {
-      const [objRes, challRes] = await Promise.all([
-        api.get('/seller/objectives/active'),
-        api.get('/seller/challenges/active')
-      ]);
-      setLocalObjectives(objRes.data || []);
-      setLocalChallenges(challRes.data || []);
-      
-      if (onUpdate) {
-        await onUpdate();
+    // Close modal first
+    setAchievementModal({ isOpen: false, item: null, itemType: null });
+    
+    // Refresh data after marking as seen (with delay to ensure modal closes smoothly)
+    setTimeout(async () => {
+      try {
+        const [objRes, challRes] = await Promise.all([
+          api.get('/seller/objectives/active'),
+          api.get('/seller/challenges/active')
+        ]);
+        
+        // Filter out any achieved objectives that might have slipped through
+        // This ensures they don't come back even if backend returns them
+        const filteredObjectives = (objRes.data || []).filter(obj => obj.status !== 'achieved');
+        setLocalObjectives(filteredObjectives);
+        setLocalChallenges(challRes.data || []);
+        
+        if (onUpdate) {
+          await onUpdate();
+        }
+      } catch (err) {
+        logger.error('Error refreshing after marking as seen:', err);
       }
-    } catch (err) {
-      logger.error('Error refreshing after marking as seen:', err);
-    }
+    }, 300);
   };
   
   // Séparer les objectifs actifs et inactifs (use local state)
+  // CRITICAL: Filter out achieved objectives from active list
+  const today = new Date().toISOString().split('T')[0];
   const activeObjectives = localObjectives?.filter(obj => {
-    const today = new Date().toISOString().split('T')[0];
-    return obj.period_end > today;
+    const isNotAchieved = obj.status !== 'achieved';
+    const isActivePeriod = obj.period_end > today;
+    return isNotAchieved && isActivePeriod;
   }) || [];
   
   const inactiveObjectives = localObjectives?.filter(obj => {
-    const today = new Date().toISOString().split('T')[0];
-    return obj.period_end <= today;
+    const isAchieved = obj.status === 'achieved';
+    const isExpired = obj.period_end <= today;
+    // Include in inactive if achieved OR expired
+    return isAchieved || isExpired;
   }) || [];
   
   const formatDate = (dateStr) => {
@@ -142,49 +160,49 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
       
       const updatedObjective = response.data;
       
+      setUpdatingProgressObjectiveId(null);
+      setProgressValue('');
+      
       // Check if objective just became "achieved" and has unseen achievement
       if (updatedObjective.status === 'achieved' && updatedObjective.has_unseen_achievement === true) {
         console.log('🎉 [PROGRESS UPDATE] Objective just achieved! Showing modal...');
-        // Show achievement modal immediately
+        // Show achievement modal immediately (BEFORE refreshing)
+        // Don't refresh yet - let the modal show first
         setAchievementModal({
           isOpen: true,
           item: updatedObjective,
           itemType: 'objective'
         });
         toast.success('🎉 Objectif atteint !');
+        // Don't refresh here - refresh will happen after modal is closed
+        return; // Exit early to prevent refresh
       } else if (updatedObjective.status === 'achieved') {
-        // Already seen, just show toast
+        // Already seen, just show toast and refresh
         toast.success('🎉 Félicitations ! Objectif atteint !');
+        // Refresh to remove from active list
+        try {
+          const [objRes, challRes] = await Promise.all([
+            api.get('/seller/objectives/active'),
+            api.get('/seller/challenges/active')
+          ]);
+          setLocalObjectives(objRes.data || []);
+          setLocalChallenges(challRes.data || []);
+        } catch (err) {
+          logger.error('Error refreshing after progress update:', err);
+        }
       } else {
         toast.success('Progression mise à jour avec succès');
-      }
-      
-      setUpdatingProgressObjectiveId(null);
-      setProgressValue('');
-      
-      // Refresh local data (but keep the achieved objective temporarily if it has unseen achievement)
-      try {
-        const [objRes, challRes] = await Promise.all([
-          api.get('/seller/objectives/active'),
-          api.get('/seller/challenges/active')
-        ]);
-        
-        // If we just achieved an objective and it's not in active list anymore,
-        // add it temporarily so the modal can show it
-        if (updatedObjective.status === 'achieved' && updatedObjective.has_unseen_achievement === true) {
-          const activeList = objRes.data || [];
-          const isInActiveList = activeList.some(obj => obj.id === updatedObjective.id);
-          if (!isInActiveList) {
-            console.log('📦 [PROGRESS UPDATE] Adding achieved objective to active list temporarily');
-            activeList.push(updatedObjective);
-          }
-          setLocalObjectives(activeList);
-        } else {
+        // Refresh normally
+        try {
+          const [objRes, challRes] = await Promise.all([
+            api.get('/seller/objectives/active'),
+            api.get('/seller/challenges/active')
+          ]);
           setLocalObjectives(objRes.data || []);
+          setLocalChallenges(challRes.data || []);
+        } catch (err) {
+          logger.error('Error refreshing after progress update:', err);
         }
-        setLocalChallenges(challRes.data || []);
-      } catch (err) {
-        logger.error('Error refreshing after progress update:', err);
       }
       
       // Also call parent update
