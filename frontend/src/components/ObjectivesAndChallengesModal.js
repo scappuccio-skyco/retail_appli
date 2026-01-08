@@ -1,13 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Award, Calendar, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import AchievementModal from './AchievementModal';
 
 export default function ObjectivesAndChallengesModal({ objectives, challenges, onClose, onUpdate }) {
   const [showInactive, setShowInactive] = useState(false);
   const [updatingProgressObjectiveId, setUpdatingProgressObjectiveId] = useState(null);
   const [progressValue, setProgressValue] = useState('');
+  
+  // Achievement notification states
+  const [achievementModal, setAchievementModal] = useState({
+    isOpen: false,
+    item: null,
+    itemType: null
+  });
+  
+  // Check for unseen achievements when objectives/challenges change
+  useEffect(() => {
+    const unseenObjective = objectives?.find(obj => obj.has_unseen_achievement === true);
+    const unseenChallenge = challenges?.find(chall => chall.has_unseen_achievement === true);
+    
+    // Priority: show objective first, then challenge
+    if (unseenObjective && !achievementModal.isOpen) {
+      setAchievementModal({
+        isOpen: true,
+        item: unseenObjective,
+        itemType: 'objective'
+      });
+    } else if (unseenChallenge && !achievementModal.isOpen && !unseenObjective) {
+      setAchievementModal({
+        isOpen: true,
+        item: unseenChallenge,
+        itemType: 'challenge'
+      });
+    }
+  }, [objectives, challenges]);
+  
+  const handleMarkAchievementAsSeen = async () => {
+    // Refresh data after marking as seen
+    if (onUpdate) {
+      await onUpdate();
+    }
+  };
   
   // Séparer les objectifs actifs et inactifs
   const activeObjectives = objectives?.filter(obj => {
@@ -535,6 +571,16 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
           </button>
         </div>
       </div>
+      
+      {/* Achievement Modal */}
+      <AchievementModal
+        isOpen={achievementModal.isOpen}
+        onClose={() => setAchievementModal({ isOpen: false, item: null, itemType: null })}
+        item={achievementModal.item}
+        itemType={achievementModal.itemType}
+        onMarkAsSeen={handleMarkAchievementAsSeen}
+        userRole="seller"
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { X, Target, Trophy, History, Filter } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
 import { toast } from 'sonner';
+import AchievementModal from './AchievementModal';
 
 export default function ObjectivesModal({ 
   isOpen, 
@@ -44,6 +45,13 @@ export default function ObjectivesModal({
   const [historyTypeFilter, setHistoryTypeFilter] = useState('all'); // 'all', 'objectifs', 'challenges'
   const [historyStatusFilter, setHistoryStatusFilter] = useState('all'); // 'all', 'achieved', 'not_achieved'
   
+  // Achievement notification states
+  const [achievementModal, setAchievementModal] = useState({
+    isOpen: false,
+    item: null,
+    itemType: null
+  });
+  
   // Fetch history when tab changes to historique
   useEffect(() => {
     if (activeTab === 'historique' && isOpen) {
@@ -78,11 +86,32 @@ export default function ObjectivesModal({
     try {
       // Fetch active objectives
       const objRes = await api.get('/seller/objectives/active');
-      setActiveObjectives(objRes.data || []);
+      const objectives = objRes.data || [];
+      setActiveObjectives(objectives);
       
       // Fetch active challenges
       const challRes = await api.get('/seller/challenges/active');
-      setActiveChallenges(challRes.data || []);
+      const challenges = challRes.data || [];
+      setActiveChallenges(challenges);
+      
+      // Check for unseen achievements and show modal
+      const unseenObjective = objectives.find(obj => obj.has_unseen_achievement === true);
+      const unseenChallenge = challenges.find(chall => chall.has_unseen_achievement === true);
+      
+      // Priority: show objective first, then challenge
+      if (unseenObjective) {
+        setAchievementModal({
+          isOpen: true,
+          item: unseenObjective,
+          itemType: 'objective'
+        });
+      } else if (unseenChallenge) {
+        setAchievementModal({
+          isOpen: true,
+          item: unseenChallenge,
+          itemType: 'challenge'
+        });
+      }
       
       // Also refresh history if we're on the history tab
       if (activeTab === 'historique') {
@@ -96,6 +125,11 @@ export default function ObjectivesModal({
     } catch (err) {
       logger.error('Error refreshing data:', err);
     }
+  };
+  
+  const handleMarkAchievementAsSeen = async () => {
+    // Refresh data after marking as seen
+    await refreshActiveData();
   };
   
   const handleUpdateProgress = async (objectiveId) => {
@@ -1025,6 +1059,16 @@ export default function ObjectivesModal({
           )}
         </div>
       </div>
+      
+      {/* Achievement Modal */}
+      <AchievementModal
+        isOpen={achievementModal.isOpen}
+        onClose={() => setAchievementModal({ isOpen: false, item: null, itemType: null })}
+        item={achievementModal.item}
+        itemType={achievementModal.itemType}
+        onMarkAsSeen={handleMarkAchievementAsSeen}
+        userRole="seller"
+      />
     </div>
     </>
   );

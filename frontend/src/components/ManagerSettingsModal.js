@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { X, Settings, Target, Trophy, Edit2, Trash2, Plus } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import AchievementModal from './AchievementModal';
 
 export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalType = 'objectives', storeIdParam = null }) {
   const [activeTab, setActiveTab] = useState(
@@ -122,10 +123,32 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         sellers: sellersRes.data?.length
       });
       
+      const objectivesData = objectivesRes.data || [];
+      const challengesData = challengesRes.data || [];
+      
       setKpiConfig(configRes.data);
-      setObjectives(objectivesRes.data);
-      setChallenges(challengesRes.data);
+      setObjectives(objectivesData);
+      setChallenges(challengesData);
       setSellers(sellersRes.data);
+      
+      // Check for unseen achievements and show modal
+      const unseenObjective = objectivesData.find(obj => obj.has_unseen_achievement === true);
+      const unseenChallenge = challengesData.find(chall => chall.has_unseen_achievement === true);
+      
+      // Priority: show objective first, then challenge
+      if (unseenObjective && !achievementModal.isOpen) {
+        setAchievementModal({
+          isOpen: true,
+          item: unseenObjective,
+          itemType: 'objective'
+        });
+      } else if (unseenChallenge && !achievementModal.isOpen && !unseenObjective) {
+        setAchievementModal({
+          isOpen: true,
+          item: unseenChallenge,
+          itemType: 'challenge'
+        });
+      }
     } catch (err) {
       logger.error('❌ ManagerSettingsModal - fetchData error:', err);
       toast.error('Erreur de chargement des données');
@@ -133,6 +156,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       logger.log('🔄 ManagerSettingsModal - setting loading to false');
       setLoading(false);
     }
+  };
+  
+  const handleMarkAchievementAsSeen = async () => {
+    // Refresh data after marking as seen
+    await fetchData();
   };
 
   // Charger les données au montage du composant et quand le modal s'ouvre
@@ -2839,6 +2867,16 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
           )}
         </div>
       </div>
+      
+      {/* Achievement Modal */}
+      <AchievementModal
+        isOpen={achievementModal.isOpen}
+        onClose={() => setAchievementModal({ isOpen: false, item: null, itemType: null })}
+        item={achievementModal.item}
+        itemType={achievementModal.itemType}
+        onMarkAsSeen={handleMarkAchievementAsSeen}
+        userRole="manager"
+      />
     </div>
   );
 }
