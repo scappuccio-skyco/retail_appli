@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Trophy, Target, Sparkles } from 'lucide-react';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
@@ -12,7 +12,27 @@ export default function AchievementModal({
   onMarkAsSeen,
   userRole = 'seller' // 'seller' or 'manager'
 }) {
+  // Add shimmer animation styles
+  useEffect(() => {
+    if (typeof document !== 'undefined' && !document.getElementById('achievement-modal-styles')) {
+      const style = document.createElement('style');
+      style.id = 'achievement-modal-styles';
+      style.textContent = `
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s ease-in-out infinite;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
+  
   if (!isOpen || !item) return null;
+  
+  console.log('🎉 [ACHIEVEMENT MODAL] Rendering modal for:', item.title, 'has_unseen_achievement:', item.has_unseen_achievement);
 
   const handleMarkAsSeen = async () => {
     try {
@@ -91,14 +111,15 @@ export default function AchievementModal({
         }
       }}
     >
-      <div className="bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50 rounded-3xl shadow-2xl max-w-2xl w-full border-4 border-yellow-400 animate-pulse">
+      <div className="bg-gradient-to-br from-yellow-50 via-orange-50 to-pink-50 rounded-3xl shadow-2xl max-w-2xl w-full border-4 border-yellow-400 animate-[pulse_2s_ease-in-out_infinite]">
         {/* Header with confetti effect */}
         <div className="relative bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-400 p-6 rounded-t-3xl">
           <div className="absolute inset-0 overflow-hidden rounded-t-3xl">
-            <Sparkles className="absolute top-2 left-4 w-6 h-6 text-yellow-200 animate-bounce" style={{ animationDelay: '0s' }} />
-            <Sparkles className="absolute top-4 right-8 w-5 h-5 text-pink-200 animate-bounce" style={{ animationDelay: '0.2s' }} />
-            <Sparkles className="absolute bottom-2 left-1/4 w-4 h-4 text-orange-200 animate-bounce" style={{ animationDelay: '0.4s' }} />
-            <Sparkles className="absolute bottom-4 right-1/4 w-5 h-5 text-yellow-200 animate-bounce" style={{ animationDelay: '0.6s' }} />
+            <Sparkles className="absolute top-2 left-4 w-6 h-6 text-yellow-200 animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0s' }} />
+            <Sparkles className="absolute top-4 right-8 w-5 h-5 text-pink-200 animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }} />
+            <Sparkles className="absolute bottom-2 left-1/4 w-4 h-4 text-orange-200 animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.4s' }} />
+            <Sparkles className="absolute bottom-4 right-1/4 w-5 h-5 text-yellow-200 animate-[bounce_1s_ease-in-out_infinite]" style={{ animationDelay: '0.6s' }} />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20 animate-shimmer"></div>
           </div>
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -158,12 +179,13 @@ export default function AchievementModal({
           {/* Progress bar visualization */}
           {details && (
             <div className="mb-6">
-              <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+              <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden shadow-inner">
                 <div 
-                  className="h-4 bg-gradient-to-r from-green-400 via-emerald-500 to-green-600 rounded-full transition-all duration-1000"
+                  className="h-6 bg-gradient-to-r from-green-400 via-emerald-500 to-green-600 rounded-full transition-all duration-1000 relative"
                   style={{ width: `${Math.min(parseFloat(details.progress), 100)}%` }}
                 >
-                  <div className="h-full bg-white opacity-30 animate-pulse"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-40 animate-shimmer"></div>
+                  <div className="h-full bg-white opacity-20 animate-[pulse_1.5s_ease-in-out_infinite]"></div>
                 </div>
               </div>
             </div>

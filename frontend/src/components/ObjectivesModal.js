@@ -99,13 +99,16 @@ export default function ObjectivesModal({
       const unseenChallenge = challenges.find(chall => chall.has_unseen_achievement === true);
       
       // Priority: show objective first, then challenge
-      if (unseenObjective) {
+      // Only show if modal is not already open
+      if (unseenObjective && !achievementModal.isOpen) {
+        console.log('🎉 [ACHIEVEMENT] Showing achievement modal for objective:', unseenObjective.title);
         setAchievementModal({
           isOpen: true,
           item: unseenObjective,
           itemType: 'objective'
         });
-      } else if (unseenChallenge) {
+      } else if (unseenChallenge && !achievementModal.isOpen && !unseenObjective) {
+        console.log('🎉 [ACHIEVEMENT] Showing achievement modal for challenge:', unseenChallenge.title);
         setAchievementModal({
           isOpen: true,
           item: unseenChallenge,
@@ -130,6 +133,13 @@ export default function ObjectivesModal({
   const handleMarkAchievementAsSeen = async () => {
     // Refresh data after marking as seen
     await refreshActiveData();
+    // Also refresh history to show the objective there
+    if (activeTab === 'historique') {
+      await fetchHistory();
+    }
+    if (activeTab === 'historique') {
+      await fetchHistory();
+    }
   };
   
   const handleUpdateProgress = async (objectiveId) => {

@@ -22,14 +22,20 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
     const unseenObjective = objectives?.find(obj => obj.has_unseen_achievement === true);
     const unseenChallenge = challenges?.find(chall => chall.has_unseen_achievement === true);
     
+    console.log('🔍 [ACHIEVEMENT CHECK] Objectives:', objectives?.length, 'Challenges:', challenges?.length);
+    console.log('🔍 [ACHIEVEMENT CHECK] Unseen objective:', unseenObjective?.title, unseenObjective?.has_unseen_achievement);
+    console.log('🔍 [ACHIEVEMENT CHECK] Unseen challenge:', unseenChallenge?.title, unseenChallenge?.has_unseen_achievement);
+    
     // Priority: show objective first, then challenge
     if (unseenObjective && !achievementModal.isOpen) {
+      console.log('🎉 [ACHIEVEMENT] Showing achievement modal for objective:', unseenObjective.title);
       setAchievementModal({
         isOpen: true,
         item: unseenObjective,
         itemType: 'objective'
       });
     } else if (unseenChallenge && !achievementModal.isOpen && !unseenObjective) {
+      console.log('🎉 [ACHIEVEMENT] Showing achievement modal for challenge:', unseenChallenge.title);
       setAchievementModal({
         isOpen: true,
         item: unseenChallenge,

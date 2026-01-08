@@ -43,6 +43,7 @@ class SellerService:
             item_type: "objective" or "challenge"
             item_id: Objective or challenge ID
         """
+        now = datetime.now(timezone.utc).isoformat()
         await self.db.achievement_notifications.update_one(
             {
                 "user_id": user_id,
@@ -51,12 +52,19 @@ class SellerService:
             },
             {
                 "$set": {
-                    "seen_at": datetime.now(timezone.utc).isoformat(),
-                    "updated_at": datetime.now(timezone.utc).isoformat()
+                    "seen_at": now,
+                    "updated_at": now
+                },
+                "$setOnInsert": {
+                    "user_id": user_id,
+                    "item_type": item_type,
+                    "item_id": item_id,
+                    "created_at": now
                 }
             },
             upsert=True
         )
+        print(f"✅ [ACHIEVEMENT] Marked {item_type} {item_id} as seen for user {user_id}")
     
     async def add_achievement_notification_flag(self, items: List[Dict], user_id: str, item_type: str):
         """
@@ -76,6 +84,7 @@ class SellerService:
                 item_id = item.get('id')
                 has_seen = await self.check_achievement_notification(user_id, item_type, item_id)
                 item['has_unseen_achievement'] = not has_seen
+                print(f"🎉 [ACHIEVEMENT FLAG] {item_type} {item.get('title')} (id: {item_id}): status={status}, has_seen={has_seen}, has_unseen_achievement={not has_seen}")
             else:
                 item['has_unseen_achievement'] = False
     
@@ -223,7 +232,23 @@ class SellerService:
         # Add achievement notification flags
         await self.add_achievement_notification_flag(filtered_objectives, seller_id, "objective")
         
-        return filtered_objectives
+        # Filter out achieved objectives that have been seen (they should go to history)
+        final_objectives = []
+        for objective in filtered_objectives:
+            status = objective.get('status')
+            has_unseen = objective.get('has_unseen_achievement', False)
+            
+            # Keep in active list if:
+            # 1. Status is 'active' or 'failed'
+            # 2. Status is 'achieved' BUT has_unseen_achievement is True (show notification first)
+            if status in ['active', 'failed']:
+                final_objectives.append(objective)
+            elif status == 'achieved' and has_unseen:
+                # Keep in active list to show notification
+                final_objectives.append(objective)
+            # If status is 'achieved' and has_unseen is False, exclude from active (will be in history)
+        
+        return final_objectives
     
     async def get_seller_objectives_all(self, seller_id: str, manager_id: str) -> Dict:
         """
@@ -299,7 +324,7 @@ class SellerService:
     
     async def get_seller_objectives_history(self, seller_id: str, manager_id: str) -> List[Dict]:
         """
-        Get completed objectives (past period_end date) for seller
+        Get completed objectives (past period_end date OR achieved with notification seen) for seller
         
         CRITICAL: Filter by store_id (not manager_id) to include objectives created by:
         - Managers of the store
@@ -314,12 +339,17 @@ class SellerService:
         if not seller_store_id:
             return []
         
-        # Build query: filter by store_id (not manager_id), visible, and period
-        # This ensures objectives created by gérants are also visible to sellers
+        # Build query: filter by store_id (not manager_id), visible
+        # Include objectives that are:
+        # 1. Past period_end date (period_end < today)
+        # 2. OR status is 'achieved' or 'failed' (regardless of period_end)
         query = {
             "store_id": seller_store_id,  # ✅ Filter by store, not manager
-            "period_end": {"$lt": today},
-            "visible": True
+            "visible": True,
+            "$or": [
+                {"period_end": {"$lt": today}},  # Period ended
+                {"status": {"$in": ["achieved", "failed"]}}  # Or achieved/failed (even if period not ended)
+            ]
         }
         # manager_id removed from query - used only for progress calculation
         
@@ -356,7 +386,29 @@ class SellerService:
         for objective in filtered_objectives:
             await self.calculate_objective_progress(objective, manager_id)
         
-        return filtered_objectives
+        # Filter: only include objectives that should be in history
+        # 1. Period ended (period_end < today)
+        # 2. OR status is 'achieved'/'failed' AND notification has been seen
+        final_objectives = []
+        for objective in filtered_objectives:
+            status = objective.get('status')
+            period_end = objective.get('period_end', '')
+            
+            # Check if notification has been seen
+            item_id = objective.get('id')
+            has_seen = await self.check_achievement_notification(seller_id, "objective", item_id)
+            
+            # Include in history if:
+            # 1. Period has ended
+            # 2. OR (status is achieved/failed AND notification has been seen)
+            if period_end < today:
+                # Period ended, include in history
+                final_objectives.append(objective)
+            elif status in ['achieved', 'failed'] and has_seen:
+                # Achieved/failed and notification seen, include in history
+                final_objectives.append(objective)
+        
+        return final_objectives
     
     # ===== CHALLENGES =====
     
