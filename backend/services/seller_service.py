@@ -394,7 +394,7 @@ class SellerService:
                     # Visible only to specific sellers, and this seller is in the list
                     filtered_objectives.append(objective)
         
-        # Calculate progress for each objective
+        # Calculate progress for each objective (this will recalculate status)
         for objective in filtered_objectives:
             await self.calculate_objective_progress(objective, manager_id)
         
@@ -404,6 +404,18 @@ class SellerService:
         # This ensures achieved objectives appear in history even if notification wasn't seen
         final_objectives = []
         for objective in filtered_objectives:
+            # Recalculate status to ensure it's up-to-date based on current_value and target_value
+            # Ensure values are floats for proper comparison (handles string/int/float types)
+            current_val = float(objective.get('current_value', 0)) if objective.get('current_value') is not None else 0.0
+            target_val = float(objective.get('target_value', 0)) if objective.get('target_value') is not None else 0.0
+            period_end_str = objective.get('period_end', '')
+            
+            if period_end_str:
+                # Always recalculate status to ensure it's correct
+                new_status = self.compute_status(current_val, target_val, period_end_str)
+                objective['status'] = new_status
+                print(f"📊 [HISTORY] Objective '{objective.get('title')}': recalculated status={new_status}, current={current_val}, target={target_val}, unit={objective.get('unit', 'N/A')}, type={objective.get('objective_type', 'N/A')}")
+            
             status = objective.get('status')
             period_end = objective.get('period_end', '')
             
@@ -416,6 +428,10 @@ class SellerService:
             elif status in ['achieved', 'failed']:
                 # Achieved/failed, include in history (even if notification not seen)
                 final_objectives.append(objective)
+            
+            # Add 'achieved' property for frontend compatibility
+            # achieved = True if status is 'achieved', False otherwise
+            objective['achieved'] = (status == 'achieved')
         
         return final_objectives
     
@@ -638,6 +654,12 @@ class SellerService:
         for challenge in filtered_challenges:
             await self.calculate_challenge_progress(challenge, seller_id)
         
+        # Add 'achieved' property for frontend compatibility
+        for challenge in filtered_challenges:
+            status = challenge.get('status')
+            # achieved = True if status is 'achieved' or 'completed', False otherwise
+            challenge['achieved'] = (status in ['achieved', 'completed'])
+        
         return filtered_challenges
     
     # ===== HELPER FUNCTIONS =====
@@ -664,10 +686,16 @@ class SellerService:
         today = datetime.now(timezone.utc).date()
         end_date_obj = datetime.fromisoformat(end_date).date()
         
+        # Ensure both values are floats for proper comparison (handles string/int/float types)
+        current_value = float(current_value) if current_value is not None else 0.0
+        target_value = float(target_value) if target_value is not None else 0.0
+        
         # Check if objective is achieved (only if target is meaningful and current >= target)
         is_achieved = False
         if target_value > 0.01:  # Only consider achieved if target is meaningful
-            is_achieved = current_value >= target_value
+            # Use a small epsilon for floating point comparison to handle precision issues
+            # This ensures that values like 30000.0 >= 30000.0 are correctly identified as achieved
+            is_achieved = current_value >= (target_value - 0.001)
         
         # Check if period is over (today is after end_date)
         is_expired = today > end_date_obj
@@ -776,6 +804,15 @@ class SellerService:
                 current_value = panier_moyen
             elif kpi_name == 'indice_vente':
                 current_value = indice_vente
+        elif objective.get('objective_type') == 'product_focus':
+            # For product_focus objectives, use current_value if manually entered, otherwise use target_value as fallback
+            # The current_value should be updated manually by seller/manager via progress update endpoint
+            current_value = float(objective.get('current_value', 0))
+            # If current_value is 0 but we have progress data, it means it hasn't been updated yet
+            # In this case, we should use the stored current_value (which might be from manual entry)
+        elif objective.get('objective_type') == 'custom':
+            # For custom objectives, use current_value if manually entered
+            current_value = float(objective.get('current_value', 0))
         else:
             # For other objective types, use current_value if set, otherwise calculate from CA
             current_value = objective.get('current_value', total_ca)
@@ -789,6 +826,10 @@ class SellerService:
             elif objective.get('indice_vente_target'):
                 target_value = objective.get('indice_vente_target', 0)
                 current_value = indice_vente
+        
+        # Ensure current_value and target_value are floats for proper comparison
+        current_value = float(current_value) if current_value else 0.0
+        target_value = float(target_value) if target_value else 0.0
         
         # Use centralized status computation
         objective['status'] = self.compute_status(current_value, target_value, end_date)
