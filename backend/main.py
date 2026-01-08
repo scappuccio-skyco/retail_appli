@@ -227,7 +227,55 @@ async def create_indexes_background():
             # Existing indexes
             await db.users.create_index("stripe_customer_id", sparse=True, background=True)
             await db.subscriptions.create_index("stripe_customer_id", sparse=True, background=True)
-            await db.subscriptions.create_index("stripe_subscription_id", sparse=True, background=True)
+            
+            # 🔒 PRODUCTION-SAFE: Unique index on stripe_subscription_id (prevents duplicates)
+            # ✅ PARTIAL FILTER: Only enforce uniqueness if stripe_subscription_id exists and is string
+            # This handles legacy data with nulls/missing values
+            try:
+                await db.subscriptions.create_index(
+                    "stripe_subscription_id",
+                    unique=True,
+                    partialFilterExpression={
+                        "stripe_subscription_id": {"$exists": True, "$type": "string", "$ne": ""}
+                    },
+                    background=True,
+                    name="unique_stripe_subscription_id"
+                )
+                logger.info("✅ Created unique index on stripe_subscription_id (partial filter)")
+            except Exception as e:
+                logger.error(f"❌ Failed to create unique index on stripe_subscription_id: {e}")
+                # Check for duplicates that would prevent index creation
+                duplicates = await db.subscriptions.aggregate([
+                    {"$match": {"stripe_subscription_id": {"$exists": True, "$ne": None, "$ne": ""}}},
+                    {"$group": {"_id": "$stripe_subscription_id", "count": {"$sum": 1}}},
+                    {"$match": {"count": {"$gt": 1}}}
+                ]).to_list(length=10)
+                
+                if duplicates:
+                    logger.error(f"❌ Found {len(duplicates)} duplicate stripe_subscription_id values. Please clean up before creating index.")
+                    logger.error(f"Duplicates: {[d['_id'] for d in duplicates]}")
+                else:
+                    logger.warning(f"⚠️ Index creation failed but no duplicates found. Error: {e}")
+            
+            # 🔒 PRODUCTION-SAFE: Compound indexes for common queries
+            await db.subscriptions.create_index(
+                [("user_id", 1), ("status", 1)],
+                background=True,
+                name="user_status_idx"
+            )
+            await db.subscriptions.create_index(
+                [("workspace_id", 1), ("status", 1)],
+                sparse=True,
+                background=True,
+                name="workspace_status_idx"
+            )
+            await db.subscriptions.create_index(
+                [("user_id", 1), ("workspace_id", 1), ("status", 1)],
+                sparse=True,
+                background=True,
+                name="user_workspace_status_idx"
+            )
+            
             await db.workspaces.create_index("stripe_customer_id", sparse=True, background=True)
             
             # ✅ CRITICAL: Indexes for kpi_entries (most queried collection)

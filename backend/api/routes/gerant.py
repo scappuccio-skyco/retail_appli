@@ -104,6 +104,7 @@ async def get_subscription_status(
 class UpdateSeatsRequest(BaseModel):
     """Request body for updating subscription seats"""
     seats: int
+    stripe_subscription_id: Optional[str] = None  # Required if multiple active subscriptions
 
 
 @router.post("/subscription/update-seats")
@@ -140,10 +141,14 @@ async def update_subscription_seats(
         if new_seats > 50:
             raise HTTPException(status_code=400, detail="Maximum 50 sièges. Contactez-nous pour un plan Enterprise.")
         
-        # Get current subscription to check if trial
+        # Use PaymentService for atomic Stripe + DB update
+        # PaymentService will handle multiple active subscriptions check
+        payment_service = PaymentService(db)
+        
+        # Get current subscription to check if trial (for info only, PaymentService will re-fetch)
         subscription = await db.subscriptions.find_one(
             {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
-            {"_id": 0}
+            {"_id": 0, "status": 1}
         )
         
         if not subscription:
@@ -151,12 +156,12 @@ async def update_subscription_seats(
         
         is_trial = subscription.get('status') == 'trialing'
         
-        # Use PaymentService for atomic Stripe + DB update
-        payment_service = PaymentService(db)
+        # Call PaymentService with optional stripe_subscription_id
         result = await payment_service.update_subscription_seats(
             gerant_id=gerant_id,
             new_seats=new_seats,
-            is_trial=is_trial
+            is_trial=is_trial,
+            stripe_subscription_id=request.stripe_subscription_id
         )
         
         logger.info(f"✅ Sièges mis à jour: {result['previous_seats']} → {new_seats} pour {current_user['email']}")
@@ -172,9 +177,36 @@ async def update_subscription_seats(
         
     except HTTPException:
         raise
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        # Check if it's a MultipleActiveSubscriptionsError
+        if hasattr(e, 'active_subscriptions') and hasattr(e, 'recommended_action'):
+            from exceptions.subscription_exceptions import MultipleActiveSubscriptionsError
+            if isinstance(e, MultipleActiveSubscriptionsError):
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "error": "MULTIPLE_ACTIVE_SUBSCRIPTIONS",
+                        "message": e.message,
+                        "active_subscriptions": e.active_subscriptions,
+                        "recommended_action": e.recommended_action,
+                        "hint": "Spécifiez 'stripe_subscription_id' dans la requête pour cibler un abonnement spécifique."
+                    }
+                )
+        
+        # Check if it's a ValueError (other cases)
+        if isinstance(e, ValueError):
+            # Check if it contains MULTIPLE_ACTIVE_SUBSCRIPTIONS
+            if "MULTIPLE_ACTIVE_SUBSCRIPTIONS" in str(e):
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "error": "MULTIPLE_ACTIVE_SUBSCRIPTIONS",
+                        "message": str(e),
+                        "recommended_action": "USE_STRIPE_SUBSCRIPTION_ID"
+                    }
+                )
+            raise HTTPException(status_code=400, detail=str(e))
+        
         logger.error(f"Erreur mise à jour sièges: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la mise à jour: {str(e)}")
 
@@ -1153,6 +1185,47 @@ async def create_gerant_checkout_session(
         gerant = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
         stripe_customer_id = gerant.get('stripe_customer_id')
         
+        # 🔍 CRITIQUE: Vérifier les abonnements existants AVANT de créer un nouveau checkout
+        # Utiliser find().to_list() pour détecter les abonnements multiples
+        existing_subscriptions = await db.subscriptions.find(
+            {"user_id": current_user['id'], "status": {"$in": ["active", "trialing"]}},
+            {"_id": 0}
+        ).to_list(length=10)
+        
+        # Vérifier dans Stripe si les abonnements existent encore et sont actifs
+        active_count = 0
+        active_stripe_ids = []
+        for existing_sub in existing_subscriptions:
+            stripe_sub_id = existing_sub.get('stripe_subscription_id')
+            if stripe_sub_id:
+                try:
+                    stripe_sub = stripe.Subscription.retrieve(stripe_sub_id)
+                    if stripe_sub.status in ['active', 'trialing']:
+                        active_count += 1
+                        active_stripe_ids.append(stripe_sub_id)
+                except stripe.error.InvalidRequestError:
+                    # Abonnement n'existe plus dans Stripe, ignorer
+                    logger.warning(f"Abonnement Stripe {stripe_sub_id} introuvable dans Stripe")
+                except Exception as e:
+                    logger.warning(f"Erreur lors de la vérification Stripe: {e}")
+        
+        # Bloquer avec HTTP 409 si >=1 abonnement actif
+        if active_count >= 1:
+            if active_count > 1:
+                logger.warning(
+                    f"⚠️ MULTIPLE ACTIVE SUBSCRIPTIONS detected for user {current_user['id']}: "
+                    f"{active_count} active subscriptions found. Stripe IDs: {active_stripe_ids}"
+                )
+            
+            raise HTTPException(
+                status_code=409,  # Conflict
+                detail=(
+                    f"Un abonnement actif existe déjà. "
+                    f"Veuillez utiliser 'Modifier mon abonnement' ou 'Annuler mon abonnement' avant d'en créer un nouveau. "
+                    f"(Abonnements actifs détectés: {active_count})"
+                )
+            )
+        
         # Créer ou récupérer le client Stripe
         if stripe_customer_id:
             try:
@@ -1185,22 +1258,29 @@ async def create_gerant_checkout_session(
         success_url = f"{checkout_data.origin_url}/dashboard?session_id={{CHECKOUT_SESSION_ID}}"
         cancel_url = f"{checkout_data.origin_url}/dashboard"
         
-        # Créer la session de checkout
+        # Determine plan and price_id based on quantity
+        if 1 <= quantity <= 5:
+            plan = "starter"
+        elif 6 <= quantity <= 15:
+            plan = "professional"
+        else:
+            plan = "enterprise"
+        
+        prices = get_stripe_prices()[plan]
+        price_id = prices['monthly'] if checkout_data.billing_period == 'monthly' else prices['yearly']
+        billing_interval = 'month' if checkout_data.billing_period == 'monthly' else 'year'
+        
+        # Generate correlation_id (unique per checkout attempt)
+        import uuid
+        correlation_id = str(uuid.uuid4())
+        
+        # Créer la session de checkout avec metadata complète
         session = stripe.checkout.Session.create(
             customer=stripe_customer_id,
+            client_reference_id=f"gerant_{current_user['id']}_{correlation_id}",  # For correlation
             payment_method_types=['card'],
             line_items=[{
-                'price_data': {
-                    'currency': 'eur',
-                    'product_data': {
-                        'name': f'Retail Performer AI - {quantity} vendeur(s)',
-                        'description': f'Abonnement pour {quantity} vendeur(s) actif(s) - {price_per_seller}€/vendeur/mois'
-                    },
-                    'unit_amount': int(price_per_seller * 100),
-                    'recurring': {
-                        'interval': 'month' if checkout_data.billing_period == 'monthly' else 'year'
-                    }
-                },
+                'price': price_id,  # Use price_id instead of price_data for better correlation
                 'quantity': quantity,
             }],
             mode='subscription',
@@ -1208,8 +1288,25 @@ async def create_gerant_checkout_session(
             cancel_url=cancel_url,
             metadata={
                 'gerant_id': current_user['id'],
+                'workspace_id': current_user.get('workspace_id', ''),
                 'seller_quantity': str(quantity),
-                'price_per_seller': str(price_per_seller)
+                'price_per_seller': str(price_per_seller),
+                'plan': plan,
+                'correlation_id': correlation_id,
+                'source': 'app_checkout'
+            },
+            subscription_data={
+                'metadata': {
+                    'correlation_id': correlation_id,
+                    'checkout_session_id': '{{CHECKOUT_SESSION_ID}}',  # Stripe will replace
+                    'user_id': current_user['id'],
+                    'workspace_id': current_user.get('workspace_id', ''),
+                    'source': 'app_checkout',
+                    'price_id': price_id,
+                    'plan': plan,
+                    'billing_interval': billing_interval,
+                    'quantity': str(quantity)
+                }
             }
         )
         
@@ -1699,3 +1796,471 @@ async def switch_billing_interval(
     except Exception as e:
         logger.error(f"Error switching interval: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class CancelSubscriptionRequest(BaseModel):
+    """Request body for canceling subscription"""
+    cancel_immediately: bool = False  # True = annule maintenant, False = à la fin de période
+    stripe_subscription_id: Optional[str] = None  # Support mode: explicitly target a subscription
+    support_mode: bool = False  # If True, allow auto-selection even with multiples
+
+
+class CancelSubscriptionResponse(BaseModel):
+    """Response for subscription cancellation"""
+    success: bool
+    message: str
+    canceled_at: Optional[str] = None
+    cancel_at_period_end: bool
+    period_end: Optional[str] = None
+
+
+@router.post("/subscription/cancel", response_model=CancelSubscriptionResponse)
+async def cancel_subscription(
+    request: CancelSubscriptionRequest,
+    current_user: dict = Depends(get_current_gerant),
+    db = Depends(get_db)
+):
+    """
+    Annule l'abonnement actif du gérant.
+    
+    Options:
+    - cancel_immediately=True: Annule immédiatement (remboursement prorata possible)
+    - cancel_immediately=False: Annule à la fin de la période (pas de remboursement, accès jusqu'à la fin)
+    
+    Returns:
+        Dict avec statut de l'annulation et date de fin d'accès
+    """
+    try:
+        gerant_id = current_user['id']
+        cancel_immediately = request.cancel_immediately
+        
+        # Get ALL active subscriptions (detect multiples)
+        active_subscriptions = await db.subscriptions.find(
+            {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
+            {"_id": 0}
+        ).to_list(length=10)
+        
+        if not active_subscriptions:
+            raise HTTPException(status_code=404, detail="Aucun abonnement actif trouvé")
+        
+        # If multiple active subscriptions, handle according to mode
+        if len(active_subscriptions) > 1:
+            # Support mode: allow explicit targeting or auto-selection
+            if request.support_mode or request.stripe_subscription_id:
+                if request.stripe_subscription_id:
+                    # Explicitly target the specified subscription
+                    subscription = next(
+                        (s for s in active_subscriptions if s.get('stripe_subscription_id') == request.stripe_subscription_id),
+                        None
+                    )
+                    if not subscription:
+                        raise HTTPException(
+                            status_code=404,
+                            detail=f"Abonnement {request.stripe_subscription_id} non trouvé parmi les abonnements actifs"
+                        )
+                else:
+                    # Auto-select most recent (support mode)
+                    subscription = max(
+                        active_subscriptions,
+                        key=lambda s: (
+                            s.get('current_period_end', '') or s.get('created_at', ''),
+                            s.get('status') == 'active'  # Prefer active over trialing
+                        )
+                    )
+                    logger.warning(
+                        f"⚠️ MULTIPLE ACTIVE SUBSCRIPTIONS for {current_user['email']}: {len(active_subscriptions)}. "
+                        f"Support mode: auto-selected {subscription.get('stripe_subscription_id')}"
+                    )
+            else:
+                # DEFAULT: Return 409 with list (production-safe)
+                active_list = [
+                    {
+                        "stripe_subscription_id": s.get('stripe_subscription_id'),
+                        "status": s.get('status'),
+                        "seats": s.get('seats'),
+                        "billing_interval": s.get('billing_interval'),
+                        "workspace_id": s.get('workspace_id'),
+                        "price_id": s.get('price_id'),
+                        "created_at": s.get('created_at'),
+                        "current_period_end": s.get('current_period_end')
+                    }
+                    for s in active_subscriptions
+                ]
+                
+                logger.warning(
+                    f"⚠️ MULTIPLE ACTIVE SUBSCRIPTIONS for {current_user['email']}: {len(active_subscriptions)}. "
+                    f"Returning 409 - user must specify which to cancel."
+                )
+                
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "error": "MULTIPLE_ACTIVE_SUBSCRIPTIONS",
+                        "message": f"{len(active_subscriptions)} abonnements actifs détectés. Veuillez spécifier lequel annuler en fournissant 'stripe_subscription_id'.",
+                        "active_subscriptions": active_list,
+                        "hint": "Utilisez 'stripe_subscription_id' dans la requête pour cibler un abonnement spécifique, ou 'support_mode=true' pour la sélection automatique."
+                    }
+                )
+        else:
+            subscription = active_subscriptions[0]
+        
+        stripe_subscription_id = subscription.get('stripe_subscription_id')
+        is_trial = subscription.get('status') == 'trialing'
+        
+        # For trial users, just update the database
+        # IDEMPOTENCE: Use stripe_subscription_id as key
+        if is_trial:
+            filter_query = {"stripe_subscription_id": stripe_subscription_id} if stripe_subscription_id else {"user_id": gerant_id, "status": "trialing"}
+            await db.subscriptions.update_one(
+                filter_query,
+                {"$set": {
+                    "status": "canceled",
+                    "canceled_at": datetime.now(timezone.utc).isoformat(),
+                    "cancel_at_period_end": False,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            # Update workspace
+            workspace_id = current_user.get('workspace_id')
+            if workspace_id:
+                await db.workspaces.update_one(
+                    {"id": workspace_id},
+                    {"$set": {"subscription_status": "canceled"}}
+                )
+            
+            logger.info(f"✅ Trial subscription canceled for {current_user['email']}")
+            
+            return {
+                "success": True,
+                "message": "Abonnement d'essai annulé",
+                "canceled_at": datetime.now(timezone.utc).isoformat(),
+                "cancel_at_period_end": False,
+                "period_end": subscription.get('trial_end')
+            }
+        
+        # For active subscribers, call Stripe API
+        if not stripe_subscription_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Impossible d'annuler: aucun abonnement Stripe associé"
+            )
+        
+        STRIPE_API_KEY = settings.STRIPE_API_KEY
+        if not STRIPE_API_KEY:
+            raise HTTPException(status_code=500, detail="Configuration Stripe manquante")
+        
+        stripe.api_key = STRIPE_API_KEY
+        
+        try:
+            if cancel_immediately:
+                # Cancel immediately - Stripe will handle proration/refund
+                canceled_subscription = stripe.Subscription.delete(stripe_subscription_id)
+                
+                # Update database - IDEMPOTENCE: Use stripe_subscription_id as key
+                await db.subscriptions.update_one(
+                    {"stripe_subscription_id": stripe_subscription_id},
+                    {"$set": {
+                        "status": "canceled",
+                        "canceled_at": datetime.now(timezone.utc).isoformat(),
+                        "cancel_at_period_end": False,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                
+                # Update workspace
+                workspace_id = current_user.get('workspace_id')
+                if workspace_id:
+                    await db.workspaces.update_one(
+                        {"id": workspace_id},
+                        {"$set": {"subscription_status": "canceled"}}
+                    )
+                
+                logger.info(f"✅ Subscription {stripe_subscription_id} canceled immediately for {current_user['email']}")
+                
+                return {
+                    "success": True,
+                    "message": "Abonnement annulé immédiatement. L'accès est terminé.",
+                    "canceled_at": datetime.now(timezone.utc).isoformat(),
+                    "cancel_at_period_end": False,
+                    "period_end": None
+                }
+            else:
+                # Cancel at period end - keep access until end of billing period
+                updated_subscription = stripe.Subscription.modify(
+                    stripe_subscription_id,
+                    cancel_at_period_end=True
+                )
+                
+                # Get period end date
+                period_end = None
+                if updated_subscription.current_period_end:
+                    period_end = datetime.fromtimestamp(
+                        updated_subscription.current_period_end,
+                        tz=timezone.utc
+                    ).isoformat()
+                
+                # Update database - IDEMPOTENCE: Use stripe_subscription_id as key
+                await db.subscriptions.update_one(
+                    {"stripe_subscription_id": stripe_subscription_id},
+                    {"$set": {
+                        "cancel_at_period_end": True,
+                        "canceled_at": datetime.now(timezone.utc).isoformat(),
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                
+                logger.info(f"✅ Subscription {stripe_subscription_id} scheduled for cancellation at period end for {current_user['email']}")
+                
+                period_end_str = period_end[:10] if period_end else "fin de période"
+                
+                return {
+                    "success": True,
+                    "message": f"Abonnement programmé pour annulation. Vous conservez l'accès jusqu'au {period_end_str}.",
+                    "canceled_at": datetime.now(timezone.utc).isoformat(),
+                    "cancel_at_period_end": True,
+                    "period_end": period_end
+                }
+                
+        except stripe.error.InvalidRequestError as e:
+            logger.error(f"❌ Stripe error canceling subscription: {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Erreur Stripe: {str(e)}")
+        except stripe.StripeError as e:
+            logger.error(f"❌ Stripe error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Erreur Stripe: {str(e)}")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur annulation abonnement: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'annulation: {str(e)}")
+
+
+@router.get("/subscriptions")
+async def get_all_subscriptions(
+    current_user: dict = Depends(get_current_gerant),
+    db = Depends(get_db)
+):
+    """
+    Liste tous les abonnements du gérant (actifs, annulés, expirés).
+    
+    Utile pour:
+    - Détecter les abonnements multiples
+    - Voir l'historique des abonnements
+    - Déboguer les problèmes d'abonnement
+    
+    Returns:
+        Liste de tous les abonnements avec leurs détails
+    """
+    try:
+        gerant_id = current_user['id']
+        
+        # Get all subscriptions (not just active ones)
+        subscriptions = await db.subscriptions.find(
+            {"user_id": gerant_id},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(length=50)  # Most recent first
+        
+        # Count active subscriptions
+        active_count = sum(1 for s in subscriptions if s.get('status') in ['active', 'trialing'])
+        
+        # Format subscriptions
+        formatted_subscriptions = []
+        for sub in subscriptions:
+            formatted_sub = {
+                "id": sub.get('id'),
+                "status": sub.get('status'),
+                "plan": sub.get('plan'),
+                "seats": sub.get('seats', 1),
+                "billing_interval": sub.get('billing_interval', 'month'),
+                "stripe_subscription_id": sub.get('stripe_subscription_id'),
+                "created_at": sub.get('created_at'),
+                "updated_at": sub.get('updated_at'),
+                "canceled_at": sub.get('canceled_at'),
+                "cancel_at_period_end": sub.get('cancel_at_period_end', False),
+                "current_period_start": sub.get('current_period_start'),
+                "current_period_end": sub.get('current_period_end'),
+                "trial_start": sub.get('trial_start'),
+                "trial_end": sub.get('trial_end')
+            }
+            formatted_subscriptions.append(formatted_sub)
+        
+        return {
+            "success": True,
+            "total_subscriptions": len(subscriptions),
+            "active_subscriptions": active_count,
+            "subscriptions": formatted_subscriptions,
+            "warning": f"⚠️ {active_count} abonnement(s) actif(s) détecté(s)" if active_count > 1 else None
+        }
+        
+    except Exception as e:
+        logger.error(f"Erreur récupération abonnements: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération: {str(e)}")
+
+
+@router.get("/subscription/audit")
+async def audit_subscription(
+    current_user: dict = Depends(get_current_gerant),
+    db = Depends(get_db)
+):
+    """
+    🔍 Endpoint d'audit pour diagnostic rapide des problèmes d'abonnement.
+    
+    Retourne:
+    - Nombre d'abonnements actifs
+    - Liste des stripe_subscription_id actifs
+    - has_multiple_active
+    - last_event_created/id pour chaque abonnement
+    - Metadata clés (workspace_id, price_id, correlation_id)
+    
+    Utile pour le support client et le debugging.
+    """
+    try:
+        gerant_id = current_user['id']
+        
+        # Get all active subscriptions
+        active_subscriptions = await db.subscriptions.find(
+            {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
+            {"_id": 0}
+        ).to_list(length=20)
+        
+        # Get all subscriptions (for history)
+        all_subscriptions = await db.subscriptions.find(
+            {"user_id": gerant_id},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(length=50)
+        
+        # Format active subscriptions with audit details
+        active_list = []
+        for sub in active_subscriptions:
+            active_list.append({
+                "stripe_subscription_id": sub.get('stripe_subscription_id'),
+                "status": sub.get('status'),
+                "plan": sub.get('plan'),
+                "seats": sub.get('seats', 1),
+                "billing_interval": sub.get('billing_interval', 'month'),
+                "workspace_id": sub.get('workspace_id'),
+                "price_id": sub.get('price_id'),
+                "correlation_id": sub.get('correlation_id'),
+                "checkout_session_id": sub.get('checkout_session_id'),
+                "source": sub.get('source', 'unknown'),
+                "has_multiple_active": sub.get('has_multiple_active', False),
+                "last_event_created": sub.get('last_event_created'),
+                "last_event_id": sub.get('last_event_id'),
+                "created_at": sub.get('created_at'),
+                "current_period_end": sub.get('current_period_end'),
+                "cancel_at_period_end": sub.get('cancel_at_period_end', False)
+            })
+        
+        # Count by status
+        status_counts = {}
+        for sub in all_subscriptions:
+            status = sub.get('status', 'unknown')
+            status_counts[status] = status_counts.get(status, 0) + 1
+        
+        # Check for potential issues
+        issues = []
+        critical_issues = []
+        
+        if len(active_subscriptions) > 1:
+            issues.append({
+                "severity": "warning",
+                "type": "MULTIPLE_ACTIVE_SUBSCRIPTIONS",
+                "message": f"{len(active_subscriptions)} abonnements actifs détectés",
+                "stripe_subscription_ids": [s.get('stripe_subscription_id') for s in active_subscriptions]
+            })
+            critical_issues.append("MULTIPLE_ACTIVE_SUBSCRIPTIONS")
+        
+        # Check for missing metadata
+        for sub in active_subscriptions:
+            if sub.get('source') == 'app_checkout' and not sub.get('checkout_session_id'):
+                issues.append({
+                    "severity": "warning",
+                    "type": "MISSING_METADATA",
+                    "message": f"Subscription {sub.get('stripe_subscription_id')} from app_checkout but missing checkout_session_id",
+                    "stripe_subscription_id": sub.get('stripe_subscription_id')
+                })
+                critical_issues.append("MISSING_METADATA")
+            
+            # Check for missing correlation_id
+            if sub.get('source') == 'app_checkout' and not sub.get('correlation_id'):
+                issues.append({
+                    "severity": "warning",
+                    "type": "MISSING_CORRELATION_ID",
+                    "message": f"Subscription {sub.get('stripe_subscription_id')} from app_checkout but missing correlation_id",
+                    "stripe_subscription_id": sub.get('stripe_subscription_id')
+                })
+                critical_issues.append("MISSING_CORRELATION_ID")
+        
+        # Check for missing workspace_id
+        for sub in active_subscriptions:
+            if not sub.get('workspace_id'):
+                issues.append({
+                    "severity": "info",
+                    "type": "MISSING_WORKSPACE_ID",
+                    "message": f"Subscription {sub.get('stripe_subscription_id')} missing workspace_id",
+                    "stripe_subscription_id": sub.get('stripe_subscription_id')
+                })
+        
+        # Check for missing price_id
+        for sub in active_subscriptions:
+            if not sub.get('price_id'):
+                issues.append({
+                    "severity": "warning",
+                    "type": "MISSING_PRICE_ID",
+                    "message": f"Subscription {sub.get('stripe_subscription_id')} missing price_id",
+                    "stripe_subscription_id": sub.get('stripe_subscription_id')
+                })
+                critical_issues.append("MISSING_PRICE_ID")
+        
+        # Determine recommended_action
+        if len(active_subscriptions) > 1:
+            # Check if all subscriptions have required metadata for safe cancellation
+            all_have_metadata = all(
+                s.get('source') == 'app_checkout' and
+                (s.get('correlation_id') or s.get('checkout_session_id')) and
+                s.get('workspace_id') and
+                s.get('price_id')
+                for s in active_subscriptions
+            )
+            
+            if all_have_metadata:
+                recommended_action = "CLEANUP_REQUIRED"
+                recommended_action_details = (
+                    "Multiple active subscriptions detected but all have required metadata. "
+                    "Webhook cancellation logic can safely identify duplicates. "
+                    "Manual review recommended to verify which subscription should remain active."
+                )
+            else:
+                recommended_action = "CHECK_STRIPE_METADATA"
+                recommended_action_details = (
+                    "Multiple active subscriptions detected but missing required metadata. "
+                    "Cannot safely auto-cancel. Please verify metadata in Stripe Dashboard and update manually."
+                )
+        elif "MISSING_METADATA" in critical_issues or "MISSING_CORRELATION_ID" in critical_issues:
+            recommended_action = "CHECK_STRIPE_METADATA"
+            recommended_action_details = (
+                "Subscription missing critical metadata. Verify in Stripe Dashboard that subscription.metadata contains "
+                "checkout_session_id, correlation_id, workspace_id, and price_id."
+            )
+        else:
+            recommended_action = "OK"
+            recommended_action_details = "No issues detected. Subscription status is healthy."
+        
+        return {
+            "success": True,
+            "gerant_id": gerant_id,
+            "active_subscriptions_count": len(active_subscriptions),
+            "has_multiple_active": len(active_subscriptions) > 1,
+            "active_subscriptions": active_list,
+            "status_counts": status_counts,
+            "total_subscriptions": len(all_subscriptions),
+            "detected_issues": issues,
+            "recommended_action": recommended_action,
+            "recommended_action_details": recommended_action_details,
+            "audit_timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Erreur audit abonnement: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'audit: {str(e)}")

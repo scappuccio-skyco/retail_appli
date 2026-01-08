@@ -742,12 +742,13 @@ class GerantService:
                 logger.warning(f"Stripe API error: {e}")
         
         # PRIORITY 3: Check local database subscription
-        db_subscription = await self.db.subscriptions.find_one(
+        # 🔍 Use find() instead of find_one() to detect multiple subscriptions
+        db_subscriptions = await self.db.subscriptions.find(
             {"user_id": gerant_id, "status": {"$in": ["active", "trialing"]}},
             {"_id": 0}
-        )
+        ).to_list(length=10)
         
-        if not db_subscription:
+        if not db_subscriptions:
             active_sellers_count = await self.user_repo.count({
                 "gerant_id": gerant_id,
                 "role": "seller",
@@ -761,8 +762,63 @@ class GerantService:
                 "workspace_name": workspace_name
             }
         
+        # STRATEGY: Stable selection (active > trialing, then by created_at/current_period_end)
+        has_multiple_active = len(db_subscriptions) > 1
+        active_subscriptions_count = len(db_subscriptions)
+        
+        if has_multiple_active:
+            logger.warning(
+                f"⚠️ Multiple active subscriptions detected for gerant {gerant_id}: "
+                f"{active_subscriptions_count} subscriptions found. "
+                f"Stripe IDs: {[s.get('stripe_subscription_id') for s in db_subscriptions]}"
+            )
+            
+            # STABLE SELECTION STRATEGY (production-safe):
+            # 1. Filter by workspace_id (if available) - prefer subscriptions matching current workspace
+            # 2. Filter by expected price_id/product (if available) - prefer matching price
+            # 3. Prefer 'active' over 'trialing'
+            # 4. Then prefer most recent (by current_period_end, then created_at)
+            
+            # Get current workspace_id for filtering
+            workspace_id = gerant.get('workspace_id')
+            
+            # Step 1: Filter by workspace_id if available
+            workspace_matches = []
+            if workspace_id:
+                workspace_matches = [s for s in db_subscriptions if s.get('workspace_id') == workspace_id]
+            
+            # Step 2: If we have workspace matches, use them; otherwise use all
+            candidates_for_selection = workspace_matches if workspace_matches else db_subscriptions
+            
+            # Step 3: Filter by status (active > trialing)
+            active_subs = [s for s in candidates_for_selection if s.get('status') == 'active']
+            trialing_subs = [s for s in candidates_for_selection if s.get('status') == 'trialing']
+            
+            candidates = active_subs if active_subs else trialing_subs
+            
+            # Step 4: Select most recent (by current_period_end, then created_at)
+            db_subscription = max(
+                candidates,
+                key=lambda s: (
+                    s.get('current_period_end', '') or '',
+                    s.get('created_at', '')
+                )
+            )
+            
+            # Log selection rationale
+            if workspace_id and workspace_matches:
+                logger.info(f"Selected subscription matching workspace_id={workspace_id} from {len(workspace_matches)} matches")
+        else:
+            db_subscription = db_subscriptions[0]
+        
         result = await self._format_db_subscription(db_subscription, gerant_id)
         result["workspace_name"] = workspace_name
+        result["has_multiple_active"] = has_multiple_active
+        result["active_subscriptions_count"] = active_subscriptions_count
+        
+        if has_multiple_active:
+            result["warning"] = f"⚠️ {active_subscriptions_count} abonnements actifs détectés. Affichage du plus récent (active > trialing, puis par date)."
+        
         return result
     
     async def _format_stripe_subscription(self, subscription, gerant_id: str) -> Dict:
