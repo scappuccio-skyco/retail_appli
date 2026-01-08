@@ -686,16 +686,17 @@ async def update_seller_objective_progress(
         
         # Get seller's manager and store_id
         seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "manager_id": 1, "store_id": 1})
-        if not seller or not seller.get('manager_id'):
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé ou sans manager")
+        if not seller:
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
         
-        manager_id = seller['manager_id']
         seller_store_id = seller.get('store_id')
+        if not seller_store_id:
+            raise HTTPException(status_code=404, detail="Vendeur sans magasin assigné")
         
-        # Get objective
-        query = {"id": objective_id, "manager_id": manager_id}
-        if seller_store_id:
-            query["store_id"] = seller_store_id
+        manager_id = seller.get('manager_id')  # Still needed for progress calculation
+        
+        # Get objective - filter by store_id (not manager_id) to include objectives created by gérants
+        query = {"id": objective_id, "store_id": seller_store_id}
         
         objective = await db.objectives.find_one(query)
         
@@ -834,16 +835,17 @@ async def update_seller_challenge_progress(
         
         # Get seller's manager and store_id
         seller = await db.users.find_one({"id": seller_id}, {"_id": 0, "manager_id": 1, "store_id": 1})
-        if not seller or not seller.get('manager_id'):
-            raise HTTPException(status_code=404, detail="Vendeur non trouvé ou sans manager")
+        if not seller:
+            raise HTTPException(status_code=404, detail="Vendeur non trouvé")
         
-        manager_id = seller['manager_id']
         seller_store_id = seller.get('store_id')
+        if not seller_store_id:
+            raise HTTPException(status_code=404, detail="Vendeur sans magasin assigné")
         
-        # Get challenge
-        query = {"id": challenge_id, "manager_id": manager_id}
-        if seller_store_id:
-            query["store_id"] = seller_store_id
+        manager_id = seller.get('manager_id')  # Still needed for progress calculation
+        
+        # Get challenge - filter by store_id (not manager_id) to include challenges created by gérants
+        query = {"id": challenge_id, "store_id": seller_store_id}
         
         challenge = await db.challenges.find_one(query)
         
