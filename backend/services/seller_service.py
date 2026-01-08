@@ -68,26 +68,38 @@ class SellerService:
     # ===== OBJECTIVES =====
     
     async def get_seller_objectives_active(self, seller_id: str, manager_id: str) -> List[Dict]:
-        """Get active team objectives for display in seller dashboard"""
+        """
+        Get active team objectives for display in seller dashboard
+        
+        CRITICAL: Filter by store_id (not manager_id) to include objectives created by:
+        - Managers of the store
+        - Gérants (store owners)
+        
+        The manager_id parameter is still used for progress calculation, but NOT for filtering visibility.
+        """
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
         seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
         seller_store_id = seller.get("store_id") if seller else None
         
-        # Build query: filter by manager_id, store_id (if available), visible, and period
+        if not seller_store_id:
+            print(f"⚠️ [SELLER OBJECTIVES] Seller {seller_id} has no store_id")
+            return []
+        
+        # Build query: filter by store_id (not manager_id), visible, and period
+        # This ensures objectives created by gérants are also visible to sellers
         query = {
-            "manager_id": manager_id,
+            "store_id": seller_store_id,  # ✅ Filter by store, not manager
             "period_end": {"$gte": today},
             "visible": True
         }
-        if seller_store_id:
-            query["store_id"] = seller_store_id
+        # manager_id removed from query - used only for progress calculation
         
         print(f"🔍 [SELLER OBJECTIVES] Query: {query}")
-        print(f"🔍 [SELLER OBJECTIVES] Seller ID: {seller_id}")
+        print(f"🔍 [SELLER OBJECTIVES] Seller ID: {seller_id}, Store ID: {seller_store_id}")
         
-        # Get active objectives from the seller's manager
+        # Get active objectives from the store (created by manager OR gérant)
         # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
         objectives = await self.db.objectives.find(
             query,
@@ -145,22 +157,31 @@ class SellerService:
         return filtered_objectives
     
     async def get_seller_objectives_all(self, seller_id: str, manager_id: str) -> Dict:
-        """Get all team objectives (active and inactive) for seller"""
+        """
+        Get all team objectives (active and inactive) for seller
+        
+        CRITICAL: Filter by store_id (not manager_id) to include objectives created by:
+        - Managers of the store
+        - Gérants (store owners)
+        """
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
         seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
         seller_store_id = seller.get("store_id") if seller else None
         
-        # Build query: filter by manager_id, store_id (if available), and visible
+        if not seller_store_id:
+            return {"active": [], "inactive": []}
+        
+        # Build query: filter by store_id (not manager_id), and visible
+        # This ensures objectives created by gérants are also visible to sellers
         query = {
-            "manager_id": manager_id,
+            "store_id": seller_store_id,  # ✅ Filter by store, not manager
             "visible": True
         }
-        if seller_store_id:
-            query["store_id"] = seller_store_id
+        # manager_id removed from query - used only for progress calculation
         
-        # Get ALL objectives from the seller's manager
+        # Get ALL objectives from the store (created by manager OR gérant)
         # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
         all_objectives = await self.db.objectives.find(
             query,
@@ -208,23 +229,32 @@ class SellerService:
         }
     
     async def get_seller_objectives_history(self, seller_id: str, manager_id: str) -> List[Dict]:
-        """Get completed objectives (past period_end date) for seller"""
+        """
+        Get completed objectives (past period_end date) for seller
+        
+        CRITICAL: Filter by store_id (not manager_id) to include objectives created by:
+        - Managers of the store
+        - Gérants (store owners)
+        """
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
         seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
         seller_store_id = seller.get("store_id") if seller else None
         
-        # Build query: filter by manager_id, store_id (if available), visible, and period
+        if not seller_store_id:
+            return []
+        
+        # Build query: filter by store_id (not manager_id), visible, and period
+        # This ensures objectives created by gérants are also visible to sellers
         query = {
-            "manager_id": manager_id,
+            "store_id": seller_store_id,  # ✅ Filter by store, not manager
             "period_end": {"$lt": today},
             "visible": True
         }
-        if seller_store_id:
-            query["store_id"] = seller_store_id
+        # manager_id removed from query - used only for progress calculation
         
-        # Get past objectives from the seller's manager
+        # Get past objectives from the store (created by manager OR gérant)
         # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
         objectives = await self.db.objectives.find(
             query,
@@ -262,24 +292,34 @@ class SellerService:
     # ===== CHALLENGES =====
     
     async def get_seller_challenges(self, seller_id: str, manager_id: str) -> List[Dict]:
-        """Get all challenges (collective + individual) for seller"""
+        """
+        Get all challenges (collective + individual) for seller
+        
+        CRITICAL: Filter by store_id (not manager_id) to include challenges created by:
+        - Managers of the store
+        - Gérants (store owners)
+        """
         # Get seller's store_id for filtering
         seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
         seller_store_id = seller.get("store_id") if seller else None
         
-        # Build query: filter by manager_id, store_id (if available), visible, and type
+        if not seller_store_id:
+            return []
+        
+        # Build query: filter by store_id (not manager_id), visible, and type
+        # This ensures challenges created by gérants are also visible to sellers
         query = {
-            "manager_id": manager_id,
+            "store_id": seller_store_id,  # ✅ Filter by store, not manager
             "visible": True,
             "$or": [
                 {"type": "collective"},
                 {"type": "individual", "seller_id": seller_id}
             ]
         }
-        if seller_store_id:
-            query["store_id"] = seller_store_id
+        # manager_id removed from query - used only for progress calculation
         
         # Get collective challenges + individual challenges assigned to this seller
+        # From the store (created by manager OR gérant)
         challenges = await self.db.challenges.find(
             query,
             {"_id": 0}
@@ -313,27 +353,36 @@ class SellerService:
         return filtered_challenges
     
     async def get_seller_challenges_active(self, seller_id: str, manager_id: str) -> List[Dict]:
-        """Get only active challenges (collective + personal) for display in seller dashboard"""
+        """
+        Get only active challenges (collective + personal) for display in seller dashboard
+        
+        CRITICAL: Filter by store_id (not manager_id) to include challenges created by:
+        - Managers of the store
+        - Gérants (store owners)
+        """
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
         seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
         seller_store_id = seller.get("store_id") if seller else None
         
-        # Build query: filter by manager_id, store_id (if available), visible, status, and period
+        if not seller_store_id:
+            return []
+        
+        # Build query: filter by store_id (not manager_id), visible, status, and period
+        # This ensures challenges created by gérants are also visible to sellers
         query = {
-            "manager_id": manager_id,
+            "store_id": seller_store_id,  # ✅ Filter by store, not manager
             "status": "active",
             "end_date": {"$gte": today},
             "visible": True
         }
-        if seller_store_id:
-            query["store_id"] = seller_store_id
+        # manager_id removed from query - used only for progress calculation
         
         print(f"🔍 [SELLER CHALLENGES] Query: {query}")
-        print(f"🔍 [SELLER CHALLENGES] Seller ID: {seller_id}")
+        print(f"🔍 [SELLER CHALLENGES] Seller ID: {seller_id}, Store ID: {seller_store_id}")
         
-        # Get active challenges from the seller's manager
+        # Get active challenges from the store (created by manager OR gérant)
         challenges = await self.db.challenges.find(
             query,
             {"_id": 0}
@@ -382,23 +431,32 @@ class SellerService:
         return filtered_challenges
     
     async def get_seller_challenges_history(self, seller_id: str, manager_id: str) -> List[Dict]:
-        """Get completed challenges (past end_date) for seller"""
+        """
+        Get completed challenges (past end_date) for seller
+        
+        CRITICAL: Filter by store_id (not manager_id) to include challenges created by:
+        - Managers of the store
+        - Gérants (store owners)
+        """
         today = datetime.now(timezone.utc).date().isoformat()
         
         # Get seller's store_id for filtering
         seller = await self.db.users.find_one({"id": seller_id}, {"_id": 0, "store_id": 1})
         seller_store_id = seller.get("store_id") if seller else None
         
-        # Build query: filter by manager_id, store_id (if available), visible, and period
+        if not seller_store_id:
+            return []
+        
+        # Build query: filter by store_id (not manager_id), visible, and period
+        # This ensures challenges created by gérants are also visible to sellers
         query = {
-            "manager_id": manager_id,
+            "store_id": seller_store_id,  # ✅ Filter by store, not manager
             "end_date": {"$lt": today},
             "visible": True
         }
-        if seller_store_id:
-            query["store_id"] = seller_store_id
+        # manager_id removed from query - used only for progress calculation
         
-        # Get past challenges from the seller's manager
+        # Get past challenges from the store (created by manager OR gérant)
         challenges = await self.db.challenges.find(
             query,
             {"_id": 0}
