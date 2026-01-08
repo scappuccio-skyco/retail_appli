@@ -94,9 +94,20 @@ export default function ObjectivesModal({
       const challenges = challRes.data || [];
       setActiveChallenges(challenges);
       
+      // Debug: log objectives to check flags
+      console.log('🔍 [FRONTEND] Objectives received:', objectives.length);
+      objectives.forEach(obj => {
+        if (obj.status === 'achieved') {
+          console.log(`🔍 [FRONTEND] Objective "${obj.title}": status=${obj.status}, has_unseen_achievement=${obj.has_unseen_achievement}`);
+        }
+      });
+      
       // Check for unseen achievements and show modal
       const unseenObjective = objectives.find(obj => obj.has_unseen_achievement === true);
       const unseenChallenge = challenges.find(chall => chall.has_unseen_achievement === true);
+      
+      console.log('🔍 [FRONTEND] Unseen objective:', unseenObjective ? unseenObjective.title : 'none');
+      console.log('🔍 [FRONTEND] Unseen challenge:', unseenChallenge ? unseenChallenge.title : 'none');
       
       // Priority: show objective first, then challenge
       // Only show if modal is not already open

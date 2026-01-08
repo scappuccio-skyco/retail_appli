@@ -17,12 +17,44 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
     itemType: null
   });
   
+  // Local state for objectives and challenges to allow refresh
+  const [localObjectives, setLocalObjectives] = useState(objectives);
+  const [localChallenges, setLocalChallenges] = useState(challenges);
+  
+  // Refresh data when modal opens or when props change
+  useEffect(() => {
+    setLocalObjectives(objectives);
+    setLocalChallenges(challenges);
+  }, [objectives, challenges]);
+  
+  // Refresh data on mount to get latest flags
+  useEffect(() => {
+    const refreshData = async () => {
+      try {
+        const [objRes, challRes] = await Promise.all([
+          api.get('/seller/objectives/active'),
+          api.get('/seller/challenges/active')
+        ]);
+        setLocalObjectives(objRes.data || []);
+        setLocalChallenges(challRes.data || []);
+      } catch (err) {
+        logger.error('Error refreshing objectives/challenges:', err);
+      }
+    };
+    refreshData();
+  }, []);
+  
   // Check for unseen achievements when objectives/challenges change
   useEffect(() => {
-    const unseenObjective = objectives?.find(obj => obj.has_unseen_achievement === true);
-    const unseenChallenge = challenges?.find(chall => chall.has_unseen_achievement === true);
+    const unseenObjective = localObjectives?.find(obj => obj.has_unseen_achievement === true);
+    const unseenChallenge = localChallenges?.find(chall => chall.has_unseen_achievement === true);
     
-    console.log('🔍 [ACHIEVEMENT CHECK] Objectives:', objectives?.length, 'Challenges:', challenges?.length);
+    console.log('🔍 [ACHIEVEMENT CHECK] Objectives:', localObjectives?.length, 'Challenges:', localChallenges?.length);
+    console.log('🔍 [ACHIEVEMENT CHECK] All objectives:', localObjectives?.map(obj => ({
+      title: obj.title,
+      status: obj.status,
+      has_unseen: obj.has_unseen_achievement
+    })));
     console.log('🔍 [ACHIEVEMENT CHECK] Unseen objective:', unseenObjective?.title, unseenObjective?.has_unseen_achievement);
     console.log('🔍 [ACHIEVEMENT CHECK] Unseen challenge:', unseenChallenge?.title, unseenChallenge?.has_unseen_achievement);
     
@@ -42,22 +74,34 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
         itemType: 'challenge'
       });
     }
-  }, [objectives, challenges]);
+  }, [localObjectives, localChallenges, achievementModal.isOpen]);
   
   const handleMarkAchievementAsSeen = async () => {
+    console.log('✅ [ACHIEVEMENT] Marking achievement as seen, refreshing data...');
     // Refresh data after marking as seen
-    if (onUpdate) {
-      await onUpdate();
+    try {
+      const [objRes, challRes] = await Promise.all([
+        api.get('/seller/objectives/active'),
+        api.get('/seller/challenges/active')
+      ]);
+      setLocalObjectives(objRes.data || []);
+      setLocalChallenges(challRes.data || []);
+      
+      if (onUpdate) {
+        await onUpdate();
+      }
+    } catch (err) {
+      logger.error('Error refreshing after marking as seen:', err);
     }
   };
   
-  // Séparer les objectifs actifs et inactifs
-  const activeObjectives = objectives?.filter(obj => {
+  // Séparer les objectifs actifs et inactifs (use local state)
+  const activeObjectives = localObjectives?.filter(obj => {
     const today = new Date().toISOString().split('T')[0];
     return obj.period_end > today;
   }) || [];
   
-  const inactiveObjectives = objectives?.filter(obj => {
+  const inactiveObjectives = localObjectives?.filter(obj => {
     const today = new Date().toISOString().split('T')[0];
     return obj.period_end <= today;
   }) || [];
@@ -99,16 +143,22 @@ export default function ObjectivesAndChallengesModal({ objectives, challenges, o
       setUpdatingProgressObjectiveId(null);
       setProgressValue('');
       
-      // Force modal to close and reopen to refresh data
+      // Refresh local data
+      try {
+        const [objRes, challRes] = await Promise.all([
+          api.get('/seller/objectives/active'),
+          api.get('/seller/challenges/active')
+        ]);
+        setLocalObjectives(objRes.data || []);
+        setLocalChallenges(challRes.data || []);
+      } catch (err) {
+        logger.error('Error refreshing after progress update:', err);
+      }
+      
+      // Also call parent update
       if (onUpdate) {
         await onUpdate();
       }
-      
-      // Close modal temporarily to force refresh
-      onClose();
-      setTimeout(() => {
-        // This will be handled by parent component re-opening
-      }, 100);
     } catch (err) {
       logger.error('Error updating progress:', err);
       toast.error(err.response?.data?.detail || 'Erreur lors de la mise à jour de la progression');

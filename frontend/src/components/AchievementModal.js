@@ -102,9 +102,16 @@ export default function AchievementModal({
 
   const details = getAchievementDetails();
 
+  console.log('🎉 [ACHIEVEMENT MODAL] Rendering modal, isOpen:', isOpen, 'item:', item?.title);
+  
+  if (!isOpen || !item) {
+    console.log('🎉 [ACHIEVEMENT MODAL] Modal not rendering - isOpen:', isOpen, 'item:', item);
+    return null;
+  }
+  
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[100] p-4"
+      className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           handleMarkAsSeen();

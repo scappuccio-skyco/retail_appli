@@ -217,20 +217,31 @@ class SellerService:
                 else:
                     print(f"   ❌ EXCLUDED (collective, seller not in list)")
         
-        # Ensure status field exists (for old objectives created before migration)
+        # Ensure status field exists and is up-to-date (recalculate if needed)
         for objective in filtered_objectives:
-            if 'status' not in objective or objective['status'] is None:
-                # Use centralized status computation
-                current_val = objective.get('current_value', 0)
-                target_val = objective.get('target_value', 0)
-                period_end = objective.get('period_end')
-                if period_end:
-                    objective['status'] = self.compute_status(current_val, target_val, period_end)
-                else:
-                    objective['status'] = 'active'  # Fallback if no end_date
+            current_val = objective.get('current_value', 0)
+            target_val = objective.get('target_value', 0)
+            period_end = objective.get('period_end')
+            
+            # Always recalculate status to ensure it's correct (especially after progress updates)
+            if period_end:
+                new_status = self.compute_status(current_val, target_val, period_end)
+                old_status = objective.get('status')
+                objective['status'] = new_status
+                
+                # If status changed to "achieved", log it
+                if new_status == 'achieved' and old_status != 'achieved':
+                    print(f"🎯 [STATUS CHANGE] Objective '{objective.get('title')}' changed to achieved: {old_status} -> {new_status}")
+            else:
+                objective['status'] = 'active'  # Fallback if no end_date
         
         # Add achievement notification flags
         await self.add_achievement_notification_flag(filtered_objectives, seller_id, "objective")
+        
+        # Debug: log all objectives with their flags
+        for obj in filtered_objectives:
+            if obj.get('status') == 'achieved':
+                print(f"🎉 [DEBUG] Objective '{obj.get('title')}': status={obj.get('status')}, has_unseen_achievement={obj.get('has_unseen_achievement')}")
         
         # Filter out achieved objectives that have been seen (they should go to history)
         final_objectives = []
