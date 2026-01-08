@@ -243,21 +243,22 @@ class SellerService:
             if obj.get('status') == 'achieved':
                 print(f"🎉 [DEBUG] Objective '{obj.get('title')}': status={obj.get('status')}, has_unseen_achievement={obj.get('has_unseen_achievement')}")
         
-        # Filter out achieved objectives that have been seen (they should go to history)
+        # Filter out achieved objectives (they should go to history)
+        # Achieved objectives are moved to history, regardless of notification status
+        # The notification can still be shown when viewing history or dashboard
         final_objectives = []
+        
         for objective in filtered_objectives:
             status = objective.get('status')
-            has_unseen = objective.get('has_unseen_achievement', False)
             
-            # Keep in active list if:
-            # 1. Status is 'active' or 'failed'
-            # 2. Status is 'achieved' BUT has_unseen_achievement is True (show notification first)
+            # Keep in active list ONLY if status is 'active' or 'failed'
+            # ALL achieved objectives go to history
             if status in ['active', 'failed']:
                 final_objectives.append(objective)
-            elif status == 'achieved' and has_unseen:
-                # Keep in active list to show notification
-                final_objectives.append(objective)
-            # If status is 'achieved' and has_unseen is False, exclude from active (will be in history)
+            elif status == 'achieved':
+                # Exclude from active list - will appear in history
+                print(f"📦 [ACTIVE LIST] Excluding achieved objective '{objective.get('title')}' from active list (status: achieved)")
+            # All other statuses are excluded
         
         return final_objectives
     
@@ -504,11 +505,11 @@ class SellerService:
         if not seller_store_id:
             return []
         
-        # Build query: filter by store_id (not manager_id), visible, status, and period
+        # Build query: filter by store_id (not manager_id), visible, and period
         # This ensures challenges created by gérants are also visible to sellers
+        # Note: We don't filter by status here because we need to calculate it first
         query = {
             "store_id": seller_store_id,  # ✅ Filter by store, not manager
-            "status": "active",
             "end_date": {"$gte": today},
             "visible": True
         }
@@ -566,7 +567,21 @@ class SellerService:
         # Add achievement notification flags
         await self.add_achievement_notification_flag(filtered_challenges, seller_id, "challenge")
         
-        return filtered_challenges
+        # Filter out achieved/completed challenges (they should go to history)
+        final_challenges = []
+        for challenge in filtered_challenges:
+            status = challenge.get('status')
+            
+            # Keep in active list ONLY if status is 'active' or 'failed'
+            # ALL achieved/completed challenges go to history
+            if status in ['active', 'failed']:
+                final_challenges.append(challenge)
+            elif status in ['achieved', 'completed']:
+                # Exclude from active list - will appear in history
+                print(f"📦 [ACTIVE LIST] Excluding achieved challenge '{challenge.get('title')}' from active list (status: {status})")
+            # All other statuses are excluded
+        
+        return final_challenges
     
     async def get_seller_challenges_history(self, seller_id: str, manager_id: str) -> List[Dict]:
         """
