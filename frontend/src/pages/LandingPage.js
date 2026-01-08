@@ -480,7 +480,7 @@ export default function LandingPage() {
               </div>
               <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-purple-200">
                 <img 
-                  src="/dashboard-manager.png" 
+                  src="/dashboard-gerant.png" 
                   alt="Dashboard Gérant - Vue Multi-Magasins"
                   className="w-full h-auto"
                   loading="lazy"
