@@ -890,7 +890,7 @@ export default function ManagerDashboard({ user, onLogout }) {
         console.error('❌ [DEBUG] Button NOT found in DOM!');
       }
     }, 1000);
-  }, []);
+  });
   
   return (
     <div data-testid="manager-dashboard" className="min-h-screen p-4 md:p-8">

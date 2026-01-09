@@ -606,7 +606,7 @@ export default function ObjectivesModal({
                       const isCompleted = objective.status === 'completed' || new Date(objective.period_end) < new Date();
                       
                       return (
-                      <div 
+                        <div 
                         key={`${objective.id}-${index}`}
                         className={`rounded-xl p-4 border-2 transition-all relative overflow-hidden ${
                           isAchieved 
@@ -802,7 +802,8 @@ export default function ObjectivesModal({
                           </div>
                         )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-12 text-gray-500">
