@@ -516,29 +516,12 @@ export default function ObjectivesModal({
         <div className="bg-gradient-to-r from-blue-900 via-teal-800 to-green-800 p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-white">🎯 Objectifs et Challenges</h2>
-            <div className="flex items-center gap-3">
-              {/* 🧪 BOUTON TEST CONFETTI - TEMPORAIRE - TRÈS VISIBLE */}
-              <button
-                onClick={() => {
-                  console.log('🧪 [TEST] Test confetti button clicked!');
-                  triggerConfetti();
-                }}
-                className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-lg border-2 border-yellow-700 text-sm transition-all hover:scale-105"
-                style={{ 
-                  zIndex: 99999,
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
-                }}
-                title="Cliquez pour tester les confettis"
-              >
-                🧪 TEST CONFETTI
-              </button>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              >
-                <X className="w-6 h-6 text-white" />
-              </button>
-            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
           </div>
         </div>
 

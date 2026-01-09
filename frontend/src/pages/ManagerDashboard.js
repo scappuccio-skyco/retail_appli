@@ -26,7 +26,6 @@ import { getManagerSteps } from '../components/onboarding/managerSteps';
 import { useOnboarding } from '../hooks/useOnboarding';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
-import confetti from 'canvas-confetti';
 
 // Component for progress indicator
 const ProgressIndicator = ({ label, emoji, target, progress, type = 'currency', colorScheme = 'blue' }) => {
@@ -594,45 +593,10 @@ export default function ManagerDashboard({ user, onLogout }) {
     }
   };
 
-  // 🧪 FONCTION TEST CONFETTI - TOUJOURS DISPONIBLE
-  const testConfetti = () => {
-    console.log('🧪 [TEST] Test confetti from dashboard!');
-    console.log('🧪 [TEST] confetti type:', typeof confetti);
-    console.log('🧪 [TEST] confetti value:', confetti);
-    try {
-      if (typeof confetti === 'undefined' || !confetti) {
-        console.error('❌ [CONFETTI] confetti is not available!');
-        toast.error('❌ canvas-confetti n\'est pas disponible');
-        return;
-      }
-      console.log('✅ [CONFETTI] Triggering confetti...');
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-      console.log('✅ [CONFETTI] Confetti triggered from dashboard');
-      toast.success('✅ Confettis déclenchés !');
-    } catch (error) {
-      console.error('❌ [CONFETTI] Error:', error);
-      toast.error('❌ Erreur lors du déclenchement des confettis: ' + error.message);
-    }
-  };
 
   if (loading) {
     return (
       <div data-testid="manager-loading" className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        {/* 🧪 BOUTON TEST CONFETTI - MÊME PENDANT LE CHARGEMENT */}
-        <button
-          onClick={testConfetti}
-          className="fixed top-4 right-4 z-[99999] px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-2xl border-4 border-yellow-700 text-base transition-all hover:scale-110 animate-pulse"
-          style={{ 
-            zIndex: 99999,
-            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.5)'
-          }}
-        >
-          🧪 TEST CONFETTI
-        </button>
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-[#1E40AF] mb-4"></div>
           <div className="text-xl font-medium text-gray-700">
@@ -647,72 +611,6 @@ export default function ManagerDashboard({ user, onLogout }) {
       </div>
     );
   }
-
-  // 🧪 BOUTON TEST CONFETTI - TOUJOURS VISIBLE SUR LE DASHBOARD
-  const TestConfettiButton = () => {
-    console.log('🔍 [DEBUG] TestConfettiButton component rendering...');
-    return (
-      <>
-        {/* Bouton principal */}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('🧪 [TEST] Button clicked!');
-            testConfetti();
-          }}
-          className="fixed top-4 right-4 z-[99999] px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-2xl border-4 border-yellow-700 text-base transition-all hover:scale-110 animate-pulse"
-          style={{ 
-            zIndex: 99999,
-            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.5)',
-            position: 'fixed',
-            top: '16px',
-            right: '16px',
-            backgroundColor: '#eab308',
-            color: '#000000',
-            padding: '12px 24px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            borderRadius: '8px',
-            border: '4px solid #a16207',
-            cursor: 'pointer'
-          }}
-          title="Cliquez pour tester les confettis"
-          id="test-confetti-button"
-        >
-          🧪 TEST CONFETTI
-        </button>
-        {/* Bouton de secours - encore plus visible */}
-        <div
-          style={{
-            position: 'fixed',
-            top: '80px',
-            right: '16px',
-            zIndex: 99999,
-            backgroundColor: '#ef4444',
-            color: '#ffffff',
-            padding: '16px 32px',
-            fontSize: '18px',
-            fontWeight: 'bold',
-            borderRadius: '12px',
-            border: '5px solid #991b1b',
-            cursor: 'pointer',
-            boxShadow: '0 10px 20px rgba(0, 0, 0, 0.7)',
-            animation: 'pulse 2s infinite'
-          }}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('🧪 [TEST] RED BUTTON clicked!');
-            testConfetti();
-          }}
-          id="test-confetti-button-red"
-        >
-          🧪 TEST CONFETTI (ROUGE)
-        </div>
-      </>
-    );
-  };
 
   // Helper function to render sections based on order
   const renderSection = (sectionId) => {
@@ -877,25 +775,8 @@ export default function ManagerDashboard({ user, onLogout }) {
 
   console.log('🔍 [DEBUG] ManagerDashboard rendering, loading:', loading);
   
-  // Vérifier que le bouton sera rendu
-  useEffect(() => {
-    console.log('🔍 [DEBUG] ManagerDashboard mounted, checking for button...');
-    setTimeout(() => {
-      const button = document.getElementById('test-confetti-button');
-      console.log('🔍 [DEBUG] Button found in DOM:', button);
-      if (button) {
-        console.log('✅ [DEBUG] Button is in DOM, visible:', button.offsetWidth > 0 && button.offsetHeight > 0);
-        console.log('🔍 [DEBUG] Button styles:', window.getComputedStyle(button));
-      } else {
-        console.error('❌ [DEBUG] Button NOT found in DOM!');
-      }
-    }, 1000);
-  });
-  
   return (
     <div data-testid="manager-dashboard" className="min-h-screen p-4 md:p-8">
-      {/* 🧪 BOUTON TEST CONFETTI - TOUJOURS VISIBLE - EN PREMIER */}
-      <TestConfettiButton />
       
       {/* === BANNIÈRE ABONNEMENT SUSPENDU === */}
       {isSubscriptionExpired && (

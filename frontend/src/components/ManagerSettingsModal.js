@@ -890,23 +890,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      {/* 🧪 BOUTON TEST CONFETTI FLOATING - TRÈS VISIBLE - EN HAUT À DROITE - AVANT TOUT */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          console.log('🧪 [TEST] Test confetti button clicked!');
-          triggerConfetti();
-        }}
-        className="fixed top-24 right-6 z-[99999] px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-2xl border-4 border-yellow-700 text-base transition-all hover:scale-110 animate-pulse"
-        style={{ 
-          zIndex: 99999,
-          boxShadow: '0 8px 16px rgba(0, 0, 0, 0.5)',
-          position: 'fixed'
-        }}
-        title="Cliquez pour tester les confettis"
-      >
-        🧪 TEST CONFETTI
-      </button>
       <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className={`sticky top-0 p-6 flex justify-between items-center border-b border-gray-200 ${
@@ -920,47 +903,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
               {modalType === 'objectives' ? '🎯 Objectifs' : '🏆 Challenges'}
             </h2>
           </div>
-          <div className="flex items-center gap-3">
-            {/* 🧪 BOUTON TEST CONFETTI - TEMPORAIRE - TRÈS VISIBLE */}
-            <button
-              onClick={() => {
-                console.log('🧪 [TEST] Test confetti button clicked!');
-                triggerConfetti();
-              }}
-              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-lg border-2 border-yellow-700 text-sm transition-all hover:scale-105"
-              style={{ 
-                zIndex: 99999,
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
-              }}
-              title="Cliquez pour tester les confettis"
-            >
-              🧪 TEST CONFETTI
-            </button>
-            <button
-              onClick={onClose}
-              className="text-white hover:text-gray-100 transition-colors"
-            >
-              <X className="w-8 h-8" />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="text-white hover:text-gray-100 transition-colors"
+          >
+            <X className="w-8 h-8" />
+          </button>
         </div>
-
-        {/* 🧪 BOUTON TEST CONFETTI FLOATING - TRÈS VISIBLE - EN HAUT À DROITE */}
-        <button
-          onClick={() => {
-            console.log('🧪 [TEST] Test confetti button clicked!');
-            triggerConfetti();
-          }}
-          className="fixed top-24 right-6 z-[99999] px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-2xl border-4 border-yellow-700 text-base transition-all hover:scale-110 animate-pulse"
-          style={{ 
-            zIndex: 99999,
-            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.5)',
-            position: 'fixed'
-          }}
-          title="Cliquez pour tester les confettis"
-        >
-          🧪 TEST CONFETTI
-        </button>
 
         {/* Tabs - Main level tabs */}
         <div className="border-b border-gray-200 bg-gray-50 pt-2">
