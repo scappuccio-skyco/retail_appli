@@ -810,20 +810,20 @@ export default function LandingPage() {
           <div className="space-y-4">
             {[
               {
-                question: "L'IA peut-elle juger mes vendeurs ?",
-                answer: "Absolument pas. Retail Performer AI est un outil de développement. Notre IA est configurée pour utiliser un vocabulaire constructif (axes de progrès) et pour valoriser le potentiel de chaque collaborateur, garantissant une acceptation totale par vos équipes."
+                question: "Quel impact réel sur mes KPI (transformation, panier moyen, etc.) ?",
+                answer: "Notre approche est mathématique : en identifiant quotidiennement les écarts de Panier Moyen ou de Taux de Transformation, l'IA permet de corriger le tir immédiatement. L'objectif est de ne plus attendre la fin du mois pour constater les pertes, mais d'agir jour après jour pour sécuriser votre Chiffre d'Affaires."
               },
               {
                 question: "Comment fonctionne l'essai gratuit de 14 jours ?",
                 answer: "Aucune carte bancaire requise. Vous testez toutes les fonctionnalités pendant 14 jours. À la fin de l'essai, vous choisissez votre formule ou arrêtez simplement."
               },
               {
-                question: "Quel impact réel sur mes KPI (transformation, panier moyen, etc.) ?",
-                answer: "Notre approche est mathématique : en identifiant quotidiennement les écarts de Panier Moyen ou de Taux de Transformation, l'IA permet de corriger le tir immédiatement. L'objectif est de ne plus attendre la fin du mois pour constater les pertes, mais d'agir jour après jour pour sécuriser votre Chiffre d'Affaires."
+                question: "Faut-il installer un logiciel ?",
+                answer: "Non, Retail Performer AI est 100% web. Accessible depuis n'importe quel navigateur, sur ordinateur, tablette ou smartphone."
               },
               {
-                question: "Puis-je changer de formule à tout moment ?",
-                answer: "Oui, absolument. Vous pouvez passer d'une formule à l'autre à tout moment selon l'évolution de votre équipe. Le changement est instantané."
+                question: "L'IA peut-elle juger mes vendeurs ?",
+                answer: "Absolument pas. Retail Performer AI est un outil de développement. Notre IA est configurée pour utiliser un vocabulaire constructif (axes de progrès) et pour valoriser le potentiel de chaque collaborateur, garantissant une acceptation totale par vos équipes."
               },
               {
                 question: "Comment l'IA analyse-t-elle les performances ?",
@@ -838,8 +838,8 @@ export default function LandingPage() {
                 answer: "Non. Nous utilisons des technologies LLM (Large Language Models) via des protocoles sécurisés 'Entreprise'. Vos données sont anonymisées avant traitement et ne sont jamais utilisées pour entraîner les modèles publics. Une fois l'analyse générée, les données brutes ne sont pas conservées par le fournisseur d'IA."
               },
               {
-                question: "Faut-il installer un logiciel ?",
-                answer: "Non, Retail Performer AI est 100% web. Accessible depuis n'importe quel navigateur, sur ordinateur, tablette ou smartphone."
+                question: "Puis-je changer de formule à tout moment ?",
+                answer: "Oui, absolument. Vous pouvez passer d'une formule à l'autre à tout moment selon l'évolution de votre équipe. Le changement est instantané."
               },
               {
                 question: "Proposez-vous une formation ?",
