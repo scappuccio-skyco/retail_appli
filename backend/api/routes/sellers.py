@@ -999,7 +999,14 @@ async def update_seller_challenge_progress(
             old_status = challenge.get('status', 'active')
             if new_status == 'achieved' and old_status != 'achieved':
                 updated_challenge['just_achieved'] = True
-                print(f"🎉 [PROGRESS UPDATE] Challenge '{updated_challenge.get('title')}' just became achieved! (was: {old_status}, now: {new_status})")
+                
+                # Add has_unseen_achievement flag for immediate frontend use
+                await seller_service.add_achievement_notification_flag(
+                    [updated_challenge], 
+                    seller_id, 
+                    'challenge'
+                )
+                print(f"🎉 [PROGRESS UPDATE] Challenge '{updated_challenge.get('title')}' just became achieved! has_unseen_achievement={updated_challenge.get('has_unseen_achievement')}")
             return updated_challenge
         else:
             return {

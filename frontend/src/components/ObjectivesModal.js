@@ -385,6 +385,16 @@ export default function ObjectivesModal({
             padding: '16px',
           }
         });
+        
+        // If has_unseen_achievement is true, show AchievementModal immediately
+        if (updatedChallenge.has_unseen_achievement === true) {
+          console.log('🎉 [PROGRESS UPDATE] Showing AchievementModal for unseen challenge');
+          setAchievementModal({
+            isOpen: true,
+            item: updatedChallenge,
+            itemType: 'challenge'
+          });
+        }
       } else {
         console.log('⚠️ [PROGRESS UPDATE] Challenge not achieved yet:', {
           status: updatedChallenge.status,

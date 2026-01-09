@@ -1465,6 +1465,16 @@ async def update_objective_progress(
             if new_status == 'achieved' and old_status != 'achieved':
                 updated_objective['just_achieved'] = True
                 print(f"🎉 [PROGRESS UPDATE] Objective '{updated_objective.get('title')}' just became achieved! (was: {old_status}, now: {new_status})")
+                
+                # Add has_unseen_achievement flag for immediate frontend use
+                from services.seller_service import SellerService
+                seller_service = SellerService(db)
+                await seller_service.add_achievement_notification_flag(
+                    [updated_objective], 
+                    manager_id, 
+                    'objective'
+                )
+                print(f"🎉 [PROGRESS UPDATE] Added has_unseen_achievement flag: {updated_objective.get('has_unseen_achievement')}")
             return updated_objective
         else:
             return {
@@ -1910,6 +1920,16 @@ async def update_challenge_progress(
             if new_status == 'achieved' and old_status != 'achieved':
                 updated_challenge['just_achieved'] = True
                 print(f"🎉 [PROGRESS UPDATE] Challenge '{updated_challenge.get('title')}' just became achieved! (was: {old_status}, now: {new_status})")
+                
+                # Add has_unseen_achievement flag for immediate frontend use
+                from services.seller_service import SellerService
+                seller_service = SellerService(db)
+                await seller_service.add_achievement_notification_flag(
+                    [updated_challenge], 
+                    manager_id, 
+                    'challenge'
+                )
+                print(f"🎉 [PROGRESS UPDATE] Added has_unseen_achievement flag: {updated_challenge.get('has_unseen_achievement')}")
             return updated_challenge
         else:
             return {

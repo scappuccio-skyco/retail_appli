@@ -510,6 +510,16 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
             padding: '16px',
           }
         });
+        
+        // If has_unseen_achievement is true, show AchievementModal immediately
+        if (updatedChallenge.has_unseen_achievement === true) {
+          console.log('🎉 [MANAGER PROGRESS] Showing AchievementModal for unseen challenge');
+          setAchievementModal({
+            isOpen: true,
+            item: updatedChallenge,
+            itemType: 'challenge'
+          });
+        }
       } else {
         console.log('⚠️ [MANAGER PROGRESS] Challenge not achieved yet:', {
           status: updatedChallenge.status,
@@ -767,6 +777,16 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
             padding: '16px',
           }
         });
+        
+        // If has_unseen_achievement is true, show AchievementModal immediately
+        if (updatedObjective.has_unseen_achievement === true) {
+          console.log('🎉 [MANAGER PROGRESS] Showing AchievementModal for unseen achievement');
+          setAchievementModal({
+            isOpen: true,
+            item: updatedObjective,
+            itemType: 'objective'
+          });
+        }
       } else {
         console.log('⚠️ [MANAGER PROGRESS] Objective not achieved yet:', {
           status: updatedObjective.status,
