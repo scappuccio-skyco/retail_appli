@@ -586,7 +586,7 @@ def send_early_access_confirmation_email(
     Envoyer un email de confirmation au candidat Early Access
     """
     frontend_url = get_frontend_url().rstrip('/')
-    calendly_url = "https://calendly.com/retail-performer-ai/configuration-pilote"
+    calendly_url = "https://calendly.com/s-cappuccio-skyco/configuration-programme-pilote-retail-performer-ai"
     signup_url = f"{frontend_url}/login?register=true&early_access=true"
     
     html_content = f"""

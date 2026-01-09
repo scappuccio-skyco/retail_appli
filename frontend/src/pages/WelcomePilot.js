@@ -28,8 +28,7 @@ export default function WelcomePilot() {
   }, []);
 
   const handleCalendlyClick = () => {
-    // Placeholder pour le lien Calendly
-    const calendlyUrl = 'https://calendly.com/retail-performer-ai/configuration-pilote';
+    const calendlyUrl = 'https://calendly.com/s-cappuccio-skyco/configuration-programme-pilote-retail-performer-ai';
     window.open(calendlyUrl, '_blank');
   };
 
