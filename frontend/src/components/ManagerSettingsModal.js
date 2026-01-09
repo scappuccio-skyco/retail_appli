@@ -917,6 +917,23 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
           </div>
         </div>
 
+        {/* 🧪 BOUTON TEST CONFETTI FLOATING - TRÈS VISIBLE - EN HAUT À DROITE */}
+        <button
+          onClick={() => {
+            console.log('🧪 [TEST] Test confetti button clicked!');
+            triggerConfetti();
+          }}
+          className="fixed top-24 right-6 z-[99999] px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-2xl border-4 border-yellow-700 text-base transition-all hover:scale-110 animate-pulse"
+          style={{ 
+            zIndex: 99999,
+            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.5)',
+            position: 'fixed'
+          }}
+          title="Cliquez pour tester les confettis"
+        >
+          🧪 TEST CONFETTI
+        </button>
+
         {/* Tabs - Main level tabs */}
         <div className="border-b border-gray-200 bg-gray-50 pt-2">
           <div className="flex gap-0.5 px-2 md:px-6">
