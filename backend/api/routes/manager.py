@@ -1100,11 +1100,6 @@ async def create_objective(
                 detail="store_id est requis. Pour un gérant, passez store_id en paramètre de requête."
             )
         
-        print(f"🔍 [CREATE OBJECTIVE] Context:")
-        print(f"   - User ID: {manager_id}")
-        print(f"   - User Role: {user_role}")
-        print(f"   - Resolved Store ID: {resolved_store_id}")
-        
         objective = {
             "id": str(uuid4()),
             "store_id": resolved_store_id,
@@ -1156,16 +1151,6 @@ async def create_objective(
             target_value=objective.get('target_value', 0),
             end_date=objective.get('period_end')
         )
-        
-        print(f"🔍 [CREATE OBJECTIVE] Creating objective:")
-        print(f"   - Title: {objective.get('title')}")
-        print(f"   - Store ID: {objective.get('store_id')}")
-        print(f"   - Manager ID: {objective.get('manager_id')}")
-        print(f"   - Type: {objective.get('type')}")
-        print(f"   - Visible: {objective.get('visible')}")
-        print(f"   - visible_to_sellers: {objective.get('visible_to_sellers')}")
-        print(f"   - seller_id: {objective.get('seller_id')}")
-        print(f"   - Period: {objective.get('period_start')} to {objective.get('period_end')}")
         
         # CRITICAL: Verify store_id is not None before saving
         if not objective.get('store_id'):
@@ -1464,7 +1449,6 @@ async def update_objective_progress(
             old_status = existing.get('status', 'active')
             if new_status == 'achieved' and old_status != 'achieved':
                 updated_objective['just_achieved'] = True
-                print(f"🎉 [PROGRESS UPDATE] Objective '{updated_objective.get('title')}' just became achieved! (was: {old_status}, now: {new_status})")
                 
                 # Add has_unseen_achievement flag for immediate frontend use
                 from services.seller_service import SellerService
@@ -1474,7 +1458,6 @@ async def update_objective_progress(
                     manager_id, 
                     'objective'
                 )
-                print(f"🎉 [PROGRESS UPDATE] Added has_unseen_achievement flag: {updated_objective.get('has_unseen_achievement')}")
             return updated_objective
         else:
             return {
@@ -1692,12 +1675,6 @@ async def create_challenge(
             "unit": challenge_data.get("unit")
         }
         
-        print(f"🔍 [CREATE CHALLENGE] Creating challenge:")
-        print(f"   - Title: {challenge.get('title')}")
-        print(f"   - Type: {challenge.get('type')}")
-        print(f"   - Visible: {challenge.get('visible')}")
-        print(f"   - visible_to_sellers: {challenge.get('visible_to_sellers')}")
-        print(f"   - seller_id: {challenge.get('seller_id')}")
         
         await db.challenges.insert_one(challenge)
         challenge.pop("_id", None)
@@ -1919,7 +1896,6 @@ async def update_challenge_progress(
             old_status = existing.get('status', 'active')
             if new_status == 'achieved' and old_status != 'achieved':
                 updated_challenge['just_achieved'] = True
-                print(f"🎉 [PROGRESS UPDATE] Challenge '{updated_challenge.get('title')}' just became achieved! (was: {old_status}, now: {new_status})")
                 
                 # Add has_unseen_achievement flag for immediate frontend use
                 from services.seller_service import SellerService
@@ -1929,7 +1905,6 @@ async def update_challenge_progress(
                     manager_id, 
                     'challenge'
                 )
-                print(f"🎉 [PROGRESS UPDATE] Added has_unseen_achievement flag: {updated_challenge.get('has_unseen_achievement')}")
             return updated_challenge
         else:
             return {

@@ -64,7 +64,6 @@ class SellerService:
             },
             upsert=True
         )
-        print(f"✅ [ACHIEVEMENT] Marked {item_type} {item_id} as seen for user {user_id}")
     
     async def add_achievement_notification_flag(self, items: List[Dict], user_id: str, item_type: str):
         """
@@ -84,7 +83,6 @@ class SellerService:
                 item_id = item.get('id')
                 has_seen = await self.check_achievement_notification(user_id, item_type, item_id)
                 item['has_unseen_achievement'] = not has_seen
-                print(f"🎉 [ACHIEVEMENT FLAG] {item_type} {item.get('title')} (id: {item_id}): status={status}, has_seen={has_seen}, has_unseen_achievement={not has_seen}")
             else:
                 item['has_unseen_achievement'] = False
     
@@ -160,7 +158,6 @@ class SellerService:
         seller_store_id = seller.get("store_id") if seller else None
         
         if not seller_store_id:
-            print(f"⚠️ [SELLER OBJECTIVES] Seller {seller_id} has no store_id")
             return []
         
         # Build query: filter by store_id (not manager_id), visible, and period
@@ -172,21 +169,11 @@ class SellerService:
         }
         # manager_id removed from query - used only for progress calculation
         
-        print(f"🔍 [SELLER OBJECTIVES] Query: {query}")
-        print(f"🔍 [SELLER OBJECTIVES] Seller ID: {seller_id}, Store ID: {seller_store_id}")
-        
         # Get active objectives from the store (created by manager OR gérant)
-        # CRITICAL: Use 'objectives' collection (not 'manager_objectives') to match where objectives are created
         objectives = await self.db.objectives.find(
             query,
             {"_id": 0}
-        ).sort("period_start", 1).to_list(100)  # Increased limit to ensure we get all objectives
-        
-        print(f"🔍 [SELLER OBJECTIVES] Found {len(objectives)} objectives before filtering")
-        
-        # Debug: Log all objectives found with their store_id
-        for obj in objectives:
-            print(f"   📋 Objective '{obj.get('title')}': store_id={obj.get('store_id')}, manager_id={obj.get('manager_id')}, type={obj.get('type')}")
+        ).sort("period_start", 1).to_list(100)
         
         # Filter objectives based on visibility rules
         filtered_objectives = []
@@ -194,33 +181,20 @@ class SellerService:
             obj_type = objective.get('type', 'collective')
             visible_to = objective.get('visible_to_sellers')
             
-            print(f"🔍 [SELLER OBJECTIVES] Objective: {objective.get('title')}")
-            print(f"   - Type: {obj_type}")
-            print(f"   - visible_to_sellers: {visible_to}")
-            print(f"   - seller_id in objective: {objective.get('seller_id')}")
-            
             # Individual objectives: only show if it's for this seller
             if obj_type == 'individual':
                 if objective.get('seller_id') == seller_id:
-                    print(f"   ✅ INCLUDED (individual, matches seller)")
                     filtered_objectives.append(objective)
-                else:
-                    print(f"   ❌ EXCLUDED (individual, doesn't match seller)")
             # Collective objectives: check visible_to_sellers list
-            else:
-                # CRITICAL: 
+            else: 
                 # - If visible_to_sellers is None or [] (empty), objective is visible to ALL sellers
                 # - If visible_to_sellers is [id1, id2], objective is visible ONLY to these sellers
                 if visible_to is None or (isinstance(visible_to, list) and len(visible_to) == 0):
                     # Visible to all sellers (no restriction)
-                    print(f"   ✅ INCLUDED (collective, visible to all)")
                     filtered_objectives.append(objective)
                 elif isinstance(visible_to, list) and seller_id in visible_to:
                     # Visible only to specific sellers, and this seller is in the list
-                    print(f"   ✅ INCLUDED (collective, seller in list)")
                     filtered_objectives.append(objective)
-                else:
-                    print(f"   ❌ EXCLUDED (collective, seller not in list)")
         
         # Ensure status field exists and is up-to-date (recalculate if needed)
         for objective in filtered_objectives:
@@ -234,19 +208,12 @@ class SellerService:
                 old_status = objective.get('status')
                 objective['status'] = new_status
                 
-                # If status changed to "achieved", log it
-                if new_status == 'achieved' and old_status != 'achieved':
-                    print(f"🎯 [STATUS CHANGE] Objective '{objective.get('title')}' changed to achieved: {old_status} -> {new_status}")
+                # Status updated
             else:
                 objective['status'] = 'active'  # Fallback if no end_date
         
         # Add achievement notification flags
         await self.add_achievement_notification_flag(filtered_objectives, seller_id, "objective")
-        
-        # Debug: log all objectives with their flags
-        for obj in filtered_objectives:
-            if obj.get('status') == 'achieved':
-                print(f"🎉 [DEBUG] Objective '{obj.get('title')}': status={obj.get('status')}, has_unseen_achievement={obj.get('has_unseen_achievement')}")
         
         # Filter out achieved objectives (they should go to history)
         # Achieved objectives are moved to history, regardless of notification status
@@ -265,7 +232,6 @@ class SellerService:
             elif status == 'achieved':
                 # Exclude from active list - will appear in history
                 # Even if has_unseen_achievement is true, don't show it in active list
-                print(f"📦 [ACTIVE LIST] Excluding achieved objective '{objective.get('title')}' from active list (status: achieved, has_unseen: {objective.get('has_unseen_achievement', False)})")
             # All other statuses are excluded
         
         return final_objectives
@@ -426,7 +392,6 @@ class SellerService:
                 # Always recalculate status to ensure it's correct
                 new_status = self.compute_status(current_val, target_val, period_end_str)
                 objective['status'] = new_status
-                print(f"📊 [HISTORY] Objective '{objective.get('title')}': recalculated status={new_status}, current={current_val}, target={target_val}, unit={objective.get('unit', 'N/A')}, type={objective.get('objective_type', 'N/A')}")
             
             status = objective.get('status')
             period_end = objective.get('period_end', '')
@@ -543,16 +508,11 @@ class SellerService:
         }
         # manager_id removed from query - used only for progress calculation
         
-        print(f"🔍 [SELLER CHALLENGES] Query: {query}")
-        print(f"🔍 [SELLER CHALLENGES] Seller ID: {seller_id}, Store ID: {seller_store_id}")
-        
         # Get active challenges from the store (created by manager OR gérant)
         challenges = await self.db.challenges.find(
             query,
             {"_id": 0}
         ).sort("start_date", 1).to_list(10)
-        
-        print(f"🔍 [SELLER CHALLENGES] Found {len(challenges)} challenges before filtering")
         
         # Filter challenges based on visibility rules
         filtered_challenges = []
@@ -560,33 +520,18 @@ class SellerService:
             chall_type = challenge.get('type', 'collective')
             visible_to = challenge.get('visible_to_sellers')
             
-            print(f"🔍 [SELLER CHALLENGES] Challenge: {challenge.get('title')}")
-            print(f"   - Type: {chall_type}")
-            print(f"   - visible_to_sellers: {visible_to}")
-            print(f"   - seller_id in challenge: {challenge.get('seller_id')}")
-            
             # Individual challenges: only show if it's for this seller
             if chall_type == 'individual':
                 if challenge.get('seller_id') == seller_id:
-                    print(f"   ✅ INCLUDED (individual, matches seller)")
                     filtered_challenges.append(challenge)
-                else:
-                    print(f"   ❌ EXCLUDED (individual, doesn't match seller)")
             # Collective challenges: check visible_to_sellers list
             else:
-                # CRITICAL: 
-                # - If visible_to_sellers is None or [] (empty), challenge is visible to ALL sellers
-                # - If visible_to_sellers is [id1, id2], challenge is visible ONLY to these sellers
+                # If visible_to_sellers is None or [] (empty), challenge is visible to ALL sellers
+                # If visible_to_sellers is [id1, id2], challenge is visible ONLY to these sellers
                 if visible_to is None or (isinstance(visible_to, list) and len(visible_to) == 0):
-                    # Visible to all sellers (no restriction)
-                    print(f"   ✅ INCLUDED (collective, visible to all)")
                     filtered_challenges.append(challenge)
                 elif isinstance(visible_to, list) and seller_id in visible_to:
-                    # Visible only to specific sellers, and this seller is in the list
-                    print(f"   ✅ INCLUDED (collective, seller in list)")
                     filtered_challenges.append(challenge)
-                else:
-                    print(f"   ❌ EXCLUDED (collective, seller not in list)")
         
         # Calculate progress for each challenge
         for challenge in filtered_challenges:
@@ -606,7 +551,6 @@ class SellerService:
                 final_challenges.append(challenge)
             elif status in ['achieved', 'completed']:
                 # Exclude from active list - will appear in history
-                print(f"📦 [ACTIVE LIST] Excluding achieved challenge '{challenge.get('title')}' from active list (status: {status})")
             # All other statuses are excluded
         
         return final_challenges
@@ -746,7 +690,6 @@ class SellerService:
                 {"id": objective['id']},
                 {"$set": {"status": objective['status']}}
             )
-            print(f"🔒 [PROGRESS PROTECTION] Objective '{objective.get('title')}': preserving manual current_value={current_value} (data_entry_responsible={data_entry_responsible})")
             return
 
         start_date = objective['period_start']
@@ -763,7 +706,6 @@ class SellerService:
             seller_query["manager_id"] = manager_id
         else:
             # No store_id and no manager_id - cannot calculate progress
-            print(f"⚠️ [PROGRESS CALC] Objective '{objective.get('title')}' has no store_id or manager_id - skipping progress calculation")
             return
         
         # Get all sellers for this store/manager
@@ -999,7 +941,6 @@ class SellerService:
                 current_value = float(objective.get('current_value') or 0)
                 objective['status'] = self.compute_status(current_value, target_value, end_date)
                 # Keep stored progress_* and current_value as-is; do not append bulk update.
-                print(f"🔒 [PROGRESS PROTECTION] Objective '{objective.get('title')}': preserving manual current_value={current_value} (data_entry_responsible={data_entry_responsible})")
                 continue
             
             if not start_date or not end_date:
@@ -1133,7 +1074,6 @@ class SellerService:
                 {"id": challenge['id']},
                 {"$set": update_data}
             )
-            print(f"🔒 [PROGRESS PROTECTION] Challenge '{challenge.get('title')}': preserving manual current_value={current_value} (data_entry_responsible={data_entry_responsible})")
             return
         
         start_date = challenge.get('start_date') or challenge.get('period_start')
@@ -1350,7 +1290,6 @@ class SellerService:
                 new_status = self.compute_status(current_value, target_value, end_date)
                 challenge['status'] = new_status
                 # Keep stored progress_* and current_value as-is; do not append bulk update.
-                print(f"🔒 [PROGRESS PROTECTION] Challenge '{challenge.get('title')}': preserving manual current_value={current_value} (data_entry_responsible={data_entry_responsible})")
                 continue
             
             if not start_date or not end_date:

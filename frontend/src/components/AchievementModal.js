@@ -60,24 +60,20 @@ export default function AchievementModal({
     }
   }, []);
   
-  // Trigger confetti when modal opens
+  // Trigger confetti when modal opens (grande victoire)
   useEffect(() => {
     if (isOpen && item && !confettiTriggered.current) {
-      console.log('🎉 [CONFETTI] Modal opened, triggering confetti in 500ms...');
       confettiTriggered.current = true;
       
-      // Delay confetti slightly to let modal appear first and be visible
+      // Delay confetti slightly to let modal appear first
       const confettiTimeout = setTimeout(() => {
-        console.log('🎉 [CONFETTI] Triggering confetti now!');
         triggerConfetti();
-      }, 500); // Increased delay to ensure modal is fully visible
+      }, 500);
       
       return () => {
         clearTimeout(confettiTimeout);
       };
     } else if (!isOpen) {
-      // Reset when modal closes so it can trigger again next time
-      console.log('🎉 [CONFETTI] Modal closed, resetting confetti trigger');
       confettiTriggered.current = false;
     }
   }, [isOpen, item]);
@@ -170,11 +166,9 @@ export default function AchievementModal({
   
   if (!isOpen || !item) return null;
   
-  console.log('🎉 [ACHIEVEMENT MODAL] Rendering modal for:', item.title, 'has_unseen_achievement:', item.has_unseen_achievement);
 
   const handleMarkAsSeen = async () => {
     try {
-      console.log('✅ [ACHIEVEMENT MODAL] Marking achievement as seen...');
       const endpoint = userRole === 'seller' 
         ? `/${userRole}/${itemType}s/${item.id}/mark-achievement-seen`
         : `/manager/${itemType}s/${item.id}/mark-achievement-seen`;
@@ -247,10 +241,8 @@ export default function AchievementModal({
 
   const details = getAchievementDetails();
 
-  console.log('🎉 [ACHIEVEMENT MODAL] Rendering modal, isOpen:', isOpen, 'item:', item?.title);
   
   if (!isOpen || !item) {
-    console.log('🎉 [ACHIEVEMENT MODAL] Modal not rendering - isOpen:', isOpen, 'item:', item);
     return null;
   }
   

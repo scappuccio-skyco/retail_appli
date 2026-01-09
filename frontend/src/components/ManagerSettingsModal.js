@@ -7,8 +7,6 @@ import confetti from 'canvas-confetti';
 import AchievementModal from './AchievementModal';
 
 export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalType = 'objectives', storeIdParam = null }) {
-  // 🧪 DEBUG: Vérifier que le composant se charge
-  console.log('🔍 [DEBUG] ManagerSettingsModal rendered, isOpen:', isOpen);
   
   const [activeTab, setActiveTab] = useState(
     modalType === 'objectives' ? 'create_objective' : 'create_challenge'
@@ -137,20 +135,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       const objectivesData = objectivesRes.data || [];
       const challengesData = challengesRes.data || [];
       
-      // 🎯 LOGS DE SURVIE - Vérification que les données arrivent bien
-      console.log('🎯 [DATA RECEIVED] Objectives received:', objectivesData.length, 'objectives');
-      console.log('🎯 [DATA RECEIVED] Full objectives data:', JSON.stringify(objectivesData, null, 2));
-      objectivesData.forEach((obj, index) => {
-        console.log(`🎯 [DATA RECEIVED] Objective ${index + 1}:`, {
-          id: obj.id,
-          title: obj.title,
-          status: obj.status,
-          has_unseen_achievement: obj.has_unseen_achievement,
-          has_unseen_achievement_type: typeof obj.has_unseen_achievement,
-          has_unseen_achievement_strict: obj.has_unseen_achievement === true
-        });
-      });
-      
       setKpiConfig(configRes.data);
       setObjectives(objectivesData);
       setChallenges(challengesData);
@@ -159,9 +143,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       // Check for unseen achievements and show modal
       const unseenObjective = objectivesData.find(obj => obj.has_unseen_achievement === true);
       const unseenChallenge = challengesData.find(chall => chall.has_unseen_achievement === true);
-      
-      console.log('🔍 [ACHIEVEMENT CHECK] Unseen objective found:', unseenObjective ? unseenObjective.title : 'NONE');
-      console.log('🔍 [ACHIEVEMENT CHECK] Unseen challenge found:', unseenChallenge ? unseenChallenge.title : 'NONE');
       
       // Priority: show objective first, then challenge
       if (unseenObjective && !achievementModal.isOpen) {
@@ -493,71 +474,27 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         `/manager/challenges/${challengeId}/progress${storeParam}`,
         { 
           current_value: parseFloat(challengeProgressValue),
-          mode: 'set'  // Use 'set' mode to set absolute value instead of adding
+          mode: 'add'  // Add mode: adds to current_value instead of replacing it
         }
       );
-      logger.log('✅ Progression challenge mise à jour, réponse:', response.data);
       
       const updatedChallenge = response.data;
       
-      console.log('🎯 [MANAGER PROGRESS] Challenge updated:', {
-        id: updatedChallenge.id,
-        status: updatedChallenge.status,
-        current_value: updatedChallenge.current_value,
-        target_value: updatedChallenge.target_value,
-        just_achieved: updatedChallenge.just_achieved,
-        is_achieved_status: updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed',
-        is_achieved_value: updatedChallenge.current_value >= updatedChallenge.target_value
-      });
-      
-      // Priority 1: Use just_achieved flag from backend (most reliable)
-      // Priority 2: Check status and value as fallback
-      const isAchieved = updatedChallenge.just_achieved === true ||
-                        (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') ||
-                        (updatedChallenge.current_value >= updatedChallenge.target_value && updatedChallenge.target_value > 0);
-      
-      console.log('🎯 [MANAGER PROGRESS] Challenge isAchieved check:', {
-        just_achieved_flag: updatedChallenge.just_achieved,
-        status_achieved: updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed',
-        value_achieved: updatedChallenge.current_value >= updatedChallenge.target_value,
-        final_isAchieved: isAchieved
-      });
-      
-      if (isAchieved) {
-        console.log('🎉 [MANAGER PROGRESS] Challenge achieved! Triggering confetti NOW...');
-        // Trigger confetti immediately, before any other operations
-        triggerConfetti();
-        toast.success('🎉 Félicitations ! Challenge réussi !', { 
-          duration: 5000,
-          style: {
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            color: 'white',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            padding: '16px',
-          }
-        });
-        
-        // If has_unseen_achievement is true, show AchievementModal immediately
-        if (updatedChallenge.has_unseen_achievement === true) {
-          console.log('🎉 [MANAGER PROGRESS] Showing AchievementModal for unseen challenge');
-          setAchievementModal({
-            isOpen: true,
-            item: updatedChallenge,
-            itemType: 'challenge'
-          });
-        }
-      } else {
-        console.log('⚠️ [MANAGER PROGRESS] Challenge not achieved yet:', {
-          status: updatedChallenge.status,
-          current: updatedChallenge.current_value,
-          target: updatedChallenge.target_value
-        });
-        toast.success('Progression mise à jour avec succès');
-      }
-      
       setUpdatingProgressChallengeId(null);
       setChallengeProgressValue('');
+      
+      // 🎉 PETITE VICTOIRE : Confettis à chaque progression
+      triggerConfetti();
+      toast.success('Progression mise à jour !', { duration: 2000 });
+      
+      // 🏆 GRANDE VICTOIRE : Modal uniquement quand just_achieved est true
+      if (updatedChallenge.just_achieved === true && updatedChallenge.has_unseen_achievement === true) {
+        setAchievementModal({
+          isOpen: true,
+          item: updatedChallenge,
+          itemType: 'challenge'
+        });
+      }
       
       // Rafraîchir les données pour afficher la date de mise à jour et le restant
       await fetchData();
@@ -705,97 +642,20 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
     }
   };
 
-  // Function to trigger confetti animation
+  // 🎉 Petite pluie de confettis discrète pour chaque progression
   const triggerConfetti = () => {
-    console.log('🎊 [CONFETTI] ========== TRIGGERING CONFETTI ==========');
-    console.log('🎊 [CONFETTI] confetti type:', typeof confetti);
-    console.log('🎊 [CONFETTI] confetti value:', confetti);
-    console.log('🎊 [CONFETTI] window.confetti:', window.confetti);
-    
     try {
-      // Check if confetti is available
-      if (typeof confetti === 'undefined' || !confetti) {
-        console.error('❌ [CONFETTI] confetti is not available!');
-        // Try window.confetti as fallback
-        if (window.confetti) {
-          console.log('✅ [CONFETTI] Using window.confetti as fallback');
-          const confettiFn = window.confetti;
-          confettiFn({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 }
-          });
-          return;
-        }
-        return;
-      }
+      const confettiFn = confetti || window.confetti;
+      if (!confettiFn) return;
       
-      // Check z-index of canvas elements
-      const existingCanvases = document.querySelectorAll('canvas');
-      console.log('🎊 [CONFETTI] Existing canvas elements:', existingCanvases.length);
-      existingCanvases.forEach((canvas, index) => {
-        const zIndex = window.getComputedStyle(canvas).zIndex;
-        console.log(`🎊 [CONFETTI] Canvas ${index} z-index:`, zIndex, 'position:', window.getComputedStyle(canvas).position);
-      });
-      
-      const duration = 3000;
-      const end = Date.now() + duration;
-      const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
-
-      // Initial burst from center with high z-index
-      console.log('🎊 [CONFETTI] Creating initial burst...');
-      confetti({
-        particleCount: 50,
-        spread: 70,
+      confettiFn({
+        particleCount: 30,
+        spread: 50,
         origin: { y: 0.6 },
-        colors: colors,
-        zIndex: 99999  // Force high z-index
+        colors: ['#ffd700', '#ff6b6b', '#4ecdc4']
       });
-
-      (function frame() {
-        try {
-          confetti({
-            particleCount: 5,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0 },
-            colors: colors,
-            zIndex: 99999
-          });
-          confetti({
-            particleCount: 5,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1 },
-            colors: colors,
-            zIndex: 99999
-          });
-        } catch (confettiError) {
-          console.error('❌ [CONFETTI] Error in confetti call:', confettiError);
-        }
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        } else {
-          console.log('✅ [CONFETTI] Confetti animation completed');
-        }
-      }());
-      
-      // Verify canvas was created
-      setTimeout(() => {
-        const canvases = document.querySelectorAll('canvas');
-        console.log('🎊 [CONFETTI] Canvas elements after trigger:', canvases.length);
-        canvases.forEach((canvas, index) => {
-          const zIndex = window.getComputedStyle(canvas).zIndex;
-          const position = window.getComputedStyle(canvas).position;
-          console.log(`🎊 [CONFETTI] Canvas ${index} - z-index: ${zIndex}, position: ${position}, visible: ${canvas.offsetWidth > 0 && canvas.offsetHeight > 0}`);
-        });
-      }, 100);
-      
-      console.log('✅ [CONFETTI] Confetti animation started (Manager)');
     } catch (error) {
-      console.error('❌ [CONFETTI] Error triggering confetti (Manager):', error);
-      console.error('❌ [CONFETTI] Error stack:', error.stack);
+      // Silently fail - confetti is not critical
     }
   };
 
@@ -810,71 +670,27 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         `/manager/objectives/${objectiveId}/progress${storeParam}`,
         { 
           current_value: parseFloat(progressValue),
-          mode: 'set'  // Use 'set' mode to set absolute value instead of adding
+          mode: 'add'  // Add mode: adds to current_value instead of replacing it
         }
       );
-      logger.log('✅ Progression mise à jour, réponse:', response.data);
       
       const updatedObjective = response.data;
       
-      console.log('🎯 [MANAGER PROGRESS] Objective updated:', {
-        id: updatedObjective.id,
-        status: updatedObjective.status,
-        current_value: updatedObjective.current_value,
-        target_value: updatedObjective.target_value,
-        just_achieved: updatedObjective.just_achieved,
-        is_achieved_status: updatedObjective.status === 'achieved',
-        is_achieved_value: updatedObjective.current_value >= updatedObjective.target_value
-      });
-      
-      // Priority 1: Use just_achieved flag from backend (most reliable)
-      // Priority 2: Check status and value as fallback
-      const isAchieved = updatedObjective.just_achieved === true || 
-                        updatedObjective.status === 'achieved' || 
-                        (updatedObjective.current_value >= updatedObjective.target_value && updatedObjective.target_value > 0);
-      
-      console.log('🎯 [MANAGER PROGRESS] isAchieved check:', {
-        just_achieved_flag: updatedObjective.just_achieved,
-        status_achieved: updatedObjective.status === 'achieved',
-        value_achieved: updatedObjective.current_value >= updatedObjective.target_value,
-        final_isAchieved: isAchieved
-      });
-      
-      if (isAchieved) {
-        console.log('🎉 [MANAGER PROGRESS] Objective achieved! Triggering confetti NOW...');
-        // Trigger confetti immediately, before any other operations
-        triggerConfetti();
-        toast.success('🎉 Félicitations ! Objectif atteint !', { 
-          duration: 5000,
-          style: {
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            color: 'white',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            padding: '16px',
-          }
-        });
-        
-        // If has_unseen_achievement is true, show AchievementModal immediately
-        if (updatedObjective.has_unseen_achievement === true) {
-          console.log('🎉 [MANAGER PROGRESS] Showing AchievementModal for unseen achievement');
-          setAchievementModal({
-            isOpen: true,
-            item: updatedObjective,
-            itemType: 'objective'
-          });
-        }
-      } else {
-        console.log('⚠️ [MANAGER PROGRESS] Objective not achieved yet:', {
-          status: updatedObjective.status,
-          current: updatedObjective.current_value,
-          target: updatedObjective.target_value
-        });
-        toast.success('Progression mise à jour avec succès');
-      }
-      
       setUpdatingProgressObjectiveId(null);
       setProgressValue('');
+      
+      // 🎉 PETITE VICTOIRE : Confettis à chaque progression
+      triggerConfetti();
+      toast.success('Progression mise à jour !', { duration: 2000 });
+      
+      // 🏆 GRANDE VICTOIRE : Modal uniquement quand just_achieved est true
+      if (updatedObjective.just_achieved === true && updatedObjective.has_unseen_achievement === true) {
+        setAchievementModal({
+          isOpen: true,
+          item: updatedObjective,
+          itemType: 'objective'
+        });
+      }
       
       // Rafraîchir les données pour afficher la date de mise à jour et le restant
       await fetchData();
@@ -886,14 +702,6 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   };
 
   if (!isOpen) return null;
-
-  // 🧪 DEBUG: Vérifier avant le return
-  console.log('🔍 [DEBUG] ManagerSettingsModal about to render, isOpen:', isOpen);
-  
-  if (!isOpen) {
-    console.log('⚠️ [DEBUG] ManagerSettingsModal isOpen is false, not rendering');
-    return null;
-  }
   
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">

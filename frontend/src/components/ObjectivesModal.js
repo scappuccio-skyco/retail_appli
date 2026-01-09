@@ -89,65 +89,29 @@ export default function ObjectivesModal({
       const objRes = await api.get('/seller/objectives/active');
       const objectives = objRes.data || [];
       
-      // 🎯 LOGS DE SURVIE - Vérification que les données arrivent bien
-      console.log('🎯 [DATA RECEIVED] Objectives received:', objectives.length, 'objectives');
-      console.log('🎯 [DATA RECEIVED] Full objectives data:', JSON.stringify(objectives, null, 2));
-      objectives.forEach((obj, index) => {
-        console.log(`🎯 [DATA RECEIVED] Objective ${index + 1}:`, {
-          id: obj.id,
-          title: obj.title,
-          status: obj.status,
-          has_unseen_achievement: obj.has_unseen_achievement,
-          has_unseen_achievement_type: typeof obj.has_unseen_achievement,
-          has_unseen_achievement_strict: obj.has_unseen_achievement === true
-        });
-      });
-      
       // Fetch active challenges
       const challRes = await api.get('/seller/challenges/active');
       const challenges = challRes.data || [];
       
-      // CRITICAL: Filter out achieved objectives from active list
-      // Even if backend returns them, we don't want them in active list
-      const activeOnly = objectives.filter(obj => {
-        const isAchieved = obj.status === 'achieved';
-        if (isAchieved) {
-          console.log(`🚫 [FRONTEND] Filtering out achieved objective "${obj.title}" from active list`);
-        }
-        return !isAchieved;
-      });
+      // Filter out achieved objectives from active list
+      const activeOnly = objectives.filter(obj => obj.status !== 'achieved');
       
       setActiveObjectives(activeOnly);
       setActiveChallenges(challenges);
       
-      // Debug: log objectives to check flags
-      console.log('🔍 [FRONTEND] Objectives received:', objectives.length, 'After filtering achieved:', activeOnly.length);
-      objectives.forEach(obj => {
-        if (obj.status === 'achieved') {
-          console.log(`⚠️ [FRONTEND] Objective "${obj.title}": status=${obj.status}, has_unseen_achievement=${obj.has_unseen_achievement} - FILTERED OUT`);
-        }
-      });
-      
       // Check for unseen achievements and show modal
-      // Only check if modal is not already open to avoid conflicts
       if (!achievementModal.isOpen) {
-        // Check in the filtered list (no achieved objectives)
         const unseenObjective = activeOnly.find(obj => obj.has_unseen_achievement === true);
         const unseenChallenge = challenges.find(chall => chall.has_unseen_achievement === true);
         
-        console.log('🔍 [FRONTEND] Unseen objective:', unseenObjective ? unseenObjective.title : 'none');
-        console.log('🔍 [FRONTEND] Unseen challenge:', unseenChallenge ? unseenChallenge.title : 'none');
-        
         // Priority: show objective first, then challenge
         if (unseenObjective) {
-          console.log('🎉 [ACHIEVEMENT] Showing achievement modal for objective:', unseenObjective.title);
           setAchievementModal({
             isOpen: true,
             item: unseenObjective,
             itemType: 'objective'
           });
         } else if (unseenChallenge) {
-          console.log('🎉 [ACHIEVEMENT] Showing achievement modal for challenge:', unseenChallenge.title);
           setAchievementModal({
             isOpen: true,
             item: unseenChallenge,
@@ -171,123 +135,41 @@ export default function ObjectivesModal({
   };
   
   const handleMarkAchievementAsSeen = async () => {
-    console.log('✅ [ACHIEVEMENT] Marking achievement as seen, refreshing data...');
+    // Close modal and refresh data
+    setAchievementModal({ isOpen: false, item: null, itemType: null });
     
-    // Close modal first (but wait a bit so animation is visible)
-    setTimeout(() => {
-      setAchievementModal({ isOpen: false, item: null, itemType: null });
-    }, 100);
+    // Refresh data after marking as seen
+    await refreshActiveData();
     
-    // Refresh data after marking as seen (with delay to ensure modal closes smoothly)
-    setTimeout(async () => {
-      await refreshActiveData();
-      
-      // Also refresh history to show the objective there
-      if (activeTab === 'historique') {
-        await fetchHistory();
-      }
-      
-      // Also call parent's onUpdate if provided
-      if (onUpdate) {
-        onUpdate();
-      }
-    }, 500);
+    if (activeTab === 'historique') {
+      await fetchHistory();
+    }
+    
+    if (onUpdate) {
+      onUpdate();
+    }
   };
   
-  // Function to trigger confetti animation
+  // 🎉 Petite pluie de confettis discrète pour chaque progression
+  // Utilise un canvas global avec z-index maximum pour s'assurer qu'il est visible
   const triggerConfetti = () => {
-    console.log('🎊 [CONFETTI] ========== TRIGGERING CONFETTI (SELLER) ==========');
-    console.log('🎊 [CONFETTI] confetti type:', typeof confetti);
-    console.log('🎊 [CONFETTI] confetti value:', confetti);
-    console.log('🎊 [CONFETTI] window.confetti:', window.confetti);
-    
     try {
-      // Check if confetti is available
-      if (typeof confetti === 'undefined' || !confetti) {
-        console.error('❌ [CONFETTI] confetti is not available!');
-        // Try window.confetti as fallback
-        if (window.confetti) {
-          console.log('✅ [CONFETTI] Using window.confetti as fallback');
-          const confettiFn = window.confetti;
-          confettiFn({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 }
-          });
-          return;
-        }
-        return;
-      }
+      const confettiFn = confetti || window.confetti;
+      if (!confettiFn) return;
       
-      // Check z-index of canvas elements
-      const existingCanvases = document.querySelectorAll('canvas');
-      console.log('🎊 [CONFETTI] Existing canvas elements:', existingCanvases.length);
-      existingCanvases.forEach((canvas, index) => {
-        const zIndex = window.getComputedStyle(canvas).zIndex;
-        console.log(`🎊 [CONFETTI] Canvas ${index} z-index:`, zIndex, 'position:', window.getComputedStyle(canvas).position);
-      });
-      
-      const duration = 3000;
-      const end = Date.now() + duration;
-      const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
-
-      // Initial burst from center
-      console.log('🎊 [CONFETTI] Creating initial burst...');
-      confetti({
-        particleCount: 50,
-        spread: 70,
+      // Configuration discrète pour les petites victoires
+      confettiFn({
+        particleCount: 30,
+        spread: 50,
         origin: { y: 0.6 },
-        colors: colors
+        colors: ['#ffd700', '#ff6b6b', '#4ecdc4'],
+        zIndex: 99999
       });
-
-      (function frame() {
-        try {
-          confetti({
-            particleCount: 5,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0 },
-            colors: colors
-          });
-          confetti({
-            particleCount: 5,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1 },
-            colors: colors
-          });
-        } catch (confettiError) {
-          console.error('❌ [CONFETTI] Error in confetti call:', confettiError);
-        }
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        } else {
-          console.log('✅ [CONFETTI] Confetti animation completed');
-        }
-      }());
       
-      // Verify canvas was created
-      setTimeout(() => {
-        const canvases = document.querySelectorAll('canvas');
-        console.log('🎊 [CONFETTI] Canvas elements after trigger:', canvases.length);
-        canvases.forEach((canvas, index) => {
-          const zIndex = window.getComputedStyle(canvas).zIndex;
-          const position = window.getComputedStyle(canvas).position;
-          console.log(`🎊 [CONFETTI] Canvas ${index} - z-index: ${zIndex}, position: ${position}, visible: ${canvas.offsetWidth > 0 && canvas.offsetHeight > 0}`);
-          // Force high z-index if needed
-          if (zIndex === 'auto' || parseInt(zIndex) < 9999) {
-            canvas.style.zIndex = '99999';
-            canvas.style.position = 'fixed';
-            console.log(`🎊 [CONFETTI] Forced z-index to 99999 for canvas ${index}`);
-          }
-        });
-      }, 100);
-      
-      console.log('✅ [CONFETTI] Confetti animation started');
+      // Nettoyage automatique : canvas-confetti gère lui-même le nettoyage après animation
+      // Les particules sont automatiquement supprimées du DOM après leur durée de vie
     } catch (error) {
-      console.error('❌ [CONFETTI] Error triggering confetti:', error);
-      console.error('❌ [CONFETTI] Error stack:', error.stack);
+      // Silently fail - confetti is not critical for functionality
     }
   };
 
@@ -303,78 +185,26 @@ export default function ObjectivesModal({
         `/seller/objectives/${objectiveId}/progress`,
         { 
           value: value,
-          mode: 'set'  // Use 'set' mode to set absolute value instead of adding
+          mode: 'add'  // Add mode: adds to current_value instead of replacing it
         }
       );
       
       const updatedObjective = response.data;
       
-      console.log('🎉 [PROGRESS UPDATE] Objective updated:', {
-        id: updatedObjective.id,
-        status: updatedObjective.status,
-        current_value: updatedObjective.current_value,
-        target_value: updatedObjective.target_value,
-        just_achieved: updatedObjective.just_achieved,
-        has_unseen_achievement: updatedObjective.has_unseen_achievement,
-        is_achieved_status: updatedObjective.status === 'achieved',
-        is_achieved_value: updatedObjective.current_value >= updatedObjective.target_value
-      });
-      
       setUpdatingObjectiveId(null);
       setObjectiveProgressValue('');
       
-      // Priority 1: Use just_achieved flag from backend (most reliable)
-      // Priority 2: Check status and value as fallback
-      const isAchieved = updatedObjective.just_achieved === true || 
-                        updatedObjective.status === 'achieved' || 
-                        (updatedObjective.current_value >= updatedObjective.target_value && updatedObjective.target_value > 0);
+      // 🎉 PETITE VICTOIRE : Confettis à chaque progression (même si objectif pas fini)
+      triggerConfetti();
+      toast.success('Progression mise à jour !', { duration: 2000 });
       
-      console.log('🎯 [PROGRESS UPDATE] isAchieved check:', {
-        just_achieved_flag: updatedObjective.just_achieved,
-        status_achieved: updatedObjective.status === 'achieved',
-        value_achieved: updatedObjective.current_value >= updatedObjective.target_value,
-        final_isAchieved: isAchieved
-      });
-      
-      if (isAchieved) {
-        console.log('🎉 [PROGRESS UPDATE] ========== OBJECTIVE ACHIEVED ==========');
-        console.log('🎉 [PROGRESS UPDATE] updatedObjective:', JSON.stringify(updatedObjective, null, 2));
-        console.log('🎉 [PROGRESS UPDATE] has_unseen_achievement:', updatedObjective.has_unseen_achievement);
-        console.log('🎉 [PROGRESS UPDATE] has_unseen_achievement type:', typeof updatedObjective.has_unseen_achievement);
-        console.log('🎉 [PROGRESS UPDATE] has_unseen_achievement === true:', updatedObjective.has_unseen_achievement === true);
-        
-        // ALWAYS trigger confetti first, regardless of has_unseen_achievement
-        console.log('🎉 [PROGRESS UPDATE] Triggering confetti NOW...');
-        triggerConfetti();
-        
-        // Show achievement modal if unseen
-        if (updatedObjective.has_unseen_achievement === true) {
-          console.log('✅ [PROGRESS UPDATE] has_unseen_achievement is TRUE - Showing AchievementModal');
-          setAchievementModal({
-            isOpen: true,
-            item: updatedObjective,
-            itemType: 'objective'
-          });
-        } else {
-          console.log('⚠️ [PROGRESS UPDATE] has_unseen_achievement is NOT TRUE:', updatedObjective.has_unseen_achievement);
-          toast.success('🎉 Félicitations ! Objectif atteint !', { 
-            duration: 5000,
-            style: {
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              padding: '16px',
-            }
-          });
-        }
-      } else {
-        console.log('⚠️ [PROGRESS UPDATE] Objective not achieved yet:', {
-          status: updatedObjective.status,
-          current: updatedObjective.current_value,
-          target: updatedObjective.target_value
+      // 🏆 GRANDE VICTOIRE : Modal uniquement quand just_achieved est true (passage à 100%)
+      if (updatedObjective.just_achieved === true && updatedObjective.has_unseen_achievement === true) {
+        setAchievementModal({
+          isOpen: true,
+          item: updatedObjective,
+          itemType: 'objective'
         });
-        toast.success('Progression mise à jour !');
       }
       
       // Refresh data
@@ -412,68 +242,27 @@ export default function ObjectivesModal({
         
         response = await api.post(
           `/seller/challenges/${challengeId}/progress`,
-          { value: totalValue }
+          { value: totalValue, mode: 'add' }
         );
       }
       
       const updatedChallenge = response.data;
       
-      console.log('🎉 [PROGRESS UPDATE] Challenge updated:', {
-        id: updatedChallenge.id,
-        status: updatedChallenge.status,
-        current_value: updatedChallenge.current_value,
-        target_value: updatedChallenge.target_value,
-        just_achieved: updatedChallenge.just_achieved
-      });
-      
       setUpdatingChallengeId(null);
       setChallengeProgress({ ca: 0, ventes: 0, clients: 0 });
       setChallengeCurrentValue('');
       
-      // Priority 1: Use just_achieved flag from backend (most reliable)
-      // Priority 2: Check status and value as fallback
-      const isAchieved = updatedChallenge.just_achieved === true ||
-                        (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') ||
-                        (updatedChallenge.current_value >= updatedChallenge.target_value && updatedChallenge.target_value > 0);
+      // 🎉 PETITE VICTOIRE : Confettis à chaque progression
+      triggerConfetti();
+      toast.success('Progression du challenge mise à jour !', { duration: 2000 });
       
-      console.log('🎯 [PROGRESS UPDATE] Challenge isAchieved check:', {
-        just_achieved_flag: updatedChallenge.just_achieved,
-        status_achieved: updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed',
-        value_achieved: updatedChallenge.current_value >= updatedChallenge.target_value,
-        final_isAchieved: isAchieved
-      });
-      
-      if (isAchieved) {
-        console.log('🎉 [PROGRESS UPDATE] Challenge achieved! Triggering confetti NOW...');
-        // Trigger confetti immediately, before any other operations
-        triggerConfetti();
-        toast.success('🎉 Félicitations ! Challenge réussi !', { 
-          duration: 5000,
-          style: {
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            color: 'white',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            padding: '16px',
-          }
+      // 🏆 GRANDE VICTOIRE : Modal uniquement quand just_achieved est true
+      if (updatedChallenge.just_achieved === true && updatedChallenge.has_unseen_achievement === true) {
+        setAchievementModal({
+          isOpen: true,
+          item: updatedChallenge,
+          itemType: 'challenge'
         });
-        
-        // If has_unseen_achievement is true, show AchievementModal immediately
-        if (updatedChallenge.has_unseen_achievement === true) {
-          console.log('🎉 [PROGRESS UPDATE] Showing AchievementModal for unseen challenge');
-          setAchievementModal({
-            isOpen: true,
-            item: updatedChallenge,
-            itemType: 'challenge'
-          });
-        }
-      } else {
-        console.log('⚠️ [PROGRESS UPDATE] Challenge not achieved yet:', {
-          status: updatedChallenge.status,
-          current: updatedChallenge.current_value,
-          target: updatedChallenge.target_value
-        });
-        toast.success('Progression du challenge mise à jour !');
       }
       
       // Refresh data
