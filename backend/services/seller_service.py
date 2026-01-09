@@ -232,6 +232,7 @@ class SellerService:
             elif status == 'achieved':
                 # Exclude from active list - will appear in history
                 # Even if has_unseen_achievement is true, don't show it in active list
+                pass
             # All other statuses are excluded
         
         return final_objectives
@@ -551,6 +552,7 @@ class SellerService:
                 final_challenges.append(challenge)
             elif status in ['achieved', 'completed']:
                 # Exclude from active list - will appear in history
+                pass
             # All other statuses are excluded
         
         return final_challenges
