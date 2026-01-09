@@ -75,6 +75,7 @@ if settings.CORS_ORIGINS == "*":
     allowed_origins = [
         "https://retailperformerai.com",
         "https://www.retailperformerai.com",
+        "https://api.retailperformerai.com",  # Allow API subdomain for internal requests
     ]
 else:
     # Parse comma-separated list and strip whitespace
@@ -83,6 +84,7 @@ else:
     allowed_origins = list(set(parsed_origins + [
         "https://retailperformerai.com",
         "https://www.retailperformerai.com",
+        "https://api.retailperformerai.com",  # Allow API subdomain for internal requests
     ]))
 
 logger.info(f"CORS allowed origins: {allowed_origins}")
@@ -101,9 +103,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],  # Explicit methods including OPTIONS for preflight
     allow_headers=["*"],
     expose_headers=["Content-Disposition", "Content-Type", "Content-Length"],  # Expose headers for PDF downloads
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
 print("[STARTUP] 9/10 - CORS middleware added", flush=True)
 
