@@ -46,16 +46,18 @@ export default function EarlyAccess() {
 
       toast.success('Candidature envoyée avec succès !');
       
-      // Stocker dans localStorage pour la redirection après signup
+      // Stocker dans localStorage pour la redirection après signup et la page de succès
       localStorage.setItem('early_adopter_candidate', JSON.stringify({
         email: formData.email,
-        fullName: formData.fullName
+        fullName: formData.fullName,
+        enseigne: formData.enseigne,
+        nombreVendeurs: parseInt(formData.nombreVendeurs) || 0
       }));
 
-      // Rediriger vers la page de signup
+      // Rediriger vers la page de succès immédiatement
       setTimeout(() => {
-        navigate('/login?register=true&early_access=true');
-      }, 1500);
+        navigate('/early-access-success');
+      }, 500);
     } catch (error) {
       logger.error('Error submitting early access form:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors de l\'envoi de votre candidature');

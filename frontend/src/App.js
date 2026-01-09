@@ -17,6 +17,7 @@ import RegisterManager from './pages/RegisterManager';
 import RegisterSeller from './pages/RegisterSeller';
 import InvitationPage from './pages/InvitationPage';
 import EarlyAccess from './pages/EarlyAccess';
+import EarlyAccessSuccess from './pages/EarlyAccessSuccess';
 import WelcomePilot from './pages/WelcomePilot';
 import DiagnosticForm from './components/DiagnosticFormScrollable';
 import DiagnosticResult from './components/DiagnosticResult';
@@ -248,6 +249,7 @@ function AppContent() {
         
         {/* Early Access Pages - Public */}
         <Route path="/early-access" element={<EarlyAccess />} />
+        <Route path="/early-access-success" element={<EarlyAccessSuccess />} />
         <Route path="/welcome-pilot" element={<WelcomePilot />} />
         
         {/* Dashboard - Protected */}

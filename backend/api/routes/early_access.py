@@ -13,7 +13,7 @@ import os
 backend_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if backend_root not in sys.path:
     sys.path.insert(0, backend_root)
-from email_service import send_early_access_qualification_email
+from email_service import send_early_access_qualification_email, send_early_access_confirmation_email
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +41,8 @@ async def qualify_early_access(request: EarlyAccessQualifyRequest):
         Confirmation de l'envoi
     """
     try:
-        # Envoyer l'email de notification
-        email_sent = send_early_access_qualification_email(
+        # Envoyer l'email de notification à l'équipe
+        email_sent_team = send_early_access_qualification_email(
             full_name=request.full_name,
             email=request.email,
             enseigne=request.enseigne,
@@ -50,14 +50,23 @@ async def qualify_early_access(request: EarlyAccessQualifyRequest):
             defi_principal=request.defi_principal
         )
         
-        if not email_sent:
-            logger.warning(f"Failed to send early access email for {request.email}")
-            # On continue quand même, l'email peut être envoyé plus tard
+        if not email_sent_team:
+            logger.warning(f"Failed to send early access notification email for {request.email}")
+        
+        # Envoyer l'email de confirmation au candidat
+        email_sent_candidate = send_early_access_confirmation_email(
+            full_name=request.full_name,
+            email=request.email,
+            enseigne=request.enseigne
+        )
+        
+        if not email_sent_candidate:
+            logger.warning(f"Failed to send early access confirmation email to {request.email}")
         
         return {
             "success": True,
             "message": "Votre candidature a été enregistrée avec succès",
-            "email_sent": email_sent
+            "email_sent": email_sent_team and email_sent_candidate
         }
         
     except Exception as e:

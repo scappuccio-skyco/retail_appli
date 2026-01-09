@@ -576,3 +576,117 @@ def send_early_access_qualification_email(
         logger.error(f"Error sending early access qualification email for {email}: {e}")
         return False
 
+
+def send_early_access_confirmation_email(
+    full_name: str,
+    email: str,
+    enseigne: str
+):
+    """
+    Envoyer un email de confirmation au candidat Early Access
+    """
+    frontend_url = get_frontend_url().rstrip('/')
+    calendly_url = "https://calendly.com/retail-performer-ai/configuration-pilote"
+    signup_url = f"{frontend_url}/login?register=true&early_access=true"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">🚀 Bienvenue dans le Programme Pilote Retail Performer AI !</h1>
+        </div>
+        
+        <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 16px;">Bonjour <strong>{full_name}</strong>,</p>
+            
+            <p style="font-size: 16px;">
+                Merci pour votre candidature pour le magasin <strong>{enseigne}</strong>. 
+                Votre profil est en cours de validation pour le <strong style="color: #F97316;">tarif fondateur à 19€/vendeur</strong>.
+            </p>
+            
+            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F97316;">
+                <h3 style="margin-top: 0; color: #F97316;">✨ Prochaines étapes :</h3>
+                <ol style="padding-left: 20px; margin: 0;">
+                    <li style="padding: 8px 0;">Réservez votre créneau de configuration (15 min) via Calendly</li>
+                    <li style="padding: 8px 0;">Créez votre compte gérant pour commencer votre essai gratuit de 14 jours</li>
+                    <li style="padding: 8px 0;">Je vous recontacterai sous 24h ouvrées pour valider votre accès</li>
+                </ol>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{calendly_url}" 
+                   style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); 
+                          color: white; 
+                          padding: 15px 40px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-size: 16px; 
+                          font-weight: bold; 
+                          display: inline-block;
+                          box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+                          margin-bottom: 15px;">
+                    📅 Réserver mon créneau Calendly
+                </a>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="{signup_url}" 
+                   style="background-color: white; 
+                          color: #F97316; 
+                          padding: 15px 40px; 
+                          text-decoration: none; 
+                          border-radius: 25px; 
+                          font-size: 16px; 
+                          font-weight: bold; 
+                          display: inline-block;
+                          border: 2px solid #F97316;
+                          box-shadow: 0 2px 8px rgba(249, 115, 22, 0.2);">
+                    🚀 Créer mon compte gérant (14 jours gratuits)
+                </a>
+            </div>
+            
+            <div style="background-color: #EFF6FF; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #1E40AF;">
+                <p style="margin: 0; font-size: 14px; color: #1E40AF;">
+                    💬 <strong>Je reviendrai vers vous personnellement sous 24h ouvrées</strong> pour valider votre accès et répondre à toutes vos questions.
+                </p>
+            </div>
+            
+            <div style="background-color: #FFF7ED; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #F97316;">
+                <p style="margin: 0; font-size: 14px; color: #EA580C;">
+                    🎁 <strong>Rappel :</strong> Tarif fondateur bloqué à vie pour les 5 prochains magasins partenaires. 
+                    Vous bénéficierez également d'un accompagnement VIP pour vos 14 premiers jours.
+                </p>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                Retail Performer AI - Programme Pilote Early Adopter<br>
+                © 2025 Tous droits réservés
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": email, "name": full_name}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject="🚀 Bienvenue dans le Programme Pilote Retail Performer AI !",
+            html_content=html_content
+        )
+        
+        api_instance = get_brevo_api_instance()
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Early access confirmation email sent to {email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending early access confirmation email to {email}: {e}")
+        return False
+
