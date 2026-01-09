@@ -11,6 +11,7 @@ export default function Login({ onLogin }) {
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get('invite');
   const registerMode = searchParams.get('register') === 'true';
+  const earlyAccessMode = searchParams.get('early_access') === 'true';
   
   const [isRegister, setIsRegister] = useState(!!inviteToken || registerMode);
   const [formData, setFormData] = useState({

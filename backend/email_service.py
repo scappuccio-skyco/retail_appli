@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'hello@retailperformerai.com')
 SENDER_NAME = os.environ.get('SENDER_NAME', 'Retail Performer AI')
+RECIPIENT_EMAIL = os.environ.get('RECIPIENT_EMAIL', 'hello@retailperformerai.com')
 
 def get_frontend_url():
     """Get frontend URL from environment, ensuring it's always fresh"""
@@ -480,5 +481,98 @@ def send_gerant_welcome_email(recipient_email: str, recipient_name: str):
         return True
     except ApiException as e:
         logger.error(f"Error sending welcome email to Gérant {recipient_email}: {e}")
+        return False
+
+
+def send_early_access_qualification_email(
+    full_name: str,
+    email: str,
+    enseigne: str,
+    nombre_vendeurs: int,
+    defi_principal: str
+):
+    """
+    Envoyer un email de notification pour une candidature Early Access
+    """
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0;">🚀 Nouvelle Candidature Programme Pilote</h1>
+        </div>
+        
+        <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+            <p style="font-size: 16px;">Bonjour,</p>
+            
+            <p style="font-size: 16px;">
+                Une nouvelle candidature au <strong>Programme Pilote Early Adopter</strong> a été soumise.
+            </p>
+            
+            <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F97316;">
+                <h3 style="margin-top: 0; color: #F97316;">📋 Informations du Candidat :</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 8px 0; font-weight: bold; width: 40%;">Nom Complet :</td>
+                        <td style="padding: 8px 0;">{full_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; font-weight: bold;">Email :</td>
+                        <td style="padding: 8px 0;"><a href="mailto:{email}" style="color: #F97316;">{email}</a></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; font-weight: bold;">Enseigne :</td>
+                        <td style="padding: 8px 0;">{enseigne}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; font-weight: bold;">Nombre de Vendeurs :</td>
+                        <td style="padding: 8px 0;">{nombre_vendeurs}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div style="background-color: #FFF7ED; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #EA580C;">
+                <h3 style="margin-top: 0; color: #EA580C;">🎯 Défi Principal Identifié :</h3>
+                <p style="margin: 0; font-style: italic; color: #333;">
+                    "{defi_principal}"
+                </p>
+            </div>
+            
+            <div style="background-color: #EFF6FF; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #1E40AF;">
+                <p style="margin: 0; font-size: 14px; color: #1E40AF;">
+                    💡 <strong>Action requise :</strong> Contacter le candidat sous 24h ouvrées pour valider son accès et planifier la séance de configuration.
+                </p>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #999; text-align: center;">
+                Retail Performer AI - Programme Pilote Early Adopter<br>
+                © 2025 Tous droits réservés
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        send_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": RECIPIENT_EMAIL, "name": "Retail Performer AI Team"}],
+            sender={"email": SENDER_EMAIL, "name": SENDER_NAME},
+            subject=f"🚀 Nouvelle Candidature Programme Pilote - {enseigne}",
+            html_content=html_content,
+            reply_to={"email": email, "name": full_name}
+        )
+        
+        api_instance = get_brevo_api_instance()
+        api_response = api_instance.send_transac_email(send_email)
+        logger.info(f"Early access qualification email sent for {email}: {api_response}")
+        return True
+    except ApiException as e:
+        logger.error(f"Error sending early access qualification email for {email}: {e}")
         return False
 

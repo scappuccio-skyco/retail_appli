@@ -16,6 +16,8 @@ import RegisterGerant from './pages/RegisterGerant';
 import RegisterManager from './pages/RegisterManager';
 import RegisterSeller from './pages/RegisterSeller';
 import InvitationPage from './pages/InvitationPage';
+import EarlyAccess from './pages/EarlyAccess';
+import WelcomePilot from './pages/WelcomePilot';
 import DiagnosticForm from './components/DiagnosticFormScrollable';
 import DiagnosticResult from './components/DiagnosticResult';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -80,6 +82,17 @@ function AppContent() {
   const handleLogin = async (userData, token) => {
     localStorage.setItem('token', token);
     setUser(userData);
+    
+    // Vérifier si l'utilisateur vient du tunnel Early Adopter
+    const earlyAdopterData = localStorage.getItem('early_adopter_candidate');
+    const isEarlyAdopter = earlyAdopterData !== null;
+    
+    // Si c'est un early adopter et qu'il vient de s'inscrire, rediriger vers welcome-pilot
+    if (isEarlyAdopter && (userData.role === 'gérant' || userData.role === 'gerant')) {
+      logger.log('✅ Early Adopter detected, redirecting to welcome-pilot');
+      window.location.href = '/welcome-pilot';
+      return;
+    }
     
     // Redirection selon le rôle
     logger.log('🔍 User role for redirect:', userData.role, 'Type:', typeof userData.role);
@@ -232,6 +245,10 @@ function AppContent() {
         <Route path="/legal" element={<LegalNotice />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        
+        {/* Early Access Pages - Public */}
+        <Route path="/early-access" element={<EarlyAccess />} />
+        <Route path="/welcome-pilot" element={<WelcomePilot />} />
         
         {/* Dashboard - Protected */}
         <Route

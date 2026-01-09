@@ -20,8 +20,25 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Bannière Early Adopter - Sticky */}
+      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-[#F97316] via-[#EA580C] to-[#DC2626] text-white shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-sm sm:text-base font-medium flex-1 text-center sm:text-left">
+              🚀 PROGRAMME PILOTE : Accompagnement VIP + Tarif Fondateur à 19€/vendeur bloqué à vie. Places limitées !
+            </p>
+            <button
+              onClick={() => navigate('/early-access')}
+              className="px-4 sm:px-6 py-2 bg-white text-[#F97316] font-semibold rounded-lg hover:bg-gray-100 transition-all whitespace-nowrap text-sm sm:text-base shadow-md"
+            >
+              Postuler
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Header/Navigation */}
-      <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm z-50 border-b border-gray-200">
+      <nav className="fixed top-[60px] sm:top-[52px] w-full bg-white/95 backdrop-blur-sm z-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20 sm:h-24">
             {/* Logo rond + texte */}
@@ -48,7 +65,7 @@ export default function LandingPage() {
                 Connexion
               </button>
               <button
-                onClick={() => navigate('/login?register=true')}
+                onClick={() => navigate('/early-access')}
                 className="px-6 py-2 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white rounded-lg hover:shadow-lg transition-all font-medium"
               >
                 Essai Gratuit
@@ -82,7 +99,7 @@ export default function LandingPage() {
               <button onClick={() => navigate('/login')} className="block w-full text-left px-4 py-2 text-[#F97316] font-medium">
                 Connexion
               </button>
-              <button onClick={() => navigate('/login?register=true')} className="block w-full px-4 py-2 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white rounded-lg font-medium">
+              <button onClick={() => navigate('/early-access')} className="block w-full px-4 py-2 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white rounded-lg font-medium">
                 Essai Gratuit
               </button>
             </div>
@@ -91,7 +108,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC]">
+      <section className="pt-40 sm:pt-36 pb-20 px-4 sm:px-6 lg:px-8 bg-[#F8FAFC]">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left: Text Content */}
@@ -114,18 +131,18 @@ export default function LandingPage() {
               </p>
               
               <p className="text-sm sm:text-base text-[#334155] mb-6 sm:mb-8 leading-relaxed">
-                L'Assistant Intelligent qui coache vos vendeurs et rédige vos bilans RH, tout en sécurisant votre management.
-                <span className="hidden sm:inline"><br />Analyse des compétences, coaching personnalisé et progression continue, grâce à l'intelligence artificielle.</span>
+                Rejoignez notre programme Pilote pour co-construire l'avenir du management Retail et bénéficiez d'un tarif fondateur exclusif.
+                <span className="hidden sm:inline"><br />L'Assistant Intelligent qui coache vos vendeurs et rédige vos bilans RH, tout en sécurisant votre management.</span>
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
-                <button
-                  onClick={() => navigate('/login?register=true')}
-                  className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white text-base sm:text-lg font-semibold rounded-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2"
-                >
-                  Essai Gratuit 14 Jours
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                </button>
+              <button
+                onClick={() => navigate('/early-access')}
+                className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white text-base sm:text-lg font-semibold rounded-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2"
+              >
+                Essai Gratuit 14 Jours
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
                 <button
                   onClick={() => scrollToSection('contact')}
                   className="px-6 sm:px-8 py-3 sm:py-4 bg-white text-[#1E40AF] text-base sm:text-lg font-semibold rounded-xl border-2 border-[#1E40AF] hover:bg-blue-50 transition-all"
@@ -306,7 +323,7 @@ export default function LandingPage() {
                 icon: <Users className="w-8 h-8" />,
                 color: 'from-[#1E40AF] to-[#1E3A8A]',
                 title: 'Intelligence Comportementale (DISC)',
-                description: "Ne parlez pas de la même façon à tous vos vendeurs. L'IA identifie le profil de chacun (Rouge, Jaune, Vert, Bleu) et vous dicte les mots exacts pour les motiver et les faire performer.",
+                description: "Ne parlez pas de la même façon à tous vos vendeurs. L'IA identifie le profil de chacun (Rouge, Jaune, Vert, Bleu) et vous dicte les mots exacts pour les motiver et les faire performer. Audit complet du style de leadership pour les managers et diagnostic de performance sur les 5 piliers de la vente pour les vendeurs.",
                 impact: 'Pour un management 100% personnalisé.'
               },
               {
@@ -327,7 +344,7 @@ export default function LandingPage() {
                 icon: <Shield className="w-8 h-8" />,
                 color: 'from-[#10B981] to-[#00B886]',
                 title: 'Sérénité Managériale',
-                description: "Soyez sûr de vos écrits. Qu'il s'agisse de recadrer, de féliciter ou d'évaluer, l'IA garantit un ton professionnel, constructif et toujours conforme aux bonnes pratiques RH.",
+                description: "Soyez sûr de vos écrits. Qu'il s'agisse de recadrer, de féliciter ou d'évaluer, l'IA garantit un ton professionnel, constructif et toujours conforme aux bonnes pratiques RH. Une IA programmée pour être bienveillante, identifiant les axes de progrès sans jamais émettre de jugement négatif.",
                 impact: 'Pour manager avec assurance et sécurité.'
               }
             ].map((feature, idx) => (
@@ -546,14 +563,19 @@ export default function LandingPage() {
                 {!isAnnual ? (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold text-[#334155]">29€</span>
+                      <span className="text-3xl font-bold text-gray-400 line-through">29€</span>
+                      <span className="text-5xl font-bold text-[#334155]">19€</span>
                       <span className="text-[#334155]">/vendeur/mois</span>
                     </div>
+                    <p className="text-xs text-[#F97316] font-semibold mt-1">Tarif Fondateur</p>
                     <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
                     <p className="text-sm text-green-600 font-semibold mt-2">
                       1 à 5 espaces vendeur
                     </p>
                     <p className="text-xs text-gray-600 mt-1">+ Espace Gérant & Manager inclus</p>
+                    <p className="text-xs text-[#F97316] font-medium mt-2 italic">
+                      Tarif bloqué à vie pour les 5 prochains magasins partenaires.
+                    </p>
                   </div>
                 ) : (
                   <div>
@@ -603,10 +625,10 @@ export default function LandingPage() {
               </div>
 
               <button
-                onClick={() => navigate('/login?register=true')}
+                onClick={() => navigate('/early-access')}
                 className="w-full py-3 bg-[#10B981] text-white font-semibold rounded-xl hover:bg-[#059669] transition-colors"
               >
-                Essai Gratuit 14 Jours
+                Postuler au Programme Pilote
               </button>
             </div>
 
@@ -618,14 +640,19 @@ export default function LandingPage() {
                 {!isAnnual ? (
                   <div>
                     <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-5xl font-bold text-[#334155]">25€</span>
+                      <span className="text-3xl font-bold text-gray-400 line-through">25€</span>
+                      <span className="text-5xl font-bold text-[#334155]">15€</span>
                       <span className="text-[#334155]">/vendeur/mois</span>
                     </div>
+                    <p className="text-xs text-[#F97316] font-semibold mt-1">Tarif Fondateur</p>
                     <p className="text-xs text-gray-500 mt-1">Hors taxe</p>
                     <p className="text-sm text-green-600 font-semibold mt-2">
                       6 à 15 espaces vendeur
                     </p>
                     <p className="text-xs text-gray-600 mt-1">+ Espace Gérant & Manager inclus</p>
+                    <p className="text-xs text-[#F97316] font-medium mt-2 italic">
+                      Tarif bloqué à vie pour les 5 prochains magasins partenaires.
+                    </p>
                   </div>
                 ) : (
                   <div>
@@ -675,10 +702,10 @@ export default function LandingPage() {
               </div>
 
               <button
-                onClick={() => navigate('/login?register=true')}
+                onClick={() => navigate('/early-access')}
                 className="w-full py-3 bg-[#F97316] text-white font-semibold rounded-xl hover:bg-[#EA580C] transition-colors"
               >
-                Essai Gratuit 14 Jours
+                Postuler au Programme Pilote
               </button>
             </div>
 
@@ -783,6 +810,10 @@ export default function LandingPage() {
           <div className="space-y-4">
             {[
               {
+                question: "L'IA peut-elle juger mes vendeurs ?",
+                answer: "Absolument pas. Retail Performer AI est un outil de développement. Notre IA est configurée pour utiliser un vocabulaire constructif (axes de progrès) et pour valoriser le potentiel de chaque collaborateur, garantissant une acceptation totale par vos équipes."
+              },
+              {
                 question: "Comment fonctionne l'essai gratuit de 14 jours ?",
                 answer: "Aucune carte bancaire requise. Vous testez toutes les fonctionnalités pendant 14 jours. À la fin de l'essai, vous choisissez votre formule ou arrêtez simplement."
               },
@@ -843,10 +874,10 @@ export default function LandingPage() {
             Prêt à Transformer Votre Équipe ?
           </h2>
           <p className="text-lg sm:text-xl text-blue-100 mb-8">
-            Rejoignez notre programme Pilote et co-construisez l'outil avec nous
+            Rejoignez nos pionniers et bénéficiez d'un accompagnement VIP par le fondateur pour vos 14 premiers jours.
           </p>
           <button
-            onClick={() => navigate('/login?register=true')}
+            onClick={() => navigate('/early-access')}
             className="px-8 py-4 bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white text-lg font-semibold rounded-xl hover:shadow-2xl transition-all inline-flex items-center gap-2"
           >
             Commencer l'Essai Gratuit

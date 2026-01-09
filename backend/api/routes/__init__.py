@@ -50,6 +50,7 @@ safe_import('api.routes.evaluations', 'router')
 safe_import('api.routes.workspaces', 'router')
 safe_import('api.routes.briefs', 'router')
 safe_import('api.routes.docs', 'router')
+safe_import('api.routes.early_access', 'router')
 
 print(f"[ROUTES] Loaded {len(routers)} routers total", flush=True)
 
