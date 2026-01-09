@@ -184,25 +184,35 @@ export default function ObjectivesModal({
   const triggerConfetti = () => {
     console.log('🎊 [CONFETTI] Triggering confetti animation...');
     try {
+      // Check if confetti is available
+      if (typeof confetti === 'undefined' || !confetti) {
+        console.error('❌ [CONFETTI] confetti is not available!');
+        return;
+      }
+      
       const duration = 3000;
       const end = Date.now() + duration;
       const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
 
       (function frame() {
-        confetti({
-          particleCount: 3,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors: colors
-        });
-        confetti({
-          particleCount: 3,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors: colors
-        });
+        try {
+          confetti({
+            particleCount: 3,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: colors
+          });
+          confetti({
+            particleCount: 3,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: colors
+          });
+        } catch (confettiError) {
+          console.error('❌ [CONFETTI] Error in confetti call:', confettiError);
+        }
 
         if (Date.now() < end) {
           requestAnimationFrame(frame);
@@ -224,7 +234,10 @@ export default function ObjectivesModal({
       
       const response = await api.post(
         `/seller/objectives/${objectiveId}/progress`,
-        { value: value }
+        { 
+          value: value,
+          mode: 'set'  // Use 'set' mode to set absolute value instead of adding
+        }
       );
       
       const updatedObjective = response.data;
@@ -234,15 +247,23 @@ export default function ObjectivesModal({
         status: updatedObjective.status,
         current_value: updatedObjective.current_value,
         target_value: updatedObjective.target_value,
-        has_unseen_achievement: updatedObjective.has_unseen_achievement
+        has_unseen_achievement: updatedObjective.has_unseen_achievement,
+        is_achieved_status: updatedObjective.status === 'achieved',
+        is_achieved_value: updatedObjective.current_value >= updatedObjective.target_value
       });
       
       setUpdatingObjectiveId(null);
       setObjectiveProgressValue('');
       
-      // Simple check: if objective is achieved, trigger confetti immediately (like in CoachingModal)
-      const isAchieved = updatedObjective.status === 'achieved' && 
-                        updatedObjective.current_value >= updatedObjective.target_value;
+      // Simple check: if objective is achieved (by status OR by value), trigger confetti immediately (like in CoachingModal)
+      const isAchieved = updatedObjective.status === 'achieved' || 
+                        (updatedObjective.current_value >= updatedObjective.target_value && updatedObjective.target_value > 0);
+      
+      console.log('🎯 [PROGRESS UPDATE] isAchieved check:', {
+        status_achieved: updatedObjective.status === 'achieved',
+        value_achieved: updatedObjective.current_value >= updatedObjective.target_value,
+        final_isAchieved: isAchieved
+      });
       
       if (isAchieved) {
         // Show achievement modal if unseen, otherwise just confetti
@@ -257,7 +278,8 @@ export default function ObjectivesModal({
           return;
         } else {
           // Already seen, but still celebrate with confetti
-          console.log('🎉 [PROGRESS UPDATE] Objective achieved! Triggering confetti...');
+          console.log('🎉 [PROGRESS UPDATE] Objective achieved! Triggering confetti NOW...');
+          // Trigger confetti immediately, before any other operations
           triggerConfetti();
           toast.success('🎉 Félicitations ! Objectif atteint !', { 
             duration: 5000,
@@ -271,6 +293,11 @@ export default function ObjectivesModal({
           });
         }
       } else {
+        console.log('⚠️ [PROGRESS UPDATE] Objective not achieved yet:', {
+          status: updatedObjective.status,
+          current: updatedObjective.current_value,
+          target: updatedObjective.target_value
+        });
         toast.success('Progression mise à jour !');
       }
       
@@ -327,11 +354,19 @@ export default function ObjectivesModal({
       setChallengeCurrentValue('');
       
       // Simple check: if challenge is achieved/completed, trigger confetti immediately (like in CoachingModal)
-      const isAchieved = (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') &&
-                        updatedChallenge.current_value >= updatedChallenge.target_value;
+      // Check both status and value to be safe
+      const isAchieved = (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') ||
+                        (updatedChallenge.current_value >= updatedChallenge.target_value && updatedChallenge.target_value > 0);
+      
+      console.log('🎯 [PROGRESS UPDATE] Challenge isAchieved check:', {
+        status_achieved: updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed',
+        value_achieved: updatedChallenge.current_value >= updatedChallenge.target_value,
+        final_isAchieved: isAchieved
+      });
       
       if (isAchieved) {
-        console.log('🎉 [PROGRESS UPDATE] Challenge achieved! Triggering confetti...');
+        console.log('🎉 [PROGRESS UPDATE] Challenge achieved! Triggering confetti NOW...');
+        // Trigger confetti immediately, before any other operations
         triggerConfetti();
         toast.success('🎉 Félicitations ! Challenge réussi !', { 
           duration: 5000,
@@ -344,6 +379,11 @@ export default function ObjectivesModal({
           }
         });
       } else {
+        console.log('⚠️ [PROGRESS UPDATE] Challenge not achieved yet:', {
+          status: updatedChallenge.status,
+          current: updatedChallenge.current_value,
+          target: updatedChallenge.target_value
+        });
         toast.success('Progression du challenge mise à jour !');
       }
       
