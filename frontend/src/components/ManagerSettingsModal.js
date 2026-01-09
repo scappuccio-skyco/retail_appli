@@ -127,6 +127,20 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       const objectivesData = objectivesRes.data || [];
       const challengesData = challengesRes.data || [];
       
+      // 🎯 LOGS DE SURVIE - Vérification que les données arrivent bien
+      console.log('🎯 [DATA RECEIVED] Objectives received:', objectivesData.length, 'objectives');
+      console.log('🎯 [DATA RECEIVED] Full objectives data:', JSON.stringify(objectivesData, null, 2));
+      objectivesData.forEach((obj, index) => {
+        console.log(`🎯 [DATA RECEIVED] Objective ${index + 1}:`, {
+          id: obj.id,
+          title: obj.title,
+          status: obj.status,
+          has_unseen_achievement: obj.has_unseen_achievement,
+          has_unseen_achievement_type: typeof obj.has_unseen_achievement,
+          has_unseen_achievement_strict: obj.has_unseen_achievement === true
+        });
+      });
+      
       setKpiConfig(configRes.data);
       setObjectives(objectivesData);
       setChallenges(challengesData);
@@ -135,6 +149,9 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       // Check for unseen achievements and show modal
       const unseenObjective = objectivesData.find(obj => obj.has_unseen_achievement === true);
       const unseenChallenge = challengesData.find(chall => chall.has_unseen_achievement === true);
+      
+      console.log('🔍 [ACHIEVEMENT CHECK] Unseen objective found:', unseenObjective ? unseenObjective.title : 'NONE');
+      console.log('🔍 [ACHIEVEMENT CHECK] Unseen challenge found:', unseenChallenge ? unseenChallenge.title : 'NONE');
       
       // Priority: show objective first, then challenge
       if (unseenObjective && !achievementModal.isOpen) {
@@ -680,33 +697,68 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
 
   // Function to trigger confetti animation
   const triggerConfetti = () => {
-    console.log('🎊 [CONFETTI] Triggering confetti animation (Manager)...');
+    console.log('🎊 [CONFETTI] ========== TRIGGERING CONFETTI ==========');
+    console.log('🎊 [CONFETTI] confetti type:', typeof confetti);
+    console.log('🎊 [CONFETTI] confetti value:', confetti);
+    console.log('🎊 [CONFETTI] window.confetti:', window.confetti);
+    
     try {
       // Check if confetti is available
       if (typeof confetti === 'undefined' || !confetti) {
         console.error('❌ [CONFETTI] confetti is not available!');
+        // Try window.confetti as fallback
+        if (window.confetti) {
+          console.log('✅ [CONFETTI] Using window.confetti as fallback');
+          const confettiFn = window.confetti;
+          confettiFn({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+          return;
+        }
         return;
       }
+      
+      // Check z-index of canvas elements
+      const existingCanvases = document.querySelectorAll('canvas');
+      console.log('🎊 [CONFETTI] Existing canvas elements:', existingCanvases.length);
+      existingCanvases.forEach((canvas, index) => {
+        const zIndex = window.getComputedStyle(canvas).zIndex;
+        console.log(`🎊 [CONFETTI] Canvas ${index} z-index:`, zIndex, 'position:', window.getComputedStyle(canvas).position);
+      });
       
       const duration = 3000;
       const end = Date.now() + duration;
       const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
 
+      // Initial burst from center with high z-index
+      console.log('🎊 [CONFETTI] Creating initial burst...');
+      confetti({
+        particleCount: 50,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: colors,
+        zIndex: 99999  // Force high z-index
+      });
+
       (function frame() {
         try {
           confetti({
-            particleCount: 3,
+            particleCount: 5,
             angle: 60,
             spread: 55,
             origin: { x: 0 },
-            colors: colors
+            colors: colors,
+            zIndex: 99999
           });
           confetti({
-            particleCount: 3,
+            particleCount: 5,
             angle: 120,
             spread: 55,
             origin: { x: 1 },
-            colors: colors
+            colors: colors,
+            zIndex: 99999
           });
         } catch (confettiError) {
           console.error('❌ [CONFETTI] Error in confetti call:', confettiError);
@@ -714,11 +766,26 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
 
         if (Date.now() < end) {
           requestAnimationFrame(frame);
+        } else {
+          console.log('✅ [CONFETTI] Confetti animation completed');
         }
       }());
+      
+      // Verify canvas was created
+      setTimeout(() => {
+        const canvases = document.querySelectorAll('canvas');
+        console.log('🎊 [CONFETTI] Canvas elements after trigger:', canvases.length);
+        canvases.forEach((canvas, index) => {
+          const zIndex = window.getComputedStyle(canvas).zIndex;
+          const position = window.getComputedStyle(canvas).position;
+          console.log(`🎊 [CONFETTI] Canvas ${index} - z-index: ${zIndex}, position: ${position}, visible: ${canvas.offsetWidth > 0 && canvas.offsetHeight > 0}`);
+        });
+      }, 100);
+      
       console.log('✅ [CONFETTI] Confetti animation started (Manager)');
     } catch (error) {
       console.error('❌ [CONFETTI] Error triggering confetti (Manager):', error);
+      console.error('❌ [CONFETTI] Error stack:', error.stack);
     }
   };
 
@@ -820,6 +887,17 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
             : 'bg-gradient-to-r from-green-600 to-emerald-600'
         }`}>
           <div className="flex items-center gap-3">
+            {/* 🧪 BOUTON TEST CONFETTI - TEMPORAIRE */}
+            <button
+              onClick={() => {
+                console.log('🧪 [TEST] Test confetti button clicked!');
+                triggerConfetti();
+              }}
+              className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-xs font-bold z-[99999]"
+              style={{ zIndex: 99999 }}
+            >
+              🧪 TEST CONFETTI
+            </button>
             <Settings className="w-8 h-8 text-white" />
             <h2 className="text-3xl font-bold text-white">
               {modalType === 'objectives' ? '🎯 Objectifs' : '🏆 Challenges'}

@@ -89,6 +89,20 @@ export default function ObjectivesModal({
       const objRes = await api.get('/seller/objectives/active');
       const objectives = objRes.data || [];
       
+      // 🎯 LOGS DE SURVIE - Vérification que les données arrivent bien
+      console.log('🎯 [DATA RECEIVED] Objectives received:', objectives.length, 'objectives');
+      console.log('🎯 [DATA RECEIVED] Full objectives data:', JSON.stringify(objectives, null, 2));
+      objectives.forEach((obj, index) => {
+        console.log(`🎯 [DATA RECEIVED] Objective ${index + 1}:`, {
+          id: obj.id,
+          title: obj.title,
+          status: obj.status,
+          has_unseen_achievement: obj.has_unseen_achievement,
+          has_unseen_achievement_type: typeof obj.has_unseen_achievement,
+          has_unseen_achievement_strict: obj.has_unseen_achievement === true
+        });
+      });
+      
       // Fetch active challenges
       const challRes = await api.get('/seller/challenges/active');
       const challenges = challRes.data || [];
@@ -182,29 +196,61 @@ export default function ObjectivesModal({
   
   // Function to trigger confetti animation
   const triggerConfetti = () => {
-    console.log('🎊 [CONFETTI] Triggering confetti animation...');
+    console.log('🎊 [CONFETTI] ========== TRIGGERING CONFETTI (SELLER) ==========');
+    console.log('🎊 [CONFETTI] confetti type:', typeof confetti);
+    console.log('🎊 [CONFETTI] confetti value:', confetti);
+    console.log('🎊 [CONFETTI] window.confetti:', window.confetti);
+    
     try {
       // Check if confetti is available
       if (typeof confetti === 'undefined' || !confetti) {
         console.error('❌ [CONFETTI] confetti is not available!');
+        // Try window.confetti as fallback
+        if (window.confetti) {
+          console.log('✅ [CONFETTI] Using window.confetti as fallback');
+          const confettiFn = window.confetti;
+          confettiFn({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+          return;
+        }
         return;
       }
+      
+      // Check z-index of canvas elements
+      const existingCanvases = document.querySelectorAll('canvas');
+      console.log('🎊 [CONFETTI] Existing canvas elements:', existingCanvases.length);
+      existingCanvases.forEach((canvas, index) => {
+        const zIndex = window.getComputedStyle(canvas).zIndex;
+        console.log(`🎊 [CONFETTI] Canvas ${index} z-index:`, zIndex, 'position:', window.getComputedStyle(canvas).position);
+      });
       
       const duration = 3000;
       const end = Date.now() + duration;
       const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
 
+      // Initial burst from center
+      console.log('🎊 [CONFETTI] Creating initial burst...');
+      confetti({
+        particleCount: 50,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: colors
+      });
+
       (function frame() {
         try {
           confetti({
-            particleCount: 3,
+            particleCount: 5,
             angle: 60,
             spread: 55,
             origin: { x: 0 },
             colors: colors
           });
           confetti({
-            particleCount: 3,
+            particleCount: 5,
             angle: 120,
             spread: 55,
             origin: { x: 1 },
@@ -216,11 +262,32 @@ export default function ObjectivesModal({
 
         if (Date.now() < end) {
           requestAnimationFrame(frame);
+        } else {
+          console.log('✅ [CONFETTI] Confetti animation completed');
         }
       }());
+      
+      // Verify canvas was created
+      setTimeout(() => {
+        const canvases = document.querySelectorAll('canvas');
+        console.log('🎊 [CONFETTI] Canvas elements after trigger:', canvases.length);
+        canvases.forEach((canvas, index) => {
+          const zIndex = window.getComputedStyle(canvas).zIndex;
+          const position = window.getComputedStyle(canvas).position;
+          console.log(`🎊 [CONFETTI] Canvas ${index} - z-index: ${zIndex}, position: ${position}, visible: ${canvas.offsetWidth > 0 && canvas.offsetHeight > 0}`);
+          // Force high z-index if needed
+          if (zIndex === 'auto' || parseInt(zIndex) < 9999) {
+            canvas.style.zIndex = '99999';
+            canvas.style.position = 'fixed';
+            console.log(`🎊 [CONFETTI] Forced z-index to 99999 for canvas ${index}`);
+          }
+        });
+      }, 100);
+      
       console.log('✅ [CONFETTI] Confetti animation started');
     } catch (error) {
       console.error('❌ [CONFETTI] Error triggering confetti:', error);
+      console.error('❌ [CONFETTI] Error stack:', error.stack);
     }
   };
 
@@ -270,21 +337,26 @@ export default function ObjectivesModal({
       });
       
       if (isAchieved) {
-        // Show achievement modal if unseen, otherwise just confetti
+        console.log('🎉 [PROGRESS UPDATE] ========== OBJECTIVE ACHIEVED ==========');
+        console.log('🎉 [PROGRESS UPDATE] updatedObjective:', JSON.stringify(updatedObjective, null, 2));
+        console.log('🎉 [PROGRESS UPDATE] has_unseen_achievement:', updatedObjective.has_unseen_achievement);
+        console.log('🎉 [PROGRESS UPDATE] has_unseen_achievement type:', typeof updatedObjective.has_unseen_achievement);
+        console.log('🎉 [PROGRESS UPDATE] has_unseen_achievement === true:', updatedObjective.has_unseen_achievement === true);
+        
+        // ALWAYS trigger confetti first, regardless of has_unseen_achievement
+        console.log('🎉 [PROGRESS UPDATE] Triggering confetti NOW...');
+        triggerConfetti();
+        
+        // Show achievement modal if unseen
         if (updatedObjective.has_unseen_achievement === true) {
-          console.log('🎉 [PROGRESS UPDATE] Objective achieved! Showing modal...');
+          console.log('✅ [PROGRESS UPDATE] has_unseen_achievement is TRUE - Showing AchievementModal');
           setAchievementModal({
             isOpen: true,
             item: updatedObjective,
             itemType: 'objective'
           });
-          // Modal will trigger confetti, don't refresh yet
-          return;
         } else {
-          // Already seen, but still celebrate with confetti
-          console.log('🎉 [PROGRESS UPDATE] Objective achieved! Triggering confetti NOW...');
-          // Trigger confetti immediately, before any other operations
-          triggerConfetti();
+          console.log('⚠️ [PROGRESS UPDATE] has_unseen_achievement is NOT TRUE:', updatedObjective.has_unseen_achievement);
           toast.success('🎉 Félicitations ! Objectif atteint !', { 
             duration: 5000,
             style: {
@@ -443,7 +515,20 @@ export default function ObjectivesModal({
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-900 via-teal-800 to-green-800 p-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-white">🎯 Objectifs et Challenges</h2>
+            <div className="flex items-center gap-3">
+              {/* 🧪 BOUTON TEST CONFETTI - TEMPORAIRE */}
+              <button
+                onClick={() => {
+                  console.log('🧪 [TEST] Test confetti button clicked!');
+                  triggerConfetti();
+                }}
+                className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-xs font-bold z-[99999]"
+                style={{ zIndex: 99999 }}
+              >
+                🧪 TEST CONFETTI
+              </button>
+              <h2 className="text-2xl font-bold text-white">🎯 Objectifs et Challenges</h2>
+            </div>
             <button
               onClick={onClose}
               className="p-2 hover:bg-white/20 rounded-full transition-colors"
