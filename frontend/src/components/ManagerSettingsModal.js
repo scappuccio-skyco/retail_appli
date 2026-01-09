@@ -692,14 +692,27 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       
       // Check if objective just became "achieved"
       const updatedObjective = response.data;
+      
+      // Get previous status from the objective before update
+      const previousObjective = objectives.find(obj => obj.id === objectiveId);
+      const previousStatus = previousObjective?.status || 'active';
+      
       console.log('🎯 [MANAGER PROGRESS] Objective updated:', {
         id: updatedObjective.id,
         status: updatedObjective.status,
+        previousStatus: previousStatus,
+        just_achieved: updatedObjective.just_achieved,
         current_value: updatedObjective.current_value,
         target_value: updatedObjective.target_value
       });
       
-      if (updatedObjective.status === 'achieved') {
+      // Check if objective just became "achieved" (status changed from non-achieved to achieved)
+      const justBecameAchieved = (updatedObjective.status === 'achieved' && previousStatus !== 'achieved') || updatedObjective.just_achieved === true;
+      
+      // Also trigger confetti if objective is achieved and current_value >= target_value (even if already achieved)
+      const isAchieved = updatedObjective.status === 'achieved' && updatedObjective.current_value >= updatedObjective.target_value;
+      
+      if (justBecameAchieved || isAchieved) {
         console.log('🎉 [MANAGER PROGRESS] Objective achieved! Triggering confetti...');
         triggerConfetti();
         toast.success('🎉 Félicitations ! Objectif atteint !', { 

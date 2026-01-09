@@ -229,10 +229,16 @@ export default function ObjectivesModal({
       
       const updatedObjective = response.data;
       
+      // Get previous status from the objective before update
+      const previousObjective = activeObjectives.find(obj => obj.id === objectiveId);
+      const previousStatus = previousObjective?.status || 'active';
+      
       console.log('🎉 [PROGRESS UPDATE] Objective updated:', {
         id: updatedObjective.id,
         status: updatedObjective.status,
+        previousStatus: previousStatus,
         has_unseen_achievement: updatedObjective.has_unseen_achievement,
+        just_achieved: updatedObjective.just_achieved,
         current_value: updatedObjective.current_value,
         target_value: updatedObjective.target_value
       });
@@ -240,8 +246,10 @@ export default function ObjectivesModal({
       setUpdatingObjectiveId(null);
       setObjectiveProgressValue('');
       
-      // Check if objective just became "achieved" and has unseen achievement
-      if (updatedObjective.status === 'achieved' && updatedObjective.has_unseen_achievement === true) {
+      // Check if objective just became "achieved" (status changed from non-achieved to achieved)
+      const justBecameAchieved = (updatedObjective.status === 'achieved' && previousStatus !== 'achieved') || updatedObjective.just_achieved === true;
+      
+      if (justBecameAchieved && updatedObjective.has_unseen_achievement === true) {
         console.log('🎉 [PROGRESS UPDATE] Objective just achieved! Showing modal...');
         // Show achievement modal immediately (BEFORE refreshing to avoid conflicts)
         setAchievementModal({
@@ -252,9 +260,9 @@ export default function ObjectivesModal({
         // Don't refresh immediately - let the modal show first
         // The refresh will happen after the modal is closed
         return; // Exit early to prevent refresh
-      } else if (updatedObjective.status === 'achieved') {
-        // Already seen, but still trigger confetti and congratulation message
-        console.log('🎉 [PROGRESS UPDATE] Objective achieved (already seen), triggering confetti...');
+      } else if (justBecameAchieved || (updatedObjective.status === 'achieved' && updatedObjective.current_value >= updatedObjective.target_value)) {
+        // Just achieved or already achieved but progression updated - trigger confetti
+        console.log('🎉 [PROGRESS UPDATE] Objective achieved! Triggering confetti...');
         triggerConfetti();
         toast.success('🎉 Félicitations ! Objectif atteint !', { 
           duration: 5000,

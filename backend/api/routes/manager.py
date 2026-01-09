@@ -1460,6 +1460,11 @@ async def update_objective_progress(
         )
         
         if updated_objective:
+            # Check if objective just became "achieved" (status changed)
+            old_status = existing.get('status', 'active')
+            if new_status == 'achieved' and old_status != 'achieved':
+                updated_objective['just_achieved'] = True
+                print(f"🎉 [PROGRESS UPDATE] Objective '{updated_objective.get('title')}' just became achieved! (was: {old_status}, now: {new_status})")
             return updated_objective
         else:
             return {
