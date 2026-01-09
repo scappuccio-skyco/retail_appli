@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 
 from services.seller_service import SellerService
 from api.dependencies import get_seller_service, get_db
-from core.security import get_current_seller, get_current_user
+from core.security import get_current_seller, get_current_user, verify_resource_store_access
 import logging
 
 router = APIRouter(prefix="/seller", tags=["Seller"])
@@ -278,19 +278,34 @@ async def get_seller_objectives_history(
 async def mark_objective_achievement_seen(
     objective_id: str,
     current_user: Dict = Depends(get_current_seller),
-    seller_service: SellerService = Depends(get_seller_service)
+    seller_service: SellerService = Depends(get_seller_service),
+    db = Depends(get_db)
 ):
     """
     Mark an objective achievement notification as seen by the seller
     After this, the objective will move to history
     """
     try:
+        seller_id = current_user['id']
+        seller_store_id = current_user.get('store_id')
+        
+        if not seller_store_id:
+            raise HTTPException(status_code=400, detail="Vendeur sans magasin assigné")
+        
+        # SECURITY: Verify objective belongs to seller's store (prevents IDOR)
+        await verify_resource_store_access(
+            db, objective_id, "objective", seller_store_id,
+            "seller", seller_id
+        )
+        
         await seller_service.mark_achievement_as_seen(
-            current_user['id'],
+            seller_id,
             "objective",
             objective_id
         )
         return {"success": True, "message": "Notification marquée comme vue"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to mark notification as seen: {str(e)}")
 
@@ -387,19 +402,34 @@ async def get_active_seller_challenges(
 async def mark_challenge_achievement_seen(
     challenge_id: str,
     current_user: Dict = Depends(get_current_seller),
-    seller_service: SellerService = Depends(get_seller_service)
+    seller_service: SellerService = Depends(get_seller_service),
+    db = Depends(get_db)
 ):
     """
     Mark a challenge achievement notification as seen by the seller
     After this, the challenge will move to history
     """
     try:
+        seller_id = current_user['id']
+        seller_store_id = current_user.get('store_id')
+        
+        if not seller_store_id:
+            raise HTTPException(status_code=400, detail="Vendeur sans magasin assigné")
+        
+        # SECURITY: Verify challenge belongs to seller's store (prevents IDOR)
+        await verify_resource_store_access(
+            db, challenge_id, "challenge", seller_store_id,
+            "seller", seller_id
+        )
+        
         await seller_service.mark_achievement_as_seen(
-            current_user['id'],
+            seller_id,
             "challenge",
             challenge_id
         )
         return {"success": True, "message": "Notification marquée comme vue"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to mark notification as seen: {str(e)}")
 
@@ -707,13 +737,11 @@ async def update_seller_objective_progress(
         
         manager_id = seller.get('manager_id')  # Still needed for progress calculation
         
-        # Get objective - filter by store_id (not manager_id) to include objectives created by gérants
-        query = {"id": objective_id, "store_id": seller_store_id}
-        
-        objective = await db.objectives.find_one(query)
-        
-        if not objective:
-            raise HTTPException(status_code=404, detail="Objectif non trouvé")
+        # SECURITY: Verify objective belongs to seller's store (prevents IDOR)
+        objective = await verify_resource_store_access(
+            db, objective_id, "objective", seller_store_id,
+            "seller", seller_id
+        )
         
         # CONTROLE D'ACCÈS: Vérifier data_entry_responsible
         if objective.get('data_entry_responsible') != 'seller':
@@ -869,13 +897,11 @@ async def update_seller_challenge_progress(
         
         manager_id = seller.get('manager_id')  # Still needed for progress calculation
         
-        # Get challenge - filter by store_id (not manager_id) to include challenges created by gérants
-        query = {"id": challenge_id, "store_id": seller_store_id}
-        
-        challenge = await db.challenges.find_one(query)
-        
-        if not challenge:
-            raise HTTPException(status_code=404, detail="Challenge non trouvé")
+        # SECURITY: Verify challenge belongs to seller's store (prevents IDOR)
+        challenge = await verify_resource_store_access(
+            db, challenge_id, "challenge", seller_store_id,
+            "seller", seller_id
+        )
         
         # CONTROLE D'ACCÈS: Vérifier data_entry_responsible
         if challenge.get('data_entry_responsible') != 'seller':

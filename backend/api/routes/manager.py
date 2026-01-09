@@ -7,7 +7,7 @@ from typing import Optional
 from datetime import datetime, timezone, timedelta
 import logging
 
-from core.security import get_current_user
+from core.security import get_current_user, verify_resource_store_access, verify_seller_store_access
 from services.manager_service import ManagerService, APIKeyService
 from api.dependencies import get_manager_service, get_api_key_service, get_db, get_seller_service
 from services.seller_service import SellerService
@@ -766,13 +766,24 @@ async def get_active_objectives(
 async def mark_challenge_achievement_seen_manager(
     challenge_id: str,
     context: dict = Depends(get_store_context),
-    seller_service: SellerService = Depends(get_seller_service)
+    seller_service: SellerService = Depends(get_seller_service),
+    db = Depends(get_db)
 ):
     """
     Mark a challenge achievement notification as seen by the manager/gérant
     After this, the challenge will move to history
     """
     try:
+        resolved_store_id = context.get('resolved_store_id')
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="store_id requis")
+        
+        # SECURITY: Verify challenge belongs to user's store (prevents IDOR)
+        await verify_resource_store_access(
+            db, challenge_id, "challenge", resolved_store_id,
+            context.get('role'), context.get('id')
+        )
+        
         manager_id = context.get('id')
         await seller_service.mark_achievement_as_seen(
             manager_id,
@@ -780,6 +791,8 @@ async def mark_challenge_achievement_seen_manager(
             challenge_id
         )
         return {"success": True, "message": "Notification marquée comme vue"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to mark notification as seen: {str(e)}")
 
@@ -788,13 +801,24 @@ async def mark_challenge_achievement_seen_manager(
 async def mark_objective_achievement_seen_manager(
     objective_id: str,
     context: dict = Depends(get_store_context),
-    seller_service: SellerService = Depends(get_seller_service)
+    seller_service: SellerService = Depends(get_seller_service),
+    db = Depends(get_db)
 ):
     """
     Mark an objective achievement notification as seen by the manager/gérant
     After this, the objective will move to history
     """
     try:
+        resolved_store_id = context.get('resolved_store_id')
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="store_id requis")
+        
+        # SECURITY: Verify objective belongs to user's store (prevents IDOR)
+        await verify_resource_store_access(
+            db, objective_id, "objective", resolved_store_id,
+            context.get('role'), context.get('id')
+        )
+        
         manager_id = context.get('id')
         await seller_service.mark_achievement_as_seen(
             manager_id,
@@ -802,6 +826,8 @@ async def mark_objective_achievement_seen_manager(
             objective_id
         )
         return {"success": True, "message": "Notification marquée comme vue"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to mark notification as seen: {str(e)}")
 
@@ -1293,6 +1319,14 @@ async def delete_objective(
     """Delete an objective"""
     try:
         resolved_store_id = context.get('resolved_store_id')
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="store_id requis")
+        
+        # SECURITY: Verify objective belongs to user's store (prevents IDOR)
+        await verify_resource_store_access(
+            db, objective_id, "objective", resolved_store_id,
+            context.get('role'), context.get('id')
+        )
         
         result = await db.objectives.delete_one(
             {"id": objective_id, "store_id": resolved_store_id}
@@ -1695,13 +1729,14 @@ async def update_challenge(
     """Update an existing challenge"""
     try:
         resolved_store_id = context.get('resolved_store_id')
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="store_id requis")
         
-        existing = await db.challenges.find_one(
-            {"id": challenge_id, "store_id": resolved_store_id}
+        # SECURITY: Verify challenge belongs to user's store (prevents IDOR)
+        existing = await verify_resource_store_access(
+            db, challenge_id, "challenge", resolved_store_id,
+            context.get('role'), context.get('id')
         )
-        
-        if not existing:
-            raise HTTPException(status_code=404, detail="Challenge non trouvé")
         
         update_fields = {
             "title": challenge_data.get("title", existing.get("title")),
@@ -1752,6 +1787,14 @@ async def delete_challenge(
     """Delete a challenge"""
     try:
         resolved_store_id = context.get('resolved_store_id')
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="store_id requis")
+        
+        # SECURITY: Verify challenge belongs to user's store (prevents IDOR)
+        await verify_resource_store_access(
+            db, challenge_id, "challenge", resolved_store_id,
+            context.get('role'), context.get('id')
+        )
         
         result = await db.challenges.delete_one(
             {"id": challenge_id, "store_id": resolved_store_id}
@@ -1811,9 +1854,10 @@ async def update_challenge_progress(
         if not resolved_store_id:
             raise HTTPException(status_code=400, detail="Impossible de déterminer le magasin")
         
-        # Get challenge
-        existing = await db.challenges.find_one(
-            {"id": challenge_id, "store_id": resolved_store_id}
+        # SECURITY: Verify challenge belongs to user's store (prevents IDOR)
+        existing = await verify_resource_store_access(
+            db, challenge_id, "challenge", resolved_store_id,
+            user_role, manager_id
         )
         
         if not existing:
@@ -2165,11 +2209,13 @@ async def get_seller_kpi_entries(
     """
     try:
         resolved_store_id = context.get('resolved_store_id')
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="store_id requis")
         
-        # Verify seller belongs to the store (security check)
-        seller = await db.users.find_one(
-            {"id": seller_id, "store_id": resolved_store_id, "role": "seller"},
-            {"_id": 0, "id": 1, "name": 1}
+        # SECURITY: Verify seller belongs to user's store (prevents IDOR)
+        seller = await verify_seller_store_access(
+            db, seller_id, resolved_store_id,
+            context.get('role'), context.get('id')
         )
         
         if not seller:
@@ -2221,18 +2267,14 @@ async def get_seller_stats(
     """
     try:
         resolved_store_id = context.get('resolved_store_id')
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="store_id requis")
         
-        # Verify seller belongs to the store
-        seller = await db.users.find_one(
-            {"id": seller_id, "store_id": resolved_store_id, "role": "seller"},
-            {"_id": 0, "id": 1, "name": 1, "status": 1, "created_at": 1}
+        # SECURITY: Verify seller belongs to user's store (prevents IDOR)
+        seller = await verify_seller_store_access(
+            db, seller_id, resolved_store_id,
+            context.get('role'), context.get('id')
         )
-        
-        if not seller:
-            raise HTTPException(
-                status_code=404, 
-                detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
-            )
         
         # Calculate date range
         end_dt = datetime.now(timezone.utc)
@@ -2316,18 +2358,14 @@ async def get_seller_diagnostic(
     """
     try:
         resolved_store_id = context.get('resolved_store_id')
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="store_id requis")
         
-        # Verify seller belongs to the store
-        seller = await db.users.find_one(
-            {"id": seller_id, "store_id": resolved_store_id, "role": "seller"},
-            {"_id": 0, "id": 1, "name": 1}
+        # SECURITY: Verify seller belongs to user's store (prevents IDOR)
+        seller = await verify_seller_store_access(
+            db, seller_id, resolved_store_id,
+            context.get('role'), context.get('id')
         )
-        
-        if not seller:
-            raise HTTPException(
-                status_code=404, 
-                detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
-            )
         
         # Fetch diagnostic
         diagnostic = await db.diagnostics.find_one(
@@ -2408,18 +2446,14 @@ async def get_seller_kpi_history(
     """
     try:
         resolved_store_id = context.get('resolved_store_id')
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="store_id requis")
         
-        # Verify seller belongs to the store
-        seller = await db.users.find_one(
-            {"id": seller_id, "store_id": resolved_store_id, "role": "seller"},
-            {"_id": 0, "id": 1, "name": 1}
+        # SECURITY: Verify seller belongs to user's store (prevents IDOR)
+        seller = await verify_seller_store_access(
+            db, seller_id, resolved_store_id,
+            context.get('role'), context.get('id')
         )
-        
-        if not seller:
-            raise HTTPException(
-                status_code=404, 
-                detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
-            )
         
         # Calculate date range
         end_dt = datetime.now(timezone.utc)
@@ -2467,18 +2501,14 @@ async def get_seller_profile(
     """
     try:
         resolved_store_id = context.get('resolved_store_id')
+        if not resolved_store_id:
+            raise HTTPException(status_code=400, detail="store_id requis")
         
-        # Fetch seller
-        seller = await db.users.find_one(
-            {"id": seller_id, "store_id": resolved_store_id, "role": "seller"},
-            {"_id": 0, "password": 0}
+        # SECURITY: Verify seller belongs to user's store (prevents IDOR)
+        seller = await verify_seller_store_access(
+            db, seller_id, resolved_store_id,
+            context.get('role'), context.get('id')
         )
-        
-        if not seller:
-            raise HTTPException(
-                status_code=404, 
-                detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
-            )
         
         # Fetch diagnostic
         diagnostic = await db.diagnostics.find_one(

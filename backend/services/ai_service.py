@@ -9,14 +9,37 @@ import json
 import uuid
 import logging
 import re
+import asyncio
+import time
 from typing import Dict, List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 # OpenAI SDK - Import robuste (sans logging au import-time)
 try:
     from openai import AsyncOpenAI
+    from openai import RateLimitError, APIConnectionError, APITimeoutError
 except Exception:
     AsyncOpenAI = None
+    RateLimitError = None
+    APIConnectionError = None
+    APITimeoutError = None
+
+# Retry logic
+try:
+    from tenacity import (
+        retry,
+        stop_after_attempt,
+        wait_exponential,
+        retry_if_exception_type,
+        RetryError
+    )
+except ImportError:
+    # Fallback si tenacity n'est pas disponible
+    retry = lambda **kwargs: lambda f: f
+    stop_after_attempt = lambda n: None
+    wait_exponential = lambda **kwargs: None
+    retry_if_exception_type = lambda e: None
+    RetryError = Exception
 
 from core.config import settings
 
@@ -245,6 +268,13 @@ class AIService:
     Models:
     - gpt-4o: Complex analysis (team analysis, detailed bilans)
     - gpt-4o-mini: Quick tasks (daily challenges, feedback)
+    
+    Features:
+    - Timeout protection (30s)
+    - Token limits (cost control)
+    - Retry logic with exponential backoff
+    - Circuit breaker (5 consecutive errors → 5min block)
+    - Token usage logging
     """
     
     def __init__(self):
@@ -260,6 +290,123 @@ class AIService:
                 logger.warning("⚠️ OpenAI unavailable (missing OPENAI_API_KEY)")
             elif AsyncOpenAI is None:
                 logger.warning("⚠️ OpenAI unavailable (OpenAI SDK import failed: AsyncOpenAI missing)")
+        
+        # Circuit Breaker State
+        self._error_count = 0
+        self._circuit_open = False
+        self._circuit_open_until = None
+        self._last_success_time = None
+        
+        # Constants
+        self.MAX_CONSECUTIVE_ERRORS = 5
+        self.CIRCUIT_BREAKER_DURATION = 300  # 5 minutes en secondes
+        self.DEFAULT_TIMEOUT = 30.0  # 30 secondes
+    
+    def _check_circuit_breaker(self) -> bool:
+        """
+        Check if circuit breaker is open (blocking requests)
+        
+        Returns:
+            True if circuit is open (should block), False if closed (allow requests)
+        """
+        if not self._circuit_open:
+            return False
+        
+        # Check if we should reset the circuit breaker
+        if self._circuit_open_until:
+            if datetime.now(timezone.utc) >= self._circuit_open_until:
+                logger.info("🔄 Circuit breaker: Resetting after cooldown period")
+                self._circuit_open = False
+                self._circuit_open_until = None
+                self._error_count = 0
+                return False
+        
+        return True
+    
+    def _record_success(self):
+        """Record a successful API call (reset error count)"""
+        self._error_count = 0
+        self._last_success_time = datetime.now(timezone.utc)
+        if self._circuit_open:
+            logger.info("✅ Circuit breaker: Success after errors, resetting")
+            self._circuit_open = False
+            self._circuit_open_until = None
+    
+    def _record_error(self):
+        """Record an error and check if circuit breaker should open"""
+        self._error_count += 1
+        logger.warning(f"⚠️ OpenAI error count: {self._error_count}/{self.MAX_CONSECUTIVE_ERRORS}")
+        
+        if self._error_count >= self.MAX_CONSECUTIVE_ERRORS:
+            self._circuit_open = True
+            self._circuit_open_until = datetime.now(timezone.utc) + timedelta(seconds=self.CIRCUIT_BREAKER_DURATION)
+            logger.error(
+                f"🔴 Circuit breaker OPENED: {self._error_count} consecutive errors. "
+                f"Blocking OpenAI calls for {self.CIRCUIT_BREAKER_DURATION}s until {self._circuit_open_until.isoformat()}"
+            )
+    
+    def _get_max_tokens(self, model: str) -> int:
+        """
+        Get max_tokens limit based on model
+        
+        Args:
+            model: Model name (gpt-4o, gpt-4o-mini, etc.)
+            
+        Returns:
+            Max tokens limit
+        """
+        if "mini" in model.lower():
+            return 2000  # gpt-4o-mini: smaller limit
+        elif "gpt-4o" in model.lower():
+            return 4000  # gpt-4o: larger limit
+        else:
+            return 2000  # Default fallback
+    
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type((RateLimitError, APIConnectionError, APITimeoutError)) if RateLimitError else None,
+        reraise=True
+    )
+    async def _send_message_with_retry(
+        self,
+        system_message: str,
+        user_prompt: str,
+        model: str,
+        temperature: float,
+        max_tokens: int
+    ) -> Optional[str]:
+        """
+        Internal method that performs the actual API call with retry logic
+        
+        This method is wrapped by @retry decorator for automatic retries
+        """
+        response = await self.client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=temperature,
+            timeout=self.DEFAULT_TIMEOUT,  # ⚠️ CRITICAL: Timeout protection
+            max_tokens=max_tokens  # ⚠️ CRITICAL: Cost control
+        )
+        
+        # Log token usage for cost tracking
+        if hasattr(response, 'usage') and response.usage:
+            usage = response.usage
+            total_tokens = usage.total_tokens if hasattr(usage, 'total_tokens') else 0
+            prompt_tokens = usage.prompt_tokens if hasattr(usage, 'prompt_tokens') else 0
+            completion_tokens = usage.completion_tokens if hasattr(usage, 'completion_tokens') else 0
+            
+            logger.info(
+                f"💰 OpenAI tokens used (model={model}): "
+                f"Total={total_tokens}, Input={prompt_tokens}, Output={completion_tokens}"
+            )
+        
+        if response.choices and len(response.choices) > 0:
+            return response.choices[0].message.content
+        return None
     
     async def _send_message(
         self,
@@ -270,6 +417,13 @@ class AIService:
     ) -> Optional[str]:
         """
         Send a message to OpenAI and get response
+        
+        Features:
+        - Timeout protection (30s)
+        - Token limits (cost control)
+        - Retry logic with exponential backoff (max 3 attempts)
+        - Circuit breaker (blocks after 5 consecutive errors)
+        - Token usage logging
         
         Args:
             system_message: System prompt for the AI
@@ -283,25 +437,55 @@ class AIService:
         if not self.available or not self.client:
             return None
         
+        # Check circuit breaker
+        if self._check_circuit_breaker():
+            logger.warning(
+                f"🔴 Circuit breaker: OpenAI calls blocked until {self._circuit_open_until.isoformat()}"
+            )
+            return None
+        
+        # Get max_tokens based on model
+        max_tokens = self._get_max_tokens(model)
+        
         try:
-            response = await self.client.chat.completions.create(
+            response = await self._send_message_with_retry(
+                system_message=system_message,
+                user_prompt=user_prompt,
                 model=model,
-                messages=[
-                    {"role": "system", "content": system_message},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=temperature
+                temperature=temperature,
+                max_tokens=max_tokens
             )
             
-            if response.choices and len(response.choices) > 0:
-                return response.choices[0].message.content
+            # Success: reset error count
+            if response:
+                self._record_success()
+            
+            return response
+            
+        except asyncio.TimeoutError:
+            logger.error(f"⏱️ OpenAI timeout after {self.DEFAULT_TIMEOUT}s (model={model})")
+            self._record_error()
             return None
+            
+        except RateLimitError as e:
+            logger.warning(f"🚦 OpenAI rate limit hit (model={model}): {str(e)}")
+            # RateLimitError is retried by tenacity, but we still record it
+            self._record_error()
+            raise  # Re-raise for tenacity to handle retry
+            
+        except (APIConnectionError, APITimeoutError) as e:
+            logger.warning(f"🔌 OpenAI connection error (model={model}): {str(e)}")
+            # Connection errors are retried by tenacity
+            self._record_error()
+            raise  # Re-raise for tenacity to handle retry
+            
         except Exception as e:
             msg = str(e)
             if "sk-" in msg or "api_key" in msg.lower():
                 logger.error("OpenAI API error (details hidden)")
             else:
-                logger.error(f"OpenAI API error: {e}")
+                logger.error(f"OpenAI API error (model={model}): {e}")
+            self._record_error()
             return None
     
     async def generate_admin_response(
@@ -1454,21 +1638,20 @@ Réponds avec ce JSON EXACT (pas de texte avant/après) :
             return self._fallback_guide(role, employee_name, stats)
         
         try:
-            response = await self.client.chat.completions.create(
+            # Use AIService for consistent timeout, retry, and circuit breaker logic
+            ai_service = AIService()
+            response_text = await ai_service._send_message(
+                system_message=system_prompt,
+                user_prompt=user_prompt,
                 model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
                 temperature=0.7
             )
             
-            if response.choices and len(response.choices) > 0:
-                content = response.choices[0].message.content
-                if content:
-                    return self._parse_guide_response(content, role)
+            if not response_text:
+                return self._fallback_guide(role, employee_name, stats)
             
-            return self._fallback_guide(role, employee_name, stats)
+            # Parse the response directly (AIService._send_message already returns the text)
+            return self._parse_guide_response(response_text, role)
             
         except Exception as e:
             import traceback

@@ -294,3 +294,176 @@ async def get_gerant_or_manager(
         raise HTTPException(status_code=403, detail="Accès réservé aux gérants et managers")
     
     return user
+
+
+# ===== STORE OWNERSHIP VERIFICATION =====
+
+async def verify_store_ownership(
+    current_user: dict,
+    target_store_id: str,
+    db = None
+) -> None:
+    """
+    Verify that the current user has access to the target store.
+    
+    Rules:
+    - Manager: Must have store_id matching target_store_id
+    - Gérant: Must own the store (gerant_id matches)
+    - Seller: Must have store_id matching target_store_id
+    
+    Args:
+        current_user: Authenticated user dict
+        target_store_id: Store ID to verify access to
+        db: Database connection (optional, will fetch if not provided)
+        
+    Raises:
+        HTTPException 403: If user doesn't have access to the store
+        HTTPException 404: If store doesn't exist
+    """
+    if not db:
+        from core.database import get_db
+        db = await get_db()
+    
+    if not target_store_id:
+        raise HTTPException(status_code=400, detail="store_id requis")
+    
+    role = current_user.get('role')
+    user_id = current_user.get('id')
+    user_store_id = current_user.get('store_id')
+    
+    # Manager: Must be assigned to this store
+    if role == 'manager':
+        if user_store_id != target_store_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Accès refusé : ce magasin ne vous est pas assigné"
+            )
+        return
+    
+    # Gérant: Must own the store (verify in database)
+    if role in ['gerant', 'gérant']:
+        store = await db.stores.find_one(
+            {"id": target_store_id, "gerant_id": user_id, "active": True},
+            {"_id": 0, "id": 1}
+        )
+        if not store:
+            raise HTTPException(
+                status_code=403,
+                detail="Accès refusé : ce magasin ne vous appartient pas ou n'existe pas"
+            )
+        return
+    
+    # Seller: Must be assigned to this store
+    if role == 'seller':
+        if user_store_id != target_store_id:
+            raise HTTPException(
+                status_code=403,
+                detail="Accès refusé : ce magasin ne vous est pas assigné"
+            )
+        return
+    
+    # Unknown role
+    raise HTTPException(status_code=403, detail="Rôle non autorisé")
+
+
+async def verify_resource_store_access(
+    db,
+    resource_id: str,
+    resource_type: str,
+    user_store_id: str,
+    user_role: str = None,
+    user_id: str = None
+) -> dict:
+    """
+    Verify that a resource (objective, challenge) belongs to the user's store.
+    
+    This is a critical security function to prevent IDOR attacks.
+    
+    Args:
+        db: Database connection
+        resource_id: ID of the resource to verify
+        resource_type: Type of resource ('objective', 'challenge')
+        user_store_id: Store ID of the authenticated user
+        user_role: Optional role for additional checks
+        user_id: Optional user ID for gérant ownership verification
+        
+    Returns:
+        Resource dict if found and accessible
+        
+    Raises:
+        HTTPException 403: If resource doesn't belong to user's store
+        HTTPException 404: If resource not found
+    """
+    if resource_type == 'objective':
+        collection = db.objectives
+    elif resource_type == 'challenge':
+        collection = db.challenges
+    else:
+        raise ValueError(f"Type de ressource non supporté: {resource_type}")
+    
+    # Build query with store_id filter (CRITICAL: prevents IDOR)
+    query = {"id": resource_id, "store_id": user_store_id}
+    
+    resource = await collection.find_one(query, {"_id": 0})
+    
+    if not resource:
+        # Check if resource exists but in different store (security: don't reveal existence)
+        exists_elsewhere = await collection.find_one({"id": resource_id}, {"_id": 0, "store_id": 1})
+        if exists_elsewhere:
+            raise HTTPException(
+                status_code=403,
+                detail=f"{resource_type.capitalize()} non trouvé ou accès refusé"
+            )
+        raise HTTPException(
+            status_code=404,
+            detail=f"{resource_type.capitalize()} non trouvé"
+        )
+    
+    return resource
+
+
+async def verify_seller_store_access(
+    db,
+    seller_id: str,
+    user_store_id: str,
+    user_role: str = None,
+    user_id: str = None
+) -> dict:
+    """
+    Verify that a seller belongs to the user's store.
+    
+    Prevents managers from accessing sellers from other stores.
+    
+    Args:
+        db: Database connection
+        seller_id: ID of the seller to verify
+        user_store_id: Store ID of the authenticated user
+        user_role: Optional role for additional checks
+        user_id: Optional user ID for gérant ownership verification
+        
+    Returns:
+        Seller dict if found and accessible
+        
+    Raises:
+        HTTPException 403: If seller doesn't belong to user's store
+        HTTPException 404: If seller not found
+    """
+    # Build query with store_id filter (CRITICAL: prevents IDOR)
+    query = {"id": seller_id, "store_id": user_store_id, "role": "seller"}
+    
+    seller = await db.users.find_one(query, {"_id": 0, "password": 0})
+    
+    if not seller:
+        # Check if seller exists but in different store (security: don't reveal existence)
+        exists_elsewhere = await db.users.find_one(
+            {"id": seller_id, "role": "seller"},
+            {"_id": 0, "store_id": 1}
+        )
+        if exists_elsewhere:
+            raise HTTPException(
+                status_code=403,
+                detail="Vendeur non trouvé ou n'appartient pas à ce magasin"
+            )
+        raise HTTPException(status_code=404, detail="Vendeur non trouvé")
+    
+    return seller
