@@ -229,58 +229,53 @@ export default function ObjectivesModal({
       
       const updatedObjective = response.data;
       
-      // Get previous status from the objective before update
-      const previousObjective = activeObjectives.find(obj => obj.id === objectiveId);
-      const previousStatus = previousObjective?.status || 'active';
-      
       console.log('🎉 [PROGRESS UPDATE] Objective updated:', {
         id: updatedObjective.id,
         status: updatedObjective.status,
-        previousStatus: previousStatus,
-        has_unseen_achievement: updatedObjective.has_unseen_achievement,
-        just_achieved: updatedObjective.just_achieved,
         current_value: updatedObjective.current_value,
-        target_value: updatedObjective.target_value
+        target_value: updatedObjective.target_value,
+        has_unseen_achievement: updatedObjective.has_unseen_achievement
       });
       
       setUpdatingObjectiveId(null);
       setObjectiveProgressValue('');
       
-      // Check if objective just became "achieved" (status changed from non-achieved to achieved)
-      const justBecameAchieved = (updatedObjective.status === 'achieved' && previousStatus !== 'achieved') || updatedObjective.just_achieved === true;
+      // Simple check: if objective is achieved, trigger confetti immediately (like in CoachingModal)
+      const isAchieved = updatedObjective.status === 'achieved' && 
+                        updatedObjective.current_value >= updatedObjective.target_value;
       
-      if (justBecameAchieved && updatedObjective.has_unseen_achievement === true) {
-        console.log('🎉 [PROGRESS UPDATE] Objective just achieved! Showing modal...');
-        // Show achievement modal immediately (BEFORE refreshing to avoid conflicts)
-        setAchievementModal({
-          isOpen: true,
-          item: updatedObjective,
-          itemType: 'objective'
-        });
-        // Don't refresh immediately - let the modal show first
-        // The refresh will happen after the modal is closed
-        return; // Exit early to prevent refresh
-      } else if (justBecameAchieved || (updatedObjective.status === 'achieved' && updatedObjective.current_value >= updatedObjective.target_value)) {
-        // Just achieved or already achieved but progression updated - trigger confetti
-        console.log('🎉 [PROGRESS UPDATE] Objective achieved! Triggering confetti...');
-        triggerConfetti();
-        toast.success('🎉 Félicitations ! Objectif atteint !', { 
-          duration: 5000,
-          style: {
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            color: 'white',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            padding: '16px',
-          }
-        });
-        // Refresh after toast
-        await refreshActiveData();
+      if (isAchieved) {
+        // Show achievement modal if unseen, otherwise just confetti
+        if (updatedObjective.has_unseen_achievement === true) {
+          console.log('🎉 [PROGRESS UPDATE] Objective achieved! Showing modal...');
+          setAchievementModal({
+            isOpen: true,
+            item: updatedObjective,
+            itemType: 'objective'
+          });
+          // Modal will trigger confetti, don't refresh yet
+          return;
+        } else {
+          // Already seen, but still celebrate with confetti
+          console.log('🎉 [PROGRESS UPDATE] Objective achieved! Triggering confetti...');
+          triggerConfetti();
+          toast.success('🎉 Félicitations ! Objectif atteint !', { 
+            duration: 5000,
+            style: {
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              padding: '16px',
+            }
+          });
+        }
       } else {
         toast.success('Progression mise à jour !');
-        // Refresh normally
-        await refreshActiveData();
       }
+      
+      // Refresh data
+      await refreshActiveData();
     } catch (error) {
       logger.error('Error updating progress:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
@@ -320,14 +315,23 @@ export default function ObjectivesModal({
       
       const updatedChallenge = response.data;
       
+      console.log('🎉 [PROGRESS UPDATE] Challenge updated:', {
+        id: updatedChallenge.id,
+        status: updatedChallenge.status,
+        current_value: updatedChallenge.current_value,
+        target_value: updatedChallenge.target_value
+      });
+      
       setUpdatingChallengeId(null);
       setChallengeProgress({ ca: 0, ventes: 0, clients: 0 });
       setChallengeCurrentValue('');
       
-      // Check if challenge just became "achieved" or "completed"
-      if (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') {
-        console.log('🎉 [PROGRESS UPDATE] Challenge just achieved! status:', updatedChallenge.status);
-        // Trigger confetti immediately
+      // Simple check: if challenge is achieved/completed, trigger confetti immediately (like in CoachingModal)
+      const isAchieved = (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') &&
+                        updatedChallenge.current_value >= updatedChallenge.target_value;
+      
+      if (isAchieved) {
+        console.log('🎉 [PROGRESS UPDATE] Challenge achieved! Triggering confetti...');
         triggerConfetti();
         toast.success('🎉 Félicitations ! Challenge réussi !', { 
           duration: 5000,
@@ -339,13 +343,12 @@ export default function ObjectivesModal({
             padding: '16px',
           }
         });
-        // Then refresh data
-        await refreshActiveData();
       } else {
         toast.success('Progression du challenge mise à jour !');
-        // Refresh normally
-        await refreshActiveData();
       }
+      
+      // Refresh data
+      await refreshActiveData();
     } catch (error) {
       logger.error('Error updating challenge progress:', error);
       toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');

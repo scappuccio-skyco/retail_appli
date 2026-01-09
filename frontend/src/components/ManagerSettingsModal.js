@@ -468,8 +468,8 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       );
       logger.log('✅ Progression challenge mise à jour, réponse:', response.data);
       
-      // Check if challenge just became "achieved" or "completed"
       const updatedChallenge = response.data;
+      
       console.log('🎯 [MANAGER PROGRESS] Challenge updated:', {
         id: updatedChallenge.id,
         status: updatedChallenge.status,
@@ -477,7 +477,11 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
         target_value: updatedChallenge.target_value
       });
       
-      if (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') {
+      // Simple check: if challenge is achieved/completed, trigger confetti immediately (like in CoachingModal)
+      const isAchieved = (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') &&
+                        updatedChallenge.current_value >= updatedChallenge.target_value;
+      
+      if (isAchieved) {
         console.log('🎉 [MANAGER PROGRESS] Challenge achieved! Triggering confetti...');
         triggerConfetti();
         toast.success('🎉 Félicitations ! Challenge réussi !', { 
@@ -690,29 +694,20 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
       );
       logger.log('✅ Progression mise à jour, réponse:', response.data);
       
-      // Check if objective just became "achieved"
       const updatedObjective = response.data;
-      
-      // Get previous status from the objective before update
-      const previousObjective = objectives.find(obj => obj.id === objectiveId);
-      const previousStatus = previousObjective?.status || 'active';
       
       console.log('🎯 [MANAGER PROGRESS] Objective updated:', {
         id: updatedObjective.id,
         status: updatedObjective.status,
-        previousStatus: previousStatus,
-        just_achieved: updatedObjective.just_achieved,
         current_value: updatedObjective.current_value,
         target_value: updatedObjective.target_value
       });
       
-      // Check if objective just became "achieved" (status changed from non-achieved to achieved)
-      const justBecameAchieved = (updatedObjective.status === 'achieved' && previousStatus !== 'achieved') || updatedObjective.just_achieved === true;
+      // Simple check: if objective is achieved, trigger confetti immediately (like in CoachingModal)
+      const isAchieved = updatedObjective.status === 'achieved' && 
+                        updatedObjective.current_value >= updatedObjective.target_value;
       
-      // Also trigger confetti if objective is achieved and current_value >= target_value (even if already achieved)
-      const isAchieved = updatedObjective.status === 'achieved' && updatedObjective.current_value >= updatedObjective.target_value;
-      
-      if (justBecameAchieved || isAchieved) {
+      if (isAchieved) {
         console.log('🎉 [MANAGER PROGRESS] Objective achieved! Triggering confetti...');
         triggerConfetti();
         toast.success('🎉 Félicitations ! Objectif atteint !', { 
