@@ -995,6 +995,11 @@ async def update_seller_challenge_progress(
         )
         
         if updated_challenge:
+            # Check if challenge just became "achieved" (status changed)
+            old_status = challenge.get('status', 'active')
+            if new_status == 'achieved' and old_status != 'achieved':
+                updated_challenge['just_achieved'] = True
+                print(f"🎉 [PROGRESS UPDATE] Challenge '{updated_challenge.get('title')}' just became achieved! (was: {old_status}, now: {new_status})")
             return updated_challenge
         else:
             return {

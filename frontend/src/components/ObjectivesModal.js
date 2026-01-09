@@ -247,6 +247,7 @@ export default function ObjectivesModal({
         status: updatedObjective.status,
         current_value: updatedObjective.current_value,
         target_value: updatedObjective.target_value,
+        just_achieved: updatedObjective.just_achieved,
         has_unseen_achievement: updatedObjective.has_unseen_achievement,
         is_achieved_status: updatedObjective.status === 'achieved',
         is_achieved_value: updatedObjective.current_value >= updatedObjective.target_value
@@ -255,11 +256,14 @@ export default function ObjectivesModal({
       setUpdatingObjectiveId(null);
       setObjectiveProgressValue('');
       
-      // Simple check: if objective is achieved (by status OR by value), trigger confetti immediately (like in CoachingModal)
-      const isAchieved = updatedObjective.status === 'achieved' || 
+      // Priority 1: Use just_achieved flag from backend (most reliable)
+      // Priority 2: Check status and value as fallback
+      const isAchieved = updatedObjective.just_achieved === true || 
+                        updatedObjective.status === 'achieved' || 
                         (updatedObjective.current_value >= updatedObjective.target_value && updatedObjective.target_value > 0);
       
       console.log('🎯 [PROGRESS UPDATE] isAchieved check:', {
+        just_achieved_flag: updatedObjective.just_achieved,
         status_achieved: updatedObjective.status === 'achieved',
         value_achieved: updatedObjective.current_value >= updatedObjective.target_value,
         final_isAchieved: isAchieved
@@ -346,19 +350,22 @@ export default function ObjectivesModal({
         id: updatedChallenge.id,
         status: updatedChallenge.status,
         current_value: updatedChallenge.current_value,
-        target_value: updatedChallenge.target_value
+        target_value: updatedChallenge.target_value,
+        just_achieved: updatedChallenge.just_achieved
       });
       
       setUpdatingChallengeId(null);
       setChallengeProgress({ ca: 0, ventes: 0, clients: 0 });
       setChallengeCurrentValue('');
       
-      // Simple check: if challenge is achieved/completed, trigger confetti immediately (like in CoachingModal)
-      // Check both status and value to be safe
-      const isAchieved = (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') ||
+      // Priority 1: Use just_achieved flag from backend (most reliable)
+      // Priority 2: Check status and value as fallback
+      const isAchieved = updatedChallenge.just_achieved === true ||
+                        (updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed') ||
                         (updatedChallenge.current_value >= updatedChallenge.target_value && updatedChallenge.target_value > 0);
       
       console.log('🎯 [PROGRESS UPDATE] Challenge isAchieved check:', {
+        just_achieved_flag: updatedChallenge.just_achieved,
         status_achieved: updatedChallenge.status === 'achieved' || updatedChallenge.status === 'completed',
         value_achieved: updatedChallenge.current_value >= updatedChallenge.target_value,
         final_isAchieved: isAchieved
