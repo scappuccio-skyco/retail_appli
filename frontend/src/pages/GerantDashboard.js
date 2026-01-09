@@ -257,14 +257,15 @@ const GerantDashboard = ({ user, onLogout }) => {
       }
 
       // Récupérer les invitations en attente
-      const invitationsResponse = await fetch(`${backendUrl}/api/gerant/invitations`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (invitationsResponse.ok) {
-        const invitations = await invitationsResponse.json();
+      try {
+        const invitationsResponse = await api.get('/gerant/invitations');
+        const invitations = invitationsResponse.data;
         const pendingManagers = invitations.filter(inv => inv.status === 'pending' && inv.role === 'manager').length;
         const pendingSellers = invitations.filter(inv => inv.status === 'pending' && inv.role === 'seller').length;
         setPendingInvitations({ managers: pendingManagers, sellers: pendingSellers });
+      } catch (err) {
+        // Silently fail - invitations are not critical
+        logger.warn('Failed to fetch invitations:', err);
       }
     } catch (error) {
       logger.error('Erreur chargement données:', error);
