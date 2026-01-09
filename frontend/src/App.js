@@ -80,19 +80,28 @@ function AppContent() {
     setLoading(false);
   };
 
-  const handleLogin = async (userData, token) => {
+  const handleLogin = async (userData, token, isRegistration = false) => {
     localStorage.setItem('token', token);
     setUser(userData);
     
-    // Vérifier si l'utilisateur vient du tunnel Early Adopter
+    // Vérifier si l'utilisateur vient du tunnel Early Adopter ET s'il vient de s'inscrire (pas juste de se connecter)
     const earlyAdopterData = localStorage.getItem('early_adopter_candidate');
     const isEarlyAdopter = earlyAdopterData !== null;
     
-    // Si c'est un early adopter et qu'il vient de s'inscrire, rediriger vers welcome-pilot
-    if (isEarlyAdopter && (userData.role === 'gérant' || userData.role === 'gerant')) {
-      logger.log('✅ Early Adopter detected, redirecting to welcome-pilot');
+    // IMPORTANT: La page welcome-pilot ne doit apparaître QUE lors d'une INSCRIPTION via Early Access
+    // Pas lors d'une simple connexion, même si early_adopter_candidate existe dans localStorage
+    if (isRegistration && isEarlyAdopter && (userData.role === 'gérant' || userData.role === 'gerant')) {
+      logger.log('✅ Early Adopter - Nouvelle inscription détectée, redirection vers welcome-pilot');
+      // Nettoyer le flag après utilisation pour éviter qu'il persiste
+      localStorage.removeItem('early_adopter_candidate');
       window.location.href = '/welcome-pilot';
       return;
+    }
+    
+    // Si c'est juste une connexion (pas une inscription), nettoyer le flag s'il existe
+    if (!isRegistration && isEarlyAdopter) {
+      logger.log('🧹 Nettoyage du flag early_adopter_candidate (connexion normale)');
+      localStorage.removeItem('early_adopter_candidate');
     }
     
     // Redirection selon le rôle

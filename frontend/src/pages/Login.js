@@ -110,7 +110,8 @@ export default function Login({ onLogin }) {
       
       const res = await api.post(endpoint, payload);
       // toast.success(isRegister ? 'Compte créé avec succès!' : 'Connexion réussie!');
-      onLogin(res.data.user, res.data.token);
+      // Passer un flag pour indiquer si c'est une inscription (pas une simple connexion)
+      onLogin(res.data.user, res.data.token, isRegister);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Erreur de connexion');
     } finally {
