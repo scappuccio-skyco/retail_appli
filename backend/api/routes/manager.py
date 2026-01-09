@@ -1091,6 +1091,19 @@ async def create_objective(
     try:
         resolved_store_id = context.get('resolved_store_id')
         manager_id = context.get('id')
+        user_role = context.get('role')
+        
+        # CRITICAL: Verify store_id is present (required for both manager and gerant)
+        if not resolved_store_id:
+            raise HTTPException(
+                status_code=400, 
+                detail="store_id est requis. Pour un gérant, passez store_id en paramètre de requête."
+            )
+        
+        print(f"🔍 [CREATE OBJECTIVE] Context:")
+        print(f"   - User ID: {manager_id}")
+        print(f"   - User Role: {user_role}")
+        print(f"   - Resolved Store ID: {resolved_store_id}")
         
         objective = {
             "id": str(uuid4()),
@@ -1146,10 +1159,20 @@ async def create_objective(
         
         print(f"🔍 [CREATE OBJECTIVE] Creating objective:")
         print(f"   - Title: {objective.get('title')}")
+        print(f"   - Store ID: {objective.get('store_id')}")
+        print(f"   - Manager ID: {objective.get('manager_id')}")
         print(f"   - Type: {objective.get('type')}")
         print(f"   - Visible: {objective.get('visible')}")
         print(f"   - visible_to_sellers: {objective.get('visible_to_sellers')}")
         print(f"   - seller_id: {objective.get('seller_id')}")
+        print(f"   - Period: {objective.get('period_start')} to {objective.get('period_end')}")
+        
+        # CRITICAL: Verify store_id is not None before saving
+        if not objective.get('store_id'):
+            raise HTTPException(
+                status_code=400,
+                detail="Impossible de créer un objectif sans store_id. Vérifiez que le store_id est bien passé en paramètre."
+            )
         
         await db.objectives.insert_one(objective)
         objective.pop("_id", None)

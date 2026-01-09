@@ -190,16 +190,28 @@ async def get_active_seller_objectives(
                 print(f"✅ [AUTO-FIX] Auto-assigned seller {current_user.get('name')} to manager {manager.get('name')} ({manager_id})")
                 user['manager_id'] = manager_id
         
-        if not user or not user.get('manager_id'):
-            print(f"🔍 [GET SELLER OBJECTIVES] No manager found for seller")
+        # CRITICAL: Objectives are filtered by store_id, not manager_id
+        # A seller can see objectives even without a manager_id, as long as they have a store_id
+        # The manager_id is only used for progress calculation, not for filtering visibility
+        
+        # Get seller's store_id
+        seller_store_id = user.get('store_id') if user else None
+        if not seller_store_id:
+            print(f"⚠️ [GET SELLER OBJECTIVES] Seller {current_user.get('id')} has no store_id")
             return []
         
-        print(f"🔍 [GET SELLER OBJECTIVES] Manager ID: {user.get('manager_id')}")
+        # Use manager_id if available (for progress calculation), otherwise use None
+        # The get_seller_objectives_active function will handle None manager_id gracefully
+        manager_id = user.get('manager_id') if user else None
         
-        # Fetch objectives
+        print(f"🔍 [GET SELLER OBJECTIVES] Seller ID: {current_user['id']}")
+        print(f"🔍 [GET SELLER OBJECTIVES] Store ID: {seller_store_id}")
+        print(f"🔍 [GET SELLER OBJECTIVES] Manager ID: {manager_id} (optional, used only for progress calculation)")
+        
+        # Fetch objectives - filtered by store_id, not manager_id
         objectives = await seller_service.get_seller_objectives_active(
             current_user['id'], 
-            user['manager_id']
+            manager_id  # Can be None - only used for progress calculation
         )
         
         print(f"🔍 [GET SELLER OBJECTIVES] Returning {len(objectives)} objectives to frontend")
@@ -220,16 +232,23 @@ async def get_all_seller_objectives(
     - inactive: objectives with period_end <= today
     """
     try:
-        # Get seller's manager
+        # Get seller info
         user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
         
-        if not user or not user.get('manager_id'):
+        # CRITICAL: Objectives are filtered by store_id, not manager_id
+        # A seller can see objectives even without a manager_id, as long as they have a store_id
+        seller_store_id = user.get('store_id') if user else None
+        if not seller_store_id:
+            print(f"⚠️ [GET ALL SELLER OBJECTIVES] Seller {current_user.get('id')} has no store_id")
             return {"active": [], "inactive": []}
         
-        # Fetch all objectives
+        # Use manager_id if available (for progress calculation), otherwise use None
+        manager_id = user.get('manager_id') if user else None
+        
+        # Fetch all objectives - filtered by store_id, not manager_id
         result = await seller_service.get_seller_objectives_all(
             current_user['id'], 
-            user['manager_id']
+            manager_id  # Can be None - only used for progress calculation
         )
         return result
     except Exception as e:
@@ -246,16 +265,23 @@ async def get_seller_objectives_history(
     Returns objectives that have ended (period_end < today)
     """
     try:
-        # Get seller's manager
+        # Get seller info
         user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
         
-        if not user or not user.get('manager_id'):
+        # CRITICAL: Objectives are filtered by store_id, not manager_id
+        # A seller can see objectives even without a manager_id, as long as they have a store_id
+        seller_store_id = user.get('store_id') if user else None
+        if not seller_store_id:
+            print(f"⚠️ [GET OBJECTIVES HISTORY] Seller {current_user.get('id')} has no store_id")
             return []
         
-        # Fetch history
+        # Use manager_id if available (for progress calculation), otherwise use None
+        manager_id = user.get('manager_id') if user else None
+        
+        # Fetch history - filtered by store_id, not manager_id
         objectives = await seller_service.get_seller_objectives_history(
             current_user['id'], 
-            user['manager_id']
+            manager_id  # Can be None - only used for progress calculation
         )
         return objectives
     except Exception as e:
@@ -353,16 +379,28 @@ async def get_active_seller_challenges(
                 print(f"✅ [AUTO-FIX] Auto-assigned seller {current_user.get('name')} to manager {manager.get('name')} ({manager_id})")
                 user['manager_id'] = manager_id
         
-        if not user or not user.get('manager_id'):
-            print(f"🔍 [GET SELLER CHALLENGES] No manager found for seller")
+        # CRITICAL: Challenges are filtered by store_id, not manager_id
+        # A seller can see challenges even without a manager_id, as long as they have a store_id
+        # The manager_id is only used for progress calculation, not for filtering visibility
+        
+        # Get seller's store_id
+        seller_store_id = user.get('store_id') if user else None
+        if not seller_store_id:
+            print(f"⚠️ [GET SELLER CHALLENGES] Seller {current_user.get('id')} has no store_id")
             return []
         
-        print(f"🔍 [GET SELLER CHALLENGES] Manager ID: {user.get('manager_id')}")
+        # Use manager_id if available (for progress calculation), otherwise use None
+        # The get_seller_challenges_active function will handle None manager_id gracefully
+        manager_id = user.get('manager_id') if user else None
         
-        # Fetch active challenges
+        print(f"🔍 [GET SELLER CHALLENGES] Seller ID: {current_user['id']}")
+        print(f"🔍 [GET SELLER CHALLENGES] Store ID: {seller_store_id}")
+        print(f"🔍 [GET SELLER CHALLENGES] Manager ID: {manager_id} (optional, used only for progress calculation)")
+        
+        # Fetch active challenges - filtered by store_id, not manager_id
         challenges = await seller_service.get_seller_challenges_active(
             current_user['id'], 
-            user['manager_id']
+            manager_id  # Can be None - only used for progress calculation
         )
         
         print(f"🔍 [GET SELLER CHALLENGES] Returning {len(challenges)} challenges to frontend")
@@ -983,16 +1021,23 @@ async def get_seller_challenges_history(
     Returns challenges that have ended (end_date < today)
     """
     try:
-        # Get seller's manager
+        # Get seller info
         user = await seller_service.db.users.find_one({"id": current_user['id']}, {"_id": 0})
         
-        if not user or not user.get('manager_id'):
+        # CRITICAL: Challenges are filtered by store_id, not manager_id
+        # A seller can see challenges even without a manager_id, as long as they have a store_id
+        seller_store_id = user.get('store_id') if user else None
+        if not seller_store_id:
+            print(f"⚠️ [GET CHALLENGES HISTORY] Seller {current_user.get('id')} has no store_id")
             return []
         
-        # Fetch history
+        # Use manager_id if available (for progress calculation), otherwise use None
+        manager_id = user.get('manager_id') if user else None
+        
+        # Fetch history - filtered by store_id, not manager_id
         challenges = await seller_service.get_seller_challenges_history(
             current_user['id'], 
-            user['manager_id']
+            manager_id  # Can be None - only used for progress calculation
         )
         return challenges
     except Exception as e:

@@ -142,7 +142,7 @@ class SellerService:
     
     # ===== OBJECTIVES =====
     
-    async def get_seller_objectives_active(self, seller_id: str, manager_id: str) -> List[Dict]:
+    async def get_seller_objectives_active(self, seller_id: str, manager_id: Optional[str] = None) -> List[Dict]:
         """
         Get active team objectives for display in seller dashboard
         
@@ -150,7 +150,8 @@ class SellerService:
         - Managers of the store
         - Gérants (store owners)
         
-        The manager_id parameter is still used for progress calculation, but NOT for filtering visibility.
+        The manager_id parameter is optional and only used for progress calculation, NOT for filtering visibility.
+        If manager_id is None, progress calculation may be limited but objectives will still be visible.
         """
         today = datetime.now(timezone.utc).date().isoformat()
         
@@ -179,9 +180,13 @@ class SellerService:
         objectives = await self.db.objectives.find(
             query,
             {"_id": 0}
-        ).sort("period_start", 1).to_list(10)
+        ).sort("period_start", 1).to_list(100)  # Increased limit to ensure we get all objectives
         
         print(f"🔍 [SELLER OBJECTIVES] Found {len(objectives)} objectives before filtering")
+        
+        # Debug: Log all objectives found with their store_id
+        for obj in objectives:
+            print(f"   📋 Objective '{obj.get('title')}': store_id={obj.get('store_id')}, manager_id={obj.get('manager_id')}, type={obj.get('type')}")
         
         # Filter objectives based on visibility rules
         filtered_objectives = []
@@ -265,13 +270,15 @@ class SellerService:
         
         return final_objectives
     
-    async def get_seller_objectives_all(self, seller_id: str, manager_id: str) -> Dict:
+    async def get_seller_objectives_all(self, seller_id: str, manager_id: Optional[str] = None) -> Dict:
         """
         Get all team objectives (active and inactive) for seller
         
         CRITICAL: Filter by store_id (not manager_id) to include objectives created by:
         - Managers of the store
         - Gérants (store owners)
+        
+        The manager_id parameter is optional and only used for progress calculation, NOT for filtering visibility.
         """
         today = datetime.now(timezone.utc).date().isoformat()
         
@@ -337,13 +344,15 @@ class SellerService:
             "inactive": inactive_objectives
         }
     
-    async def get_seller_objectives_history(self, seller_id: str, manager_id: str) -> List[Dict]:
+    async def get_seller_objectives_history(self, seller_id: str, manager_id: Optional[str] = None) -> List[Dict]:
         """
         Get completed objectives (past period_end date OR achieved with notification seen) for seller
         
         CRITICAL: Filter by store_id (not manager_id) to include objectives created by:
         - Managers of the store
         - Gérants (store owners)
+        
+        The manager_id parameter is optional and only used for progress calculation, NOT for filtering visibility.
         """
         today = datetime.now(timezone.utc).date().isoformat()
         
@@ -504,13 +513,16 @@ class SellerService:
         
         return filtered_challenges
     
-    async def get_seller_challenges_active(self, seller_id: str, manager_id: str) -> List[Dict]:
+    async def get_seller_challenges_active(self, seller_id: str, manager_id: Optional[str] = None) -> List[Dict]:
         """
         Get only active challenges (collective + personal) for display in seller dashboard
         
         CRITICAL: Filter by store_id (not manager_id) to include challenges created by:
         - Managers of the store
         - Gérants (store owners)
+        
+        The manager_id parameter is optional and only used for progress calculation, NOT for filtering visibility.
+        If manager_id is None, progress calculation may be limited but challenges will still be visible.
         """
         today = datetime.now(timezone.utc).date().isoformat()
         
@@ -599,13 +611,15 @@ class SellerService:
         
         return final_challenges
     
-    async def get_seller_challenges_history(self, seller_id: str, manager_id: str) -> List[Dict]:
+    async def get_seller_challenges_history(self, seller_id: str, manager_id: Optional[str] = None) -> List[Dict]:
         """
         Get completed challenges (past end_date) for seller
         
         CRITICAL: Filter by store_id (not manager_id) to include challenges created by:
         - Managers of the store
         - Gérants (store owners)
+        
+        The manager_id parameter is optional and only used for progress calculation, NOT for filtering visibility.
         """
         today = datetime.now(timezone.utc).date().isoformat()
         
@@ -711,8 +725,13 @@ class SellerService:
         else:
             return "active"
     
-    async def calculate_objective_progress(self, objective: dict, manager_id: str):
-        """Calculate progress for an objective (team-wide)"""
+    async def calculate_objective_progress(self, objective: dict, manager_id: Optional[str] = None):
+        """Calculate progress for an objective (team-wide)
+        
+        Args:
+            objective: Objective dictionary
+            manager_id: Optional manager ID (used only if store_id is not available for backward compatibility)
+        """
         # If progress is entered manually by the manager or seller, do NOT overwrite it from KPI aggregates.
         # Otherwise, any refresh will "reset" manual progress back to KPI-derived totals (often 0).
         # This prevents synchronization issues where manual updates are overwritten by automatic calculations.
@@ -734,13 +753,18 @@ class SellerService:
         end_date = objective['period_end']
         store_id = objective.get('store_id')
         
-        # Build query for sellers - use store_id if available (multi-store support)
+        # Build query for sellers - prioritize store_id (multi-store support)
         seller_query = {"role": "seller"}
         if store_id:
+            # CRITICAL: Use store_id for filtering (works for objectives created by managers OR gérants)
             seller_query["store_id"] = store_id
-        else:
-            # Fallback to manager_id for backward compatibility
+        elif manager_id:
+            # Fallback to manager_id for backward compatibility (only if store_id is not available)
             seller_query["manager_id"] = manager_id
+        else:
+            # No store_id and no manager_id - cannot calculate progress
+            print(f"⚠️ [PROGRESS CALC] Objective '{objective.get('title')}' has no store_id or manager_id - skipping progress calculation")
+            return
         
         # Get all sellers for this store/manager
         sellers = await self.db.users.find(
@@ -765,15 +789,17 @@ class SellerService:
         total_ventes = sum(e.get('nb_ventes', 0) for e in entries)
         total_articles = sum(e.get('nb_articles', 0) for e in entries)
         
-        # Fallback to manager KPIs if seller data is missing
-        manager_kpi_query = {
-            "manager_id": manager_id,
-            "date": {"$gte": start_date, "$lte": end_date}
-        }
-        if store_id:
-            manager_kpi_query["store_id"] = store_id
-        
-        manager_entries = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).to_list(10000)
+        # Fallback to manager KPIs if seller data is missing (only if manager_id is available)
+        manager_entries = []
+        if manager_id:
+            manager_kpi_query = {
+                "manager_id": manager_id,
+                "date": {"$gte": start_date, "$lte": end_date}
+            }
+            if store_id:
+                manager_kpi_query["store_id"] = store_id
+            
+            manager_entries = await self.db.manager_kpis.find(manager_kpi_query, {"_id": 0}).to_list(10000)
         
         if manager_entries:
             if total_ca == 0:

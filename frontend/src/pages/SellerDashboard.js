@@ -832,41 +832,44 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
       
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
-        <div className="glass-morphism rounded-3xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center gap-4">
-            <Logo variant="dashboard" size="sm" />
-            <div>
-              <h1 className="text-2xl md:text-4xl font-bold text-[#1E40AF] mb-2">
+        <div className="glass-morphism rounded-3xl p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="flex flex-col gap-6 w-full md:w-auto">
+            <div className="flex justify-center md:justify-start">
+              <Logo variant="dashboard" size="sm" />
+            </div>
+            <div className="space-y-3">
+              <h1 className="text-2xl md:text-4xl font-bold text-[#1E40AF]">
                 Bonjour,<br />{user.name}!
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm md:text-base">
                 Suivez vos performances et progressez chaque jour
-                {(storeName || managerName) && (
-                  <span className="inline-flex items-center gap-2 ml-2 text-[#1E40AF] font-semibold whitespace-nowrap flex-wrap">
-                    {storeName && (
-                      <span className="inline-flex items-center gap-1">
-                        🏢 Nom de la boutique: {storeName}
-                      </span>
-                    )}
-                    {managerName && (
-                      <span className="inline-flex items-center gap-1 text-purple-600">
-                        {storeName && <span className="text-gray-400">•</span>}
-                        👤 Votre manager: {managerName}
-                      </span>
-                    )}
-                  </span>
-                )}
               </p>
+              {(storeName || managerName) && (
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-2">
+                  {storeName && (
+                    <span className="inline-flex items-center gap-2 text-[#1E40AF] font-semibold text-sm">
+                      <span className="text-lg">🏢</span>
+                      <span>Nom de la boutique: {storeName}</span>
+                    </span>
+                  )}
+                  {managerName && (
+                    <span className="inline-flex items-center gap-2 text-purple-600 font-semibold text-sm">
+                      <span className="text-lg">👤</span>
+                      <span>Votre manager: {managerName}</span>
+                    </span>
+                  )}
+                </div>
+              )}
               {/* Badge Données Sécurisées */}
-              <div className="flex items-center gap-1 mt-1">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-2 pt-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-200">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                   Données sécurisées
                 </span>
                 <span 
-                  className="text-xs text-gray-500 cursor-help" 
+                  className="text-sm text-gray-500 cursor-help" 
                   title="Vos données sont chiffrées. Les noms de famille sont anonymisés dans les analyses IA. Aucune donnée n'est conservée par l'IA."
                 >
                   ℹ️
@@ -874,7 +877,7 @@ export default function SellerDashboard({ user, diagnostic: initialDiagnostic, o
               </div>
             </div>
           </div>
-          <div className="flex gap-2 justify-center md:justify-start w-full md:w-auto">
+          <div className="flex flex-wrap gap-3 justify-center md:justify-end w-full md:w-auto">
             <button
               onClick={() => diagnostic ? setShowProfileModal(true) : setShowDiagnosticFormModal(true)}
               className="flex items-center gap-2 px-6 py-2.5 bg-white border-2 border-pink-500 text-pink-600 font-semibold rounded-xl hover:bg-pink-50 hover:shadow-md transition-all"
