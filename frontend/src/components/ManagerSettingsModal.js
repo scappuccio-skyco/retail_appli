@@ -887,28 +887,34 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
             : 'bg-gradient-to-r from-green-600 to-emerald-600'
         }`}>
           <div className="flex items-center gap-3">
-            {/* 🧪 BOUTON TEST CONFETTI - TEMPORAIRE */}
-            <button
-              onClick={() => {
-                console.log('🧪 [TEST] Test confetti button clicked!');
-                triggerConfetti();
-              }}
-              className="px-3 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-xs font-bold z-[99999]"
-              style={{ zIndex: 99999 }}
-            >
-              🧪 TEST CONFETTI
-            </button>
             <Settings className="w-8 h-8 text-white" />
             <h2 className="text-3xl font-bold text-white">
               {modalType === 'objectives' ? '🎯 Objectifs' : '🏆 Challenges'}
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="text-white hover:text-gray-100 transition-colors"
-          >
-            <X className="w-8 h-8" />
-          </button>
+          <div className="flex items-center gap-3">
+            {/* 🧪 BOUTON TEST CONFETTI - TEMPORAIRE - TRÈS VISIBLE */}
+            <button
+              onClick={() => {
+                console.log('🧪 [TEST] Test confetti button clicked!');
+                triggerConfetti();
+              }}
+              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-lg border-2 border-yellow-700 text-sm transition-all hover:scale-105"
+              style={{ 
+                zIndex: 99999,
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
+              }}
+              title="Cliquez pour tester les confettis"
+            >
+              🧪 TEST CONFETTI
+            </button>
+            <button
+              onClick={onClose}
+              className="text-white hover:text-gray-100 transition-colors"
+            >
+              <X className="w-8 h-8" />
+            </button>
+          </div>
         </div>
 
         {/* Tabs - Main level tabs */}
