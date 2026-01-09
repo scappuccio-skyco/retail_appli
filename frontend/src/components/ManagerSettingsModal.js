@@ -21,6 +21,13 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
   const [editingChallenge, setEditingChallenge] = useState(null);
   const [editingObjective, setEditingObjective] = useState(null);
   
+  // Achievement modal state
+  const [achievementModal, setAchievementModal] = useState({
+    isOpen: false,
+    item: null,
+    itemType: null
+  });
+  
   // Build store_id param for gerant viewing as manager
   const storeParam = storeIdParam ? `?store_id=${storeIdParam}` : '';
   const storeParamAnd = storeIdParam ? `&store_id=${storeIdParam}` : '';
