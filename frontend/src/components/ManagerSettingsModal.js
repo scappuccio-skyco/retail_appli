@@ -7,6 +7,9 @@ import confetti from 'canvas-confetti';
 import AchievementModal from './AchievementModal';
 
 export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalType = 'objectives', storeIdParam = null }) {
+  // 🧪 DEBUG: Vérifier que le composant se charge
+  console.log('🔍 [DEBUG] ManagerSettingsModal rendered, isOpen:', isOpen);
+  
   const [activeTab, setActiveTab] = useState(
     modalType === 'objectives' ? 'create_objective' : 'create_challenge'
   ); // 'create_objective', 'active_objectives', 'completed_objectives', 'create_challenge', 'active_challenges', 'completed_challenges'
@@ -877,8 +880,33 @@ export default function ManagerSettingsModal({ isOpen, onClose, onUpdate, modalT
 
   if (!isOpen) return null;
 
+  // 🧪 DEBUG: Vérifier avant le return
+  console.log('🔍 [DEBUG] ManagerSettingsModal about to render, isOpen:', isOpen);
+  
+  if (!isOpen) {
+    console.log('⚠️ [DEBUG] ManagerSettingsModal isOpen is false, not rendering');
+    return null;
+  }
+  
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }} className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      {/* 🧪 BOUTON TEST CONFETTI FLOATING - TRÈS VISIBLE - EN HAUT À DROITE - AVANT TOUT */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          console.log('🧪 [TEST] Test confetti button clicked!');
+          triggerConfetti();
+        }}
+        className="fixed top-24 right-6 z-[99999] px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-2xl border-4 border-yellow-700 text-base transition-all hover:scale-110 animate-pulse"
+        style={{ 
+          zIndex: 99999,
+          boxShadow: '0 8px 16px rgba(0, 0, 0, 0.5)',
+          position: 'fixed'
+        }}
+        title="Cliquez pour tester les confettis"
+      >
+        🧪 TEST CONFETTI
+      </button>
       <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className={`sticky top-0 p-6 flex justify-between items-center border-b border-gray-200 ${

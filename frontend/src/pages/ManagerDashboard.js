@@ -26,6 +26,7 @@ import { getManagerSteps } from '../components/onboarding/managerSteps';
 import { useOnboarding } from '../hooks/useOnboarding';
 import { api } from '../lib/apiClient';
 import { logger } from '../utils/logger';
+import confetti from 'canvas-confetti';
 
 // Component for progress indicator
 const ProgressIndicator = ({ label, emoji, target, progress, type = 'currency', colorScheme = 'blue' }) => {
@@ -611,6 +612,21 @@ export default function ManagerDashboard({ user, onLogout }) {
     );
   }
 
+  // 🧪 BOUTON TEST CONFETTI - TOUJOURS VISIBLE SUR LE DASHBOARD
+  const TestConfettiButton = () => (
+    <button
+      onClick={testConfetti}
+      className="fixed top-4 right-4 z-[99999] px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg shadow-2xl border-4 border-yellow-700 text-base transition-all hover:scale-110 animate-pulse"
+      style={{ 
+        zIndex: 99999,
+        boxShadow: '0 8px 16px rgba(0, 0, 0, 0.5)'
+      }}
+      title="Cliquez pour tester les confettis"
+    >
+      🧪 TEST CONFETTI
+    </button>
+  );
+
   // Helper function to render sections based on order
   const renderSection = (sectionId) => {
     const sections = {
@@ -789,6 +805,9 @@ export default function ManagerDashboard({ user, onLogout }) {
           </div>
         </div>
       )}
+      
+      {/* 🧪 BOUTON TEST CONFETTI - TOUJOURS VISIBLE */}
+      <TestConfettiButton />
       
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
