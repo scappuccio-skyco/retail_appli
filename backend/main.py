@@ -69,23 +69,28 @@ print("[STARTUP] 8/10 - FastAPI app created", flush=True)
 # Configure CORS - CRITICAL for production
 # ⚠️ allow_credentials=True + "*" = ERREUR EN PROD
 # Force explicit list for production
+# ALWAYS include production domains regardless of CORS_ORIGINS setting
+production_origins = [
+    "https://retailperformerai.com",
+    "https://www.retailperformerai.com",
+    "https://api.retailperformerai.com",  # Allow API subdomain for internal requests
+]
+
 if settings.CORS_ORIGINS == "*":
     # Default to production URLs if wildcard is set
     logger.warning("CORS_ORIGINS set to '*' - using explicit production origins")
-    allowed_origins = [
-        "https://retailperformerai.com",
-        "https://www.retailperformerai.com",
-        "https://api.retailperformerai.com",  # Allow API subdomain for internal requests
-    ]
+    allowed_origins = production_origins.copy()
 else:
     # Parse comma-separated list and strip whitespace
-    parsed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
-    # Ensure production URLs are always included
-    allowed_origins = list(set(parsed_origins + [
-        "https://retailperformerai.com",
-        "https://www.retailperformerai.com",
-        "https://api.retailperformerai.com",  # Allow API subdomain for internal requests
-    ]))
+    parsed_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
+    # Merge with production origins (ensure no duplicates)
+    allowed_origins = list(set(parsed_origins + production_origins))
+
+# Additional safety: Always ensure production domains are present
+for origin in production_origins:
+    if origin not in allowed_origins:
+        allowed_origins.append(origin)
+        logger.warning(f"Added missing production origin to CORS: {origin}")
 
 logger.info(f"CORS allowed origins: {allowed_origins}")
 print(f"[STARTUP] CORS origins: {allowed_origins}", flush=True)
@@ -103,12 +108,28 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],  # Explicit methods including OPTIONS for preflight
-    allow_headers=["*"],
-    expose_headers=["Content-Disposition", "Content-Type", "Content-Length"],  # Expose headers for PDF downloads
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],  # Explicit methods including OPTIONS for preflight
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+        "X-API-Key",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers",
+    ],
+    expose_headers=[
+        "Content-Disposition",
+        "Content-Type",
+        "Content-Length",
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Credentials",
+    ],
     max_age=3600,  # Cache preflight requests for 1 hour
 )
 print("[STARTUP] 9/10 - CORS middleware added", flush=True)
+print(f"[STARTUP] CORS configured with {len(allowed_origins)} allowed origins", flush=True)
 
 # Include all routers
 print(f"[STARTUP] Registering {len(routers)} routers...", flush=True)

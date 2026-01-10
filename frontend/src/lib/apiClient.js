@@ -48,6 +48,8 @@ function cleanUrl(url) {
 const apiClient = axios.create({
   baseURL: `${API_BASE}/api`,
   timeout: 30000,
+  // Note: withCredentials is NOT needed since we use Authorization Bearer token
+  // withCredentials: true would require stricter CORS configuration
   headers: {
     'Content-Type': 'application/json',
   },
