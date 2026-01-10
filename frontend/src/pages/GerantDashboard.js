@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key, UserCog, Info, Lock, Headphones, Store } from 'lucide-react';
+import { LogOut, Plus, Building2, Users, TrendingUp, BarChart3, Settings, Key, UserCog, Info, Lock, Headphones, Store, FileText } from 'lucide-react';
 import CreateStoreModal from '../components/gerant/CreateStoreModal';
 import TutorialButton from '../components/onboarding/TutorialButton';
 import OnboardingModal from '../components/onboarding/OnboardingModal';
@@ -20,6 +20,7 @@ import SupportModal from '../components/SupportModal';
 import APIKeysManagement from '../components/gerant/APIKeysManagement';
 import StaffOverview from '../components/gerant/StaffOverview';
 import StoresManagement from '../components/gerant/StoresManagement';
+import BillingProfileModal from '../components/gerant/BillingProfileModal';
 
 const GerantDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ const GerantDashboard = ({ user, onLogout }) => {
   const [showInviteStaffModal, setShowInviteStaffModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showBillingProfileModal, setShowBillingProfileModal] = useState(false);
   
   // Onboarding
   const onboarding = useOnboarding(gerantSteps.length);
@@ -568,6 +570,14 @@ const GerantDashboard = ({ user, onLogout }) => {
             </div>
 
             <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+              <button
+                onClick={() => setShowBillingProfileModal(true)}
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white font-medium rounded-lg hover:shadow-lg transition-all text-xs sm:text-sm"
+                title="Informations de facturation B2B"
+              >
+                <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden md:inline">Facturation</span>
+              </button>
               <button
                 onClick={() => setShowSubscriptionModal(true)}
                 className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-[#1E40AF] to-[#1E3A8A] text-white font-medium rounded-lg hover:shadow-lg transition-all text-xs sm:text-sm"
@@ -1195,6 +1205,16 @@ const GerantDashboard = ({ user, onLogout }) => {
       <SupportModal 
         isOpen={showSupportModal}
         onClose={() => setShowSupportModal(false)}
+      />
+
+      {/* Billing Profile Modal */}
+      <BillingProfileModal
+        isOpen={showBillingProfileModal}
+        onClose={() => setShowBillingProfileModal(false)}
+        onSuccess={() => {
+          toast.success('Profil de facturation enregistré avec succès !');
+          // Rafraîchir les informations si nécessaire
+        }}
       />
 
       {/* Onboarding Modal */}
