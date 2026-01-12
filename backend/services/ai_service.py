@@ -1118,7 +1118,8 @@ Génère un bilan terrain motivant avec :
         manager_name: str,
         store_name: str,
         context: Optional[str] = None,
-        data_date: Optional[str] = None  # Date des données (dernier jour avec data)
+        data_date: Optional[str] = None,  # Date des données (dernier jour avec data)
+        objective_daily: Optional[float] = None  # Objectif CA du jour saisi par le manager
     ) -> Dict:
         """
         Génère le script du brief matinal pour le manager.
@@ -1135,7 +1136,7 @@ Génère un bilan terrain motivant avec :
         """
         # Si OpenAI n'est pas disponible, utiliser le fallback
         if not self.available:
-            return self._fallback_morning_brief(stats, manager_name, store_name, data_date)
+            return self._fallback_morning_brief(stats, manager_name, store_name, data_date, objective_daily)
         
         try:
             # Construire l'instruction de contexte
@@ -1162,6 +1163,19 @@ Génère un bilan terrain motivant avec :
             else:
                 data_date_french = "hier"
             
+            # ⭐ Calculer la progression nécessaire si objectif et CA veille disponibles
+            progression_text = ""
+            ca_yesterday = stats.get('ca_yesterday', stats.get('ca_hier', 0)) or 0
+            if objective_daily and objective_daily > 0 and ca_yesterday > 0:
+                progression_pct = ((objective_daily / ca_yesterday) - 1) * 100
+                # Si le pourcentage est démesuré (> 500%), ne pas insister dessus
+                if progression_pct > 500:
+                    progression_text = f"\n\nOBJECTIF DU JOUR : {objective_daily:,.0f}€\n→ Nouvel objectif ambitieux pour aujourd'hui. Concentrons-nous sur l'atteinte de cet objectif sans comparer avec hier (écart trop important)."
+                else:
+                    progression_text = f"\n\nOBJECTIF DU JOUR : {objective_daily:,.0f}€\n→ Pour atteindre cet objectif, nous devons faire {progression_pct:+.1f}% par rapport à {data_date_french.lower()} ({ca_yesterday:,.0f}€)."
+            elif objective_daily and objective_daily > 0:
+                progression_text = f"\n\nOBJECTIF DU JOUR : {objective_daily:,.0f}€\n→ Nouvel objectif ambitieux pour aujourd'hui."
+            
             # Prompt système pour le brief
             system_prompt = f"""Tu es le bras droit d'un Manager Retail.
 Tu rédiges le script du BRIEF MATINAL (3 minutes max à lire) pour l'équipe.
@@ -1186,25 +1200,31 @@ STRUCTURE ATTENDUE (Markdown) :
 (Une phrase d'accroche chaleureuse pour lancer la journée. Si le manager a donné une consigne, intègre-la naturellement ici.)
 
 ### 2. 📊 Flash-Back ({data_date_french})
-- **CA réalisé** : X€ (vs Objectif Y€ → +/-Z%)
+⚠️ IMPORTANT : Le Flash-Back doit UNIQUEMENT afficher le CA réalisé du dernier jour travaillé.
+Format : "{data_date_french} : X€"
+- **CA réalisé** : X€ (UNIQUEMENT le montant, SANS comparaison ni pourcentage)
 - **Top Performance** : (Mets en avant LE chiffre positif le plus marquant)
 - **Point de vigilance** : (Si un KPI est faible, mentionne-le brièvement)
+❌ NE PAS mentionner d'objectif ou de pourcentage dans le Flash-Back.
 
-### 3. 🎯 La Mission du Jour
+### 3. 💰 Objectif du Jour
+{progression_text if progression_text else "(Si un objectif CA du jour est fourni, affiche-le ici avec la progression nécessaire par rapport à hier. Sinon, cette section peut être omise ou intégrée dans la Mission du Jour.)"}
+
+### 4. 🎯 La Mission du Jour
 (UN objectif clair et mesurable pour l'équipe. Basé sur les chiffres OU sur la consigne du manager.)
 
-### 4. 🎲 Le Challenge "Café" ☕
+### 5. 🎲 Le Challenge "Café" ☕
 (Une idée de mini-défi fun et rapide - premier à X gagne un café, qui fait le plus de Y, etc.)
 
-### 5. 🚀 Le Mot de la Fin
+### 6. 🚀 Le Mot de la Fin
 (Une citation motivante OU une phrase boost personnalisée pour l'équipe.)
 
 ---
 *Brief généré par Retail Performer AI*
 """
             
-            # Formater les stats pour le prompt utilisateur
-            stats_text = self._format_brief_stats(stats)
+            # Formater les stats pour le prompt utilisateur (sans objectif dans le flashback)
+            stats_text = self._format_brief_stats(stats, include_objective=False)
             
             user_prompt = f"""Génère le brief matinal pour {manager_name}, manager du magasin "{store_name}".
 
@@ -1214,7 +1234,10 @@ DONNÉES DU {data_date_french.upper()} (dernier jour travaillé) :
 ÉQUIPE PRÉSENTE AUJOURD'HUI :
 {stats.get('team_present', 'Non renseigné')}
 
-Génère un brief motivant et concret basé sur ces données."""
+{progression_text if progression_text else ""}
+
+Génère un brief motivant et concret basé sur ces données.
+⚠️ RAPPEL : Le Flash-Back doit UNIQUEMENT mentionner le CA réalisé ({data_date_french.lower()}), SANS comparaison ni objectif."""
 
             # Appel à l'IA
             response = await self._send_message(
@@ -1240,12 +1263,12 @@ Génère un brief motivant et concret basé sur ces données."""
                     "generated_at": datetime.now(timezone.utc).isoformat()
                 }
             else:
-                return self._fallback_morning_brief(stats, manager_name, store_name, data_date)
+                return self._fallback_morning_brief(stats, manager_name, store_name, data_date, objective_daily)
                 
         except Exception as e:
             import traceback
             logger.error(f"Erreur génération brief matinal: {str(e)}\n{traceback.format_exc()}")
-            return self._fallback_morning_brief(stats, manager_name, store_name, data_date)
+            return self._fallback_morning_brief(stats, manager_name, store_name, data_date, objective_daily)
     
     def _parse_brief_to_structured(self, markdown_brief: str) -> Optional[Dict]:
         """
@@ -1287,7 +1310,15 @@ Génère un brief motivant et concret basé sur ces données."""
                     # Extraire les points clés du flashback
                     structured["flashback"] = content
                     
-                elif any(kw in section_lower for kw in ['mission', 'objectif', 'focus', '🎯']):
+                elif any(kw in section_lower for kw in ['objectif du jour', '💰 objectif']):
+                    # ⭐ Section "Objectif du Jour" - prioritaire sur "Mission"
+                    # Peut être stockée dans focus ou team_question selon le contexte
+                    if not structured["focus"]:
+                        structured["focus"] = content
+                    elif not structured["team_question"]:
+                        structured["team_question"] = content
+                    
+                elif any(kw in section_lower for kw in ['mission', 'focus', '🎯']):
                     structured["focus"] = content
                     # Extraire les exemples/méthodes (lignes avec - ou •)
                     examples = re.findall(r'^[-•]\s*(.+)$', content, re.MULTILINE)
@@ -1324,7 +1355,7 @@ Génère un brief motivant et concret basé sur ces données."""
         
         return f"{day_name} {day_num} {month_name} {year}"
     
-    def _format_brief_stats(self, stats: Dict) -> str:
+    def _format_brief_stats(self, stats: Dict, include_objective: bool = True) -> str:
         """Formate les statistiques pour le brief matinal"""
         lines = []
         
@@ -1334,10 +1365,11 @@ Génère un brief motivant et concret basé sur ces données."""
         
         if ca_hier:
             lines.append(f"- CA d'hier : {ca_hier:,.0f}€")
-            if obj_hier and obj_hier > 0:
-                perf = ((ca_hier / obj_hier) - 1) * 100
-                emoji = "✅" if perf >= 0 else "⚠️"
-                lines.append(f"  → Objectif : {obj_hier:,.0f}€ ({emoji} {perf:+.1f}%)")
+            # ⭐ Ne plus inclure la comparaison avec l'objectif dans le flashback
+            # if obj_hier and obj_hier > 0 and include_objective:
+            #     perf = ((ca_hier / obj_hier) - 1) * 100
+            #     emoji = "✅" if perf >= 0 else "⚠️"
+            #     lines.append(f"  → Objectif : {obj_hier:,.0f}€ ({emoji} {perf:+.1f}%)")
         
         # Nombre de ventes
         ventes = stats.get('ventes_yesterday', stats.get('nb_ventes_hier', 0))
@@ -1376,11 +1408,33 @@ Génère un brief motivant et concret basé sur ces données."""
         
         return "\n".join(lines) if lines else "Pas de données disponibles pour hier"
     
-    def _fallback_morning_brief(self, stats: Dict, manager_name: str, store_name: str, data_date: Optional[str] = None) -> Dict:
+    def _fallback_morning_brief(self, stats: Dict, manager_name: str, store_name: str, data_date: Optional[str] = None, objective_daily: Optional[float] = None) -> Dict:
         """Brief de fallback si l'IA n'est pas disponible (mode test)"""
         today = datetime.now(timezone.utc).date().isoformat()
         today_french = datetime.now().strftime("%A %d %B %Y").capitalize()
         ca_hier = stats.get('ca_yesterday', stats.get('ca_hier', 0))
+        
+        # Calculer la progression si objectif disponible
+        objective_section = ""
+        if objective_daily and objective_daily > 0:
+            if ca_hier > 0:
+                progression_pct = ((objective_daily / ca_hier) - 1) * 100
+                if progression_pct > 500:
+                    objective_section = f"""### 3. 💰 Objectif du Jour
+Nouvel objectif ambitieux pour aujourd'hui : {objective_daily:,.0f}€
+
+"""
+                else:
+                    objective_section = f"""### 3. 💰 Objectif du Jour
+Objectif du jour : {objective_daily:,.0f}€
+Pour atteindre cet objectif, nous devons faire {progression_pct:+.1f}% par rapport à hier ({ca_hier:,.0f}€).
+
+"""
+            else:
+                objective_section = f"""### 3. 💰 Objectif du Jour
+Nouvel objectif ambitieux pour aujourd'hui : {objective_daily:,.0f}€
+
+"""
         
         fallback_brief = f"""# ☕ Brief du Matin - {today_french}
 ## {store_name}
@@ -1392,13 +1446,13 @@ Bonjour l'équipe ! Une nouvelle journée commence, pleine d'opportunités !
 - **CA réalisé** : {ca_hier:,.0f}€
 - Continuons sur cette lancée !
 
-### 3. 🎯 La Mission du Jour
+{objective_section}### 4. 🎯 La Mission du Jour
 Objectif : Dépasser notre CA d'hier et offrir une expérience client exceptionnelle !
 
-### 4. 🎲 Le Challenge "Café" ☕
+### 5. 🎲 Le Challenge "Café" ☕
 Le premier à atteindre 500€ de CA gagne un café offert par le manager !
 
-### 5. 🚀 Le Mot de la Fin
+### 6. 🚀 Le Mot de la Fin
 "Le succès est la somme de petits efforts répétés jour après jour." - Robert Collier
 
 ---
